@@ -6,14 +6,12 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_GROUP_OBJECT_CLASS;
-
-import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_QNAME;
-
-import static com.evolveum.midpoint.test.IntegrationTestTools.createEntitleDelta;
-
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
+
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.ORG_RELATED;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_GROUP_OBJECT_CLASS;
+import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_QNAME;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -24,12 +22,6 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
-
-import com.evolveum.midpoint.test.*;
-
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -39,8 +31,8 @@ import com.evolveum.icf.dummy.resource.*;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -48,9 +40,16 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.RawRepoShadow;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.DummyTestResource;
+import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -78,17 +77,18 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     private static final File ROLE_WIMP_FILE = new File(TEST_DIR, "role-wimp.xml");
     private static final String ROLE_WIMP_OID = "10000000-0000-0000-0000-000000001604";
 
-    private static final File ROLE_MAPMAKER_FILE = new File(TEST_DIR, "role-mapmaker.xml");
-    private static final String ROLE_MAPMAKER_OID = "10000000-0000-0000-0000-000000001605";
+    private static final TestObject<RoleType> ROLE_MAPMAKER = TestObject.file(
+            TEST_DIR, "role-mapmaker.xml", "10000000-0000-0000-0000-000000001605");
+
+    private static final TestObject<RoleType> ROLE_MAPMAKER_LANDLUBER = TestObject.file(
+            TEST_DIR, "role-mapmaker-landluber.xml", "f8e07106-612a-4536-8efd-4ce5f6751479");
 
     private static final File ROLE_BRUTE_FILE = new File(TEST_DIR, "role-brute.xml");
     private static final String ROLE_BRUTE_OID = "10000000-0000-0000-0000-000000001606";
-    public static final String ROLE_BRUTE_NAME = "Brute";
     private static final String GROUP_BRUTE_NAME = "brute";
 
     private static final File ROLE_THUG_FILE = new File(TEST_DIR, "role-thug.xml");
     private static final String ROLE_THUG_OID = "10000000-0000-0000-0000-000000001607";
-    public static final String ROLE_THUG_NAME = "Thug";
     private static final String GROUP_THUG_NAME = "thug";
 
     private static final File ROLE_ORG_GROUPING_FILE = new File(TEST_DIR, "role-org-grouping.xml");
@@ -106,9 +106,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     private static final String GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION = "Scurvy swashbucklers";
 
     private static final File SHADOW_GROUP_DUMMY_SWASHBUCKLERS_BLUE_FILE = new File(TEST_DIR, "group-swashbucklers-blue.xml");
-    public static final String SHADOW_GROUP_DUMMY_SWASHBUCKLERS_BLUE_OID = "20000000-0000-0000-3333-020400000001";
-    public static final String GROUP_DUMMY_SWASHBUCKLERS_BLUE_NAME = "swashbucklers";
-    public static final String GROUP_DUMMY_SWASHBUCKLERS_BLUE_DESCRIPTION = "Scurvy blue swashbucklers";
 
     private static final File SHADOW_GROUP_DUMMY_LANDLUBERS_FILE = new File(TEST_DIR, "group-landlubers.xml");
     private static final String SHADOW_GROUP_DUMMY_LANDLUBERS_OID = "20000000-0000-0000-3333-000000000003";
@@ -130,6 +127,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     private static final TestObject<ShadowType> SHADOW_MAPMAKERS_DEAD = TestObject.file(
             TEST_DIR, "group-mapmakers-dead.xml", "1ff68c92-d526-4cfb-8df5-539bc5fdd097");
 
+    private static final TestObject<ShadowType> SHADOW_CHESS_DEAD = TestObject.file(
+            TEST_DIR, "group-chess-dead.xml", "43bf9f91-5487-487b-aa3c-0eda2ba66f79");
+
     private static final TestObject<ShadowType> SHADOW_GUYBRUSH_DEAD = TestObject.file(
             TEST_DIR, "account-guybrush-dead.xml", "2947d268-1d43-4114-bd4c-f4aa723d884a");
 
@@ -150,8 +150,15 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
             TEST_DIR, "metarole-art.xml", "bf1178f4-d59a-47d1-b00b-f696b7bf6565");
     private static final TestObject<RoleType> ROLE_BASKETBALL = TestObject.file(
             TEST_DIR, "role-basketball.xml", "d2aa8c0f-7883-4c36-8446-7b4ddbf8b0a3");
+    private static final TestObject<RoleType> ROLE_CHESS = TestObject.file(
+            TEST_DIR, "role-chess.xml", "8d5c099c-bbdc-4584-a5eb-4931319d09b6");
     private static final TestObject<RoleType> ROLE_MUSIC = TestObject.file(
             TEST_DIR, "role-music.xml", "1095efcd-6677-4adc-b1d7-984014b2b87b");
+
+    private static final TestObject<RoleType> ROLE_BASKETBALL_AND_MUSIC_SEARCH_ON_RESOURCE = TestObject.file(
+            TEST_DIR, "role-basketball-and-music-search-on-resource.xml", "ebe81254-8447-472e-bbc6-94555330909c");
+    private static final TestObject<RoleType> ROLE_BASKETBALL_AND_MUSIC_SEARCH_IN_REPOSITORY = TestObject.file(
+            TEST_DIR, "role-basketball-and-music-search-in-repository.xml", "8b6ae92c-d5b8-4b1f-9e98-86751621cca6");
 
     private ActivationType jackSwashbucklerAssignmentActivation;
 
@@ -162,7 +169,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         importObjectFromFile(ROLE_SWASHBUCKLER_FILE);
         importObjectFromFile(ROLE_SWASHBUCKLER_BLUE_FILE);
         importObjectFromFile(ROLE_LANDLUBER_FILE);
-        importObjectFromFile(ROLE_MAPMAKER_FILE);
         importObjectFromFile(ROLE_CREW_OF_GUYBRUSH_FILE);
         importObjectFromFile(ROLE_ORG_GROUPING_FILE);
         importObjectFromFile(ROLE_ORG_GROUPING_REPO_FILE);
@@ -172,13 +178,16 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
                 METAROLE_SPORT,
                 METAROLE_ART,
                 ROLE_BASKETBALL,
-                ROLE_MUSIC);
+                ROLE_CHESS,
+                ROLE_MUSIC,
+                ROLE_MAPMAKER,
+                ROLE_MAPMAKER_LANDLUBER,
+                ROLE_BASKETBALL_AND_MUSIC_SEARCH_ON_RESOURCE,
+                ROLE_BASKETBALL_AND_MUSIC_SEARCH_IN_REPOSITORY);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         rememberSteadyResources();
-//
-//        setGlobalTracingOverride(createModelLoggingTracingProfile());
     }
 
     /**
@@ -360,7 +369,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        assignRole(user.getOid(), ROLE_MAPMAKER_OID, task, result);
+        assignRole(user.getOid(), ROLE_MAPMAKER.oid, task, result);
 
         // THEN
         then();
@@ -369,9 +378,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertGroupMember(GROUP_DUMMY_LANDLUBERS_NAME, USER_WALLY_NAME, getDummyResource());
         assertGroupMember(GROUP_DUMMY_MAPMAKERS_NAME, USER_WALLY_NAME, getDummyResource());
 
-        PrismObject<ShadowType> groupLandlubersShadow = findShadowByName(RESOURCE_DUMMY_GROUP_OBJECTCLASS, GROUP_DUMMY_LANDLUBERS_NAME, getDummyResourceObject(), result);
-        PrismObject<ShadowType> groupMapmakersShadow = findLiveShadowByName(RESOURCE_DUMMY_GROUP_OBJECTCLASS, GROUP_DUMMY_MAPMAKERS_NAME, getDummyResourceObject(), result);
-        assertShadow(groupMapmakersShadow, "mapmakers shadow")
+        assertShadow(findMapmakersShadow(), List.of(), "mapmakers shadow")
                 .assertKind(ShadowKindType.ENTITLEMENT)
                 .assertIntent("group");
 
@@ -381,12 +388,22 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         assertModelShadow(accountWallyOid)
                 .associations()
-                .assertSize(2)
+                .assertSize(1)
                 .association(RESOURCE_DUMMY_ASSOCIATION_GROUP_QNAME)
-                .assertShadowOids(groupLandlubersShadow.getOid(), groupMapmakersShadow.getOid());
+                .assertShadowOids(findLandlubersShadow().getOid(), findMapmakersShadow().getOid());
 
         // Check if the dead group shadow does not cause problems when fetching the member account.
         provisioningService.getObject(ShadowType.class, accountWallyOid, null, task, result);
+    }
+
+    private RawRepoShadow findMapmakersShadow() throws SchemaException, ConfigurationException {
+        return findLiveShadowByName(
+                RESOURCE_DUMMY_GROUP_OBJECTCLASS, GROUP_DUMMY_MAPMAKERS_NAME, getDummyResourceObject(), getTestOperationResult());
+    }
+
+    private RawRepoShadow findLandlubersShadow() throws SchemaException, ConfigurationException {
+        return findShadowByName(
+                RESOURCE_DUMMY_GROUP_OBJECTCLASS, GROUP_DUMMY_LANDLUBERS_NAME, getDummyResourceObject(), getTestOperationResult());
     }
 
     @Test
@@ -398,7 +415,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        unassignRole(user.getOid(), ROLE_MAPMAKER_OID, task, result);
+        unassignRole(user.getOid(), ROLE_MAPMAKER.oid, task, result);
 
         // THEN
         then();
@@ -426,8 +443,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_WIMPS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
         displayDumpable("Group", dummyGroup);
-//        assertEquals("Wrong group description", GROUP_DUMMY_LANDLUBERS_DESCRIPTION,
-//                dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         assertNoGroupMembers(dummyGroup);
 
         DummyGroup dummyGroupAtOrange = getDummyResource(RESOURCE_DUMMY_ORANGE_NAME).getGroupByName(GROUP_DUMMY_WIMPS_NAME);
@@ -632,7 +647,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        modifyUserReplace(USER_LARGO_OID, UserType.F_NAME, task, result, PrismTestUtil.createPolyString("newLargo"));
+        modifyUserReplace(USER_LARGO_OID, UserType.F_NAME, task, result, PolyString.fromOrig("newLargo"));
 
         // THEN
         then();
@@ -951,7 +966,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userRappAfter = getUser(USER_RAPP_OID);
         display("User rapp after", userRappAfter);
         String rappShadowOid = getSingleLinkOid(userRappAfter);
-        PrismObject<ShadowType> rappShadow = getShadowModel(rappShadowOid);
+        var rappShadow = getAbstractShadowModel(rappShadowOid);
         display("Shadow rapp", rappShadow);
         assertAssociation(rappShadow, RESOURCE_DUMMY_ORANGE_ASSOCIATION_CREW_QNAME, guybrushShadowOid);
 
@@ -1019,6 +1034,29 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertNoDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_RAPP_USERNAME);
 
         assertSteadyResources();
+    }
+
+    @Test
+    public void test360AssignCombinedRole() throws Exception {
+        when("creating user with combined role (mapmaker/landluber)");
+        var userOid = addObject(
+                new UserType()
+                        .name("test360")
+                        .assignment(ROLE_MAPMAKER_LANDLUBER.assignmentTo())
+                        .asPrismObject());
+
+        then("operation is OK");
+        assertSuccess();
+
+        and("entitlements are there");
+        assertUserAfter(userOid)
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .singleLink()
+                .resolveTarget()
+                .associations()
+                .assertSize(1)
+                .association(RESOURCE_DUMMY_ASSOCIATION_GROUP_QNAME)
+                .assertShadowOids(findLandlubersShadow().getOid(), findMapmakersShadow().getOid());
     }
 
     @Test
@@ -1328,6 +1366,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         assertGroupMember(getDummyGroup(null, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
 
+        // TODO beware, the clock was overridden, so we may need something more aggressive here
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_OID);
+
         // WHEN
         when();
         reconcileUser(USER_GUYBRUSH_OID, task, result);
@@ -1337,7 +1378,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         dumpUserAndAccounts(getUser(USER_GUYBRUSH_OID), task, result);
         assertNoGroupMember(getDummyGroup(null, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
 
-        assertSteadyResources();
+        assertSteadyResourcesAfterInvalidation();
     }
 
     /**
@@ -1372,7 +1413,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_ORANGE_OID, "default", task, result);
         dumpUserAndAccounts(USER_GUYBRUSH_OID);
 
-        PrismObject<ShadowType> orangeAccount = findAccountShadowByUsername(
+        var orangeAccount = findAccountShadowByUsername(
                 USER_GUYBRUSH_USERNAME, getDummyResourceObject(RESOURCE_DUMMY_ORANGE_NAME), true, result);
         assertNotNull("No orange account for guybrush", orangeAccount);
 
@@ -1659,6 +1700,8 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         dummyGroup.removeMember(USER_GUYBRUSH_USERNAME);
         assertNoGroupMember(getDummyGroup(null, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
 
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_OID);
+
         // WHEN
         when();
         reconcileUser(USER_GUYBRUSH_OID, task, result);
@@ -1668,7 +1711,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         dumpUserAndAccounts(getUser(USER_GUYBRUSH_OID), task, result);
         assertGroupMember(getDummyGroup(null, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
 
-        assertSteadyResources();
+        assertSteadyResourcesAfterInvalidation();
     }
 
     @Test
@@ -2385,6 +2428,94 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertNoGroupMember(ROLE_MUSIC.getNameOrig(), userName, RESOURCE_DUMMY_WILD_ASSOCIATIONS.getDummyResource());
     }
 
+    /**
+     * Using `associationTargetSearch` on association with multiple intents; searching on resource.
+     *
+     * MID-9561/9565.
+     */
+    @Test
+    public void test920AssociationTargetSearchMultipleIntentsOnResource() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        String userName = "test920";
+
+        when("user with 'assignmentTargetSearch' role is created");
+        UserType user = new UserType()
+                .name(userName)
+                .assignment(ROLE_BASKETBALL_AND_MUSIC_SEARCH_ON_RESOURCE.assignmentTo());
+
+        addObject(user, task, result);
+
+        then("account with appropriate group memberships exists");
+
+        assertDummyAccount(RESOURCE_DUMMY_WILD_ASSOCIATIONS.name, userName);
+        assertGroupMember(ROLE_BASKETBALL.getNameOrig(), userName, RESOURCE_DUMMY_WILD_ASSOCIATIONS.getDummyResource());
+        assertGroupMember(ROLE_MUSIC.getNameOrig(), userName, RESOURCE_DUMMY_WILD_ASSOCIATIONS.getDummyResource());
+    }
+
+    /**
+     * Using `associationTargetSearch` on association with multiple intents; searching in repository.
+     *
+     * MID-9561/9565.
+     */
+    @Test
+    public void test925AssociationTargetSearchMultipleIntentsInRepository() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        String userName = "test925";
+
+        when("user with 'assignmentTargetSearch' role is created");
+        UserType user = new UserType()
+                .name(userName)
+                .assignment(ROLE_BASKETBALL_AND_MUSIC_SEARCH_IN_REPOSITORY.assignmentTo());
+
+        addObject(user, task, result);
+
+        then("account with appropriate group memberships exists");
+        assertDummyAccount(RESOURCE_DUMMY_WILD_ASSOCIATIONS.name, userName);
+        assertGroupMember(ROLE_BASKETBALL.getNameOrig(), userName, RESOURCE_DUMMY_WILD_ASSOCIATIONS.getDummyResource());
+        assertGroupMember(ROLE_MUSIC.getNameOrig(), userName, RESOURCE_DUMMY_WILD_ASSOCIATIONS.getDummyResource());
+    }
+
+    /**
+     * Using `associationFromLink` with a dead shadow.
+     *
+     * MID-9468, MID-9487.
+     */
+    @Test
+    public void test930AssociationFromLinkWithDeadShadow() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        String userName = "test930";
+
+        given("a dead shadow for 'chess' role");
+        repoAdd(SHADOW_CHESS_DEAD, result);
+        repositoryService.modifyObject(
+                RoleType.class,
+                ROLE_CHESS.oid,
+                deltaFor(RoleType.class)
+                        .item(RoleType.F_LINK_REF)
+                        .add(new ObjectReferenceType()
+                                .oid(SHADOW_CHESS_DEAD.oid)
+                                .type(ShadowType.COMPLEX_TYPE)
+                                .relation(ORG_RELATED))
+                        .asItemDeltas(),
+                result);
+
+        when("user with role 'chess' is created");
+        UserType user = new UserType()
+                .name(userName)
+                .assignment(ROLE_CHESS.assignmentTo());
+
+        addObject(user, task, result);
+
+        then("operation is OK and account with appropriate group memberships exists");
+        assertSuccess(result);
+
+        assertDummyAccount(RESOURCE_DUMMY_WILD_ASSOCIATIONS.name, userName);
+        assertGroupMember(ROLE_CHESS.getNameOrig(), userName, RESOURCE_DUMMY_WILD_ASSOCIATIONS.getDummyResource());
+    }
+
     private void assertJackClean() throws SchemaViolationException, ConflictException, ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, InterruptedException {
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User before", userBefore);
@@ -2450,6 +2581,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         }
     }
 
+    @SuppressWarnings("SameParameterValue")
     private PrismObject<UserType> dumpUserAndAccounts(String userOid)
             throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException,
             SecurityViolationException, ExpressionEvaluationException {
@@ -2500,12 +2632,13 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         System.out.println("--------------------------------------------- Orange End ----------------");
     }
 
+    @SuppressWarnings("SameParameterValue")
     private PrismObject<ShadowType> getGroupShadow(DummyResourceContoller dummyResourceCtl, QName objectClass, String name, Task task,
             OperationResult result) throws Exception {
         PrismObject<ResourceType> resource = dummyResourceCtl.getResource();
         ResourceObjectClassDefinition groupDef = ResourceSchemaFactory.getCompleteSchema(resource)
-                .findObjectClassDefinition(RI_GROUP_OBJECT_CLASS);
-        ResourceAttributeDefinition<?> nameDef = groupDef.findAttributeDefinition(SchemaConstants.ICFS_NAME);
+                .findObjectClassDefinitionRequired(RI_GROUP_OBJECT_CLASS);
+        ShadowSimpleAttributeDefinition<?> nameDef = groupDef.findSimpleAttributeDefinition(SchemaConstants.ICFS_NAME);
         assertNotNull("No icfs:name definition", nameDef);
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(resource.getOid(), objectClass)
                 .and().item(SchemaConstants.ICFS_NAME_PATH, nameDef).eq(name)
@@ -2531,7 +2664,4 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         displayDumpable("group", dummyGroup);
         assertNoGroupMember(dummyGroup, accountName);
     }
-
 }
-
-

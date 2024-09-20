@@ -1,0 +1,102 @@
+= Resource Specific Operations
+:page-nav-title: Resource Specific
+:page-display-order: 600
+:page-toc: top
+:page-keywords: [ 'rest', 'resource', 'test', 'import', 'operation' ]
+:page-upkeep-status: green
+
+== Description
+A set of operations which are specific for objects of the "Resource" type residing on the "resources" endpoint.
+
+== Request
+
+For the request you should use the HTTP POST method. The URI of the request itself depends on the type of operation.
+There are TWO types of operation requests which are described on this page.
+
+.*Test Resource* operation using HTTP POST
+[source, http]
+----
+POST http://localhost:8080/midpoint/ws/rest/resources/{oid}/test
+----
+
+.*Import From Resource* operation using HTTP POST
+[source, http]
+----
+POST http://localhost:8080/midpoint/ws/rest/resources/{oid}/import/{objectClass}
+----
+
+=== Headers
+
+Regarding authorization type, the "Basic" Authorization header should be used.
+
+.Authorization header example replace {Base64EncodedCredentials} with the encoded credentials
+[source, http]
+----
+Authorization: Basic {Base64EncodedCredentials}
+----
+
+To specify the provided content type, please use the "Content-Type" header
+payload in the body:
+
+.Content type header example, other media types are supported as well
+[source, http]
+----
+"Content-Type: application/json"
+----
+
+You might need to specify the accepted type of content in case
+you are interested in a format different from xml (default):
+
+.Accept type header example, other media types are supported as well
+[source, http]
+----
+"Accept: application/json"
+----
+
+.For supported media types please refer to the following section of the documentation
+xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+
+=== Body
+The resource specific operations do not need to contain any specific payload data in the body of the
+request.
+
+=== Options
+There are no supported operation options for this type of operation.
+
+include::../../rest/concepts/raw/outcome.adoc[]
+
+== Access Authorization
+
+include::../operations/raw/a-auth.adoc[]
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#testResource+`
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#importFromResource+`
+
+== Model Authorization
+
+include::../operations/raw/m-auth.adoc[]
+
+For the test operation:
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#test+`
+
+For the import operation:
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#importFromResource+`
+
+== Examples
+
+include::../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+include::../../rest/operations/examples/raw/test-resource.adoc[]
+include::../../rest/operations/examples/raw/import-from-resource.adoc[]
+
+== See Also
+
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]
+- xref:/midpoint/reference/security/authorization/service/[]

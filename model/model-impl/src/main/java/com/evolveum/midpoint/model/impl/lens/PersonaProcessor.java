@@ -126,12 +126,12 @@ public class PersonaProcessor {
                     }
 
                     @Override
-                    public void onAssigned(PersonaKey key, String desc) {
+                    public void onAssigned(PersonaKey key, String desc, Task task, OperationResult lResult) {
                         activePersonaKeyTriple.addToPlusSet(key);
                     }
 
                     @Override
-                    public void onUnchangedValid(PersonaKey key, String desc) {
+                    public void onUnchangedValid(PersonaKey key, String desc, Task task, OperationResult lResult) {
                         activePersonaKeyTriple.addToZeroSet(key);
                     }
 
@@ -153,8 +153,9 @@ public class PersonaProcessor {
         DeltaMapTriple<PersonaKey, EvaluatedConstructionPack<EvaluatedPersonaConstructionImpl<F>>> constructionMapTriple =
             constructionProcessor.distributeConstructions(evaluatedAssignmentTriple,
                     EvaluatedAssignmentImpl::getPersonaConstructionTriple,
-                    evaluatedConstruction -> new PersonaKey(this, evaluatedConstruction.getConstruction().getConstructionBean()),
-                    consumer);
+                    evaluatedConstruction ->
+                            new PersonaKey(this, evaluatedConstruction.getConstruction().getConstructionBean()),
+                    consumer, task, result);
 
         LOGGER.trace("activePersonaKeyTriple:\n{}", activePersonaKeyTriple.debugDumpLazily(1));
 

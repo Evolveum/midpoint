@@ -9,6 +9,10 @@ package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.prism.Referencable;
+
+import com.evolveum.midpoint.provisioning.impl.operations.OperationsHelper;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,7 +28,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
@@ -53,14 +56,21 @@ public class ShadowAuditHelper {
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
-    public void auditEvent(@NotNull AuditEventType event, @Nullable ShadowType shadow, @NotNull ProvisioningContext ctx,
+    /** For actions without specific UCF modify operations, like ADD, DELETE, DISCOVER. */
+    public void auditEvent(
+            @NotNull AuditEventType event, @Nullable ShadowType shadow, @NotNull ProvisioningContext ctx,
             @NotNull OperationResult result) throws SchemaException {
 
         auditEvent(event, shadow, null, ctx, result);
     }
 
-    public void auditEvent(@NotNull AuditEventType event, @Nullable ShadowType shadow, @Nullable Collection<Operation> operationsWave,
-            @NotNull ProvisioningContext ctx, @NotNull OperationResult result) throws SchemaException {
+    /** For actions where we have specific UCF modify operations, like object MODIFY. */
+    public void auditEvent(
+            @NotNull AuditEventType event,
+            @Nullable ShadowType shadow,
+            @Nullable Collection<Operation> ucfOperationsExecuted,
+            @NotNull ProvisioningContext ctx,
+            @NotNull OperationResult result) throws SchemaException {
 
         Task task = ctx.getTask();
         SystemConfigurationType systemConfiguration = systemObjectCache.getSystemConfigurationBean(result);
@@ -73,13 +83,16 @@ public class ShadowAuditHelper {
 
         AuditEventRecord auditRecord = new AuditEventRecord(event, AuditEventStage.RESOURCE);
         auditRecord.setRequestIdentifier(operationContext.requestIdentifier());
-        if (shadow == null && ctx.getAssociationShadowRef() != null) {
-            ObjectReferenceType shadowRef = ctx.getAssociationShadowRef();
-            try {
-                shadow = repositoryService.getObject(ShadowType.class, shadowRef.getOid(), null, result).asObjectable();
-            } catch (Exception ex) {
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Couldn't get shadow with reference " + shadowRef, ex);
+        if (shadow == null) {
+            ObjectReferenceType associationShadowRef = ctx.getAssociationShadowRef();
+            String associationShadowOid = Referencable.getOid(associationShadowRef);
+            if (associationShadowOid != null) {
+                try {
+                    shadow = repositoryService
+                            .getObject(ShadowType.class, associationShadowOid, null, result)
+                            .asObjectable();
+                } catch (Exception ex) {
+                    LOGGER.debug("Couldn't get association shadow with reference {}", associationShadowRef, ex);
                 }
             }
         }
@@ -99,7 +112,7 @@ public class ShadowAuditHelper {
 
         auditRecord.setOutcome(clone.getStatus());
 
-        ObjectDeltaOperation<ShadowType> delta = createDelta(event, shadow, operationsWave, clone, ctx);
+        ObjectDeltaOperation<ShadowType> delta = createDelta(event, shadow, ucfOperationsExecuted, clone, ctx);
         if (delta != null) {
             auditRecord.addDelta(delta);
         }
@@ -113,21 +126,31 @@ public class ShadowAuditHelper {
         PrismObject<ShadowType> object = shadow != null ? shadow.asPrismObject() : null;
 
         for (SystemConfigurationAuditEventRecordingPropertyType property : auditConfiguration.getPropertiesToRecord()) {
-            auditHelper.evaluateAuditRecordProperty(property, auditRecord, object,
-                    operationContext.expressionProfile(), task, result);
+            auditHelper.evaluateAuditRecordProperty(
+                    property, auditRecord, object, operationContext.expressionProfile(), task, result);
         }
 
         if (auditConfiguration.getEventRecordingExpression() != null) {
             // MID-6839
-            auditRecord = auditHelper.evaluateRecordingExpression(auditConfiguration.getEventRecordingExpression(), auditRecord, object,
-                    operationContext.expressionProfile(), operationContext.expressionEnvironmentSupplier(), ctx.getTask(), result);
+            auditRecord = auditHelper.evaluateRecordingExpression(
+                    auditConfiguration.getEventRecordingExpression(),
+                    auditRecord,
+                    object,
+                    operationContext.expressionProfile(),
+                    operationContext.expressionEnvironmentSupplier(),
+                    ctx.getTask(),
+                    result);
         }
 
         if (auditRecord == null) {
             return;
         }
-
-        ObjectDeltaSchemaLevelUtil.NameResolver nameResolver = (objectClass, oid) -> repositoryService.getObject(objectClass, oid, null, result).getName();
+        // TODO: We should have better API for name resolution instead of getObject()
+        ObjectDeltaSchemaLevelUtil.NameResolver nameResolver =
+                (objectClass, oid, lResult) ->
+                        repositoryService
+                                .getObject(objectClass, oid, null, lResult)
+                                .getName();
 
         auditHelper.audit(auditRecord, nameResolver, ctx.getTask(), result);
     }
@@ -155,20 +178,17 @@ public class ShadowAuditHelper {
                     .createEmptyDelta(ShadowType.class, shadow.getOid(), ChangeType.MODIFY);
 
             for (Operation operation : operations) {
-                if (operation instanceof PropertyModificationOperation) {
-                    PropertyModificationOperation<?> propertyOp = (PropertyModificationOperation<?>) operation;
-                    PropertyDelta<?> pDelta = propertyOp.getPropertyDelta().clone();
-                    delta.addModification(pDelta);
+                if (operation instanceof PropertyModificationOperation<?> propertyOp) {
+                    delta.addModification(
+                            propertyOp.getPropertyDelta().clone());
                 }
             }
         }
 
         if (delta != null) {
-            ObjectDeltaOperation deltaOperation = new ObjectDeltaOperation<>(delta, result);
+            ObjectDeltaOperation<ShadowType> deltaOperation = new ObjectDeltaOperation<>(delta, result);
             deltaOperation.setObjectName(object.getName());
-            if (ctx != null) {
-                deltaOperation.setResourceName(ctx.getResource().getName().toPolyString());
-            }
+            deltaOperation.setResourceName(ctx.getResource().getName().toPolyString());
             return deltaOperation;
         }
 

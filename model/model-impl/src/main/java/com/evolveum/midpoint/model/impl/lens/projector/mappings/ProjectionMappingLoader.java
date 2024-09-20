@@ -6,58 +6,56 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector.mappings;
 
-import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * @author semancik
  *
  */
-public class ProjectionMappingLoader<F extends ObjectType> implements MappingLoader<ShadowType> {
+public class ProjectionMappingLoader implements MappingLoader<ShadowType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ProjectionMappingLoader.class);
 
     private final LensProjectionContext projectionContext;
     private final ContextLoader contextLoader;
+    /** Ugly hack. */
+    private final LoadedStateProvider loadedStateProvider;
 
-    public ProjectionMappingLoader(LensProjectionContext projectionContext, ContextLoader contextLoader) {
+    public ProjectionMappingLoader(
+            LensProjectionContext projectionContext,
+            ContextLoader contextLoader,
+            LoadedStateProvider loadedStateProvider) {
         this.projectionContext = projectionContext;
         this.contextLoader = contextLoader;
+        this.loadedStateProvider = loadedStateProvider;
     }
 
     @Override
-    public boolean isLoaded() {
-        return projectionContext.hasFullShadow();
+    public boolean isLoaded() throws SchemaException, ConfigurationException {
+        return loadedStateProvider.isLoaded();
     }
 
     @Override
     public PrismObject<ShadowType> load(String loadReason, Task task, OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, NotLoadedException {
         contextLoader.loadFullShadow(projectionContext, loadReason, task, result);
-        if (SynchronizationPolicyDecision.BROKEN.equals(projectionContext.getSynchronizationPolicyDecision())) {
-            LOGGER.debug("Attempt to load full object for {} failed, projection context is broken", projectionContext.getHumanReadableName());
-            throw new ObjectNotFoundException("Projection loading failed, projection broken"); // TODO is this correct exception?
+        if (projectionContext.isBroken()) {
+            LOGGER.debug("Attempt to load full object for {} failed, projection context is broken", projectionContext);
+            throw new NotLoadedException("Context is broken");
         }
         if (projectionContext.isGone()) {
             LOGGER.debug("Projection {} is gone", projectionContext.getHumanReadableName());
-            throw new ObjectNotFoundException("Projection loading failed, projection gone"); // TODO is this correct exception?
+            throw new NotLoadedException("Projection is gone");
         }
         return projectionContext.getObjectCurrent();
     }
-
 }

@@ -15,6 +15,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.model.impl.correlation.CorrelationServiceImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +43,6 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -85,8 +86,6 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
         processProjectionValues(context, projectionContext, activityDescription, task, result);
         context.checkConsistenceIfNeeded();
-        projectionContext.recompute();
-        context.checkConsistenceIfNeeded();
     }
 
     private <F extends FocusType> void processProjectionValues(LensContext<F> context,
@@ -110,9 +109,11 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
 
         context.checkConsistenceIfNeeded();
 
+        // In the future, we can require an indication of attributes and other items used for these computations,
+        // so that we can determine if we should load the shadow.
         if (!projContext.hasFullShadow() && hasIterationExpression(projContext)) {
             contextLoader.loadFullShadow(projContext, "iteration expression", task, result);
-            if (projContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
+            if (projContext.isBroken()) {
                 return;
             }
         }
@@ -171,7 +172,6 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
                     // Re-evaluates the values in the account constructions (including roles) - currently no-op!
                     assignmentProcessor.processAssignmentsAccountValues(projContext, iterationResult);
 
-                    context.recompute();
                     context.checkConsistenceIfNeeded();
 
                     // Evaluates the values in outbound mappings
@@ -320,7 +320,8 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
 
             iteration++;
             iterationToken = null;
-            LensUtil.checkMaxIterations(iteration, maxIterations, conflictMessage, projContext.getHumanReadableName());
+            //TODO use conflict message and human readable conflict message
+            LensUtil.checkMaxIterations(iteration, maxIterations, conflictMessage, new SingleLocalizableMessage(conflictMessage));
 
             cleanupContext(projContext, null, rememberedProjectionState);
             context.checkConsistenceIfNeeded();
@@ -471,14 +472,14 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             return false;
         }
         LOGGER.trace("willResetIterationCounter: projectionDelta is\n{}", projectionDelta.debugDumpLazily());
-        ResourceObjectDefinition oOcDef = projectionContext.getCompositeObjectDefinition();
-        for (ResourceAttributeDefinition<?> identifierDef: oOcDef.getPrimaryIdentifiers()) {
+        ResourceObjectDefinition oOcDef = projectionContext.getCompositeObjectDefinitionRequired();
+        for (ShadowSimpleAttributeDefinition<?> identifierDef: oOcDef.getPrimaryIdentifiers()) {
             ItemPath identifierPath = ItemPath.create(ShadowType.F_ATTRIBUTES, identifierDef.getItemName());
             if (projectionDelta.findPropertyDelta(identifierPath) != null) {
                 return true;
             }
         }
-        for (ResourceAttributeDefinition<?> identifierDef: oOcDef.getSecondaryIdentifiers()) {
+        for (ShadowSimpleAttributeDefinition<?> identifierDef: oOcDef.getSecondaryIdentifiers()) {
             ItemPath identifierPath = ItemPath.create(ShadowType.F_ATTRIBUTES, identifierDef.getItemName());
             if (projectionDelta.findPropertyDelta(identifierPath) != null) {
                 return true;
@@ -566,32 +567,29 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             return;
         }
 
-        ResourceObjectDefinition rAccountDef = accountContext.getCompositeObjectDefinition();
-        if (rAccountDef == null) {
-            throw new SchemaException("No definition for account type '"
-                    +accountContext.getKey()+"' in "+accountContext.getResource());
-        }
+        ResourceObjectDefinition rAccountDef = accountContext.getCompositeObjectDefinitionRequired();
 
         if (primaryDelta.isAdd()) {
             PrismObject<ShadowType> accountToAdd = primaryDelta.getObjectToAdd();
-            ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(accountToAdd);
+            ShadowAttributesContainer attributesContainer = ShadowUtil.getAttributesContainer(accountToAdd);
             if (attributesContainer != null) {
-                for (ResourceAttribute<?> attribute: attributesContainer.getAttributes()) {
-                    ResourceAttributeDefinition<?> rAttrDef = requireNonNull(rAccountDef.findAttributeDefinition(attribute.getElementName()));
-                    if (!rAttrDef.isTolerant()) {
-                        throw new PolicyViolationException("Attempt to add object with non-tolerant attribute "+attribute.getElementName()+" in "+
-                                "account "+accountContext.getKey()+" during "+activityDescription);
+                for (var attribute: attributesContainer.getAttributes()) {
+                    var attrDef = rAccountDef.findAttributeDefinitionRequired(attribute.getElementName());
+                    if (!attrDef.isTolerant()) {
+                        throw new PolicyViolationException(
+                                "Attempt to add object with non-tolerant attribute '%s' in projection %s during %s".formatted(
+                                        attribute.getElementName(), accountContext.getKey(), activityDescription));
                     }
                 }
             }
         } else if (primaryDelta.isModify()) {
-            for(ItemDelta<?,?> modification: primaryDelta.getModifications()) {
-                if (modification.getParentPath().equivalent(SchemaConstants.PATH_ATTRIBUTES)) {
-                    PropertyDelta<?> attrDelta = (PropertyDelta<?>) modification;
-                    ResourceAttributeDefinition<?> rAttrDef = requireNonNull(rAccountDef.findAttributeDefinition(attrDelta.getElementName()));
-                    if (!rAttrDef.isTolerant()) {
-                        throw new PolicyViolationException("Attempt to modify non-tolerant attribute "+attrDelta.getElementName()+" in "+
-                                "account "+accountContext.getKey()+" during "+activityDescription);
+            for (ItemDelta<?, ?> modification : primaryDelta.getModifications()) {
+                if (modification.getParentPath().equivalent(ShadowType.F_ATTRIBUTES)) {
+                    var attrDef = rAccountDef.findAttributeDefinitionRequired(modification.getElementName());
+                    if (!attrDef.isTolerant()) {
+                        throw new PolicyViolationException(
+                                "Attempt to modify non-tolerant attribute '%s' in account %s during %s".formatted(
+                                        modification.getElementName(), accountContext.getKey(), activityDescription));
                     }
                 }
             }
@@ -616,7 +614,6 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
         //  This was implemented before but it's missing now.
 
         accountContext.clearIntermediateResults();
-        accountContext.recompute();
     }
 
     /**
@@ -668,8 +665,6 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
         }
 
         consolidationProcessor.consolidateValuesPostRecon(projContext, task, result);
-        context.checkConsistenceIfNeeded();
-        projContext.recompute();
         context.checkConsistenceIfNeeded();
     }
 }

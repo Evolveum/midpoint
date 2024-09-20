@@ -85,6 +85,10 @@ public class ObjectTypeListUtil {
         qnameList.add(AuditEventRecordType.COMPLEX_TYPE);
         qnameList.add(AccessCertificationCaseType.COMPLEX_TYPE);
         qnameList.add(CaseWorkItemType.COMPLEX_TYPE);
+        return sortTypesList(qnameList);
+    }
+
+    public static List<QName> sortTypesList(List<QName> qnameList) {
         return qnameList.stream().sorted((type1, type2) -> {
             Validate.notNull(type1);
             Validate.notNull(type2);
@@ -129,6 +133,7 @@ public class ObjectTypeListUtil {
         focusTypeList.add(OrgType.COMPLEX_TYPE);
         focusTypeList.add(RoleType.COMPLEX_TYPE);
         focusTypeList.add(ServiceType.COMPLEX_TYPE);
+        focusTypeList.add(PolicyType.COMPLEX_TYPE);
 
         if (includeAbstractType) {
             focusTypeList.add(FocusType.COMPLEX_TYPE);
@@ -145,6 +150,7 @@ public class ObjectTypeListUtil {
         focusTypeList.add(OrgType.COMPLEX_TYPE);
         focusTypeList.add(RoleType.COMPLEX_TYPE);
         focusTypeList.add(ServiceType.COMPLEX_TYPE);
+        focusTypeList.add(PolicyType.COMPLEX_TYPE);
 
         return focusTypeList;
     }
@@ -156,6 +162,7 @@ public class ObjectTypeListUtil {
         focusTypeList.add(ObjectTypes.ORG);
         focusTypeList.add(ObjectTypes.ROLE);
         focusTypeList.add(ObjectTypes.SERVICE);
+        focusTypeList.add(ObjectTypes.POLICY);
 
         return focusTypeList;
     }

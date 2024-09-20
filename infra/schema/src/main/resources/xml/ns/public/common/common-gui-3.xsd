@@ -250,8 +250,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Specifies scripting hook which can modify operation results or messages
-                            before they are shown in UI.
+                            Specifies configuration that can modify messages before they are shown in UI.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -336,7 +335,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.4</a:since>
-                        <a:displayName>AdminGuiConfigurationType.useNewDesign</a:displayName>
+                        <a:displayName>AdminGuiConfigurationType.homePage</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -379,6 +378,9 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
+                <a:schemaContext>
+                    <a:type>UserType</a:type>
+                </a:schemaContext>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -550,6 +552,7 @@
             <xsd:appinfo>
                 <a:container>true</a:container>
                 <a:since>4.6</a:since>
+                <a:naturalKey>tns:identifier</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -778,6 +781,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:displayName>RichHyperlinkType.details</a:displayName>
+                <a:naturalKey>tns:targetUrl</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -1187,6 +1191,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>3.7</a:since>
+                <a:naturalKey>tns:type</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -1231,6 +1236,7 @@
                 <a:since>4.4</a:since>
                 <a:displayName>GuiObjectDetailsPageType.details</a:displayName>
                 <a:experimental/>
+                <a:merger>GuiShadowDetailsPageType</a:merger>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -1275,6 +1281,8 @@
                 <a:since>4.6</a:since>
                 <a:displayName>GuiResourceDetailsPageType.details</a:displayName>
                 <a:experimental/>
+                <a:naturalKey>tns:type</a:naturalKey>
+                <a:naturalKey>tns:connectorRef</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -1303,6 +1311,7 @@
                 <a:container/>
                 <a:since>3.7</a:since>
                 <a:displayName>GuiObjectDetailsPageType.details</a:displayName>
+                <a:merger>GuiObjectDetailsPageType</a:merger>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -1483,12 +1492,13 @@
                 block such as personal info, basic info, additional info. Each of this
                 section should have only attributes which belong to it, e.g. given name,
                 family name, date of the birth are attributes corresponding to the personal info.
-                Basic info section will contains attributes describing organizationalUnit, emailAddress
+                Basic info section will contain attributes describing organizationalUnit, emailAddress
                 or job position and additional info will contain attributes about user's nickname and so on.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.0</a:since>
+                <a:naturalKey>tns:identifier</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -1536,6 +1546,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.0</a:since>
+                <a:naturalKey>tns:path</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -1553,6 +1564,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="mandatory" type="xsd:boolean" minOccurs="0" default="false"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -1565,6 +1577,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>3.6.1</a:since>
+                <a:naturalKey>tns:identifier</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -2050,6 +2063,9 @@
                     <a:version>4.4</a:version>
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
+                <a:schemaContext>
+                    <a:typePath>type</a:typePath>
+                </a:schemaContext>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -2644,6 +2660,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.2</a:since>
+                <a:merger>SearchItemType</a:merger>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -2868,6 +2885,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>3.6</a:since>
+                <a:naturalKey>tns:name</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <!-- TODO: maybe we want this to be subtype of UserInterfaceFeatureType? -->
@@ -3275,7 +3293,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="metricRef" type="tns:SimulationMetricReferenceType"/>
+            <xsd:element name="metricRef" type="tns:SimulationMetricReferenceType" minOccurs="0"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -3416,6 +3434,7 @@
                 <a:since>4.0</a:since>
                 <a:displayName>DashboardWidgetDataFieldType.details</a:displayName>
                 <a:experimental>true</a:experimental>
+                <a:merger>DashboardWidgetDataFieldType</a:merger>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -3499,6 +3518,7 @@
                 <a:since>4.0</a:since>
                 <a:displayName>DashboardWidgetVariationType.details</a:displayName>
                 <a:experimental>true</a:experimental>
+                <a:merger>DashboardWidgetVariationType</a:merger>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -3568,8 +3588,23 @@
         <xsd:sequence>
             <xsd:element name="operationResultHook" type="tns:ExpressionType" minOccurs="0">
                 <xsd:annotation>
+                    <xsd:documentation>
+                        Specifies scripting hook which can modify operation results or messages
+                        before they are shown in UI.
+                    </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>FeedbackMessagesHookType.operationResultHook</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element minOccurs="0" name="stackTraceVisibility" type="tns:UserInterfaceElementVisibilityType" default="visible">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Visibility for stack trace in feedback messages of GUI.
+                        Relevant values are 'visible' and 'hidden'. Default value is 'visible'.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>FeedbackMessagesHookType.stackTraceVisibility</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -3764,6 +3799,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.0</a:since>
+                <a:merger>CollectionSpecificationType</a:merger>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -3992,7 +4028,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="taskTemplateRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                    <xsd:element name="taskTemplateRef" type="tns:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Reference to task template. The template will be used to start a new task
@@ -4005,13 +4041,59 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="target" type="tns:RedirectionTargetType" minOccurs="0" maxOccurs="1">
+                    <xsd:element name="target" type="tns:RedirectionTargetType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Specifies the target (page/panel/url) for redirect action.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>GuiActionType.target</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="panel" type="tns:ContainerPanelConfigurationType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Defines the panel that will be presented to the user after action is fired
+                                    (but before action execution).
+                                    The panel can provide the interface to configure the action (setting the parameters
+                                    or other additional settings).
+                                    E.g.: confirmation panel before action execution, report parameters configuration
+                                    panel while running the report (not implemented yet), etc.
+                                </p>
+                                <p>
+                                    For now, it is used only for the configuration of the menu item actions on the
+                                    certification items view panel.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>GuiActionType.panel</a:displayName>
+                                <a:elaborate>true</a:elaborate>
+                                <a:since>4.9</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="parameter" type="tns:GuiParameterType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Specifies the parameter which should be processed while executing the action.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>GuiActionType.parameter</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Specifies the parameter which should be processed while executing the action.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>GuiActionType.parameter</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -4613,6 +4695,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.6</a:since>
+                <a:naturalKey>tns:identifier</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -4693,6 +4776,8 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.6</a:since>
+                <a:naturalKey>tns:identifier</a:naturalKey>
+                <a:naturalKey>tns:type</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -4726,5 +4811,122 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+
+    <!--<xsd:complexType name="GuiParametersType">-->
+    <!--    <xsd:annotation>-->
+    <!--        <xsd:documentation>-->
+    <!--            Parameters which are used in GUI, e.g. when an action runs.-->
+    <!--        </xsd:documentation>-->
+    <!--        <xsd:appinfo>-->
+    <!--            <a:container>true</a:container>-->
+    <!--            <a:since>4.9</a:since>-->
+    <!--        </xsd:appinfo>-->
+    <!--    </xsd:annotation>-->
+    <!--    <xsd:sequence>-->
+    <!--        <xsd:element name="parameter" type="tns:GuiParameterType" minOccurs="0" maxOccurs="unbounded">-->
+    <!--            <xsd:annotation>-->
+    <!--                <xsd:documentation>-->
+    <!--                    TODO: documentation-->
+    <!--                </xsd:documentation>-->
+    <!--                <xsd:appinfo>-->
+    <!--                    <a:displayName>GuiParameterType.parameter</a:displayName>-->
+    <!--                </xsd:appinfo>-->
+    <!--            </xsd:annotation>-->
+    <!--        </xsd:element>-->
+    <!--    </xsd:sequence>-->
+    <!--</xsd:complexType>-->
+
+    <xsd:complexType name="GuiParameterType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Parameter which can be used within GUI.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:ParameterType">
+                <xsd:sequence>
+                    <xsd:element name="display" type="tns:DisplayType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Defines the characteristics of the parameter to be displayed in the GUI.
+                                E.g. label, help text, etc.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>GuiParameterType.display</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="mandatory" type="xsd:boolean" minOccurs="0" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Defines if the parameter is mandatory.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>GuiParameterType.mandatory</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="path" type="t:ItemPathType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Defines path to the attribute.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>GuiParameterType.path</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="manual" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Defines if the parameter is requested to be set by user
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>GuiParameterType.manual</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <!--<xsd:simpleType name="GuiParameterTypeType">-->
+    <!--    <xsd:annotation>-->
+    <!--        <xsd:documentation>-->
+    <!--            if the parameter is request from user, or if it is derived from other parameters.-->
+    <!--        </xsd:documentation>-->
+    <!--        <xsd:appinfo>-->
+    <!--            <a:since>4.9</a:since>-->
+    <!--        </xsd:appinfo>-->
+    <!--    </xsd:annotation>-->
+    <!--    <xsd:restriction base="xsd:string">-->
+    <!--        <xsd:enumeration value="manual">-->
+    <!--            <xsd:annotation>-->
+    <!--                <xsd:documentation>-->
+    <!--                    Requires user input-->
+    <!--                </xsd:documentation>-->
+    <!--                <xsd:appinfo>-->
+    <!--                    <jaxb:typesafeEnumMember name="MANUAL"/>-->
+    <!--                </xsd:appinfo>-->
+    <!--            </xsd:annotation>-->
+    <!--        </xsd:enumeration>-->
+    <!--        <xsd:enumeration value="automatic">-->
+    <!--            <xsd:annotation>-->
+    <!--                <xsd:documentation>-->
+    <!--                    Gives the possibility to select individual items without possibility to select all at once.-->
+    <!--                </xsd:documentation>-->
+    <!--                <xsd:appinfo>-->
+    <!--                    <jaxb:typesafeEnumMember name="AUTOMATIC"/>-->
+    <!--                </xsd:appinfo>-->
+    <!--            </xsd:annotation>-->
+    <!--        </xsd:enumeration>-->
+    <!--    </xsd:restriction>-->
+    <!--</xsd:simpleType>-->
+
 
 </xsd:schema>

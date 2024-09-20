@@ -1,0 +1,12 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Modify Resource*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Content-Type: application/json" \
+-X PATCH http://localhost:8080/midpoint/ws/rest/resources/ef2bc95b-76e0-59e2-86d6-9999cccccccc \
+-v \
+--data-binary @./samples/rest/modify-attribute-resource.json -v
+----

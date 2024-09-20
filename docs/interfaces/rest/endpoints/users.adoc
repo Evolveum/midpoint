@@ -1,0 +1,166 @@
+= User Type REST Endpoint
+:page-nav-title: User
+:page-display-order: 200
+:page-toc: top
+:page-keywords: [ 'rest', 'user', 'endpoint' ]
+:page-upkeep-status: green
+
+== User Type REST Endpoint
+
+Here we are describing the User object type in relation to midPoints REST API. The
+User objects are a part of the REST API web resources.
+
+.Endpoint
+[source, http]
+----
+users/
+----
+
+== Operations And Examples
+
+The User web resource is a part of the Create-Read-Update-Delete (CRUD) web resources
+present in midPoint. This is apparent in the operations which are available for this type of object.
+
+include::../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+
+=== Create User Object
+
+include::../operations/examples/raw/create-user-jack.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]
+
+=== Get User Object
+
+Get operation for fetching a single specific object.
+
+include::../operations/examples/raw/get-user-administrator.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/get-op-rest/[Get Operation]
+
+=== Search for User Objects
+
+Search operation usable for fetching the full list of objects or a list based on filter.
+
+include::../operations/examples/raw/search-name-users.adoc[]
+
+include::../operations/examples/raw/search-gen-name.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[Search Operation]
+
+=== Modify User Objects
+
+
+include::../operations/examples/raw/modify-attr-user.adoc[]
+
+include::../operations/examples/raw/modify-attr.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/modify-op-rest/[Modify Operation]
+
+=== Delete User Objects
+
+Object deletion.
+
+include::../operations/examples/raw/delete-user.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/delete-op-rest/[Delete Operation]
+
+=== User Object Specific Operations
+
+A set of operations specific for the User REST objects. i.e. password reset and others.
+
+include::../operations/examples/raw/user-pwd-reset.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/user-specific-op-rest/[User specific Operations]
+
+=== Generate and Validate Operations for User Objects
+
+Operations to generate or validate values, here we have an example of a simple password generate use-case.
+
+include::../operations/examples/raw/user-pwd-generate.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]
+
+== Common Use-case Examples
+
+1. xref:/midpoint/reference/interfaces/rest/operations/examples/create-user/[Create User]
+2. xref:/midpoint/reference/interfaces/rest/operations/examples/get-user-unique-id/[Get User Based on his unique identificator]
+3. xref:/midpoint/reference/interfaces/rest/operations/examples/get-user-self/[Get Users data with direct and indirect assignments]
+4. xref:/midpoint/reference/interfaces/rest/operations/examples/access-request/[User access request]
+5. xref:/midpoint/reference/interfaces/rest/operations/examples/access-request-approval/[Access request review]
+
+== UserType JSON Example
+
+Example output of information regarding a specific object. Some data vas omitted to simplify the example.
+
+.Show JSON Example
+[%collapsible]
+====
+[source, json]
+----
+{
+  "user" : {
+    "oid" : "00000000-0000-0000-0000-000000000002",
+    "name" : "administrator",
+    "indestructible" : true,
+    "assignment" : [ {
+      "@id" : 1,
+      "identifier" : "superuserRole",
+      "targetRef" : {
+        "oid" : "00000000-0000-0000-0000-000000000004",
+        "relation" : "org:default",
+        "type" : "c:RoleType"
+      },
+      "activation" : {
+        "effectiveStatus" : "enabled"
+      }
+    }, {
+      "@id" : 2,
+      "identifier" : "archetype",
+      "targetRef" : {
+        "oid" : "00000000-0000-0000-0000-000000000300",
+        "relation" : "org:default",
+        "type" : "c:ArchetypeType"
+      },
+      "activation" : {
+        "effectiveStatus" : "enabled"
+      }
+    } ],
+    "iteration" : 0,
+    "iterationToken" : "",
+    "archetypeRef" : {
+      "oid" : "00000000-0000-0000-0000-000000000300",
+      "relation" : "org:default",
+      "type" : "c:ArchetypeType"
+    },
+    "roleMembershipRef" : [ {
+      "oid" : "00000000-0000-0000-0000-000000000300",
+      "relation" : "org:default",
+      "type" : "c:ArchetypeType"
+    }, {
+      "oid" : "00000000-0000-0000-0000-000000000004",
+      "relation" : "org:default",
+      "type" : "c:RoleType"
+    } ],
+    "credentials" : {
+      "password" : {
+        "value" : {
+          "clearValue" : "5ecr3t"
+      }
+    },
+    "fullName" : "midPoint Administrator",
+    "givenName" : "midPoint",
+    "familyName" : "Administrator"
+  }
+}
+}
+----
+====
+
+== See Also
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]

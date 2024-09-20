@@ -1,0 +1,64 @@
+---
+midpoint-feature: approval-process
+doc-type: intro
+---
+= Policy-based approvals
+:page-wiki-name: Policy-based approvals
+:page-wiki-id: 36569442
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-09-12T10:07:40.804+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2019-09-12T11:06:20.322+02:00
+:page-upkeep-status: yellow
+
+MidPoint is identity management and governance system, therefore it is quite natural that it implements an xref:/midpoint/reference/cases/approval/[approval] mechanism.
+
+However, the mechanism that midPoint employs to drive the approvals is quite unique.
+Almost all other IDM systems used workflow engine to drive the approvals.
+MidPoint did the same thing in the past, but it was not a good approach.
+It was difficult to set up and maintain the processes.
+Therefore, midPoint slowly drifted away from the use of workflow engine until it was replaced by declarative policy in midPoint 4.0.
+
+Current mechanism to drive approvals is based on policies rather than processes.
+There are xref:/midpoint/reference/roles-policies/policy-rules/[policy rules] that specify individual aspects of an approvals.
+For example the rules may look like:
+
+* Some roles are assigned automatically based on organizational structure membership.
+Assignment of those roles is not approved.
+
+* Assignment of all ad-hoc roles must be approved by the line manager of the requesting user.
+
+* Assignment of roles for applications X, Y and Z must be approved by business owners of those applications.
+
+* Assignment of sensitive roles must be approved by security office.
+
+* Assignment of controlling roles must comply with xref:/midpoint/reference/roles-policies/segregation-of-duties/[segregation of duties] (SoD) policy.
+Exceptions are not possible.
+
+* Some business roles are subject to a different SoD policy.
+But in this case exceptions are possible and can be approved by the security office.
+
+* All approval decisions must be escalated if they are not decided within a week.
+Escalation pattern follows functional organizational structure.
+
+Those are typical enterprise approval rules.
+They are not that complex in themselves.
+However, try to imagine a business process that needs to be in place to drive approvals based on such rules.
+It will be a complete nightmare to design such process.
+The process needs to adapt to set of roles that are requested.
+The process needs to account all the conditional states, all the checks and optional steps, all the combinations and so on.
+And it would be even worse to maintain that process.
+This is one of the aspects that made IDM solutions so expensive to deploy and even more expensive to maintain.
+
+However, midPoint can compute such process in a dynamic way.
+When a set of roles are requested, midPoint will evaluate the policies, divides the roles into groups, computes the approval steps and runs the approval schemas.
+The algorithm is already implemented as core functionality of midPoint.
+You do not need to re-implement it for each and every deployment.
+And what is even better, it can be easily maintained.
+Change the policies and midPoint will automatically adapt.
+No need to re-draw BPMN diagrams.
+MidPoint does all of that under the hood.
+
+== See Also
+
+* xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules]

@@ -11,6 +11,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -68,6 +72,7 @@ public class PasswordPanel extends InputPanel {
 
     private static final String ID_INPUT_CONTAINER = "inputContainer";
     private static final String ID_PASSWORD_ONE = "password1";
+    private static final String ID_VALIDATION_PROGRESS_BAR = "validationProgressBar";
     private static final String ID_PASSWORD_TWO = "password2";
     private static final String ID_PASSWORD_TWO_VALIDATION_MESSAGE = "password2ValidationMessage";
     private static final String ID_VALIDATION_PANEL = "validationPanel";
@@ -76,20 +81,30 @@ public class PasswordPanel extends InputPanel {
     private final PrismObject<? extends FocusType> prismObject;
     private final IModel<ProtectedStringType> passwordModel;
     protected boolean isReadOnly;
+    private boolean shouldTrimInput = false;
+    private final boolean showOneLinePasswordPanel;
 
-    public PasswordPanel(String id, IModel<ProtectedStringType> passwordModel) {
-        this(id, passwordModel, false, passwordModel == null || passwordModel.getObject() == null);
+    public <F extends FocusType> PasswordPanel(
+            String id,
+            IModel<ProtectedStringType> passwordModel,
+            boolean isReadOnly,
+            boolean isInputVisible,
+            PrismObject<F> prismObject) {
+        this(id, passwordModel, isReadOnly, isInputVisible, false, prismObject);
     }
 
-    public PasswordPanel(String id, IModel<ProtectedStringType> passwordModel, boolean isReadOnly, boolean isInputVisible) {
-        this(id, passwordModel, isReadOnly, isInputVisible, null);
-    }
-
-    public <F extends FocusType> PasswordPanel(String id, IModel<ProtectedStringType> passwordModel, boolean isReadOnly, boolean isInputVisible, PrismObject<F> prismObject) {
+    public <F extends FocusType> PasswordPanel(
+            String id,
+            IModel<ProtectedStringType> passwordModel,
+            boolean isReadOnly,
+            boolean isInputVisible,
+            boolean showOneLinePasswordPanel,
+            PrismObject<F> prismObject) {
         super(id);
         this.passwordInputVisible = isInputVisible;
         this.passwordModel = passwordModel;
         this.isReadOnly = isReadOnly;
+        this.showOneLinePasswordPanel = showOneLinePasswordPanel;
         this.prismObject = prismObject;
         initLayout();
     }
@@ -110,7 +125,7 @@ public class PasswordPanel extends InputPanel {
         setOutputMarkupId(true);
 
         final WebMarkupContainer inputContainer = new WebMarkupContainer(ID_INPUT_CONTAINER);
-        inputContainer.add(new VisibleBehaviour(() -> passwordInputVisible));
+        inputContainer.add(new VisibleBehaviour(this::isPasswordInputVisible));
         inputContainer.setOutputMarkupId(true);
         add(inputContainer);
 
@@ -126,27 +141,55 @@ public class PasswordPanel extends InputPanel {
         validationPanel.setOutputMarkupId(true);
         inputContainer.add(validationPanel);
 
-        final PasswordTextField password1 = new SecureModelPasswordTextField(ID_PASSWORD_ONE, new ProtectedStringModel(passwordModel)) {
+        final PasswordTextField password1 = new SecureModelPasswordTextField(ID_PASSWORD_ONE, new ProtectedStringClearPasswordModel(passwordModel)) {
             private static final long serialVersionUID = 1L;
 
             @Override
             protected void onComponentTag(ComponentTag tag) {
                 super.onComponentTag(tag);
-                tag.remove("value");
+                if (removePasswordValueAttribute()) {
+                    tag.remove("value");
+                }
             }
+
+            @Override
+            protected boolean shouldTrimInput() {
+                return shouldTrimInput;
+            }
+
 
         };
         password1.add(AttributeAppender.append("onfocus", initPasswordValidation()));
         password1.setRequired(false);
         password1.add(new EnableBehaviour(this::canEditPassword));
         password1.setOutputMarkupId(true);
+        password1.add(AttributeAppender.append("aria-label", PageAdminLTE.createStringResourceStatic(getLabelKey())));
         inputContainer.add(password1);
 
+        WebMarkupContainer validationProgressBar = new WebMarkupContainer(ID_VALIDATION_PROGRESS_BAR);
+        validationProgressBar.setOutputMarkupId(true);
+        validationProgressBar.add(new VisibleBehaviour(() -> !showOneLinePasswordPanel));
+        inputContainer.add(validationProgressBar);
+
         final PasswordTextField password2 = new SecureModelPasswordTextField(ID_PASSWORD_TWO,
-                new ProtectedStringModel(Model.of(new ProtectedStringType())));
+                new ProtectedStringClearPasswordModel(Model.of(new ProtectedStringType()))) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected boolean shouldTrimInput() {
+                return shouldTrimInput;
+            }
+
+        };
         password2.setRequired(false);
         password2.setOutputMarkupId(true);
-        password2.add(new EnableBehaviour(this::canEditPassword));
+        password2.add(new VisibleEnableBehaviour(() -> !showOneLinePasswordPanel, this::canEditPassword));
+        password2.add(AttributeAppender.append(
+                "aria-label",
+                LocalizationUtil.translate(
+                        "PasswordPanel.secondPanelLabel",
+                        new Object[] {PageAdminLTE.createStringResourceStatic(getLabelKey()).getString()})));
         inputContainer.add(password2);
 
         password1.add(new AjaxFormComponentUpdatingBehavior("change") {
@@ -164,6 +207,7 @@ public class PasswordPanel extends InputPanel {
         IModel<String> password2ValidationModel = () -> getPasswordMatched(password1.getModelObject(), password2.getValue());
         Label password2ValidationMessage = new Label(ID_PASSWORD_TWO_VALIDATION_MESSAGE, password2ValidationModel);
         password2ValidationMessage.setOutputMarkupId(true);
+        password2ValidationMessage.add(new VisibleBehaviour(() -> !showOneLinePasswordPanel));
         inputContainer.add(password2ValidationMessage);
 
         password1.add(new AjaxFormComponentUpdatingBehavior("keyup input") {
@@ -185,8 +229,10 @@ public class PasswordPanel extends InputPanel {
             }
         });
 
-        PasswordValidator pass2Validator = new PasswordValidator(password1);
-        password2.add(pass2Validator);
+        if (!showOneLinePasswordPanel) {
+            PasswordValidator pass2Validator = new PasswordValidator(password1);
+            password2.add(pass2Validator);
+        }
         password2.add(new AjaxFormComponentUpdatingBehavior("keyup input") {
             private static final long serialVersionUID = 1L;
 
@@ -205,6 +251,14 @@ public class PasswordPanel extends InputPanel {
 
         WebComponentUtil.addAjaxOnUpdateBehavior(inputContainer);
 
+    }
+
+    protected String getLabelKey() {
+        return "CredentialsType.password";
+    }
+
+    protected boolean isPasswordInputVisible() {
+        return passwordInputVisible || getParentPage().getPrincipalFocus() == null;
     }
 
     private String initPasswordValidation() {
@@ -330,7 +384,7 @@ public class PasswordPanel extends InputPanel {
     }
 
     protected boolean isPasswordLimitationPopupVisible() {
-        return true;
+        return !showOneLinePasswordPanel;
     }
 
     protected void updatePasswordValidation(AjaxRequestTarget target) {
@@ -346,5 +400,9 @@ public class PasswordPanel extends InputPanel {
 
     private PageAdminLTE getParentPage() {
         return WebComponentUtil.getPage(PasswordPanel.this, PageAdminLTE.class);
+    }
+
+    protected boolean removePasswordValueAttribute() {
+        return true;
     }
 }

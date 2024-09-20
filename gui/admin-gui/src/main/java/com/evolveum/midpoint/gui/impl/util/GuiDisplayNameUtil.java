@@ -49,7 +49,7 @@ public class GuiDisplayNameUtil {
                 String displayName = (String) displayNameMethod.invoke(null, containerable);
                 return StringEscapeUtils.escapeHtml4(displayName);
             } catch (IllegalAccessException | InvocationTargetException e) {
-                LOGGER.warn("Cannot invoge getDisplayName() method for {}, fallback to default displayName", prismContainerValue);
+                LOGGER.debug("Cannot invoge getDisplayName() method for {}, fallback to default displayName", prismContainerValue);
             }
         }
 
@@ -86,18 +86,30 @@ public class GuiDisplayNameUtil {
         return name;
     }
 
-    public static String getDisplayName(VariableBindingDefinitionType value) {
+    public static String getDisplayName(VariableBindingDefinitionType value, boolean stripVariableSegment) {
         if (value == null) {
             return null;
         }
-        return getDisplayName(value.getPath());
+        return getDisplayName(value.getPath(), stripVariableSegment);
+    }
+
+    public static String getDisplayName(VariableBindingDefinitionType value) {
+        return getDisplayName(value, true);
     }
 
     public static String getDisplayName(ItemPathType value) {
+        return getDisplayName(value, true);
+    }
+
+    public static String getDisplayName(ItemPathType value, boolean stripVariableSegment) {
         if (value == null) {
             return null;
         }
-        return value.getItemPath().stripVariableSegment().toString();
+        ItemPath path = value.getItemPath();
+        if (stripVariableSegment) {
+            path = path.stripVariableSegment();
+        }
+        return path.toString();
     }
 
     public static String getDisplayName(ItemConstraintType constraint) {
@@ -152,6 +164,24 @@ public class GuiDisplayNameUtil {
             return PageBase.createStringResourceStatic("SchemaHandlingType.objectType").getString();
         }
         return sb.toString();
+    }
+
+    public static String getDisplayName(ShadowAssociationTypeDefinitionType associationType) {
+        return getDisplayName(associationType, false);
+    }
+
+    public static String getDisplayName(ShadowAssociationTypeDefinitionType associationType, boolean allowNull) {
+        if (StringUtils.isNotEmpty(associationType.getDisplayName())) {
+            return associationType.getDisplayName();
+        }
+
+        if (associationType.getName() == null || StringUtils.isEmpty(associationType.getName().getLocalPart())) {
+            if (allowNull) {
+                return null;
+            }
+            return PageBase.createStringResourceStatic("SchemaHandlingType.associationType").getString();
+        }
+        return associationType.getName().getLocalPart();
     }
 
     public static String getDisplayName(ExclusionPolicyConstraintType exclusionConstraint) {
@@ -254,7 +284,28 @@ public class GuiDisplayNameUtil {
                 ItemPath.create(
                         ResourceType.F_SCHEMA_HANDLING,
                         SchemaHandlingType.F_OBJECT_TYPE,
-                        ResourceObjectTypeDefinitionType.F_CREDENTIALS)) ) {
+                        ResourceObjectTypeDefinitionType.F_CREDENTIALS))
+                || mapping.asPrismContainerValue().getPath().namedSegmentsOnly().isSuperPath(
+                ItemPath.create(
+                        ResourceType.F_SCHEMA_HANDLING,
+                        SchemaHandlingType.F_ASSOCIATION_TYPE,
+                        ShadowAssociationTypeDefinitionType.F_SUBJECT,
+                        ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION,
+                        ShadowAssociationDefinitionType.F_ACTIVATION))
+                || mapping.asPrismContainerValue().getPath().namedSegmentsOnly().equivalent(
+                ItemPath.create(
+                        ResourceType.F_SCHEMA_HANDLING,
+                        SchemaHandlingType.F_ASSOCIATION_TYPE,
+                        ShadowAssociationTypeDefinitionType.F_SUBJECT,
+                        ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION,
+                        ShadowAssociationDefinitionType.F_INBOUND))
+                || mapping.asPrismContainerValue().getPath().namedSegmentsOnly().equivalent(
+                ItemPath.create(
+                        ResourceType.F_SCHEMA_HANDLING,
+                        SchemaHandlingType.F_ASSOCIATION_TYPE,
+                        ShadowAssociationTypeDefinitionType.F_SUBJECT,
+                        ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION,
+                        ShadowAssociationDefinitionType.F_OUTBOUND))) {
             if (StringUtils.isNotEmpty(mapping.getName())) {
                 return mapping.getName();
             }

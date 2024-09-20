@@ -16,13 +16,12 @@ import javax.xml.datatype.XMLGregorianCalendar;
 public class DateSearchItemWrapperFactory extends AbstractSearchItemWrapperFactory<XMLGregorianCalendar, DateSearchItemWrapper> {
     @Override
     protected DateSearchItemWrapper createSearchWrapper(SearchItemContext ctx) {
-        return new DateSearchItemWrapper(ctx.getPath());
-    }
-
-    @Override
-    protected void setupParameterOptions(SearchItemContext ctx, DateSearchItemWrapper searchItem) {
-        super.setupParameterOptions(ctx, searchItem);
-        searchItem.setInterval(false);
+        DateSearchItemWrapper wrapper = new DateSearchItemWrapper(ctx.getPath());
+        //ticket 9828; using date search item as non-interval to be used as a report parameter value
+        if (ctx.getAdditionalSearchContext() != null && ctx.getAdditionalSearchContext().isReportCollectionSearch()) {
+            wrapper.setInterval(false);
+        }
+        return wrapper;
     }
 
     @Override

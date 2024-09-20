@@ -6,11 +6,15 @@
  */
 package com.evolveum.midpoint.model.impl.schema.transform;
 
+import java.io.Serial;
 import java.util.*;
 import java.util.Map.Entry;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
+
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.deleg.ComplexTypeDefinitionDelegator;
@@ -23,7 +27,9 @@ import com.evolveum.midpoint.schema.processor.deleg.ResourceObjectClassDefinitio
 import com.evolveum.midpoint.schema.processor.deleg.ResourceObjectDefinitionDelegator;
 import com.evolveum.midpoint.schema.processor.deleg.ResourceObjectTypeDefinitionDelegator;
 
-public class TransformableComplexTypeDefinition extends TransformableDefinition implements ComplexTypeDefinitionDelegator, PartiallyMutableComplexTypeDefinition {
+public class TransformableComplexTypeDefinition
+        extends TransformableDefinition
+        implements ComplexTypeDefinitionDelegator, PartiallyMutableComplexTypeDefinition {
 
     private static final long serialVersionUID = 1L;
     private static final TransformableItemDefinition<?, ?> REMOVED = new Removed();
@@ -49,15 +55,15 @@ public class TransformableComplexTypeDefinition extends TransformableDefinition 
 
     public static TransformableComplexTypeDefinition from(ComplexTypeDefinition complexTypeDefinition) {
         if (complexTypeDefinition instanceof ResourceObjectDefinition) {
-            if (complexTypeDefinition instanceof ResourceObjectTypeDefinition) {
-                return new TrResourceObjectTypeDefinition((ResourceObjectTypeDefinition) complexTypeDefinition);
-            }
-            if (complexTypeDefinition instanceof ResourceObjectClassDefinition) {
-                return new TrResourceObjectClassDefinition(((ResourceObjectClassDefinition) complexTypeDefinition));
-            }
-            if (complexTypeDefinition instanceof CompositeObjectDefinition) {
-                return new TrCompositeObjectDefinition((CompositeObjectDefinition) complexTypeDefinition);
-            }
+//            if (complexTypeDefinition instanceof ResourceObjectTypeDefinition) {
+//                return new TrResourceObjectTypeDefinition((ResourceObjectTypeDefinition) complexTypeDefinition);
+//            }
+//            if (complexTypeDefinition instanceof ResourceObjectClassDefinition) {
+//                return new TrResourceObjectClassDefinition(((ResourceObjectClassDefinition) complexTypeDefinition));
+//            }
+//            if (complexTypeDefinition instanceof CompositeObjectDefinition) {
+//                return new TrCompositeObjectDefinition((CompositeObjectDefinition) complexTypeDefinition);
+//            }
             throw new IllegalStateException("Unsupported type of object definition: " + complexTypeDefinition.getClass());
         }
         if (complexTypeDefinition != null) {
@@ -142,6 +148,16 @@ public class TransformableComplexTypeDefinition extends TransformableDefinition 
     }
 
     @Override
+    public @Nullable QName getDefaultItemTypeName() {
+        return delegate.get().getDefaultItemTypeName();
+    }
+
+    @Override
+    public @Nullable QName getDefaultReferenceTargetTypeName() {
+        return delegate.get().getDefaultReferenceTargetTypeName();
+    }
+
+    @Override
     public boolean isEmpty() {
         return getDefinitions().isEmpty();
     }
@@ -164,7 +180,16 @@ public class TransformableComplexTypeDefinition extends TransformableDefinition 
     }
 
     @Override
+    public @Nullable SchemaContextDefinition getSchemaContextDefinition() {
+        return null;
+    }
+
+    @Override
     public @NotNull ComplexTypeDefinition clone() {
+        throw new UnsupportedOperationException();
+    }
+
+    public void setDefaultItemTypeName(QName value) {
         throw new UnsupportedOperationException();
     }
 
@@ -194,7 +219,7 @@ public class TransformableComplexTypeDefinition extends TransformableDefinition 
     }
 
     @Override
-    public MutableComplexTypeDefinition toMutable() {
+    public ComplexTypeDefinitionMutator mutator() {
         return this;
     }
 
@@ -234,8 +259,7 @@ public class TransformableComplexTypeDefinition extends TransformableDefinition 
             ItemPath itemPath = itemDef.getItemName();
             if (!ItemPathCollectionsUtil.containsSuperpathOrEquivalent(paths, itemPath)) {
                 delete(itemDef.getItemName());
-            } else if (itemDef instanceof PrismContainerDefinition) {
-                PrismContainerDefinition<?> itemPcd = (PrismContainerDefinition<?>) itemDef;
+            } else if (itemDef instanceof PrismContainerDefinition<?> itemPcd) {
                 if (itemPcd.getComplexTypeDefinition() != null) {
                     itemPcd.getComplexTypeDefinition().trimTo(ItemPathCollectionsUtil.remainder(paths, itemPath, false));
                 }
@@ -243,108 +267,112 @@ public class TransformableComplexTypeDefinition extends TransformableDefinition 
         }
     }
 
-    public abstract static class TrResourceObjectDefinition extends TransformableComplexTypeDefinition
-            implements ResourceObjectDefinitionDelegator {
-
-        private static final long serialVersionUID = 1L;
-
-        TrResourceObjectDefinition(ComplexTypeDefinition delegate) {
-            super(delegate);
-        }
-
-        @Override
-        public ResourceObjectDefinition delegate() {
-            return (ResourceObjectDefinition) super.delegate();
-        }
-
-        @Override
-        public abstract @NotNull TrResourceObjectDefinition clone();
-
-        @Override
-        public @NotNull ResourceObjectClassDefinition deepClone(@NotNull DeepCloneOperation operation) {
-            return (ResourceObjectClassDefinition) super.deepClone(operation);
-        }
-
-        @Override
-        public ResourceAttributeContainer instantiate(ItemName elementName) {
-            return ResourceObjectDefinitionDelegator.super.instantiate(elementName);
-        }
+    @Override
+    public void setSchemaContextDefinition(SchemaContextDefinition schemaContextDefinition) {
     }
 
-    public static class TrResourceObjectClassDefinition extends TrResourceObjectDefinition
-            implements ResourceObjectClassDefinitionDelegator, PartiallyMutableComplexTypeDefinition.ObjectClassDefinition {
-
-        TrResourceObjectClassDefinition(ResourceObjectClassDefinition delegate) {
-            super(delegate);
-        }
-
-        @Override
-        public ResourceObjectClassDefinition delegate() {
-            return (ResourceObjectClassDefinition) super.delegate();
-        }
-
-        @Override
-        public @NotNull TrResourceObjectClassDefinition clone() {
-            return copy();
-        }
-
-        @Override
-        public TrResourceObjectClassDefinition copy() {
-            return new TrResourceObjectClassDefinition(this); // TODO or delegate() instead of this?
-        }
-
-        @Override
-        public MutableResourceObjectClassDefinition toMutable() {
-            return this;
-        }
-
-    }
-
-    public static class TrResourceObjectTypeDefinition extends TrResourceObjectDefinition
-            implements ResourceObjectTypeDefinitionDelegator {
-
-        TrResourceObjectTypeDefinition(ResourceObjectTypeDefinition delegate) {
-            super(delegate);
-        }
-
-        @Override
-        public ResourceObjectTypeDefinition delegate() {
-            return (ResourceObjectTypeDefinition) super.delegate();
-        }
-
-        @Override
-        public @NotNull TrResourceObjectTypeDefinition clone() {
-            return copy();
-        }
-
-        @Override
-        public TrResourceObjectTypeDefinition copy() {
-            return new TrResourceObjectTypeDefinition(this); // TODO or delegate() instead of this?
-        }
-    }
-
-    public static class TrCompositeObjectDefinition extends TrResourceObjectDefinition
-            implements CompositeObjectDefinitionDelegator {
-
-        TrCompositeObjectDefinition(CompositeObjectDefinition delegate) {
-            super(delegate);
-        }
-
-        @Override
-        public CompositeObjectDefinition delegate() {
-            return (CompositeObjectDefinition) super.delegate();
-        }
-
-        @Override
-        public @NotNull TrCompositeObjectDefinition clone() {
-            return copy();
-        }
-
-        @Override
-        public TrCompositeObjectDefinition copy() {
-            return new TrCompositeObjectDefinition(this); // TODO or delegate() instead of this?
-        }
-    }
+//    public abstract static class TrResourceObjectDefinition extends TransformableComplexTypeDefinition
+//            implements ResourceObjectDefinitionDelegator {
+//
+//        @Serial private static final long serialVersionUID = 1L;
+//
+//        TrResourceObjectDefinition(ComplexTypeDefinition delegate) {
+//            super(delegate);
+//        }
+//
+//        @Override
+//        public ResourceObjectDefinition delegate() {
+//            return (ResourceObjectDefinition) super.delegate();
+//        }
+//
+//        @Override
+//        public abstract @NotNull TrResourceObjectDefinition clone();
+//
+//        @Override
+//        public @NotNull ResourceObjectClassDefinition deepClone(@NotNull DeepCloneOperation operation) {
+//            return (ResourceObjectClassDefinition) super.deepClone(operation);
+//        }
+//
+//        @Override
+//        public ResourceAttributeContainer instantiate(ItemName elementName) {
+//            return ResourceObjectDefinitionDelegator.super.instantiate(elementName);
+//        }
+//    }
+//
+//    public static class TrResourceObjectClassDefinition extends TrResourceObjectDefinition
+//            implements ResourceObjectClassDefinitionDelegator, PartiallyMutableComplexTypeDefinition.ObjectClassDefinition {
+//
+//        TrResourceObjectClassDefinition(ResourceObjectClassDefinition delegate) {
+//            super(delegate);
+//        }
+//
+//        @Override
+//        public ResourceObjectClassDefinition delegate() {
+//            return (ResourceObjectClassDefinition) super.delegate();
+//        }
+//
+//        @Override
+//        public @NotNull TrResourceObjectClassDefinition clone() {
+//            return copy();
+//        }
+//
+//        @Override
+//        public TrResourceObjectClassDefinition copy() {
+//            return new TrResourceObjectClassDefinition(this); // TODO or delegate() instead of this?
+//        }
+//
+//        @Override
+//        public ResourceObjectClassDefinitionMutator mutator() {
+//            return this;
+//        }
+//
+//    }
+//
+//    public static class TrResourceObjectTypeDefinition extends TrResourceObjectDefinition
+//            implements ResourceObjectTypeDefinitionDelegator {
+//
+//        TrResourceObjectTypeDefinition(ResourceObjectTypeDefinition delegate) {
+//            super(delegate);
+//        }
+//
+//        @Override
+//        public ResourceObjectTypeDefinition delegate() {
+//            return (ResourceObjectTypeDefinition) super.delegate();
+//        }
+//
+//        @Override
+//        public @NotNull TrResourceObjectTypeDefinition clone() {
+//            return copy();
+//        }
+//
+//        @Override
+//        public TrResourceObjectTypeDefinition copy() {
+//            return new TrResourceObjectTypeDefinition(this); // TODO or delegate() instead of this?
+//        }
+//    }
+//
+//    public static class TrCompositeObjectDefinition extends TrResourceObjectDefinition
+//            implements CompositeObjectDefinitionDelegator {
+//
+//        TrCompositeObjectDefinition(CompositeObjectDefinition delegate) {
+//            super(delegate);
+//        }
+//
+//        @Override
+//        public CompositeObjectDefinition delegate() {
+//            return (CompositeObjectDefinition) super.delegate();
+//        }
+//
+//        @Override
+//        public @NotNull TrCompositeObjectDefinition clone() {
+//            return copy();
+//        }
+//
+//        @Override
+//        public TrCompositeObjectDefinition copy() {
+//            return new TrCompositeObjectDefinition(this); // TODO or delegate() instead of this?
+//        }
+//    }
 
     @SuppressWarnings("rawtypes")
     private static class Removed extends TransformableItemDefinition {
@@ -376,10 +404,13 @@ public class TransformableComplexTypeDefinition extends TransformableDefinition 
             return this;
         }
 
-        // TODO why is this needed?
         @Override
-        public boolean canBeDefinitionOf(Item item) {
-            return false;
+        public void setSchemaContextDefinition(SchemaContextDefinition schemaContextDefinition) {
+        }
+
+        @Override
+        public @Nullable SchemaContextDefinition getSchemaContextDefinition() {
+            return null;
         }
     }
 }

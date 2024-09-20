@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
+
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
@@ -20,7 +22,7 @@ import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
@@ -117,19 +119,24 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
         focusContext.setPrimaryDelta(addDelta);
     }
 
-    protected LensProjectionContext fillContextWithAccount(LensContext<UserType> context, String accountOid, Task task, OperationResult result) throws SchemaException,
-            ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        PrismObject<ShadowType> account = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        provisioningService.applyDefinition(account, task, result);
+    protected LensProjectionContext fillContextWithAccount(
+            LensContext<UserType> context, String accountOid, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
+        // This is better than using repository directly
+        var account = provisioningService.getObject(ShadowType.class, accountOid, createNoFetchCollection(), task, result);
         return fillContextWithAccount(context, account, task, result);
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     protected LensProjectionContext fillContextWithAccountFromFile(
             LensContext<UserType> context, File file, Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, IOException, SchemaException {
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(file);
         provisioningService.applyDefinition(account, task, result);
+        provisioningService.determineShadowState(account, task, result);
+        provisioningService.updateShadowMarksAndPolicies(account, true, task, result);
         return fillContextWithAccount(context, account, task, result);
     }
 
@@ -172,8 +179,7 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
             throws SchemaException, IOException {
         ObjectModificationType modElement = PrismTestUtil.parseAtomicValue(
                 file, ObjectModificationType.COMPLEX_TYPE);
-        ObjectDelta<O> focusDelta = DeltaConvertor.createObjectDelta(
-                modElement, context.getFocusClass(), prismContext);
+        ObjectDelta<O> focusDelta = DeltaConvertor.createObjectDelta(modElement, context.getFocusClass());
         return addFocusDeltaToContext(context, focusDelta);
     }
 
@@ -277,10 +283,8 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
         ResourceType resourceType = accCtx.getResource();
         QName attrQName = new QName(MidPointConstants.NS_RI, attributeLocalName);
         ItemPath attrPath = ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName);
-        ResourceObjectDefinition refinedAccountDefinition = accCtx.getCompositeObjectDefinition();
-        //noinspection unchecked
-        ResourceAttributeDefinition<T> attrDef =
-                (ResourceAttributeDefinition<T>) refinedAccountDefinition.findAttributeDefinition(attrQName);
+        ResourceObjectDefinition refinedAccountDefinition = accCtx.getCompositeObjectDefinitionRequired();
+        ShadowSimpleAttributeDefinition<T> attrDef = refinedAccountDefinition.findSimpleAttributeDefinition(attrQName);
         assertNotNull("No definition of attribute " + attrQName + " in account def " + refinedAccountDefinition, attrDef);
         ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(ShadowType.class, accountOid);
@@ -362,7 +366,6 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
             deltaModifier.accept(primaryDelta);
         }
         addFocusDeltaToContext(context, primaryDelta);
-        recompute(context);
         displayDumpable("Input context", context);
         assertFocusModificationSanity(context);
         return context;
@@ -375,9 +378,5 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
                 prismContext.queryFor(CaseWorkItemType.class).ownerId(caseOid).build(),
                 options, result);
 
-    }
-
-    protected <F extends FocusType> void recompute(LensContext<F> context) throws SchemaException {
-        context.recompute();
     }
 }

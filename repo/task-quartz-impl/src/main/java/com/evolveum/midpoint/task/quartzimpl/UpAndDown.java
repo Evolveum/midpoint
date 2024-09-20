@@ -61,21 +61,14 @@ public class UpAndDown implements BeanFactoryAware {
     private BeanFactory beanFactory;
 
     /**
-     * How long to wait after TaskManager shutdown, if using JDBC Job Store.
-     * This gives the JDBC thread pool a chance to close, before embedded H2 database server
-     * would be closed by the SQL repo shutdown procedure.
-     * The fact that H2 database is embedded is determined by {@link TaskManagerConfiguration#isDatabaseIsEmbedded()},
-     * used in {@link #shutdown(OperationResult)} method.
-     */
-    private static final long WAIT_ON_SHUTDOWN = 2000;
-
-    /**
      * Initialization.
      *
      * TaskManager can work in two modes:
+     *
      * - "stop on initialization failure" - it means that if TaskManager initialization fails, the midPoint will
      * not be started (implemented by throwing SystemException). This is a safe approach, however, midPoint could
      * be used also without Task Manager, so it is perhaps too harsh to do it this way.
+     *
      * - "continue on initialization failure" - after such a failure midPoint initialization simply continues;
      * however, task manager is switched to "Error" state, in which the scheduler cannot be started;
      * Moreover, actually almost none Task Manager methods can be invoked, to prevent a damage.
@@ -174,7 +167,8 @@ public class UpAndDown implements BeanFactoryAware {
         }
     }
 
-    void onSystemStarted(OperationResult result) {
+    /** Switches the node to UP state (potentially with delay): starts the scheduler and cluster manager thread. */
+    void switchToUpState(OperationResult result) {
         int delay = configuration.getNodeStartupDelay();
         if (delay > 0) {
             new Thread(() -> {
@@ -231,14 +225,6 @@ public class UpAndDown implements BeanFactoryAware {
         clusterManager.stopClusterManagerThread(0L, result);
         clusterManager.recordNodeShutdown(result);
 
-        if (configuration.isJdbcJobStore() && configuration.isDatabaseIsEmbedded()) {
-            LOGGER.trace("Waiting {} msecs to give Quartz thread pool a chance to shutdown.", WAIT_ON_SHUTDOWN);
-            try {
-                Thread.sleep(WAIT_ON_SHUTDOWN);
-            } catch (InterruptedException e) {
-                // safe to ignore
-            }
-        }
         LOGGER.info("Task Manager shutdown finished");
     }
 
@@ -246,8 +232,8 @@ public class UpAndDown implements BeanFactoryAware {
         try {
             localExecutionManager.stopSchedulerAndTasks(TaskManager.WAIT_INDEFINITELY, result);
         } catch (Throwable t) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't stop local scheduler and tasks, continuing with the shutdown",
-                    t);
+            LoggingUtils.logUnexpectedException(
+                    LOGGER, "Couldn't stop local scheduler and tasks, continuing with the shutdown", t);
         }
     }
 }

@@ -1,0 +1,71 @@
+= Constant
+:page-wiki-name: Constant
+:page-wiki-id: 24086034
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2017-05-11T17:28:34.538+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2017-05-11T17:30:17.200+02:00
+:page-upkeep-status: yellow
+
+[TIP]
+====
+Contants are currently usable as parameter values only.
+In the future they may constitute scripting expressions as well.
+
+====
+
+Examples of constants:
+
+.Simple string constant
+[source,xml]
+----
+<c:value>Domain administrators</c:value>
+----
+
+.Structured constant (object delta in this case)
+[source,xml]
+----
+<c:value xsi:type="t:ObjectDeltaType">
+    <t:itemDelta>
+        <t:modificationType>replace</t:modificationType>
+        <t:path>preferredLanguage</t:path>
+        <t:value>sk_SK</t:value>
+    </t:itemDelta>
+</c:value>
+----
+
+When used as action parameters, these constants look as follows:
+
+.Constants as action parameters
+[source,xml]
+----
+<s:pipeline xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <s:search>
+        <s:type>c:UserType</s:type>
+        <s:searchFilter>
+            <equal xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
+                <path>c:name</path>
+                <value>jack</value>
+            </equal>
+        </s:searchFilter>
+    </s:search>
+    <s:action>
+        <s:type>modify</s:type>
+        <s:parameter>
+            <s:name>delta</s:name>
+            <c:value xsi:type="t:ObjectDeltaType">
+                <t:itemDelta> <!-- object type and oid will be filled-in from the input; change type is 'modify' by default -->
+                    <t:modificationType>replace</t:modificationType>
+                    <t:path>locality</t:path>
+                    <t:value>Nowhere</t:value>
+                </t:itemDelta>
+            </c:value>
+        </s:parameter>
+    </s:action>
+</s:pipeline>
+
+
+----

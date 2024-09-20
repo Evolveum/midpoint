@@ -6,19 +6,53 @@
  */
 package com.evolveum.midpoint.web.component.data.column;
 
+import static com.evolveum.midpoint.gui.api.page.PageAdminLTE.createStringResourceStatic;
 import static com.evolveum.midpoint.gui.impl.util.DetailsPageUtil.dispatchToObjectDetailsPage;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.certification.api.OutcomeUtils;
+import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
+import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBarPanel;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.*;
+import com.evolveum.midpoint.gui.impl.component.data.column.*;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.PageMyCertItems;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.component.CampaignActionButton;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.gui.impl.util.RelationUtil;
+
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
+
+import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
+import com.evolveum.midpoint.schema.util.task.TaskInformation;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.form.multivalue.MultiValueChoosePanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscUtil;
+import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.component.DeadlinePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignProcessingHelper;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertificationItemResponseHelper;
+
+import com.evolveum.midpoint.web.util.ExpressionUtil;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -30,38 +64,26 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.export.Abstr
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.model.*;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconColumn;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrg;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
-import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -78,7 +100,12 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class ColumnUtils {
+
     private static final Trace LOGGER = TraceManager.getTrace(ColumnUtils.class);
+
+    private static final String DOT_CLASS = ColumnUtils.class.getName() + ".";
+    private static final String OPERATION_LOAD_SHADOW_OBJECT = DOT_CLASS + "loadReferencedShadowObject";
+    private static final String OPERATION_LOAD_RESOURCE_OBJECT = DOT_CLASS + "loadResourceObject";
 
     public static <T> List<IColumn<T, String>> createColumns(List<ColumnTypeDto<String>> columns) {
         List<IColumn<T, String>> tableColumns = new ArrayList<>();
@@ -136,11 +163,13 @@ public class ColumnUtils {
         if (type.equals(UserType.class)) {
             return getDefaultUserColumns();
         } else if (RoleType.class.equals(type)) {
-            return getDefaultRoleColumns();
+            return getDefaultAbstractRoleColumns();
         } else if (OrgType.class.equals(type)) {
             return getDefaultOrgColumns(pageBase);
         } else if (ServiceType.class.equals(type)) {
-            return getDefaultServiceColumns();
+            return getDefaultAbstractRoleColumns();
+        } else if (PolicyType.class.equals(type)) {
+            return getDefaultAbstractRoleColumns();
         } else if (ArchetypeType.class.equals(type)) {
             return getDefaultArchetypeColumns();
         } else if (type.equals(TaskType.class)) {
@@ -386,15 +415,7 @@ public class ColumnUtils {
         }
     }
 
-    public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultRoleColumns() {
-        List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<>();
-
-        columns.addAll((Collection) getDefaultAbstractRoleColumns(true));
-
-        return columns;
-    }
-
-    public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultServiceColumns() {
+    public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultAbstractRoleColumns() {
         List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<>();
 
         columns.addAll((Collection) getDefaultAbstractRoleColumns(true));
@@ -423,9 +444,9 @@ public class ColumnUtils {
             public IModel<String> getDataModel(IModel<SelectableBean<T>> rowModel) {
                 List<ObjectReferenceType> parentOrgRefs = getParentOrgRefs(rowModel);
                 return () ->
-                    parentOrgRefs.stream()
-                            .map(parentRef -> WebModelServiceUtils.resolveReferenceName(parentRef, pageBase, true))
-                            .collect(Collectors.joining(", "));
+                        parentOrgRefs.stream()
+                                .map(parentRef -> WebModelServiceUtils.resolveReferenceName(parentRef, pageBase, true))
+                                .collect(Collectors.joining(", "));
             }
 
         });
@@ -572,7 +593,7 @@ public class ColumnUtils {
         List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> columns = new ArrayList<>();
         columns.add(new AbstractExportableColumn<>(
                 createStringResource("WorkItemsPanel.stage")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem,
@@ -594,7 +615,9 @@ public class ColumnUtils {
             public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem,
                     String componentId, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
                 CaseWorkItemType workItem = unwrapRowModel(rowModel);
-                cellItem.add(new Label(componentId, workItem.getCloseTimestamp() != null ? SchemaConstants.CASE_STATE_CLOSED : SchemaConstants.CASE_STATE_OPEN));
+                cellItem.add(new Label(componentId, workItem.getCloseTimestamp() != null
+                        ? createStringResource("Case.state.closed")
+                        : createStringResource("Case.state.open")));
             }
 
             @Override
@@ -637,9 +660,14 @@ public class ColumnUtils {
 
                 Component c = cellItem.get(componentId);
 
-                PrismReferenceValue refVal = caseType.getObjectRef().asReferenceValue();
-                String descriptionValue = refVal.getObject() != null ?
-                        refVal.getObject().asObjectable().getDescription() : "";
+                String descriptionValue = "";
+                ObjectReferenceType objectRef = caseType.getObjectRef();
+                if (objectRef != null) {
+                    PrismReferenceValue refVal = objectRef.asReferenceValue();
+                    if (refVal.getObject() != null) {
+                        descriptionValue = refVal.getObject().asObjectable().getDescription();
+                    }
+                }
 
                 c.add(new AttributeAppender("title", descriptionValue));
             }
@@ -660,7 +688,7 @@ public class ColumnUtils {
             protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
                 CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
                 CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
-                return Model.of(WebComponentUtil.getReferencedObjectDisplayNameAndName(caseType.getTargetRef(), true, pageBase));
+                return Model.of(WebComponentUtil.getReferencedObjectDisplayNameAndName(caseType.getTargetRef(), false, pageBase));
             }
 
             @Override
@@ -790,6 +818,569 @@ public class ColumnUtils {
         return columns;
     }
 
+    public static List<IColumn<SelectableBean<AccessCertificationCampaignType>, String>> getDefaultCertCampaignColumns(
+            PageBase pageBase) {
+        List<IColumn<SelectableBean<AccessCertificationCampaignType>, String>> columns = new ArrayList<>();
+
+        IColumn<SelectableBean<AccessCertificationCampaignType>, String> column;
+
+        column = new CheckBoxHeaderColumn<>();
+        columns.add(column);
+
+        column = new AjaxLinkColumn<>(createStringResource("PageCertCampaigns.table.name"),
+                SelectableBeanImpl.F_VALUE + "." + AccessCertificationCampaignType.F_NAME.getLocalPart()) {
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+                CampaignProcessingHelper.campaignDetailsPerformed(rowModel.getObject().getValue().getOid(), pageBase);
+            }
+        };
+        columns.add(column);
+
+        column = new PropertyColumn<>(createStringResource("PageCertCampaigns.table.description"),
+                SelectableBeanImpl.F_VALUE + "." + AccessCertificationCampaignType.F_DESCRIPTION.getLocalPart());
+        columns.add(column);
+
+        column = new PropertyColumn<>(createStringResource("PageCertCampaigns.table.iteration"),
+                SelectableBeanImpl.F_VALUE + "." + AccessCertificationCampaignType.F_ITERATION.getLocalPart());
+        columns.add(column);
+
+        column = new EnumPropertyColumn<>(createStringResource("PageCertCampaigns.table.state"),
+                SelectableBeanImpl.F_VALUE + "." + AccessCertificationCampaignType.F_STATE.getLocalPart()) {
+            @Override
+            protected String translate(Enum<?> en) {
+                return createStringResourceStatic(pageBase, en).getString();
+            }
+        };
+        columns.add(column);
+
+        column = new PropertyColumn<>(createStringResource("PageCertCampaigns.table.stage"),
+                SelectableBeanImpl.F_VALUE + "." + AccessCertificationCampaignType.F_STAGE_NUMBER.getLocalPart()) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<AccessCertificationCampaignType>>> item,
+                    String componentId, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+                Label label = new Label(componentId, this.getDataModel(rowModel));
+                label.add(new VisibleBehaviour(() -> isStageVisible(rowModel.getObject())));
+                item.add(label);
+            }
+
+            private boolean isStageVisible(SelectableBean<AccessCertificationCampaignType> rowModel) {
+                AccessCertificationCampaignType campaign = rowModel.getValue();
+                return campaign.getState() == AccessCertificationCampaignStateType.IN_REVIEW_STAGE ||
+                        campaign.getState() == AccessCertificationCampaignStateType.REVIEW_STAGE_DONE;
+            }
+
+        };
+        columns.add(column);
+
+//        column = new AbstractColumn<>(createStringResource("PageCertCampaigns.table.escalationLevel")) {
+//            @Serial private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public void populateItem(Item<ICellPopulator<SelectableBean<AccessCertificationCampaignType>>> item,
+//                    String componentId, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+//                AccessCertificationCampaignType campaign = rowModel.getObject().getValue();
+//                int escalationLevelNumber = CertCampaignTypeUtil.getCurrentStageEscalationLevelNumberSafe(campaign);
+//                Label label = new Label(componentId, escalationLevelNumber);
+//                label.add(new VisibleBehaviour(() -> isEscalationLevelNumber(escalationLevelNumber)));
+//                item.add(label);
+//            }
+//
+//            private boolean isEscalationLevelNumber(int escalationLevelNumber) {
+//                return escalationLevelNumber != 0;
+//            }
+//        };
+//        columns.add(column);
+
+//        column = new AbstractColumn<>(createStringResource("PageCertCampaigns.table.stages")) {
+//            @Serial private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public void populateItem(Item<ICellPopulator<SelectableBean<AccessCertificationCampaignType>>> item,
+//                    String componentId, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+//                AccessCertificationCampaignType campaign = rowModel.getObject().getValue();
+//                item.add(new Label(componentId, CertCampaignTypeUtil.getNumberOfStages(campaign)));
+//            }
+//        };
+//        columns.add(column);
+
+        column = new AbstractColumn<>(createStringResource("PageCertCampaign.table.deadline")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<AccessCertificationCampaignType>>> item,
+                    String componentId, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+                AccessCertificationCampaignType campaign = rowModel.getObject().getValue();
+                item.add(new DeadlinePanel(componentId, getDeadlineModel(campaign)));
+            }
+
+
+            private IModel<XMLGregorianCalendar> getDeadlineModel(AccessCertificationCampaignType campaign) {
+                return () -> CampaignProcessingHelper.computeDeadline(campaign, pageBase);
+            }
+        };
+        columns.add(column);
+
+        column = new AbstractColumn<>(createStringResource("CampaignTilePanel.progress")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<AccessCertificationCampaignType>>> item,
+                    String componentId, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+                AccessCertificationCampaignType campaign = rowModel.getObject().getValue();
+                ProgressBarPanel progressBar = new ProgressBarPanel(componentId,
+                        CertMiscUtil.createCampaignCasesProgressBarModel(campaign, null, pageBase));
+                progressBar.add(AttributeModifier.append("class", "mt-1"));
+                progressBar.setOutputMarkupId(true);
+                item.add(progressBar);
+            }
+        };
+        columns.add(column);
+
+        //running task icon column
+        columns.add(new AbstractColumn<>(Model.of("")) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<AccessCertificationCampaignType>>> cellItem,
+                    String componentId, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+                AccessCertificationCampaignType campaign = rowModel.getObject().getValue();
+
+                LoadableDetachableModel<AccessCertificationCampaignType> campaignModel = new LoadableDetachableModel<>(campaign) {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected AccessCertificationCampaignType load() {
+                        return campaign;
+                    }
+                };
+
+                Task task = pageBase.createSimpleTask("loadRunningCertTask");
+                OperationResult result = new OperationResult("loadRunningCertTask");
+                List<PrismObject<TaskType>> runningTasks = CertMiscUtil.loadRunningCertTask(campaign.getOid(), result, pageBase);
+
+                final String[] runningTaskOid = { runningTasks.isEmpty() ? null : runningTasks.get(0).getOid() };
+                IModel<String> runningTaskOidModel = new IModel<>() {
+                    @Override
+                    public String getObject() {
+                        return runningTaskOid[0];
+                    }
+
+                    @Override
+                    public void setObject(String object) {
+                        runningTaskOid[0] = object;
+                    }
+                };
+
+                LoadableDetachableModel<String> buttonLabelModel = new LoadableDetachableModel<>() {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected String load() {
+                        if (StringUtils.isEmpty(runningTaskOidModel.getObject())) {
+                            return "";
+                        }
+
+                        PrismObject<TaskType> runningTask = WebModelServiceUtils.loadObject(TaskType.class,
+                                runningTaskOidModel.getObject(), pageBase, task, result);
+                        TaskType task = runningTask.asObjectable();
+
+                        TaskInformation taskInformation = TaskInformation.createForTask(task, task);
+                        String info = WebComponentUtil.getTaskProgressDescription(taskInformation, true, pageBase);
+                        return StringUtils.isEmpty(info) ? "" : info;
+                    }
+                };
+
+                CampaignActionButton actionButton = new CampaignActionButton(componentId, pageBase, campaignModel,
+                        buttonLabelModel, runningTaskOid[0]) {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected void refresh(AjaxRequestTarget target) {
+                        runningTaskOid[0] = getRunningTaskOid();
+                        buttonLabelModel.detach();
+                        target.add(pageBase);
+                    }
+
+//                    @Override
+//                    protected boolean isEmptyTaskOid() {
+//                        return StringUtils.isEmpty(runningTaskOid[0]);
+//                    }
+
+                    @Override
+                    protected LoadableDetachableModel<String> getActionButtonCssModel() {
+                        return new LoadableDetachableModel<>() {
+                            @Serial private static final long serialVersionUID = 1L;
+
+                            @Override
+                            protected String load() {
+                                return "fa fa-spinner fa-spin-pulse";
+                            }
+                        };
+                    }
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        if (StringUtils.isEmpty(runningTaskOid[0])) {
+                            return;
+                        }
+
+                        ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(runningTaskOid[0], ObjectTypes.TASK);
+                        DetailsPageUtil.dispatchToObjectDetailsPage(ref, pageBase, false);
+                    }
+
+                    protected IModel<String> getDisabledClassModel() {
+                        return () -> "";
+                    }
+
+                    @Override
+                    protected String getButtonCssClass() {
+                        return "btn btn-sm";
+                    }
+
+                };
+                actionButton.setOutputMarkupPlaceholderTag(true);
+                actionButton.add(AttributeAppender.append("title",
+                        createStringResource("PageCertCampaign.button.showRunningTask")));
+                actionButton.setOutputMarkupId(true);
+                actionButton.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(runningTaskOid[0])));
+                cellItem.add(actionButton);
+            }
+
+        });
+
+        return columns;
+    }
+
+    public static List<IColumn<SelectableBean<AccessCertificationCampaignType>, String>> getPreviewCampaignColumns(
+            PageBase pageBase) {
+        List<IColumn<SelectableBean<AccessCertificationCampaignType>, String>> columns = new ArrayList<>();
+        FocusType principal = pageBase.getPrincipalFocus();
+
+        IColumn<SelectableBean<AccessCertificationCampaignType>, String> column;
+
+        column = new AjaxLinkColumn<>(createStringResource("PageCertCampaigns.table.name"),
+                SelectableBeanImpl.F_VALUE + "." + AccessCertificationCampaignType.F_NAME.getLocalPart()) {
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+                PageParameters parameters = new PageParameters();
+                parameters.set(OnePageParameterEncoder.PARAMETER, rowModel.getObject().getValue().getOid());
+                pageBase.navigateToNext(PageMyCertItems.class, parameters);
+            }
+        };
+        columns.add(column);
+
+        column = new ProgressBarColumn<>(createStringResource("PageCertCampaign.progress")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected @NotNull IModel<List<ProgressBar>> createProgressBarModel(
+                    IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+                List<ProgressBar> progressBars = new ArrayList<>();
+
+                AccessCertificationCampaignType campaign = rowModel.getObject().getValue();
+
+                try {
+                    ObjectQuery query = CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaign.getOid());
+                    Task task = pageBase.createSimpleTask("countWorkItems");
+                    int openNotDecidedItems = pageBase.getCertificationService().countOpenWorkItems(query, true,
+                            false, null, task, task.getResult());
+
+                    int allOpenItems = pageBase.getCertificationService().countOpenWorkItems(query, false,
+                            false, null, task, task.getResult());
+                    int decidedItems = allOpenItems - openNotDecidedItems;
+                    int decidedPercent = allOpenItems != 0 ? (decidedItems * 100) / allOpenItems : 0;
+
+                    progressBars.add(new ProgressBar(decidedItems,
+                            ProgressBar.State.PRIMARY));
+                    progressBars.add(new ProgressBar(openNotDecidedItems,
+                            ProgressBar.State.SECONDARY, new SingleLocalizableMessage(String.valueOf(decidedPercent))));
+                } catch (Exception e) {
+                    LOGGER.error("Couldn't count certification work items for certification campaign {}", campaign.getName());
+                }
+
+                return Model.ofList(progressBars);
+            }
+
+            @Override
+            protected boolean isPercentageBar() {
+                return false;
+            }
+
+
+            protected @NotNull IModel<String> createTextModel(IModel<SelectableBean<AccessCertificationCampaignType>> rowModel,
+                    IModel<List<ProgressBar>> model) {
+                for (ProgressBar p : model.getObject()) {
+                    if (p.getText() != null && !p.getText().isEmpty()) {
+                        return () -> LocalizationUtil.translateMessage(p.getText()) + "%";
+                    }
+                }
+                return Model.of();
+            }
+        };
+        columns.add(column);
+
+        column = new AbstractColumn<>(createStringResource("PageCertCampaign.table.deadline")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<AccessCertificationCampaignType>>> item,
+                    String componentId, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+                AccessCertificationCampaignType campaign = rowModel.getObject().getValue();
+                item.add(new DeadlinePanel(componentId, getDeadlineModel(campaign)));
+            }
+
+
+            private IModel<XMLGregorianCalendar> getDeadlineModel(AccessCertificationCampaignType campaign) {
+                return () -> CampaignProcessingHelper.computeDeadline(campaign, pageBase);
+            }
+        };
+        columns.add(column);
+
+        return columns;
+    }
+
+    public static List<IColumn<PrismContainerValueWrapper<AccessCertificationCaseType>, String>> getDefaultCertCaseColumns(
+            int stageNumber, PageBase pageBase) {
+        List<IColumn<PrismContainerValueWrapper<AccessCertificationCaseType>, String>> columns = new ArrayList<>();
+
+        //todo progress column
+        columns.add(new ObjectReferenceColumn<>(createStringResource("WorkItemsPanel.object"),
+                "") {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public IModel<List<ObjectReferenceType>> extractDataModel(IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
+                return () -> Collections.singletonList(unwrapRowModel(rowModel).getObjectRef());
+            }
+        });
+        columns.add(new ObjectReferenceColumn<>(createStringResource("WorkItemsPanel.target"),
+                "") {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public IModel<List<ObjectReferenceType>> extractDataModel(IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
+                return () -> Collections.singletonList(unwrapRowModel(rowModel).getTargetRef());
+            }
+        });
+       columns.add(new ObjectReferenceColumn<>(createStringResource("PageCertCampaign.table.reviewers"),
+               "") {
+
+           @Serial private static final long serialVersionUID = 1L;
+
+           @Override
+           public IModel<List<ObjectReferenceType>> extractDataModel(IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
+               return () -> CertCampaignTypeUtil.getAssignedReviewersForStage(unwrapRowModel(rowModel), stageNumber);
+           }
+       });
+       columns.add(new CompositedIconWithLabelColumn<>(createStringResource("PageCertCampaign.statistics.response")) {
+
+           @Serial private static final long serialVersionUID = 1L;
+
+           @Override
+           protected CompositedIcon getCompositedIcon(IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
+               AccessCertificationResponseType response = getResponse(stageNumber, rowModel);
+               DisplayType responseDisplayType = new CertificationItemResponseHelper(response).getResponseDisplayType();
+               return new CompositedIconBuilder()
+                       .setBasicIcon(responseDisplayType.getIcon(), IconCssStyle.IN_ROW_STYLE)
+                       .build();
+           }
+
+           @Override
+           public IModel<DisplayType> getLabelDisplayModel(IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
+               AccessCertificationResponseType response = getResponse(stageNumber, rowModel);
+               return Model.of(new CertificationItemResponseHelper(response).getResponseDisplayType());
+           }
+
+           @Override
+           public IModel<String> getDataModel(IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
+               AccessCertificationResponseType response = getResponse(stageNumber, rowModel);
+               DisplayType responseDisplayType = new CertificationItemResponseHelper(response).getResponseDisplayType();
+               return Model.of(LocalizationUtil.translatePolyString(responseDisplayType.getLabel()));
+           }
+
+           private AccessCertificationResponseType getResponse(int stageNumber,
+                   IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
+               AccessCertificationCaseType certItem = unwrapRowModel(rowModel);
+               AccessCertificationCampaignType campaign = CertCampaignTypeUtil.getCampaign(certItem);
+               int currentStageNumber = campaign.getStageNumber();
+               if (currentStageNumber == stageNumber) {
+                   return OutcomeUtils.fromUri(certItem.getCurrentStageOutcome());
+               }
+               return CertMiscUtil.getStageOutcome(certItem, stageNumber);
+           }
+
+       });
+
+       //comment icon column
+       columns.add(new IconColumn<>(Model.of("")) {
+
+           @Serial private static final long serialVersionUID = 1L;
+
+           @Override
+           public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AccessCertificationCaseType>>> cellItem,
+                   String componentId, IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
+               ImagePanel imagePanel = new ImagePanel(componentId, new ReadOnlyModel<>(() -> getIconDisplayType(rowModel)));
+               imagePanel.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(
+                       LocalizationUtil.translatePolyString(getIconDisplayType(rowModel).getTooltip()))));
+               cellItem.add(imagePanel);
+           }
+
+           @Override
+           public DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
+               List<String> comments = CertCampaignTypeUtil.getCommentsForStage(unwrapRowModel(rowModel).asPrismContainerValue(),
+                       stageNumber);
+               return new DisplayType()
+                       .tooltip(StringUtils.join(comments, "\n"))
+                       .icon(new IconType()
+                               .cssClass("fa fa-comment")
+                               .color("blue"));
+           }
+       });
+        return columns;
+    }
+
+    public static List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> getDefaultCertWorkItemColumns(
+            boolean viewAllItems, boolean notDecidedOnly) {
+        List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> columns = new ArrayList<>();
+
+
+        columns.add(new ObjectReferenceColumn<>(createStringResource("WorkItemsPanel.object"),
+                "") {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public IModel<List<ObjectReferenceType>> extractDataModel(
+                    IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
+                AccessCertificationCaseType certCase = CertCampaignTypeUtil.getCase(unwrapRowModel(rowModel));
+                return () -> Collections.singletonList(certCase.getObjectRef());
+            }
+        });
+        columns.add(new AbstractColumn<>(createStringResource("WorkItemsPanel.displayName")) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AccessCertificationWorkItemType>>> item,
+                    String componentId, IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
+                AccessCertificationCaseType certCase = CertCampaignTypeUtil.getCase(unwrapRowModel(rowModel));
+                item.add(new Label(componentId, WebComponentUtil.getDisplayName(certCase.getObjectRef(), true)));
+            }
+        });
+        columns.add(new ObjectReferenceColumn<>(createStringResource("WorkItemsPanel.target"),
+                "") {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public IModel<List<ObjectReferenceType>> extractDataModel(
+                    IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
+                AccessCertificationCaseType certCase = CertCampaignTypeUtil.getCase(unwrapRowModel(rowModel));
+                return () -> Collections.singletonList(certCase.getTargetRef());
+            }
+        });
+        columns.add(new AbstractColumn<>(createStringResource("WorkItemsPanel.displayName")) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AccessCertificationWorkItemType>>> item,
+                    String componentId, IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
+                AccessCertificationCaseType certCase = CertCampaignTypeUtil.getCase(unwrapRowModel(rowModel));
+                item.add(new Label(componentId, WebComponentUtil.getDisplayName(certCase.getTargetRef(), true)));
+            }
+        });
+        if (viewAllItems) {
+            columns.add(new ObjectReferenceColumn<>(createStringResource("PageCertCampaign.table.reviewers"),
+                    "") {
+
+                @Serial private static final long serialVersionUID = 1L;
+
+                @Override
+                public IModel<List<ObjectReferenceType>> extractDataModel(
+                        IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
+                    AccessCertificationCaseType certCase = CertCampaignTypeUtil.getCase(unwrapRowModel(rowModel));
+                    return () -> CertCampaignTypeUtil.getCurrentlyAssignedReviewers(unwrapRowModel(rowModel), certCase.getStageNumber());
+                }
+            });
+        }
+        if (!notDecidedOnly) {
+            columns.add(new CompositedIconWithLabelColumn<>(createStringResource("PageCertCampaign.statistics.response")) {
+
+                @Serial private static final long serialVersionUID = 1L;
+
+                @Override
+                protected CompositedIcon getCompositedIcon(IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
+                    AccessCertificationResponseType response = getResponse(rowModel);
+                    if (response == null) {
+                        return null;
+                    }
+                    DisplayType responseDisplayType = new CertificationItemResponseHelper(response).getResponseDisplayType();
+                    return new CompositedIconBuilder()
+                            .setBasicIcon(responseDisplayType.getIcon(), IconCssStyle.IN_ROW_STYLE)
+                            .build();
+                }
+
+                @Override
+                public IModel<DisplayType> getLabelDisplayModel(IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
+                    AccessCertificationResponseType response = getResponse(rowModel);
+                    if (response == null) {
+                        return Model.of(new DisplayType());
+                    }
+                    return Model.of(new CertificationItemResponseHelper(response).getResponseDisplayType());
+                }
+
+                @Override
+                public IModel<String> getDataModel(IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
+                    AccessCertificationResponseType response = getResponse(rowModel);
+                    if (response == null) {
+                        return Model.of("");
+                    }
+                    DisplayType responseDisplayType = new CertificationItemResponseHelper(response).getResponseDisplayType();
+                    return Model.of(LocalizationUtil.translatePolyString(responseDisplayType.getLabel()));
+                }
+
+                private AccessCertificationResponseType getResponse(
+                        IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
+                    AccessCertificationWorkItemType workItem = unwrapRowModel(rowModel);
+                    String outcome = WorkItemTypeUtil.getOutcome(workItem);
+                    return OutcomeUtils.fromUri(outcome);
+                }
+
+            });
+        }
+        columns.add(new IconColumn<>(Model.of("")) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AccessCertificationWorkItemType>>> cellItem,
+                    String componentId, IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
+                ImagePanel imagePanel = new ImagePanel(componentId, () -> getIconDisplayType(rowModel));
+                imagePanel.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(
+                        LocalizationUtil.translatePolyString(getIconDisplayType(rowModel).getTooltip()))));
+                cellItem.add(imagePanel);
+            }
+
+            @Override
+            public DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
+                AccessCertificationWorkItemType wi = unwrapRowModel(rowModel);
+                String comment = WorkItemTypeUtil.getComment(wi);
+                return new DisplayType()
+                        .tooltip(comment)
+                        .icon(new IconType()
+                                .cssClass("fa fa-comment")
+                                .color("blue"));
+            }
+        });
+        return columns;
+    }
+
     public static List<IColumn<SelectableBean<CaseType>, String>> getDefaultCaseColumns(PageBase pageBase, boolean isDashboard) {
 
         List<IColumn<SelectableBean<CaseType>, String>> columns = new ArrayList<>();
@@ -822,6 +1413,10 @@ public class ColumnUtils {
             @Override
             public boolean isEnabled(IModel<SelectableBean<CaseType>> rowModel) {
                 CaseType caseType = rowModel.getObject().getValue();
+                if (caseType.getObjectRef() == null) {
+                    return false;
+                }
+
                 PrismObject object = caseType.getObjectRef().getObject();
                 // Do not generate link if the object has not been created yet.
                 // Check the version to see if it has not been created.
@@ -989,18 +1584,20 @@ public class ColumnUtils {
             one = 1;
         }
         if (CaseTypeUtil.isApprovalCase(caseType)) {
-            Boolean result = ApprovalUtils.approvalBooleanValueFromUri(caseType.getOutcome());
-            if (result == null) {
+            ApprovalOutcomeIcon icon;
+            String outcome = caseType.getOutcome();
+
+            if (StringUtils.isEmpty(outcome)) {
                 if (caseType.getCloseTimestamp() != null) {
                     return;
                 } else {
-                    putDisplayTypeToMapWithCount(map, one, GuiDisplayTypeUtil.createDisplayType(ApprovalOutcomeIcon.IN_PROGRESS));
+                    icon = ApprovalOutcomeIcon.IN_PROGRESS;
                 }
-            } else if (result) {
-                putDisplayTypeToMapWithCount(map, one, GuiDisplayTypeUtil.createDisplayType(ApprovalOutcomeIcon.APPROVED));
             } else {
-                putDisplayTypeToMapWithCount(map, one, GuiDisplayTypeUtil.createDisplayType(ApprovalOutcomeIcon.REJECTED));
+                icon = WebComponentUtil.caseOutcomeUriToIcon(outcome);
             }
+
+            putDisplayTypeToMapWithCount(map, one, GuiDisplayTypeUtil.createDisplayType(icon));
             return;
         }
         if (CaseTypeUtil.isManualProvisioningCase(caseType)) {
@@ -1017,7 +1614,7 @@ public class ColumnUtils {
                     result = OperationResultStatusType.fromValue(caseType.getOutcome());
                 } catch (IllegalArgumentException e) {
                     putDisplayTypeToMapWithCount(map, one,
-                            GuiDisplayTypeUtil.createDisplayType(WebComponentUtil.caseOutcomeUriToIcon(caseType.getOutcome())));
+                            GuiDisplayTypeUtil.createDisplayType(WebComponentUtil.caseOutcomeUriToPresentation(caseType.getOutcome())));
                     return;
                 }
                 OperationResultStatusPresentationProperties resultStatus = OperationResultStatusPresentationProperties.parseOperationalResultStatus(result);
@@ -1237,4 +1834,178 @@ public class ColumnUtils {
         return name;
     }
 
+    public static List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> createInducementConstructionColumns(
+            IModel<PrismContainerWrapper<AssignmentType>> containerModel, PageBase page) {
+        return createAssignmentConstructionColumns(containerModel, true, page);
+    }
+
+    public static List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> createAssignmentConstructionColumns(
+            IModel<PrismContainerWrapper<AssignmentType>> containerModel, PageBase page) {
+        return createAssignmentConstructionColumns(containerModel, false, page);
+    }
+
+    private static List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> createAssignmentConstructionColumns(
+            IModel<PrismContainerWrapper<AssignmentType>> containerModel, boolean showAdvancedColumns, PageBase page) {
+
+        List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
+
+        columns.add(new AbstractColumn<>(createStringResource("SchemaHandlingType.objectType")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(
+                    Item<ICellPopulator<PrismContainerValueWrapper<AssignmentType>>> item,
+                    String componentId,
+                    IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
+
+                IModel<String> objectTypeModel = () -> {
+                    PrismContainerValueWrapper<AssignmentType> wrapper = rowModel.getObject();
+
+                    AssignmentType inducement = unwrapRowRealValue(wrapper);
+                    if (inducement != null && inducement.getConstruction() != null) {
+                        return AssignmentsUtil.getObjectTypeFromConstruction(inducement.getConstruction(), page);
+                    }
+                    return "";
+                };
+
+                item.add(new Label(componentId, objectTypeModel));
+            }
+        });
+
+        if (showAdvancedColumns) {
+            columns.add(
+                    new PrismContainerWrapperColumn<>(
+                            containerModel, ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION), page));
+
+            columns.add(new AbstractColumn<>(createStringResource("InducedEntitlements.value")) {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public void populateItem(
+                        org.apache.wicket.markup.repeater.Item<ICellPopulator<PrismContainerValueWrapper<AssignmentType>>> item,
+                        String componentId,
+                        final IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
+
+                    ExpressionType expressionType = getExpressionFromRowModel(rowModel, false);
+                    List<ShadowType> shadowsList = WebComponentUtil.loadReferencedObjectList(ExpressionUtil.getShadowRefValue(
+                                    expressionType,
+                                    page.getPrismContext()),
+                            OPERATION_LOAD_SHADOW_OBJECT, page);
+
+                    MultiValueChoosePanel<ShadowType> valuesPanel = new MultiValueChoosePanel<>(componentId,
+                            Model.ofList(shadowsList), Collections.singletonList(ShadowType.class), false) {
+                        private static final long serialVersionUID = 1L;
+
+                        @Override
+                        protected ObjectFilter getCustomFilter() {
+                            ConstructionType construction = rowModel.getObject().getRealValue().getConstruction();
+                            return ProvisioningObjectsUtil.getShadowTypeFilterForAssociation(construction, OPERATION_LOAD_RESOURCE_OBJECT,
+                                    page);
+                        }
+
+                        @Override
+                        protected void removePerformedHook(AjaxRequestTarget target, ShadowType shadow) {
+                            if (shadow != null && StringUtils.isNotEmpty(shadow.getOid())) {
+                                ExpressionType expression = ProvisioningObjectsUtil.getAssociationExpression(rowModel.getObject(), getPageBase());
+                                ExpressionUtil.removeShadowRefEvaluatorValue(expression, shadow.getOid(), getPageBase().getPrismContext());
+                            }
+                        }
+
+                        @Override
+                        protected void choosePerformedHook(AjaxRequestTarget target, List<ShadowType> selectedList) {
+                            ShadowType shadow = selectedList != null && selectedList.size() > 0 ? selectedList.get(0) : null;
+                            if (shadow != null && StringUtils.isNotEmpty(shadow.getOid())) {
+                                ExpressionType expression = getExpressionFromRowModel(rowModel, true);
+                                ExpressionUtil.addShadowRefEvaluatorValue(expression, shadow.getOid());
+                            }
+                        }
+
+                        @Override
+                        protected void selectPerformed(AjaxRequestTarget target, List<ShadowType> chosenValues) {
+                            addPerformed(target, chosenValues);
+                        }
+
+                    };
+                    valuesPanel.setOutputMarkupId(true);
+                    item.add(valuesPanel);
+                }
+            });
+
+            columns.add(new AbstractColumn<>(createStringResource("AssignmentConstruction.inducementFor")) {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public void populateItem(
+                        Item<ICellPopulator<PrismContainerValueWrapper<AssignmentType>>> item,
+                        String componentId,
+                        IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
+
+                    IModel<String> objectTypeModel = () -> {
+                        PrismContainerValueWrapper<AssignmentType> wrapper = rowModel.getObject();
+
+                        AssignmentType inducement = unwrapRowRealValue(wrapper);
+                        if (inducement != null) {
+                            QName focus = inducement.getFocusType() != null ? inducement.getFocusType() : ObjectType.COMPLEX_TYPE;
+                            Integer order = inducement.getOrder();
+                            String translatedFocus = focus.getLocalPart();
+                            if (ObjectTypes.getObjectTypeFromTypeQNameIfKnown(focus) != null) {
+                                translatedFocus = WebComponentUtil.translateMessage(
+                                        ObjectTypeUtil.createTypeDisplayInformation(focus, true));
+                            }
+                            if (order != null) {
+                                return translatedFocus + " "
+                                        + LocalizationUtil.translate(
+                                                "AssignmentConstruction.inducementFor.suffix",
+                                                new Object[]{order});
+                            }
+                            return translatedFocus;
+                        }
+                        return "";
+                    };
+
+                    item.add(new Label(componentId, objectTypeModel));
+                }
+            });
+        }
+
+        return columns;
+    }
+
+    private static ExpressionType getExpressionFromRowModel(
+            IModel<PrismContainerValueWrapper<AssignmentType>> rowModel, boolean createIfNotExist) {
+        PrismContainerValueWrapper<AssignmentType> assignment = rowModel.getObject();
+        try {
+            ItemPath path = ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION);
+            PrismContainerWrapper<ResourceObjectAssociationType> associationWrapper = assignment.findContainer(path);
+            List<PrismContainerValue<ResourceObjectAssociationType>> associationValueList = associationWrapper.getItem().getValues();
+            PrismContainerValue<ResourceObjectAssociationType> associationValue;
+            if (CollectionUtils.isEmpty(associationValueList)) {
+                if (createIfNotExist) {
+                    associationValue = associationWrapper.createValue();
+                } else {
+                    return null;
+                }
+            } else {
+                associationValue = associationValueList.get(0);
+            }
+
+            ResourceObjectAssociationType association = associationValue.getRealValue();
+            MappingType outbound = association.getOutbound();
+            if (outbound == null) {
+                if (createIfNotExist) {
+                    outbound = association.beginOutbound();
+                } else {
+                    return null;
+                }
+            }
+            ExpressionType expressionType = outbound.getExpression();
+            if (expressionType == null && createIfNotExist) {
+                expressionType = outbound.beginExpression();
+            }
+            return expressionType;
+        } catch (SchemaException ex) {
+            LOGGER.error("Unable to find association container in the construction: {}", ex.getLocalizedMessage());
+        }
+        return null;
+    }
 }

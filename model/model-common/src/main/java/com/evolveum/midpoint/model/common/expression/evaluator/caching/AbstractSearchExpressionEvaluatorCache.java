@@ -7,8 +7,7 @@
 
 package com.evolveum.midpoint.model.common.expression.evaluator.caching;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.model.common.expression.evaluator.AbstractSearchExpressionEvaluator.ObjectFound;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
@@ -18,6 +17,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSearchStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -63,62 +65,54 @@ public abstract class AbstractSearchExpressionEvaluatorCache<
 
     // We need thread-safety here e.g. because of size determination, see getSize() method.
     // Also probably because of MID-5355, although it's a bit unclear.
-    Map<QK, QR> queries = new ConcurrentHashMap<>();
+    Map<QK, QR> cachedSearches = new ConcurrentHashMap<>();
 
-    public List<V> getQueryResult(
+    public List<V> getSearchResult(
             Class<O> type,
-            ObjectQuery query,
+            Collection<ObjectQuery> queries,
             ObjectSearchStrategyType searchStrategy,
-            ExpressionEvaluationContext params,
-            PrismContext prismContext) {
-        QK queryKey = createQueryKey(type, query, searchStrategy, params, prismContext);
-        if (queryKey != null) { // TODO BRUTAL HACK
-            QR result = queries.get(queryKey);
-            if (result != null) {
-                return result.getResultingList();
-            }
+            ExpressionEvaluationContext eeCtx) {
+        QK key = createKey(type, queries, searchStrategy, eeCtx);
+        QR result = cachedSearches.get(key);
+        if (result != null) {
+            return result.getResultingList();
         }
         return null;
     }
 
-    public void putQueryResult(
+    public void putSearchResult(
             Class<O> type,
-            ObjectQuery query,
+            Collection<ObjectQuery> queries,
             ObjectSearchStrategyType searchStrategy,
             ExpressionEvaluationContext params,
-            List<V> resultList,
-            List<PrismObject<O>> rawResultList,
-            PrismContext prismContext) {
-        QK queryKey = createQueryKey(type, query, searchStrategy, params, prismContext);
-        if (queryKey != null) { // TODO BRUTAL HACK
-            QR queryResult = createQueryResult(resultList, rawResultList);
-            queries.put(queryKey, queryResult);
-        }
+            Collection<? extends ObjectFound<O, V>> objectsFound) {
+        cachedSearches.put(
+                createKey(type, queries, searchStrategy, params),
+                createQueryResult(objectsFound));
     }
 
-    abstract protected QK createQueryKey(
+    abstract protected @NotNull QK createKey(
             Class<O> type,
-            ObjectQuery query,
+            Collection<ObjectQuery> queries,
             ObjectSearchStrategyType searchStrategy,
-            ExpressionEvaluationContext params,
-            PrismContext prismContext);
+            ExpressionEvaluationContext eeCtx);
 
-    protected abstract QR createQueryResult(List<V> resultList, List<PrismObject<O>> rawResultList);
+    protected abstract QR createQueryResult(Collection<? extends ObjectFound<O, V>> objectsFound);
 
     @Override
     public String description() {
-        return "Q:"+queries.size();
+        return "Q:"+ cachedSearches.size();
     }
 
     @Override
     protected int getSize() {
-        return queries.size();
+        return cachedSearches.size();
     }
 
     @Override
     protected void dumpContent(String threadName) {
         if (LOGGER_CONTENT.isInfoEnabled()) {
-            queries.forEach((qk, qr) -> LOGGER.info("Cached search expression evaluation [{}] {}: {}", threadName, qk, qr));
+            cachedSearches.forEach((qk, qr) -> LOGGER.info("Cached search expression evaluation [{}] {}: {}", threadName, qk, qr));
         }
     }
 }

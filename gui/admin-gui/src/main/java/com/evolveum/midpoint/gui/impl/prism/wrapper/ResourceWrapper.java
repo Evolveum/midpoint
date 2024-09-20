@@ -58,6 +58,8 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
                         SynchronizationReactionType.F_NAME))
                 .put(AbstractSynchronizationActionType.class, Arrays.asList(
                         AbstractSynchronizationActionType.F_NAME))
+                .put(ResourceObjectPatternType.class, Arrays.asList(
+                        ResourceObjectPatternType.F_FILTER))
                 .build();
     }
 
@@ -67,7 +69,7 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
 
     @Override
     public ObjectDelta<ResourceType> getObjectDelta() throws SchemaException {
-        ObjectDelta<ResourceType> objectDelta = getPrismContext().deltaFor(getObject().getCompileTimeClass())
+        ObjectDelta<ResourceType> objectDelta = PrismContext.get().deltaFor(getObject().getCompileTimeClass())
                 .asObjectDelta(getObject().getOid());
 
         Collection<ItemDelta<PrismValue, ItemDefinition<?>>> deltas = new ArrayList<>();
@@ -272,7 +274,7 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
             newValue.setId(origParentValue.getId());
             Class<?> typeClass = newValue.getComplexTypeDefinition().getTypeClass();
             if (typeClass == null) {
-                typeClass = WebComponentUtil.qnameToClass(PrismContext.get(), newValue.getComplexTypeDefinition().getTypeName());
+                typeClass = WebComponentUtil.qnameToClass(newValue.getComplexTypeDefinition().getTypeName());
             }
             Class<?> key = getClassKeyForMergedClass(typeClass);
             if (key != null) {
@@ -293,6 +295,10 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
         if (!newValue.contains(newChildItem.getElementName())) {
             newChildItem.setParent(newValue);
             newValue.add(newChildItem);
+        } else if (newChildItem instanceof PrismContainer &&
+                !newChildItem.isSingleValue()){
+            PrismContainer<?> parentItem = newValue.findContainer(newChildItem.getElementName());
+            parentItem.addAll(newChildItem.getClonedValues());
         }
 
         if (valueOfExistingDelta != null && isItemFound) {

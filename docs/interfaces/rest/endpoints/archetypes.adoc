@@ -1,0 +1,216 @@
+= Archetype Type REST Endpoint
+:page-nav-title: Archetype
+:page-display-order: 1200
+:page-toc: top
+:page-keywords: [ 'rest', 'archetype' ,'endpoint' ]
+:page-upkeep-status: green
+
+== Description
+
+Here we are describing the Archetype object type in relation to midPoints REST API. The
+Archetype objects are a part of the REST API web resources.
+
+.Endpoint
+[source, http]
+----
+archetypes/
+----
+
+== Operations And Examples
+
+The Archetype Type endpoint operations and examples.
+
+include::../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+
+=== Create Archetype Type Object
+
+- xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]
+
+=== Get Archetype Type Objects
+
+Get operation for fetching a single specific object.
+
+- xref:/midpoint/reference/interfaces/rest/operations/get-op-rest/[Get Operation]
+
+=== Search for Archetype Type Objects
+
+Search operation usable for fetching the full list of objects or a list based on filter.
+
+include::../operations/examples/raw/search-all.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[Search Operation]
+
+=== Modify Archetype Type Objects
+
+- xref:/midpoint/reference/interfaces/rest/operations/modify-op-rest/[Modify Operation]
+
+=== Delete Archetype Type Objects
+
+- xref:/midpoint/reference/interfaces/rest/operations/delete-op-rest/[Delete Operation]
+
+=== Generate and Validate Operations for Archetype Type Objects
+
+Operations to generate or validate values.
+
+- xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]
+
+== JSON Example
+
+Example output of information regarding a specific Archetype object. Metadata is usually a part of the output, yet
+it was removed for the purpose of the example.
+
+.Show JSON Example
+[%collapsible]
+====
+[source, json]
+----
+{
+	"archetype": {
+		"oid": "00000000-0000-0000-0000-000000000329",
+		"version": "1",
+		"name": "Application",
+		"description": "\n        Applications are basic building blocks for defining access.\n        These objects contain business information.\n        Application is an administrative object describing application\n        as a business target that the access relates to.\n    ",
+		"metadata": {},
+		"operationExecution": {},
+		"assignment": {},
+		"iteration": 0,
+		"iterationToken": "",
+		"activation": {},
+		"archetypePolicy": {
+			"display": {
+				"label": "Application",
+				"pluralLabel": {
+					"orig": "Applications",
+					"norm": "applications",
+					"translation": {
+						"key": "Applications.title"
+					}
+				},
+				"icon": {
+					"cssClass": "fa fa-cloud",
+					"color": "blue"
+				}
+			},
+			"adminGuiConfiguration": {
+				"objectDetails": {
+					"panel": [
+						{
+							"@id": 3,
+							"identifier": "projections",
+							"display": {
+								"label": "Application.panel.projections"
+							},
+							"panelType": "projections"
+						},
+						{
+							"@id": 4,
+							"identifier": "assignments",
+							"visibility": "hidden"
+						},
+						{
+							"@id": 5,
+							"identifier": "password",
+							"visibility": "hidden"
+						},
+						{
+							"@id": 6,
+							"identifier": "applicablePolicies",
+							"visibility": "hidden"
+						},
+						{
+							"@id": 7,
+							"identifier": "serviceMembers",
+							"listView": {
+								"searchBoxConfiguration": {
+									"objectTypeConfiguration": {
+										"visibility": "hidden",
+										"defaultValue": "#UserType",
+										"supportedTypes": "#UserType"
+									},
+									"indirectConfiguration": {
+										"indirect": true
+									}
+								}
+							}
+						},
+						{
+							"@id": 8,
+							"identifier": "serviceGovernance",
+							"visibility": "hidden"
+						},
+						{
+							"@id": 9,
+							"identifier": "governance",
+							"display": {
+								"label": "GovernanceCardsPanel.label",
+								"icon": {
+									"cssClass": "fa fa-users"
+								}
+							},
+							"displayOrder": 91,
+							"panelType": "governanceCards"
+						},
+						{
+							"@id": 10,
+							"identifier": "inducements",
+							"visibility": "hidden"
+						},
+						{
+							"@id": 11,
+							"identifier": "resourceEntitlementsTopLevel",
+							"display": {
+								"label": "Application.panel.constructionInducements"
+							},
+							"displayOrder": 115,
+							"panelType": "constructionInducements"
+						},
+						{
+							"@id": 13,
+							"identifier": "applicationRoles",
+							"display": {
+								"label": "Application.panel.inducedBy"
+							},
+							"displayOrder": 117,
+							"panelType": "inducedBy",
+							"listView": {
+								"identifier": "applicationRoles",
+								"searchBoxConfiguration": {
+									"objectTypeConfiguration": {
+										"visibility": "hidden",
+										"defaultValue": "#RoleType",
+										"supportedTypes": "#RoleType"
+									}
+								},
+								"type": "c:RoleType",
+								"collection": {
+									"collectionRef": {
+										"oid": "00000000-0000-0000-0001-000000000016",
+										"relation": "org:default",
+										"type": "c:ObjectCollectionType"
+									}
+								}
+							}
+						},
+						{
+							"@id": 14,
+							"identifier": "inducedBy",
+							"displayOrder": 118,
+							"panelType": "inducedBy"
+						}
+					]
+				}
+			}
+		}
+	}
+}
+----
+====
+
+== See Also
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]

@@ -93,7 +93,7 @@ import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
@@ -160,47 +160,59 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Autowired private TaskManager taskManager;
     @Autowired private SimulationResultManager simulationResultManager;
     @Autowired private ProvisioningService provisioningService;
+    @Autowired private ClockworkHookHelper clockworkHookHelper;
 
     private static final String OPERATION_GENERATE_VALUE = ModelInteractionService.class.getName() + ".generateValue";
     private static final String OPERATION_VALIDATE_VALUE = ModelInteractionService.class.getName() + ".validateValue";
 
+    /** The "modern" implementation that uses the simulations feature. */
     @Override
-    public <F extends ObjectType> ModelContext<F> previewChanges(
-            Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult parentResult)
-            throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
-        return previewChanges(deltas, options, task, Collections.emptyList(), parentResult);
+    public @NotNull <F extends ObjectType> ModelContext<F> previewChanges(
+            Collection<ObjectDelta<? extends ObjectType>> deltas,
+            ModelExecuteOptions options,
+            Task task,
+            Collection<ProgressListener> listeners,
+            OperationResult result)
+            throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
+            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+
+        var originalExecutionMode = switchModeToSimulationIfNeeded(task);
+        try {
+
+            // We extract the model context using special progress listener
+            var collectingProgressListener = new ProgressListener.Collecting();
+
+            var newListeners = ProgressListener.add(listeners, collectingProgressListener);
+            modelService.executeChanges(deltas, options, task, newListeners, result);
+
+            //noinspection unchecked
+            var lastContext = (LensContext<F>) collectingProgressListener.getFinalContext();
+
+            // Provides information from the hooks (e.g., approvals) to the model context, just like legacy previewChanges did.
+            clockworkHookHelper.invokePreview(lastContext, task, result);
+
+            // Hides sensitive information from non-root users.
+            schemaTransformer.applySecurityToLensContext(lastContext, task, result);
+
+            return lastContext;
+
+        } finally {
+            task.setExecutionMode(originalExecutionMode);
+        }
     }
 
     @Override
-    public <F extends ObjectType> ModelContext<F> previewChanges(
-            Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task,
-            Collection<ProgressListener> listeners, OperationResult parentResult)
-            throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
-
-        TaskExecutionMode executionMode = task.getExecutionMode();
-        if (executionMode.isFullyPersistent()) {
-            LOGGER.debug("Task {} has 'persistent' execution mode when executing previewChanges, setting to SIMULATED_PRODUCTION",
-                    task.getName());
-
-            task.setExecutionMode(TaskExecutionMode.SIMULATED_PRODUCTION);
-        }
+    public <F extends ObjectType> ModelContext<F> previewChangesLegacy(
+            Collection<ObjectDelta<? extends ObjectType>> deltas,
+            ModelExecuteOptions options,
+            Task task,
+            Collection<ProgressListener> listeners,
+            OperationResult parentResult)
+            throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
+            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         if (ModelExecuteOptions.isRaw(options)) {
             throw new UnsupportedOperationException("previewChanges is not supported in raw mode");
-        }
-
-        if (options == null) {
-            options = ModelExecuteOptions.create();
-        }
-
-        if (options.getSimulationOptions() == null) {
-            SimulationOptionsType simulation = new SimulationOptionsType();
-
-            SimulationOptionType option = task.isExecutionFullyPersistent() ? SimulationOptionType.UNSAFE : SimulationOptionType.SAFE;
-            simulation.setCreateOnDemand(option);
-            simulation.setSequence(option);
-
-            options.simulationOptions(simulation);
         }
 
         LOGGER.debug("Preview changes input:\n{}", DebugUtil.debugDumpLazily(deltas));
@@ -209,23 +221,35 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         OperationResult result = parentResult.createSubresult(PREVIEW_CHANGES);
         LensContext<F> context = null;
 
+        var originalExecutionMode = switchModeToSimulationIfNeeded(task);
         try {
             RepositoryCache.enterLocalCaches(cacheConfigurationManager);
             // used cloned deltas instead of origin deltas, because some of the
             // values should be lost later..
             context = contextFactory.createContext(clonedDeltas, options, task, result);
-            context = clockwork.previewChanges(context, listeners, task, result);
+            context = clockwork.previewChangesLegacy(context, listeners, task, result);
 
             schemaTransformer.applySecurityToLensContext(context, task, result);
         } finally {
-            LensUtil.reclaimSequences(context, cacheRepositoryService, task, result);
+            LensUtil.reclaimSequences(context, cacheRepositoryService, result);
 
             RepositoryCache.exitLocalCaches();
 
-            task.setExecutionMode(executionMode);
+            task.setExecutionMode(originalExecutionMode);
         }
 
         return context;
+    }
+
+    private static @NotNull TaskExecutionMode switchModeToSimulationIfNeeded(Task task) {
+        TaskExecutionMode executionMode = task.getExecutionMode();
+        if (executionMode.isFullyPersistent()) {
+            LOGGER.debug("Task {} has 'persistent' execution mode when executing previewChanges, setting to SIMULATED_PRODUCTION",
+                    task.getName());
+
+            task.setExecutionMode(TaskExecutionMode.SIMULATED_PRODUCTION);
+        }
+        return executionMode;
     }
 
     @NotNull
@@ -248,7 +272,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(
+    public <O extends ObjectType> @NotNull PrismObjectDefinition<O> getEditObjectDefinition(
             PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult parentResult)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, SecurityViolationException {
@@ -262,7 +286,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
             // TODO: maybe we need to expose owner resolver in the interface?
             ObjectSecurityConstraints securityConstraints =
-                    securityEnforcer.compileSecurityConstraints(fullObject, SecurityEnforcer.Options.create(), task, result);
+                    securityEnforcer.compileSecurityConstraints(fullObject, true, SecurityEnforcer.Options.create(), task, result);
             LOGGER.trace("Security constrains for {}:\n{}", object, DebugUtil.debugDumpLazily(securityConstraints));
             TransformableObjectDefinition<O> objectDefinition = schemaTransformer.transformableDefinition(object.getDefinition());
             applyArchetypePolicy(objectDefinition, object, task, result);
@@ -272,7 +296,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             }
             return objectDefinition;
         } catch (ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException | SchemaException e) {
-            result.recordFatalError(e);
+            result.recordException(e);
             throw e;
         } finally {
             result.computeStatusIfUnknown();
@@ -293,19 +317,13 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             } catch (CommunicationException | SecurityViolationException | ExpressionEvaluationException e) {
                 throw new ConfigurationException(e.getMessage(), e);
             }
-            ResourceObjectDefinition refinedObjectClassDefinition =
+            ResourceObjectDefinition resourceObjectDefinition =
                     getEditObjectClassDefinition(shadow, resource, phase, task, result);
-            if (refinedObjectClassDefinition != null) {
+            if (resourceObjectDefinition != null) {
                 objectDefinition.replaceDefinition(ShadowType.F_ATTRIBUTES,
-                        refinedObjectClassDefinition.toResourceAttributeContainerDefinition());
-
-                PrismContainerDefinition<?> assocContainer =
-                        objectDefinition.findContainerDefinition(ItemPath.create(ShadowType.F_ASSOCIATION));
-                TransformableContainerDefinition.require(assocContainer)
-                        .replaceDefinition(
-                                ShadowAssociationType.F_IDENTIFIERS,
-                                refinedObjectClassDefinition
-                                        .toResourceAttributeContainerDefinition(ShadowAssociationType.F_IDENTIFIERS));
+                        resourceObjectDefinition.toShadowAttributesContainerDefinition());
+                objectDefinition.replaceDefinition(ShadowType.F_ASSOCIATIONS,
+                        resourceObjectDefinition.toShadowAssociationsContainerDefinition());
             }
         }
     }
@@ -382,24 +400,24 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
         // TODO: maybe we need to expose owner resolver in the interface?
         ObjectSecurityConstraints securityConstraints =
-                securityEnforcer.compileSecurityConstraints(shadow, SecurityEnforcer.Options.create(), task, result);
+                securityEnforcer.compileSecurityConstraints(shadow, true, SecurityEnforcer.Options.create(), task, result);
         LOGGER.trace("Security constrains for {}:\n{}", shadow, DebugUtil.debugDumpLazily(securityConstraints));
 
         AuthorizationDecisionType attributesReadDecision =
                 securityConstraints.computeItemDecision(
-                        SchemaConstants.PATH_ATTRIBUTES,
+                        ShadowType.F_ATTRIBUTES,
                         ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET,
                         securityConstraints.findAllItemsDecision(ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, phase),
                         phase);
         AuthorizationDecisionType attributesAddDecision =
                 securityConstraints.computeItemDecision(
-                        SchemaConstants.PATH_ATTRIBUTES,
+                        ShadowType.F_ATTRIBUTES,
                         ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ADD,
                         securityConstraints.findAllItemsDecision(ModelAuthorizationAction.ADD.getUrl(), phase),
                         phase);
         AuthorizationDecisionType attributesModifyDecision =
                 securityConstraints.computeItemDecision(
-                        SchemaConstants.PATH_ATTRIBUTES,
+                        ShadowType.F_ATTRIBUTES,
                         ModelAuthorizationAction.AUTZ_ACTIONS_URLS_MODIFY,
                         securityConstraints.findAllItemsDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase),
                         phase);
@@ -407,9 +425,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 attributesReadDecision, attributesAddDecision, attributesModifyDecision);
 
         // Let's work on the copied list, as we modify (replace = delete+add) the definitions in the object definition.
-        List<? extends ResourceAttributeDefinition<?>> definitionsCopy =
-                new ArrayList<>(objectDefinition.getAttributeDefinitions());
-        for (ResourceAttributeDefinition<?> rAttrDef : definitionsCopy) {
+        List<? extends ShadowSimpleAttributeDefinition<?>> definitionsCopy =
+                new ArrayList<>(objectDefinition.getSimpleAttributeDefinitions());
+        for (ShadowSimpleAttributeDefinition<?> rAttrDef : definitionsCopy) {
             ItemPath attributePath = ItemPath.create(ShadowType.F_ATTRIBUTES, rAttrDef.getItemName());
             AuthorizationDecisionType attributeReadDecision =
                     securityConstraints.computeItemDecision(
@@ -428,7 +446,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                     || attributeModifyDecision != AuthorizationDecisionType.ALLOW) {
 
                 // This opens up flag overriding
-                ResourceAttributeDefinition<?> attrDefClone = rAttrDef.clone();
+                ShadowSimpleAttributeDefinition<?> attrDefClone = rAttrDef.clone();
                 if (attributeReadDecision != AuthorizationDecisionType.ALLOW) {
                     attrDefClone.setOverrideCanRead(false);
                 }
@@ -438,11 +456,11 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 if (attributeModifyDecision != AuthorizationDecisionType.ALLOW) {
                     attrDefClone.setOverrideCanModify(false);
                 }
-                objectDefinition.replaceDefinition(rAttrDef.getItemName(), attrDefClone);
+                objectDefinition.replaceAttributeDefinition(rAttrDef.getItemName(), attrDefClone);
             }
         }
 
-        // TODO what about activation and credentials?
+        // TODO what about associations, activation and credentials?
 
         objectDefinition.freeze();
         return objectDefinition;
@@ -516,23 +534,21 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         ObjectSecurityConstraints securityConstraints;
         try {
             securityConstraints = securityEnforcer.compileSecurityConstraints(
-                    focus, SecurityEnforcer.Options.create(), task, result);
+                    focus, true, SecurityEnforcer.Options.create(), task, result);
         } catch (ExpressionEvaluationException | ObjectNotFoundException | SchemaException | CommunicationException |
                 SecurityViolationException e) {
             result.recordFatalError(e);
             throw e;
         }
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Security constrains for getAssignableRoleSpecification on {}:\n{}",
-                    focus, securityConstraints.debugDump(1));
-        }
+        LOGGER.trace("Security constrains for getAssignableRoleSpecification on {}:\n{}",
+                focus, securityConstraints.debugDumpLazily(1));
 
         // Global decisions: processing #modify authorizations: allow/deny for all items or allow/deny for assignment/inducement item.
         ItemPath assignmentPath;
         if (assignmentOrder == 0) {
-            assignmentPath = SchemaConstants.PATH_ASSIGNMENT;
+            assignmentPath = FocusType.F_ASSIGNMENT;
         } else {
-            assignmentPath = SchemaConstants.PATH_INDUCEMENT;
+            assignmentPath = AbstractRoleType.F_INDUCEMENT;
         }
         AuthorizationDecisionType assignmentItemDecision = securityConstraints.findItemDecision(assignmentPath,
                 ModelAuthorizationAction.MODIFY.getUrl(), AuthorizationPhaseType.REQUEST);
@@ -575,9 +591,11 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
         try {
             return securityEnforcer.computeTargetSecurityFilter(
-                    principal, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ASSIGN, AuthorizationPhaseType.REQUEST,
-                    targetType, focus, prismContext.queryFactory().createAll(), null, orderConstraintsList,
-                    gizmo, task, result);
+                    principal,
+                    ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ASSIGN,
+                    ModelAuthorizationAction.AUTZ_ACTIONS_URLS_SEARCH_BY,
+                    AuthorizationPhaseType.REQUEST, targetType, focus, prismContext.queryFactory().createAll(), null,
+                    orderConstraintsList, gizmo, task, result);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -593,9 +611,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         return securityEnforcer.preProcessObjectFilter(
-                securityEnforcer.getMidPointPrincipal(), ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ATTORNEY, null,
-                searchResultType, origFilter, targetAuthorizationAction, List.of(),
-                SecurityEnforcer.Options.create(), task, parentResult);
+                securityEnforcer.getMidPointPrincipal(), ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ATTORNEY,
+                ModelAuthorizationAction.AUTZ_ACTIONS_URLS_SEARCH_BY,
+                null, searchResultType, origFilter, targetAuthorizationAction,
+                List.of(), SecurityEnforcer.Options.create(), task, parentResult);
     }
 
     @Override
@@ -1031,9 +1050,15 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public <O extends ObjectType> String generateValue(ValuePolicyType policy, int defaultLength, boolean generateMinimalSize,
-            PrismObject<O> object, String shortDesc, Task task, OperationResult parentResult) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-        return policyProcessor.generate(null, policy, defaultLength, generateMinimalSize, createOriginResolver(object, parentResult), shortDesc, task, parentResult);
+    public <O extends ObjectType> String generateValue(
+            ValuePolicyType policy, int defaultLength, boolean generateMinimalSize, PrismObject<O> object, String shortDesc,
+            Task task, OperationResult parentResult)
+            throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        return policyProcessor.generate(
+                null, policy, defaultLength,
+                createOriginResolver(object, parentResult),
+                shortDesc, task, parentResult);
     }
 
     @Override
@@ -1206,10 +1231,11 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             LOGGER.error("Target item path must be defined");
             throw new SchemaException("Target item path must be defined");
         }
-        ItemPath targetPath = null;
-
+        ItemPath targetPath;
         if (target != null) {
             targetPath = target.getPath().getItemPath();
+        } else {
+            targetPath = null;
         }
 
         ValuePolicyType valuePolicy = resolveValuePolicy(policyItemDefinition, defaultPolicy, task, result);
@@ -1219,14 +1245,12 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             LOGGER.trace("No sting policy defined. Cannot generate value.");
             result.recordFatalError("No string policy defined. Cannot generate value");
             return;
-//            throw new SchemaException("No value policy for " + targetPath);
         }
 
         String newValue = policyProcessor.generate(
                 targetPath,
                 valuePolicy,
                 10,
-                false,
                 createOriginResolver(object, result),
                 "generating value for" + targetPath,
                 task,
@@ -1505,7 +1529,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             return null;
         }
         try {
-            if (protectedString.isEncrypted()) {
+            if (protectedString.isEncrypted() || protectedString.isExternal()) {
 
                 return protector.decryptString(protectedString);
 
@@ -2154,9 +2178,21 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public <O extends ObjectType> List<StringLimitationResult> validateValue(ProtectedStringType protectedStringValue, ValuePolicyType pp, PrismObject<O> object, Task task, OperationResult parentResult)
-            throws SchemaException, PolicyViolationException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        return policyProcessor.validateValue(getClearValue(protectedStringValue), pp, createOriginResolver(object, parentResult), "validate string", task, parentResult);
+    public <O extends ObjectType> List<StringLimitationResult> validateValue(
+            ProtectedStringType protectedStringValue,
+            ValuePolicyType valuePolicy,
+            PrismObject<O> object,
+            Task task,
+            OperationResult result)
+            throws SchemaException, PolicyViolationException, ObjectNotFoundException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        return policyProcessor.validateValue(
+                getClearValue(protectedStringValue),
+                valuePolicy,
+                createOriginResolver(object, result),
+                "validate string",
+                task,
+                result);
     }
 
     // TODO deduplicate with getSearchSpecificationFromCollection
@@ -2236,7 +2272,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     private ObjectQuery checkOrdering(ObjectQuery query, ItemPath defaultOrderBy) {
         if (query != null) {
             if (query.getPaging() == null) {
-                ObjectPaging paging = ObjectQueryUtil.convertToObjectPaging(new PagingType(), prismContext);
+                ObjectPaging paging = ObjectQueryUtil.convertToObjectPaging(new PagingType());
                 paging.setOrdering(defaultOrderBy, OrderDirection.ASCENDING);
                 query.setPaging(paging);
             } else if (query.getPaging().getPrimaryOrderingPath() == null) {
@@ -2252,7 +2288,6 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     private void processContainerByHandler(SearchResultList<? extends Containerable> containers, Predicate<PrismContainer> handler) throws SchemaException {
         for (Containerable container : containers) {
             PrismContainerValue prismValue = container.asPrismContainerValue();
-            prismValue.setPrismContext(prismContext);
             PrismContainer prismContainer = prismValue.asSingleValuedContainer(prismValue.getTypeName());
             if (!handler.test(prismContainer)) {
                 return;
@@ -2363,7 +2398,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         }
 
         ObjectQuery query = prismContext.queryFactory().createQuery();
-        query.setPaging(usedPaging == null ? ObjectQueryUtil.convertToObjectPaging(compiledCollection.getPaging(), prismContext) : usedPaging);
+        query.setPaging(usedPaging == null ? ObjectQueryUtil.convertToObjectPaging(compiledCollection.getPaging()) : usedPaging);
         query.setFilter(filter);
         return query;
     }
@@ -2446,5 +2481,25 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     public void applyDefinitions(ShadowType shadow, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
         provisioningService.applyDefinition(shadow.asPrismObject(), task, result);
+    }
+
+    public boolean isOfArchetype(AssignmentHolderType assignmentHolderType, String archetypeOid, OperationResult result) throws SchemaException, ConfigurationException {
+        return archetypeManager.isOfArchetype(assignmentHolderType, archetypeOid, result);
+    }
+
+    @Override
+    public boolean isSubarchetypeOrArchetype(String archetypeOid, String parentArchetype, OperationResult result){
+        try {
+            return archetypeManager.isSubArchetypeOrArchetype(archetypeOid, parentArchetype, result);
+        } catch (ObjectNotFoundException | SchemaException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't check if archetype {} is subarchetype of {}", e, archetypeOid, parentArchetype);
+            throw new SystemException(e);
+        }
+    }
+
+    @Override
+    public @NotNull List<ArchetypeType> determineArchetypes(@Nullable ObjectType object, OperationResult result)
+            throws SchemaException {
+        return archetypeManager.determineArchetypes(object, result);
     }
 }

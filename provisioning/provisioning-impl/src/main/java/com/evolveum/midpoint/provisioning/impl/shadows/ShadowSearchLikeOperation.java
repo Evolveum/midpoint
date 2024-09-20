@@ -6,11 +6,17 @@
  */
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
+import static com.evolveum.midpoint.provisioning.impl.shadows.RepoShadowWithState.ShadowState.EXISTING;
+import static com.evolveum.midpoint.provisioning.util.ProvisioningUtil.determineContentDescription;
 import static com.evolveum.midpoint.schema.GetOperationOptions.getErrorReportingMethod;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import com.evolveum.midpoint.provisioning.impl.RepoShadow;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowContentDescriptionType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,6 +49,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 class ShadowSearchLikeOperation {
 
+    private static final String OP_PROCESS_SHADOW = ShadowSearchLikeOperation.class.getName() + ".processShadow";
+
     private static final Trace LOGGER = TraceManager.getTrace(ShadowSearchLikeOperation.class);
 
     @NotNull private final ProvisioningContext ctx;
@@ -52,28 +60,25 @@ class ShadowSearchLikeOperation {
     @Nullable private final Collection<SelectorOptions<GetOperationOptions>> options;
 
     @Nullable private final GetOperationOptions rootOptions;
-    @NotNull private final ShadowsLocalBeans localBeans;
+    @NotNull private final ShadowsLocalBeans b = ShadowsLocalBeans.get();
 
     private ShadowSearchLikeOperation(
             @NotNull ProvisioningContext ctx,
             @Nullable ObjectQuery query,
-            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
-            @NotNull ShadowsLocalBeans localBeans) throws SchemaException {
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException {
         this.ctx = ctx;
         this.query = query;
         DefinitionsUtil.applyDefinition(ctx, query);
         this.options = GetOperationOptions.updateToReadWrite(options);
         this.rootOptions = SelectorOptions.findRootOptions(this.options);
-        this.localBeans = localBeans;
     }
 
     static ShadowSearchLikeOperation create(
             ProvisioningContext ctx,
             ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options,
-            ShadowsLocalBeans localBeans)
+            Collection<SelectorOptions<GetOperationOptions>> options)
             throws SchemaException, ExpressionEvaluationException, ConfigurationException, ObjectNotFoundException {
-        return new ShadowSearchLikeOperation(ctx, query, options, localBeans);
+        return new ShadowSearchLikeOperation(ctx, query, options);
     }
 
     static ShadowSearchLikeOperation create(
@@ -81,14 +86,12 @@ class ShadowSearchLikeOperation {
             Collection<SelectorOptions<GetOperationOptions>> options,
             ProvisioningOperationContext context,
             Task task,
-            OperationResult result,
-            ShadowsLocalBeans localBeans)
+            OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ConfigurationException, ObjectNotFoundException {
         return new ShadowSearchLikeOperation(
-                createContext(query, options, context, task, localBeans, result),
+                createContext(query, options, context, task, result),
                 query,
-                options,
-                localBeans);
+                options);
     }
 
     private static ProvisioningContext createContext(
@@ -96,19 +99,19 @@ class ShadowSearchLikeOperation {
             Collection<SelectorOptions<GetOperationOptions>> options,
             ProvisioningOperationContext context,
             Task task,
-            ShadowsLocalBeans localBeans,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException {
         ResourceOperationCoordinates operationCoordinates = ObjectQueryUtil.getOperationCoordinates(query);
         operationCoordinates.checkNotUnknown();
         operationCoordinates.checkNotResourceScoped();
-        ProvisioningContext ctx = localBeans.ctxFactory.createForBulkOperation(operationCoordinates, context, task, result);
+        ProvisioningContext ctx = ShadowsLocalBeans.get().ctxFactory
+                .createForBulkOperation(operationCoordinates, context, task, result);
         ctx.setGetOperationOptions(options);
         ctx.assertDefinition();
         return ctx;
     }
 
-    SearchResultMetadata executeIterativeSearch(ResultHandler<ShadowType> handler, OperationResult result)
+    SearchResultMetadata executeIterativeSearch(@NotNull ResultHandler<ShadowType> handler, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         if (shouldDoRepoSearch()) {
@@ -136,15 +139,16 @@ class ShadowSearchLikeOperation {
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
         if (shouldDoRepoSearch()) {
-            return localBeans.shadowFinder.countShadows(ctx, query, options, result);
+            return b.shadowFinder.countShadows(ctx, query, options, result);
         } else {
             // We record the fetch operation even if it's possible that it is not supported.
             InternalMonitor.recordCount(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
-            return localBeans.resourceObjectConverter.countResourceObjects(ctx, createOnResourceQuery(), result);
+            return b.resourceObjectConverter.countResourceObjects(ctx, createOnResourceQuery(), result);
         }
     }
 
-    private SearchResultMetadata executeIterativeSearchOnResource(ResultHandler<ShadowType> handler, OperationResult result)
+    private SearchResultMetadata executeIterativeSearchOnResource(
+            @NotNull ResultHandler<ShadowType> handler, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, SecurityViolationException {
 
@@ -155,9 +159,11 @@ class ShadowSearchLikeOperation {
 
         ResourceObjectHandler shadowHandler = (ResourceObjectFound objectFound, OperationResult lResult) -> {
 
-            ShadowedObjectFound shadowedObjectFound = new ShadowedObjectFound(objectFound, localBeans, ctx);
+            ShadowedObjectFound shadowedObjectFound = new ShadowedObjectFound(objectFound);
             shadowedObjectFound.initialize(ctx.getTask(), lResult);
-            ShadowType shadowedObject = shadowedObjectFound.getResultingObject(ucfErrorReportingMethod);
+            ShadowType shadowedObject = shadowedObjectFound.getResultingObject(ucfErrorReportingMethod, lResult);
+            shadowedObject.setContentDescription(
+                    determineContentDescription(options, shadowedObjectFound.isError()));
 
             try {
                 return handler.handle(shadowedObject.asPrismObject(), lResult);
@@ -169,9 +175,9 @@ class ShadowSearchLikeOperation {
             }
         };
 
-        boolean fetchAssociations = SelectorOptions.hasToIncludePath(ShadowType.F_ASSOCIATION, options, true);
+        boolean fetchAssociations = SelectorOptions.hasToIncludePath(ShadowType.F_ASSOCIATIONS, options, true);
         try {
-            return localBeans.resourceObjectConverter.searchResourceObjects(
+            return b.resourceObjectConverter.searchResourceObjects(
                     ctx, shadowHandler, createOnResourceQuery(), fetchAssociations, ucfErrorReportingMethod, result);
         } catch (TunnelException e) {
             unwrapAndThrowSearchingTunnelException(e);
@@ -273,16 +279,29 @@ class ShadowSearchLikeOperation {
     }
 
     private SearchResultMetadata executeIterativeSearchInRepository(
-            ResultHandler<ShadowType> upstreamHandler, OperationResult result)
+            @NotNull ResultHandler<ShadowType> upstreamHandler, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         try {
-            return localBeans.shadowFinder.searchShadowsIterative(
-                    ctx,
-                    query,
-                    options,
-                    createRepoShadowHandler(upstreamHandler),
-                    result);
+            var repoShadowHandler = (ResultHandler<ShadowType>) (repoShadow, lResult) -> {
+                OperationResult result = lResult.createMinorSubresult(ShadowsFacade.OP_HANDLE_OBJECT);
+                try {
+                    var processedShadow = processRepoShadow(repoShadow, result);
+                    var cont = upstreamHandler.handle(processedShadow, lResult);
+                    lResult.summarize();
+                    return cont;
+                } catch (CommonException e) {
+                    result.recordException(e);
+                    throw new TunnelException(e);
+                } catch (Throwable t) {
+                    result.recordException(t);
+                    throw t;
+                } finally {
+                    result.close();
+                }
+            };
+            return b.shadowFinder.searchShadowsIterative(
+                    ctx, query, options, repoShadowHandler, parentResult);
         } catch (TunnelException e) {
             unwrapAndThrowSearchingTunnelException(e);
             throw new AssertionError();
@@ -292,73 +311,61 @@ class ShadowSearchLikeOperation {
     private @NotNull SearchResultList<PrismObject<ShadowType>> executeNonIterativeSearchInRepository(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-        SearchResultList<PrismObject<ShadowType>> shadows = localBeans.shadowFinder.searchShadows(ctx, query, options, result);
-
-        ResultHandler<ShadowType> repoShadowHandler = createRepoShadowHandler(null);
+        var shadows = b.shadowFinder.searchShadows(ctx, query, options, result);
         for (PrismObject<ShadowType> shadow : shadows) {
-            try {
-                repoShadowHandler.handle(shadow, result);
-            } catch (TunnelException e) {
-                unwrapAndThrowSearchingTunnelException(e);
-                throw new AssertionError();
-            }
+            processRepoShadow(shadow, result);
         }
         return shadows;
     }
 
     /**
      * Provides common processing for shadows found in repo during iterative and non-iterative searches.
-     * Analogous to {@link ShadowGetOperation#returnCached(String)}.
+     * Analogous to {@link ShadowGetOperation#returnCached(String, OperationResult)}. (Except for the futurization.)
      */
-    private ResultHandler<ShadowType> createRepoShadowHandler(ResultHandler<ShadowType> upstreamHandler) {
-        return (PrismObject<ShadowType> shadow, OperationResult result) -> {
-            OperationResult lResult = result.createMinorSubresult(ShadowsFacade.OP_HANDLE_OBJECT);
-            boolean cont;
-            try {
-                processRepoShadow(shadow, lResult);
-                cont = upstreamHandler == null || upstreamHandler.handle(shadow, lResult);
-            } catch (CommonException e) {
-                lResult.recordException(e);
-                throw SystemException.unexpected(e); // TODO shouldn't we honor FetchErrorHandlingType here?
-            } catch (Throwable t) {
-                lResult.recordException(t);
-                throw t; // TODO shouldn't we honor FetchErrorHandlingType here?
-            } finally {
-                lResult.close();
-            }
-            if (!lResult.isSuccess()) {
-                shadow.asObjectable().setFetchResult(
-                        lResult.createBeanReduced());
-            }
-            result.summarize();
-            return cont;
-        };
-    }
-
-    private void processRepoShadow(PrismObject<ShadowType> shadow, OperationResult result)
+    private PrismObject<ShadowType> processRepoShadow(PrismObject<ShadowType> rawRepoShadow, OperationResult parentResult)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             ExpressionEvaluationException, SecurityViolationException {
 
-        ShadowType shadowBean = shadow.asObjectable();
+        PrismObject<ShadowType> resultingShadow;
+        var result = parentResult.createMinorSubresult(OP_PROCESS_SHADOW);
+        try {
+            if (isRaw()) {
+                ctx.applyDefinitionInNewCtx(rawRepoShadow); // TODO is this really OK?
+                resultingShadow = rawRepoShadow;
+            } else {
 
-        ctx.applyAttributesDefinition(shadowBean);
-        if (isRaw()) {
-            return;
-        }
+                // We don't need to keep the raw repo shadow. (At least not now.)
+                RepoShadow repoShadow = ctx.adoptRawRepoShadowSimple(rawRepoShadow);
 
-        ctx.updateShadowState(shadowBean);
+                // Effective operation policies are not stored in repo, so they must be computed anew.
+                // Object marks maybe need to be updated as well.
+                ctx.computeAndUpdateEffectiveMarksAndPolicies(repoShadow, EXISTING, result);
 
-        // Fixing MID-1640; hoping that the protected object filter uses only identifiers (that are stored in repo)
-        // TODO we will eventually store the "protected" flag right in the repo shadow, so this code will be obsolete
-        ProvisioningUtil.setEffectiveProvisioningPolicy(ctx, shadowBean, localBeans.expressionFactory, result);
+                ProvisioningUtil.validateShadow(repoShadow.getBean(), true); // TODO move elsewhere
 
-        ProvisioningUtil.validateShadow(shadow, true);
+                if (isMaxStaleness()) {
+                    if (repoShadow.getBean().getCachingMetadata() == null) {
+                        result.recordFatalError("Requested cached data but no cached data are available in the shadow");
+                    }
+                }
 
-        if (isMaxStaleness()) {
-            if (shadowBean.getCachingMetadata() == null) {
-                result.recordFatalError("Requested cached data but no cached data are available in the shadow");
+                b.associationsHelper.convertReferenceAttributesToAssociations(
+                        ctx, repoShadow.getBean(), ctx.getObjectDefinitionRequired(), result);
+
+                resultingShadow = repoShadow.getPrismObject();
+                resultingShadow.asObjectable().setContentDescription(ShadowContentDescriptionType.FROM_REPOSITORY);
             }
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t; // TODO shouldn't we honor FetchErrorHandlingType here?
+        } finally {
+            result.close();
         }
+        if (!result.isSuccess()) {
+            resultingShadow.asObjectable().setFetchResult(
+                    result.createBeanReduced());
+        }
+        return resultingShadow;
     }
 
     private void unwrapAndThrowSearchingTunnelException(TunnelException e) throws ObjectNotFoundException, SchemaException,

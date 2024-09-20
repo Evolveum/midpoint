@@ -10,6 +10,8 @@ import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.tag.QMarkMapping;
+
 import com.querydsl.core.types.Predicate;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,10 +32,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
  * @param <AOR> type of the row (M-bean) of the owner (assignment)
  */
 public class QAssignmentReferenceMapping<AOR extends MObject>
-        extends QReferenceMapping<QAssignmentReference, MAssignmentReference, QAssignment<AOR>, MAssignment> {
+        extends QReferenceMapping<QAssignmentReference<MAssignment>, MAssignmentReference, QAssignment<AOR>, MAssignment> {
 
     private static QAssignmentReferenceMapping<?> instanceAssignmentCreateApprover;
     private static QAssignmentReferenceMapping<?> instanceAssignmentModifyApprover;
+    private static QAssignmentReferenceMapping<?> instanceEffectiveMark;
+
+
+    public static final Class<QAssignmentReference<MAssignment>> TYPE = (Class) QAssignmentReference.class;
 
     public static <OR extends MObject> QAssignmentReferenceMapping<OR>
     initForAssignmentCreateApprover(@NotNull SqaleRepoContext repositoryContext) {
@@ -74,8 +80,7 @@ public class QAssignmentReferenceMapping<AOR extends MObject>
             String defaultAliasName,
             @NotNull SqaleRepoContext repositoryContext,
             @NotNull Supplier<QueryTableMapping<?, TQ, TR>> targetMappingSupplier) {
-        super(tableName, defaultAliasName, QAssignmentReference.class,
-                repositoryContext, targetMappingSupplier);
+        super(tableName, defaultAliasName, TYPE, repositoryContext, targetMappingSupplier);
 
         // assignmentCid probably can't be mapped directly
     }
@@ -95,8 +100,27 @@ public class QAssignmentReferenceMapping<AOR extends MObject>
     }
 
     @Override
-    public BiFunction<QAssignment<AOR>, QAssignmentReference, Predicate> correlationPredicate() {
+    public BiFunction<QAssignment<AOR>, QAssignmentReference<MAssignment>, Predicate> correlationPredicate() {
         return (a, r) -> a.ownerOid.eq(r.ownerOid)
-                .and(a.cid.eq(r.assignmentCid));
+                .and(a.cid.eq(r.assignmentCid)
+                .and(r.metadataCid.isNull())
+                );
     }
+
+//    public static <OR extends MObject> QAssignmentReferenceMapping<OR>
+//    initForEffectiveMark(@NotNull SqaleRepoContext repositoryContext) {
+//        if (needsInitialization(instanceEffectiveMark, repositoryContext)) {
+//            instanceEffectiveMark = new QAssignmentReferenceMapping<>(
+//                    "m_ref_assignment_effective_mark", "arefem", repositoryContext,
+//                    QMarkMapping::getInstance);
+//        }
+//        return getForEffectiveMark();
+//    }
+//
+//
+//    public static <OR extends MObject> QAssignmentReferenceMapping<OR>
+//    getForEffectiveMark() {
+//        //noinspection unchecked
+//        return (QAssignmentReferenceMapping<OR>) Objects.requireNonNull(instanceEffectiveMark);
+//    }
 }

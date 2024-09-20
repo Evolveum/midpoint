@@ -6,9 +6,12 @@
  */
 package com.evolveum.midpoint.model.test;
 
+import static com.evolveum.midpoint.model.api.validator.StringLimitationResult.extractMessages;
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.prism.Referencable.getOid;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.security.api.MidPointPrincipalManager.OPERATION_GET_PRINCIPAL;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_ASSIGNEE_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_ORIGINAL_ASSIGNEE_REF;
@@ -38,6 +41,11 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.authentication.api.AutheticationFailedData;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.model.common.MarkManager;
+import com.evolveum.midpoint.model.test.util.ShadowFindRequest.ShadowFindRequestBuilder;
+import com.evolveum.midpoint.prism.path.InfraItemName;
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.security.api.*;
 
 import com.evolveum.midpoint.security.enforcer.api.ValueAuthorizationParameters;
@@ -62,6 +70,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.web.FilterInvocation;
+import org.springframework.security.web.SecurityFilterChain;
 import org.testng.AssertJUnit;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
@@ -199,6 +208,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     @Autowired protected ModelAuditService modelAuditService;
     @Autowired protected ActivityBasedTaskHandler activityBasedTaskHandler;
     @Autowired protected ArchetypeManager archetypeManager;
+    @Autowired protected RoleAnalysisService roleAnalysisService;
 
     @Autowired
     @Qualifier("cacheRepositoryService")
@@ -222,6 +232,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     @Autowired protected MidpointFunctions libraryMidpointFunctions;
     @Autowired protected ValuePolicyProcessor valuePolicyProcessor;
     @Autowired protected SimulationResultManager simulationResultManager;
+    @Autowired protected MarkManager markManager;
 
     @Autowired(required = false)
     @Qualifier("modelObjectResolver")
@@ -322,7 +333,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     @Override
     public DummyResourceContoller initDummyResource(DummyTestResource resource, Task task, OperationResult result)
             throws Exception {
-        resource.controller = dummyResourceCollection.initDummyResource(resource, task, result);
+        resource.controller = dummyResourceCollection.initDummyResourceRepeatable(resource, task, result);
         resource.reload(result); // To have schema, etc
         return resource.controller;
     }
@@ -330,7 +341,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     @Override
     public void initAndTestDummyResource(DummyTestResource resource, Task task, OperationResult result)
             throws Exception {
-        resource.controller = dummyResourceCollection.initDummyResource(resource, task, result);
+        resource.controller = dummyResourceCollection.initDummyResourceRepeatable(resource, task, result);
         assertSuccess(
                 modelService.testResource(resource.controller.getResource().getOid(), task, result));
         resource.reload(result); // To have schema, etc
@@ -509,10 +520,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return modelService.getObject(type, oid, null, task, result);
     }
 
-    /**
-     * This is not the real thing. It is just for the tests.
-     */
-    protected void applyResourceSchema(ShadowType accountType, ResourceType resourceType) throws SchemaException {
+    protected void applyResourceSchema(ShadowType accountType, ResourceType resourceType)
+            throws SchemaException, ConfigurationException {
         IntegrationTestTools.applyResourceSchema(accountType, resourceType);
     }
 
@@ -1092,6 +1101,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         modifyUserAssignment(userOid, archetypeOid, ArchetypeType.COMPLEX_TYPE, null, task, (Consumer<AssignmentType>) null, false, result);
     }
 
+    protected void assignPolicy(String userOid, String policyOid, Task task, OperationResult result) throws ObjectNotFoundException,
+            SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+            PolicyViolationException, SecurityViolationException {
+        modifyUserAssignment(userOid, policyOid, PolicyType.COMPLEX_TYPE, null, task, (Consumer<AssignmentType>) null, true, result);
+    }
+
+    protected void unassignPolicy(String userOid, String policyOid, Task task, OperationResult result) throws ObjectNotFoundException,
+            SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+            PolicyViolationException, SecurityViolationException {
+        modifyUserAssignment(userOid, policyOid, PolicyType.COMPLEX_TYPE, null, task, (Consumer<AssignmentType>) null, false, result);
+    }
+
     protected void induceRole(String focusRoleOid, String targetRoleOid, Task task, OperationResult result) throws ObjectNotFoundException,
             SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
             PolicyViolationException, SecurityViolationException {
@@ -1528,7 +1549,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
 
         PrismContainerDefinition<AssignmentType> assignmentDef = getUserDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
-        assignmentDelta.applyDefinition(assignmentDef);
+        if (assignmentDef != null) {
+            assignmentDelta.applyDefinition(assignmentDef);
+        }
 
         return assignmentDelta;
     }
@@ -1672,9 +1695,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             String resourceOid, ShadowKindType kind, String intent, boolean add) throws SchemaException {
         Collection<ItemDelta<?, ?>> modifications = new ArrayList<>();
         modifications.add(createAssignmentModification(resourceOid, kind, intent, add));
-        ObjectDelta<F> userDelta = prismContext.deltaFactory().object()
+        return prismContext.deltaFactory().object()
                 .createModifyDelta(focusOid, modifications, type);
-        return userDelta;
     }
 
     protected <O extends ObjectType> Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(
@@ -1869,7 +1891,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected ObjectQuery createNameQuery(String name) throws SchemaException {
-        return ObjectQueryUtil.createNameQuery(PrismTestUtil.createPolyString(name), prismContext);
+        return ObjectQueryUtil.createNameQuery(PolyString.fromOrig(name));
     }
 
     protected PrismObject<UserType> findUserByUsernameFullRequired(String username)
@@ -1943,6 +1965,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             throws ObjectNotFoundException, SchemaException, SecurityViolationException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
         return getShadowModel(accountOid, null, true);
+    }
+
+    // TODO better name
+    protected @NotNull AbstractShadow getAbstractShadowModel(String accountOid)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        return AbstractShadow.of(getShadowModel(accountOid, null, true));
     }
 
     protected PrismObject<ShadowType> getShadowModelNoFetch(String accountOid)
@@ -2071,7 +2100,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         ResourceObjectDefinition rOcDef = intent != null ?
                 rSchema.findObjectDefinitionRequired(kind, intent) :
                 rSchema.findDefaultDefinitionForKindRequired(kind);
-        ObjectQuery query = createShadowQuerySecondaryIdentifier(rOcDef, name, resource, false);
+        ObjectQuery query = createShadowQuerySecondaryIdentifier(rOcDef, name, resource, false, false);
         List<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, options, task, result);
         if (shadows.isEmpty()) {
             return null;
@@ -2696,6 +2725,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assertAssignedNo(user, RoleType.COMPLEX_TYPE);
     }
 
+    protected void assertAssignedNoPolicy(String userOid, OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
+        PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
+        assertAssignedNoPolicy(user);
+    }
+
+    protected <F extends FocusType> void assertAssignedNoPolicy(PrismObject<F> user) {
+        assertAssignedNo(user, PolicyType.COMPLEX_TYPE);
+    }
+
     protected <F extends FocusType> void assertAssignedNo(PrismObject<F> user, QName refType) {
         F userType = user.asObjectable();
         for (AssignmentType assignmentType : userType.getAssignment()) {
@@ -2847,11 +2886,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         shadowType.setObjectClass(objectClassDefinition.getTypeName());
         shadowType.setKind(ShadowKindType.ACCOUNT);
         shadowType.setIntent(INTENT_DEFAULT);
-        ResourceAttributeContainer attrCont = ShadowUtil.getOrCreateAttributesContainer(shadow, objectClassDefinition);
-        ResourceAttributeDefinition<?> idSecondaryDef = objectClassDefinition.getSecondaryIdentifiers().iterator().next();
-        ResourceAttribute icfsNameAttr = idSecondaryDef.instantiate();
+        ShadowAttributesContainer attrCont = ShadowUtil.getOrCreateAttributesContainer(shadow, objectClassDefinition);
+        ShadowSimpleAttributeDefinition<?> idSecondaryDef = objectClassDefinition.getSecondaryIdentifiers().iterator().next();
+        ShadowSimpleAttribute icfsNameAttr = idSecondaryDef.instantiate();
         icfsNameAttr.setRealValue(name);
-        attrCont.add(icfsNameAttr);
+        attrCont.addAttribute(icfsNameAttr);
         ActivationType activation = new ActivationType();
         shadowType.setActivation(activation);
         if (enabled) {
@@ -2862,13 +2901,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return shadow;
     }
 
-    protected <T> void addAttributeToShadow(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, String attrName, T attrValue) throws SchemaException {
-        ResourceAttributeContainer attrs = ShadowUtil.getAttributesContainer(shadow);
-        ResourceAttributeDefinition attrSnDef = attrs.getDefinition().findAttributeDefinition(
-                new ItemName(MidPointConstants.NS_RI, attrName));
-        ResourceAttribute<T> attr = attrSnDef.instantiate();
-        attr.setRealValue(attrValue);
-        attrs.add(attr);
+    protected <T> void addAttributeToShadow(PrismObject<ShadowType> shadow, String attrName, T attrValue) throws SchemaException {
+        ShadowUtil.getAttributesContainer(shadow).addSimpleAttribute(
+                ItemName.from(MidPointConstants.NS_RI, attrName),
+                attrValue);
     }
 
     protected void setDefaultUserTemplate(String userTemplateOid) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
@@ -3083,7 +3119,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected <T extends ObjectType> PrismObject<T> searchObjectByName(Class<T> type, String name, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        ObjectQuery query = ObjectQueryUtil.createNameQuery(name, prismContext);
+        ObjectQuery query = ObjectQueryUtil.createNameQuery(name);
         List<PrismObject<T>> foundObjects = modelService.searchObjects(type, query, null, task, result);
         if (foundObjects.isEmpty()) {
             return null;
@@ -3122,8 +3158,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             ResourceType resourceType,
             QName objectClass,
             MatchingRule<String> nameMatchingRule) throws SchemaException, ConfigurationException {
-        assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, nameMatchingRule, false);
-        IntegrationTestTools.assertProvisioningShadow(accountShadow, ResourceAttributeDefinition.class, objectClass);
+        assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, nameMatchingRule);
+        IntegrationTestTools.assertProvisioningShadow(accountShadow, ShadowSimpleAttributeDefinition.class, objectClass);
     }
 
     protected ObjectDelta<UserType> createModifyUserAddDummyAccount(String userOid, String dummyResourceName)
@@ -3585,7 +3621,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     /**
-     * Simplified version of {@link #waitForRootActivityCompletion(String, XMLGregorianCalendar, int)}.
+     * Simplified version of {@link #waitForRootActivityCompletion(String, XMLGregorianCalendar, long)}.
      *
      * To be used on tasks that are scheduled to be run in regular intervals. (So it needs not be absolutely precise:
      * if the task realization completes between the method is started and the current completion timestamp is determined,
@@ -3601,11 +3637,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     /**
-     * Simplified version of {@link #waitForRootActivityCompletion(String, XMLGregorianCalendar, int)}.
+     * Simplified version of {@link #waitForRootActivityCompletion(String, XMLGregorianCalendar, long)}.
      *
      * To be used on tasks that were _not_ executed before. I.e. we are happy with any task completion.
      */
-    protected void waitForRootActivityCompletion(@NotNull String rootTaskOid, int timeout) throws CommonException {
+    protected void waitForRootActivityCompletion(@NotNull String rootTaskOid, long timeout) throws CommonException {
         waitForRootActivityCompletion(rootTaskOid, null, timeout);
     }
 
@@ -3623,7 +3659,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected Task waitForRootActivityCompletion(
             @NotNull String rootTaskOid,
             @Nullable XMLGregorianCalendar lastKnownCompletionTimestamp,
-            int timeout) throws CommonException {
+            long timeout) throws CommonException {
         OperationResult waitResult = getTestOperationResult();
         Task freshRootTask = taskManager.getTaskWithResult(rootTaskOid, waitResult);
         argCheck(freshRootTask.getParent() == null, "Non-root task: %s", freshRootTask);
@@ -3858,7 +3894,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     private boolean isSideEffectDelta(ItemDelta<?, ?> modification) {
-        if (modification.getPath().containsNameExactly(ObjectType.F_METADATA)
+        if (modification.getPath().containsNameExactly(ObjectType.F_METADATA) // TODO remove
+                || modification.getPath().containsNameExactly(InfraItemName.METADATA)
                 || (modification.getPath().containsNameExactly(FocusType.F_ASSIGNMENT)
                 && modification.getPath().containsNameExactly(ActivationType.F_EFFECTIVE_STATUS))) {
             return true;
@@ -4320,7 +4357,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected DummyAccount getDummyAccount(String dummyInstanceName, String username) throws SchemaViolationException, ConflictException, InterruptedException {
         DummyResource dummyResource = DummyResource.getInstance(dummyInstanceName);
         try {
-            return dummyResource.getAccountByUsername(username);
+            return dummyResource.getAccountByName(username);
         } catch (ConnectException | FileNotFoundException e) {
             throw new IllegalStateException(e.getMessage(), e);
         }
@@ -4552,8 +4589,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 startTime, endTime, userDisableTimestamp);
     }
 
-    protected void assertEnableTimestampShadow(PrismObject<? extends ShadowType> shadow,
-            XMLGregorianCalendar startTime, XMLGregorianCalendar endTime) {
+    protected void assertEnableTimestampShadow(
+            RawRepoShadow shadow, XMLGregorianCalendar startTime, XMLGregorianCalendar endTime) {
+        assertEnableTimestampShadow(shadow.getPrismObject(), startTime, endTime);
+    }
+
+    protected void assertEnableTimestampShadow(
+            PrismObject<? extends ShadowType> shadow, XMLGregorianCalendar startTime, XMLGregorianCalendar endTime) {
         ActivationType activationType = shadow.asObjectable().getActivation();
         assertNotNull("No activation in " + shadow, activationType);
         XMLGregorianCalendar userDisableTimestamp = activationType.getEnableTimestamp();
@@ -4724,6 +4766,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             }
 
             @Override
+            public DisplayType getDisplay() {
+                return new DisplayType();
+            }
+
+            @Override
+            public GuiActionType getAction() {
+                return new GuiActionType();
+            }
+
+            @Override
             public ModuleAuthentication clone() {
                 return null;
                 //TODO
@@ -4749,6 +4801,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             @Override
             public List<AuthenticationProvider> getAuthenticationProviders() {
                 //TODO
+                return null;
+            }
+
+            @Override
+            public SecurityFilterChain getSecurityFilterChain() {
                 return null;
             }
         };
@@ -5489,33 +5546,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assertEquals("Wrong password for " + user, expectedClearPassword, actualClearPassword);
     }
 
-    protected void assertPasswordMetadata(PrismObject<UserType> user, QName credentialType, boolean create, XMLGregorianCalendar start, XMLGregorianCalendar end, String actorOid, String channel) {
-        PrismContainer<MetadataType> metadataContainer = user.findContainer(ItemPath.create(UserType.F_CREDENTIALS, credentialType, PasswordType.F_METADATA));
-        assertNotNull("No password metadata in " + user, metadataContainer);
-        MetadataType metadataType = metadataContainer.getValue().asContainerable();
-        assertMetadata("password metadata in " + user, metadataType, create, false, start, end, actorOid, channel);
-    }
-
-    protected <O extends ObjectType> void assertCreateMetadata(PrismObject<O> object, XMLGregorianCalendar start, XMLGregorianCalendar end) {
-        MetadataType metadataType = object.asObjectable().getMetadata();
-        PrismObject<UserType> defaultActor = getDefaultActor();
-        assertMetadata(object.toString(), metadataType, true, true, start, end,
-                defaultActor == null ? null : defaultActor.getOid(), DEFAULT_CHANNEL);
-    }
-
-    protected <O extends ObjectType> void assertModifyMetadata(PrismObject<O> object, XMLGregorianCalendar start, XMLGregorianCalendar end) {
-        MetadataType metadataType = object.asObjectable().getMetadata();
-        PrismObject<UserType> defaultActor = getDefaultActor();
-        assertMetadata(object.toString(), metadataType, false, false, start, end,
-                defaultActor == null ? null : defaultActor.getOid(), DEFAULT_CHANNEL);
-    }
-
-    protected void assertCreateMetadata(
-            AssignmentType assignmentType, XMLGregorianCalendar start, XMLGregorianCalendar end) {
-        MetadataType metadataType = assignmentType.getMetadata();
-        PrismObject<UserType> defaultActor = getDefaultActor();
-        assertMetadata(assignmentType.toString(), metadataType, true, true, start, end,
-                defaultActor == null ? null : defaultActor.getOid(), DEFAULT_CHANNEL);
+    protected void assertPasswordMetadata(PrismObject<UserType> user, ItemName credentialType, boolean create,
+            XMLGregorianCalendar start, XMLGregorianCalendar end, String actorOid, String channel) {
+        var credentials = user.asObjectable().getCredentials();
+        assertThat(credentials).isNotNull();
+        //noinspection unchecked
+        PrismContainer<AbstractCredentialType> credentialContainer = credentials.asPrismContainerValue().findContainer(credentialType);
+        assertThat(credentialContainer).isNotNull();
+        var credential = credentialContainer.getRealValue(AbstractCredentialType.class);
+        assertMetadata("password metadata in " + user, ValueMetadataTypeUtil.getMetadata(credential), create,
+                false, start, end, actorOid, channel);
     }
 
     protected void assertDummyPassword(String instance, String userId, String expectedClearPassword) throws SchemaViolationException, ConflictException, InterruptedException {
@@ -5640,20 +5680,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                         .build(),
                 null, task, result);
         return latestEvent.size() == 1 ? latestEvent.get(0).getRepoId() : 0;
-    }
-
-    protected void checkUserApprovers(String oid, List<String> expectedApprovers, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        PrismObject<UserType> user = repositoryService.getObject(UserType.class, oid, null, result);
-        checkApprovers(expectedApprovers, user.asObjectable().getMetadata().getModifyApproverRef());
-    }
-
-    protected void checkApprovers(List<String> expectedApprovers, List<ObjectReferenceType> realApprovers) {
-        HashSet<String> realApproversSet = new HashSet<>();
-        for (ObjectReferenceType approver : realApprovers) {
-            realApproversSet.add(approver.getOid());
-            assertEquals("Unexpected target type in approverRef", UserType.COMPLEX_TYPE, approver.getType());
-        }
-        assertEquals("Mismatch in approvers in metadata", new HashSet<>(expectedApprovers), realApproversSet);
     }
 
     protected <F extends FocusType> void assertFocusModificationSanity(ModelContext<F> context) {
@@ -5879,11 +5905,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         String password = getPassword(user);
         displayValue("Password of " + user, password);
         PrismObject<ValuePolicyType> passwordPolicy = repositoryService.getObject(ValuePolicyType.class, passwordPolicyOid, null, result);
-        List<LocalizableMessage> messages = new ArrayList<>();
-        valuePolicyProcessor.validateValue(password, passwordPolicy.asObjectable(), createUserOriginResolver(user), messages, "validating password of " + user, task, result);
+        var results = valuePolicyProcessor.validateValue(
+                password, passwordPolicy.asObjectable(), createUserOriginResolver(user), "validating password of " + user, task, result);
         boolean valid = result.isAcceptable();
         if (!valid) {
-            fail("Password for " + user + " does not comply with password policy: " + messages);
+            fail("Password for " + user + " does not comply with password policy: " + extractMessages(results));
         }
     }
 
@@ -6154,6 +6180,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected UserAsserter<Void> assertUser(PrismObject<UserType> user, String message) {
         UserAsserter<Void> asserter = UserAsserter.forUser(user, message);
         initializeAsserter(asserter);
+        return asserter;
+    }
+
+    protected <A extends AbstractAsserter<?>> A initializeAsserter(A asserter) {
+        super.initializeAsserter(asserter);
+        asserter.setExpectedActor(
+                asObjectable(getDefaultActor()));
         return asserter;
     }
 
@@ -6615,14 +6648,47 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return assertContainerSearch(AccessCertificationCaseType.class, null, expectedNumber);
     }
 
+    protected List<AccessCertificationCaseType> assertSearchCertCases(ObjectQuery query, int expectedNumber) throws CommonException {
+        return assertContainerSearch(AccessCertificationCaseType.class, query, expectedNumber);
+    }
+
+    protected ObjectQuery queryForCertCasesByCampaignOwner(String ownerOid) {
+        return queryFor(AccessCertificationCaseType.class)
+                .item(PrismConstants.T_PARENT, AccessCertificationCampaignType.F_OWNER_REF).ref(ownerOid)
+                .build();
+    }
+
+    protected ObjectQuery queryForCertCasesByStageNumber(int number) {
+        return queryFor(AccessCertificationCaseType.class)
+                .item(AccessCertificationCaseType.F_STAGE_NUMBER).eq(number)
+                .build();
+    }
+
+    protected ObjectQuery queryForCertCasesByWorkItemOutcome(String outcomeUri) {
+        return queryFor(AccessCertificationCaseType.class)
+                .exists(AccessCertificationCaseType.F_WORK_ITEM)
+                .block()
+                .item(AccessCertificationWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME).eq(outcomeUri)
+                .endBlock()
+                .build();
+    }
+
     protected void assertCertCasesSearch(AccessCertificationCaseId... ids) throws CommonException {
         var cases = assertSearchCertCases(ids.length);
         var realIds = AccessCertificationCaseId.of(cases);
         assertThat(realIds).as("certification cases IDs").containsExactlyInAnyOrder(ids);
     }
 
-    protected void assertCertWorkItemsSearch(AccessCertificationWorkItemId... ids) throws CommonException {
-        var workItems = assertContainerSearch(AccessCertificationWorkItemType.class, null, ids.length);
+    protected void assertSearchCertWorkItems(ObjectQuery query, int expectedResults) throws CommonException {
+        assertContainerSearch(AccessCertificationWorkItemType.class, query, expectedResults);
+    }
+
+    protected void assertSearchCertWorkItems(AccessCertificationWorkItemId... ids) throws CommonException {
+        assertSearchCertWorkItems(null, ids);
+    }
+
+    protected void assertSearchCertWorkItems(ObjectQuery query, AccessCertificationWorkItemId... ids) throws CommonException {
+        var workItems = assertContainerSearch(AccessCertificationWorkItemType.class, query, ids.length);
         var realIds = AccessCertificationWorkItemId.of(workItems);
         assertThat(realIds).as("certification work items IDs").containsExactlyInAnyOrder(ids);
     }
@@ -7136,7 +7202,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void dumpStatistics(Task task) {
-        OperationStatsType stats = task.getStoredOperationStatsOrClone();
+        dumpStatistics(task.getStoredOperationStatsOrClone());
+    }
+
+    protected void dumpStatistics(PrismObject<TaskType> task) {
+        dumpStatistics(task.asObjectable().getOperationStats());
+    }
+
+    private void dumpStatistics(OperationStatsType stats) {
         displayValue("Provisioning statistics", ProvisioningStatistics.format(
                 stats.getEnvironmentalPerformanceInformation().getProvisioningStatistics()));
     }
@@ -7281,7 +7354,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     @Override
     public OperationResult testResource(@NotNull String oid, @NotNull Task task, @NotNull OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, SecurityViolationException,
+            ExpressionEvaluationException, CommunicationException {
         return modelService.testResource(oid, task, result);
     }
 
@@ -7296,13 +7370,23 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 .withUsingReconciliation();
     }
 
+    /** Reclassification of shadows by creating a specialized task. */
+    protected SynchronizationRequestBuilder shadowReclassificationRequest() {
+        return new SynchronizationRequestBuilder(this)
+                .withUsingShadowReclassification();
+    }
+
+    protected ShadowFindRequestBuilder findShadowRequest() {
+        return new ShadowFindRequestBuilder(this);
+    }
+
     /**
      * Executes a set of deltas in {@link TaskExecutionMode#SIMULATED_PRODUCTION} mode.
      *
      * Simulation deltas are stored in returned {@link TestSimulationResult} and optionally also in the storage provided by the
      * {@link SimulationResultManager} - if `simulationDefinition` is present.
      */
-    private TestSimulationResult executeInProductionSimulationMode(
+    protected TestSimulationResult executeInProductionSimulationMode(
             @NotNull Collection<ObjectDelta<? extends ObjectType>> deltas,
             @NotNull SimulationDefinitionType simulationDefinition,
             @NotNull Task task,
@@ -7645,9 +7729,76 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void markShadow(String oid, String markOid, Task task, OperationResult result) throws CommonException {
+        markShadow(oid, PolicyStatementTypeType.APPLY, markOid, null, task, result);
+    }
+
+    protected void markShadowExcluded(String oid, String markOid, Task task, OperationResult result) throws CommonException {
+        markShadow(oid, PolicyStatementTypeType.EXCLUDE, markOid, null, task, result);
+    }
+
+    protected void markShadow(
+            String oid, PolicyStatementTypeType type, String markOid, String lifecycleState, Task task, OperationResult result)
+            throws CommonException {
         var statement = new PolicyStatementType()
                 .markRef(markOid, MarkType.COMPLEX_TYPE)
-                .type(PolicyStatementTypeType.APPLY);
+                .type(type)
+                .lifecycleState(lifecycleState);
         modifyObjectAddContainer(ShadowType.class, oid, ShadowType.F_POLICY_STATEMENT, task, result, statement);
+    }
+
+    protected @NotNull CaseType getOpenCaseRequired(List<CaseType> cases) {
+        var openCases = cases.stream()
+                .filter(c -> QNameUtil.matchUri(c.getState(), CASE_STATE_OPEN_URI))
+                .toList();
+        return MiscUtil.extractSingletonRequired(
+                openCases,
+                () -> new AssertionError("More than one open case: " + openCases),
+                () -> new AssertionError("No open case in: " + cases));
+    }
+
+    protected @NotNull CaseWorkItemType getOpenWorkItemRequired(CaseType aCase) {
+        var openWorkItems = aCase.getWorkItem().stream()
+                .filter(wi -> CaseTypeUtil.isCaseWorkItemNotClosed(wi))
+                .toList();
+        return MiscUtil.extractSingletonRequired(
+                openWorkItems,
+                () -> new AssertionError("More than one open work item: " + openWorkItems),
+                () -> new AssertionError("No open work items in: " + aCase));
+    }
+
+    protected ObjectDelta<ShadowType> createEntitleDelta(String subjectOid, QName assocName, String objectOid)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        var subject = AbstractShadow.of(
+                provisioningService.getObject(
+                        ShadowType.class, subjectOid, createNoFetchCollection(), getTestTask(), getTestOperationResult()));
+        var object = AbstractShadow.of(
+                provisioningService.getObject(
+                        ShadowType.class, objectOid, createNoFetchCollection(), getTestTask(), getTestOperationResult()));
+        var assocDef = subject.getObjectDefinition().findAssociationDefinitionRequired(assocName);
+        return deltaFor(ShadowType.class)
+                .item(ShadowType.F_ASSOCIATIONS.append(assocName), assocDef)
+                .add(assocDef.createValueFromFullDefaultObject(object))
+                .asObjectDelta(subjectOid);
+    }
+
+    protected void refreshShadowIfNeeded(@NotNull String shadowOid) throws CommonException {
+        if (InternalsConfig.isShadowCachingOnByDefault()) {
+            provisioningService.getShadow(shadowOid, null, getTestTask(), getTestOperationResult());
+        }
+    }
+
+    protected void refreshAllShadowsIfNeeded(@NotNull String resourceOid, @NotNull ResourceObjectTypeIdentification type)
+            throws CommonException {
+        if (!InternalsConfig.isShadowCachingOnByDefault()) {
+            return;
+        }
+        provisioningService.searchShadows(
+                prismContext.queryFor(ShadowType.class)
+                        .item(ShadowType.F_RESOURCE_REF).ref(resourceOid)
+                        .and().item(ShadowType.F_KIND).eq(type.getKind())
+                        .and().item(ShadowType.F_INTENT).eq(type.getIntent())
+                        .build(),
+                null, getTestTask(), getTestOperationResult());
     }
 }

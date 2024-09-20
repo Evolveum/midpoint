@@ -61,6 +61,7 @@ class TargetMembershipCollector {
             if (ctx.assignmentPath.containsDelegation(ctx.evaluateOld, ctx.ae.relationRegistry)) {
                 addIfNotThere(ctx.evalAssignment.getDelegationRefVals(), valueToAdd, "delegationRef", targetDesc);
             } else {
+                //todo probably not all hierarchical archetypes should be here?
                 if (AbstractRoleType.class.isAssignableFrom(targetClass)) {
                     addIfNotThere(ctx.evalAssignment.getMembershipRefVals(), valueToAdd, "membershipRef", targetDesc);
                 }

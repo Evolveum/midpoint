@@ -28,7 +28,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.factory.panel.ExpressionModel;
+import com.evolveum.midpoint.gui.impl.factory.panel.expression.ExpressionModel;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.AjaxButton;
@@ -164,7 +164,7 @@ public class SwitchablePropertyValuePanel extends BasePanel<SelectableBean<Value
                 List<DisplayableValue> allowedValues = new ArrayList<>();
                 if (((PrismPropertyDefinition) propertyDef).getAllowedValues() != null) {
                     allowedValues.addAll(((PrismPropertyDefinition) propertyDef).getAllowedValues());
-                } else if (propertyDef.getTypeClass().equals(boolean.class) || Boolean.class.isAssignableFrom(propertyDef.getTypeClass())) {
+                } else if (boolean.class.equals(propertyDef.getTypeClass()) || Boolean.class.isAssignableFrom(propertyDef.getTypeClass())) {
                     allowedValues.add(new SearchValue<>(Boolean.TRUE, getString("Boolean.TRUE")));
                     allowedValues.add(new SearchValue<>(Boolean.FALSE, getString("Boolean.FALSE")));
                 }

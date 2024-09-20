@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 
+import com.evolveum.midpoint.prism.PrismContext;
+
 import jakarta.annotation.PostConstruct;
 
 import org.springframework.stereotype.Component;
@@ -37,8 +39,7 @@ public class EnumPanelFactory<T extends Enum<?>> extends AbstractInputGuiCompone
         //noinspection unchecked
         Class<T> valueType = (Class<T>) property.getTypeClass();
         if (valueType == null) {
-            valueType = property.getPrismContext() != null ?
-                    property.getPrismContext().getSchemaRegistry().getCompileTimeClass(property.getTypeName()) : null;
+            valueType = PrismContext.get().getSchemaRegistry().getCompileTimeClass(property.getTypeName());
         }
 
         if (valueType != null) {

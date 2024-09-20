@@ -139,10 +139,9 @@ public class ValueDisplayUtil {
                     if (evaluator.getValue() instanceof RawType) {
                         expressionString.append(PrettyPrinter.prettyPrint(evaluator.getValue()));
                         expressionString.append("; ");
-                    } else if (evaluator.getValue() instanceof SearchObjectExpressionEvaluatorType) {
-                        SearchObjectExpressionEvaluatorType evaluatorValue = (SearchObjectExpressionEvaluatorType) evaluator.getValue();
-                        if (evaluatorValue.getFilter() != null) {
-                            DebugUtil.debugDumpMapMultiLine(expressionString, evaluatorValue.getFilter().getFilterClauseXNode().toMap(),
+                    } else if (evaluator.getValue() instanceof SearchObjectExpressionEvaluatorType searchEvaluatorValue) {
+                        for (var filter : searchEvaluatorValue.getFilter()) {
+                            DebugUtil.debugDumpMapMultiLine(expressionString, filter.getFilterClauseXNode().toMap(),
                                     0, false, null);
 
                             //TODO temporary hack: removing namespace part of the QName

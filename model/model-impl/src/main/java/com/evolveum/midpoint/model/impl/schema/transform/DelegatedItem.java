@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.schema.transform;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 import javax.xml.namespace.QName;
@@ -24,18 +25,14 @@ public abstract class DelegatedItem<I> implements Serializable {
 
     static class ObjectDef<O extends Objectable> extends DelegatedItem<PrismObjectDefinition<O>> {
 
-        private static final long serialVersionUID = 1L;
+        @Serial private static final long serialVersionUID = 1L;
         private final QName typeName;
         private transient PrismObjectDefinition<O> object;
 
-
-
-        public ObjectDef(PrismObjectDefinition<O> object) {
+        ObjectDef(PrismObjectDefinition<O> object) {
             this.typeName = object.getTypeName();
             this.object = object;
         }
-
-
 
         @Override
         PrismObjectDefinition<O> get() {
@@ -48,22 +45,16 @@ public abstract class DelegatedItem<I> implements Serializable {
 
     static class ComplexTypeDerived<I extends ItemDefinition<?>> extends DelegatedItem<I> {
 
-        private ItemName itemName;
-        private QName parent; // could we remove this?
+        private final ItemName itemName;
+        private final QName parent; // could we remove this?
         private transient I delegate;
 
-
-
-        public ComplexTypeDerived(QName typeName, I delegate) {
-            super();
+        ComplexTypeDerived(QName typeName, I delegate) {
             this.itemName = delegate.getItemName();
             this.parent = typeName;
             this.delegate = delegate;
         }
 
-
-
-        @SuppressWarnings("unchecked")
         @Override
         I get() {
             if (delegate == null) {
@@ -71,7 +62,7 @@ public abstract class DelegatedItem<I> implements Serializable {
                 if (typeDef == null) {
                     throw new IllegalStateException("Missing definition for " + parent + " in schema registry");
                 }
-                delegate = (I) typeDef.findItemDefinition(itemName);
+                delegate = typeDef.findItemDefinition(itemName);
             }
             return delegate;
         }
@@ -81,8 +72,7 @@ public abstract class DelegatedItem<I> implements Serializable {
 
         private final I delegate;
 
-        public FullySerializable(I delegate) {
-            super();
+        FullySerializable(I delegate) {
             this.delegate = delegate;
         }
 
@@ -97,7 +87,7 @@ public abstract class DelegatedItem<I> implements Serializable {
         private final QName typeName;
         private transient ComplexTypeDefinition delegate;
 
-        public StaticComplexType(ComplexTypeDefinition definition) {
+        StaticComplexType(ComplexTypeDefinition definition) {
             typeName = definition.getTypeName();
             delegate = definition;
         }

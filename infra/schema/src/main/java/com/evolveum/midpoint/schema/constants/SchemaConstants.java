@@ -10,6 +10,7 @@ package com.evolveum.midpoint.schema.constants;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
@@ -43,6 +44,7 @@ public abstract class SchemaConstants {
     public static final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
     public static final String NS_CAPABILITIES = "http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3";
     public static final String NS_CASE = "http://midpoint.evolveum.com/xml/ns/public/common/case-3";
+    public static final String NS_PRISM_TYPES = "http://prism.evolveum.com/xml/ns/public/types-3";
 
     /**
      * Namespace for default (built-in) object collections, such as "all objects", "all roles", ...
@@ -80,12 +82,13 @@ public abstract class SchemaConstants {
     public static final ItemName C_ROLE_ANALYSIS_CLUSTER = new ItemName(NS_C, "roleAnalysisCluster");
     public static final ItemName C_ROLE_ANALYSIS_SESSION_TYPE = new ItemName(NS_C, "RoleAnalysisSessionType");
     public static final ItemName C_ROLE_ANALYSIS_SESSION = new ItemName(NS_C, "roleAnalysisSession");
+    public static final ItemName C_ROLE_ANALYSIS_OUTLIER = new ItemName(NS_C, "roleAnalysisOutlier");
+    public static final ItemName C_ROLE_ANALYSIS_OUTLIER_TYPE = new ItemName(NS_C, "RoleAnalysisOutlierType");
     public static final ItemName C_CONNECTOR_FRAMEWORK = new ItemName(NS_C, "framework");
     public static final ItemName C_CONNECTOR_CONNECTOR_TYPE = new ItemName(NS_C, "connectorType");
     public static final ItemName C_SHADOW = new ItemName(NS_C, "shadow");
     public static final QName C_SHADOW_TYPE = new QName(NS_C, "ShadowType");
     public static final ItemName C_ATTRIBUTES = new ItemName(NS_C, "attributes");
-    public static final ItemName C_ASSOCIATION = new ItemName(NS_C, "association");
     public static final ItemName C_CREDENTIALS = new ItemName(NS_C, "credentials");
     public static final ItemName C_ACTIVATION = new ItemName(NS_C, "activation");
     public static final QName C_SYSTEM_CONFIGURATION_TYPE = new QName(NS_C, "SystemConfigurationType");
@@ -167,46 +170,38 @@ public abstract class SchemaConstants {
             PasswordType.F_VALUE);
     public static final ItemPath PATH_PASSWORD_FORCE_CHANGE = ItemPath.create(C_CREDENTIALS, CredentialsType.F_PASSWORD,
             PasswordType.F_FORCE_CHANGE);
-    public static final ItemPath PATH_PASSWORD_METADATA = ItemPath.create(C_CREDENTIALS, CredentialsType.F_PASSWORD,
-            PasswordType.F_METADATA);
+    public static final ItemPath PATH_PASSWORD_METADATA =
+            ItemPath.create(C_CREDENTIALS, CredentialsType.F_PASSWORD, InfraItemName.METADATA);
     public static final ItemPath PATH_NONCE = ItemPath.create(C_CREDENTIALS, CredentialsType.F_NONCE);
     public static final ItemPath PATH_NONCE_VALUE = ItemPath.create(C_CREDENTIALS, CredentialsType.F_NONCE,
             NonceType.F_VALUE);
 
     public static final ItemPath PATH_SECURITY_QUESTIONS = ItemPath.create(C_CREDENTIALS, CredentialsType.F_SECURITY_QUESTIONS);
-    public static final ItemPath PATH_SECURITY_QUESTIONS_QUESTION_ANSWER = ItemPath.create(C_CREDENTIALS, CredentialsType.F_SECURITY_QUESTIONS,
-            SecurityQuestionsCredentialsType.F_QUESTION_ANSWER);
-    public static final ItemPath PATH_ACTIVATION = ItemPath.create(C_ACTIVATION);
-    public static final ItemPath PATH_ACTIVATION_ADMINISTRATIVE_STATUS = ItemPath.create(C_ACTIVATION,
-            ActivationType.F_ADMINISTRATIVE_STATUS);
-    public static final ItemPath PATH_ACTIVATION_EFFECTIVE_STATUS = ItemPath.create(C_ACTIVATION,
-            ActivationType.F_EFFECTIVE_STATUS);
-    public static final ItemPath PATH_ACTIVATION_VALID_FROM = ItemPath.create(C_ACTIVATION,
-            ActivationType.F_VALID_FROM);
-    public static final ItemPath PATH_ACTIVATION_VALID_TO = ItemPath.create(C_ACTIVATION,
-            ActivationType.F_VALID_TO);
-    public static final ItemPath PATH_ACTIVATION_EXISTENCE = ItemPath.create(C_ACTIVATION,
-            "existence");
-    public static final ItemPath PATH_ACTIVATION_DISABLE_REASON = ItemPath.create(ShadowType.F_ACTIVATION,
-            ActivationType.F_DISABLE_REASON);
-    public static final ItemPath PATH_ACTIVATION_LOCKOUT_STATUS = ItemPath.create(C_ACTIVATION,
-            ActivationType.F_LOCKOUT_STATUS);
-    public static final ItemPath PATH_OPERATIONAL_STATE_LAST_AVAILABILITY_STATUS = ItemPath.create(
-            ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS);
-    public static final ItemPath PATH_ATTRIBUTES = ItemPath.create(C_ATTRIBUTES);
-    public static final ItemPath PATH_ASSIGNMENT = FocusType.F_ASSIGNMENT;
-    public static final ItemPath PATH_INDUCEMENT = ItemPath.create(AbstractRoleType.F_INDUCEMENT);
+    public static final ItemPath PATH_SECURITY_QUESTIONS_QUESTION_ANSWER =
+            ItemPath.create(C_CREDENTIALS, CredentialsType.F_SECURITY_QUESTIONS, SecurityQuestionsCredentialsType.F_QUESTION_ANSWER);
+    public static final ItemPath PATH_ACTIVATION = C_ACTIVATION;
+    public static final ItemPath PATH_ACTIVATION_ADMINISTRATIVE_STATUS =
+            ItemPath.create(C_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
+    public static final ItemPath PATH_ACTIVATION_EFFECTIVE_STATUS =
+            ItemPath.create(C_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS);
+    public static final ItemPath PATH_ACTIVATION_VALID_FROM = ItemPath.create(C_ACTIVATION, ActivationType.F_VALID_FROM);
+    public static final ItemPath PATH_ACTIVATION_VALID_TO = ItemPath.create(C_ACTIVATION, ActivationType.F_VALID_TO);
+    public static final ItemPath PATH_ACTIVATION_EXISTENCE = ItemPath.create(C_ACTIVATION, "existence");
+    public static final ItemPath PATH_ACTIVATION_DISABLE_REASON =
+            ItemPath.create(ShadowType.F_ACTIVATION, ActivationType.F_DISABLE_REASON);
+    public static final ItemPath PATH_ACTIVATION_LOCKOUT_STATUS = ItemPath.create(C_ACTIVATION, ActivationType.F_LOCKOUT_STATUS);
+    public static final ItemPath PATH_OPERATIONAL_STATE_LAST_AVAILABILITY_STATUS =
+            ItemPath.create(ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS);
     public static final ItemPath PATH_INDUCEMENT_POLICY_RULE = ItemPath.create(RoleType.F_INDUCEMENT, AssignmentType.F_POLICY_RULE);
 
-    public static final ItemPath PATH_ASSIGNMENT_ACTIVATION_EFFECTIVE_STATUS = ItemPath
-            .create(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS);
-    public static final ItemPath PATH_ASSIGNMENT_ACTIVATION_VALID_FROM = ItemPath
-            .create(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM);
-    public static final ItemPath PATH_ASSIGNMENT_ACTIVATION_VALID_TO = ItemPath
-            .create(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO);
+    public static final ItemPath PATH_ASSIGNMENT_ACTIVATION_EFFECTIVE_STATUS =
+            ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS);
+    public static final ItemPath PATH_ASSIGNMENT_ACTIVATION_VALID_FROM =
+            ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM);
+    public static final ItemPath PATH_ASSIGNMENT_ACTIVATION_VALID_TO =
+            ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO);
     public static final ItemPath PATH_ASSIGNMENT_TARGET_REF = ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF);
     public static final ItemPath PATH_ASSIGNMENT_DESCRIPTION = ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_DESCRIPTION);
-    public static final ItemPath PATH_ASSOCIATION = ItemPath.create(C_ASSOCIATION);
     public static final ItemPath PATH_TRIGGER = ItemPath.create(ObjectType.F_TRIGGER);
     public static final ItemPath PATH_AUTHENTICATION_BEHAVIOR_FAILED_LOGINS = ItemPath.create(FocusType.F_BEHAVIOR,
             BehaviorType.F_AUTHENTICATION, AuthenticationBehavioralDataType.F_FAILED_LOGINS);
@@ -221,13 +216,9 @@ public abstract class SchemaConstants {
     public static final ItemPath PATH_AUTOASSIGN_ENABLED = ItemPath
             .create(AbstractRoleType.F_AUTOASSIGN, AutoassignSpecificationType.F_ENABLED);
     public static final ItemPath PATH_PARENT_ORG_REF = ItemPath.create(ObjectType.F_PARENT_ORG_REF);
-    public static final ItemPath PATH_METADATA_LAST_PROVISIONING_TIMESTAMP = ItemPath.create(ObjectType.F_METADATA, MetadataType.F_LAST_PROVISIONING_TIMESTAMP);
-    public static final ItemPath PATH_METADATA_MODIFY_TIMESTAMP = ItemPath.create(ObjectType.F_METADATA, MetadataType.F_MODIFY_TIMESTAMP);
-    public static final ItemPath PATH_METADATA_MODIFY_CHANNEL = ItemPath.create(ObjectType.F_METADATA, MetadataType.F_MODIFY_CHANNEL);
-    public static final ItemPath PATH_METADATA_MODIFIER_REF = ItemPath.create(ObjectType.F_METADATA, MetadataType.F_MODIFIER_REF);
-    public static final ItemPath PATH_METADATA_MODIFY_TASK_REF = ItemPath.create(ObjectType.F_METADATA, MetadataType.F_MODIFY_TASK_REF);
-    public static final ItemPath PATH_METADATA_MODIFY_APPROVER_REF = ItemPath.create(ObjectType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF);
-    public static final ItemPath PATH_METADATA_MODIFY_APPROVAL_COMMENT = ItemPath.create(ObjectType.F_METADATA, MetadataType.F_MODIFY_APPROVAL_COMMENT);
+
+    public static final ItemPath PATH_METADATA_LAST_PROVISIONING_TIMESTAMP_NAMES_ONLY =
+            ItemPath.create(InfraItemName.METADATA, ValueMetadataType.F_PROVISIONING, ProvisioningMetadataType.F_LAST_PROVISIONING_TIMESTAMP);
 
     public static final String NS_PROVISIONING = NS_MIDPOINT_PUBLIC + "/provisioning";
     public static final String NS_PROVISIONING_LIVE_SYNC = NS_PROVISIONING + "/liveSync-3";
@@ -265,6 +256,8 @@ public abstract class SchemaConstants {
     public static final String CHANNEL_DISCOVERY_URI = qNameToUri(CHANNEL_DISCOVERY);
     public static final QName CHANNEL_IMPORT = new QName(NS_CHANNEL, "import");
     public static final String CHANNEL_IMPORT_URI = qNameToUri(CHANNEL_IMPORT);
+    public static final QName CHANNEL_SHADOW_RECLASSIFICATION= new QName(NS_CHANNEL, "shadowReclassification");
+    public static final String CHANNEL_SHADOW_RECLASSIFICATION_URI = qNameToUri(CHANNEL_SHADOW_RECLASSIFICATION);
     public static final QName CHANGE_CHANNEL_DEL_NOT_UPDATED_SHADOWS = new QName(NS_CHANNEL, "delNotUpdatedShadows");
     public static final String CHANGE_CHANNEL_DEL_NOT_UPDATED_SHADOWS_LEGACY_URI = qNameToUri(CHANGE_CHANNEL_DEL_NOT_UPDATED_SHADOWS);
     public static final QName CHANNEL_CLEANUP = new QName(NS_CHANNEL, "cleanup");
@@ -274,6 +267,12 @@ public abstract class SchemaConstants {
 
     public static final String NS_REPORT = NS_MIDPOINT_PUBLIC + "/report";
     public static final String NS_REPORT_EXTENSION = NS_REPORT + "/extension-3";
+    /**
+     * Must not be the same namespace as {@link #NS_REPORT_EXTENSION}, because the parameters are _not_ defined in the schema.
+     * The parser would then fail on them, as the schema is not present, but these definitions would not be.
+     * So they must be in a separate schema, which has no XSD. Then the parser is OK with that.
+     */
+    public static final String NS_REPORT_PARAM_EXTENSION = NS_REPORT_EXTENSION + "/reportParam";
     public static final String NS_CERTIFICATION = NS_MIDPOINT_PUBLIC + "/certification";
     public static final String NS_WORKFLOW = NS_MIDPOINT_PUBLIC + "/workflow"; // TODO change to "case" or "cases"
 
@@ -296,6 +295,45 @@ public abstract class SchemaConstants {
             qNameToUri(new QName(NS_MODEL_DISABLE_REASON, "deprovision"));
     public static final String MODEL_DISABLE_REASON_MAPPED =
             qNameToUri(new QName(NS_MODEL_DISABLE_REASON, "mapped"));
+
+    public enum ModelDisableReason {
+
+        EXPLICIT(MODEL_DISABLE_REASON_EXPLICIT),
+        DEPROVISION(MODEL_DISABLE_REASON_DEPROVISION),
+        MAPPED(MODEL_DISABLE_REASON_MAPPED);
+
+        public final String uri;
+
+        ModelDisableReason(String uri) {
+            this.uri = uri;
+        }
+
+        public static ModelDisableReason fromUri(String uri) {
+            return fromUri(uri, false);
+        }
+
+        public static ModelDisableReason fromUriRelaxed(String uri) {
+            return fromUri(uri, true);
+        }
+
+        public static ModelDisableReason fromUri(String uri, boolean relaxed) {
+            if (uri == null) {
+                return null;
+            }
+
+            for (ModelDisableReason value : values()) {
+                if (value.uri.equals(uri)) {
+                    return value;
+                }
+            }
+
+            if (relaxed){
+                return null;
+            }
+
+            throw new IllegalArgumentException("Unknown disable reason URI: " + uri);
+        }
+    }
 
     public static final String NS_MODEL_POLICY = NS_MODEL + "/policy";
     public static final String NS_MODEL_POLICY_SITUATION = NS_MODEL_POLICY + "/situation";
@@ -480,29 +518,32 @@ public abstract class SchemaConstants {
     public static final String INTENT_DEFAULT = "default";
     public static final String INTENT_UNKNOWN = "unknown";
 
-    public static final String CONNECTOR_SCHEMA_CONFIGURATION_TYPE_LOCAL_NAME = "ConfigurationType";
-
-    // This constant should not be here. It is used by schema processor to
-    // supply correct import. But the dependency should
+    // This constant should not be here. It is used by schema processor to supply correct import. But the dependency should
     // be inverted, eventually (MID-356)
     public static final String ICF_FRAMEWORK_URI = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1";
     public static final String NS_ICF_CONFIGURATION = ICF_FRAMEWORK_URI + "/connector-schema-3";
+    public static final String ICF_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME = "ConfigurationPropertiesType";
+    public static final String ICF_CONFIGURATION_PROPERTIES_LOCAL_NAME = "configurationProperties";
+    public static final ItemName ICF_CONFIGURATION_PROPERTIES_NAME =
+            ItemName.from(NS_ICF_CONFIGURATION, ICF_CONFIGURATION_PROPERTIES_LOCAL_NAME);
+
+    /** The namespace for subtypes in ConnId schemas. For example, see "POLYSTRING_SUBTYPE" in the LDAP connector. */
     public static final String NS_ICF_SUBTYPES = ICF_FRAMEWORK_URI + "/subtypes";
     public static final QName ICF_SUBTYPES_POLYSTRING_QNAME = new QName(NS_ICF_SUBTYPES, "PolyString");
     public static final String ICF_SUBTYPES_POLYSTRING_URI = qNameToUri(ICF_SUBTYPES_POLYSTRING_QNAME);
-    public static final ItemName ICF_CONFIGURATION_PROPERTIES = new ItemName(NS_ICF_CONFIGURATION,
-            "configurationProperties");
 
-    // Note! This is also specified in SchemaConstants (MID-356)
+    // People could expect to find the constant here.
+    public static final String NS_RI = MidPointConstants.NS_RI;
+
     public static final String NS_ICF_SCHEMA = ICF_FRAMEWORK_URI + "/resource-schema-3";
+    public static final String NS_ICFS = NS_ICF_SCHEMA; // alternative name
     public static final String NS_ICF_SCHEMA_PREFIX = "icfs";
     public static final ItemName ICFS_NAME = new ItemName(NS_ICF_SCHEMA, "name");
     public static final ItemPath ICFS_NAME_PATH = ItemPath.create(ShadowType.F_ATTRIBUTES, ICFS_NAME);
     public static final ItemName ICFS_UID = new ItemName(NS_ICF_SCHEMA, "uid");
     public static final ItemPath ICFS_UID_PATH = ItemPath.create(ShadowType.F_ATTRIBUTES, ICFS_UID);
-    public static final String CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_LOCAL_NAME = "configurationProperties";
-    public static final ItemName CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME = new ItemName(NS_ICF_CONFIGURATION,
-            CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_LOCAL_NAME);
+    public static final ItemName ICFS_PASSWORD = new ItemName(NS_ICF_SCHEMA, "password");
+
     public static final String ACCOUNT_OBJECT_CLASS_LOCAL_NAME = "AccountObjectClass";
     public static final String GROUP_OBJECT_CLASS_LOCAL_NAME = "GroupObjectClass";
     public static final ItemName RI_ACCOUNT_OBJECT_CLASS = new ItemName(MidPointConstants.NS_RI, ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
@@ -551,6 +592,7 @@ public abstract class SchemaConstants {
     // Case is open - work items are created, completed, delegated, etc. Associated work is carried out.
     public static final String CASE_STATE_OPEN = "open";
     public static final QName CASE_STATE_OPEN_QNAME = new QName(NS_CASE, CASE_STATE_OPEN);
+    public static final String CASE_STATE_OPEN_URI = qNameToUri(CASE_STATE_OPEN_QNAME);
 
     // All human interaction regarding the case is over. But there might be some actions pending, e.g.
     // submitting change execution task, waiting for subtasks to be closed, and so on.
@@ -721,4 +763,7 @@ public abstract class SchemaConstants {
      * The ID is not really used for anything serious, except that each profile should have one.
      */
     public static final String BUILTIN_GROOVY_EXPRESSION_PROFILE_ID = "##groovyBuiltIn";
+    public static final String CONNECTOR_CONFIGURATION_PREFIX = "cfg";
+
+    public static final String MARK_PROTECTED_OID = SystemObjectsType.MARK_PROTECTED.value();
 }

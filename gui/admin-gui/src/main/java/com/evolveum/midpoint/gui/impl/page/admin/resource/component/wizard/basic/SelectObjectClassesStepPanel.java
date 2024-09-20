@@ -7,12 +7,18 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -24,6 +30,7 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
 import com.evolveum.midpoint.gui.impl.component.data.provider.ObjectClassDataProvider;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
@@ -50,6 +57,7 @@ import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -70,14 +78,14 @@ public class SelectObjectClassesStepPanel extends AbstractWizardStepPanel<Resour
     private static final String ID_DESELECT_BUTTON = "deselectButton";
     private static final String ID_TABLE = "table";
 
-    private final LoadableModel<Map<QName, Boolean>> selectedItems;
+    private final LoadableModel<Map<QName, SelectedClassWrapper>> selectedItems;
 
     public SelectObjectClassesStepPanel(ResourceDetailsModel model) {
         super(model);
         selectedItems = new LoadableModel<>() {
             @Override
-            protected Map<QName, Boolean> load() {
-                Map<QName, Boolean> map = new HashMap<>();
+            protected Map<QName, SelectedClassWrapper> load() {
+                Map<QName, SelectedClassWrapper> map = new HashMap<>();
                 try {
                     PrismPropertyWrapper<QName> generationConstraints = getDetailsModel().getObjectWrapper().findProperty(
                             ItemPath.create(
@@ -85,24 +93,53 @@ public class SelectObjectClassesStepPanel extends AbstractWizardStepPanel<Resour
                                     XmlSchemaType.F_GENERATION_CONSTRAINTS,
                                     SchemaGenerationConstraintsType.F_GENERATE_OBJECT_CLASS));
                     if (generationConstraints != null) {
-                        generationConstraints.getValues().forEach(v -> {
-                                if (v.getRealValue() != null) {
-                                    map.put(
-                                            v.getRealValue(),
-                                            !WebPrismUtil.isValueFromResourceTemplate(
-                                                    v.getNewValue(),
-                                                    getDetailsModel().getObjectType().asPrismObject())
-                                    );
+                        CompleteResourceSchema schema = getDetailsModel().getRefinedSchema();
+                        List<ResourceObjectTypeDefinition> objectTypes = new ArrayList<>();
+                        if (schema != null) {
+                            objectTypes.addAll(schema.getObjectTypeDefinitions());
+                        }
+                        generationConstraints.getValues().forEach(value -> {
+                            if (value.getRealValue() != null) {
+
+                                boolean match = false;
+
+                                Iterator<ResourceObjectTypeDefinition> iterator = objectTypes.iterator();
+                                while (iterator.hasNext()) {
+                                    ResourceObjectTypeDefinition objectType = iterator.next();
+                                    if (QNameUtil.match(value.getRealValue(), objectType.getObjectClassName())) {
+                                        match = true;
+                                        iterator.remove();
+                                        break;
+                                    }
                                 }
+
+                                boolean enabled = !WebPrismUtil.isValueFromResourceTemplate(
+                                        value.getNewValue(),
+                                        getDetailsModel().getObjectType().asPrismObject())
+                                        && !match;
+
+                                boolean canSave = !WebPrismUtil.isValueFromResourceTemplate(
+                                        value.getNewValue(),
+                                        getDetailsModel().getObjectType().asPrismObject());
+
+                                map.put(
+                                        value.getRealValue(),
+                                        new SelectedClassWrapper(enabled, canSave)
+                                );
+
+                            }
                         });
 
+                        objectTypes.forEach(objectType -> map.put(
+                                objectType.getObjectClassName(),
+                                new SelectedClassWrapper(false, true)));
                     }
-                } catch (SchemaException e) {
+                } catch (SchemaException | ConfigurationException e) {
                     LOGGER.error("Couldn't find property for schema generation constraints", e);
                 }
                 if (map.isEmpty() && getDetailsModel().getObjectClassesModel().getObject().size() == 1) {
                     ObjectClassWrapper value = getDetailsModel().getObjectClassesModel().getObject().iterator().next();
-                    map.put(value.getObjectClassName(), true);
+                    map.put(value.getObjectClassName(), new SelectedClassWrapper());
                 }
                 return map;
             }
@@ -174,7 +211,7 @@ public class SelectObjectClassesStepPanel extends AbstractWizardStepPanel<Resour
                     }
                 };
                 item.add(deselectButton);
-                deselectButton.add(new VisibleBehaviour(() -> selectedItems.getObject().get(objectClass)));
+                deselectButton.add(new VisibleBehaviour(() -> selectedItems.getObject().get(objectClass).enabled));
             }
         };
         selectedContainer.setOutputMarkupId(true);
@@ -229,7 +266,7 @@ public class SelectObjectClassesStepPanel extends AbstractWizardStepPanel<Resour
                 super.onUpdateRow(cellItem, target, table, rowModel, selected);
                 if (Boolean.TRUE.equals(selected.getObject())) {
                     if (!selectedItems.getObject().containsKey(rowModel.getObject().getValue().getObjectClassName())) {
-                        selectedItems.getObject().put(rowModel.getObject().getValue().getObjectClassName(), true);
+                        selectedItems.getObject().put(rowModel.getObject().getValue().getObjectClassName(), new SelectedClassWrapper());
                     }
                 } else {
                     selectedItems.getObject().remove(rowModel.getObject().getValue().getObjectClassName());
@@ -244,7 +281,7 @@ public class SelectObjectClassesStepPanel extends AbstractWizardStepPanel<Resour
                 if (selected) {
                     provider.getListFromModel().forEach(objectClass -> {
                         if (!selectedItems.getObject().containsKey(objectClass.getObjectClassName())) {
-                            selectedItems.getObject().put(objectClass.getObjectClassName(), true);
+                            selectedItems.getObject().put(objectClass.getObjectClassName(), new SelectedClassWrapper());
                         }
                     });
                 } else {
@@ -258,7 +295,7 @@ public class SelectObjectClassesStepPanel extends AbstractWizardStepPanel<Resour
             protected IModel<Boolean> getEnabled(IModel<SelectableBean<ObjectClassWrapper>> rowModel) {
                 if (rowModel == null) {
                     if (selectedItems.getObject().size() == getDetailsModel().getObjectClassesModel().getObject().size()) {
-                       return Model.of(selectedItems.getObject().values().stream().anyMatch(enabled -> enabled));
+                        return Model.of(selectedItems.getObject().values().stream().anyMatch(wrapper -> wrapper.enabled));
                     }
                     return super.getEnabled(rowModel);
                 }
@@ -311,7 +348,7 @@ public class SelectObjectClassesStepPanel extends AbstractWizardStepPanel<Resour
                 SelectableBean<ObjectClassWrapper> wrapper = super.createObjectWrapper(object);
                 if (selectedItems.getObject().containsKey(object.getObjectClassName())) {
                     wrapper.setSelected(true);
-                    object.setEnabled(selectedItems.getObject().get(object.getObjectClassName()));
+                    object.setEnabled(selectedItems.getObject().get(object.getObjectClassName()).enabled);
                 }
                 return wrapper;
             }
@@ -320,27 +357,44 @@ public class SelectObjectClassesStepPanel extends AbstractWizardStepPanel<Resour
 
     @Override
     protected void onSubmitPerformed(AjaxRequestTarget target) {
-        List<QName> classForSave = new ArrayList<>();
+        List<QName> classesForSave = new ArrayList<>();
 
-        selectedItems.getObject().forEach((key, enabled) -> {
-            if (enabled) {
-                classForSave.add(key);
+        selectedItems.getObject().forEach((key, wrapper) -> {
+            if (wrapper.canBeSaved) {
+                classesForSave.add(key);
             }
         });
 
-        if (classForSave.isEmpty()) {
+        PrismObjectWrapper<ResourceType> resource = getDetailsModel().getObjectWrapper();
+        PrismPropertyWrapper<QName> generateObjectClassProperty;
+        try {
+            generateObjectClassProperty = resource.findProperty(ItemPath.create(
+                    ResourceType.F_SCHEMA,
+                    XmlSchemaType.F_GENERATION_CONSTRAINTS,
+                    SchemaGenerationConstraintsType.F_GENERATE_OBJECT_CLASS));
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't find property for generate object class.", e);
             return;
         }
 
-        @NotNull ResourceType resource = getDetailsModel().getObjectType();
-        if (resource.getSchema() == null) {
-            resource.beginSchema();
-        }
-        if (resource.getSchema().getGenerationConstraints() == null) {
-            resource.getSchema().beginGenerationConstraints();
-        }
+        generateObjectClassProperty.getValues().forEach(value -> {
+            boolean match = classesForSave.stream().anyMatch(clazz -> QNameUtil.match(clazz, value.getRealValue()));
+            if (!match) {
+                value.setStatus(ValueStatus.DELETED);
+            } else {
+                classesForSave.removeIf(clazz -> QNameUtil.match(clazz, value.getRealValue()));
+            }
 
-        resource.getSchema().getGenerationConstraints().getGenerateObjectClass().addAll(classForSave);
+        });
+        classesForSave.forEach(clazz -> {
+            PrismPropertyValue<QName> newValue = getPrismContext().itemFactory().createPropertyValue();
+            newValue.setValue(clazz);
+            try {
+                generateObjectClassProperty.add(newValue, getPageBase());
+            } catch (SchemaException e) {
+                LOGGER.error("Couldn't create new value for generate object class.", e);
+            }
+        });
     }
 
     @Override
@@ -351,5 +405,20 @@ public class SelectObjectClassesStepPanel extends AbstractWizardStepPanel<Resour
     @Override
     public String getStepId() {
         return PANEL_TYPE;
+    }
+
+    private class SelectedClassWrapper implements Serializable {
+
+        private final boolean enabled;
+        private final boolean canBeSaved;
+
+        private SelectedClassWrapper() {
+            this(true, true);
+        }
+
+        private SelectedClassWrapper(boolean enabled, boolean canBeSaved) {
+            this.enabled = enabled;
+            this.canBeSaved = canBeSaved;
+        }
     }
 }

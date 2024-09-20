@@ -18,6 +18,8 @@ import java.io.File;
 import java.io.IOException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
+
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -186,7 +188,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
 
         // THEN
         outputTriple.checkConsistence();
-        PrismAsserts.assertTripleZero(outputTriple, PrismTestUtil.createPolyString("PIRATE"));
+        PrismAsserts.assertTripleZero(outputTriple, PolyString.fromOrig("PIRATE"));
         PrismAsserts.assertTripleNoPlus(outputTriple);
         PrismAsserts.assertTripleNoMinus(outputTriple);
     }
@@ -240,7 +242,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
 
         // THEN
         outputTriple.checkConsistence();
-        PrismAsserts.assertTripleZero(outputTriple, PrismTestUtil.createPolyString("d3adM3nT3llN0Tal3s"));
+        PrismAsserts.assertTripleZero(outputTriple, PolyString.fromOrig("d3adM3nT3llN0Tal3s"));
         PrismAsserts.assertTripleNoPlus(outputTriple);
         PrismAsserts.assertTripleNoMinus(outputTriple);
     }
@@ -302,7 +304,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
 
         // THEN
         outputTriple.checkConsistence();
-        PrismAsserts.assertTripleZero(outputTriple, PrismTestUtil.createPolyString("Jack Sparrow"));
+        PrismAsserts.assertTripleZero(outputTriple, PolyString.fromOrig("Jack Sparrow"));
         PrismAsserts.assertTripleNoPlus(outputTriple);
         PrismAsserts.assertTripleNoMinus(outputTriple);
     }
@@ -467,7 +469,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
                 getTestNameShort(),
                 "description",                    // target
                 "fullName",                // changed property
-                PrismTestUtil.createPolyString("Barbossa"));    // changed values
+                PolyString.fromOrig("Barbossa"));    // changed values
 
         // THEN
         outputTriple.checkConsistence();
@@ -539,7 +541,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
                 "c0c010c0-d34d-b33f-f00d-111111111112",
                 UserType.COMPLEX_TYPE);
         vars.put("sailor", ref,
-                PrismTestUtil.getPrismContext().definitionFactory().createReferenceDefinition(
+                PrismTestUtil.getPrismContext().definitionFactory().newReferenceDefinition(
                         new QName(SchemaConstants.NS_C, "sailor"), UserType.COMPLEX_TYPE));
         builder.addVariableDefinitions(vars);
 
@@ -590,7 +592,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
 
         // THEN
         outputTriple.checkConsistence();
-        PrismAsserts.assertTripleZero(outputTriple, PrismTestUtil.createPolyString("Jack Sparrow"));
+        PrismAsserts.assertTripleZero(outputTriple, PolyString.fromOrig("Jack Sparrow"));
         PrismAsserts.assertTripleNoPlus(outputTriple);
         PrismAsserts.assertTripleNoMinus(outputTriple);
     }
@@ -603,13 +605,13 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
                 getTestNameShort(),
                 "fullName", // target
                 "givenName", // changed property
-                PrismTestUtil.createPolyString("Jackie")); // changed values
+                PolyString.fromOrig("Jackie")); // changed values
 
         // THEN
         outputTriple.checkConsistence();
         PrismAsserts.assertTripleNoZero(outputTriple);
-        PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("Jackie Sparrow"));
-        PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Jack Sparrow"));
+        PrismAsserts.assertTriplePlus(outputTriple, PolyString.fromOrig("Jackie Sparrow"));
+        PrismAsserts.assertTripleMinus(outputTriple, PolyString.fromOrig("Jack Sparrow"));
     }
 
     @Test
@@ -618,7 +620,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createModificationDeleteProperty(
                         UserType.class, MappingTestEvaluator.USER_OLD_OID,
-                        UserType.F_GIVEN_NAME, PrismTestUtil.createPolyString("Jack"));
+                        UserType.F_GIVEN_NAME, PolyString.fromOrig("Jack"));
 
         String shortTestName = getTestNameShort();
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
@@ -637,8 +639,8 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
         outputTriple.checkConsistence();
         PrismAsserts.assertTripleNoZero(outputTriple);
-        PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("Sparrow"));
-        PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Jack Sparrow"));
+        PrismAsserts.assertTriplePlus(outputTriple, PolyString.fromOrig("Sparrow"));
+        PrismAsserts.assertTripleMinus(outputTriple, PolyString.fromOrig("Jack Sparrow"));
     }
 
     /**
@@ -649,7 +651,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createModificationDeleteProperty(UserType.class, MappingTestEvaluator.USER_OLD_OID,
-                        UserType.F_GIVEN_NAME, PrismTestUtil.createPolyString("Jack"));
+                        UserType.F_GIVEN_NAME, PolyString.fromOrig("Jack"));
 
         PrismObject<UserType> userOld = evaluator.getUserOld();
         userOld.asObjectable().setGivenName(null);
@@ -671,7 +673,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         displayDumpable("output triple", outputTriple);
 
         outputTriple.checkConsistence();
-        PrismAsserts.assertTripleZero(outputTriple, PrismTestUtil.createPolyString("Sparrow"));
+        PrismAsserts.assertTripleZero(outputTriple, PolyString.fromOrig("Sparrow"));
         PrismAsserts.assertTripleNoPlus(outputTriple);
         PrismAsserts.assertTripleNoMinus(outputTriple);
     }
@@ -681,8 +683,8 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createModificationDeleteProperty(UserType.class, MappingTestEvaluator.USER_OLD_OID,
-                        UserType.F_GIVEN_NAME, PrismTestUtil.createPolyString("Jack"));
-        delta.addModificationDeleteProperty(UserType.F_FAMILY_NAME, PrismTestUtil.createPolyString("Sparrow"));
+                        UserType.F_GIVEN_NAME, PolyString.fromOrig("Jack"));
+        delta.addModificationDeleteProperty(UserType.F_FAMILY_NAME, PolyString.fromOrig("Sparrow"));
 
         String shortTestName = getTestNameShort();
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
@@ -700,8 +702,8 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
         outputTriple.checkConsistence();
         PrismAsserts.assertTripleNoZero(outputTriple);
-        PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("John Doe"));
-        PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Jack Sparrow"));
+        PrismAsserts.assertTriplePlus(outputTriple, PolyString.fromOrig("John Doe"));
+        PrismAsserts.assertTripleMinus(outputTriple, PolyString.fromOrig("Jack Sparrow"));
     }
 
     /**
@@ -719,7 +721,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
 
         // THEN
         outputTriple.checkConsistence();
-        PrismAsserts.assertTripleZero(outputTriple, PrismTestUtil.createPolyString("Jack Sparrow"));
+        PrismAsserts.assertTripleZero(outputTriple, PolyString.fromOrig("Jack Sparrow"));
         PrismAsserts.assertTripleNoPlus(outputTriple);
         PrismAsserts.assertTripleNoMinus(outputTriple);
     }
@@ -769,14 +771,14 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
                 getTestNameShort(),
                 "organizationalUnit",                    // target
                 "organizationalUnit",                // changed property
-                PrismTestUtil.createPolyString("Antropomorphic Personifications"));    // changed values
+                PolyString.fromOrig("Antropomorphic Personifications"));    // changed values
 
         // THEN
         outputTriple.checkConsistence();
         PrismAsserts.assertTripleZero(outputTriple,
-                PrismTestUtil.createPolyString("The Guild of Brethren of the Coast"),
-                PrismTestUtil.createPolyString("The Guild of Davie Jones' Locker"));
-        PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("The Guild of Antropomorphic Personifications"));
+                PolyString.fromOrig("The Guild of Brethren of the Coast"),
+                PolyString.fromOrig("The Guild of Davie Jones' Locker"));
+        PrismAsserts.assertTriplePlus(outputTriple, PolyString.fromOrig("The Guild of Antropomorphic Personifications"));
         PrismAsserts.assertTripleNoMinus(outputTriple);
     }
 
@@ -792,15 +794,15 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
                 getTestNameShort(),
                 "organizationalUnit",                    // target
                 "organizationalUnit",                // changed property
-                PrismTestUtil.createPolyString("Antropomorphic Personifications"));    // changed values
+                PolyString.fromOrig("Antropomorphic Personifications"));    // changed values
 
         // THEN
         outputTriple.checkConsistence();
         PrismAsserts.assertTripleZero(outputTriple,
-                PrismTestUtil.createPolyString("Brethren of the Coast"),
-                PrismTestUtil.createPolyString("Davie Jones' Locker"));
+                PolyString.fromOrig("Brethren of the Coast"),
+                PolyString.fromOrig("Davie Jones' Locker"));
         PrismAsserts.assertTriplePlus(outputTriple,
-                PrismTestUtil.createPolyString("Antropomorphic Personifications"));
+                PolyString.fromOrig("Antropomorphic Personifications"));
         PrismAsserts.assertTripleNoMinus(outputTriple);
     }
 
@@ -857,7 +859,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
         outputTriple.checkConsistence();
         PrismAsserts.assertTripleNoZero(outputTriple);
-        PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("The CAPTAIN"));
+        PrismAsserts.assertTriplePlus(outputTriple, PolyString.fromOrig("The CAPTAIN"));
         PrismAsserts.assertTripleNoMinus(outputTriple);
     }
 
@@ -910,8 +912,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
     public void testScriptTransformMultiAddDelete() throws Exception {
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
-                .createEmptyModifyDelta(UserType.class, MappingTestEvaluator.USER_OLD_OID
-                );
+                .createEmptyModifyDelta(UserType.class, MappingTestEvaluator.USER_OLD_OID);
         PropertyDelta<String> propDelta = delta.createPropertyModification(evaluator.toPath("subtype"));
         propDelta.addRealValuesToAdd("CAPTAIN");
         propDelta.addRealValuesToDelete("LANDLUBER");
@@ -921,9 +922,9 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
                 "mapping-script-transform.xml", shortTestName, "organizationalUnit", delta);
 
-        PrismObject<UserType> user = (PrismObject<UserType>) mapping.getSourceContext().getOldObject();
+        PrismObject<UserType> user = getOldObject(mapping);
         user.asObjectable().getSubtype().add("LANDLUBER");
-        mapping.getSourceContext().recompute();
+        mapping.getDefaultSourceContextIdi().recompute();
         displayValue("user before", user);
         displayValue("delta", delta);
 
@@ -935,9 +936,9 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         then();
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
         outputTriple.checkConsistence();
-        PrismAsserts.assertTripleZero(outputTriple, PrismTestUtil.createPolyString("The pirate deck"));
-        PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("The captain deck"));
-        PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("The landluber deck"));
+        PrismAsserts.assertTripleZero(outputTriple, PolyString.fromOrig("The pirate deck"));
+        PrismAsserts.assertTriplePlus(outputTriple, PolyString.fromOrig("The captain deck"));
+        PrismAsserts.assertTripleMinus(outputTriple, PolyString.fromOrig("The landluber deck"));
     }
 
     /**
@@ -956,7 +957,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
                 "mapping-script-transform.xml", shortTestName, "organizationalUnit", delta);
 
-        PrismObject<UserType> user = (PrismObject<UserType>) mapping.getSourceContext().getOldObject();
+        PrismObject<UserType> user = getOldObject(mapping);
 
         displayValue("user before", user);
         displayValue("delta", delta);
@@ -971,8 +972,8 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         displayValue("output triple", outputTriple);
         outputTriple.checkConsistence();
         PrismAsserts.assertTripleNoZero(outputTriple);
-        PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("The captain deck"));
-        PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("The pirate deck"));
+        PrismAsserts.assertTriplePlus(outputTriple, PolyString.fromOrig("The captain deck"));
+        PrismAsserts.assertTripleMinus(outputTriple, PolyString.fromOrig("The pirate deck"));
     }
 
     @Test
@@ -984,8 +985,8 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         // otherwise the tests will fail on unknown data types
         PrismObjectDefinition<ShadowType> shadowDef = account.getDefinition().deepClone(DeepCloneOperation.ultraDeep());
         PrismContainerDefinition<Containerable> attrsDef = shadowDef.findContainerDefinition(ShadowType.F_ATTRIBUTES);
-        attrsDef.toMutable().createPropertyDefinition(QNAME_UID, PrimitiveType.STRING.getQname());
-        attrsDef.toMutable().createPropertyDefinition(SchemaConstants.ICFS_NAME, PrimitiveType.STRING.getQname());
+        attrsDef.mutator().createPropertyDefinition(QNAME_UID, PrimitiveType.STRING.getQname());
+        attrsDef.mutator().createPropertyDefinition(SchemaConstants.ICFS_NAME, PrimitiveType.STRING.getQname());
         account.setDefinition(shadowDef);
         IntegrationTestTools.display("Account", account);
 
@@ -1013,7 +1014,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
 
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
         outputTriple.checkConsistence();
-        assertTripleZero(outputTriple, PrismTestUtil.createPolyString("pavolr"));
+        assertTripleZero(outputTriple, PolyString.fromOrig("pavolr"));
         PrismAsserts.assertTripleNoPlus(outputTriple);
         assertTripleNoMinus(outputTriple);
     }
@@ -1243,4 +1244,8 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         assertNotNull(value1.getEncryptedDataType());
     }
 
+    private PrismObject<UserType> getOldObject(MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping) {
+        //noinspection unchecked
+        return ((ObjectDeltaObject<UserType>) mapping.getDefaultSourceContextIdi()).getOldObject();
+    }
 }

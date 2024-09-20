@@ -12,12 +12,15 @@ import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import com.evolveum.midpoint.provisioning.ucf.api.UcfResourceObject;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade;
 import com.evolveum.midpoint.provisioning.util.InitializationState;
 
@@ -30,8 +33,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.*;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowedExternalChange;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExternalResourceObjectChange;
-import com.evolveum.midpoint.provisioning.impl.shadows.sync.ChangeProcessingBeans;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -46,10 +48,8 @@ public class ExternalResourceEventListenerImpl implements ExternalResourceEventL
     private static final Trace LOGGER = TraceManager.getTrace(ExternalResourceEventListenerImpl.class);
 
     @Autowired private ShadowsFacade shadowsFacade;
-    @Autowired private ChangeProcessingBeans changeProcessingBeans;
     @Autowired private ProvisioningContextFactory provisioningContextFactory;
     @Autowired private EventDispatcher eventDispatcher;
-    @Autowired private ResourceObjectConverter resourceObjectConverter;
 
     private final AtomicInteger currentSequenceNumber = new AtomicInteger(0);
 
@@ -91,27 +91,26 @@ public class ExternalResourceEventListenerImpl implements ExternalResourceEventL
             ctx.assertDefinition();
 
             Object primaryIdentifierRealValue = getPrimaryIdentifierRealValue(anyShadow, event);
-            Collection<ResourceAttribute<?>> identifiers = emptyIfNull(ShadowUtil.getAllIdentifiers(anyShadow));
+            Collection<ShadowSimpleAttribute<?>> identifiers = ShadowUtil.getAllIdentifiers(anyShadow);
             if (identifiers.isEmpty()) {
                 throw new SchemaException("No identifiers");
             }
 
+            ResourceObjectDefinition definition = ctx.getObjectDefinitionRequired();
+            UcfResourceObject resourceObject = getResourceObject(event, primaryIdentifierRealValue);
             ExternalResourceObjectChange resourceObjectChange = new ExternalResourceObjectChange(
                     currentSequenceNumber.getAndIncrement(),
                     primaryIdentifierRealValue,
-                    ctx.getObjectClassDefinition(),
+                    definition,
                     identifiers,
-                    getResourceObject(event),
+                    resourceObject,
                     event.getObjectDelta(),
-                    ctx,
-                    resourceObjectConverter);
-            resourceObjectChange.initialize(task, result);
-
-            ShadowedExternalChange adoptedChange = new ShadowedExternalChange(resourceObjectChange, changeProcessingBeans);
+                    ctx);
+            ShadowedExternalChange adoptedChange = new ShadowedExternalChange(resourceObjectChange);
             adoptedChange.initialize(task, result);
 
             InitializationState initializationState = adoptedChange.getInitializationState();
-            initializationState.checkAfterInitialization();
+            initializationState.checkInitialized();
             if (initializationState.isOk()) {
                 ResourceObjectShadowChangeDescription shadowChangeDescription = adoptedChange.getShadowChangeDescription();
                 eventDispatcher.notifyChange(shadowChangeDescription, task, result);
@@ -141,10 +140,10 @@ public class ExternalResourceEventListenerImpl implements ExternalResourceEventL
     }
 
     private Object getPrimaryIdentifierRealValue(PrismObject<ShadowType> shadow, ExternalResourceEvent context) throws SchemaException {
-        Collection<ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
+        Collection<ShadowSimpleAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
 
         Collection<Object> primaryIdentifierRealValues = new HashSet<>();
-        for (ResourceAttribute<?> primaryIdentifier : emptyIfNull(primaryIdentifiers)) {
+        for (ShadowSimpleAttribute<?> primaryIdentifier : emptyIfNull(primaryIdentifiers)) {
             primaryIdentifierRealValues.addAll(primaryIdentifier.getRealValues());
         }
         if (primaryIdentifierRealValues.isEmpty()) {
@@ -190,14 +189,17 @@ public class ExternalResourceEventListenerImpl implements ExternalResourceEventL
     }
 
     // consider moving into ResourceEventDescription
-    private PrismObject<ShadowType> getResourceObject(ExternalResourceEvent eventDescription) {
+    private UcfResourceObject getResourceObject(ExternalResourceEvent eventDescription, Object primaryIdentifierValue) {
         if (eventDescription.getResourceObject() != null) {
-            return eventDescription.getResourceObject();
+            return UcfResourceObject.of(
+                    eventDescription.getResourceObject(),
+                    primaryIdentifierValue);
         } else if (ObjectDelta.isAdd(eventDescription.getObjectDelta())) {
-            return eventDescription.getObjectDelta().getObjectToAdd();
+            return UcfResourceObject.of(
+                    eventDescription.getObjectDelta().getObjectToAdd(),
+                    primaryIdentifierValue);
         } else {
             return null;
         }
     }
-
 }

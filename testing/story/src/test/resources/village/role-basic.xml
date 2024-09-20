@@ -41,7 +41,7 @@
                                     </expression>
                                 </q:equal>
                             </filter>
-                            <searchOnResource>true</searchOnResource>
+                            <searchStrategy>onResourceIfNeeded</searchStrategy>
                         </associationTargetSearch>
                     </expression>
                 </outbound>

@@ -8,6 +8,11 @@ package com.evolveum.midpoint.model.impl.sync.tasks;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.prism.PrismContext;
+
+import com.evolveum.midpoint.schema.util.ShadowUtil;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
@@ -17,9 +22,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -27,6 +30,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowContentDescriptionType.FROM_REPOSITORY;
 
 /**
  * Synchronizes a single resource object. Works both for reconciliation and import from resource
@@ -75,20 +80,30 @@ public class Synchronizer {
             Throwable fetchResultException = RepoCommonUtils.getResultException(fetchResult);
             throw new SystemException("Skipped malformed resource object: " + fetchResultException.getMessage(), fetchResultException);
         }
-        // TODO I think that "is shadow unknown" condition can be removed. All shadows should be classified by provisioning.
+        // TODO I think that "is shadow classified" condition can be removed. All shadows should be classified by provisioning.
         //  And, if any one is not, and the filter requires classification, we should not pass it.
-        if (!isShadowUnknown(shadow) && !postSearchFilter.matches(shadowObject)) {
+        if (ShadowUtil.isClassified(shadow) && !postSearchFilter.matches(shadowObject)) {
             LOGGER.trace("Skipping {} because it does not match objectClass/kind/intent", shadowObject);
             workerTask.onSynchronizationExclusion(itemProcessingIdentifier, SynchronizationExclusionReasonType.NOT_APPLICABLE_FOR_TASK);
-            result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipped because it does not match objectClass/kind/intent");
+            result.recordNotApplicable("Skipped because it does not match objectClass/kind/intent");
             return;
         }
-
+        // TODO later, we may start requiring contentDescription presence
+        if (shadowObject.asObjectable().getContentDescription() == FROM_REPOSITORY) {
+            var status = ShadowUtil.getShadowCachedStatus(shadowObject, ModelBeans.get().clock.currentTimeXMLGregorianCalendar());
+            if (!status.isFresh()) {
+                LOGGER.trace("Skipping {} because it was obtained from the cache and is not fresh enough: {}",
+                        shadowObject, status);
+                workerTask.onSynchronizationExclusion(itemProcessingIdentifier, SynchronizationExclusionReasonType.EXPIRED);
+                result.recordNotApplicable("Skipped because it's expired: " + status);
+                return;
+            }
+        }
         handleObjectInternal(shadowObject, itemProcessingIdentifier, workerTask, result);
     }
 
-    private void handleObjectInternal(PrismObject<ShadowType> shadowObject, String itemProcessingIdentifier, Task workerTask,
-            OperationResult result) {
+    private void handleObjectInternal(
+            PrismObject<ShadowType> shadowObject, String itemProcessingIdentifier, Task workerTask, OperationResult result) {
         // We are going to pretend that all of the objects were just created.
         // That will effectively import them to the repository
 
@@ -100,7 +115,7 @@ public class Synchronizer {
         if (forceAdd) {
             // We should provide shadow in the state before the change. But we are
             // pretending that it has not existed before, so we will not provide it.
-            ObjectDelta<ShadowType> shadowDelta = shadowObject.getPrismContext().deltaFactory().object()
+            ObjectDelta<ShadowType> shadowDelta = PrismContext.get().deltaFactory().object()
                     .create(ShadowType.class, ChangeType.ADD);
             shadowDelta.setObjectToAdd(shadowObject);
             shadowDelta.setOid(shadowObject.getOid());
@@ -125,10 +140,5 @@ public class Synchronizer {
         LOGGER.debug("#### notify change finished");
 
         // No exception thrown here. The error is indicated in the result. Will be processed by superclass.
-    }
-
-    private boolean isShadowUnknown(ShadowType shadowType) {
-        return ShadowKindType.UNKNOWN == shadowType.getKind()
-                || SchemaConstants.INTENT_UNKNOWN.equals(shadowType.getIntent());
     }
 }

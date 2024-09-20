@@ -88,4 +88,8 @@ public abstract class AjaxIconButton extends AjaxLink<String> {
 
         return this;
     }
+
+    public IModel<String> getTitle() {
+        return title;
+    }
 }

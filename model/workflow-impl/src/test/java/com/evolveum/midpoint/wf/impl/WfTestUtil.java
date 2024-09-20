@@ -14,12 +14,10 @@ import com.evolveum.midpoint.audit.api.AuditReferenceValue;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.util.ShadowAssociationsUtil;
 import com.evolveum.midpoint.test.DummyAuditService;
 import com.evolveum.midpoint.cases.api.AuditingConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import java.util.List;
 import java.util.Map;
@@ -46,8 +44,8 @@ public class WfTestUtil {
             String oid;
             if (valueToAdd instanceof AssignmentType) {
                 oid = ((AssignmentType) valueToAdd).getTargetRef().getOid();
-            } else if (valueToAdd instanceof ShadowAssociationType) {
-                oid = ((ShadowAssociationType) valueToAdd).getShadowRef().getOid();
+            } else if (valueToAdd instanceof ShadowAssociationValueType) {
+                oid = ShadowAssociationsUtil.getSingleObjectRefRequired((ShadowAssociationValueType) valueToAdd).getOid();
             } else {
                 continue;
             }

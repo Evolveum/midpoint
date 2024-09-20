@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.factory.panel.searchfilter.SearchFilterTypeForQueryModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -35,7 +36,7 @@ public class ResourceAttributeSearchFilterTypeForQueryModel extends SearchFilter
         this.objectClass = objectClass;
     }
 
-    protected void parseQuery(String object) throws SchemaException, ConfigurationException {
+    public void parseQuery(String object) throws SchemaException, ConfigurationException {
         PrismObjectDefinition<ShadowType> def = PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
         ResourceObjectDefinition objectClassDef =
                 ((PageResource) getPageBase()).getObjectDetailsModels().getRefinedSchema().findDefinitionForObjectClass(objectClass.getObject());

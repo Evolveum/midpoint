@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -334,8 +336,8 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
                 onMoreInfoPerformed(target);
             }
         };
-        moreInfo.add(new VisibleBehaviour(this::isMoreInfoVisible));
-        moreInfo.add(AttributeAppender.append("class", () -> hasZeroValue(valueModel) ? "text-secondary" : "text-primary"));
+        moreInfo.add(new EnableBehaviour(() -> isMoreInfoVisible()));
+        moreInfo.add(AttributeAppender.append("class", () -> hasZeroValue(valueModel) ? "invisible" : "text-primary"));
         add(moreInfo);
     }
 
@@ -366,7 +368,7 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
 
             BigDecimal value = SimulationMetricValuesTypeUtil.getValue(values.get(values.size() - 1));
 
-            return formatValue(value, getPageBase().getPrincipal().getLocale());
+            return formatValue(value, LocalizationUtil.findLocale());
         };
     }
 

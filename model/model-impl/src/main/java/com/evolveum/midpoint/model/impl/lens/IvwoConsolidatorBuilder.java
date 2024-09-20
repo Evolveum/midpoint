@@ -7,15 +7,15 @@
 
 package com.evolveum.midpoint.model.impl.lens;
 
-import com.evolveum.midpoint.model.impl.lens.projector.ValueMatcher;
+import com.evolveum.midpoint.model.impl.lens.projector.PropertyValueMatcher;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.expression.ConsolidationValueMetadataComputer;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.EqualsChecker;
 
-import java.util.Comparator;
 import java.util.function.Consumer;
 
 public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemDefinition<?>, I extends ItemValueWithOrigin<V, D>> {
@@ -27,8 +27,8 @@ public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemD
     boolean itemDeltaExists;
     PrismContainer<?> itemContainer;
     Item<V,D> existingItem; // alternative to using itemContainer
-    ValueMatcher valueMatcher;
-    Comparator<V> comparator;
+    PropertyValueMatcher<V> valueMatcher;
+    EqualsChecker<V> equalsChecker;
     boolean addUnchangedValues;
     boolean existingItemKnown;
     boolean addUnchangedValuesExceptForNormalMappings;
@@ -85,13 +85,13 @@ public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemD
         return this;
     }
 
-    public IvwoConsolidatorBuilder<V, D, I> valueMatcher(ValueMatcher val) {
+    public IvwoConsolidatorBuilder<V, D, I> valueMatcher(PropertyValueMatcher val) {
         valueMatcher = val;
         return this;
     }
 
-    public IvwoConsolidatorBuilder<V, D, I> comparator(Comparator<V> val) {
-        comparator = val;
+    public IvwoConsolidatorBuilder<V, D, I> equalsChecker(EqualsChecker<V> val) {
+        equalsChecker = val;
         return this;
     }
 
@@ -145,7 +145,7 @@ public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemD
         return this;
     }
 
-    public IvwoConsolidatorBuilder<V, D, I> customize(Consumer<IvwoConsolidatorBuilder> customizer) {
+    public IvwoConsolidatorBuilder<V, D, I> customize(Consumer<IvwoConsolidatorBuilder<?, ?, ?>> customizer) {
         if (customizer != null) {
             customizer.accept(this);
         }

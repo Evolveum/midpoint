@@ -1,0 +1,155 @@
+= Tasks: What's New In 4.3
+:page-since: "4.3"
+:page-keywords: task, error, statistics, progress, 4.3, midScale
+
+Tasks are one of key areas of the xref:/midpoint/projects/midscale/[midScale project] aimed
+at significant improvement of midPoint scalability. It is natural that they have got a number
+of enhancements and new features in 4.3. Let us have a look at some of them.
+
+[NOTE]
+====
+The midScale project continues into midPoint 4.4 release. The work on tasks will be put into
+its final form in 4.4 as well. Therefore, what is presented here, is basically a report on a
+work in progress.
+
+Formally, many of these features are marked as experimental in 4.3. They should work,
+but details will be most probably fine-tuned based on experiences and user feedback.
+====
+
+== Processing Errors
+
+=== Error Reporting
+
+When an object fails to be processed by a task, this fact should be reported in a reliable
+and understandable way. In previous versions of midPoint this was generally true, except for
+some border cases: for example when an object couldn't be correctly retrieved
+from a resource.footnote:[Sometimes the tasks were even not able to recover from
+such a situation and suspended immediately.]
+
+Since 4.3, almost all kinds of failures are reliably reported by creating so-called operation
+execution records. These records are then used to display erroneous objects. (The way how
+these objects are shown by GUI has been improved in 4.3 as well.)
+
+=== Error Handling
+
+MidPoint can now automatically or semi-automatically retry failed objects processing.
+This aspect is rather complex, so it is covered in a xref:../task-error-handling/[separate document].
+
+== Progress and Statistics Reporting
+
+=== Progress vs. Statistics
+
+When a task runs, we need to see how much of the work has already been done, how much work
+remains, and what is the approximate pace at which we are proceeding. This is necessary e.g.
+to be able to estimate the time to completion.
+
+Before 4.3, this information was somehow present, but was not complete nor precise enough.
+Moreover, aspects like work buckets and task suspension and resumption made some of this
+information unreliable.
+
+Since 4.3, we rigorously distinguish two aspects:
+
+1. _Progress_: what part of the overall work has been done?
+2. _Iteration statistics_: how many items were processed?footnote:[The term is not final. It will probably change.]
+
+These two aspects start to differ when a task is suspended and then resumed, because in such a case some
+objects get processed twice. This duplicate processing is reflected in iteration statistics,
+but intentionally excluded from progress information.
+
+Technically, a new `structuredProgress` container was added to `TaskType` objects. The statistics
+about processed items (`operationStats/iterativeTaskInformation`) were restructured.
+
+=== Task Parts
+
+New conceptual model of task execution was conceived. It is not formalized and documented yet,
+but its basic features can be seen in the xref:/midpoint/projects/midscale/design/tasks/[preliminary design document].
+The new entity identified there is the _task part_. A task part can be viewed as a distinct action (e.g. a recomputation)
+executed on a set of objects covered by single midPoint query (e.g. all users).
+
+Task part is a basic unit of execution and reporting. Therefore, both the progress and iteration
+statistics are kept for each of the parts separately.
+
+=== Throughput
+
+The throughput (i.e. how many items have been processed per time unit) is a key performance indicator
+of a task. Unfortunately, task suspension and resumption, as well as multi-node task scenarios
+(having multiple tasks executing in parallel, even some of them starting later than others)
+complicate the throughput computation.
+
+In midPoint 4.3 we introduced more precise algorithm in this area. It is based on exact recording
+of execution start and stop moments - see `operationStats/iterativeTaskInformation/part/execution`
+structure.
+
+=== Outcome
+
+Before 4.3, we roughly distinguished two outcomes of an object processing within a task: success or failure.
+
+Now we have three basic outcome types: success, failure, or "skip". The newly added skip outcome means
+that the item was obtained (either from the repository or from a resource), but for any reason, its
+further processing was abandoned.
+
+Typical examples - among many - are:
+
+* object retrieved multiple times due to a complex repository query,
+* irrelevant live sync or async update change,
+* a protected account.
+
+In addition to this basic three-way classification, an outcome can be qualified by arbitrary URI.
+Therefore, it is possible to analyze e.g. why objects were skipped, or to distinguish between
+various types of failures. Although this feature is not fully enabled in 4.3, all relevant data
+structures are already in place, so it is prepared for the future.
+
+Selected statistics are then indexed by outcome. It is thus possible to see not only how
+many successes, failures, or skips there was, but also e.g. how much time was spent processing
+objects leading to particular outcome, what was the last object with that outcome, and so on.
+
+=== Objects Being Processed
+
+As a minor improvement, for tasks that concurrently process more objects we now show
+not only single currently processed object, but all of them.
+
+=== Synchronization Statistics
+
+Synchronization statistics, i.e. how did synchronization states of shadows (like `linked`, `unlinked`,
+`unmatched`, and so on) change, is now more precise and informational.
+
+1. Now we distinguish not only "before" and "after" moments, but "on processing start", i.e. the
+state of the shadow in repository, "on synchronization start", i.e. the state of the shadow
+as determined by the synchronization algorithm at the beginning, and "on synchronization end",
+i.e. the state after the synchronization process ends.
+
+2. Instead of showing only aggregate counters for "before" and "after" moments, we now show the counts for
+each particular state transition, e.g. "unlinked to linked" (simply speaking). This provides more plastic image
+of what really happened during the task execution.
+
+3. Objects excluded from synchronization - e.g. protected objects - are no longer counted
+under (artificial) synchronization states, but under standard "skip" outcome, categorized by
+the reason of exclusion. This further increases the clarity of the information.
+
+=== Provisioning Statistics
+
+The time spent in provisioning operations is now collected not only globally (i.e. per object class
+on resource) but also per each operation kind. These statistics are now also summarized through
+the task trees.
+
+== Task Tree State Reporting
+
+Task trees - i.e. tasks that have subtasks corresponding to individual parts and/or workers,
+were added to midPoint in version 3.8, but not adequately covered by GUI until now. One particular
+pain point was how the state of a task tree was displayed. Technically, root task is in a waiting
+state, but displaying it in such a way is grossly misleading for the users.
+
+Since 4.3 we distinguish between "technical" and "user-visible" state of the task. The former
+is called `schedulingState` and has four values: `ready`, `waiting`, `suspended`, and `closed`.
+(It corresponds roughly to pre-4.3 execution status.) The latter is user-visible and has six values:
+`running`, `runnable`, `waiting`, `suspended`, and `closed`. It uses the same `executionStatus`
+property as in 4.2 and before. For example, when a task tree executes, its root task has scheduling
+state of `waiting` but its user-visible execution state is `running`.
+
+This area is not fully covered in 4.3. For example, similar clarification is needed also for
+the operation result. Some other features, like notifications, are also still not task-tree aware.
+
+== Presentation
+
+The GUI was improved significantly. For example, statistical information is now shown using
+nice colored graphs and widgets, instead of "dry" textual form as was before.

@@ -25,12 +25,12 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 /**
  * Producer worker for audit export operation.
  */
-public class ExportAuditProducerWorker extends BaseWorker<ExportAuditOptions, AuditEventRecordType> {
+public class ExportAuditProducerWorker extends BaseWorker<BaseAuditImportExportOptions, AuditEventRecordType> {
 
     private final ObjectQuery query;
 
     public ExportAuditProducerWorker(
-            NinjaContext context, ExportAuditOptions options, BlockingQueue<AuditEventRecordType> queue,
+            NinjaContext context, BaseAuditImportExportOptions options, BlockingQueue<AuditEventRecordType> queue,
             OperationStatus operation, List<ExportAuditProducerWorker> producers, ObjectQuery query) {
         super(context, options, queue, operation, producers);
 

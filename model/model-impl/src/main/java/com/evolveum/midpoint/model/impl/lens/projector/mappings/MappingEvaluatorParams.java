@@ -47,7 +47,7 @@ public class MappingEvaluatorParams<V extends PrismValue, D extends ItemDefiniti
     private MappingTimeEval evaluateCurrent;
     private boolean evaluateWeak = true;
     private LensContext<F> context;
-    private boolean hasFullTargetObject;
+    private boolean targetValueAvailable;
     // If set to true then the target cannot be overridden in mapping
     private boolean fixTarget = false;
 
@@ -156,12 +156,12 @@ public class MappingEvaluatorParams<V extends PrismValue, D extends ItemDefiniti
         this.context = context;
     }
 
-    public boolean hasFullTargetObject() {
-        return hasFullTargetObject;
+    public boolean isTargetValueAvailable() {
+        return targetValueAvailable;
     }
 
-    public void setHasFullTargetObject(boolean hasFullTargetObject) {
-        this.hasFullTargetObject = hasFullTargetObject;
+    public void setTargetValueAvailable(boolean targetValueAvailable) {
+        this.targetValueAvailable = targetValueAvailable;
     }
 
     public ItemPath getDefaultTargetItemPath() {

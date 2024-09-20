@@ -46,7 +46,7 @@ abstract class ResolutionContext {
      * Resolve the last mile in structured property.
      */
     abstract ResolutionContext resolveStructuredProperty(
-            ItemPath pathToResolve, PrismPropertyDefinition<?> outputDefinition, PrismContext prismContext);
+            ItemPath pathToResolve, PrismPropertyDefinition<?> outputDefinition);
 
     /**
      * Is the context null so there's nothing to resolve?

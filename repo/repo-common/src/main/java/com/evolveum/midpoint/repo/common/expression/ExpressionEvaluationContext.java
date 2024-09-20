@@ -12,6 +12,11 @@ import java.util.Collection;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.expression.evaluator.AsIsExpressionEvaluator;
+
+import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorProfile;
@@ -20,7 +25,7 @@ import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.task.api.Task;
 
 /**
- * Simple almost-DTO used to contain all the parameters of expression evaluation.
+ * Simple almost-DTO used to contain all the parameters of the _whole_ expression evaluation.
  *
  * Designed to allow future compatible changes (addition of optional parameters).
  *
@@ -35,7 +40,9 @@ public class ExpressionEvaluationContext {
 
     /**
      * One of the sources can be denoted as "default".
-     * Interpretation of this information is evaluator-specific. (Currently used by AsIs evaluator.)
+     *
+     * Interpretation of this information is evaluator-specific. (Currently used by {@link AsIsExpressionEvaluator}
+     * and "shadow owner reference search" evaluator.)
      */
     private Source<?,?> defaultSource;
 
@@ -70,10 +77,13 @@ public class ExpressionEvaluationContext {
      */
     private QName mappingQName;
 
+    @Experimental
+    private VariableBindingDefinitionType targetDefinitionBean;
+
     /**
      * Free-form context description for diagnostic purposes.
      */
-    private final String contextDescription;
+    @NotNull private final String contextDescription;
 
     /**
      * Description of a local context (should be short).
@@ -126,7 +136,7 @@ public class ExpressionEvaluationContext {
             Collection<Source<?,?>> sources, VariablesMap variables, String contextDescription, @NotNull Task task) {
         this.sources = emptyIfNull(sources);
         this.variables = variables;
-        this.contextDescription = contextDescription;
+        this.contextDescription = emptyIfNull(contextDescription);
         this.task = task;
     }
 
@@ -207,6 +217,14 @@ public class ExpressionEvaluationContext {
         this.mappingQName = mappingQName;
     }
 
+    public VariableBindingDefinitionType getTargetDefinitionBean() {
+        return targetDefinitionBean;
+    }
+
+    public void setTargetDefinitionBean(VariableBindingDefinitionType targetDefinitionBean) {
+        this.targetDefinitionBean = targetDefinitionBean;
+    }
+
     public String getLocalContextDescription() {
         return localContextDescription;
     }
@@ -215,11 +233,11 @@ public class ExpressionEvaluationContext {
         this.localContextDescription = localContextDescription;
     }
 
-    public String getContextDescription() {
+    public @NotNull String getContextDescription() {
         return contextDescription;
     }
 
-    public Task getTask() {
+    public @NotNull Task getTask() {
         return task;
     }
 
@@ -274,10 +292,17 @@ public class ExpressionEvaluationContext {
         clone.expressionFactory = this.expressionFactory;
         clone.defaultSource = this.defaultSource;
         clone.mappingQName = this.mappingQName;
+        clone.targetDefinitionBean = this.targetDefinitionBean;
         clone.additionalConvertor = this.additionalConvertor;
         clone.variableProducer = this.variableProducer;
         clone.valueMetadataComputer = this.valueMetadataComputer;
         clone.localContextDescription = this.localContextDescription;
         return clone;
+    }
+
+    @Override
+    public String toString() {
+        // The fact that toString() = description is utilized in various loggers where "context" is provided as parameter
+        return contextDescription;
     }
 }

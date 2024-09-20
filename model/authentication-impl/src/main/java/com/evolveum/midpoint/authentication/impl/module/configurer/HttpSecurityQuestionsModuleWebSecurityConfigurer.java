@@ -21,6 +21,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.HttpSecQAuthenticati
 
 import jakarta.servlet.ServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -51,6 +52,9 @@ public class HttpSecurityQuestionsModuleWebSecurityConfigurer extends ModuleWebS
     @Autowired
     private TaskManager taskManager;
 
+    @Autowired
+    private ApplicationContext applicationContext;
+
     public HttpSecurityQuestionsModuleWebSecurityConfigurer(HttpSecQAuthenticationModuleType moduleType,
             String suffix,
             AuthenticationChannel authenticationChannel,
@@ -74,7 +78,8 @@ public class HttpSecurityQuestionsModuleWebSecurityConfigurer extends ModuleWebS
         HttpAuthenticationEntryPoint entryPoint = getObjectPostProcessor().postProcess(new HttpSecurityQuestionsAuthenticationEntryPoint());
         http.securityMatcher(AuthUtil.stripEndingSlashes(getPrefix()) + "/**");
 
-        http.authorizeRequests().accessDecisionManager(new MidpointHttpAuthorizationEvaluator(securityEnforcer, securityContextManager, taskManager, model));
+        http.authorizeRequests().accessDecisionManager(new MidpointHttpAuthorizationEvaluator(
+                securityEnforcer, securityContextManager, taskManager, model, applicationContext));
 
         HttpSecurityQuestionsAuthenticationFilter filter = getObjectPostProcessor().postProcess(new HttpSecurityQuestionsAuthenticationFilter(authenticationManager(), entryPoint));
         RememberMeServices rememberMeServices = http.getSharedObject(RememberMeServices.class);
@@ -89,7 +94,7 @@ public class HttpSecurityQuestionsModuleWebSecurityConfigurer extends ModuleWebS
                 .authenticationEntryPoint(entryPoint)
                 .authenticationTrustResolver(new MidpointAuthenticationTrustResolverImpl());
 
-        SequenceAuditFilter sequenceAuditFilter = getObjectPostProcessor().postProcess(new SequenceAuditFilter());
+        SequenceAuditFilter sequenceAuditFilter = new SequenceAuditFilter();
         sequenceAuditFilter.setRecordOnEndOfChain(false);
         http.addFilterAfter(getObjectPostProcessor().postProcess(sequenceAuditFilter), FilterSecurityInterceptor.class);
     }

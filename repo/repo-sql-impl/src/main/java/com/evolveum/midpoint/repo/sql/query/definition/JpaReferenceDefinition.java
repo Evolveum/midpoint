@@ -12,32 +12,25 @@ import java.util.Optional;
 
 import javax.xml.namespace.QName;
 
-import org.jetbrains.annotations.Nullable;
-
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
-import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query.QueryDefinitionRegistry;
 import com.evolveum.midpoint.repo.sql.query.resolution.DataSearchResult;
-import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 /**
  * @author lazyman
  */
-public class JpaReferenceDefinition<T extends JpaReferenceDefinition<T>>
-        extends JpaDataNodeDefinition<T> {
+public class JpaReferenceDefinition extends JpaDataNodeDefinition {
 
     private final JpaEntityPointerDefinition referencedEntityDefinition;
 
-    public JpaReferenceDefinition(
-            Class<? extends RObject> jpaClass, Class<? extends RObject> referencedEntityJpaClass) {
-        super(jpaClass, null);          // JAXB class not important here
+    JpaReferenceDefinition(Class<?> jpaClass, Class<? extends RObject> referencedEntityJpaClass) {
+        super(jpaClass, null); // JAXB class not important here
         Objects.requireNonNull(referencedEntityJpaClass, "referencedEntityJpaClass");
         this.referencedEntityDefinition = new JpaEntityPointerDefinition(referencedEntityJpaClass);
     }
@@ -48,7 +41,7 @@ public class JpaReferenceDefinition<T extends JpaReferenceDefinition<T>>
     }
 
     @Override
-    public DataSearchResult<?> nextLinkDefinition(ItemPath path, ItemDefinition itemDefinition, PrismContext prismContext) throws QueryException {
+    public DataSearchResult<?> nextLinkDefinition(ItemPath path, ItemDefinition<?> itemDefinition) throws QueryException {
         var first = path.first();
         var rest = path.rest();
         if (ItemPath.isObjectReference(first)) {
@@ -63,7 +56,7 @@ public class JpaReferenceDefinition<T extends JpaReferenceDefinition<T>>
                     // And now, we somehow need resolvedEntityDefinition
 
                     // We have type hint, first lets try resolve in original definition
-                    DataSearchResult<?> nextDef = resolvedEntityDef.nextLinkDefinition(rest, itemDefinition, prismContext);
+                    DataSearchResult<?> nextDef = resolvedEntityDef.nextLinkDefinition(rest, itemDefinition);
                     // If we did not found item using original entity definition, we try to use type hint
                     if (nextDef == null) {
                         resolvedEntityDef = QueryDefinitionRegistry.getInstance().findEntityDefinition(typeHint.get());
@@ -72,9 +65,8 @@ public class JpaReferenceDefinition<T extends JpaReferenceDefinition<T>>
 
             }
 
-            //
             return new DataSearchResult<>(
-                    new JpaLinkDefinition<>(SchemaConstants.PATH_OBJECT_REFERENCE, "target", null, false, resolvedEntityDef),
+                    new JpaLinkDefinition<>(SchemaConstants.PATH_OBJECT_REFERENCE, "target", null, false, resolvedEntityDef, true),
                     path.rest());
         } else {
             return null;

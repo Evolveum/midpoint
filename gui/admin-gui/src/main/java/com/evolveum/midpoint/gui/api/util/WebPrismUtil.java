@@ -17,12 +17,15 @@ import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPass
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismPropertyPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismReferencePanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ProtectedStringTypeWrapperImpl;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismSchemaType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -62,6 +65,8 @@ public class WebPrismUtil {
 
     private static final String DOT_CLASS = WebPrismUtil.class.getName() + ".";
     private static final String OPERATION_CREATE_NEW_VALUE = DOT_CLASS + "createNewValue";
+
+    public static final ItemName PRISM_SCHEMA = new ItemName(PrismSchemaType.F_COMPLEX_TYPE.getNamespaceURI(), "prismSchema");
 
     public static <ID extends ItemDefinition<I>, I extends Item<?, ?>> String getHelpText(ID def, Class<?> containerClass) {
         if (def == null) {
@@ -236,6 +241,12 @@ public class WebPrismUtil {
         }
     }
 
+    public static <C extends Containerable> boolean isEmptyContainer(PrismContainer<C> container) {
+        PrismContainer<C> clone = container.clone();
+        cleanupEmptyContainers(clone);
+        return clone.isEmpty();
+    }
+
     //TODO quick hack ... use for it wrappers
     public static <C extends Containerable> boolean isUseAsEmptyValue(PrismContainerValue<C> valueAfter) {
         return valueAfter != null && isUseAsEmptyValue(valueAfter.getRealClass());
@@ -264,11 +275,19 @@ public class WebPrismUtil {
             }
         }
 
+        cleanupValueMetadata(value);
+
         if (!isUseAsEmptyValue(value) && (value.getItems() == null || value.getItems().isEmpty())) {
             return null;
         }
 
         return value;
+    }
+
+    public static void cleanupValueMetadata(PrismValue value) {
+        if (value.hasValueMetadata()) {
+            cleanupEmptyValues(value.getValueMetadata());
+        }
     }
 
     private static <T> void cleanupEmptyValues(Item item) {
@@ -296,7 +315,10 @@ public class WebPrismUtil {
                 }
                 if (pVal.isEmpty() || pVal.getRealValue() == null) {
                     iterator.remove();
+                    continue;
                 }
+
+                cleanupValueMetadata(pVal);
             }
         }
 
@@ -312,7 +334,10 @@ public class WebPrismUtil {
                 PrismReferenceValue rVal = iterator.next();
                 if (rVal == null || rVal.isEmpty()) {
                     iterator.remove();
+                    continue;
                 }
+
+                cleanupValueMetadata(rVal);
             }
         }
     }
@@ -333,7 +358,7 @@ public class WebPrismUtil {
         if (principal != null) {
             FocusType focus = principal.getFocus();
             if (focus != null) {
-                acquisitionType.setActorRef(ObjectTypeUtil.createObjectRef(focus, app.getPrismContext()));
+                acquisitionType.setActorRef(ObjectTypeUtil.createObjectRef(focus));
             }
         }
         acquisitionType.setChannel(GuiChannel.USER.getUri());
@@ -382,9 +407,9 @@ public class WebPrismUtil {
         return false;
     }
 
-    public static List<ResourceAttributeDefinition> searchAttributeDefinitions(
+    public static List<ShadowAttributeDefinition> searchAttributeDefinitions(
             ResourceSchema schema, ResourceObjectTypeDefinitionType objectType) {
-        List<ResourceAttributeDefinition> allAttributes = new ArrayList<>();
+        List<ShadowAttributeDefinition> allAttributes = new ArrayList<>();
         if (objectType != null) {
             @Nullable ResourceObjectTypeDefinition objectTypeDef = null;
             if (objectType.getKind() != null && objectType.getIntent() != null) {
@@ -394,7 +419,7 @@ public class WebPrismUtil {
                 objectTypeDef = schema.getObjectTypeDefinition(identifier);
 
                 if (objectTypeDef != null) {
-                    objectTypeDef.getAttributeDefinitions()
+                    objectTypeDef.getSimpleAttributeDefinitions()
                             .forEach(attr -> allAttributes.add(attr));
                 }
             }
@@ -406,7 +431,7 @@ public class WebPrismUtil {
                         .findFirst();
 
                 if (!objectClassDef.isEmpty()) {
-                    objectClassDef.get().getAttributeDefinitions().forEach(attr -> allAttributes.add(attr));
+                    objectClassDef.get().getSimpleAttributeDefinitions().forEach(attr -> allAttributes.add(attr));
                     defs.stream()
                             .filter(d -> {
                                 for (QName auxClass : objectType.getDelineation().getAuxiliaryObjectClass()) {
@@ -416,7 +441,7 @@ public class WebPrismUtil {
                                 }
                                 return false;
                             })
-                            .forEach(d -> d.getAttributeDefinitions()
+                            .forEach(d -> d.getSimpleAttributeDefinitions()
                                     .forEach(attr -> allAttributes.add(attr)));
                 }
             }
@@ -459,7 +484,9 @@ public class WebPrismUtil {
             displayName = name.getLocalPart();
 
             PrismContainerValue<?> val = item.getParent();
-            if (val != null && val.getDefinition() != null
+            if (!(item instanceof ShadowAttributesContainer)
+                    && val != null
+                    && val.getDefinition() != null
                     && val.getDefinition().isRuntimeSchema()) {
                 return localizeName(displayName, displayName);
             }
@@ -522,6 +549,90 @@ public class WebPrismUtil {
                 collectWrappers((ItemWrapper) childIW, iws);
             });
         });
+    }
+
+    public static PrismContainerValue findContainerValueParent(@NotNull PrismContainerValue child, Class<? extends Containerable> clazz) {
+        PrismContainerable parent = child.getParent();
+        if (parent == null || !(parent instanceof Item parentItem) ) {
+            return null;
+        }
+        return findContainerValueParent(parentItem, clazz);
+    }
+
+    public static PrismContainerValue findContainerValueParent(@NotNull Item child, Class<? extends Containerable> clazz) {
+        @Nullable PrismContainerValue parent = child.getParent();
+        if (parent == null) {
+            return null;
+        }
+        if (clazz.equals(parent.getDefinition().getTypeClass())) {
+            return parent;
+        }
+
+        if (parent.getParent() == null || !(parent.getParent() instanceof Item parentItem)) {
+            return null;
+        }
+
+        return findContainerValueParent(parentItem, clazz);
+    }
+    public static String createMappingTypeDescription(MappingType mapping) {
+        return createMappingTypeDescription(mapping, true);
+    }
+
+    public static String createMappingTypeDescription(MappingType mapping, boolean showExpression) {
+        if (StringUtils.isNotEmpty(mapping.getDescription())) {
+            return mapping.getDescription();
+        }
+        String strength = translateStrength(mapping);
+
+        ExpressionType expressionBean = mapping.getExpression();
+        String description = LocalizationUtil.translate(
+                "AbstractSpecificMappingTileTable.tile.description.prefix",
+                new Object[] {strength});
+
+        if (showExpression) {
+            ExpressionUtil.ExpressionEvaluatorType evaluatorType = null;
+            if (expressionBean != null) {
+                String expression = ExpressionUtil.loadExpression(expressionBean, PrismContext.get(), LOGGER);
+                evaluatorType = ExpressionUtil.getExpressionType(expression);
+
+            }
+
+            if (evaluatorType == null) {
+                evaluatorType = ExpressionUtil.ExpressionEvaluatorType.AS_IS;
+            }
+
+            String evaluator = PageBase.createStringResourceStatic(null, evaluatorType).getString();
+
+            description += " " + LocalizationUtil.translate(
+                    "AbstractSpecificMappingTileTable.tile.description.suffix",
+                    new Object[] { evaluator });
+        }
+        return description;
+    }
+
+    public static String createMappingTypeStrengthHelp(MappingType mapping) {
+        String strength = translateStrength(mapping);
+        return LocalizationUtil.translate("AbstractSpecificMappingTileTable.tile.help", new Object[]{strength});
+    }
+
+    private static String translateStrength(MappingType mapping) {
+        MappingStrengthType strengthBean = mapping.getStrength();
+        if (strengthBean == null) {
+            strengthBean = MappingStrengthType.NORMAL;
+        }
+        return PageBase.createStringResourceStatic(null, strengthBean).getString().toLowerCase();
+    }
+
+    public static QName convertStringWithPrefixToQName(String object) {
+        if (StringUtils.isEmpty(object)) {
+            return null;
+        }
+
+        if (object.contains(":")) {
+            int index = object.indexOf(":");
+            return new QName(null, object.substring(index + 1), object.substring(0, index));
+        }
+        return new QName(object);
     }
 
 }

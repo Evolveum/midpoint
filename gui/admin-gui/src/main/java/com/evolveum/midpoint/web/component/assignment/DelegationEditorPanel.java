@@ -12,19 +12,20 @@ import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.input.DateTimePickerPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
 import com.evolveum.midpoint.web.page.admin.users.component.DelegationTargetLimitationDialog;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemSelectorType;
@@ -34,9 +35,10 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.TextArea;
+import com.evolveum.midpoint.gui.api.component.form.TextArea;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.*;
@@ -64,7 +66,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
     private static final String ID_TYPE_IMAGE = "typeImage";
     private static final String ID_NAME_LABEL = "nameLabel";
     private static final String ID_NAME = "name";
-    private static final String ID_HEADER_ROW = "headerRow";
+    private static final String ID_ACTIVATION = "activation";
     private static final String ID_PRIVILEGES_LIST = "privilegesList";
     private static final String ID_PRIVILEGE = "privilege";
     private static final String ID_LIMIT_PRIVILEGES_BUTTON = "limitPrivilegesButton";
@@ -152,10 +154,19 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         if (delegatedToMe) {
             OperationResult result = new OperationResult(OPERATION_GET_TARGET_REF_NAME);
             Task task = pageBase.createSimpleTask(OPERATION_GET_TARGET_REF_NAME);
-            nameLabel = new Label(ID_NAME_LABEL,
-                    WebModelServiceUtils.resolveReferenceName(getModelObject().getTargetRef(), pageBase, task, result));
+            String nameValue = WebModelServiceUtils.resolveReferenceName(getModelObject().getTargetRef(), pageBase, task, result);
+            nameLabel = new Label(ID_NAME_LABEL,nameValue);
+            headerRow.add(AttributeModifier.append(
+                    "aria-label",
+                    createStringResource("DelegationEditorPanel.delegationFrom", nameValue)));
         } else {
             nameLabel = new Label(ID_NAME_LABEL, pageBase.createStringResource("DelegationEditorPanel.meLabel"));
+            name.add(AttributeAppender.append(
+                    "aria-expanded",
+                    () -> getModel().getObject().isMinimized() ? "false" : "true"));
+            name.add(AttributeAppender.append(
+                    "aria-label",
+                    () -> createStringResource("DelegationEditorPanel.showDetails." + !getModel().getObject().isMinimized()).getString()));
         }
         nameLabel.setOutputMarkupId(true);
         name.add(nameLabel);
@@ -193,11 +204,41 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         Label delegatedToNameLabel;
         if (delegatedToMe) {
             delegatedToNameLabel = new Label(ID_DELEGATED_TO_LABEL, pageBase.createStringResource("DelegationEditorPanel.meLabel"));
+            delegatedToName.add(AttributeAppender.append(
+                    "aria-expanded",
+                    () -> getModel().getObject().isMinimized() ? "false" : "true"));
+            delegatedToName.add(AttributeAppender.append(
+                    "aria-label",
+                    () -> createStringResource("DelegationEditorPanel.showDetails." + !getModel().getObject().isMinimized()).getString()));
         } else {
-            delegatedToNameLabel = new Label(ID_DELEGATED_TO_LABEL, getUserDisplayName());
+            String nameValue = getUserDisplayName();
+            headerRow.add(AttributeModifier.append(
+                    "aria-label",
+                    createStringResource("DelegationEditorPanel.delegationTo", nameValue)));
+            delegatedToNameLabel = new Label(ID_DELEGATED_TO_LABEL, nameValue);
         }
         delegatedToNameLabel.setOutputMarkupId(true);
         delegatedToName.add(delegatedToNameLabel);
+
+        IModel<String> activationModel = () -> {
+            AssignmentEditorDto assignmentDto = getModelObject();
+            if (assignmentDto == null) {
+                return "";
+            }
+
+            ActivationType activation = assignmentDto.getActivation();
+            if (activation == null) {
+                return "";
+            }
+
+            if (activation.getAdministrativeStatus() != null) {
+                return activation.getAdministrativeStatus().value();
+            }
+
+            return AssignmentsUtil.createActivationTitleModel(activation, getPageBase()).getObject();
+        };
+        Label activation = new Label(ID_ACTIVATION, activationModel);
+        headerRow.add(activation);
 
         ToggleIconButton<Void> expandButton = new ToggleIconButton<Void>(ID_EXPAND, GuiStyleConstants.CLASS_ICON_EXPAND,
                 GuiStyleConstants.CLASS_ICON_COLLAPSE) {
@@ -214,6 +255,8 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
             }
         };
         headerRow.add(expandButton);
+        expandButton.add(AttributeAppender.append("aria-label", () -> createStringResource("DelegationEditorPanel.showDetails." + expandButton.isOn()).getString()));
+        expandButton.add(AttributeAppender.append("aria-expanded", () -> expandButton.isOn() ? "true" : "false"));
     }
 
     private void navigateToDetails(AjaxRequestTarget target, String oid) {
@@ -236,21 +279,21 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
     }
 
     protected void initBodyLayout(WebMarkupContainer body) {
-        DateInput validFrom = new DateInput(ID_DELEGATION_VALID_FROM,
+        DateTimePickerPanel validFrom = DateTimePickerPanel.createByDateModel(ID_DELEGATION_VALID_FROM,
                 AssignmentsUtil.createDateModel(new PropertyModel<>(getModel(),
                     AssignmentEditorDto.F_ACTIVATION + ".validFrom")));
         validFrom.setEnabled(getModel().getObject().isEditable());
         body.add(validFrom);
 
-        DateInput validTo = new DateInput(ID_DELEGATION_VALID_TO,
+        DateTimePickerPanel validTo = DateTimePickerPanel.createByDateModel(ID_DELEGATION_VALID_TO,
                 AssignmentsUtil.createDateModel(new PropertyModel<>(getModel(),
                     AssignmentEditorDto.F_ACTIVATION + ".validTo")));
         validTo.setEnabled(getModel().getObject().isEditable());
         body.add(validTo);
 
         TextArea<String> description = new TextArea<>(ID_DESCRIPTION,
-                new PropertyModel<String>(getModel(), AssignmentEditorDto.F_DESCRIPTION));
-        description.setEnabled(getModel().getObject().isEditable());
+                new PropertyModel<>(getModel(), AssignmentEditorDto.F_DESCRIPTION));
+        description.add(AttributeAppender.append("readonly", () -> getModel().getObject().isEditable() ? null : "readonly"));
         body.add(description);
 
         WebMarkupContainer assignmentPrivilegesContainer = new WebMarkupContainer(ID_ASSIGNMENT_PRIVILEGES_CONTAINER);

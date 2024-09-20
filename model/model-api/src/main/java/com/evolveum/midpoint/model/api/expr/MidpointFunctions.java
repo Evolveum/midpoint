@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.api.expr;
 
 import java.util.*;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.ActivityCustomization;
@@ -17,15 +18,13 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaUtil;
 import com.evolveum.midpoint.schema.query.PreparedQuery;
 import com.evolveum.midpoint.schema.query.TypedQuery;
-import com.evolveum.midpoint.schema.util.FocusIdentityTypeUtil;
-import com.evolveum.midpoint.schema.util.FocusTypeUtil;
-import com.evolveum.midpoint.schema.util.WorkItemId;
+import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
@@ -46,9 +45,6 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
@@ -57,6 +53,8 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.jetbrains.annotations.Nullable;
+
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
 
 /**
  *
@@ -857,7 +855,8 @@ public interface MidpointFunctions {
      * @throws IllegalArgumentException
      *             wrong OID format
      */
-    OperationResult testResource(String resourceOid) throws ObjectNotFoundException, SchemaException, ConfigurationException;
+    OperationResult testResource(String resourceOid) throws ObjectNotFoundException, SchemaException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException, CommunicationException;
 
     List<String> toList(String... s);
 
@@ -1129,6 +1128,19 @@ public interface MidpointFunctions {
 
     boolean isFullShadow();
 
+    /**
+     * Returns {@code true} if the attribute is available for processing. It must either be freshly loaded
+     * (in the {@link #isFullShadow()} sense) or it must be cached *and* the use of cache for computations
+     * must be allowed.
+     */
+    @Experimental
+    boolean isAttributeLoaded(QName attrName) throws SchemaException, ConfigurationException;
+
+    @Experimental
+    default boolean isAttributeLoaded(String attrName) throws SchemaException, ConfigurationException {
+        return isAttributeLoaded(new QName(NS_RI, attrName));
+    }
+
     boolean isProjectionExists();
 
     List<UserType> getMembers(String orgOid)
@@ -1184,7 +1196,11 @@ public interface MidpointFunctions {
 
     String getConst(String name);
 
-    ShadowType resolveEntitlement(ShadowAssociationType shadowAssociationType);
+    /**
+     * Returns cached entitlement (target object) for given association value. Returns a value only if the object is present
+     * in the lens context cache.
+     */
+    ShadowType resolveEntitlement(ShadowAssociationValueType associationValue);
 
     ExtensionType collectExtensions(AssignmentPathType path, int startAt)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
@@ -1410,6 +1426,15 @@ public interface MidpointFunctions {
 
     <C extends Containerable> S_ItemEntry deltaFor(Class<C> objectClass) throws SchemaException;
 
+    /**
+     * Returns {@code true} if the specified object has an effective mark with the specified OID.
+     *
+     * Use only in situations where you know the provided object has effective marks computed.
+     */
+    default boolean hasEffectiveMark(@Nullable ObjectType object, @NotNull String markOid) {
+        return object != null && ObjectTypeUtil.hasEffectiveMarkRef(object, markOid);
+    }
+
     default <O extends ObjectType> boolean hasArchetype(O object, String archetypeOid) {
         return getArchetypeOids(object).contains(archetypeOid);
     }
@@ -1463,16 +1488,19 @@ public interface MidpointFunctions {
 
     RepositoryService getRepositoryService();
 
+    /** Creates an {@link OptimizingTriggerCreator} that is able to create triggers only if they are not already present. */
     @NotNull
     OptimizingTriggerCreator getOptimizingTriggerCreator(long fireAfter, long safetyMargin);
 
     @NotNull
-    <T> ResourceAttributeDefinition<T> getAttributeDefinition(PrismObject<ResourceType> resource, QName objectClassName,
-            QName attributeName) throws SchemaException;
+    <T> ShadowSimpleAttributeDefinition<T> getAttributeDefinition(
+            PrismObject<ResourceType> resource, QName objectClassName, QName attributeName)
+            throws SchemaException, ConfigurationException;
 
     @NotNull
-    <T> ResourceAttributeDefinition<T> getAttributeDefinition(PrismObject<ResourceType> resource, String objectClassName,
-            String attributeName) throws SchemaException;
+    <T> ShadowSimpleAttributeDefinition<T> getAttributeDefinition(
+            PrismObject<ResourceType> resource, String objectClassName, String attributeName)
+            throws SchemaException, ConfigurationException;
 
     /**
      * Goes directly to repository service.
@@ -1573,4 +1601,93 @@ public interface MidpointFunctions {
      * (So, previously it existed and was effectively enabled.)
      */
     boolean isFocusDeactivated();
+
+    /** Does the current clockwork operation delete the focus? */
+    boolean isFocusDeleted();
+
+    /**
+     * Returns the object reference for a given association value.
+     * Assumes that the association has no content and exactly one object.
+     * (It it does not hold, the method returns null.)
+     */
+    @Nullable ObjectReferenceType getObjectRef(@Nullable ShadowAssociationValueType associationValueBean);
+
+    /** Returns the OID of the reference returned by {@link #getObjectRef(ShadowAssociationValueType)}. */
+    default @Nullable String getObjectOid(@Nullable ShadowAssociationValueType associationValueBean) {
+        return Referencable.getOid(
+                getObjectRef(associationValueBean));
+    }
+
+    /**
+     * Returns the name of the object of given (no-content) association value (if present there).
+     *
+     * @see #getObjectRef(ShadowAssociationValueType)
+     */
+    default @Nullable PolyStringType getObjectName(@Nullable ShadowAssociationValueType associationValueBean) {
+        var ref = getObjectRef(associationValueBean);
+        return ref != null ? ref.getTargetName() : null;
+    }
+
+    default @Nullable ValueMetadataType getMetadata(@NotNull ObjectType object) {
+        return ValueMetadataTypeUtil.getMetadata(object);
+    }
+
+    default @Nullable ValueMetadataType getMetadata(@NotNull AbstractCredentialType credential) {
+        return ValueMetadataTypeUtil.getMetadata(credential);
+    }
+
+    default @Nullable XMLGregorianCalendar getCreateTimestamp(@NotNull ObjectType object) {
+        return ValueMetadataTypeUtil.getCreateTimestamp(object);
+    }
+
+    default @Nullable XMLGregorianCalendar getCreateTimestamp(@NotNull AssignmentType assignment) {
+        return ValueMetadataTypeUtil.getCreateTimestamp(assignment);
+    }
+
+    default @Nullable XMLGregorianCalendar getModifyTimestamp(@NotNull ObjectType object) {
+        return ValueMetadataTypeUtil.getModifyTimestamp(object);
+    }
+
+    default @Nullable XMLGregorianCalendar getLastChangeTimestamp(@NotNull ObjectType object) {
+        return ValueMetadataTypeUtil.getLastChangeTimestamp(object);
+    }
+
+    default @NotNull List<ObjectReferenceType> getCreateApproverRefs(@NotNull ObjectType object) {
+        return ValueMetadataTypeUtil.getCreateApproverRefs(object);
+    }
+
+    default @NotNull Collection<ObjectReferenceType> getCreateApproverRefs(@NotNull AssignmentType assignment) {
+        return ValueMetadataTypeUtil.getCreateApproverRefs(assignment);
+    }
+
+    default Collection<ObjectReferenceType> getModifyApproverRefs(@NotNull AssignmentType assignment) {
+        return ValueMetadataTypeUtil.getModifyApproverRefs(assignment);
+    }
+
+    default Collection<String> getModifyApprovalComments(@NotNull AssignmentType assignment) {
+        return ValueMetadataTypeUtil.getModifyApprovalComments(assignment);
+    }
+
+    default @Nullable XMLGregorianCalendar getRequestTimestamp(@NotNull AssignmentType assignment) {
+        return ValueMetadataTypeUtil.getRequestTimestamp(assignment);
+    }
+
+    default Collection<ObjectReferenceType> getRequestorRefs(@NotNull AssignmentType assignment) {
+        return ValueMetadataTypeUtil.getRequestorRefs(assignment) ;
+    }
+
+    default Collection<String> getRequestorComments(@NotNull AssignmentType assignment) {
+        return ValueMetadataTypeUtil.getRequestorComments(assignment);
+    }
+
+    default @NotNull Collection<ObjectReferenceType> getCertifierRefs(@NotNull AssignmentType assignment) {
+        return ValueMetadataTypeUtil.getCertifierRefs(assignment);
+    }
+
+    default @NotNull Collection<String> getCertifierComments(@NotNull AssignmentType assignment) {
+        return ValueMetadataTypeUtil.getCertifierComments(assignment);
+    }
+
+
+
 }

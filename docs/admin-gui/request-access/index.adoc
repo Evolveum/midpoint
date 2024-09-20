@@ -1,0 +1,186 @@
+= Request access
+:page-toc: top
+
+Many traditional Role-Based Access Control (RBAC) theories seem to be based on assumption that there is some kind of all-knowing authority that knows which user should have which role.
+This approach works in some kind of organizations, but in reality such organizations are very rare.
+In practice the knowledge about roles and role policies is not centralized.
+It is rather distributed among many people in the organization: application owners have part of the knowledge, line managers have more bits of knowledge, other parts are maintained by security officers and other specialists.
+It is almost impossible to analyze this knowledge and specify it in a form of an algorithm that a machine can execute.
+In addition to that, such policy is constantly changing.
+Implementing this a fully-automated system is almost always infeasible.
+
+Therefore, most identity management and governance systems come with an alternative approach: user are requesting role assignment.
+The request is then routed through an xref:/midpoint/reference/cases/approval/[approval process]. If the request is approved, then the requested roles are assigned.
+
+However, this approach requires _end users_ to take part in the interaction.
+End users are usually not experts on RBAC and they do not have comprehensive knowledge about role design and structures used in the organization.
+Therefore, midPoint has a simplified view of <<Role catalog>> that is suitable for end users.
+The role catalog is used to present the roles in a similar way as an e-shop presents the products.
+The roles are sorted into categories and sub-categories.
+The user may browse the role catalog and select the roles.
+
+User interface takes form of proper wizard with up to four steps:
+
+* Person of interest
+* Relation
+* Role catalog
+* Shopping cart (checkout)
+
+First two steps may be hidden, or skipped based on configuration or authorizations of user that is currently logged in.
+
+Configuration and some examples can be found xref:configuration.adoc[here].
+
+== Person of interest
+
+.Person of interest
+image::step-1-poi.png[Person of interest,100%]
+
+First step of request access wizard allows user to choose one or more users for whom new roles will be requested.
+There are two type of tiles:
+
+* Myself - to select user currently logged in
+* Group - defined by collection or query filter. Group allow to select one or more users via autocomplete text field or by clicking *Select manually* button.
+
+Autocomplete search withing group is done using `user/name` property with `norm` poly-string matcher by default.
+Autocomplete configuration can be customized using `group/autocompleteConfiguration` configuration option.
+
+Concrete search behaviour can be customized using `autocompleteConfiguration/searchFilterTemplate` where filter with expression can be used.
+Filter expression should contain `input` variable which will be replaced by user input.
+Such filter will be joined with group defined filter/collection using `and` operator.
+
+Search result items can be also modified using expression defined in `autocompleteConfiguration/displayExpression`.
+
+Minimum number of characters needed to start autocomplete can be configured using `group/autocompleteMinChars`.
+Default value is 2.
+
+In following example filter template will create substring search `givenName like '%King *<VALUE_FROM_AUTOCOMPLETE_TEXT>*%'`.
+Results will be displayed in format `<USER_NAME> (<USER_OID>)`
+
+[source, xml]
+----
+<group>
+    <searchFilterTemplate>
+        <q:substring>
+            <q:path>givenName</q:path>
+            <expression>
+                <script>
+                    <code>
+                        return "King " + input
+                    </code>
+                </script>
+            </expression>
+        </q:substring>
+    </searchFilterTemplate>
+    <userDisplayName>
+        <script>
+            <code>return basic.stringify(object.name) + " (" + object.oid + ")"</code>
+        </script>
+    </userDisplayName>
+    <autocompleteMinChars>2</autocompleteMinChars>
+</group>
+----
+
+.Selection from group of users
+image::step-1-poi-group.png[Selection from group of users,100%]
+
+.Manual selection from group of users
+image::step-1-group-manual-selection.png[Manual selection from group of users,100%]
+
+.User selected
+image::step-1-group-user-selected.png[User selected,100%]
+
+If user can request only for himself then this step is not visible (and skipped).
+Restarting _Request access_ wizard and going through _Person of interest_ step again will overwrite previously selected users.
+
+== Relation
+
+.Person of interest
+image::step-2-relation.png[Relation,100%]
+
+Second step of wizard requires user to choose relation which will be used for new roles.
+List of relations is based on static relations and relations defined in system configuration.
+Default set of relations is:
+
+* Default
+* Manager
+* Approver
+* Owner
+
+Set of relations, their label and icon can be configured, see xref:../../concepts/relation/index.adoc[Relations] and xref:./configuration.adoc[Configuration].
+
+If there's only one relation to be selected, then this step is not visible (and skipped).
+
+[NOTE]
+====
+If relations are handled only implicitly via authorizations, then relation step will be visible at least when wizard is initialized.
+Reason for this is that until user selects at least one user (person of interest), midpoint is not able to compute available relation list and therefore can't decide whether relation step can be hidden.
+
+In case relation step should be hidden at all times, please configure `defaultRelation` and `allowOtherRelations=false` in request access configuration.
+====
+
+== Role catalog
+
+.Role catalog
+image::step-3-catalog-tiles.png[Role catalog,100%]
+
+Role catalog displays roles (also organizations and services) that can be assigned to list of users defined earlier.
+Catalog can be currently displayed in two ways:
+
+* Tiles (picture above)
+* Table (see picture below)
+
+.Role catalog in table
+image::step-3-catalog-table.png[Role catalog in table,100%]
+
+Both types of view can be enabled or disabled via configuration.
+Menu in role catalog consists of 3 types of items also defined in configuration:
+
+* Role catalog defined via org. structure
+* Collections of objects
+* Roles of teammate
+
+=== Role catalog
+
+Role catalog is defined via reference to organization tree.
+Org. tree is then used to load hierarchical menu.
+By default, up to 3 levels, all roles on deeper levels are shown in that 3rd level menu.
+Assignable roles have to be part of this org. tree.
+
+NOTE: In 4.8 or later number of levels can be configured using `roleCatalogDepth` configuration option.
+
+=== Collection of objects
+
+Collection of objects can be used to create custom menu item representing specific set of object via reference to object collection or using query filter.
+
+=== Roles of teammate
+
+This is custom menu item that uses search for another user and list his assignments.
+Roles of teammate option can be disabled via configuration.
+
+Search for teammate will by default create filter using `user/name` property with `norm` poly-string matcher by default.
+
+NOTE: Since 4.8 search behaviour can be customized using `autoCompleteConfiguration` configuration option.
+
+.Roles of teammate
+image::step-3-roles-of-teammate.png[Roles of teammate,100%]
+
+== Shopping cart (checkout)
+
+.Shopping cart (checkout)
+image::step-4-checkout.png[Shopping cart (checkout),100%]
+
+Last step in request access wizard is checkout.
+In this step user can finalize whole request, review and solve conflicts if necessary.
+If configuration allows comment for this request can be added also with custom validity period for requested items.
+This can be done either globally for whole cart or for each item separately.
+
+=== Conflict solver
+
+.List of conflicts
+image::step-4-conflict-list.png[List of conflicts,100%]
+
+.Solved conflicts
+image::step-4-conflicts-solved.png[Solved conflicts,100%]
+
+.Edit shopping cart item
+image::step-4-checkout-item-edit.png[Edit shopping cart item,100%]

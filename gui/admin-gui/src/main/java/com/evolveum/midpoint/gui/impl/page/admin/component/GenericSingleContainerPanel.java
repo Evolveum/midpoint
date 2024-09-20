@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.component;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemEditabilityHandler;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.component.ButtonBar;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
@@ -89,7 +90,8 @@ import java.util.List;
                 "adminGuiConfiguration/objectCollectionViews",
                 "adminGuiConfiguration/objectDetails",
                 "adminGuiConfiguration/configurableUserDashboard",
-                "adminGuiConfiguration/accessRequest"
+                "adminGuiConfiguration/accessRequest",
+                "adminGuiConfiguration/homePage"
         }
 )
 @PanelInstance(
@@ -102,6 +104,18 @@ import java.util.List;
         ),
         containerPath = "adminGuiConfiguration/accessRequest",
         type = "AccessRequestType",
+        expanded = true
+)
+@PanelInstance(
+        identifier = "homePagePanel",
+        applicableForType = AdminGuiConfigurationType.class,
+        display = @PanelDisplay(
+                label = "AdminGuiConfigurationType.homePage",
+                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                order = 70
+        ),
+        containerPath = "adminGuiConfiguration/homePage",
+        type = "HomePageType",
         expanded = true
 )
 @PanelInstance(
@@ -203,7 +217,18 @@ import java.util.List;
         type = "EventMarkInformationType",
         expanded = true
 )
-
+@PanelInstance(
+        identifier = "objectOperationPolicyPanel",
+        applicableForType = MarkType.class,
+        display = @PanelDisplay(
+                label = "MarkType.objectOperationPolicy",
+                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                order = 30
+        ),
+        containerPath = "objectOperationPolicy",
+        type = "ObjectOperationPolicyType",
+        expanded = true
+)
 public class GenericSingleContainerPanel<C extends Containerable, O extends ObjectType> extends AbstractObjectMainPanel<O, ObjectDetailsModels<O>> {
 
     private static final String ID_DETAILS = "details";
@@ -236,7 +261,8 @@ public class GenericSingleContainerPanel<C extends Containerable, O extends Obje
         Fragment previewFragment = new Fragment(ID_DETAILS, ID_PREVIEW_DETAILS, this);
         previewFragment.add(new WidgetTableHeader(ID_HEADER, new PropertyModel<>(getPanelConfiguration(), PreviewContainerPanelConfigurationType.F_DISPLAY.getLocalPart())));
         previewFragment.add(createSingleContainerPanel());
-        previewFragment.add(new ButtonBar(ID_FOOTER, ID_BUTTON_BAR, GenericSingleContainerPanel.this, (PreviewContainerPanelConfigurationType) getPanelConfiguration()));
+        previewFragment.add(new ButtonBar(ID_FOOTER, ID_BUTTON_BAR, GenericSingleContainerPanel.this,
+                (PreviewContainerPanelConfigurationType) getPanelConfiguration(), null));
         return previewFragment;
     }
 
@@ -269,6 +295,15 @@ public class GenericSingleContainerPanel<C extends Containerable, O extends Obje
 
                 return wrapper -> false;
             }
+
+            @Override
+            protected ItemMandatoryHandler getMandatoryHandler() {
+                return createMandatoryHandler();
+            }
         };
+    }
+
+    protected ItemMandatoryHandler createMandatoryHandler() {
+        return null;
     }
 }

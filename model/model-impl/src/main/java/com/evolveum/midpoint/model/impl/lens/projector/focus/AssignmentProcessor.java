@@ -9,9 +9,13 @@ package com.evolveum.midpoint.model.impl.lens.projector.focus;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType.*;
 
 import java.util.*;
-import java.util.Map.Entry;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.schema.util.*;
+
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
@@ -40,10 +44,10 @@ import com.evolveum.midpoint.model.impl.lens.projector.ComplexConstructionConsum
 import com.evolveum.midpoint.model.impl.lens.projector.ConstructionProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation.APrioriDeltaProvider;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation.ItemDefinitionProvider;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.AssignedFocusMappingEvaluationRequest;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.FixedTargetSpecification;
-import com.evolveum.midpoint.model.impl.lens.projector.mappings.TargetObjectSpecification;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
@@ -54,16 +58,12 @@ import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.impl.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
-import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.ConstructionTypeUtil;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.EqualsChecker;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -93,12 +93,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class AssignmentProcessor implements ProjectorProcessor {
 
     @Autowired private ReferenceResolver referenceResolver;
-    @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private RelationRegistry relationRegistry;
     @Autowired private PrismContext prismContext;
     @Autowired private ConstructionProcessor constructionProcessor;
     @Autowired private PolicyRuleProcessor policyRuleProcessor;
     @Autowired private ModelBeans beans;
+    @Autowired private ProvisioningService provisioningService;
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentProcessor.class);
 
@@ -346,7 +346,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
                 request.getEvaluatedAssignment().addFocusMapping(mapping);
             };
 
-            TargetObjectSpecification<AH> targetSpecification = new FixedTargetSpecification<>(focusOdoRelative.getNewObject(), true);
+            var targetSpecification = new FixedTargetSpecification<>(focusOdoRelative.getNewObject(), true);
 
             MappingEvaluationEnvironment env = new MappingEvaluationEnvironment(
                     "focus mappings in assignments of " + focusContext.getHumanReadableName(),
@@ -368,21 +368,19 @@ public class AssignmentProcessor implements ProjectorProcessor {
                     .build();
             mappingSetEvaluation.evaluateMappingsToTriples();
 
-            PathKeyedMap<DeltaSetTriple<ItemValueWithOrigin<?, ?>>> focusOutputTripleMap =
-                    mappingSetEvaluation.getOutputTripleMap();
+            DeltaSetTripleIvwoMap focusOutputTripleMap = mappingSetEvaluation.getOutputTripleMap();
 
             logOutputTripleMap(focusOutputTripleMap);
 
             DeltaSetTripleMapConsolidation<AH> consolidation = new DeltaSetTripleMapConsolidation<>(
                     focusOutputTripleMap,
-                    focusOdoRelative.getNewObject(),
-                    focusOdoRelative.getObjectDelta(),
+                    ObjectTypeUtil.getValue(focusOdoRelative.getNewObject()),
+                    APrioriDeltaProvider.forDelta(focusOdoRelative.getObjectDelta()),
                     context::primaryFocusItemDeltaExists,
                     null,
                     null,
                     ItemDefinitionProvider.forObjectDefinition(focusContext.getObjectDefinition()),
                     env,
-                    beans,
                     context,
                     result);
             consolidation.computeItemDeltas();
@@ -390,7 +388,6 @@ public class AssignmentProcessor implements ProjectorProcessor {
 
             LOGGER.trace("Computed focus deltas: {}", focusDeltas);
             focusContext.swallowToSecondaryDelta(focusDeltas);
-            focusContext.recompute();
         } catch (Throwable t) {
             result.recordFatalError(t.getMessage(), t);
             throw t;
@@ -399,11 +396,9 @@ public class AssignmentProcessor implements ProjectorProcessor {
         }
     }
 
-    private void logOutputTripleMap(
-            Map<ItemPath, DeltaSetTriple<ItemValueWithOrigin<?, ?>>> focusOutputTripleMap) {
+    private void logOutputTripleMap(DeltaSetTripleIvwoMap focusOutputTripleMap) {
         if (LOGGER.isTraceEnabled()) {
-            for (Entry<ItemPath, DeltaSetTriple<ItemValueWithOrigin<?, ?>>> entry : focusOutputTripleMap
-                    .entrySet()) {
+            for (var entry : focusOutputTripleMap.entrySet()) {
                 LOGGER.trace("Resulting output triple for {}:\n{}", entry.getKey(), entry.getValue().debugDump(1));
             }
         }
@@ -412,11 +407,12 @@ public class AssignmentProcessor implements ProjectorProcessor {
     private <AH extends AssignmentHolderType> void distributeConstructions(
             LensContext<AH> context,
             DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple,
-            Task ignored,
+            Task task,
             OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
 
+        //noinspection BooleanMethodIsAlwaysInverted
         ComplexConstructionConsumer<ConstructionTargetKey, EvaluatedAssignedResourceObjectConstructionImpl<AH>> consumer =
                 new ComplexConstructionConsumer<>() {
 
@@ -446,10 +442,20 @@ public class AssignmentProcessor implements ProjectorProcessor {
                     }
 
                     @Override
-                    public void onAssigned(@NotNull ConstructionTargetKey key, String desc)
+                    public void onAssigned(@NotNull ConstructionTargetKey key, String desc, Task task, OperationResult result)
                             throws SchemaException, ConfigurationException {
-                        LensProjectionContext projectionContext =
-                                LensContext.getOrCreateProjectionContext(context, key, false).context;
+                        LensProjectionContext existing = context.findFirstProjectionContext(key, false);
+                        LensProjectionContext projectionContext;
+                        if (existing != null) {
+                            projectionContext = existing;
+                        } else {
+                            if (!areOutboundsNotDisabledByPolicy(key, task, result)) {
+                                LOGGER.trace("Projection {} skip: assigned (valid), but outbounds are disabled by policy", desc);
+                                return;
+                            }
+                            projectionContext =
+                                    LensContext.getOrCreateProjectionContext(context, key, false).context;
+                        }
                         projectionContext.setAssigned(true);
                         projectionContext.setAssignedOldIfUnknown(false);
                         projectionContext.setLegalOldIfUnknown(false);
@@ -461,13 +467,73 @@ public class AssignmentProcessor implements ProjectorProcessor {
                         }
                     }
 
+                    /** Assuming that the context does not exist. */
+                    private boolean areOutboundsNotDisabledByPolicy(
+                            @NotNull ConstructionTargetKey key, Task task, OperationResult result)
+                            throws ConfigurationException {
+                        LOGGER.trace("Are outbounds disabled by policy? Checking related contexts for: {}", key);
+                        var fromRelatedContexts = getFromRelatedContexts(key, result);
+                        if (fromRelatedContexts != null) {
+                            return fromRelatedContexts;
+                        }
+                        LOGGER.trace("Are outbounds disabled by policy? Checking the default operation policy for: {}", key);
+                        ObjectOperationPolicyType policy;
+                        try {
+                            policy = provisioningService.getDefaultOperationPolicy(
+                                    key.getResourceOid(), key.getTypeIdentification(), task, result);
+                        } catch (CommonException | RuntimeException e) {
+                            // The construction information may be wrong. We don't want to fail the whole operation in that case.
+                            // The error in OperationResult is adequate. See TestAssignmentErrors.test100/test101.
+                            LoggingUtils.logExceptionAsWarning(
+                                    LOGGER, "Default operation policy couldn't be found for {}", e, key);
+                            return true;
+                        }
+                        if (policy == null) {
+                            LOGGER.trace("-> no default policy found, assuming outbounds are not disabled");
+                            return true;
+                        }
+                        var enabled = !ObjectOperationPolicyTypeUtil.isSyncOutboundDisabled(policy);
+                        LOGGER.trace("-> determined from the default policy: {}", enabled);
+                        return enabled;
+                    }
+
+                    private Boolean getFromRelatedContexts(@NotNull ConstructionTargetKey key, OperationResult result)
+                            throws ConfigurationException {
+                        var policies = new HashSet<Boolean>();
+                        for (LensProjectionContext projCtx : context.findProjectionContexts(key.asFilter())) {
+                            var isDisabled = projCtx.isOutboundSyncDisabledNullable(result);
+                            if (isDisabled == null) {
+                                LOGGER.trace("-> ignoring a related context, as no policy is determinable from it: {}", projCtx);
+                                continue;
+                            }
+                            var enabled = !isDisabled;
+                            LOGGER.trace("-> policy: {}, in: {}", enabled, projCtx);
+                            policies.add(enabled);
+                        }
+                        if (policies.size() > 1) {
+                            LOGGER.warn("Conflicting outbound synchronization policies found (so using the default policy) for {}:\n{}",
+                                    key, context.debugDump(1));
+                            return null;
+                        } else if (policies.size() == 1) {
+                            return policies.iterator().next();
+                        } else {
+                            LOGGER.trace("-> no contexts found, using the default policy");
+                            return null;
+                        }
+                    }
+
                     @Override
-                    public void onUnchangedValid(@NotNull ConstructionTargetKey key, String desc)
+                    public void onUnchangedValid(
+                            @NotNull ConstructionTargetKey key, String desc, Task task, OperationResult result)
                             throws SchemaException, ConfigurationException {
                         LensProjectionContext projectionContext = context.findFirstProjectionContext(key, false);
                         if (projectionContext == null) {
                             if (processOnlyExistingProjContexts) {
                                 LOGGER.trace("Projection {} skip: unchanged (valid), processOnlyExistingProjContexts", desc);
+                                return;
+                            }
+                            if (!areOutboundsNotDisabledByPolicy(key, task, result)) {
+                                LOGGER.trace("Projection {} skip: unchanged (valid), but outbounds are disabled by policy", desc);
                                 return;
                             }
                             // The projection should exist before the change but it does not
@@ -576,7 +642,8 @@ public class AssignmentProcessor implements ProjectorProcessor {
                     evaluatedAssignmentTriple,
                     EvaluatedAssignmentImpl::getConstructionTriple,
                     EvaluatedResourceObjectConstructionImpl::getTargetKey,
-                    consumer);
+                    consumer,
+                    task, result);
             LOGGER.trace("Finished construction distribution");
         } catch (Throwable t) {
             result.recordFatalError(t);
@@ -632,7 +699,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
             try {
                 evaluatedAssignment.evaluateConstructions(focusOdoAbsolute, context::rememberResource, task, result);
             } catch (ObjectNotFoundException ex) {
-                LOGGER.trace("Processing of assignment resulted in error {}: {}", ex,
+                LOGGER.trace("Processing of assignment resulted in 'not found' error {}: {}", ex,
                         SchemaDebugUtil.prettyPrint(evaluatedAssignment.getAssignment()));
                 if (!ModelExecuteOptions.isForce(context.getOptions())) {
                     ModelImplUtils.recordFatalError(result, ex);
@@ -1116,15 +1183,9 @@ public class AssignmentProcessor implements ProjectorProcessor {
      * This also solves the problem for existing deployments.
      */
     private static XMLGregorianCalendar determineAssignmentSinceTimestamp(EvaluatedAssignment evalAssignment) {
-        MetadataType assignmentMetadata = evalAssignment.getAssignment().getMetadata();
-        if (assignmentMetadata != null) {
-            XMLGregorianCalendar createTimestamp = assignmentMetadata.getCreateTimestamp();
-            if (createTimestamp != null) {
-                return createTimestamp;
-            }
-        }
-
-        return MiscUtil.asXMLGregorianCalendar(System.currentTimeMillis());
+        return Objects.requireNonNullElseGet(
+                ValueMetadataTypeUtil.getCreateTimestamp(evalAssignment.getAssignment()),
+                () -> MiscUtil.asXMLGregorianCalendar(System.currentTimeMillis()));
     }
 
     private AssignmentPathMetadataType assignmentPathToMetadata(AssignmentPathType assignmentPath) {
@@ -1219,10 +1280,11 @@ public class AssignmentProcessor implements ProjectorProcessor {
             }
 
             PrismContainerValue<Containerable> originalMetadataValue = originalMetadataValues.stream()
-                    // LITERAL is important here not to ignore "operational" elements.
+                    // We must not ignore "operational" elements. But we must ignore missing ValueMetadataType PCV IDs,
+                    // as they are present in repo, but missing in newly-created values.
                     .filter(m -> provenance.asPrismContainerValue()
                             .equals(((ValueMetadataType) m.asContainerable()).getProvenance().asPrismContainerValue(),
-                                    EquivalenceStrategy.LITERAL))
+                                    EquivalenceStrategy.DATA_ALLOWING_MISSING_IDS))
                     .findFirst()
                     .orElse(null);
             if (originalMetadataValue == null) {

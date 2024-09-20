@@ -14,12 +14,15 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
+import com.evolveum.midpoint.gui.impl.util.ExecutedDeltaPostProcessor;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -37,8 +40,8 @@ public class PrismObjectWrapperImpl<O extends ObjectType> extends PrismContainer
     }
 
     @Override
-    public ObjectDelta<O> getObjectDelta() throws SchemaException {
-        ObjectDelta<O> objectDelta = getPrismContext().deltaFor(getObject().getCompileTimeClass())
+    public ObjectDelta<O> getObjectDelta() throws CommonException {
+        ObjectDelta<O> objectDelta = PrismContext.get().deltaFor(getObject().getCompileTimeClass())
                 .asObjectDelta(getObject().getOid());
 
         Collection<ItemDelta> deltas = new ArrayList<>();
@@ -104,12 +107,26 @@ public class PrismObjectWrapperImpl<O extends ObjectType> extends PrismContainer
     }
 
     @Override
+    public Collection<ExecutedDeltaPostProcessor> getPreconditionDeltas(
+            ModelServiceLocator serviceLocator, OperationResult result) throws CommonException {
+        Collection<ExecutedDeltaPostProcessor> processors = new ArrayList<>();
+        for (ItemWrapper<?, ?> itemWrapper : getValue().getItems()) {
+            Collection<ExecutedDeltaPostProcessor> processor = itemWrapper.getPreconditionDeltas(serviceLocator, result);
+            if (processor == null || processor.isEmpty()) {
+                continue;
+            }
+            processors.addAll(processor);
+        }
+        return processors;
+    }
+
+    @Override
     public String getDisplayName() {
         return "properties";
     }
 
     @Override
-    public PrismObject<O> getObjectApplyDelta() throws SchemaException {
+    public PrismObject<O> getObjectApplyDelta() throws CommonException {
         PrismObject<O> oldObject = getObjectOld().clone();
 
         Collection<ItemDelta> deltas = new ArrayList<>();

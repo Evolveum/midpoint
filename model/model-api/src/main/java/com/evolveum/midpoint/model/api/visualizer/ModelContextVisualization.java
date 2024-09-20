@@ -11,12 +11,16 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.util.DebugDumpable;
+
+import com.evolveum.midpoint.util.DebugUtil;
+
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ModelContextVisualization implements Serializable {
+public class ModelContextVisualization implements Serializable, DebugDumpable {
 
     private List<Visualization> primary;
 
@@ -45,5 +49,13 @@ public class ModelContextVisualization implements Serializable {
             secondary = new ArrayList<>();
         }
         return secondary;
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = DebugUtil.createTitleStringBuilderLn(ModelContextVisualization.class, indent);
+        DebugUtil.debugDumpWithLabelLn(sb, "primary", primary, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "secondary", primary, indent + 1);
+        return sb.toString();
     }
 }

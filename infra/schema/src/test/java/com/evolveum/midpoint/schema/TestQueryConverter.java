@@ -20,6 +20,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 import org.testng.AssertJUnit;
@@ -80,7 +82,7 @@ public class TestQueryConverter extends AbstractUnitTest {
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        SchemaDebugUtil.initializePrettyPrinter();
         resetPrismContext(MidPointPrismContextFactory.FACTORY);
     }
 

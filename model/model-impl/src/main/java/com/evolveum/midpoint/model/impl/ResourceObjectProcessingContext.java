@@ -7,12 +7,14 @@
 
 package com.evolveum.midpoint.model.impl;
 
+import com.evolveum.midpoint.schema.processor.ShadowLikeValue;
 import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -35,7 +37,20 @@ public interface ResourceObjectProcessingContext {
      * Returns shadowed resource object, or - at least - so-called "combined object" in the sense
      * used in ResourceObjectClassifier FIXME
      */
-    @NotNull ShadowType getShadowedResourceObject();
+    @NotNull ShadowLikeValue getShadowLikeValue();
+
+    default @Nullable ShadowType getShadowIfPresent() {
+        return getShadowLikeValue() instanceof AbstractShadow shadow ? shadow.getBean() : null;
+    }
+
+    default @NotNull ShadowType getShadowRequired() {
+        var shadowLikeValue = getShadowLikeValue();
+        if (shadowLikeValue instanceof AbstractShadow shadow) {
+            return shadow.getBean();
+        } else {
+            throw new IllegalStateException("Expected a shadow, got " + shadowLikeValue);
+        }
+    }
 
     @Nullable ObjectDelta<ShadowType> getResourceObjectDelta();
 
@@ -61,9 +76,6 @@ public interface ResourceObjectProcessingContext {
 
     /** To be used in implementations of {@link #createVariablesMap()}. */
     default @NotNull VariablesMap createDefaultVariablesMap() {
-        return ModelImplUtils.getDefaultVariablesMap(null, getShadowedResourceObject(), getResource(), getSystemConfiguration());
+        return ModelImplUtils.getDefaultVariablesMap(null, getShadowIfPresent(), getResource(), getSystemConfiguration());
     }
-
-    /** Useful Spring beans. */
-    @NotNull ModelBeans getBeans();
 }

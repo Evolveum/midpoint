@@ -7,62 +7,75 @@
 
 package com.evolveum.midpoint.web.page.admin.certification;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.IconComponent;
+import com.evolveum.midpoint.gui.api.component.wizard.NavigationPanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.PageAdminCertification;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTableItem;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.application.CollectionInstance;
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.component.*;
 import com.evolveum.midpoint.web.component.data.MultiButtonPanel;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn.ButtonColorClass;
-import com.evolveum.midpoint.web.component.data.provider.CertWorkItemDtoProvider;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.component.CertificationItemsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.component.DeadlinePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.component.HorizontalCampaignDetailsPanel;
 import com.evolveum.midpoint.web.page.admin.certification.dto.*;
-import com.evolveum.midpoint.web.page.admin.certification.helpers.AvailableResponses;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.AvailableResponses;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignProcessingHelper;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.session.CertDecisionsStorage;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.wicket.chartjs.ChartConfiguration;
+
+import com.evolveum.wicket.chartjs.ChartJsPanel;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
-import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+import java.io.Serial;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -72,16 +85,17 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/certification/decisions", matchUrlForSecurity = "/admin/certification/decisions")
+                @Url(mountUrl = "/admin/certification/decisionsAllOld", matchUrlForSecurity = "/admin/certification/decisionsAll")
         },
         action = {
                 @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
                         label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL,
                         description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION),
-                @AuthorizationAction(actionUri = PageAdminCertification.AUTH_MY_CERTIFICATION_DECISIONS,
-                        label = PageAdminCertification.AUTH_MY_CERTIFICATION_DECISIONS_LABEL,
-                        description = PageAdminCertification.AUTH_MY_CERTIFICATION_DECISIONS_DESCRIPTION) })
-
+                @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_DECISIONS,
+                        label = PageAdminCertification.AUTH_CERTIFICATION_DECISIONS_LABEL,
+                        description = PageAdminCertification.AUTH_CERTIFICATION_DECISIONS_DESCRIPTION)})
+@CollectionInstance(identifier = "allCertDecisions", applicableForType = AccessCertificationWorkItemType.class,
+        display = @PanelDisplay(label = "PageAdmin.menu.top.certification.decisions", singularLabel = ""))
 public class PageCertDecisions extends PageAdminCertification {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageCertDecisions.class);
@@ -89,19 +103,22 @@ public class PageCertDecisions extends PageAdminCertification {
     private static final String DOT_CLASS = PageCertDecisions.class.getName() + ".";
     private static final String OPERATION_RECORD_ACTION = DOT_CLASS + "recordAction";
     private static final String OPERATION_RECORD_ACTION_SELECTED = DOT_CLASS + "recordActionSelected";
+    private static final String OPERATION_LOAD_CAMPAIGN = DOT_CLASS + "loadCampaign";
+    private static final String OPERATION_LOAD_REPORT = DOT_CLASS + "loadCertItemsReport";
+    private static final String OPERATION_RUN_REPORT = DOT_CLASS + "runCertItemsReport";
+    private static final String OPERATION_LOAD_ACCESS_CERT_DEFINITION = DOT_CLASS + "loadAccessCertificationDefinition";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_DECISIONS_TABLE = "decisionsTable";
+    private static final String ID_NAVIGATION_PANEL = "navigationPanel";
 
-    private static final String ID_SEARCH_FORM = "searchForm";
-    private static final String ID_SHOW_NOT_DECIDED_ONLY = "showNotDecidedOnly";
-    private static final String ID_TABLE_HEADER = "tableHeader";
+    public static final String CAMPAIGN_OID_PARAMETER = "campaignOid";
 
-    private CertDecisionHelper helper = new CertDecisionHelper();
+    private final CertDecisionHelper helper = new CertDecisionHelper();
 
-    boolean isDisplayingAllItems() {
-        return false;
-    }
+    //model is initialized with a campaign object in case when campaign oid
+    // comes as a parameter or in case the user has only one active campaign
+    LoadableDetachableModel<AccessCertificationCampaignType> singleCampaignModel;
 
     public PageCertDecisions() {
     }
@@ -109,55 +126,33 @@ public class PageCertDecisions extends PageAdminCertification {
     @Override
     protected void onInitialize() {
         super.onInitialize();
+        initModels();
         initLayout();
     }
 
-    //region Data
-    private CertWorkItemDtoProvider createProvider() {
-        CertWorkItemDtoProvider provider = new CertWorkItemDtoProvider(PageCertDecisions.this);
-        provider.setQuery(createCaseQuery());
-        provider.setCampaignQuery(createCampaignQuery());
-        provider.setReviewerOid(getCurrentUserOid());
-        provider.setNotDecidedOnly(getCertDecisionsStorage().getShowNotDecidedOnly());
-        provider.setAllItems(isDisplayingAllItems());
-        provider.setSort(SearchingUtils.CURRENT_REVIEW_DEADLINE, SortOrder.ASCENDING);        // default sorting
-        return provider;
+    private void initModels() {
+        singleCampaignModel = initSingleCampaignModel();
     }
 
-    private ObjectQuery createCaseQuery() {
-        return getPrismContext().queryFactory().createQuery();
-    }
-
-    private ObjectQuery createCampaignQuery() {
-        return getPrismContext().queryFactory().createQuery();
-    }
-
-    private String getCurrentUserOid() {
-        try {
-            return getSecurityContextManager().getPrincipal().getOid();
-        } catch (SecurityViolationException e) {
-            // TODO handle more cleanly
-            throw new SystemException("Couldn't get currently logged user OID", e);
-        }
-    }
-    //endregion
-
-    //region Layout
     private void initLayout() {
-        Form mainForm = new MidpointForm(ID_MAIN_FORM);
+        initNavigationPanel();
+
+        Form<?> mainForm = new MidpointForm(ID_MAIN_FORM);
         add(mainForm);
-        CertWorkItemDtoProvider provider = createProvider();
-        BoxedTablePanel<CertWorkItemDto> table = new BoxedTablePanel<CertWorkItemDto>(ID_DECISIONS_TABLE, provider, initColumns(),
-                UserProfileStorage.TableId.PAGE_CERT_DECISIONS_PANEL) {
-            private static final long serialVersionUID = 1L;
+        CertificationItemsPanel table = new CertificationItemsPanel(ID_DECISIONS_TABLE) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            protected WebMarkupContainer createHeader(String headerId) {
-                return new SearchFragment(headerId, ID_TABLE_HEADER, PageCertDecisions.this,
-                        Model.of(getCertDecisionsStorage().getShowNotDecidedOnly()));
+            protected boolean isMyCertItems() {
+                return !isDisplayingAllItems();
             }
+
+            @Override
+            protected String getCampaignOid() {
+                return getCampaignOidParameter();
+            }
+
         };
-        table.setShowPaging(true);
         table.setOutputMarkupId(true);
         mainForm.add(table);
 
@@ -166,14 +161,94 @@ public class PageCertDecisions extends PageAdminCertification {
         //addVisibleOnWarningBehavior(getTempFeedbackPanel());
     }
 
-//    private void addVisibleOnWarningBehavior(Component c) {
-//        c.add(new VisibleEnableBehaviour() {
-//            @Override
-//            public boolean isVisible() {
-//                return PageCertDecisions.this.getFeedbackMessages().hasMessage(FeedbackMessage.WARNING);
-//            }
-//        });
-//    }
+    private ContainerPanelConfigurationType createPanelConfig() {
+        ContainerPanelConfigurationType config = new ContainerPanelConfigurationType();
+        config.setListView(loadCampaignView());
+        return config;
+    }
+
+    private GuiObjectListViewType loadCampaignView() {
+        AccessCertificationCampaignType campaign = singleCampaignModel.getObject();
+        if (campaign == null) {
+            return null;
+        }
+        var definitionRef = campaign.getDefinitionRef();
+        if (definitionRef == null) {
+            return null;
+        }
+        Task task = createSimpleTask(OPERATION_LOAD_ACCESS_CERT_DEFINITION);
+        OperationResult result = task.getResult();
+        var definitionObj = WebModelServiceUtils.loadObject(definitionRef, PageCertDecisions.this, task, result);
+        if (definitionObj == null) {
+            return null;
+        }
+        AccessCertificationDefinitionType definition = (AccessCertificationDefinitionType) definitionObj.asObjectable();
+        return definition.getView();
+    }
+
+    private void initNavigationPanel() {
+        NavigationPanel navigationPanel = new NavigationPanel(ID_NAVIGATION_PANEL) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected IModel<String> createTitleModel() {
+                return getNavigationPanelTitleModel();
+            }
+
+            @Override
+            protected void onBackPerformed(AjaxRequestTarget target) {
+                PageCertDecisions.this.redirectBack();
+            }
+
+            @Override
+            protected Component createHeaderContent(String id) {
+                HorizontalCampaignDetailsPanel detailsPanel = new HorizontalCampaignDetailsPanel(id, createCampaignDetailsModel()) {
+
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onComponentTag(ComponentTag tag) {
+                        tag.setName("div");
+                        super.onComponentTag(tag);
+                    }
+                };
+                detailsPanel.setOutputMarkupId(true);
+                detailsPanel.add(AttributeAppender.append("class", "d-flex justify-content-end"));
+                return detailsPanel;
+            }
+
+            @Override
+            protected Component createNextButton(String id, IModel<String> nextTitle) {
+                AjaxIconButton button = new AjaxIconButton(id, Model.of("fa fa-chart-pie"),
+                        createStringResource("PageCertDecisions.button.createReport")) {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        onNextPerformed(target);
+                    }
+                };
+                button.showTitleAsLabel(true);
+                button.add(AttributeModifier.append("class", "btn btn-secondary"));
+                return button;
+            }
+
+            @Override
+            protected void onNextPerformed(AjaxRequestTarget target) {
+                runCertItemsReport(target);
+            }
+
+        };
+        add(navigationPanel);
+    }
+
+    protected String getCampaignOidParameter() {
+        PageParameters pageParameters = getPageParameters();
+        if (pageParameters != null && pageParameters.get(CAMPAIGN_OID_PARAMETER) != null) {
+            return pageParameters.get(CAMPAIGN_OID_PARAMETER).toString();
+        }
+        return null;
+    }
 
     private List<IColumn<CertWorkItemDto, String>> initColumns() {
         List<IColumn<CertWorkItemDto, String>> columns = new ArrayList<>();
@@ -524,58 +599,309 @@ public class PageCertDecisions extends PageAdminCertification {
         }
     }
 
-    private void searchFilterPerformed(AjaxRequestTarget target) {
-        ObjectQuery query = createCaseQuery();
-
-        Table panel = getDecisionsTable();
-        DataTable table = panel.getDataTable();
-        CertWorkItemDtoProvider provider = (CertWorkItemDtoProvider) table.getDataProvider();
-        provider.setQuery(query);
-        provider.setNotDecidedOnly(getCertDecisionsStorage().getShowNotDecidedOnly());
-        provider.setAllItems(isDisplayingAllItems());
-        table.setCurrentPage(0);
-
-        target.add(getFeedbackPanel());
-        target.add((Component) getDecisionsTable());
-    }
-
     private CertDecisionsStorage getCertDecisionsStorage() {
         return getSessionStorage().getCertDecisions();
     }
 
-    private static class SearchFragment extends Fragment {
+    private IModel<String> getNavigationPanelTitleModel() {
+        String campaignName = getCampaignName();
+        return createStringResource("PageMyCertCampaigns.title",
+                StringUtils.isNotEmpty(campaignName) ? "/" + campaignName : "");
+    }
 
-        public SearchFragment(String id, String markupId, MarkupContainer markupProvider,
-                IModel<Boolean> model) {
-            super(id, markupId, markupProvider, model);
+    private String getCampaignName() {
+        ObjectReferenceType campaignRef =
+                new ObjectReferenceType()
+                        .oid(getCampaignOidParameter())
+                        .type(AccessCertificationCampaignType.COMPLEX_TYPE);
+        return WebModelServiceUtils.resolveReferenceName(campaignRef, PageCertDecisions.this, true);
+    }
 
-            initLayout();
-        }
+    private LoadableDetachableModel<List<DetailsTableItem>> createCampaignDetailsModel() {
+        return new LoadableDetachableModel<>() {
 
-        private void initLayout() {
-            final Form searchForm = new MidpointForm(ID_SEARCH_FORM);
-            add(searchForm);
-            searchForm.setOutputMarkupId(true);
+            @Serial private static final long serialVersionUID = 1L;
 
-            final IModel<Boolean> model = (IModel<Boolean>) getDefaultModel();
+            @Override
+            protected List<DetailsTableItem> load() {
+                return getCampaignDetails();
+            }
 
-            CheckBox showNotDecidedOnlyBox = new CheckBox(ID_SHOW_NOT_DECIDED_ONLY, model);
-            showNotDecidedOnlyBox.add(createFilterAjaxBehaviour());
-            searchForm.add(showNotDecidedOnlyBox);
-        }
+            private List<DetailsTableItem> getCampaignDetails() {
+                List<String> campaignsOids = getCampaignOidsList();
+                MidPointPrincipal principal = getPrincipalAsReviewer();
 
-        private AjaxFormComponentUpdatingBehavior createFilterAjaxBehaviour() {
-            return new AjaxFormComponentUpdatingBehavior("change") {
-                private static final long serialVersionUID = 1L;
+                List<DetailsTableItem> items = new ArrayList<>();
+                AccessCertificationCampaignType singleCampaign = singleCampaignModel.getObject();
 
-                @Override
-                protected void onUpdate(AjaxRequestTarget target) {
-                    PageCertDecisions page = (PageCertDecisions) getPage();
-                    page.getCertDecisionsStorage().setShowNotDecidedOnly((Boolean) getDefaultModelObject());
-                    page.searchFilterPerformed(target);
+                DetailsTableItem chartPanelItem = new DetailsTableItem(getCompletedItemsPercentageModel(campaignsOids)) {
+                    @Serial private static final long serialVersionUID = 1L;
 
+                    @Override
+                    public Component createValueComponent(String id) {
+                        ChartConfiguration config = CertMiscUtil.createDoughnutChartConfigForCampaigns(campaignsOids,
+                                principal, PageCertDecisions.this);
+                        ChartJsPanel<ChartConfiguration> chartPanel = new ChartJsPanel<>(id, Model.of(config)) {
+
+                            @Serial private static final long serialVersionUID = 1L;
+
+                            @Override
+                            protected void onComponentTag(ComponentTag tag) {
+                                tag.setName("canvas");
+                                super.onComponentTag(tag);
+                            }
+                        };
+                        chartPanel.setOutputMarkupId(true);
+                        chartPanel.add(AttributeModifier.append("style", "margin-top: -5px !important;"));
+                        chartPanel.add(AttributeAppender.append("title",
+                                createStringResource("PageCertCampaign.table.completedItemsPercentage")));
+                        return chartPanel;
+                    }
+                };
+                chartPanelItem.setValueComponentBeforeLabel(true);
+                items.add(chartPanelItem);
+
+                DetailsTableItem startDateItem = new DetailsTableItem(getCampaignStartDateModel(singleCampaign)) {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public Component createValueComponent(String id) {
+                        IconComponent iconPanel = new IconComponent(id, Model.of(GuiStyleConstants.CLASS_TRIGGER_ICON)) {
+
+                            @Serial private static final long serialVersionUID = 1L;
+
+                            @Override
+                            public void onComponentTag(ComponentTag tag) {
+                                tag.setName("i");
+                                super.onComponentTag(tag);
+                            }
+                        };
+                        iconPanel.add(AttributeAppender.append("title",
+                                createStringResource("PageCertDecisions.campaignStartDate")));
+                        return iconPanel;
+                    }
+
+                    @Override
+                    public VisibleBehaviour isVisible() {
+                        return new VisibleBehaviour(PageCertDecisions.this::isSingleCampaignView);
+                    }
+
+                };
+                startDateItem.setValueComponentBeforeLabel(true);
+                items.add(startDateItem);
+
+                DetailsTableItem deadlineItem = new DetailsTableItem(createStringResource("")) {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public Component createValueComponent(String id) {
+                        DeadlinePanel deadlinePanel = new DeadlinePanel(id, new LoadableModel<XMLGregorianCalendar>() {
+                            @Override
+                            protected XMLGregorianCalendar load() {
+                                return singleCampaign != null ? CampaignProcessingHelper.computeDeadline(
+                                        singleCampaign, PageCertDecisions.this) : null;
+                            }
+                        });
+                        deadlinePanel.add(AttributeAppender.append("title",
+                                createStringResource("PageCertDecisions.table.deadline")));
+                        return deadlinePanel;
+                    }
+
+                    @Override
+                    public VisibleBehaviour isVisible() {
+                        return new VisibleBehaviour(PageCertDecisions.this::isSingleCampaignView);
+                    }
+                };
+                items.add(deadlineItem);
+
+                DetailsTableItem stageItem = new DetailsTableItem(getStageModel(singleCampaign)) {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public Component createValueComponent(String id) {
+                        IconComponent iconPanel = new IconComponent(id, Model.of("fa fa-circle-half-stroke mt-1 mr-1")) {
+
+                            @Serial private static final long serialVersionUID = 1L;
+
+                            @Override
+                            public void onComponentTag(ComponentTag tag) {
+                                tag.setName("i");
+                                super.onComponentTag(tag);
+                            }
+                        };
+                        iconPanel.add(AttributeAppender.append("title",
+                                createStringResource("PageCertCampaigns.table.stage")));
+                        return iconPanel;
+                    }
+
+                    @Override
+                    public VisibleBehaviour isVisible() {
+                        return new VisibleBehaviour(PageCertDecisions.this::isSingleCampaignView);
+                    }
+                };
+                stageItem.setValueComponentBeforeLabel(true);
+                items.add(stageItem);
+
+                DetailsTableItem iterationItem = new DetailsTableItem(getIterationLabelModel(singleCampaign)) {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public Component createValueComponent(String id) {
+                        IconComponent iconPanel = new IconComponent(id, Model.of("fa fa-rotate-right mt-1 mr-1")) {
+
+                            @Serial private static final long serialVersionUID = 1L;
+
+                            @Override
+                            public void onComponentTag(ComponentTag tag) {
+                                tag.setName("i");
+                                super.onComponentTag(tag);
+                            }
+                        };
+                        iconPanel.add(AttributeAppender.append("title",
+                                createStringResource("PageCertCampaign.iteration")));
+                        return iconPanel;
+                    }
+
+                    @Override
+                    public VisibleBehaviour isVisible() {
+                        return new VisibleBehaviour(PageCertDecisions.this::isSingleCampaignView);
+                    }
+                };
+                iterationItem.setValueComponentBeforeLabel(true);
+                items.add(iterationItem);
+
+                return items;
+            }
+
+            private LoadableModel<String> getStageModel(AccessCertificationCampaignType campaign) {
+                return CertMiscUtil.getCampaignStageLoadableModel(campaign);
+            }
+
+            private LoadableDetachableModel<String> getCompletedItemsPercentageModel(List<String> campaignsOids) {
+                return new LoadableDetachableModel<>() {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected String load() {
+                        float openNotDecidedItemCount = CertMiscUtil.countOpenCertItems(campaignsOids,
+                                getPrincipalAsReviewer(), true, PageCertDecisions.this);
+                        float allOpenItemCount = CertMiscUtil.countOpenCertItems(campaignsOids,
+                                getPrincipalAsReviewer(), false, PageCertDecisions.this);
+                        float decidedOpenItems = allOpenItemCount - openNotDecidedItemCount;
+                        if (allOpenItemCount == 0 || decidedOpenItems == 0) {
+                            return "0%";
+                        }
+
+                        float percentage = (decidedOpenItems / allOpenItemCount) * 100;
+                        return String.format("%.0f%%", percentage);
+                    }
+                };
+            }
+
+            private IModel<String> getIterationLabelModel(AccessCertificationCampaignType campaign) {
+                if (campaign == null) {
+                    return () -> "";
                 }
-            };
+                return CertMiscUtil.getCampaignIterationLoadableModel(campaign);
+            }
+        };
+    }
+
+    private List<String> getCampaignOidsList() {
+        if (StringUtils.isNotEmpty(getCampaignOidParameter())) {
+            return Collections.singletonList(getCampaignOidParameter());
+        } else {
+            return CertMiscUtil.getActiveCampaignsOids(!isDisplayingAllItems(), PageCertDecisions.this);
         }
+    }
+
+    private LoadableDetachableModel<AccessCertificationCampaignType> initSingleCampaignModel() {
+        return new LoadableDetachableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected AccessCertificationCampaignType load() {
+                String campaignOid = getCampaignOidParameter();
+                if (StringUtils.isEmpty(campaignOid)) {
+                    List<String> campaignsOids = getCampaignOidsList();
+                    if (campaignsOids.size() == 1) {
+                        return loadCampaign(campaignsOids.get(0));
+                    }
+                }
+                if (StringUtils.isEmpty(campaignOid)) {
+                    return null;
+                }
+                return loadCampaign(campaignOid);
+            }
+        };
+    }
+
+    private AccessCertificationCampaignType loadCampaign(String campaignOid) {
+        if (StringUtils.isEmpty(campaignOid)) {
+            return null;
+        }
+        Task task = createSimpleTask(OPERATION_LOAD_CAMPAIGN);
+        PrismObject<AccessCertificationCampaignType> campaign = WebModelServiceUtils.loadObject(
+                AccessCertificationCampaignType.class, campaignOid, PageCertDecisions.this, task, task.getResult());
+        if (campaign != null) {
+            return campaign.asObjectable();
+        }
+        return null;
+    }
+
+    private MidPointPrincipal getPrincipalAsReviewer() {
+        return isDisplayingAllItems() ? null : getPrincipal();
+    }
+
+    private boolean isSingleCampaignView() {
+        return StringUtils.isNotEmpty(getCampaignOidParameter()) || getCampaignOidsList().size() == 1;
+    }
+
+    public IModel<String> getCampaignStartDateModel(AccessCertificationCampaignType campaign) {
+        return () -> {
+            if (campaign == null) {
+                return "";
+            }
+            XMLGregorianCalendar startDate = campaign != null ? campaign.getStartTimestamp() : null;
+            return WebComponentUtil.getLocalizedDate(startDate, DateLabelComponent.SHORT_NOTIME_STYLE);
+        };
+    }
+
+    //todo set campaign oid, assigneeRef as parameters
+    private void runCertItemsReport(AjaxRequestTarget target) {
+        Task task = createSimpleTask(OPERATION_RUN_REPORT);
+        OperationResult result = task.getResult();
+
+        try {
+            PrismObject<ReportType> report = loadCertItemsReport();
+            getReportManager().runReport(report, null, task, result);
+        } catch (Exception ex) {
+            result.recordFatalError(ex);
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+
+        showResult(result);
+        target.add(getFeedbackPanel());
+    }
+
+    private PrismObject<ReportType> loadCertItemsReport() {
+        Task task = createSimpleTask(OPERATION_LOAD_REPORT);
+        OperationResult result = task.getResult();
+        PrismObject<ReportType> report = null;
+        try {
+            String certItemsReportOid = "00000000-0000-0000-0000-000000000160";
+            report = getModelService().getObject(ReportType.class, certItemsReportOid, null, task, result);
+        } catch (Exception ex) {
+            LOGGER.error("Couldn't load certification work items report", ex);
+            result.recordFatalError(ex);
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+        return report;
+    }
+
+    boolean isDisplayingAllItems() {
+        return true;
     }
 }

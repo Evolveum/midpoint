@@ -100,7 +100,7 @@ public class RPolyString implements Serializable {
         return new RPolyString(string.getOrig(), string.getNorm());
     }
 
-    public static PolyStringType copyToJAXB(RPolyString string, PrismContext ctx) {
+    public static PolyStringType copyToJAXB(RPolyString string) {
         if (string == null) {
             return null;
         }
@@ -112,7 +112,7 @@ public class RPolyString implements Serializable {
         poly.setOrig(orig);
 
         if (orig != null && norm == null) {
-            norm = ctx.getDefaultPolyStringNormalizer().normalize(orig);
+            norm = PrismContext.get().getDefaultPolyStringNormalizer().normalize(orig);
             poly.setNorm(norm);
         } else {
             poly.setNorm(norm);
@@ -121,11 +121,11 @@ public class RPolyString implements Serializable {
         return poly;
     }
 
-    public static PolyString fromRepo(RPolyString string, PrismContext prismContext) {
+    public static PolyString fromRepo(RPolyString string) {
         if (string == null) {
             return null;
         }
 
-        return copyToJAXB(string, prismContext).toPolyString();
+        return copyToJAXB(string).toPolyString();
     }
 }

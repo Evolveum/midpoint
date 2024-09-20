@@ -1,0 +1,42 @@
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+
+    <div wicket:id="container" class="d-flex flex-column col h-100 bg-white rounded-left border border-light p-0" style="min-width:70px">
+        <div class="d-flex flex-column justify-content-center  p-1 gap-2"
+                style="height: 60px;" wicket:id="header">
+            <div wicket:id="header-item" class="btn btn-outline-dark border-0 d-flex align-self-stretch p-1"></div>
+        </div>
+
+        <hr width="100%" class="m-0 bg-light"/>
+
+        <div class="d-flex flex-column justify-content-center gap-2 p-1" wicket:id="sub-header">
+            <div wicket:id="sub-header-item" class="btn btn-outline-dark border-0 d-flex align-self-stretch p-1"></div>
+        </div>
+
+        <hr width="100%" class="m-0 bg-light"/>
+
+        <div style="height:100%; overflow-y: scroll; overflow-x: hidden; -ms-overflow-style: none; scrollbar-width: none; ">
+            <div class="d-flex flex-column justify-content-center gap-2 p-1" wicket:id="body">
+                <div wicket:id="patterns">
+                    <div wicket:id="pattern"></div>
+                </div>
+            </div>
+        </div>
+
+        <hr width="100%" class="m-0 bg-light"/>
+
+        <div class="d-flex flex-column justify-content-center gap-2 p-1"
+                style="height: 60px;" wicket:id="footer">
+            <div wicket:id="footer-item" class="btn btn-outline-dark border-0 d-flex align-self-stretch p-1"></div>
+        </div>
+    </div>
+
+</wicket:panel>
+</html>

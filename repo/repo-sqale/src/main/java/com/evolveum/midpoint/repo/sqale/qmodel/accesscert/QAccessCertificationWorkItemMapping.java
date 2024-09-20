@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 
 import java.util.*;
 
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.querydsl.core.Tuple;
 import org.jetbrains.annotations.NotNull;
 
@@ -166,9 +168,9 @@ public class QAccessCertificationWorkItemMapping
     @Override
     public ResultListRowTransformer<AccessCertificationWorkItemType, QAccessCertificationWorkItem, MAccessCertificationWorkItem> createRowTransformer(
             SqlQueryContext<AccessCertificationWorkItemType, QAccessCertificationWorkItem, MAccessCertificationWorkItem> sqlQueryContext,
-            JdbcSession jdbcSession) {
+            JdbcSession jdbcSession, Collection<SelectorOptions<GetOperationOptions>> options) {
         Map<UUID, PrismObject<AccessCertificationCampaignType>> cache = new HashMap<>();
-        return (tuple, entityPath, options) -> {
+        return (tuple, entityPath) -> {
             MAccessCertificationWorkItem row = Objects.requireNonNull(tuple.get(entityPath));
             UUID ownerOid = row.ownerOid;
             PrismObject<AccessCertificationCampaignType> owner = cache.get(ownerOid);
@@ -205,6 +207,7 @@ public class QAccessCertificationWorkItemMapping
                 throw new SystemException("Campaign " + owner + "has no work item with ID " + row.cid);
             }
             @NotNull AccessCertificationWorkItemType ret = value.asContainerable();
+            attachContainerIdPath(ret, tuple, entityPath);
             resolveReferenceNames(ret, jdbcSession, options);
             return ret;
         };
@@ -228,5 +231,20 @@ public class QAccessCertificationWorkItemMapping
         } catch (SchemaException e) {
             throw new SystemException(e);
         }
+    }
+
+    @Override
+    protected List<Object> containerIdPath(Tuple tuple, QAccessCertificationWorkItem e) {
+        var full = tuple.get(e);
+        if (full != null) {
+            return List.of(full.ownerOid.toString(), full.accessCertCaseCid, full.cid);
+        }
+
+        return List.of(tuple.get(e.ownerOid).toString(), tuple.get(e.accessCertCaseCid), tuple.get(e.cid));
+    }
+
+    @Override
+    public int containerDepth() {
+        return 2;
     }
 }

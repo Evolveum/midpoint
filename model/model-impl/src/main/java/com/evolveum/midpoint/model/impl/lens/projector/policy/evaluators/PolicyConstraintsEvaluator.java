@@ -36,7 +36,7 @@ public class PolicyConstraintsEvaluator {
 
     @Autowired private AssignmentModificationConstraintEvaluator assignmentConstraintEvaluator;
     @Autowired private HasAssignmentConstraintEvaluator hasAssignmentConstraintEvaluator;
-    @Autowired private ExclusionConstraintEvaluator exclusionConstraintEvaluator;
+    @Autowired private ExclusionRequirementConstraintEvaluator exclusionRequirementConstraintEvaluator;
     @Autowired private MultiplicityConstraintEvaluator multiplicityConstraintEvaluator;
     @Autowired private PolicySituationConstraintEvaluator policySituationConstraintEvaluator;
     @Autowired private CustomConstraintEvaluator customConstraintEvaluator;
@@ -112,7 +112,7 @@ public class PolicyConstraintsEvaluator {
         } else if (constraint.getValue() instanceof HasAssignmentPolicyConstraintType) {
             return hasAssignmentConstraintEvaluator;
         } else if (constraint.getValue() instanceof ExclusionPolicyConstraintType) {
-            return exclusionConstraintEvaluator;
+            return exclusionRequirementConstraintEvaluator;
         } else if (constraint.getValue() instanceof MultiplicityPolicyConstraintType) {
             return multiplicityConstraintEvaluator;
         } else if (constraint.getValue() instanceof PolicySituationPolicyConstraintType) {

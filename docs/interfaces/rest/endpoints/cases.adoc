@@ -1,0 +1,379 @@
+= Case Type REST Endpoint
+:page-nav-title: Case
+:page-display-order: 1300
+:page-toc: top
+:page-keywords: [ 'rest', 'case' ,'endpoint' ]
+:page-upkeep-status: green
+
+== Description
+
+Here we are describing the Case object type in relation to midPoints REST API. The
+Case objects are a part of the REST API web resources.
+
+.Endpoint
+[source, http]
+----
+cases/
+----
+
+== Operations And Examples
+
+The Cases endpoint operations and examples.
+
+include::../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+
+=== Get Case Objects
+
+Get operation for fetching a single specific object.
+
+.Get Case object with REST
+
+include::../operations/examples/raw/get-case-employee.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/get-op-rest/[Get Operation]
+
+=== Search for Case Objects
+
+Search operation usable for fetching the full list of objects or a list based on filter.
+
+include::../operations/examples/raw/search-name-cases.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[Search Operation]
+
+=== Modify Case Objects
+
+include::../operations/examples/raw/modify-attr-case-assign-employee.adoc[]
+
+include::../operations/examples/raw/modify-attr.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/modify-op-rest/[Modify Operation]
+
+=== Delete Case Objects
+
+include::../operations/examples/raw/delete-case.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/delete-op-rest/[Delete Operation]
+
+=== Complete Work Item
+
+Work item can be completed by sending a POST request to the specific work item URL.
+Body contains object of type `AbstractWorkItemOutputType`.
+User can fill in outcome and other fields. Outcome is mandatory:
+
+* Approve `http://midpoint.evolveum.com/xml/ns/public/model/approval/outcome#approve`
+* Reject `http://midpoint.evolveum.com/xml/ns/public/model/approval/outcome#reject`
+
+.*Complete work item*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Content-Type: application/json" \
+-X POST http://localhost:8080/midpoint/ws/rest/cases/<CASE_OID>/workItems/<WORK_ITEM_IDENTIFIER>/complete \
+-v \
+--data-binary @./samples/rest/approve-work-item.json
+----
+
+.*Show* data source example | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/approve-work-item.json[GitHub]
+[%collapsible]
+====
+[source, json]
+----
+{
+    "output" : {
+        "@type" : "c:AbstractWorkItemOutputType",
+        "comment" : "sample comment",
+        "outcome" : "http://midpoint.evolveum.com/xml/ns/public/model/approval/outcome#approve"
+    }
+}
+----
+====
+
+The response is an HTTP 204 code in case of success *without* a response body.
+
+=== Delegate Work Item
+
+Work item can be delegated by sending a POST request to the specific work item URL.
+Body contains object of type `WorkItemDelegationRequestType`.
+
+.*Delegate work item*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Content-Type: application/json" \
+-X POST http://localhost:8080/midpoint/ws/rest/cases/<CASE_OID>/workItems/<WORK_ITEM_IDENTIFIER>/delegate \
+-v \
+--data-binary @./samples/rest/delegate-work-item.json
+----
+
+.*Show* data source example | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/delegate-work-item.json[GitHub]
+[%collapsible]
+====
+[source, json]
+----
+{
+    "delegate" : {
+        "@type" : "c:WorkItemDelegationRequestType",
+        "comment" : "Delegating this item to you",
+        "delegate" : {
+            "@ns" : "http://prism.evolveum.com/xml/ns/public/types-3",
+            "oid" : "229487cb-59b6-490b-879d-7a6d925dd08c",
+            "type" : "c:UserType"
+        },
+        "method" : "addAssignees"
+    }
+}
+----
+====
+
+The response is an HTTP 204 code in case of success *without* a response body.
+
+=== Claim Work Item
+
+Work item can be claimed by sending a POST request to the specific work item URL.
+
+.*Claim work item*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Content-Type: application/json" \
+-X POST http://localhost:8080/midpoint/ws/rest/cases/<CASE_OID>/workItems/<WORK_ITEM_IDENTIFIER>/claim \
+-v
+----
+
+The response is an HTTP 204 code in case of success *without* a response body.
+
+=== Release Work Item
+
+Work item can be released by sending a POST request to the specific work item URL.
+
+.*Release work item*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Content-Type: application/json" \
+-X POST http://localhost:8080/midpoint/ws/rest/cases/<CASE_OID>/workItems/<WORK_ITEM_IDENTIFIER>/release \
+-v
+----
+
+The response is an HTTP 204 code in case of success *without* a response body.
+
+=== Cancel Case
+
+Case can be canceled by sending a POST request to the specific case URL.
+
+.*Cancel case*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Content-Type: application/json" \
+-X POST http://localhost:8080/midpoint/ws/rest/cases/<CASE_OID>/cancel \
+-v
+----
+
+The response is an HTTP 204 code in case of success *without* a response body.
+
+=== Generate and Validate Operations for Case Objects
+
+- xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]
+
+== Common Use-case Examples
+
+== JSON Example
+
+Example output of information regarding a specific Case object. Some parts of the example
+might have been removed or simplified for the purpose of the example.
+
+.Show JSON Example
+[%collapsible]
+====
+[source, json]
+----
+{
+  "case" : {
+    "oid" : "3091ccc5-f3f6-4a06-92b5-803afce1ce57",
+    "version" : "1",
+    "name" : {
+      "orig" : "Assigning role \"Basic Employee\" to user \"Jack\"",
+      "norm" : "assigning role basic employee to user jack",
+      "translation" : {
+        "key" : "DefaultPolicyConstraint.Short.assignmentModification.toBeAdded",
+        "argument" : [ {
+          "translation" : {
+            "key" : "ObjectSpecification",
+            "argument" : [ {
+              "translation" : {
+                "key" : "ObjectTypeLowercase.RoleType",
+                "fallback" : "RoleType"
+              }
+            }, {
+              "value" : "Basic Employee"
+            } ]
+          }
+        }, {
+          "translation" : {
+            "key" : "ObjectSpecification",
+            "argument" : [ {
+              "translation" : {
+                "key" : "ObjectTypeLowercase.UserType",
+                "fallback" : "UserType"
+              }
+            }, {
+              "value" : "Jack"
+            } ]
+          }
+        } ]
+      }
+    },
+    "metadata" : {},
+    "assignment" : {
+      "@id" : 1,
+      "targetRef" : {
+        "oid" : "00000000-0000-0000-0000-000000000342",
+        "relation" : "org:default",
+        "type" : "c:ArchetypeType",
+        "targetName" : "Approval case"
+      }
+    },
+    "archetypeRef" : {
+      "oid" : "00000000-0000-0000-0000-000000000342",
+      "relation" : "org:default",
+      "type" : "c:ArchetypeType",
+      "targetName" : "Approval case"
+    },
+    "parentRef" : {
+      "oid" : "dae84d15-ba06-44f2-81ec-45a35bd7bc8e",
+      "relation" : "org:default",
+      "type" : "c:CaseType",
+      "targetName" : "Approving and executing change of user \"Jack\" (started Feb 22, 2024, 11:41:53 AM)"
+    },
+    "objectRef" : {
+      "oid" : "a9885c61-c442-42d8-af34-8182a8653e3c",
+      "relation" : "org:default",
+      "type" : "c:UserType",
+      "targetName" : "Jack"
+    },
+    "targetRef" : {
+      "oid" : "96262f4f-053a-4b0b-8901-b3ec01e3509c",
+      "relation" : "org:default",
+      "type" : "c:RoleType",
+      "targetName" : "employee"
+    },
+    "requestorRef" : {
+      "oid" : "00000000-0000-0000-0000-000000000002",
+      "relation" : "org:default",
+      "type" : "c:UserType",
+      "targetName" : "administrator"
+    },
+    "state" : "open",
+    "event" : {
+      "@type" : "c:CaseCreationEventType",
+      "@id" : 3,
+      "timestamp" : "2024-02-22T11:41:53.515+01:00",
+      "initiatorRef" : {
+        "oid" : "00000000-0000-0000-0000-000000000002",
+        "relation" : "org:default",
+        "type" : "c:UserType",
+        "targetName" : "administrator"
+      }
+    },
+    "workItem" : {
+      "@id" : 4,
+      "name" : {
+        "orig" : "Assigning role \"Basic Employee\" to user \"Jack\"",
+        "norm" : "assigning role basic employee to user jack",
+        "translation" : {
+          "key" : "DefaultPolicyConstraint.Short.assignmentModification.toBeAdded",
+          "argument" : [ {
+            "translation" : {
+              "key" : "ObjectSpecification",
+              "argument" : [ {
+                "translation" : {
+                  "key" : "ObjectTypeLowercase.RoleType",
+                  "fallback" : "RoleType"
+                }
+              }, {
+                "value" : "Basic Employee"
+              } ]
+            }
+          }, {
+            "translation" : {
+              "key" : "ObjectSpecification",
+              "argument" : [ {
+                "translation" : {
+                  "key" : "ObjectTypeLowercase.UserType",
+                  "fallback" : "UserType"
+                }
+              }, {
+                "value" : "Jack"
+              } ]
+            }
+          } ]
+        }
+      },
+      "stageNumber" : 1,
+      "createTimestamp" : "2024-02-22T11:41:53.527+01:00",
+      "originalAssigneeRef" : {
+        "oid" : "472001d8-839f-4a28-acdf-d8d1c81583b0",
+        "relation" : "org:default",
+        "type" : "c:UserType",
+        "targetName" : "JohnM"
+      },
+      "assigneeRef" : {
+        "oid" : "472001d8-839f-4a28-acdf-d8d1c81583b0",
+        "relation" : "org:default",
+        "type" : "c:UserType",
+        "targetName" : "JohnM"
+      }
+    },
+    "approvalContext" : {
+      "changeAspect" : "com.evolveum.midpoint.wf.impl.processors.primary.policy.PolicyRuleBasedAspect",
+      "deltasToApprove" : {
+        "focusPrimaryDelta" : {
+          "changeType" : "modify",
+          "objectType" : "c:UserType",
+          "oid" : "a9885c61-c442-42d8-af34-8182a8653e3c",
+          "itemDelta" : [ {
+            "modificationType" : "add",
+            "path" : "c:assignment",
+            "value" : [ {
+              "@type" : "c:AssignmentType",
+              "targetRef" : {
+                "oid" : "96262f4f-053a-4b0b-8901-b3ec01e3509c",
+                "relation" : "org:default",
+                "type" : "c:RoleType"
+              }
+            } ]
+          } ]
+        }
+      },
+      "immediateExecution" : false,
+      "approvalSchema" : {
+        "stage" : {
+          "@id" : 2,
+          "number" : 1,
+          "approverRef" : {
+            "oid" : "472001d8-839f-4a28-acdf-d8d1c81583b0",
+            "relation" : "org:default",
+            "type" : "c:UserType",
+            "targetName" : "JohnM"
+          },
+          "outcomeIfNoApprovers" : "reject",
+          "groupExpansion" : "byClaimingWorkItem"
+        }
+      },
+      "policyRules" : { }
+    },
+    "stageNumber" : 1
+  }
+}
+----
+====
+
+== See Also
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]

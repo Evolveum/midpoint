@@ -9,8 +9,6 @@ package com.evolveum.midpoint.authentication.impl.evaluator;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.security.api.ProfileCompilerOptions;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -41,6 +39,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
+import static com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil.*;
+import static com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil.getLastChangeTimestamp;
 
 /**
  * @author semancik
@@ -208,8 +209,7 @@ public abstract class CredentialsAuthenticationEvaluatorImpl<C extends AbstractC
 
         Duration maxAge = passwordCredentialsPolicy.getMaxAge();
         if (maxAge != null) {
-            MetadataType credentialMetadata = credentials.getMetadata();
-            XMLGregorianCalendar changeTimestamp = MiscSchemaUtil.getChangeTimestamp(credentialMetadata);
+            var changeTimestamp = getLastChangeTimestamp(getMetadata(credentials));
             if (changeTimestamp != null) {
                 XMLGregorianCalendar passwordValidUntil = XmlTypeConverter.addDuration(changeTimestamp, maxAge);
                 if (clock.isPast(passwordValidUntil)) {
@@ -255,8 +255,10 @@ public abstract class CredentialsAuthenticationEvaluatorImpl<C extends AbstractC
         return decryptedPassword;
     }
 
+
     private boolean isLockedOut(AuthenticationAttemptDataType authenticationAttemptData, CredentialPolicyType credentialsPolicy) {
-        return isOverFailedLockoutAttempts(authenticationAttemptData, credentialsPolicy) && !isLockoutExpired(authenticationAttemptData, credentialsPolicy);
+        return isOverFailedLockoutAttempts(authenticationAttemptData, credentialsPolicy)
+                && !isLockoutExpired(authenticationAttemptData, credentialsPolicy);
     }
 
     private boolean isOverFailedLockoutAttempts(AuthenticationAttemptDataType authenticationAttemptData, CredentialPolicyType credentialsPolicy) {

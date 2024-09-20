@@ -8,6 +8,9 @@ package com.evolveum.midpoint.repo.sqale;
 
 import javax.sql.DataSource;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.mining.outlier.QOutlierObjectMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.role.*;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -27,8 +30,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationWo
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.cases.QCaseMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.cases.workitem.QCaseWorkItemMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.mining.cluster.QClusterObjectMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.mining.session.QSessionObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnectorHostMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnectorMapping;
@@ -38,6 +39,8 @@ import com.evolveum.midpoint.repo.sqale.qmodel.focus.QGenericObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.lookuptable.QLookupTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.lookuptable.QLookupTableRowMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.mining.cluster.QClusterObjectMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.mining.session.QSessionObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.node.QNodeMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.notification.QMessageTemplateMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
@@ -50,10 +53,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.QReportDataMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.QReportMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.resource.QResourceMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.role.QAbstractRoleMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.role.QArchetypeMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.role.QRoleMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.role.QServiceMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.shadow.QShadowMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.simulation.QProcessedObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.simulation.QSimulationResultMapping;
@@ -63,6 +62,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.system.QValuePolicyMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.tag.QMarkMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.QAffectedObjectsMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.QTaskMapping;
+import com.evolveum.midpoint.repo.sqale.schema.QSchemaMapping;
 import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
 import com.evolveum.midpoint.repo.sqlbase.SystemConfigurationChangeDispatcherImpl;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
@@ -179,6 +179,7 @@ public class SqaleRepositoryBeanConfig {
                 .register(ReportDataType.COMPLEX_TYPE, QReportDataMapping.init(repositoryContext))
                 .register(RoleAnalysisClusterType.COMPLEX_TYPE, QClusterObjectMapping.init(repositoryContext))
                 .register(RoleAnalysisSessionType.COMPLEX_TYPE, QSessionObjectMapping.init(repositoryContext))
+                .register(RoleAnalysisOutlierType.COMPLEX_TYPE, QOutlierObjectMapping.init(repositoryContext))
                 .register(ResourceType.COMPLEX_TYPE, QResourceMapping.init(repositoryContext))
                 .register(RoleType.COMPLEX_TYPE, QRoleMapping.init(repositoryContext))
                 .register(SecurityPolicyType.COMPLEX_TYPE,
@@ -198,7 +199,9 @@ public class SqaleRepositoryBeanConfig {
                 .register(SimulationResultType.COMPLEX_TYPE, QSimulationResultMapping.initSimulationResultMapping(repositoryContext))
                 .register(SimulationResultProcessedObjectType.COMPLEX_TYPE, QProcessedObjectMapping.initProcessedResultMapping(repositoryContext))
                 .register(MarkType.COMPLEX_TYPE, QMarkMapping.init(repositoryContext))
+                .register(SchemaType.COMPLEX_TYPE, QSchemaMapping.init(repositoryContext))
                 .register(QAffectedObjectsMapping.init(repositoryContext))
+                .register(PolicyType.COMPLEX_TYPE, QPolicyMapping.init(repositoryContext))
                 .seal();
 
         return repositoryContext;

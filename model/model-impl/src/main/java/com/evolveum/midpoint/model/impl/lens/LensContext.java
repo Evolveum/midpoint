@@ -10,12 +10,20 @@ import static com.evolveum.midpoint.model.impl.lens.LensFocusContext.fromLensFoc
 import static com.evolveum.midpoint.model.impl.lens.LensProjectionContext.fromLensProjectionContextBean;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.model.api.util.MappingInspector;
+
+import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -73,7 +81,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 public class LensContext<F extends ObjectType> implements ModelContext<F>, Cloneable {
 
-    private static final long serialVersionUID = -778283437426659540L;
+    @Serial private static final long serialVersionUID = -778283437426659540L;
     private static final String DOT_CLASS = LensContext.class.getName() + ".";
 
     private static final Trace LOGGER = TraceManager.getTrace(LensContext.class);
@@ -147,12 +155,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     private boolean executionAudited = false; // was the execution audited?
     private LensContextStatsType stats = new LensContextStatsType();
 
-    /**
-     * Metadata of the request. Metadata recorded when the operation has
-     * started. Currently only the requestor related data (requestTimestamp, requestorRef)
-     * are collected. But later other metadata may be used.
-     */
-    private MetadataType requestMetadata;
+    /** Metadata of the request. Metadata recorded when the operation has started. */
+    private RequestMetadata requestMetadata;
 
     /**
      * Executed deltas from rotten projection contexts.
@@ -216,7 +220,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      */
     private transient boolean isFresh = false;
 
-    private boolean isRequestAuthorized = false;
+    @NotNull private AuthorizationState authorizationState = AuthorizationState.NONE;
 
     /**
      * Cache of resource instances. It is used to reduce the number of read
@@ -248,7 +252,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     @NotNull private final List<LensProjectionContext> conflictingProjectionContexts = new ArrayList<>();
 
     /** Denotes (legacy) "preview changes" mode. */
-    private transient boolean preview;
+    private transient boolean legacyPreview;
 
     private transient Map<String, Collection<? extends Containerable>> hookPreviewResultsMap;
 
@@ -342,7 +346,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
                 .collect(Collectors.toList());
     }
 
-    public boolean hasLowerOrderContext(LensProjectionContext refProjCtx) {
+    boolean hasLowerOrderContextThan(LensProjectionContext refProjCtx) {
         ProjectionContextKey refKey = refProjCtx.getKey();
         for (LensProjectionContext aProjCtx : projectionContexts) {
             ProjectionContextKey aKey = aProjCtx.getKey();
@@ -664,11 +668,15 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
 
     @SuppressWarnings("WeakerAccess") // may be used from scripts
     public boolean isRequestAuthorized() {
-        return isRequestAuthorized;
+        return getAuthorizationState() == AuthorizationState.FULL;
     }
 
-    void setRequestAuthorized(boolean isRequestAuthorized) {
-        this.isRequestAuthorized = isRequestAuthorized;
+    public @NotNull AuthorizationState getAuthorizationState() {
+        return Objects.requireNonNull(authorizationState);
+    }
+
+    void setRequestAuthorized(@NotNull AuthorizationState authorizationState) {
+        this.authorizationState = authorizationState;
     }
 
     /**
@@ -708,7 +716,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         this.doReconciliationForAllProjections = doReconciliationForAllProjections;
     }
 
-    boolean isExecutionPhaseOnly() {
+    public boolean isExecutionPhaseOnly() {
         return executionPhaseOnly;
     }
 
@@ -774,16 +782,29 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         }
     }
 
-    MetadataType getRequestMetadata() {
+    RequestMetadata getRequestMetadata() {
         return requestMetadata;
     }
 
-    void setRequestMetadata(MetadataType requestMetadata) {
+    private void setRequestMetadata(RequestMetadata requestMetadata) {
         this.requestMetadata = requestMetadata;
+    }
+
+    /**
+     * Stores request metadata in the model context. Because the operation can finish later
+     * (if switched to background), we need to have these data recorded at the beginning.
+     */
+    void initializeRequestMetadata(XMLGregorianCalendar now, Task task) {
+        setRequestMetadata(
+                RequestMetadata.create(now, task));
     }
 
     public ClockworkInspector getInspector() {
         return inspector;
+    }
+
+    public @NotNull MappingInspector getMappingInspector() {
+        return Objects.requireNonNullElse(inspector, MappingInspector.empty());
     }
 
     public void setInspector(ClockworkInspector inspector) {
@@ -929,23 +950,6 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return rottenExecutedDeltas;
     }
 
-    public void recompute() throws SchemaException {
-        recomputeFocus();
-        recomputeProjections();
-    }
-
-    public void recomputeFocus() throws SchemaException {
-        if (focusContext != null) {
-            focusContext.recompute();
-        }
-    }
-
-    private void recomputeProjections() throws SchemaException {
-        for (LensProjectionContext projCtx : getProjectionContexts()) {
-            projCtx.recompute();
-        }
-    }
-
     public void refreshAuxiliaryObjectClassDefinitions() throws SchemaException, ConfigurationException {
         for (LensProjectionContext projCtx : getProjectionContexts()) {
             projCtx.refreshAuxiliaryObjectClassDefinitions();
@@ -976,8 +980,12 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             focusContext.checkConsistence();
         }
         for (LensProjectionContext projectionContext : projectionContexts) {
-            projectionContext.checkConsistence(this.toString(), isFresh, ModelExecuteOptions.isForce(options));
+            projectionContext.checkConsistence(this.toString(), isFresh, isForce());
         }
+    }
+
+    boolean isForce() {
+        return ModelExecuteOptions.isForce(options);
     }
 
     void checkEncryptedIfNeeded() {
@@ -1048,7 +1056,6 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         for (LensProjectionContext projectionContext : projectionContexts) {
             projectionContext.cleanup();
         }
-        recompute();
     }
 
     public void normalize() {
@@ -1074,7 +1081,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         clone.executionPhaseOnly = this.executionPhaseOnly;
         clone.focusClass = this.focusClass;
         clone.isFresh = this.isFresh;
-        clone.isRequestAuthorized = this.isRequestAuthorized;
+        clone.authorizationState = this.authorizationState;
         clone.resourceCache = resourceCache != null ?
                 new HashMap<>(resourceCache) : null;
         clone.explicitFocusTemplateOid = this.explicitFocusTemplateOid;
@@ -1134,7 +1141,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         sb.append(getAllChanges());
         sb.append(" changes, ");
         sb.append("fresh=").append(isFresh);
-        sb.append(", reqAutz=").append(isRequestAuthorized);
+        sb.append(", reqAutz=").append(authorizationState);
         if (systemConfiguration == null) {
             sb.append(" null-system-configuration");
         }
@@ -1145,6 +1152,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         sb.append("\n");
 
         DebugUtil.debugDumpWithLabelLn(sb, "Channel", channel, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "Do reconciliation for all projections", doReconciliationForAllProjections, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "Options", String.valueOf(options), indent + 1);
         DebugUtil.debugDumpLabel(sb, "Settings", indent + 1);
         sb.append(" ");
@@ -1378,14 +1386,16 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             bean.setLazyAuditRequest(lazyAuditRequest);
             bean.setRequestAudited(requestAudited);
             bean.setExecutionAudited(executionAudited);
-            bean.setRequestAuthorized(isRequestAuthorized);
+            bean.setRequestAuthorized(isRequestAuthorized());
             bean.setStats(stats);
-            bean.setRequestMetadata(requestMetadata);
+            if (requestMetadata != null) {
+                bean.setRequestMetadata(requestMetadata.toBean());
+            }
             bean.setOwnerOid(ownerOid);
 
             for (LensObjectDeltaOperation<?> executedDelta : rottenExecutedDeltas) {
                 bean.getRottenExecutedDeltas()
-                        .add(simplifyExecutedDelta(executedDelta).toLensObjectDeltaOperationType());
+                        .add(simplifyExecutedDelta(executedDelta).toLensObjectDeltaOperationBean());
             }
         }
         if (!getSequences().isEmpty()) {
@@ -1461,9 +1471,11 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         if (bean.isExecutionAudited() != null) {
             lensContext.setExecutionAudited(bean.isExecutionAudited());
         }
-        lensContext.setRequestAuthorized(Boolean.TRUE.equals(bean.isRequestAuthorized()));
+        // Let us consider the "request authorized" as "request fully authorized".
+        lensContext.setRequestAuthorized(
+                Boolean.TRUE.equals(bean.isRequestAuthorized()) ? AuthorizationState.FULL : AuthorizationState.NONE);
         lensContext.setStats(bean.getStats());
-        lensContext.setRequestMetadata(bean.getRequestMetadata());
+        lensContext.setRequestMetadata(RequestMetadata.fromBean(bean.getRequestMetadata()));
         lensContext.setOwnerOid(bean.getOwnerOid());
 
         for (LensObjectDeltaOperationType eDeltaOperationType : bean.getRottenExecutedDeltas()) {
@@ -1695,12 +1707,12 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     }
 
     @Override
-    public boolean isPreview() {
-        return preview;
+    public boolean isLegacyPreview() {
+        return legacyPreview;
     }
 
-    public void setPreview(boolean preview) {
-        this.preview = preview;
+    void setLegacyPreview() {
+        this.legacyPreview = true;
     }
 
     /**
@@ -1780,7 +1792,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     }
 
     ObjectDeltaSchemaLevelUtil.NameResolver getNameResolver() {
-        return (objectClass, oid) -> {
+        return (objectClass, oid, lResult) -> {
             if (ResourceType.class.equals(objectClass) || ShadowType.class.equals(objectClass)) {
                 for (LensProjectionContext projectionContext : projectionContexts) {
                     PolyString name = projectionContext.resolveNameIfKnown(objectClass, oid);
@@ -1922,7 +1934,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     }
 
     public boolean isForcedFocusDelete() {
-        return focusContext != null && focusContext.isDelete() && ModelExecuteOptions.isForce(options);
+        return focusContext != null && focusContext.isDelete() && isForce();
     }
 
     void resetClickCounter() {
@@ -2058,6 +2070,55 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
                     "context=" + context +
                     ", created=" + created +
                     '}';
+        }
+    }
+
+    public enum AuthorizationState {
+        /** No authorization was carried out yet. */
+        NONE,
+
+        /** Only preliminary authorization was carried out (without e.g. org or tenant clauses). */
+        PRELIMINARY,
+
+        /** The full authorization was carried out. */
+        FULL
+    }
+
+    /**
+     * Metadata recorded when the operation has started. It is not necessary to store requestor comment here,
+     * as it is preserved in context.options field.
+     *
+     * Values are parent-less.
+     */
+    record RequestMetadata(
+            XMLGregorianCalendar requestTimestamp,
+            ObjectReferenceType requestorRef) implements Serializable, Cloneable {
+
+        static RequestMetadata create(XMLGregorianCalendar now, Task task) {
+            return new RequestMetadata(
+                    now,
+                    ObjectTypeUtil.createObjectRefCopy(task.getOwnerRef()));
+        }
+
+        static RequestMetadata fromBean(MetadataType requestMetadata) {
+            if (requestMetadata == null) {
+                return null;
+            } else {
+                return new RequestMetadata(
+                        requestMetadata.getRequestTimestamp(),
+                        CloneUtil.clone(requestMetadata.getRequestorRef()));
+            }
+        }
+
+        MetadataType toBean() {
+            return new MetadataType()
+                    .requestTimestamp(requestTimestamp)
+                    .requestorRef(CloneUtil.clone(requestorRef));
+        }
+
+        @SuppressWarnings("MethodDoesntCallSuperMethod")
+        public RequestMetadata clone() {
+            return new RequestMetadata(requestTimestamp, CloneUtil.clone(requestorRef));
         }
     }
 }

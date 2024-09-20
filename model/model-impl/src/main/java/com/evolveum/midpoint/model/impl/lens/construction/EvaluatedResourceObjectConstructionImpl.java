@@ -13,19 +13,20 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.config.ConstructionConfigItem;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.api.context.EvaluatedResourceObjectConstruction;
-import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.NextRecompute;
 import com.evolveum.midpoint.prism.*;
@@ -35,6 +36,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * Evaluated construction of a resource object.
@@ -42,7 +44,7 @@ import org.jetbrains.annotations.Nullable;
  * More such objects can stem from single {@link ResourceObjectConstruction} in the presence of multi-accounts.
  *
  * The evaluation itself is delegated to {@link ConstructionEvaluation} class that, in turn, delegates
- * to {@link AttributeEvaluation} and {@link AssociationEvaluation}. However, these classes shouldn't be
+ * to {@link AttributeMapper} and {@link AssociationMapper}. However, these classes shouldn't be
  * publicly visible.
  */
 public abstract class EvaluatedResourceObjectConstructionImpl<
@@ -66,13 +68,12 @@ public abstract class EvaluatedResourceObjectConstructionImpl<
     /**
      * Mappings for the resource object attributes.
      */
-    @NotNull private final Collection<MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>>>
-            attributeMappings = new ArrayList<>();
+    @NotNull private final Collection<PrismValueDeltaSetTripleProducer<?, ?>> attributeTripleProducers = new ArrayList<>();
 
     /**
      * Mappings for the resource object associations.
      */
-    @NotNull private final Collection<MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> associationMappings = new ArrayList<>();
+    @NotNull private final Collection<PrismValueDeltaSetTripleProducer<ShadowAssociationValue, ShadowAssociationDefinition>> associationTripleProducers = new ArrayList<>();
 
     /**
      * Projection context for the resource object.
@@ -85,7 +86,7 @@ public abstract class EvaluatedResourceObjectConstructionImpl<
      * Construction evaluation state. It is factored out into separate class to allow many of its fields to be final.
      * (It would not be possible if it was part of this class.)
      */
-    protected transient ConstructionEvaluation<AH, ROC> evaluation;
+    private transient ConstructionEvaluation<AH, ROC> constructionEvaluation;
 
     /**
      * Precondition: {@link ResourceObjectConstruction} is already evaluated and not ignored (has resource).
@@ -165,18 +166,18 @@ public abstract class EvaluatedResourceObjectConstructionImpl<
         // We do not want to dump construction here. This can lead to cycles.
         // We usually dump EvaluatedResourceObjectConstruction in a Construction dump anyway, therefore the context should be quite clear.
         DebugUtil.debugDumpWithLabelToString(sb, "projectionContext", projectionContext, indent + 1);
-        if (!attributeMappings.isEmpty()) {
+        if (!attributeTripleProducers.isEmpty()) {
             sb.append("\n");
             DebugUtil.debugDumpLabel(sb, "attribute mappings", indent + 1);
-            for (MappingImpl<?, ?> mapping : attributeMappings) {
+            for (var tripleProducer : attributeTripleProducers) {
                 sb.append("\n");
-                sb.append(mapping.debugDump(indent + 2));
+                sb.append(tripleProducer.debugDump(indent + 2));
             }
         }
-        if (!associationMappings.isEmpty()) {
+        if (!associationTripleProducers.isEmpty()) {
             sb.append("\n");
             DebugUtil.debugDumpLabel(sb, "association mappings", indent + 1);
-            for (MappingImpl<?, ?> mapping : associationMappings) {
+            for (var mapping : associationTripleProducers) {
                 sb.append("\n");
                 sb.append(mapping.debugDump(indent + 2));
             }
@@ -201,38 +202,42 @@ public abstract class EvaluatedResourceObjectConstructionImpl<
     //endregion
 
     //region Mappings management
-    public @NotNull Collection<MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>>> getAttributeMappings() {
-        return attributeMappings;
+    public @NotNull Collection<PrismValueDeltaSetTripleProducer<?, ?>> getAttributeTripleProducers() {
+        return attributeTripleProducers;
     }
 
-    @VisibleForTesting
-    public MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> getAttributeMapping(QName attrName) {
-        for (MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> myVc : getAttributeMappings()) {
-            if (myVc.getItemName().equals(attrName)) {
+    @TestOnly
+    public PrismValueDeltaSetTripleProducer<?, ?> getAttributeTripleProducer(QName attrName) {
+        for (var myVc : getAttributeTripleProducers()) {
+            if (myVc.getTargetItemName().equals(attrName)) {
                 return myVc;
             }
         }
         return null;
     }
 
-    void addAttributeMapping(MappingImpl<PrismPropertyValue<?>, PrismPropertyDefinition<?>> mapping) {
-        attributeMappings.add(mapping);
+    void addAttributeTripleProducer(PrismValueDeltaSetTripleProducer<?, ?> tripleProducer) {
+        if (tripleProducer != null) {
+            attributeTripleProducers.add(tripleProducer);
+        }
     }
 
-    public @NotNull Collection<MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> getAssociationMappings() {
-        return associationMappings;
+    public @NotNull Collection<PrismValueDeltaSetTripleProducer<ShadowAssociationValue, ShadowAssociationDefinition>> getAssociationTripleProducers() {
+        return associationTripleProducers;
     }
 
-    void addAssociationMapping(
-            MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> mapping) {
-        associationMappings.add(mapping);
+    void addAssociationTripleProducer(PrismValueDeltaSetTripleProducer<ShadowAssociationValue, ShadowAssociationDefinition> producer) {
+        if (producer != null) {
+            associationTripleProducers.add(producer);
+        }
     }
     //endregion
 
     //region Mappings evaluation
-    public NextRecompute evaluate(Task task, OperationResult parentResult) throws CommunicationException, ObjectNotFoundException,
-            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        if (evaluation != null) {
+    public NextRecompute evaluate(Task task, OperationResult parentResult)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
+        if (constructionEvaluation != null) {
             throw new IllegalStateException("Attempting to evaluate an EvaluatedResourceObjectConstruction twice: " + this);
         }
         OperationResult result = parentResult.subresult(OP_EVALUATE)
@@ -259,9 +264,9 @@ public abstract class EvaluatedResourceObjectConstructionImpl<
                 return null;
             } else {
                 LOGGER.trace("Starting evaluation of {}", this);
-                evaluation = new ConstructionEvaluation<>(this, task, result);
-                evaluation.evaluate();
-                return evaluation.getNextRecompute();
+                constructionEvaluation = new ConstructionEvaluation<>(this, task, result);
+                constructionEvaluation.evaluate();
+                return constructionEvaluation.getNextRecompute();
             }
         } catch (Throwable t) {
             result.recordFatalError(t);
@@ -281,14 +286,14 @@ public abstract class EvaluatedResourceObjectConstructionImpl<
     /**
      * Collects attributes that are to be evaluated. Again, the exact mechanism is implementation-specific.
      */
-    protected abstract List<AttributeEvaluation<AH>> getAttributesToEvaluate(ConstructionEvaluation<AH, ?> constructionEvaluation)
+    abstract List<AttributeMapper<AH, ?, ?>> getAttributeMappers(ConstructionEvaluation<AH, ?> constructionEvaluation)
             throws SchemaException, ConfigurationException;
 
     /**
      * Collects associations that are to be evaluated.
      */
-    protected abstract List<AssociationEvaluation<AH>> getAssociationsToEvaluate(
-            ConstructionEvaluation<AH, ?> constructionEvaluation) throws SchemaException, ConfigurationException;
+    abstract List<AssociationMapper<AH>> getAssociationMappers(ConstructionEvaluation<AH, ?> constructionEvaluation)
+            throws SchemaException, ConfigurationException;
     //endregion
 
     //region Resource object loading
@@ -297,13 +302,13 @@ public abstract class EvaluatedResourceObjectConstructionImpl<
      * Checks whether we are obliged to load the full shadow.
      * @return non-null if we have to
      */
-    String getFullShadowLoadReason(MappingType outboundMappingBean) {
+    String getFullShadowLoadReason(ShadowItemMapper<?, ?, ?> itemMapper) throws SchemaException, ConfigurationException {
         if (projectionContext == null) {
             LOGGER.trace("We will not load full shadow, because we have no projection context");
             return null;
         }
-        if (projectionContext.isFullShadow()) {
-            LOGGER.trace("We will not load full shadow, because we already have one");
+        if (itemMapper.isItemLoaded(projectionContext)) {
+            LOGGER.trace("We will not load full shadow, because we already have sufficient information");
             return null;
         }
         if (projectionContext.isDelete()) {
@@ -317,16 +322,16 @@ public abstract class EvaluatedResourceObjectConstructionImpl<
             LOGGER.trace("We will not load full shadow, because we don't have shadow OID (yet?)");
             return null;
         }
-        MappingStrengthType strength = outboundMappingBean.getStrength();
+        MappingStrengthType strength = itemMapper.getMapperStrength();
         if (strength == MappingStrengthType.STRONG) {
             LOGGER.trace("We will load full shadow, because of strong outbound mapping");
             return "strong outbound mapping";
         } else if (strength == MappingStrengthType.WEAK) {
             LOGGER.trace("We will load full shadow, because of weak outbound mapping");
             return "weak outbound mapping";
-        } else if (outboundMappingBean.getTarget() != null && outboundMappingBean.getTarget().getSet() != null) {
-            LOGGER.trace("We will load full shadow, because of outbound mapping with target set specified");
-            return "outbound mapping target set specified";
+        } else if (itemMapper.hasRangeSpecified()) {
+            LOGGER.trace("We will load full shadow, because of outbound mapping with a range specified");
+            return "outbound mapping range specified";
         } else {
             LOGGER.trace("We will not load full shadow, because we don't have any specific reason to do so now");
             return null;

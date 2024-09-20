@@ -18,12 +18,10 @@
             <minLength>10</minLength>
             <maxLength>15</maxLength>
             <minUniqueChars>3</minUniqueChars>
-            <checkAgainstDictionary>true</checkAgainstDictionary>
-            <checkPattern />
             <limit>
                 <description>extreme</description>
                 <minOccurs>1</minOccurs>
-                <maxOccurs>2</maxOccurs>
+                <maxOccurs>5</maxOccurs>
                 <mustBeFirst>true</mustBeFirst>
                 <characterClass>
                     <value>345678</value>
@@ -32,21 +30,21 @@
             <limit>
                 <description>Alphas</description>
                 <minOccurs>1</minOccurs>
-                <maxOccurs>2</maxOccurs>
+                <maxOccurs>5</maxOccurs>
                 <mustBeFirst>false</mustBeFirst>
                 <characterClass ref="alphas" />
             </limit>
             <limit>
                 <description>Numbers</description>
                 <minOccurs>1</minOccurs>
-                <maxOccurs>2</maxOccurs>
+                <maxOccurs>5</maxOccurs>
                 <mustBeFirst>false</mustBeFirst>
                 <characterClass ref="numbers" />
             </limit>
             <limit>
                 <description>Lowers</description>
                 <minOccurs>1</minOccurs>
-                <maxOccurs>2</maxOccurs>
+                <maxOccurs>5</maxOccurs>
                 <mustBeFirst>false</mustBeFirst>
                 <characterClass ref="lowers" />
             </limit>

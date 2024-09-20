@@ -31,29 +31,25 @@ import org.jetbrains.annotations.NotNull;
 public class ModelExpressionThreadLocalHolder {
 
     private static <F extends ObjectType, V extends PrismValue, D extends ItemDefinition<?>>
-    ModelExpressionEnvironment<F, V, D> getModelExpressionEnvironment() {
+    ModelExpressionEnvironment<V, D> getModelExpressionEnvironment() {
         ExpressionEnvironment environment = ExpressionEnvironmentThreadLocalHolder.getExpressionEnvironment();
         //noinspection unchecked
         return environment instanceof ModelExpressionEnvironment ?
-                (ModelExpressionEnvironment<F, V, D>) environment : null;
+                (ModelExpressionEnvironment<V, D>) environment : null;
     }
 
-    public static <F extends ObjectType> ModelContext<F> getLensContext() {
-        ModelExpressionEnvironment<?, ?, ?> env = getModelExpressionEnvironment();
-        if (env == null) {
-            return null;
-        }
-        //noinspection unchecked
-        return (ModelContext<F>) env.getLensContext();
+    public static ModelContext<?> getLensContext() {
+        ModelExpressionEnvironment<?, ?> env = getModelExpressionEnvironment();
+        return env != null ? env.getLensContext() : null;
     }
 
     @NotNull
-    public static <F extends ObjectType> ModelContext<F> getLensContextRequired() {
+    public static ModelContext<?> getLensContextRequired() {
         return Objects.requireNonNull(getLensContext(), "No lens context");
     }
 
     public static <V extends PrismValue, D extends ItemDefinition<?>> Mapping<V,D> getMapping() {
-        ModelExpressionEnvironment<?, ?, ?> env = getModelExpressionEnvironment();
+        ModelExpressionEnvironment<?, ?> env = getModelExpressionEnvironment();
         if (env == null) {
             return null;
         }
@@ -62,7 +58,7 @@ public class ModelExpressionThreadLocalHolder {
     }
 
     public static ModelProjectionContext getProjectionContext() {
-        ModelExpressionEnvironment<?, ?, ?> env = getModelExpressionEnvironment();
+        ModelExpressionEnvironment<?, ?> env = getModelExpressionEnvironment();
         if (env == null) {
             return null;
         }

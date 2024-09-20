@@ -15,13 +15,13 @@ import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ResourceAttributeWrapper;
-import com.evolveum.midpoint.gui.impl.prism.panel.ResourceAttributeDefinitionPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.shadow.ResourceAttributeDefinitionPanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ResourceAttributeWrapperImpl;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
@@ -30,11 +30,11 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
  *
  */
 @Component
-public class ResourceAttributeWrapperFactoryImpl<T> extends ItemWrapperFactoryImpl<ResourceAttributeWrapper<T>, PrismPropertyValue<T>, ResourceAttribute<T>, PrismPropertyValueWrapper<T>> {
+public class ResourceAttributeWrapperFactoryImpl<T> extends ItemWrapperFactoryImpl<ResourceAttributeWrapper<T>, PrismPropertyValue<T>, ShadowSimpleAttribute<T>, PrismPropertyValueWrapper<T>> {
 
     @Override
     public boolean match(ItemDefinition<?> def) {
-        return def instanceof ResourceAttributeDefinition;
+        return def instanceof ShadowSimpleAttributeDefinition;
     }
 
     @Override
@@ -60,7 +60,7 @@ public class ResourceAttributeWrapperFactoryImpl<T> extends ItemWrapperFactoryIm
     }
 
     @Override
-    protected PrismPropertyValue<T> createNewValue(ResourceAttribute<T> item) throws SchemaException {
+    protected PrismPropertyValue<T> createNewValue(ShadowSimpleAttribute<T> item) throws SchemaException {
         PrismPropertyValue<T> newValue = getPrismContext().itemFactory().createPropertyValue();
         item.add(newValue);
         return newValue;
@@ -68,7 +68,7 @@ public class ResourceAttributeWrapperFactoryImpl<T> extends ItemWrapperFactoryIm
 
     @Override
     protected ResourceAttributeWrapper<T> createWrapperInternal(PrismContainerValueWrapper<?> parent,
-            ResourceAttribute<T> childContainer, ItemStatus status, WrapperContext ctx) {
+            ShadowSimpleAttribute<T> childContainer, ItemStatus status, WrapperContext ctx) {
         return new ResourceAttributeWrapperImpl<>(parent, childContainer, status);
     }
 

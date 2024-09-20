@@ -1,0 +1,46 @@
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="card" wicket:id="card">
+        <div class="card-header" wicket:id="card-header">
+            <h5 class="card-title m-0 gap-1" wicket:id="header-item"></h5>
+        </div>
+        <div class="card-body p-0" wicket:id="card-body">
+
+            <div wicket:id="body-header-panel-container" class="d-flex flex-wrap justify-content-between p-3 border-bottom">
+                <div wicket:id="body-header-panel"></div>
+            </div>
+
+            <div wicket:id="body-item-container" class="border-bottom p-0">
+                <div class="col-12 d-flex align-items-center p-2">
+                    <div class="widget-logo">
+                        <div class="img-circle d-flex align-items-center justify-content-center h-100 bg-toned-primary text-primary">
+                            <div wicket:id="image" class=""></div>
+                        </div>
+                    </div>
+
+                    <div class="col">
+                        <a class="d-flex align-items-center txt-default" wicket:id="title"></a>
+                        <div class="d-flex align-items-center text-sm txt-toned" wicket:id="value"></div>
+                    </div>
+                    <div class="d-flex flex-wrap gap-1 align-items-center">
+                        <div wicket:id="value-title"></div>
+                        <div wicket:id="value-score"></div>
+                        <div wicket:id="value-action" class="px-2"></div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <div class="border-top-0 p-3 d-flex justify-content-center" wicket:id="card-footer">
+            <a wicket:id="footer-item"></a>
+        </div>
+    </div>
+</wicket:panel>
+</html>

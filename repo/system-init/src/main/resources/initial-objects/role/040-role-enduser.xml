@@ -103,10 +103,7 @@
         <object id="21">
             <type>RoleType</type>
             <filter>
-                <q:equal>
-                    <q:path>requestable</q:path>
-                    <q:value>true</q:value>
-                </q:equal>
+                <q:text>requestable = true</q:text>
             </filter>
         </object>
         <!-- Note: for production use you should consider limiting the items that can be read. -->
@@ -136,10 +133,7 @@
         <target id="23">
             <type>RoleType</type>
             <filter>
-                <q:equal>
-                    <q:path>requestable</q:path>
-                    <q:value>true</q:value>
-                </q:equal>
+                <q:text>requestable = true</q:text>
             </filter>
         </target>
         <relation>org:default</relation>        <!-- only assignments with the default (member) relation can be requested -->
@@ -243,6 +237,9 @@
         </object>
     </authorization>
     <adminGuiConfiguration>
+        <feedbackMessagesHook>
+            <stackTraceVisibility>hidden</stackTraceVisibility>
+        </feedbackMessagesHook>
         <homePage id="34">
             <type>UserType</type>
             <widget id="35">
@@ -274,6 +271,45 @@
             <panel id="41">
                 <identifier>history</identifier>
                 <visibility>hidden</visibility>
+            </panel>
+            <panel id="42">
+                <identifier>personas</identifier>
+                <visibility>hidden</visibility>
+            </panel>
+            <panel id="43">
+                <identifier>focusTriggers</identifier>
+                <visibility>hidden</visibility>
+            </panel>
+            <panel id="44">
+                <identifier>password</identifier>
+                <visibility>hidden</visibility>
+            </panel>
+            <panel id="45">
+                <identifier>assignments</identifier>
+                <panel id="46">
+                    <identifier>constructionAssignments</identifier>
+                    <visibility>hidden</visibility>
+                </panel>
+                <panel id="47">
+                    <identifier>indirectAssignments</identifier>
+                    <visibility>hidden</visibility>
+                </panel>
+                <panel id="48">
+                    <identifier>dataProtectionAssignments</identifier>
+                    <visibility>hidden</visibility>
+                </panel>
+                <panel id="49">
+                    <identifier>orgAssignments</identifier>
+                    <visibility>hidden</visibility>
+                </panel>
+                <panel id="50">
+                    <identifier>roleAssignments</identifier>
+                    <visibility>hidden</visibility>
+                </panel>
+                <panel id="51">
+                    <identifier>serviceAssignments</identifier>
+                    <visibility>hidden</visibility>
+                </panel>
             </panel>
         </selfProfilePage>
     </adminGuiConfiguration>

@@ -15,7 +15,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType.F_AP
 
 import java.io.File;
 import java.util.List;
-import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -37,14 +36,11 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.cases.api.CaseManager;
 import com.evolveum.midpoint.wf.impl.AbstractWfTest;
@@ -161,7 +157,7 @@ public class TestAddAssociation extends AbstractWfTest {
             }
 
             @Override
-            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
+            public LensContext<?> createModelContext(Task task, OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK.oid, result);
 
@@ -172,9 +168,9 @@ public class TestAddAssociation extends AbstractWfTest {
                 LensProjectionContext accountContext = fillContextWithAccount(context, jackAccountShadowOid, task, result);
 
                 ObjectModificationType modElement = PrismTestUtil.parseAtomicValue(REQ_ADD_ENTITLEMENT_TESTERS, ObjectModificationType.COMPLEX_TYPE);
-                ObjectDelta shadowDelta = DeltaConvertor.createObjectDelta(modElement, ShadowType.class, prismContext);
+                ObjectDelta<ShadowType> shadowDelta = DeltaConvertor.createObjectDelta(modElement, ShadowType.class);
                 shadowDelta.setOid(jackAccountShadowOid);
-                //noinspection unchecked
+                provisioningService.applyDefinition(shadowDelta, task, result);
                 accountContext.setPrimaryDelta(shadowDelta);
                 return context;
             }
@@ -191,18 +187,19 @@ public class TestAddAssociation extends AbstractWfTest {
 //                        ObjectDelta.isEmpty(
 //                                ((LensProjectionContext) (taskModelContext.getProjectionContexts().iterator().next()))
 //                                        .getPrimaryDelta()));
-                ShadowType account = getObject(ShadowType.class, jackAccountShadowOid).asObjectable();
-                IntegrationTestTools.display("jack dummy account after first clockwork run", account);
-                assertEquals("Unexpected associations present", 0, account.getAssociation().size());
+                assertShadow(getObject(ShadowType.class, jackAccountShadowOid), "jack dummy account after first clockwork run")
+                        .display()
+                        .associations()
+                        .assertSize(0);
             }
 
             @Override
             void assertsRootCaseFinishes(CaseType aCase, List<CaseType> subcases, Task opTask,
                     OperationResult result) throws Exception {
-                ShadowType account = getObject(ShadowType.class, jackAccountShadowOid).asObjectable();
-                IntegrationTestTools.display("jack dummy account", account);
-                assertHasAssociation(account, new QName("group"), SHADOW_TESTERS_OID);
-
+                assertShadow(getObject(ShadowType.class, jackAccountShadowOid), "jack dummy account")
+                        .associations()
+                        .association("group")
+                        .assertShadowOids(SHADOW_TESTERS_OID);
                 checkAuditRecords(createResultMap(SHADOW_TESTERS_OID, WorkflowResult.APPROVED));
             }
 
@@ -241,7 +238,7 @@ public class TestAddAssociation extends AbstractWfTest {
             }
 
             @Override
-            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
+            public LensContext<?> createModelContext(Task task, OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_ELISABETH_OID, result);
 
@@ -252,9 +249,9 @@ public class TestAddAssociation extends AbstractWfTest {
                 LensProjectionContext accountContext = fillContextWithAccount(context, elisabethAccountShadowOid, task, result);
 
                 ObjectModificationType modElement = PrismTestUtil.parseAtomicValue(REQ_ADD_ENTITLEMENT_TESTERS, ObjectModificationType.COMPLEX_TYPE);
-                ObjectDelta shadowDelta = DeltaConvertor.createObjectDelta(modElement, ShadowType.class, prismContext);
+                var shadowDelta = DeltaConvertor.createObjectDelta(modElement, ShadowType.class);
                 shadowDelta.setOid(elisabethAccountShadowOid);
-                //noinspection unchecked
+                provisioningService.applyDefinition(shadowDelta, task, result);
                 accountContext.setPrimaryDelta(shadowDelta);
                 return context;
             }
@@ -263,7 +260,7 @@ public class TestAddAssociation extends AbstractWfTest {
             public void assertsAfterClockworkRun(CaseType rootCase,
                     CaseType case0, List<CaseType> subcases,
                     Task opTask, OperationResult result) throws Exception {
-                ModelContext taskModelContext = miscHelper.getModelContext(rootCase, opTask, result);
+                ModelContext<?> taskModelContext = miscHelper.getModelContext(rootCase, opTask, result);
                 displayDumpable("model context from the root task", taskModelContext);
                 //                assertEquals("Wrong # of projection contexts in root task", 1, taskModelContext.getProjectionContexts().size());
 //                assertTrue("There are modifications in primary focus delta", ObjectDelta.isEmpty(taskModelContext.getFocusContext().getPrimaryDelta()));
@@ -271,18 +268,19 @@ public class TestAddAssociation extends AbstractWfTest {
 //                        ObjectDelta.isEmpty(
 //                                ((LensProjectionContext) (taskModelContext.getProjectionContexts().iterator().next()))
 //                                        .getPrimaryDelta()));
-                ShadowType account = getObject(ShadowType.class, elisabethAccountShadowOid).asObjectable();
-                IntegrationTestTools.display("elisabeth dummy account after first clockwork run", account);
-                assertEquals("Unexpected associations present", 0, account.getAssociation().size());
+                assertShadow(getObject(ShadowType.class, elisabethAccountShadowOid), "elisabeth dummy account after first clockwork run")
+                        .display()
+                        .associations()
+                        .assertSize(0);
             }
 
             @Override
             void assertsRootCaseFinishes(CaseType aCase, List<CaseType> subcases, Task opTask,
                     OperationResult result) throws Exception {
-                ShadowType account = getObject(ShadowType.class, elisabethAccountShadowOid).asObjectable();
-                IntegrationTestTools.display("elisabeth dummy account", account);
-                assertEquals("Unexpected associations present", 0, account.getAssociation().size());
-
+                assertShadow(getObject(ShadowType.class, elisabethAccountShadowOid), "elisabeth dummy account")
+                        .display()
+                        .associations()
+                        .assertSize(0);
                 checkAuditRecords(createResultMap(SHADOW_TESTERS_OID, WorkflowResult.REJECTED));
             }
 
@@ -311,15 +309,18 @@ public class TestAddAssociation extends AbstractWfTest {
         jackAccountShadowOid = jack.getLinkRef().get(0).getOid();
 
         ShadowType accountBefore = getObject(ShadowType.class, jackAccountShadowOid).asObjectable();
-        assertEquals("Wrong # of jack's account associations", 1, accountBefore.getAssociation().size());
-        assertHasAssociation(accountBefore, new QName("group"), SHADOW_TESTERS_OID);
+        assertShadow(accountBefore, "before")
+                .associations()
+                .assertValuesCount(1)
+                .association("group")
+                .assertShadowOids(SHADOW_TESTERS_OID);
 
         LensProjectionContext accountContext = fillContextWithAccount(context, jackAccountShadowOid, modelTask, result);
 
         ObjectModificationType modElement = PrismTestUtil.parseAtomicValue(REQ_ADD_ENTITLEMENT_GUESTS, ObjectModificationType.COMPLEX_TYPE);
-        ObjectDelta shadowDelta = DeltaConvertor.createObjectDelta(modElement, ShadowType.class, prismContext);
+        var shadowDelta = DeltaConvertor.createObjectDelta(modElement, ShadowType.class);
         shadowDelta.setOid(jackAccountShadowOid);
-        //noinspection unchecked
+        provisioningService.applyDefinition(shadowDelta, modelTask, result);
         accountContext.setPrimaryDelta(shadowDelta);
 
         HookOperationMode mode = clockwork.run(context, modelTask, result);
@@ -328,19 +329,12 @@ public class TestAddAssociation extends AbstractWfTest {
         assertEquals("Wrong mode after clockwork.run in " + context.getState(), HookOperationMode.FOREGROUND, mode);
 
         ShadowType accountAfter = getObject(ShadowType.class, jackAccountShadowOid).asObjectable();
-        assertEquals("Wrong # of jack's account associations", 2, accountAfter.getAssociation().size());
-        assertHasAssociation(accountAfter, new QName("group"), SHADOW_TESTERS_OID);
-        assertHasAssociation(accountAfter, new QName("group"), SHADOW_GUESTS_OID);
-    }
-
-    public void assertHasAssociation(ShadowType shadow, QName associationName, String entitlementOid) {
-        for (ShadowAssociationType association : shadow.getAssociation()) {
-            if (QNameUtil.match(association.getName(), associationName) &&
-                    entitlementOid.equals(association.getShadowRef().getOid())) {
-                return;
-            }
-        }
-        AssertJUnit.fail("No association of type " + associationName + " of " + entitlementOid + " in " + ObjectTypeUtil.toShortString(shadow));
+        assertShadow(accountAfter, "after")
+                .display()
+                .associations()
+                .assertValuesCount(2)
+                .association("group")
+                .assertShadowOids(SHADOW_TESTERS_OID, SHADOW_GUESTS_OID);
     }
 
     abstract static class TestDetails {
@@ -352,7 +346,7 @@ public class TestAddAssociation extends AbstractWfTest {
             return false;
         }
 
-        LensContext createModelContext(Task task, OperationResult result) throws Exception {
+        LensContext<?> createModelContext(Task task, OperationResult result) throws Exception {
             return null;
         }
 

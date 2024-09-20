@@ -15,6 +15,7 @@ import java.util.Locale;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 
 import org.apache.commons.lang3.Validate;
@@ -59,29 +60,33 @@ public class ValueFormatter {
     private static final Trace LOGGER = TraceManager.getTrace(ValueFormatter.class);
 
     // todo - should each hiddenAttribute be prefixed with something like F_ATTRIBUTE? Currently it should not be.
-    public String formatAccountAttributes(ShadowType shadowType, Collection<ItemPath> hiddenAttributes, boolean showOperationalAttributes) {
-        Validate.notNull(shadowType, "shadowType is null");
+    public String formatAccountAttributes(ShadowType shadowBean, Collection<ItemPath> hiddenAttributes, boolean showOperationalAttributes) {
+        Validate.notNull(shadowBean, "shadowType is null");
 
         StringBuilder retval = new StringBuilder();
-        if (shadowType.getAttributes() != null) {
-            formatContainerValue(retval, "", shadowType.getAttributes().asPrismContainerValue(), false, hiddenAttributes, showOperationalAttributes);
+        if (shadowBean.getAttributes() != null) {
+            formatContainerValue(retval, "", shadowBean.getAttributes().asPrismContainerValue(), false, hiddenAttributes, showOperationalAttributes);
         }
-        if (shadowType.getCredentials() != null) {
-            formatContainerValue(retval, "", shadowType.getCredentials().asPrismContainerValue(), false, hiddenAttributes, showOperationalAttributes);
+        if (shadowBean.getCredentials() != null) {
+            formatContainerValue(retval, "", shadowBean.getCredentials().asPrismContainerValue(), false, hiddenAttributes, showOperationalAttributes);
         }
-        if (shadowType.getActivation() != null) {
-            formatContainerValue(retval, "", shadowType.getActivation().asPrismContainerValue(), false, hiddenAttributes, showOperationalAttributes);
+        if (shadowBean.getActivation() != null) {
+            formatContainerValue(retval, "", shadowBean.getActivation().asPrismContainerValue(), false, hiddenAttributes, showOperationalAttributes);
         }
-        if (shadowType.getAssociation() != null) {
+        // Here we assume that the shadow is not raw. It should be always the case.
+        var associations = ShadowUtil.getAssociations(shadowBean);
+        if (!associations.isEmpty()) {
             boolean first = true;
-            for (ShadowAssociationType shadowAssociationType : shadowType.getAssociation()) {
+            for (var association : associations) {
                 if (first) {
                     first = false;
                     retval.append("\n");
                 }
-                retval.append("Association:\n");
-                formatContainerValue(retval, "  ", shadowAssociationType.asPrismContainerValue(), false, hiddenAttributes, showOperationalAttributes);
-                retval.append("\n");
+                retval.append("Association: ").append(association.getElementName().getLocalPart()).append("\n");
+                for (var associationValue : association.getValues()) {
+                    formatContainerValue(retval, "  ", associationValue, false, hiddenAttributes, showOperationalAttributes);
+                    retval.append("\n");
+                }
             }
         }
 
@@ -133,7 +138,7 @@ public class ValueFormatter {
             String prefixSubContainer = prefix + "   ";
             StringBuilder valueSb = new StringBuilder();
             formatContainerValue(valueSb, prefixSubContainer, subContainerValue, mightBeRemoved, hiddenPaths, showOperationalAttributes);
-            if (valueSb.length() > 0) {
+            if (!valueSb.isEmpty()) {
                 sb.append(prefix);
                 sb.append(" - ");
                 sb.append(getItemLabel(item));
@@ -180,7 +185,7 @@ public class ValueFormatter {
         sb.append("\n");
     }
 
-    private String toStringValue(PrismPropertyValue value) {
+    private String toStringValue(PrismPropertyValue<?> value) {
         LocalizableMessage msg = ValueDisplayUtil.toStringValue(value);
         return msg != null ? msg.getFallbackMessage() : null;
     }
@@ -189,22 +194,26 @@ public class ValueFormatter {
 
         OperationResult result = new OperationResult("dummy");
 
-        //noinspection unchecked
         PrismObject<? extends ObjectType> object = value.getObject();
 
         if (object == null) {
-            object = getPrismObject(value.getOid(), mightBeRemoved, result);
+            Class<? extends ObjectType> type = ObjectType.class;
+            if (value.getTargetType() != null) {
+                Class maybeType = PrismContext.get().getSchemaRegistry().getCompileTimeClassForObjectType(value.getTargetType());
+                if (maybeType != null) {
+                    type = maybeType;
+                }
+            }
+            object = getPrismObject(value.getOid(), type,  mightBeRemoved, result);
         }
 
         String qualifier = "";
-        if (object != null && object.asObjectable() instanceof ShadowType) {
-            ShadowType shadowType = (ShadowType) object.asObjectable();
-            ObjectReferenceType resourceRef = shadowType.getResourceRef();
-            //noinspection unchecked
+        if (object != null && object.asObjectable() instanceof ShadowType shadow) {
+            ObjectReferenceType resourceRef = shadow.getResourceRef();
             PrismObject<ResourceType> resource = resourceRef.asReferenceValue().getObject();
             ResourceType resourceType = null;
             if (resource == null) {
-                resource = getPrismObject(resourceRef.getOid(), false, result);
+                resource = getPrismObject(resourceRef.getOid(), ResourceType.class, false, result);
                 if (resource != null) {
                     resourceType = resource.asObjectable();
                 }
@@ -214,7 +223,7 @@ public class ValueFormatter {
             if (resourceType != null) {
                 qualifier = " on " + resourceType.getName();
             } else {
-                qualifier = " on resource " + shadowType.getResourceRef().getOid();
+                qualifier = " on resource " + shadow.getResourceRef().getOid();
             }
         }
 
@@ -237,11 +246,16 @@ public class ValueFormatter {
                 : referredObjectIdentification;
     }
 
-    private <O extends ObjectType> PrismObject<O> getPrismObject(String oid, boolean mightBeRemoved, OperationResult result) {
+    private <O extends ObjectType> PrismObject<O> getPrismObject(String oid, Class<? extends ObjectType> type, boolean mightBeRemoved, OperationResult result) {
         try {
             Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
             //noinspection unchecked
-            return (PrismObject<O>) cacheRepositoryService.getObject(ObjectType.class, oid, options, result);
+            if (type == null) {
+                // Read by object typre
+                type = ObjectType.class;
+
+            }
+            return (PrismObject<O>) cacheRepositoryService.getObject(type, oid, options, result);
         } catch (ObjectNotFoundException e) {
             if (!mightBeRemoved) {
                 LoggingUtils.logException(LOGGER, "Couldn't resolve reference when displaying object name within a notification (it might be already removed)", e);

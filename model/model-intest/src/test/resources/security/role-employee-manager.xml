@@ -6,10 +6,7 @@
   -->
   <!-- MID-5581 -->
 <role oid="5549cb8e-d573-11e9-a61e-7f2eff22715a"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Employee manager</name>
     <authorization>
         <name>read-some-roles</name>

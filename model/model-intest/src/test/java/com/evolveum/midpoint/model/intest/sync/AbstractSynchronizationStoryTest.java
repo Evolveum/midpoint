@@ -91,10 +91,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 
         repoAdd(USER_TEMPLATE_SYNC, initResult);
 
-        if (areMarksSupported()) {
-            repoAdd(CommonInitialObjects.ARCHETYPE_OBJECT_MARK, initResult);
-            repoAdd(CommonInitialObjects.MARK_PROTECTED, initResult);
-        }
+        CommonInitialObjects.addMarks(this, initTask, initResult);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
     }
@@ -168,7 +165,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
     private void assertTaskStatistics() throws CommonException {
         String syncTaskOid = getGreenSyncTask().oid;
         PrismObject<TaskType> syncTaskTree = getTaskTree(syncTaskOid);
-        OperationStatsType stats = TaskOperationStatsUtil.getOperationStatsFromTree(syncTaskTree.asObjectable(), prismContext);
+        OperationStatsType stats = TaskOperationStatsUtil.getOperationStatsFromTree(syncTaskTree.asObjectable());
         displayValue("sync task stats", TaskOperationStatsUtil.format(stats));
 
         ProvisioningStatisticsType provisioningStatistics = stats.getEnvironmentalPerformanceInformation().getProvisioningStatistics();
@@ -364,7 +361,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 
         when("wally is changed on green");
         getGreenResource()
-                .getAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME)
+                .getAccountByName(ACCOUNT_WALLY_DUMMY_USERNAME)
                 .replaceAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Wally B. Feed");
 
         and("blue and green sync tasks are run");
@@ -767,7 +764,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertUsers(9 + getNumberOfExtraDummyUsers());
 
         PrismObject<TaskType> syncTaskTree = getTaskTree(getGreenSyncTask().oid);
-        OperationStatsType stats = TaskOperationStatsUtil.getOperationStatsFromTree(syncTaskTree.asObjectable(), prismContext);
+        OperationStatsType stats = TaskOperationStatsUtil.getOperationStatsFromTree(syncTaskTree.asObjectable());
         displayValue("sync task stats", TaskOperationStatsUtil.format(stats));
     }
 
@@ -827,11 +824,11 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertEquals("Wrong resourceRef in wally account (" + resourceDesc + ")", resource.getOid(),
                 accountShadowWally.asObjectable().getResourceRef().getOid());
         if (expectedFullName != null) {
-            IntegrationTestTools.assertAttribute(accountShadowWally.asObjectable(), resource.asObjectable(),
-                    DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, expectedFullName);
+            IntegrationTestTools.assertAttribute(
+                    accountShadowWally.asObjectable(), DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, expectedFullName);
         }
 
-        DummyAccount dummyAccount = dummy.getAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
+        DummyAccount dummyAccount = dummy.getAccountByName(ACCOUNT_WALLY_DUMMY_USERNAME);
         displayDumpable("Account wally (" + resourceDesc + ")", dummyAccount);
         assertNotNull("No dummy account (" + resourceDesc + ")", dummyAccount);
         if (expectedFullName != null) {

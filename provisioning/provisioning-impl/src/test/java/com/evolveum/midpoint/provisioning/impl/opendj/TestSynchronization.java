@@ -16,6 +16,7 @@ import com.evolveum.midpoint.provisioning.impl.MockLiveSyncTaskHandler;
 
 import com.evolveum.midpoint.schema.ResourceOperationCoordinates;
 
+import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.opends.server.core.AddOperation;
@@ -146,7 +147,6 @@ public class TestSynchronization extends AbstractIntegrationTest {
                         resourceType.getOid(), AbstractOpenDjTest.RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
 
         // WHEN
-
         mockLiveSyncTaskHandler.synchronize(coords, tokenStorage, getTestTask(), result);
 
         // THEN
@@ -155,18 +155,16 @@ public class TestSynchronization extends AbstractIntegrationTest {
         assertEquals("Unexpected number of synchronization service calls", 1, mock.getCallCount());
 
         ResourceObjectShadowChangeDescription lastChange = mock.getLastChange();
-//            ObjectDelta<? extends ShadowType> objectDelta = lastChange.getObjectDelta();
-//            assertNotNull("Null object delta in change notification", objectDelta);
-//            assertEquals("Wrong change type in delta in change notification", ChangeType.ADD, objectDelta.getChangeType());
         PrismObject<? extends ShadowType> currentShadow = lastChange.getShadowedResourceObject();
         assertNotNull("No current shadow in change notification", currentShadow);
 
-        // TODO why is the value lowercased? Is it because it was taken from the change and not fetched from the resource?
-        assertEquals("Wrong shadow name", ACCOUNT_WILL_NAME.toLowerCase(), currentShadow.asObjectable().getName().getOrig());
+        // The value is lowercase, because this is how it's returned by the SYNC operation by LDAP.
+        assertEquals("Wrong shadow name",
+                ACCOUNT_WILL_NAME.toLowerCase(),
+                currentShadow.asObjectable().getName().getOrig());
 
         ShadowType shadow = currentShadow.asObjectable();
-        MetadataType metadata = shadow.getMetadata();
-        assertTrue("Shadow doesn't have metadata", metadata != null && metadata.getCreateTimestamp() != null);
+        assertNotNull("Shadow doesn't have metadata", ValueMetadataTypeUtil.getCreateTimestamp(shadow));
 
         tokenStorage.assertToken(1);
     }

@@ -11,9 +11,13 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
+import org.testng.SkipException;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
@@ -35,10 +39,12 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.RunAsCapabil
 
 /**
  * Almost the same as TestDummy but quite limited:
+ *
  * - no activation support
  * - no paging
  * - no count simulation using sequential search
  * - no runAs
+ *
  * Let's test that we are able to do all the operations without NPEs and other side effects.
  *
  * @author Radovan Semancik
@@ -64,6 +70,14 @@ public class TestDummyLimited extends TestDummy {
 
     protected File getAccountWillFile() {
         return ACCOUNT_WILL_FILE;
+    }
+
+    @BeforeMethod
+    public void skipIfForcedCaching() {
+        if (InternalsConfig.isShadowCachingOnByDefault()) {
+            // This test is enabled for the default configuration; TODO implement later
+            throw new SkipException("Skipping because forced shadow caching is on");
+        }
     }
 
     @Override
@@ -123,7 +137,7 @@ public class TestDummyLimited extends TestDummy {
 
         delta.checkConsistence();
         // check if activation was unchanged
-        DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
+        DummyAccount dummyAccount = dummyResource.getAccountByName(ACCOUNT_WILL_USERNAME);
         assertTrue("Dummy account " + ACCOUNT_WILL_USERNAME + " is disabled, expected enabled", dummyAccount.isEnabled());
 
         syncServiceMock.assertSingleNotifyFailureOnly();
@@ -168,7 +182,7 @@ public class TestDummyLimited extends TestDummy {
 
         delta.checkConsistence();
         // check if activation was unchanged
-        DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
+        DummyAccount dummyAccount = dummyResource.getAccountByName(ACCOUNT_WILL_USERNAME);
         assertTrue("Dummy account " + ACCOUNT_WILL_USERNAME + " is disabled, expected enabled", dummyAccount.isEnabled());
 
         syncServiceMock.assertSingleNotifyFailureOnly();
@@ -209,7 +223,7 @@ public class TestDummyLimited extends TestDummy {
 
         delta.checkConsistence();
         // check if activation was unchanged
-        DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
+        DummyAccount dummyAccount = dummyResource.getAccountByName(ACCOUNT_WILL_USERNAME);
         assertTrue("Dummy account " + ACCOUNT_WILL_USERNAME + " is disabled, expected enabled", dummyAccount.isEnabled());
 
         syncServiceMock.assertSingleNotifyFailureOnly();
@@ -254,7 +268,7 @@ public class TestDummyLimited extends TestDummy {
 
         delta.checkConsistence();
         // check if activation was not changed
-        DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
+        DummyAccount dummyAccount = dummyResource.getAccountByName(ACCOUNT_WILL_USERNAME);
         assertTrue("Dummy account " + ACCOUNT_WILL_USERNAME + " is disabled, expected enabled", dummyAccount.isEnabled());
         assertNull("Unexpected account validFrom in account " + ACCOUNT_WILL_USERNAME + ": " + dummyAccount.getValidFrom(), dummyAccount.getValidFrom());
         assertNull("Unexpected account validTo in account " + ACCOUNT_WILL_USERNAME + ": " + dummyAccount.getValidTo(), dummyAccount.getValidTo());
@@ -296,7 +310,7 @@ public class TestDummyLimited extends TestDummy {
 
         delta.checkConsistence();
         // check if activation was changed
-        DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
+        DummyAccount dummyAccount = dummyResource.getAccountByName(ACCOUNT_WILL_USERNAME);
         assertTrue("Dummy account " + ACCOUNT_WILL_USERNAME + " is disabled, expected enabled", dummyAccount.isEnabled());
         assertNull("Unexpected account validFrom in account " + ACCOUNT_WILL_USERNAME + ": " + dummyAccount.getValidFrom(), dummyAccount.getValidFrom());
         assertNull("Unexpected account validTo in account " + ACCOUNT_WILL_USERNAME + ": " + dummyAccount.getValidTo(), dummyAccount.getValidTo());
@@ -342,7 +356,7 @@ public class TestDummyLimited extends TestDummy {
 
         delta.checkConsistence();
         // check if activation was changed
-        DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
+        DummyAccount dummyAccount = dummyResource.getAccountByName(ACCOUNT_WILL_USERNAME);
         assertTrue("Dummy account " + ACCOUNT_WILL_USERNAME + " is disabled, expected enabled", dummyAccount.isEnabled());
         assertNull("Unexpected account validFrom in account " + ACCOUNT_WILL_USERNAME + ": " + dummyAccount.getValidFrom(), dummyAccount.getValidFrom());
         assertNull("Unexpected account validTo in account " + ACCOUNT_WILL_USERNAME + ": " + dummyAccount.getValidTo(), dummyAccount.getValidTo());
@@ -354,7 +368,7 @@ public class TestDummyLimited extends TestDummy {
 
     @Test
     @Override
-    public void test159GetLockedoutAccount() {
+    public void test159GetLockedOutAccount() {
         // Not relevant
     }
 
@@ -407,7 +421,7 @@ public class TestDummyLimited extends TestDummy {
     @Override
     protected String[] getSortedUsernames18x() {
         // daemon, Will, morgan, carla, meathook
-        return new String[] { "daemon", transformNameFromResource("Will"), transformNameFromResource("morgan"), "carla", "meathook" };
+        return new String[] { "daemon", getWillNameOnResource(), transformNameToResource("morgan"), "carla", "meathook" };
     }
 
     // No paging

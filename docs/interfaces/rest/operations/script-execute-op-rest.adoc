@@ -1,0 +1,101 @@
+= Script Execute Operation
+:page-nav-title: Execute Script
+:page-display-order: 700
+:page-toc: top
+:page-keywords: [ 'rest', 'script', 'rpc', 'operation' ]
+:page-upkeep-status: green
+
+== Description
+
+Remote procedure call (RPC) type of request which is specifically used for script execution. The script which should
+be executed is a part of the request body.
+
+== Request
+
+For the request you need to use the HTTP POST method.
+
+.*Execute Script* operation using HTTP POST
+[source, http]
+----
+POST http://localhost:8080/midpoint/ws/rest/rpc/executeScript
+----
+
+=== Headers
+
+Regarding authorization type, the "Basic" Authorization header should be used.
+
+.Authorization header example replace {Base64EncodedCredentials} with the encoded credentials
+[source, http]
+----
+Authorization: Basic {Base64EncodedCredentials}
+----
+
+To specify the provided content type, please use the "Content-Type" header
+payload in the body:
+
+.Content type header example, other media types are supported as well
+[source, http]
+----
+"Content-Type: application/json"
+----
+
+You might need to specify the accepted type of content in case
+you are interested in a format different from xml (default):
+
+.Accept type header example, other media types are supported as well
+[source, http]
+----
+"Accept: application/json"
+----
+
+.For supported media types please refer to the following section of the documentation
+xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+
+
+=== Body
+
+The body should contain a payload consisting of a ExecuteScriptType type of object containing.
+Please have a look on the *examples* on this page for a sample of the object in the body.
+
+
+=== Options
+There are no supported operation options for this type of operation.
+
+include::../../rest/concepts/raw/outcome.adoc[]
+
+=== Responses In Case Of Success
+
+- *200 OK*, ExecuteScriptResponseType returned in the body
+- *201 Created*, Location set to point to the newly created Task object. Only applicable is asynchronous=true parameter is used.
+- *240 Handled error*, OperationResult is returned in the body
+- *250 Partial error*, OperationResult is returned in the body
+
+== Access Authorization
+
+include::../operations/raw/a-auth.adoc[]
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#executeScript+`
+
+== Model Authorization
+
+include::../operations/raw/m-auth.adoc[]
+
+The following authorization is a buld authorization which is quite broad, please see the following xref:/midpoint/reference/security/authorization/bulk-actions/[documentation] for how to specify a more concrete authorization.
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-bulk-3#all+`
+
+== Examples
+
+include::../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+include::../../rest/operations/examples/raw/execute-script-rpc.adoc[]
+
+== See Also
+
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]
+- xref:/midpoint/reference/security/authorization/service/[]

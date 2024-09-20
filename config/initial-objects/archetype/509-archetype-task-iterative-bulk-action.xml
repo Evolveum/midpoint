@@ -9,14 +9,14 @@
            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
            xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
            xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
-    <name>Iterative bulk action task</name>
+    <name>Iterative action task</name>
     <archetypePolicy>
         <display>
-            <label>Iterative bulk action task</label>
+            <label>Iterative action task</label>
             <pluralLabel>
-                <orig>Iterative bulk action tasks</orig>
+                <orig>Iterative action tasks</orig>
                 <translation>
-                    <key>IterativeBulkActionTasks.title</key>
+                    <key>IterativeActionTasks.title</key>
                 </translation>
             </pluralLabel>
             <icon>
@@ -70,7 +70,7 @@
                     <container id="12">
                         <identifier>objects-to-process</identifier>
                         <display>
-                            <label>IterativeBulkActionTask.objectsToProcess</label>
+                            <label>IterativeActionTask.objectsToProcess</label>
                         </display>
                         <item id="14">
                             <c:path>extension/mext:objectType</c:path>
@@ -88,7 +88,7 @@
                     <container id="13">
                         <identifier>bulk-action</identifier>
                         <display>
-                            <label>IterativeBulkActionTask.bulkAction</label>
+                            <label>IterativeActionTask.action</label>
                         </display>
                         <item id="18">
                             <c:path>extension/scext:executeScript</c:path>

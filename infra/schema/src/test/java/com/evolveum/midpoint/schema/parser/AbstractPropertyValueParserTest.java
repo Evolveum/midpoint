@@ -53,7 +53,7 @@ public abstract class AbstractPropertyValueParserTest<T> extends AbstractPrismVa
 //                serializer, serId);
     }
 
-    protected PrismPropertyValue<T> makePPV(T realValue, PrismPropertyDefinition definition) {
+    protected PrismPropertyValue<T> makePPV(T realValue, PrismPropertyDefinition<T> definition) {
         PrismProperty<T> property = definition.instantiate();
         property.setRealValue(realValue);
         return property.getAnyValue();

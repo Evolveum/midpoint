@@ -9,18 +9,10 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
+    <div wicket:id="navigationPanel" />
     <form wicket:id="mainForm">
         <div wicket:id="decisionsTable"/>
     </form>
-
-    <wicket:fragment wicket:id="tableHeader">
-        <form class="form-inline search-form justify-content-end" wicket:id="searchForm">
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" wicket:id="showNotDecidedOnly"/>
-                <label class="form-check-label"><wicket:message key="PageCertDecisions.checkbox.showNoResponseOnly"/></label>
-            </div>
-        </form>
-    </wicket:fragment>
 </wicket:extend>
 </body>
 </html>

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.intest.mapping;
 import java.io.File;
 import java.io.IOException;
 
+import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -32,7 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 /**
  * Various advanced tests related to mappings.
  *
- * NOT a subclass of AbstractMappingTest.
+ * NOT a subclass of {@link AbstractMappingTest}: it is not an {@link AbstractInitializedModelIntegrationTest}.
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -43,18 +44,26 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
 
     private static final String ATTR_ORGANIZATION = "organization";
 
-    private static final DummyTestResource RESOURCE_DUMMY_ALPHA = new DummyTestResource(TEST_DIR, "resource-dummy-alpha.xml", "8f6b271a-c279-4b1b-bb91-e675c67be243", "alpha");
+    private static final DummyTestResource RESOURCE_DUMMY_ALPHA =
+            new DummyTestResource(TEST_DIR, "resource-dummy-alpha.xml", "8f6b271a-c279-4b1b-bb91-e675c67be243",
+                    "alpha");
 
-    private static final TestObject<ObjectTemplateType> USER_TEMPLATE_INCREMENTING = TestObject.file(TEST_DIR, "user-template-incrementing.xml", "bf0cf9b7-4c38-4ff4-afc6-c9cc9bc08490");
-    private static final TestObject<UserType> USER_FRANZ = TestObject.file(TEST_DIR, "user-franz.xml", "ac42084a-d780-4d32-ac02-bcc49bdc747b");
-    private static final TestObject<UserType> USER_FREDERIC = TestObject.file(TEST_DIR, "user-frederic.xml", "849d540c-d052-43c0-937a-1ca1cda0679e");
-    private static final TestObject<UserType> USER_JOHANN = TestObject.file(TEST_DIR, "user-johann.xml", "25fa06c6-04e2-4f9e-97c4-87fa5613bb15");
+    private static final TestObject<ObjectTemplateType> USER_TEMPLATE_INCREMENTING =
+            TestObject.file(TEST_DIR, "user-template-incrementing.xml", "bf0cf9b7-4c38-4ff4-afc6-c9cc9bc08490");
+    private static final TestObject<UserType> USER_FRANZ =
+            TestObject.file(TEST_DIR, "user-franz.xml", "ac42084a-d780-4d32-ac02-bcc49bdc747b");
+    private static final TestObject<UserType> USER_FREDERIC =
+            TestObject.file(TEST_DIR, "user-frederic.xml", "849d540c-d052-43c0-937a-1ca1cda0679e");
+    private static final TestObject<UserType> USER_JOHANN =
+            TestObject.file(TEST_DIR, "user-johann.xml", "25fa06c6-04e2-4f9e-97c4-87fa5613bb15");
 
     private static final File ASSIGNMENT_FREDERIC_ALPHA_FILE = new File(TEST_DIR, "assignment-frederic-alpha.xml");
     private static final File ASSIGNMENT_JOHANN_ALPHA_FILE = new File(TEST_DIR, "assignment-johann-alpha.xml");
 
     // ranges
-    private static final DummyTestResource RESOURCE_DUMMY_RANGES_DIRECT = new DummyTestResource(TEST_DIR, "resource-dummy-ranges-direct.xml", "0164ac9c-2727-44cf-be0f-96c4f600017c", "ranges-direct",
+    private static final DummyTestResource RESOURCE_DUMMY_RANGES_DIRECT = new DummyTestResource(
+            TEST_DIR, "resource-dummy-ranges-direct.xml", "0164ac9c-2727-44cf-be0f-96c4f600017c",
+            "ranges-direct",
             controller -> {
                 controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
                         ATTR_ORGANIZATION, String.class, false, true);
@@ -62,7 +71,9 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
                         DummyGroup.ATTR_MEMBERS_NAME, String.class, false, true);
             });
 
-    private static final DummyTestResource RESOURCE_DUMMY_RANGES_ROLE = new DummyTestResource(TEST_DIR, "resource-dummy-ranges-role.xml", "96b44c65-011f-489c-bcdb-c5f9a2502942", "ranges-role",
+    private static final DummyTestResource RESOURCE_DUMMY_RANGES_ROLE = new DummyTestResource(
+            TEST_DIR, "resource-dummy-ranges-role.xml", "96b44c65-011f-489c-bcdb-c5f9a2502942",
+            "ranges-role",
             controller -> {
                 controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
                         ATTR_ORGANIZATION, String.class, false, true);
@@ -232,7 +243,7 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        DummyAccount magnus = RESOURCE_DUMMY_RANGES_DIRECT.controller.getDummyResource().getAccountByUsername(MAGNUS);
+        DummyAccount magnus = RESOURCE_DUMMY_RANGES_DIRECT.controller.getDummyResource().getAccountByName(MAGNUS);
         magnus.addAttributeValue(ATTR_ORGANIZATION, "mp_garbage");
         magnus.addAttributeValue(ATTR_ORGANIZATION, "valid");
 
@@ -241,6 +252,8 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
 
         DummyGroup validGroup = RESOURCE_DUMMY_RANGES_DIRECT.controller.getDummyResource().getGroupByName(VALID_GROUP);
         validGroup.addMember(MAGNUS);
+
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_RANGES_DIRECT.oid);
 
         when();
         recomputeUser(USER_MAGNUS.oid, task, result);
@@ -276,11 +289,13 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        DummyAccount magnus = RESOURCE_DUMMY_RANGES_DIRECT.controller.getDummyResource().getAccountByUsername(MAGNUS);
+        DummyAccount magnus = RESOURCE_DUMMY_RANGES_DIRECT.controller.getDummyResource().getAccountByName(MAGNUS);
         magnus.addAttributeValue(ATTR_ORGANIZATION, "mp_garbage");
 
         DummyGroup testers = RESOURCE_DUMMY_RANGES_DIRECT.controller.getDummyResource().getGroupByName(MP_TESTERS);
         testers.addMember(MAGNUS);
+
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_RANGES_DIRECT.oid);
 
         ObjectDelta<UserType> delta = deltaFor(UserType.class)
                 .item(UserType.F_FULL_NAME)
@@ -348,7 +363,7 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        DummyAccount vladimir = RESOURCE_DUMMY_RANGES_ROLE.controller.getDummyResource().getAccountByUsername(VLADIMIR);
+        DummyAccount vladimir = RESOURCE_DUMMY_RANGES_ROLE.controller.getDummyResource().getAccountByName(VLADIMIR);
         vladimir.addAttributeValue(ATTR_ORGANIZATION, "mp_garbage");
         vladimir.addAttributeValue(ATTR_ORGANIZATION, "valid");
 
@@ -357,6 +372,8 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
 
         DummyGroup validGroup = RESOURCE_DUMMY_RANGES_ROLE.controller.getDummyResource().getGroupByName(VALID_GROUP);
         validGroup.addMember(VLADIMIR);
+
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_RANGES_ROLE.oid);
 
         when();
         recomputeUser(USER_VLADIMIR.oid, task, result);
@@ -391,11 +408,13 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        DummyAccount vladimir = RESOURCE_DUMMY_RANGES_ROLE.controller.getDummyResource().getAccountByUsername(VLADIMIR);
+        DummyAccount vladimir = RESOURCE_DUMMY_RANGES_ROLE.controller.getDummyResource().getAccountByName(VLADIMIR);
         vladimir.addAttributeValue(ATTR_ORGANIZATION, "mp_garbage");
 
         DummyGroup testers = RESOURCE_DUMMY_RANGES_ROLE.controller.getDummyResource().getGroupByName(MP_TESTERS);
         testers.addMember(VLADIMIR);
+
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_RANGES_ROLE.oid);
 
         ObjectDelta<UserType> delta = deltaFor(UserType.class)
                 .item(UserType.F_FULL_NAME)

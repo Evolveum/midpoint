@@ -11,10 +11,7 @@
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-          xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy"
-          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 
     <name>Dummy Resource for checker</name>
     <connectorRef type="c:ConnectorType">
@@ -34,95 +31,16 @@
     <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
                    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
         <icfc:configurationProperties>
-            <icfi:instanceId>for-checker</icfi:instanceId> <!-- Default instance. -->
+            <icfi:instanceId>for-checker</icfi:instanceId>
         </icfc:configurationProperties>
     </connectorConfiguration>
-
-    <schema>
-        <definition>
-            <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-                        xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
-                        xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-                        xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-                        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                        elementFormDefault="qualified"
-                        targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"/>
-                <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
-                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"/>
-                <xsd:complexType name="account1">
-                    <xsd:annotation>
-                        <xsd:appinfo>
-                            <ra:resourceObject/>
-                            <ra:identifier>icfs:uid</ra:identifier>
-                            <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
-                            <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
-                            <ra:namingAttribute>icfs:name</ra:namingAttribute>
-                            <ra:nativeObjectClass>__ACCOUNT__</ra:nativeObjectClass>
-                            <ra:kind>account</ra:kind>
-                            <ra:default/>
-                        </xsd:appinfo>
-                    </xsd:annotation>
-                    <xsd:sequence>
-                        <xsd:element ref="icfs:uid" minOccurs="0">
-                            <xsd:annotation>
-                                <xsd:appinfo>
-                                    <a:displayName>ICF UID</a:displayName>
-                                    <a:access>read</a:access>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element ref="icfs:name">
-                            <xsd:annotation>
-                                <xsd:appinfo>
-                                    <a:displayName>ICF NAME</a:displayName>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                    </xsd:sequence>
-                </xsd:complexType>
-                <xsd:complexType name="account2">
-                    <xsd:annotation>
-                        <xsd:appinfo>
-                            <ra:resourceObject/>
-                            <ra:identifier>icfs:uid</ra:identifier>
-                            <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
-                            <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
-                            <ra:namingAttribute>icfs:name</ra:namingAttribute>
-                            <ra:nativeObjectClass>__ACCOUNT__</ra:nativeObjectClass>
-                            <ra:kind>account</ra:kind>
-                            <ra:default/>
-                        </xsd:appinfo>
-                    </xsd:annotation>
-                    <xsd:sequence>
-                        <xsd:element ref="icfs:uid" minOccurs="0">
-                            <xsd:annotation>
-                                <xsd:appinfo>
-                                    <a:displayName>ICF UID</a:displayName>
-                                    <a:access>read</a:access>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element ref="icfs:name">
-                            <xsd:annotation>
-                                <xsd:appinfo>
-                                    <a:displayName>ICF NAME</a:displayName>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                    </xsd:sequence>
-                </xsd:complexType>
-            </xsd:schema>
-        </definition>
-    </schema>
 
     <schemaHandling>
         <objectType>
             <kind>account</kind>
             <intent>intent1</intent>
             <default>false</default>
-            <objectClass>ri:account1</objectClass>
+            <objectClass>ri:AccountObjectClass</objectClass>
             <attribute>
                 <ref>icfs:name</ref>
             </attribute>
@@ -131,10 +49,10 @@
             </attribute>
         </objectType>
         <objectType>
-            <kind>account</kind>
+            <kind>entitlement</kind>
             <intent>intent2</intent>
             <default>false</default>
-            <objectClass>ri:account2</objectClass>
+            <objectClass>ri:GroupObjectClass</objectClass>
             <attribute>
                 <ref>icfs:name</ref>
             </attribute>

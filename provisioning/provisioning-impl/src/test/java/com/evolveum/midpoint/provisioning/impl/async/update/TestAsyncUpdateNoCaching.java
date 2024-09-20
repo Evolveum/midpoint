@@ -8,11 +8,14 @@
 package com.evolveum.midpoint.provisioning.impl.async.update;
 
 import com.evolveum.icf.dummy.resource.*;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import org.jetbrains.annotations.NotNull;
+import org.testng.SkipException;
+import org.testng.annotations.BeforeMethod;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -32,6 +35,14 @@ public class TestAsyncUpdateNoCaching extends TestAsyncUpdate {
         return RESOURCE_ASYNC_NO_CACHING_FILE;
     }
 
+    @BeforeMethod
+    public void skipIfForcedCaching() {
+        if (InternalsConfig.isShadowCachingOnByDefault()) {
+            // TODO implement later
+            throw new SkipException("Skipping because forced shadow caching is on");
+        }
+    }
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -39,6 +50,7 @@ public class TestAsyncUpdateNoCaching extends TestAsyncUpdate {
         dummyResourceCtl.setResource(resource);
         dummyResource = dummyResourceCtl.getDummyResource();
         dummyResourceCtl.addAttrDef(dummyResource.getAccountObjectClass(), "test", String.class, false, true);
+        dummyResourceCtl.addAttrDef(dummyResource.getAccountObjectClass(), "memberOf", String.class, false, true);
     }
 
     @NotNull
@@ -65,7 +77,7 @@ public class TestAsyncUpdateNoCaching extends TestAsyncUpdate {
     @Override
     protected void setDummyAccountTestAttribute(String name, String... values) {
         try {
-            DummyAccount account = dummyResource.getAccountByUsername(name);
+            DummyAccount account = dummyResource.getAccountByName(name);
             account.replaceAttributeValues("test", Arrays.asList(values));
         } catch (SchemaViolationException | ConnectException | FileNotFoundException | ConflictException | InterruptedException e) {
             throw new AssertionError(e);

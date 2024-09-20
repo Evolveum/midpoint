@@ -7,23 +7,27 @@
 
 package com.evolveum.midpoint.repo.sql.helpers;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 import org.apache.commons.collections4.CollectionUtils;
-import org.hibernate.query.Query;
-import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.Visitor;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 
 /**
  * @author lazyman, katkav
@@ -36,11 +40,11 @@ public class NameResolutionHelper {
     @Autowired private PrismContext prismContext;
 
     // TODO keep names between invocations (e.g. when called from searchObjects/searchContainers)
-    public void resolveNamesIfRequested(Session session, PrismContainerValue<?> containerValue, Collection<SelectorOptions<GetOperationOptions>> options) {
-        resolveNamesIfRequested(session, Collections.singletonList(containerValue), options);
+    public void resolveNamesIfRequested(EntityManager em, PrismContainerValue<?> containerValue, Collection<SelectorOptions<GetOperationOptions>> options) {
+        resolveNamesIfRequested(em, Collections.singletonList(containerValue), options);
     }
 
-    public void resolveNamesIfRequested(Session session, List<? extends PrismContainerValue> containerValues, Collection<SelectorOptions<GetOperationOptions>> options) {
+    public void resolveNamesIfRequested(EntityManager em, List<? extends PrismContainerValue> containerValues, Collection<SelectorOptions<GetOperationOptions>> options) {
 
         List<? extends ItemPath> pathsToResolve = getPathsToResolve(options);
         if (pathsToResolve.isEmpty()) {
@@ -75,11 +79,11 @@ public class NameResolutionHelper {
         for (Iterator<String> iterator = oidsToResolve.iterator(); iterator.hasNext(); ) {
             batch.add(iterator.next());
             if (batch.size() >= MAX_OIDS_TO_RESOLVE_AT_ONCE || !iterator.hasNext()) {
-                Query query = session.getNamedQuery("resolveReferences");
-                query.setParameterList("oid", batch);
+                Query query = em.createNamedQuery("resolveReferences");
+                query.setParameter("oid", batch);
 
                 @SuppressWarnings({ "unchecked", "raw" })
-                List<Object[]> results = query.list();            // returns oid + name
+                List<Object[]> results = query.getResultList();            // returns oid + name
                 for (Object[] result : results) {
                     String oid = (String) result[0];
                     RPolyString name = (RPolyString) result[1];

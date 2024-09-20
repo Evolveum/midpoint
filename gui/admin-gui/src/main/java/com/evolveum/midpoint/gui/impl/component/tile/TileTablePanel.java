@@ -17,6 +17,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -43,6 +44,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
 
     private static final long serialVersionUID = 1L;
 
+    static final String ID_TILE_VIEW = "tileView";
     static final String ID_TILES_CONTAINER = "tilesContainer";
     protected static final String ID_TILES_FRAGMENT = "tilesFragment";
     protected static final String ID_TILES = "tiles";
@@ -53,7 +55,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
     private static final String ID_PANEL_HEADER = "panelHeader";
 
     protected static final String ID_TILE = "tile";
-    private static final String ID_TABLE = "table";
+    static final String ID_TABLE = "table";
 
     static final String ID_FOOTER_CONTAINER = "footerContainer";
     private static final String ID_BUTTON_TOOLBAR = "buttonToolbar";
@@ -97,19 +99,25 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
     private void initLayout() {
         setOutputMarkupId(true);
 
-        add(createHeaderFragment(ID_HEADER));
+        WebMarkupContainer tilesView = new WebMarkupContainer(ID_TILE_VIEW);
+        tilesView.add(new VisibleBehaviour(this::isTileViewVisible));
+        tilesView.setOutputMarkupId(true);
+        add(tilesView);
+
+        initHeaderFragment(tilesView);
 
         ISortableDataProvider<O, String> provider = createProvider();
         WebMarkupContainer tilesContainer = createTilesContainer(ID_TILES_CONTAINER, provider, tableId);
-        tilesContainer.add(new VisibleBehaviour(() -> viewToggleModel.getObject() == ViewToggle.TILE));
+        tilesContainer.add(new VisibleBehaviour(this::isTileViewVisible));
+        tilesContainer.add(AttributeModifier.append("class", getTilesContainerAdditionalClass()));
         tilesContainer.setOutputMarkupId(true);
-        add(tilesContainer);
+        tilesView.add(tilesContainer);
 
         WebMarkupContainer footerContainer = new WebMarkupContainer(ID_FOOTER_CONTAINER);
         footerContainer.add(new VisibleBehaviour(this::showFooter));
         footerContainer.setOutputMarkupId(true);
         footerContainer.add(AttributeAppender.append("class", getTilesFooterCssClasses()));
-        add(footerContainer);
+        tilesView.add(footerContainer);
 
         NavigatorPanel tilesPaging = new NavigatorPanel(ID_TILES_PAGING, getTiles(), true) {
 
@@ -124,8 +132,12 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         footerContainer.add(buttonToolbar);
 
         BoxedTablePanel table = createTablePanel(ID_TABLE, provider, tableId);
-        table.add(new VisibleBehaviour(() -> viewToggleModel.getObject() == ViewToggle.TABLE));
+        table.add(new VisibleBehaviour(this::isTableVisible));
         add(table);
+    }
+
+    public void initHeaderFragment(WebMarkupContainer tilesView) {
+        tilesView.addOrReplace(createHeaderFragment(ID_HEADER));
     }
 
     protected boolean showFooter() {
@@ -134,6 +146,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
 
     protected WebMarkupContainer createTilesContainer(String idTilesContainer, ISortableDataProvider<O, String> provider, UserProfileStorage.TableId tableId) {
         Fragment tilesFragment = new Fragment(idTilesContainer, ID_TILES_FRAGMENT, TileTablePanel.this);
+        tilesFragment.add(AttributeAppender.replace("class", getTileContainerCssClass()));
 
         PageableListView tiles = createTilesPanel(ID_TILES, provider);
         tilesFragment.add(tiles);
@@ -186,7 +199,20 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
             protected String getPaginationCssClass() {
                 return null;
             }
+
+            @Override
+            public String getAdditionalBoxCssClasses() {
+                String additionalBoxCssClasses = TileTablePanel.this.getAdditionalBoxCssClasses();
+                if (additionalBoxCssClasses != null) {
+                    return additionalBoxCssClasses;
+                }
+                return super.getAdditionalBoxCssClasses();
+            }
         };
+    }
+
+    protected String getAdditionalBoxCssClasses() {
+        return null;
     }
 
     private TogglePanel createTogglePanel(String id) {
@@ -254,12 +280,16 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         return view.getProvider();
     }
 
-    private PageableListView getTiles(){
-        return (PageableListView) get(ID_TILES_CONTAINER).get(ID_TILES);
+    private PageableListView getTiles() {
+        return (PageableListView) get(ID_TILE_VIEW).get(ID_TILES_CONTAINER).get(ID_TILES);
     }
 
     protected String getTileCssClasses() {
         return null;
+    }
+
+    protected String getTileContainerCssClass() {
+        return "d-flex flex-wrap justify-content-left pt-3";
     }
 
     protected Component createTile(String id, IModel<T> model) {
@@ -276,7 +306,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         if (viewToggleModel.getObject() == ViewToggle.TABLE) {
             target.add(get(ID_TABLE));
         } else {
-            target.add(get(ID_TILES_CONTAINER), getTilesNavigation(), get(ID_FOOTER_CONTAINER));
+            target.add(get(ID_TILE_VIEW));
         }
     }
 
@@ -285,7 +315,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
     }
 
     protected NavigatorPanel getTilesNavigation() {
-        return (NavigatorPanel) get(createComponentPath(ID_FOOTER_CONTAINER, ID_TILES_PAGING));
+        return (NavigatorPanel) get(createComponentPath(ID_TILE_VIEW, ID_FOOTER_CONTAINER, ID_TILES_PAGING));
     }
 
     protected IModel<Search> createSearchModel() {
@@ -298,14 +328,20 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
 
     Fragment createHeaderFragment(String id) {
         Fragment fragment = new Fragment(id, ID_HEADER_FRAGMENT, TileTablePanel.this);
+        fragment.setOutputMarkupId(true);
 
         Component header = createHeader(ID_PANEL_HEADER);
         header.add(AttributeAppender.append("class", getTilesHeaderCssClasses()));
         fragment.add(header);
 
         fragment.add(createTogglePanel(ID_VIEW_TOGGLE));
+        fragment.add(getHeaderFragmentVisibility());
 
         return fragment;
+    }
+
+    protected VisibleEnableBehaviour getHeaderFragmentVisibility() {
+        return VisibleBehaviour.ALWAYS_VISIBLE_ENABLED;
     }
 
     protected Component createHeader(String id) {
@@ -332,5 +368,17 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
 
     private void onSearchPerformed(AjaxRequestTarget target) {
         refresh(target);
+    }
+
+    protected String getTilesContainerAdditionalClass() {
+        return "card-footer";
+    }
+
+    protected final boolean isTableVisible() {
+        return viewToggleModel.getObject() == ViewToggle.TABLE;
+    }
+
+    protected final boolean isTileViewVisible() {
+        return viewToggleModel.getObject() == ViewToggle.TILE;
     }
 }

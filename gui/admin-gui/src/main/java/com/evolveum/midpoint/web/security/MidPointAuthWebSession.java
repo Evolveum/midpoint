@@ -10,6 +10,7 @@ package com.evolveum.midpoint.web.security;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.common.AvailableLocale;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -43,9 +44,9 @@ public class MidPointAuthWebSession extends AuthenticatedWebSession implements D
 
         Locale locale = getLocale();
         LOGGER.debug("Found locale {}", locale);
-        if (locale == null || !MidPointApplication.containsLocale(locale)) {
+        if (locale == null || !AvailableLocale.containsLocale(locale)) {
             //default locale for web application
-            setLocale(MidPointApplication.getDefaultLocale());
+            setLocale(AvailableLocale.getDefaultLocale());
         }
         LOGGER.debug("Using {} as locale", getLocale());
     }

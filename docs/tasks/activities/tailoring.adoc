@@ -1,0 +1,19 @@
+= Tailoring
+
+Here we describe how to tailor predefined composite xref:../[activities].
+
+In predefined composite activity, definitions of individual sub-activities can be _tailored_ in two ways:
+
+1. Definitions of _existing_ sub-activities can be changed in some respects, e.g. changing their
+execution mode, control flow, distribution, or reporting definition. Currently, it is not possible
+to change the basic work specification for them.
+
+2. In the future it will be possible to insert new sub-activities before, after, or in-between existing ones.
+
+TODO:
+
+[%header]
+[%autowidth]
+|===
+| Item | Meaning | Default
+|===

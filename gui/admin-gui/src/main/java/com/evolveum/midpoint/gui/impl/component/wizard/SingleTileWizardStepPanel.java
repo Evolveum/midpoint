@@ -1,9 +1,18 @@
+/*
+ * Copyright (C) 2010-2024 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.gui.impl.component.wizard;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanDataProvider;
+import com.evolveum.midpoint.gui.impl.component.tile.SingleSelectObjectTileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.SingleSelectTileTablePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.prism.Containerable;
@@ -15,7 +24,6 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
@@ -23,7 +31,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 
@@ -31,7 +38,7 @@ import java.util.Collection;
 import java.util.List;
 
 public abstract class SingleTileWizardStepPanel<O extends ObjectType, ODM extends ObjectDetailsModels, V extends Containerable>
-        extends SelectTileWizardStepPanel<O, ODM, V> {
+        extends SelectTileWizardStepPanel<SelectableBean<O>, ODM> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SingleTileWizardStepPanel.class);
 
@@ -45,12 +52,6 @@ public abstract class SingleTileWizardStepPanel<O extends ObjectType, ODM extend
     public SingleTileWizardStepPanel(ODM model) {
         super(model);
         initValueModel(null);
-    }
-
-    @Override
-    protected void onInitialize() {
-        super.onInitialize();
-        initLayout();
     }
 
     private void initValueModel(IModel<PrismContainerValueWrapper<V>> valueModel) {
@@ -91,30 +92,31 @@ public abstract class SingleTileWizardStepPanel<O extends ObjectType, ODM extend
         this.valueModel = valueModel;
     }
 
-    protected void initLayout() {
-        SingleSelectTileTablePanel<O> tilesTable =
-                new SingleSelectTileTablePanel<>(
+    @Override
+    protected SingleSelectTileTablePanel createTable(String idTable) {
+        SingleSelectObjectTileTablePanel<O> tilesTable =
+                new SingleSelectObjectTileTablePanel<>(
                         ID_TABLE,
                         getDefaultViewToggle(),
                         UserProfileStorage.TableId.PANEL_ACCESS_WIZARD_STEP) {
 
                     @Override
-                    protected ObjectQuery getCustomQuery() {
+                    public ObjectQuery getCustomQuery() {
                         return SingleTileWizardStepPanel.this.getCustomQuery();
                     }
 
                     @Override
-                    protected Collection<SelectorOptions<GetOperationOptions>> getSearchOptions() {
+                    public Collection<SelectorOptions<GetOperationOptions>> getSearchOptions() {
                         return SingleTileWizardStepPanel.this.getSearchOptions();
                     }
 
                     @Override
-                    protected ContainerPanelConfigurationType getContainerConfiguration() {
+                    public ContainerPanelConfigurationType getContainerConfiguration() {
                         return SingleTileWizardStepPanel.this.getContainerConfiguration(getPanelType());
                     }
 
                     @Override
-                    protected Class<O> getType() {
+                    public Class<O> getType() {
                         return SingleTileWizardStepPanel.this.getType();
                     }
 
@@ -134,7 +136,8 @@ public abstract class SingleTileWizardStepPanel<O extends ObjectType, ODM extend
                         refreshSubmitAndNextButton(target);
                     }
                 };
-        add(tilesTable);
+        tilesTable.setOutputMarkupId(true);
+        return tilesTable;
     }
 
     protected void performSelectedObjects() {
@@ -156,5 +159,16 @@ public abstract class SingleTileWizardStepPanel<O extends ObjectType, ODM extend
 
     public IModel<PrismContainerValueWrapper<V>> getValueModel() {
         return valueModel;
+    }
+
+    protected Class<O> getType() {
+        return (Class<O>) ObjectType.class;
+    }
+
+    @Override
+    protected String userFriendlyNameOfSelectedObject(String key) {
+        String typeLabel = WebComponentUtil.getLabelForType(getType(), false);
+        String text = LocalizationUtil.translate(key + ".text", new Object[] {typeLabel});
+        return "";
     }
 }

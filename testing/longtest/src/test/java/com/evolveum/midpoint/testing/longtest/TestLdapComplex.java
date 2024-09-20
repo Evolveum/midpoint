@@ -13,6 +13,8 @@ import static org.testng.AssertJUnit.assertEquals;
 import java.io.File;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
+
 import org.opends.server.types.Entry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -72,6 +74,8 @@ public class TestLdapComplex extends AbstractLongTest {
     @Autowired
     private ReconciliationLauncher reconciliationLauncher;
 
+    private String guybrushShadowOid;
+
     @Override
     protected void startResources() throws Exception {
         openDJController.startCleanServer();
@@ -95,6 +99,7 @@ public class TestLdapComplex extends AbstractLongTest {
 
         // templates
         repoAddObjectFromFile(USER_TEMPLATE_FILE, initResult);
+        repoAdd(CommonInitialObjects.SERVICE_ORIGIN_INTERNAL, initResult);
 
         // Resources
         resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID, initTask, initResult);
@@ -192,6 +197,7 @@ public class TestLdapComplex extends AbstractLongTest {
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
         display("User after", userAfter);
         assertLiveLinks(userAfter, 1);
+        guybrushShadowOid = getSingleLinkOid(userAfter);
 
         Entry entry = assertOpenDjAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
         display("LDAP account after", entry);
@@ -214,6 +220,7 @@ public class TestLdapComplex extends AbstractLongTest {
         openDJController.assertHasNoObjectClass(entryBefore, OBJECT_CLASS_USER_SECURITY_INFORMATION);
 
         when();
+        refreshShadowIfNeeded(guybrushShadowOid);
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 
         then();

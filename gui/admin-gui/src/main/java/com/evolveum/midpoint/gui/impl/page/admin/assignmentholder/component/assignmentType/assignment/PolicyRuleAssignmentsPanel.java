@@ -51,7 +51,6 @@ public class PolicyRuleAssignmentsPanel<AH extends AssignmentHolderType> extends
     protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
         List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 
-
         columns.add(new PrismContainerWrapperColumn<>(getContainerModel(), ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS), getPageBase()));
 
         columns.add(new PrismPropertyWrapperColumn<>(getContainerModel(), ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_SITUATION), AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()));
@@ -114,4 +113,10 @@ public class PolicyRuleAssignmentsPanel<AH extends AssignmentHolderType> extends
         }
         return super.customPostSearch(list);
     }
+
+    @Override
+    protected boolean isCancelButtonVisible() {
+        return false;
+    }
+
 }

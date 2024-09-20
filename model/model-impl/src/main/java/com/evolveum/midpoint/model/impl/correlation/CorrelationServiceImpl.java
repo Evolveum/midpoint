@@ -11,17 +11,10 @@ import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 import static com.evolveum.midpoint.prism.Referencable.getOid;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.model.impl.correlator.CorrelatorFactoryRegistryImpl;
-
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.PathSet;
-import com.evolveum.midpoint.schema.CorrelatorDiscriminator;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-
-import com.evolveum.midpoint.schema.util.ObjectTemplateTypeUtil;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,18 +23,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.api.correlation.CompleteCorrelationResult;
-import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription;
-import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
-import com.evolveum.midpoint.model.api.correlation.CorrelationService;
+import com.evolveum.midpoint.model.api.correlation.*;
 import com.evolveum.midpoint.model.api.correlator.*;
 import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.model.impl.correlator.CorrelatorFactoryRegistryImpl;
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorUtil;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.SimplePreInboundsContextImpl;
-import com.evolveum.midpoint.model.impl.sync.PreMappingsEvaluation;
+import com.evolveum.midpoint.model.impl.sync.PreMappingsEvaluator;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
+import com.evolveum.midpoint.schema.CorrelatorDiscriminator;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.SynchronizationPolicy;
 import com.evolveum.midpoint.schema.processor.SynchronizationPolicyFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -119,6 +112,34 @@ public class CorrelationServiceImpl implements CorrelationService {
     public @NotNull CompleteCorrelationResult correlate(
             @NotNull CorrelatorContext<?> rootCorrelatorContext,
             @NotNull CorrelationContext correlationContext,
+            @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        return createCompleteResult(
+                correlateInternal(rootCorrelatorContext, correlationContext, result),
+                rootCorrelatorContext);
+    }
+
+    /**
+     * As {@link #correlate(CorrelatorContext, CorrelationContext, OperationResult)} but does not end with
+     * {@link CompleteCorrelationResult}, only {@link SimplifiedCorrelationResult}.
+     * Useful for sub-object correlations.
+     */
+    public @NotNull SimplifiedCorrelationResult correlateLimited(
+            @NotNull CorrelatorContext<?> rootCorrelatorContext,
+            @NotNull CorrelationContext correlationContext,
+            @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        return createSimplifiedResult(
+                correlateInternal(rootCorrelatorContext, correlationContext, result),
+                rootCorrelatorContext);
+    }
+
+    /** The correlation itself. */
+    private @NotNull CorrelationResult correlateInternal(
+            @NotNull CorrelatorContext<?> rootCorrelatorContext,
+            @NotNull CorrelationContext correlationContext,
             @NotNull OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
@@ -127,10 +148,9 @@ public class CorrelationServiceImpl implements CorrelationService {
                 .addArbitraryObjectAsParam("correlationContext", correlationContext)
                 .build();
         try {
-            CorrelationResult correlationResult = correlatorFactoryRegistry
+            return correlatorFactoryRegistry
                     .instantiateCorrelator(rootCorrelatorContext, correlationContext.getTask(), result)
                     .correlate(correlationContext, result);
-            return createCompleteResult(correlationResult, rootCorrelatorContext);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -139,21 +159,23 @@ public class CorrelationServiceImpl implements CorrelationService {
         }
     }
 
-    private @NotNull CompleteCorrelationResult createCompleteResult(
+    private static @NotNull CompleteCorrelationResult createCompleteResult(
             CorrelationResult correlationResult, CorrelatorContext<?> correlatorContext) {
-        CandidateOwnersMap candidateOwnersMap = correlationResult.getCandidateOwnersMap();
+        CandidateOwners candidateOwners = correlationResult.getCandidateOwners();
         double definiteThreshold = correlatorContext.getDefiniteThreshold();
-        Collection<CandidateOwner> owners = candidateOwnersMap.selectWithConfidenceAtLeast(definiteThreshold);
+        Collection<CandidateOwner.ObjectBased> owners =
+                CandidateOwner.ensureObjectBased(candidateOwners.selectWithConfidenceAtLeast(definiteThreshold));
         double candidateThreshold = correlatorContext.getCandidateThreshold();
-        Collection<CandidateOwner> eligibleCandidates = candidateOwnersMap.selectWithConfidenceAtLeast(candidateThreshold);
+        Collection<CandidateOwner.ObjectBased> eligibleCandidates =
+                CandidateOwner.ensureObjectBased(candidateOwners.selectWithConfidenceAtLeast(candidateThreshold));
 
         LOGGER.debug("Determining overall result with 'definite' threshold of {}, candidate threshold of {}, "
                         + "definite (owner) candidates: {}, eligible candidates: {}, all candidates:\n{}",
                 definiteThreshold, candidateThreshold, owners.size(), eligibleCandidates.size(),
-                DebugUtil.toStringCollectionLazy(candidateOwnersMap.values(), 1));
+                DebugUtil.toStringCollectionLazy(candidateOwners.values(), 1));
 
         ResourceObjectOwnerOptionsType optionsBean = new ResourceObjectOwnerOptionsType();
-        for (CandidateOwner eligibleCandidate : eligibleCandidates) {
+        for (CandidateOwner.ObjectBased eligibleCandidate : eligibleCandidates) {
             String candidateId = Objects.requireNonNullElse(
                     eligibleCandidate.getExternalId(),
                     eligibleCandidate.getOid());
@@ -162,7 +184,7 @@ public class CorrelationServiceImpl implements CorrelationService {
                             .identifier(
                                     OwnerOptionIdentifier.forExistingOwner(candidateId).getStringValue())
                             .candidateOwnerRef(
-                                    ObjectTypeUtil.createObjectRef(eligibleCandidate.getObject()))
+                                    ObjectTypeUtil.createObjectRef(eligibleCandidate.getValue()))
                             .confidence(
                                     eligibleCandidate.getConfidence()));
         }
@@ -172,14 +194,35 @@ public class CorrelationServiceImpl implements CorrelationService {
                             .identifier(OwnerOptionIdentifier.forNoOwner().getStringValue()));
         }
 
-        CandidateOwnersMap finalCandidatesMap = CandidateOwnersMap.from(eligibleCandidates);
+        CandidateOwners finalCandidates = CandidateOwners.from(eligibleCandidates);
         if (owners.size() == 1) {
-            ObjectType owner = owners.iterator().next().getObject();
-            return CompleteCorrelationResult.existingOwner(owner, finalCandidatesMap, optionsBean);
+            ObjectType owner = owners.iterator().next().getValue();
+            return CompleteCorrelationResult.existingOwner(owner, finalCandidates, optionsBean);
         } else if (eligibleCandidates.isEmpty()) {
             return CompleteCorrelationResult.noOwner();
         } else {
-            return CompleteCorrelationResult.uncertain(finalCandidatesMap, optionsBean);
+            return CompleteCorrelationResult.uncertain(finalCandidates, optionsBean);
+        }
+    }
+
+    private static @NotNull SimplifiedCorrelationResult createSimplifiedResult(
+            CorrelationResult correlationResult, CorrelatorContext<?> correlatorContext) {
+        CandidateOwners candidateOwners = correlationResult.getCandidateOwners();
+        var owners = candidateOwners.selectWithConfidenceAtLeast(correlatorContext.getDefiniteThreshold());
+        var eligibleCandidates = candidateOwners.selectWithConfidenceAtLeast(correlatorContext.getCandidateThreshold());
+
+        LOGGER.debug("Determining overall simplified result with 'definite' threshold of {}, candidate threshold of {}, "
+                        + "definite (owner) candidates: {}, eligible candidates: {}, all candidates:\n{}",
+                correlatorContext.getDefiniteThreshold(), correlatorContext.getCandidateThreshold(), owners.size(), eligibleCandidates.size(),
+                DebugUtil.toStringCollectionLazy(candidateOwners.values(), 1));
+
+        if (owners.size() == 1) {
+            return SimplifiedCorrelationResult.existingOwner(
+                    owners.iterator().next().getValue());
+        } else if (eligibleCandidates.isEmpty()) {
+            return SimplifiedCorrelationResult.noOwner();
+        } else {
+            return SimplifiedCorrelationResult.uncertain(eligibleCandidates);
         }
     }
 
@@ -197,8 +240,9 @@ public class CorrelationServiceImpl implements CorrelationService {
             @NotNull Task task,
             @NotNull OperationResult result) throws SchemaException, ExpressionEvaluationException, SecurityViolationException,
             CommunicationException, ConfigurationException, ObjectNotFoundException {
-        FocusType preFocus = computePreFocus(
-                shadowedResourceObject, resource, synchronizationPolicy, candidateOwner.getClass(), task, result);
+        FocusType preFocus = PreMappingsEvaluator.computePreFocus(
+                shadowedResourceObject, synchronizationPolicy.getObjectTypeDefinition(), resource,
+                candidateOwner.getClass(), task, result);
         CompleteContext ctx = CompleteContext.forShadow(
                 shadowedResourceObject,
                 resource,
@@ -211,7 +255,8 @@ public class CorrelationServiceImpl implements CorrelationService {
                 task);
         double confidence = correlatorFactoryRegistry
                 .instantiateCorrelator(ctx.correlatorContext, task, result)
-                .checkCandidateOwner(ctx.correlationContext, candidateOwner, result);
+                .checkCandidateOwner(ctx.correlationContext, candidateOwner, result)
+                .getValue();
         return confidence >= ctx.correlatorContext.getDefiniteThreshold();
     }
 
@@ -287,29 +332,6 @@ public class CorrelationServiceImpl implements CorrelationService {
         }
     }
 
-    @VisibleForTesting
-    public <F extends FocusType> @NotNull F computePreFocus(
-            @NotNull ShadowType shadowedResourceObject,
-            @NotNull ResourceType resource,
-            @NotNull SynchronizationPolicy synchronizationPolicy,
-            @NotNull Class<F> focusClass,
-            @NotNull Task task,
-            @NotNull OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
-        SimplePreInboundsContextImpl<F> preInboundsContext = new SimplePreInboundsContextImpl<>(
-                shadowedResourceObject,
-                resource,
-                PrismContext.get().createObjectable(focusClass),
-                ObjectTypeUtil.asObjectable(systemObjectCache.getSystemConfiguration(result)),
-                task,
-                synchronizationPolicy.getObjectTypeDefinition(),
-                beans);
-        new PreMappingsEvaluation<>(preInboundsContext, beans)
-                .evaluate(result);
-        return preInboundsContext.getPreFocus();
-    }
-
     /**
      * Creates {@link CompleteContext} from the given {@link CaseType}.
      *
@@ -351,7 +373,8 @@ public class CorrelationServiceImpl implements CorrelationService {
                                 String.format("No %s/%s (kind/intent) type and synchronization definition in %s (for %s)",
                                         kind, intent, resource, shadow)));
 
-        FocusType preFocus = computePreFocus(shadow, resource, policy, policy.getFocusClass(), task, result);
+        FocusType preFocus = PreMappingsEvaluator.computePreFocus(
+                shadow, policy.getObjectTypeDefinition(), resource, policy.getFocusClass(), task, result);
 
         return CompleteContext.forShadow(
                 shadow,
@@ -486,6 +509,7 @@ public class CorrelationServiceImpl implements CorrelationService {
                             resource,
                             resourceObjectDefinition,
                             preFocus,
+                            null,
                             systemConfiguration,
                             task);
             return new CompleteContext(correlatorContext, correlationContext);
@@ -530,14 +554,12 @@ public class CorrelationServiceImpl implements CorrelationService {
         // and while getting default object template do we consider UserType to be default?
 
         ObjectTemplateType template = determineObjectTemplate(archetypeOid, null, UserType.class, task, result);
-        //TODO //@NotNull correlation definition bean. probably shoudl be changed
         CorrelatorContext<?> ctx = CorrelatorContextCreator.createRootContext(
-                new CorrelationDefinitionType(),
+                null,
                 discriminator,
                 template,
                 systemObjectCache.getSystemConfigurationBean(result));
 
         return ctx.getConfiguration().getCorrelationItemPaths();
     }
-
 }

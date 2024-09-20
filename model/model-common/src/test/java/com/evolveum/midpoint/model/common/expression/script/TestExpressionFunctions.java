@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.common.expression.script;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.Assert.assertNotEquals;
 import static org.testng.AssertJUnit.*;
 
@@ -21,6 +22,8 @@ import javax.naming.ldap.Rdn;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -66,7 +69,7 @@ public class TestExpressionFunctions extends AbstractUnitTest {
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        SchemaDebugUtil.initializePrettyPrinter();
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 
         protector = KeyStoreBasedProtectorBuilder.create(getPrismContext())
@@ -512,5 +515,19 @@ public class TestExpressionFunctions extends AbstractUnitTest {
         assertNotNull("Null hash", hash);
         assertTrue("Wrong hash prefix, expected {SSHA}, was "+hash, hash.startsWith("{SSHA}"));
         assertEquals("Wrong hash length", 46, hash.length());
+    }
+
+    /** MID-9554 */
+    @Test
+    public void testSetExtensionPropertyValues() throws Exception {
+        when("setting the values");
+        var user = new UserType()
+                .name("testuser");
+        basic.setExtensionPropertyValues(user, "ship", "Black Pearl");
+
+        then("values are there");
+        display(PrismTestUtil.serializeToXml(user));
+        assertThat((String) basic.getExtensionPropertyValue(user, "ship"))
+                .isEqualTo("Black Pearl");
     }
 }

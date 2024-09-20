@@ -1,0 +1,105 @@
+= Shadow Specific Operations
+:page-nav-title: Shadow Specific Operations
+:page-display-order: 200
+:page-toc: top
+:page-keywords: [ 'rest', 'shadow', 'owner' ,'operation' ]
+:page-upkeep-status: green
+
+== Description
+
+A set of operations related specifically to the Shadow object type of midPoint.
+
+== Request
+
+There are multiple possible requests which are specific for the Shadow object type related
+operations.
+
+The first operation would be the fetch of the Shadow object (e.g. representing an account) owner
+. For this operation you will have to use the HTTP GET method in your request.
+The resulting uri could look something like this:
+
+.Get shadow owner operation
+[source, http]
+----
+GET http://localhost:8080/midpoint/ws/rest/shadows/{oid}/owner
+----
+
+Another operation is the import of a Shadow object (e.g. again representing an account), thus
+either linking them to an existing object in midPoint or creating a midPoint object as a result of this operation.
+
+.Import shadow object
+[source, http]
+----
+POST http://localhost:8080/midpoint/ws/rest/shadows/{oid}/import
+----
+
+
+=== Headers
+
+Regarding authorization type, the "Basic" Authorization header should be used.
+
+.Authorization header example, replace {Base64EncodedCredentials} with the encoded credentials
+[source, http]
+----
+Authorization: Basic {Base64EncodedCredentials}
+----
+
+In case of the operations you need to specify the accepted type of content in case
+you are interested in a format different from xml (default)
+
+.Accept type header example, other media types are supported as well
+[source, http]
+----
+"Accept: application/json"
+----
+
+.For supported media types please refer to the following section of the documentation
+xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+
+=== Body
+
+No additional data needed in the request body.
+
+=== Options
+
+No additional option parameters supported for these types of requests.
+
+include::../../rest/concepts/raw/outcome.adoc[]
+
+== Access Authorization
+
+include::../operations/raw/a-auth.adoc[]
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#findShadowOwner+`
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#importShadow+`
+
+== Model Authorization
+
+include::../operations/raw/m-auth.adoc[]
+
+For the find shadow owner authorization:
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read+`
+
+For the import shadow owner authorization:
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#importFromResource+`
+
+== Examples
+
+include::../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+include::../../rest/operations/examples/raw/get-shadow-owner.adoc[]
+
+include::../../rest/operations/examples/raw/import-shadow.adoc[]
+
+== See Also
+
+- xref:/midpoint/reference/interfaces/rest/endpoints/shadows.adoc[Shadow Objects Endpoint]
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]
+- xref:/midpoint/reference/security/authorization/service/[]

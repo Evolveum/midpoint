@@ -202,6 +202,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
         RESOURCE_GROUPER.getDummyResource().getGroupByName(ALUMNI_NAME).addMember(BANDERSON_USERNAME);
 
         rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+        rememberCounter(InternalCounters.PROJECTOR_RUN_COUNT);
 
         // WHEN
 
@@ -217,9 +218,12 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
                 .triggers()
                 .assertTriggers(1);
 
-        // Async update is not counted as a connector operation (at least not now). We should have no other ops,
-        // in particular we do NOT want the clockwork to run! (MID-5853)
-        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 0);
+        // Async update is not counted as a connector operation (at least not now). However, there is one "shadow get"
+        // operation because the change does not contain all the data, so we obtain the data from the resource.
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
+
+        // But, we make sure that the clockwork is not run. (MID-5853)
+        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, 0);
 
         // @formatter:off
         assertTask(TASK_ASYNC_UPDATE.oid, "after")
@@ -675,10 +679,11 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
                         .noFetch()
                         .retrieve()
                         .build();
-        PrismObject<ShadowType> shadow = provisioningService
-                .getObject(ShadowType.class, shadowInRepo.getOid(), options, task, result);
+        PrismObject<ShadowType> shadow =
+                provisioningService.getObject(ShadowType.class, shadowInRepo.getOid(), options, task, result);
 
         return assertShadow(shadow, "after")
+                .display()
                 .attributes()
                     .attribute(ATTR_MEMBER.getLocalPart())
                         .assertRealValues(expectedUsers);

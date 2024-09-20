@@ -1,0 +1,102 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Execute script with procedure call to recompute object on input*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Accept: application/json" \
+-H "Content-Type: application/json" \
+-X POST http://localhost:8080/midpoint/ws/rest/rpc/executeScript \
+-v \
+--data-binary @./samples/rest/rpc-recompute-input-filter.json
+----
+
+.*Show* data source example for *"Execute script with procedure call to recompute object on input"* | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/rpc-recompute-input-filter.json[GitHub]
+[%collapsible]
+====
+[source, json]
+----
+{
+  "@ns" : "http://midpoint.evolveum.com/xml/ns/public/model/scripting-3",
+  "executeScript" : {
+    "pipeline" : [ {
+      "@element" : "action",
+      "type" : "resolve"
+    }, {
+      "@element" : "action",
+      "type" : "recompute"
+    } ],
+    "input" : {
+      "value" : {
+        "@type" : "c:ObjectReferenceType",
+        "oid" : "a9885c61-c442-42d8-af34-8182a8653e3c",
+        "type" : "UserType"
+      }
+    },
+    "options" : {
+      "continueOnAnyError" : "true"
+    }
+  }
+}
+----
+====
+
+The response is an HTTP 200 code in case of success *with* a response body.
+
+
+.Example Output of *"Execute script with procedure call to recompute object on input"* example
+[%collapsible]
+====
+The example is *simplified*, some properties were removed to keep the example output "short". This example *does
+not* contain all possible properties of this object type.
+[source, json]
+----
+{
+  "@ns" : "http://prism.evolveum.com/xml/ns/public/types-3",
+  "object" : {
+    "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/api-types-3#ExecuteScriptResponseType",
+    "output" : {
+      "dataOutput" : {
+        "item" : [ {
+          "value" : {
+            "@type" : "c:UserType",
+            "oid" : "a9885c61-c442-42d8-af34-8182a8653e3c",
+            "version" : "16",
+            "name" : "Jack",
+            "metadata" : {},
+            "operationExecution" : [ {}, {}],
+            "assignment" : [ {}, {} ],
+            "iteration" : 0,
+            "iterationToken" : "",
+            "roleMembershipRef" : [ {}, {} ],
+            "activation" : {},
+            "emailAddress" : "jack@evolveum.com",
+            "credentials" : {}
+          },
+          "result" : {
+            "operation" : "com.evolveum.midpoint.model.impl.scripting.BulkActionsExecutor.process",
+            "status" : "success",
+            "importance" : "normal",
+            "end" : "2024-02-19T12:05:26.393+01:00",
+            "token" : 1000000000000004223
+          }
+        } ]
+      },
+      "consoleOutput" : "Recomputed user:a9885c61-c442-42d8-af34-8182a8653e3c(Jack)\n"
+    },
+    "result" : {
+      "operation" : "executeScript",
+      "status" : "success",
+      "importance" : "normal",
+      "start" : "2024-02-19T12:05:26.366+01:00",
+      "end" : "2024-02-19T12:05:26.393+01:00",
+      "microseconds" : 26863,
+      "invocationId" : 17478,
+      "token" : 1000000000000004219,
+      "partialResults" : [ {} ]
+    }
+  }
+}
+----
+====

@@ -11,6 +11,7 @@ import java.util.List;
 import com.evolveum.midpoint.schema.config.ExpressionConfigItem;
 import com.evolveum.midpoint.schema.expression.*;
 import com.evolveum.midpoint.security.api.SecurityContextManager.ResultAwareProducer;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import jakarta.xml.bind.JAXBElement;
@@ -405,7 +406,7 @@ public class Expression<V extends PrismValue, D extends ItemDefinition<?>> {
                 ItemName varQName = new ItemName(SchemaConstants.NS_C, varName);
                 // Only String values are supported now
                 var def = PrismContext.get().definitionFactory()
-                        .createPropertyDefinition(varQName, PrimitiveType.STRING.getQname());
+                        .newPropertyDefinition(varQName, PrimitiveType.STRING.getQname());
                 Object variableValue;
                 if (value instanceof String) {
                     variableValue = value;
@@ -441,6 +442,15 @@ public class Expression<V extends PrismValue, D extends ItemDefinition<?>> {
         }
 
         return newVariables;
+    }
+
+    /**
+     * The expression evaluator can veto mapping's decision to remove a target value (due to range set check).
+     * We assume that expression evaluator keeps the state necessary to decide on this.
+     */
+    @Experimental
+    public boolean doesVetoTargetValueRemoval(@NotNull V value, @Nullable OperationResult result) {
+        return evaluator.doesVetoTargetValueRemoval(value, result);
     }
 
     @Override

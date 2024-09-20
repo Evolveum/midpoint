@@ -12,36 +12,33 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperat
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.EXECUTING;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType.RETRY;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.util.MiscUtil;
-
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
+import com.evolveum.midpoint.provisioning.impl.RepoShadow;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.*;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 /**
  * Represents a state of a provisioning add/modify/delete operation in the `shadows` package. (See its subclasses.)
  *
  * @author semancik
  */
-public abstract class ProvisioningOperationState<A extends AsynchronousOperationResult> implements ShortDumpable {
+public abstract class ProvisioningOperationState<RV extends AsynchronousOperationResult> implements ShortDumpable {
 
     /**
      * Result of the operation. It contains the following:
@@ -56,7 +53,7 @@ public abstract class ProvisioningOperationState<A extends AsynchronousOperation
      *
      * It comes either from the lower layers ({@link ResourceObjectConverter} or when the operation is postponed.
      */
-    private A asyncResult;
+    private RV asyncResult;
 
     /**
      * Status of the [pending] operation that is to be applied if nothing can be determined from {@link #asyncResult}.
@@ -74,7 +71,7 @@ public abstract class ProvisioningOperationState<A extends AsynchronousOperation
      * Repository shadow connected to the operation. Starts non-null for modify and delete operations.
      * (Although may be zeroed during the operation execution.)
      */
-    private ShadowType repoShadow;
+    private RepoShadow repoShadow;
 
     /**
      * What is the number of the current attempt? Retrieved from pending operation, stored into pending operation.
@@ -94,22 +91,22 @@ public abstract class ProvisioningOperationState<A extends AsynchronousOperation
      * as a single delta. The code for updating the shadow is (currently) distinct from the one that uses this field.
      * See {@link #propagatedPendingOperations}.
      */
-    private PendingOperationType currentPendingOperation;
+    private PendingOperation currentPendingOperation;
 
     /**
      * List of pending operations executed during a propagation operation.
      * These are updated in a special way.
      */
-    private List<PendingOperationType> propagatedPendingOperations;
+    private PendingOperations propagatedPendingOperations;
 
     public ProvisioningOperationState() {
     }
 
-    public ProvisioningOperationState(ShadowType repoShadow) {
+    public ProvisioningOperationState(RepoShadow repoShadow) {
         this.repoShadow = repoShadow;
     }
 
-    A getAsyncResult() {
+    RV getAsyncResult() {
         return asyncResult;
     }
 
@@ -145,10 +142,9 @@ public abstract class ProvisioningOperationState<A extends AsynchronousOperation
 
     public abstract OperationResultStatus markAsPostponed(OperationResult failedOperationResult);
 
-    void markAsPostponed(A asyncResult, OperationResult failedOperationResult) {
-        asyncResult.setOperationResult(failedOperationResult);
-        asyncResult.setOperationType(RETRY);
-        this.asyncResult = asyncResult;
+    void markAsPostponed(RV failedOperationReturnValue) {
+        failedOperationReturnValue.setOperationType(RETRY);
+        this.asyncResult = failedOperationReturnValue;
         executionStatus = EXECUTING;
         if (attemptNumber == null) {
             attemptNumber = 1;
@@ -166,12 +162,11 @@ public abstract class ProvisioningOperationState<A extends AsynchronousOperation
         this.executionStatus = executionStatus;
     }
 
-    public ShadowType getRepoShadow() {
+    public RepoShadow getRepoShadow() {
         return repoShadow;
     }
 
-    @NotNull
-    public ShadowType getRepoShadowRequired() {
+    public @NotNull RepoShadow getRepoShadowRequired() {
         return Objects.requireNonNull(repoShadow, "No repo shadow");
     }
 
@@ -183,11 +178,11 @@ public abstract class ProvisioningOperationState<A extends AsynchronousOperation
      * Sets the object as a reference, not as a (cloned) value.
      * All modifications on the original object will be reflected in stored one.
      */
-    public void setRepoShadow(ShadowType repoShadow) {
+    public void setRepoShadow(RepoShadow repoShadow) {
         this.repoShadow = repoShadow;
     }
 
-    public PendingOperationType getCurrentPendingOperation() {
+    public PendingOperation getCurrentPendingOperation() {
         return currentPendingOperation;
     }
 
@@ -195,7 +190,7 @@ public abstract class ProvisioningOperationState<A extends AsynchronousOperation
         return currentPendingOperation != null;
     }
 
-    public void setCurrentPendingOperation(@NotNull PendingOperationType pendingOperation) {
+    public void setCurrentPendingOperation(@NotNull PendingOperation pendingOperation) {
         stateCheck(currentPendingOperation == null,
                 "Current pending operation is already set! %s in %s", currentPendingOperation, repoShadow);
         stateCheck(propagatedPendingOperations == null,
@@ -204,11 +199,11 @@ public abstract class ProvisioningOperationState<A extends AsynchronousOperation
         currentPendingOperation = pendingOperation;
     }
 
-    public List<PendingOperationType> getPropagatedPendingOperations() {
+    public PendingOperations getPropagatedPendingOperations() {
         return propagatedPendingOperations;
     }
 
-    void setPropagatedPendingOperations(List<PendingOperationType> propagatedPendingOperations) {
+    void setPropagatedPendingOperations(PendingOperations propagatedPendingOperations) {
         this.propagatedPendingOperations = propagatedPendingOperations;
     }
 
@@ -249,7 +244,7 @@ public abstract class ProvisioningOperationState<A extends AsynchronousOperation
     }
 
     /** This method is called when we get the real asynchronous result from the (attempted) operation execution. */
-    void recordRealAsynchronousResult(A asyncResult) {
+    void recordRealAsynchronousResult(RV asyncResult) {
         this.asyncResult = asyncResult;
         OperationResult operationResult = getOperationResult();
         if (operationResult == null) {
@@ -285,9 +280,9 @@ public abstract class ProvisioningOperationState<A extends AsynchronousOperation
     }
 
     private static <X extends ProvisioningOperationState<?>> X fromPendingOperationInternal(
-            @NotNull ShadowType repoShadow,
-            @NotNull PendingOperationType pendingOperation,
-            @NotNull Function<ShadowType, X> newOpStateSupplier) {
+            @NotNull RepoShadow repoShadow,
+            @NotNull PendingOperation pendingOperation,
+            @NotNull Function<RepoShadow, X> newOpStateSupplier) {
         X newOpState = newOpStateSupplier.apply(repoShadow);
         newOpState.setCurrentPendingOperation(pendingOperation);
         newOpState.setExecutionStatus(pendingOperation.getExecutionStatus());
@@ -305,7 +300,8 @@ public abstract class ProvisioningOperationState<A extends AsynchronousOperation
         PendingOperationType pendingOperation = new PendingOperationType();
         pendingOperation.setType(getOperationType());
         pendingOperation.setDelta(
-                DeltaConvertor.toObjectDeltaType(delta));
+                DeltaConvertor.toObjectDeltaType(
+                        convertForPendingOperationStorage(delta)));
         pendingOperation.setRequestTimestamp(now);
         if (executionStatus == EXECUTING) {
             pendingOperation.setOperationStartTimestamp(now);
@@ -319,54 +315,74 @@ public abstract class ProvisioningOperationState<A extends AsynchronousOperation
         return pendingOperation;
     }
 
+    /**
+     * TODO Should we store reference attributes or not?
+     */
+    private ObjectDelta<ShadowType> convertForPendingOperationStorage(ObjectDelta<ShadowType> delta) {
+        if (ObjectDelta.isAdd(delta)) {
+            var clone = delta.clone();
+            var attributesContainer = ShadowUtil.getAttributesContainer(clone.getObjectToAdd());
+            if (attributesContainer != null) {
+                for (var refAttr : List.copyOf(attributesContainer.getReferenceAttributes())) {
+                    attributesContainer.removeReference(refAttr.getElementName());
+                }
+            }
+            return clone;
+        } else if (ObjectDelta.isModify(delta)) {
+            var clone = delta.clone();
+            clone.getModifications().removeIf(
+                    modification -> modification.getDefinition() instanceof ShadowReferenceAttributeDefinition);
+            return clone;
+        } else {
+            return delta;
+        }
+    }
+
     public boolean hasRepoShadow() {
         return repoShadow != null;
     }
 
     // TODO should we move these XOperationState classes into ShadowXOperation ones?
     public static class AddOperationState
-            extends ProvisioningOperationState<AsynchronousOperationReturnValue<ShadowType>> {
+            extends ProvisioningOperationState<ResourceObjectAddReturnValue> {
 
         AddOperationState() {
         }
 
-        AddOperationState(@NotNull ShadowType repoShadow) {
+        AddOperationState(@NotNull RepoShadow repoShadow) {
             super(repoShadow);
         }
 
         static @NotNull AddOperationState fromPendingOperation(
-                @NotNull ShadowType repoShadow, @NotNull PendingOperationType pendingOperation) {
+                @NotNull RepoShadow repoShadow, @NotNull PendingOperation pendingOperation) {
             return fromPendingOperationInternal(repoShadow, pendingOperation, AddOperationState::new);
         }
 
         public OperationResultStatus markAsPostponed(OperationResult failedOperationResult) {
-            this.markAsPostponed(new AsynchronousOperationReturnValue<>(), failedOperationResult);
+            this.markAsPostponed(ResourceObjectAddReturnValue.of(failedOperationResult));
             return OperationResultStatus.IN_PROGRESS;
         }
 
         /** This is a shadow that was created on the resource by the operation. */
-        ShadowType getCreatedShadow() {
-            AsynchronousOperationReturnValue<ShadowType> aResult = getAsyncResult();
+        ResourceObjectShadow getCreatedObject() {
+            var aResult = getAsyncResult();
             return aResult != null ? aResult.getReturnValue() : null;
         }
     }
 
-    public static class ModifyOperationState
-            extends ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>>> {
+    public static class ModifyOperationState extends ProvisioningOperationState<ResourceObjectModifyReturnValue> {
 
-        ModifyOperationState(@NotNull ShadowType repoShadow) {
+        ModifyOperationState(@NotNull RepoShadow repoShadow) {
             super(repoShadow);
         }
 
         static @NotNull ModifyOperationState fromPendingOperation(
-                @NotNull ShadowType repoShadow, @NotNull PendingOperationType pendingOperation) {
+                @NotNull RepoShadow repoShadow, @NotNull PendingOperation pendingOperation) {
             return fromPendingOperationInternal(repoShadow, pendingOperation, ModifyOperationState::new);
         }
 
         public OperationResultStatus markAsPostponed(OperationResult failedOperationResult) {
-            this.markAsPostponed(
-                    new AsynchronousOperationReturnValue<>(),
-                    failedOperationResult);
+            this.markAsPostponed(ResourceObjectModifyReturnValue.of(failedOperationResult));
             return OperationResultStatus.IN_PROGRESS;
         }
     }
@@ -374,17 +390,17 @@ public abstract class ProvisioningOperationState<A extends AsynchronousOperation
     public static class DeleteOperationState
             extends ProvisioningOperationState<AsynchronousOperationResult> {
 
-        DeleteOperationState(@NotNull ShadowType repoShadow) {
+        DeleteOperationState(@NotNull RepoShadow repoShadow) {
             super(repoShadow);
         }
 
         static @NotNull DeleteOperationState fromPendingOperation(
-                @NotNull ShadowType repoShadow, @NotNull PendingOperationType pendingOperation) {
+                @NotNull RepoShadow repoShadow, @NotNull PendingOperation pendingOperation) {
             return fromPendingOperationInternal(repoShadow, pendingOperation, DeleteOperationState::new);
         }
 
         public OperationResultStatus markAsPostponed(OperationResult failedOperationResult) {
-            this.markAsPostponed(new AsynchronousOperationResult(), failedOperationResult);
+            this.markAsPostponed(ResourceObjectDeleteReturnValue.of(failedOperationResult));
             return OperationResultStatus.IN_PROGRESS;
         }
     }

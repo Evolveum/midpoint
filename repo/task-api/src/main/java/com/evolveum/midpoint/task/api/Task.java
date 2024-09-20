@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.simulation.ExecutionModeProvider;
 import com.evolveum.midpoint.schema.statistics.StatisticsCollector;
 import com.evolveum.midpoint.schema.util.SimulationUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
@@ -64,7 +65,7 @@ import static com.evolveum.midpoint.schema.util.task.ActivityStateOverviewUtil.A
  *
  * @author Radovan Semancik
  */
-public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperationsListener {
+public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperationsListener, ExecutionModeProvider {
 
     String DOT_INTERFACE = Task.class.getName() + ".";
 
@@ -974,36 +975,6 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
 
     default boolean isIndestructible() {
         return Boolean.TRUE.equals(getPropertyRealValue(TaskType.F_INDESTRUCTIBLE, Boolean.class));
-    }
-
-    /** Returns the execution mode of this task. */
-    @NotNull TaskExecutionMode getExecutionMode();
-
-    default boolean isExecutionFullyPersistent() {
-        return getExecutionMode().isFullyPersistent();
-    }
-
-    default boolean areShadowChangesSimulated() {
-        return getExecutionMode().areShadowChangesSimulated();
-    }
-
-    default boolean isProductionConfiguration() {
-        return getExecutionMode().isProductionConfiguration();
-    }
-
-    /** Just a convenience method. */
-    default boolean canSee(AbstractMappingType mapping) {
-        return SimulationUtil.isVisible(mapping, getExecutionMode());
-    }
-
-    /** Just a convenience method. */
-    default boolean canSee(ObjectType object) {
-        return SimulationUtil.isVisible(object, getExecutionMode());
-    }
-
-    /** Just a convenience method. */
-    default boolean canSee(String lifecycleState) {
-        return SimulationUtil.isVisible(lifecycleState, getExecutionMode());
     }
 
     /**

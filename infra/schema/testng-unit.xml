@@ -60,6 +60,7 @@
             <class name="com.evolveum.midpoint.schema.parser.TestParseObjectsIterativelyFirstTwo"/>
             <class name="com.evolveum.midpoint.schema.parser.TestParseObjectsIterativelyWrong"/>
             <class name="com.evolveum.midpoint.schema.parser.TestParseSystemConfiguration"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseShadow"/>
         </classes>
     </test>
     <test name="Parsing JSON without namespaces" preserve-order="false" verbose="1">
@@ -146,6 +147,7 @@
             <class name="com.evolveum.midpoint.schema.TestConfigErrorReporter"/>
             <class name="com.evolveum.midpoint.schema.validator.processor.TestUpgradeProcessors"/>
             <class name="com.evolveum.midpoint.schema.merger.TestMerger"/>
+            <class name="com.evolveum.midpoint.schema.merger.TreeDeltaTest"/>
         </classes>
     </test>
 </suite>

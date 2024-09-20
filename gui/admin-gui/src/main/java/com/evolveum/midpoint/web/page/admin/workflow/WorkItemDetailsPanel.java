@@ -10,13 +10,13 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.component.form.TextArea;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationPanel;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -269,7 +269,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
             }
 
             @Override
-            public InputStream getStream() {
+            public InputStream getInputStream() {
                 byte[] evidenceFile = WorkItemTypeUtil.getEvidence(getModelObject());
                 return evidenceFile != null ? new ByteArrayInputStream(evidenceFile) : new ByteArrayInputStream(new byte[0]);
             }

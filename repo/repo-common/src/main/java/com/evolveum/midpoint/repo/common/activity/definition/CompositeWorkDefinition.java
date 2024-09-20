@@ -11,15 +11,18 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
+
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityCompositionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Definition for pure composite activity.
@@ -47,20 +50,20 @@ public class CompositeWorkDefinition extends AbstractWorkDefinition implements A
 
     /**
      * Composite activities process multiple object sets, so they have to be treated differently.
-     * See {@link #getAffectedObjectsInformation()}.
+     * See {@link AffectedObjectsProvider#getAffectedObjectsInformation(AbstractActivityWorkStateType)}.
      */
     @Override
-    public @NotNull AffectedObjectsInformation.ObjectSet getAffectedObjectSetInformation()
+    public @NotNull AffectedObjectsInformation.ObjectSet getAffectedObjectSetInformation(@Nullable AbstractActivityWorkStateType state)
             throws SchemaException, ConfigurationException {
         return AffectedObjectsInformation.ObjectSet.notSupported();
     }
 
     @NotNull
-    public AffectedObjectsInformation getAffectedObjectsInformation() throws SchemaException, ConfigurationException {
+    public AffectedObjectsInformation getAffectedObjectsInformation(@Nullable AbstractActivityWorkStateType state) throws SchemaException, ConfigurationException {
         List<AffectedObjectsInformation> informationForChildren = new ArrayList<>();
         for (ActivityDefinitionType childDefinitionBean : composition.getActivity()) {
             var childDefinition = ActivityDefinition.createChild(childDefinitionBean, getOrigin()); // the origin is not relevant
-            informationForChildren.add(childDefinition.getAffectedObjectsInformation());
+            informationForChildren.add(childDefinition.getAffectedObjectsInformation(state));
         }
         return AffectedObjectsInformation.complex(informationForChildren);
     }

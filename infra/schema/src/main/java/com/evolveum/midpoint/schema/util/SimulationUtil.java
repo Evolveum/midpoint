@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.schema.util;
 
+import com.evolveum.midpoint.schema.simulation.ExecutionModeProvider;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -79,7 +81,11 @@ public class SimulationUtil {
         }
     }
 
-    public static boolean isVisible(String lifecycleState, TaskExecutionMode taskExecutionMode) {
+    public static boolean isVisible(String lifecycleState, @NotNull ExecutionModeProvider executionModeProvider) {
+        return isVisible(lifecycleState, executionModeProvider.getExecutionMode());
+    }
+
+    public static boolean isVisible(String lifecycleState, @NotNull TaskExecutionMode taskExecutionMode) {
         if (taskExecutionMode.isProductionConfiguration()) {
             return isVisibleInProduction(lifecycleState);
         } else {

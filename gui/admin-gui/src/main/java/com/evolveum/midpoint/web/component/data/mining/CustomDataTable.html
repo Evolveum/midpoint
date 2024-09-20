@@ -1,0 +1,44 @@
+/*
+* Copyright (C) 2010-2024 Evolveum and contributors
+*
+* This work is dual-licensed under the Apache License 2.0
+* and European Union Public License. See LICENSE file for details.
+*/
+
+<?xml version="1.0" encoding="UTF-8" ?>
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
+    <caption wicket:id="caption"></caption>
+    <colgroup wicket:id="colGroup"></colgroup>
+    <thead wicket:id="topToolbars">
+    <wicket:container wicket:id="toolbars"></wicket:container>
+    </thead>
+    <tbody wicket:id="body">
+
+
+    <tr wicket:id="rows">
+
+    <tr>
+        <td wicket:id="cells">
+            <div wicket:id="cell">[cell]</div>
+        </td>
+    </tr>
+
+    <tr wicket:id="collapseContainerFirst">
+        <td colspan="12" class="p-0" wicket:id="collapsableContent"></td>
+
+    </tr>
+
+    <tr wicket:id="collapseContainerSecond">
+        <td colspan="12" class="p-0" wicket:id="collapsableContent"></td>
+    </tr>
+
+    </tr>
+
+
+    </tbody>
+    <tfoot wicket:id="bottomToolbars">
+    <wicket:container wicket:id="toolbars"></wicket:container>
+    </tfoot>
+</wicket:panel>
+
+

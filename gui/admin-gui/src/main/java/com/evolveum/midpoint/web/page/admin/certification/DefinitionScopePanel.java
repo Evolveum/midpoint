@@ -10,9 +10,8 @@ package com.evolveum.midpoint.web.page.admin.certification;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
-import org.apache.wicket.markup.html.form.TextArea;
+import com.evolveum.midpoint.gui.api.component.form.TextArea;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
@@ -21,10 +20,11 @@ import org.apache.wicket.model.util.ListModel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.ListMultipleChoicePanel;
-import com.evolveum.midpoint.web.component.input.QNameRelationChoiceRenderer;
+import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.dto.DefinitionScopeDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.DefinitionScopeObjectType;
@@ -45,6 +45,7 @@ public class DefinitionScopePanel extends BasePanel<DefinitionScopeDto> {
     private static final String ID_INCLUDE_ROLES = "includeRoles";
     private static final String ID_INCLUDE_ORGS = "includeOrgs";
     private static final String ID_INCLUDE_USERS = "includeUsers";
+    private static final String ID_INCLUDE_POLICIES = "includePolicies";
     private static final String ID_INCLUDE_SERVICES = "includeServices";
     private static final String ID_INCLUDE_TARGET_TYPES_HELP = "scopeIncludeTargetTypesHelp";
     private static final String ID_INCLUDE_ENABLED_ITEMS_ONLY = "includeEnabledItemsOnly";
@@ -112,6 +113,8 @@ public class DefinitionScopePanel extends BasePanel<DefinitionScopeDto> {
                 createStringResource("PageCertDefinition.scopeIncludeServices")));
         add(new CheckBoxPanel(ID_INCLUDE_USERS, new PropertyModel<>(getModel(), DefinitionScopeDto.F_INCLUDE_USERS),
                 createStringResource("PageCertDefinition.scopeIncludeUsers")));
+        add(new CheckBoxPanel(ID_INCLUDE_POLICIES, new PropertyModel<>(getModel(), DefinitionScopeDto.F_INCLUDE_POLICIES),
+                createStringResource("PageCertDefinition.scopeIncludePolicies")));
 
         add(WebComponentUtil.createHelp(ID_INCLUDE_TARGET_TYPES_HELP));
 
@@ -125,7 +128,7 @@ public class DefinitionScopePanel extends BasePanel<DefinitionScopeDto> {
 
         ListMultipleChoicePanel<QName> relationsPanel = new ListMultipleChoicePanel<>(ID_SCOPE_RELATIONS,
                 new ListModel<>(getModelObject().getRelationList()),
-                new ListModel<>(relationsList), new QNameRelationChoiceRenderer(), null);
+                new ListModel<>(relationsList), new QNameObjectTypeChoiceRenderer(), null);
         relationsPanel.setOutputMarkupId(true);
         add(relationsPanel);
 

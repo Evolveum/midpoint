@@ -23,6 +23,13 @@ import java.util.Map;
 import java.util.UUID;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.*;
+
+import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
+
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.Containerable;
@@ -46,10 +53,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.connector.MConnector;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.MConnectorHost;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnector;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnectorHost;
-import com.evolveum.midpoint.repo.sqale.qmodel.focus.MFocus;
-import com.evolveum.midpoint.repo.sqale.qmodel.focus.MUser;
-import com.evolveum.midpoint.repo.sqale.qmodel.focus.QGenericObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.lookuptable.MLookupTableRow;
 import com.evolveum.midpoint.repo.sqale.qmodel.lookuptable.QLookupTableRow;
 import com.evolveum.midpoint.repo.sqale.qmodel.node.MNode;
@@ -237,6 +240,44 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
 
         and("nothing is added to the database");
         assertThat(count(QObject.CLASS)).isEqualTo(baseCount + 1);
+    }
+
+    @Test
+    public void test119ModifyLegacyPreservesData() throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+        OperationResult result = createOperationResult();
+        QUserMapping.getUserMapping().setStoreSplitted(false);
+        QAssignmentMapping.getAssignmentMapping().setStoreFullObject(false);
+        long baseCount = count(QObject.CLASS);
+
+        UserType user = new UserType().name("user" + getTestNumber())
+                .assignment(new AssignmentType().targetRef(UUID.randomUUID().toString(), RoleType.COMPLEX_TYPE));
+        try {
+            given("user already in the repository with legacy format (assignment.full_object is null)");
+            String oid = repositoryService.addObject(user.asPrismObject(), null, result);
+            assertThat(count(QObject.CLASS)).isEqualTo(baseCount + 1);
+
+            QUserMapping.getUserMapping().setStoreSplitted(true);
+            QAssignmentMapping.getAssignmentMapping().setStoreFullObject(true);
+            expect("should be readed correctly with assignment present");
+            UserType readed = repositoryService.getObject(UserType.class, oid, null, result).asObjectable();
+            assertThat(readed.getAssignment()).hasSize(1);
+            // Modify with splitted -
+
+            and("when unrelated modification is applied");
+            var deltas = prismContext.deltaFor(UserType.class)
+                            .item(UserType.F_ACTIVATION).add(new ActivationType().administrativeStatus(ActivationStatusType.ENABLED))
+                            .asItemDeltas();
+            repositoryService.modifyObject(UserType.class, oid, deltas, result);
+            and("assignment should be still there and reindexed");
+            readed = repositoryService.getObject(UserType.class, oid, null, result).asObjectable();
+            assertThat(readed.getAssignment()).hasSize(1);
+            assertThat(readed.getActivation()).isNotNull();
+
+
+        } finally {
+            QUserMapping.getUserMapping().setStoreSplitted(true);
+            QAssignmentMapping.getAssignmentMapping().setStoreFullObject(true);
+        }
     }
 
     // detailed container tests are from test200 on, this one has overwrite priority :-)
@@ -1011,6 +1052,12 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         String objectName = "shadow" + getTestNumber();
         ShadowType object = new ShadowType()
                 .name(objectName)
+                .resourceRef(UUID.randomUUID().toString(), ResourceType.COMPLEX_TYPE)
+                .objectClass(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS)
+                .activation(new ActivationType()
+                        .disableReason(SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT)
+                        .enableTimestamp(XmlTypeConverter.createXMLGregorianCalendar())
+                )
                 .extension(new ExtensionType());
 
         ExtensionType extensionContainer = object.getExtension();
@@ -1037,6 +1084,96 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(Jsonb.toMap(row.attributes))
                 .containsEntry(shadowAttributeKey(attributesContainer, "string-mv"),
                         List.of("string-value1", "string-value2"));
+    }
+    // endregion
+
+    // region metadata
+    @Test
+    public void test400AddingUserWithValueMetadata() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("a user with value metadata");
+        String objectName = "u" + getTestNumber();
+        UUID creatorRefOid = UUID.randomUUID();
+        UUID modifierRefOid = UUID.randomUUID();
+        QName relation1 = QName.valueOf("{https://random.org/ns}random-rel-1");
+        QName relation2 = QName.valueOf("{https://random.org/ns}random-rel-2");
+
+        var storageMetadata = new StorageMetadataType()
+                .creatorRef(creatorRefOid.toString(), UserType.COMPLEX_TYPE, relation1)
+                .createChannel("create-channel")
+                .createTimestamp(MiscUtil.asXMLGregorianCalendar(1L))
+                .modifierRef(modifierRefOid.toString(), UserType.COMPLEX_TYPE, relation2)
+                .modifyChannel("modify-channel")
+                .modifyTimestamp(MiscUtil.asXMLGregorianCalendar(2L));
+        var provenanceMetadata = new ProvenanceMetadataType().mappingSpecification(new MappingSpecificationType().mappingName("foo"));
+
+        var assignmentBase = new AssignmentType().targetRef(modifierRefOid.toString(), RoleType.COMPLEX_TYPE);
+        var assignment = assignmentBase.clone();
+        ValueMetadataTypeUtil.getOrCreateMetadata(assignment)
+                .storage(storageMetadata.clone())
+                .provenance(provenanceMetadata.clone());
+        UserType user = new UserType()
+                .name(objectName)
+                .assignment(assignment);
+        ValueMetadataTypeUtil.getOrCreateMetadata(user)
+                .storage(new StorageMetadataType()
+                        .creatorRef(creatorRefOid.toString(), UserType.COMPLEX_TYPE, relation1)
+                        .createChannel("create-channel")
+                        .createTimestamp(MiscUtil.asXMLGregorianCalendar(1L))
+                        .modifierRef(modifierRefOid.toString(), UserType.COMPLEX_TYPE, relation2)
+                        .modifyChannel("modify-channel")
+                        .modifyTimestamp(MiscUtil.asXMLGregorianCalendar(2L)));
+
+        when("adding it to the repository");
+        repositoryService.addObject(user.asPrismObject(), null, result);
+
+        then("it is stored OK");
+        assertThatOperationResult(result).isSuccess();
+
+        MObject row = selectObjectByOid(QUser.class, user.getOid());
+        display("FULL OBJECT: " + new String(row.fullObject, StandardCharsets.UTF_8));
+
+        // currently, we need only some checks here:
+        var userReloaded = repositoryService.getObject(UserType.class, user.getOid(), null, result).asObjectable();
+        var metadataReloaded = ValueMetadataTypeUtil.getMetadata(userReloaded);
+        assertThat(metadataReloaded).isNotNull();
+        assertThat(metadataReloaded.getId()).isNotNull();
+        var storageReloaded = metadataReloaded.getStorage();
+        assertThat(storageReloaded).isNotNull();
+        assertThat(storageReloaded.getCreatorRef().getOid()).isEqualTo(creatorRefOid.toString());
+        assertThat(storageReloaded.getCreateChannel()).isEqualTo("create-channel");
+        // etc (those will be probably ok)
+
+
+        when("Assignment is added with different metadata");
+
+
+        var assignmentDifferentMapping = assignmentBase.clone();
+        ValueMetadataTypeUtil.getOrCreateMetadata(assignmentDifferentMapping).provenance(new ProvenanceMetadataType()
+                .mappingSpecification(new MappingSpecificationType().mappingName("second")));
+        var deltas = PrismContext.get().deltaFor(UserType.class).item(UserType.F_ASSIGNMENT).add(assignmentDifferentMapping.clone()).asItemDeltas();
+        repositoryService.modifyObject(UserType.class, user.getOid(), deltas, result);
+
+        var doubleMeta = repositoryService.getObject(UserType.class, user.getOid(), null, result);
+        then("Assignment should contain both mappings");
+        assertThat(doubleMeta.asObjectable().getAssignment().get(0).asPrismContainerValue().getValueMetadata().getValues())
+                .extracting(v -> ((ValueMetadataType) v.asContainerable()).getProvenance().getMappingSpecification().getMappingName())
+                .containsExactlyInAnyOrder("foo", "second");
+        var assigmentId = doubleMeta.asObjectable().getAssignment().get(0).getId();
+        when("Assignment with second mapping is deleted");
+        deltas = PrismContext.get().deltaFor(UserType.class).item(UserType.F_ASSIGNMENT).delete(assignmentDifferentMapping.clone().id(assigmentId)).asItemDeltas();
+
+        repositoryService.modifyObject(UserType.class, user.getOid(), deltas, result);
+        doubleMeta = repositoryService.getObject(UserType.class, user.getOid(), null, result);
+        assertThat(doubleMeta.asObjectable().getAssignment().get(0).asPrismContainerValue().getValueMetadata().getValues())
+                .extracting(v -> ((ValueMetadataType) v.asContainerable()).getProvenance().getMappingSpecification().getMappingName())
+                .containsExactlyInAnyOrder("foo");
+
+
+
+
+
     }
     // endregion
 

@@ -12,11 +12,16 @@ import java.util.Collection;
 
 import com.evolveum.midpoint.util.DebugUtil;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * @author Radovan Semancik
  *
  */
 public class DummyGroup extends DummyObject {
+
+    /** BEWARE! The dummy controller may represent this class as `__GROUP__` (if using legacy schema mode). */
+    public static final String OBJECT_CLASS_NAME = "group";
 
     public static final String ATTR_MEMBERS_NAME = "members";
 
@@ -26,6 +31,10 @@ public class DummyGroup extends DummyObject {
 
     public DummyGroup(String username) {
         super(username);
+    }
+
+    public DummyGroup(String username, DummyResource resource) {
+        super(username, resource);
     }
 
     public Collection<String> getMembers() {
@@ -51,13 +60,8 @@ public class DummyGroup extends DummyObject {
     }
 
     @Override
-    protected DummyObjectClass getObjectClass() {
-        return resource.getGroupObjectClass();
-    }
-
-    @Override
-    protected DummyObjectClass getObjectClassNoExceptions() {
-        return resource.getGroupObjectClass();
+    public @NotNull String getObjectClassName() {
+        return OBJECT_CLASS_NAME;
     }
 
     @Override
@@ -75,5 +79,4 @@ public class DummyGroup extends DummyObject {
         sb.append("\n");
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Members", getMembers(), indent + 1);
     }
-
 }

@@ -6,8 +6,7 @@
  */
 package com.evolveum.midpoint.testing.story;
 
-import static com.evolveum.midpoint.schema.TaskExecutionMode.SIMULATED_DEVELOPMENT;
-import static com.evolveum.midpoint.schema.TaskExecutionMode.SIMULATED_SHADOWS_DEVELOPMENT;
+import static com.evolveum.midpoint.schema.TaskExecutionMode.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -35,6 +34,7 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.test.asserter.ProcessedObjectAsserter;
 import com.evolveum.midpoint.model.test.asserter.ProcessedObjectsAsserter;
+import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 
 import org.jetbrains.annotations.NotNull;
@@ -132,9 +132,11 @@ public class TestFirstSteps extends AbstractStoryTest {
     private static final TestResource RESOURCE_OPENDJ_270 = createOpenDjResource("resource-opendj-270.xml");
     private static final TestResource RESOURCE_OPENDJ_280 = createOpenDjResource("resource-opendj-280.xml");
     private static final TestResource RESOURCE_OPENDJ_290 = createOpenDjResource("resource-opendj-290.xml");
+    private static final TestResource RESOURCE_OPENDJ_300 = createOpenDjResource("resource-opendj-300.xml");
+
     private TestResource currentOpenDjResource = RESOURCE_OPENDJ_200;
 
-    private static final ObjectsCounter focusCounter = new ObjectsCounter(FocusType.class);
+    public static final String INTENT_OTHER = "other";
 
     private static final String NAME_JSMITH1 = "jsmith1";
     private static final String NAME_JSMITH2 = "jsmith2";
@@ -154,12 +156,14 @@ public class TestFirstSteps extends AbstractStoryTest {
     private static final String DN_JUNIOR1 = "uid=junior1,ou=People,dc=example,dc=com";
     private static final String DN_EMPNO_6 = "uid=empNo:6,ou=People,dc=example,dc=com";
 
+    private final ObjectsCounter focusCounter = new ObjectsCounter(FocusType.class);
+
     @Autowired CorrelationCaseManager correlationCaseManager;
     @Autowired CaseManager caseManager;
 
-    @BeforeMethod
-    public void onNativeOnly() {
-        skipIfNotNativeRepository();
+    @Override
+    protected boolean requiresNativeRepository() {
+        return true;
     }
 
     private static CsvTestResource createHrResource(String fileName) {
@@ -641,7 +645,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                     .delta()
                         .assertModified(
                                 UserType.F_EMPLOYEE_NUMBER, // the effect of the newly added mapping
-                                UserType.F_METADATA)
+                                InfraItemName.METADATA)
                     .end();
         // @formatter:on
 
@@ -1258,7 +1262,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .display()
                 .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find()
                     .delta()
-                        .assertNotModifiedExcept(UserType.F_NAME, UserType.F_METADATA)
+                        .assertNotModifiedExcept(UserType.F_NAME, InfraItemName.METADATA)
                         .assertPolyStringModification(UserType.F_NAME, "empNo:1", NAME_JSMITH1)
                     .end()
                 .end()
@@ -1374,7 +1378,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         then("the operation should result in failure");
         display("result", result1);
         assertThatOperationResult(result1)
-                .isPartialError()
+                .isFatalError() // partial error would be OK as well
                 .hasMessageContaining("String 'jsmith1' is not a DN");
 
         and("there should be no processed objects");
@@ -1445,7 +1449,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                         .assertModified(
                                 UserType.F_ASSIGNMENT,
                                 UserType.F_LINK_REF,
-                                UserType.F_METADATA)
+                                InfraItemName.METADATA)
                     .end()
                 .end()
                 .by().objectType(ShadowType.class).changeType(ChangeType.ADD).find()
@@ -1498,7 +1502,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                         .assertModified(
                                 UserType.F_ASSIGNMENT,
                                 UserType.F_LINK_REF,
-                                UserType.F_METADATA)
+                                InfraItemName.METADATA)
                     .end()
                 .end()
                 .by().objectType(ShadowType.class).changeType(ChangeType.ADD).find()
@@ -1508,7 +1512,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                                 .attributes()
                                     .assertValue(OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER, DN_EMPNO_6)
                                     .assertValue(QNAME_EMPLOYEE_NUMBER, "6")
-                                    .assertNoAttribute(QNAME_MAIL)
+                                    .assertNoSimpleAttribute(QNAME_MAIL)
                                     .assertValue(QNAME_GIVEN_NAME, "John")
                                     .assertValue(QNAME_SN, "Johnson")
                                     .assertValue(QNAME_CN, "John Johnson")
@@ -1552,7 +1556,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .by().objectType(UserType.class).objectOid(getUserOid(NAME_JSMITH2)).find()
                     .assertName(NAME_JSMITH2)
                     .delta()
-                        .assertModifiedExclusive(UserType.F_METADATA)
+                        .assertModifiedExclusive(InfraItemName.METADATA)
                     .end()
                 .end()
                 .by().objectType(ShadowType.class).objectOid(getHrShadowOid("2")).find()
@@ -1563,14 +1567,14 @@ public class TestFirstSteps extends AbstractStoryTest {
                     .assertName(DN_JSMITH2)
                     .delta()
                         .assertModification(PATH_EMPLOYEE_NUMBER, null, "2")
-                        .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, ShadowType.F_METADATA)
+                        .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, InfraItemName.METADATA)
                     .end()
                 .end()
 
                 .by().objectType(UserType.class).objectOid(getUserOid(NAME_AGREEN3)).find()
                     .assertName(NAME_AGREEN3)
                     .delta()
-                        .assertModifiedExclusive(UserType.F_METADATA)
+                        .assertModifiedExclusive(InfraItemName.METADATA)
                     .end()
                 .end()
                 .by().objectType(ShadowType.class).objectOid(getHrShadowOid("3")).find()
@@ -1582,14 +1586,14 @@ public class TestFirstSteps extends AbstractStoryTest {
                     .delta()
                         .assertModification(PATH_EMPLOYEE_NUMBER, null, "3")
                         .assertModification(PATH_MAIL, null, "agreen3@evolveum.com")
-                        .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, PATH_MAIL, ShadowType.F_METADATA)
+                        .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, PATH_MAIL, InfraItemName.METADATA)
                     .end()
                 .end()
 
                 .by().objectType(UserType.class).objectOid(getUserOid(NAME_RBLACK)).find()
                     .assertName(NAME_RBLACK)
                     .delta()
-                        .assertModifiedExclusive(UserType.F_METADATA)
+                        .assertModifiedExclusive(InfraItemName.METADATA)
                     .end()
                 .end()
                 .by().objectType(ShadowType.class).objectOid(getHrShadowOid("4")).find()
@@ -1601,14 +1605,14 @@ public class TestFirstSteps extends AbstractStoryTest {
                     .delta()
                         .assertModification(PATH_EMPLOYEE_NUMBER, null, "4")
                         .assertModification(PATH_MAIL, null, "rblack4@evolveum.com")
-                        .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, PATH_MAIL, ShadowType.F_METADATA)
+                        .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, PATH_MAIL, InfraItemName.METADATA)
                     .end()
                 .end()
 
                 .by().objectType(UserType.class).objectOid(getUserOid(NAME_BOB)).find()
                     .assertName(NAME_BOB)
                     .delta()
-                        .assertModifiedExclusive(UserType.F_METADATA)
+                        .assertModifiedExclusive(InfraItemName.METADATA)
                     .end()
                 .end()
                 .by().objectType(ShadowType.class).objectOid(getHrShadowOid("5")).find()
@@ -1622,7 +1626,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                         .assertModification(PATH_MAIL, null, "rblack5@evolveum.com")
                         .assertModification(PATH_GIVEN_NAME, "Bob", "Robert")
                         .assertModification(PATH_CN, "Bob Black", "Robert Black")
-                        .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, PATH_MAIL, PATH_GIVEN_NAME, PATH_CN, ShadowType.F_METADATA)
+                        .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, PATH_MAIL, PATH_GIVEN_NAME, PATH_CN, InfraItemName.METADATA)
                     .end()
                 .end()
 
@@ -1674,6 +1678,55 @@ public class TestFirstSteps extends AbstractStoryTest {
                 NAME_RBLACK, DN_RBLACK, "Robert", "Black", "rblack4@evolveum.com", "4");
         assertUserAndOpenDjShadow(
                 NAME_BOB, DN_BOB, "Robert", "Black", "rblack5@evolveum.com", "5");
+    }
+
+    /**
+     * Testing forced reclassification: We add a secondary object type, manually switch an account to it, and check
+     * if the simulated forced reclassification will detect the "repair" action.
+     *
+     * MID-9514
+     */
+    @Test
+    public void test300ForcedReclassification() throws CommonException, IOException {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("resource definition is imported and tested");
+        reimportAndTestOpenDjResource(RESOURCE_OPENDJ_300, task, result);
+
+        and("shadow 'jsmith1' is manually misclassified");
+        repositoryService.modifyObject(
+                ShadowType.class,
+                getOpenDjShadowOid(DN_JSMITH1),
+                prismContext.deltaFor(ShadowType.class)
+                        .item(ShadowType.F_INTENT).replace(INTENT_OTHER)
+                        .asItemDeltas(),
+                result);
+
+        when("running the simulated shadow reclassification (production)");
+        var taskOid = shadowReclassificationOpenDjRequest(DN_JSMITH1)
+                .withTaskExecutionMode(SIMULATED_SHADOWS_PRODUCTION)
+                .execute(result);
+        waitForRootActivityCompletion(taskOid, DEFAULT_SHORT_TASK_WAIT_TIMEOUT);
+
+        then("the task is OK");
+        assertTask(taskOid, "simulated shadow reclassification")
+                .display();
+
+        and("there is a simulated classification change");
+        assertProcessedObjects(getTaskSimResult(taskOid, result))
+                .display()
+                .by()
+                .objectType(ShadowType.class)
+                .changeType(ChangeType.MODIFY)
+                .eventMarkOid(MARK_SHADOW_CLASSIFICATION_CHANGED.oid)
+                .find(po -> po
+                        .delta()
+                        .assertModifications(1)
+                        .assertModification(ShadowType.F_INTENT, INTENT_OTHER, INTENT_DEFAULT)
+                        .end());
+        // Currently, there is also another one, synchronization-timestamp-related, delta.
+        // Hopefully it will get merged to the first one (checked above) eventually.
     }
 
     private void assertUserAndOpenDjShadow(
@@ -1765,6 +1818,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         }
     }
 
+    @SuppressWarnings("SameParameterValue")
     private ObjectReferenceType getUserRef(String name) {
         return ObjectTypeUtil.createObjectRef(getUserOid(name), ObjectTypes.USER);
     }
@@ -1804,6 +1858,13 @@ public class TestFirstSteps extends AbstractStoryTest {
     @SuppressWarnings("SameParameterValue")
     private SynchronizationRequestBuilder importOpenDjAccountRequest(String dn) {
         return importAccountsRequest()
+                .withResourceOid(RESOURCE_OPENDJ_OID)
+                .withNamingAttribute(OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER)
+                .withNameValue(dn);
+    }
+
+    private SynchronizationRequestBuilder shadowReclassificationOpenDjRequest(String dn) {
+        return shadowReclassificationRequest()
                 .withResourceOid(RESOURCE_OPENDJ_OID)
                 .withNamingAttribute(OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER)
                 .withNameValue(dn);

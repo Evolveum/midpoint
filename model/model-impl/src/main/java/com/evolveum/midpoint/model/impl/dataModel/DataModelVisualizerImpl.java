@@ -112,10 +112,10 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
             Collection<? extends ResourceObjectTypeDefinition> refinedDefinitions = refinedResourceSchema.getObjectTypeDefinitions();
             for (ResourceObjectTypeDefinition refinedDefinition : refinedDefinitions) {
                 LOGGER.debug("Processing refined definition {}", refinedDefinition);
-                Collection<? extends ResourceAttributeDefinition<?>> attributeDefinitions = refinedDefinition.getAttributeDefinitions();
+                Collection<? extends ShadowSimpleAttributeDefinition<?>> attributeDefinitions = refinedDefinition.getSimpleAttributeDefinitions();
                 final ShadowKindType kind = def(refinedDefinition.getKind());
                 final String intent = def(refinedDefinition.getIntent());
-                for (ResourceAttributeDefinition<?> attributeDefinition : attributeDefinitions) {
+                for (ShadowSimpleAttributeDefinition<?> attributeDefinition : attributeDefinitions) {
                     if (attributeDefinition.isIgnored()) {
                         continue;
                     }
@@ -127,16 +127,16 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
                     }
                     processInboundMappings(model, attrItem, attributeDefinition.getInboundMappingBeans());
                 }
-                Collection<ResourceAssociationDefinition> associationDefinitions = refinedDefinition.getAssociationDefinitions();
-                for (ResourceAssociationDefinition associationDefinition : associationDefinitions) {
+                for (ShadowReferenceAttributeDefinition associationDefinition : refinedDefinition.getReferenceAttributeDefinitions()) {
                     if (associationDefinition.isIgnored()) {
                         continue;
                     }
-                    LOGGER.debug("Processing refined association definition for {}", associationDefinition.getName());
+                    LOGGER.debug("Processing refined association definition for {}", associationDefinition.getItemName());
                     ResourceDataItem assocItem = model.findResourceItem(resource.getOid(), kind, intent, getObjectClassName(refinedDefinition),
-                            ItemPath.create(associationDefinition.getName()));
-                    if (associationDefinition.getOutboundMappingType() != null) {
-                        processOutboundMapping(model, assocItem, associationDefinition.getOutboundMappingType(), null);
+                            ItemPath.create(associationDefinition.getItemName()));
+                    var outboundMapping = associationDefinition.getOutboundMappingBean();
+                    if (outboundMapping != null) {
+                        processOutboundMapping(model, assocItem, outboundMapping, null);
                     }
 //                    if (associationDefinition.getAssociationTarget() != null) {
 //                        ResourceObjectTypeDefinition target = associationDefinition.getAssociationTarget();
@@ -194,7 +194,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
             throws SchemaException, ConfigurationException {
         LOGGER.debug("createDataItems starting");
         for (PrismObject<ResourceType> resource : resources) {
-            final ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource);
+            final ResourceSchema resourceSchema = ResourceSchemaFactory.getBareSchema(resource);
             if (resourceSchema == null) {
                 LOGGER.debug("Resource schema is null, skipping the resource.");
                 continue;
@@ -210,11 +210,11 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
             Collection<? extends ResourceObjectTypeDefinition> refinedDefinitions = refinedResourceSchema.getObjectTypeDefinitions();
             for (ResourceObjectTypeDefinition refinedDefinition : refinedDefinitions) {
                 LOGGER.debug("Processing refined definition {} in {}", refinedDefinition, resource);
-                Collection<? extends ResourceAttributeDefinition<?>> attributeDefinitions = refinedDefinition.getAttributeDefinitions();
+                Collection<? extends ShadowSimpleAttributeDefinition<?>> attributeDefinitions = refinedDefinition.getSimpleAttributeDefinitions();
                 //Collection<? extends ResourceAttributeDefinition> rawAttributeDefinitions = refinedDefinition.getObjectClassDefinition().getAttributeDefinitions();
                 final ShadowKindType kind = def(refinedDefinition.getKind());
                 final String intent = def(refinedDefinition.getIntent());
-                for (ResourceAttributeDefinition<?> attributeDefinition : attributeDefinitions) {
+                for (ShadowSimpleAttributeDefinition<?> attributeDefinition : attributeDefinitions) {
                     if (attributeDefinition.isIgnored()) {
                         continue;
                     }
@@ -225,13 +225,12 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
                     model.registerDataItem(attrItem);
                 }
                 // TODO check attributes not mentioned in schema handling
-                Collection<ResourceAssociationDefinition> associationDefinitions = refinedDefinition.getAssociationDefinitions();
-                for (ResourceAssociationDefinition associationDefinition : associationDefinitions) {
+                for (ShadowReferenceAttributeDefinition associationDefinition : refinedDefinition.getReferenceAttributeDefinitions()) {
                     if (associationDefinition.isIgnored()) {
                         continue;
                     }
-                    LOGGER.debug("Registering refined association definition for {}", associationDefinition.getName());
-                    ResourceDataItem assocItem = new ResourceDataItem(model, resource.getOid(), kind, intent, refinedResourceSchema, refinedDefinition, associationDefinition.getName());
+                    LOGGER.debug("Registering refined association definition for {}", associationDefinition.getItemName());
+                    ResourceDataItem assocItem = new ResourceDataItem(model, resource.getOid(), kind, intent, refinedResourceSchema, refinedDefinition, associationDefinition.getItemName());
                     model.registerDataItem(assocItem);
                 }
                 model.registerDataItem(new ResourceDataItem(model, resource.getOid(), kind, intent, refinedResourceSchema, refinedDefinition, PATH_ACTIVATION_ADMINISTRATIVE_STATUS));
@@ -413,7 +412,8 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
                 currentItem.getObjectClassName(), path);
     }
 
-    private void processOutboundMapping(@NotNull DataModel model, @NotNull ResourceDataItem targetItem, @NotNull MappingType mapping,
+    private void processOutboundMapping(
+            @NotNull DataModel model, @NotNull ResourceDataItem targetItem, @NotNull MappingType mapping,
             @Nullable ItemPath defaultSourceItemPath) {
         LOGGER.debug("Processing outbound mapping: {} for {}", mapping, targetItem);
         List<DataItem> sources = new ArrayList<>();

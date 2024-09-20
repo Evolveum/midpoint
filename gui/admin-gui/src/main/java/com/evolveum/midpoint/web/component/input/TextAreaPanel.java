@@ -7,10 +7,10 @@
 
 package com.evolveum.midpoint.web.component.input;
 
+import com.evolveum.midpoint.gui.api.component.form.TextArea;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.form.FormComponent;
-import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.model.IModel;
 
 public class TextAreaPanel<T> extends InputPanel {
@@ -20,7 +20,7 @@ public class TextAreaPanel<T> extends InputPanel {
     public TextAreaPanel(String id, IModel<T> model, Integer rowsOverride) {
         super(id);
 
-        final TextArea<T> text = new TextArea<T>(ID_INPUT, model) {
+        final TextArea<T> text = new TextArea<>(ID_INPUT, model) {
 
             @Override
             protected boolean shouldTrimInput() {

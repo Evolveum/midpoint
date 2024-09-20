@@ -25,7 +25,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.DiscoveredConfiguration;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.*;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.BareResourceSchema;
 import com.evolveum.midpoint.schema.query.TypedQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -505,21 +505,18 @@ public interface ModelService {
         return countObjects(query.getType(), query.toObjectQuery(), query.getOptions(), task, parentResult);
     }
 
-
     default <T extends Containerable> Integer countContainers(TypedQuery<T> query,
             Task task, OperationResult parentResult) throws SchemaException,
             ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         return countContainers(query.getType(), query.toObjectQuery(), query.getOptions(), task, parentResult);
     }
 
-
     /**
-     * <p>
      * Test the resource connection and basic resource connector functionality.
-     * </p>
-     * <p>
+     *
+     * Authorizations are checked here.
+     *
      * Work same as {@link ProvisioningService#testResource(PrismObject, Task, OperationResult)}.
-     * </p>
      *
      * @param resourceOid OID of resource to test
      * @return results of executed tests
@@ -527,15 +524,14 @@ public interface ModelService {
      * @throws IllegalArgumentException wrong OID format
      */
     OperationResult testResource(String resourceOid, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException;
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, CommunicationException;
 
     /**
-     * <p>
      * Test the resource connection and basic resource connector functionality.
-     * </p>
-     * <p>
-     * Work same as {@link com.evolveum.midpoint.provisioning.api.ProvisioningService#testResource(PrismObject, Task, OperationResult)}.
-     * </p>
+     *
+     * Work same as {@link ProvisioningService#testResource(PrismObject, Task, OperationResult)}.
+     *
+     * For internal use. Authorizations are NOT checked here!
      *
      * @param resource resource to test
      * @return results of executed tests
@@ -544,15 +540,13 @@ public interface ModelService {
     OperationResult testResource(PrismObject<ResourceType> resource, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ConfigurationException;
 
-
     /**
-     * <p>
      * Test partial resource connector configuration. Testing only basic connection.
-     * </p>
-     * <p>
+     *
      * Method work with OperationResult same as method
      * {@link ProvisioningService#testResource(PrismObject, Task, OperationResult)}.
-     * </p>
+     *
+     * For internal use. Authorizations are NOT checked here!
      *
      * @param resource resource to test
      * @return results of executed partial test
@@ -574,19 +568,19 @@ public interface ModelService {
 
     /**
      * <p>
-     * Method work same as
-     * {@link com.evolveum.midpoint.provisioning.api.ProvisioningService#fetchSchema(PrismObject, OperationResult)}.
+     * Method work the same as {@link ProvisioningService#fetchSchema(PrismObject, OperationResult)}.
      * </p>
      *
      * @param resource resource with connector configuration
      * @return Resource schema fetched by connector
      */
-    @Nullable ResourceSchema fetchSchema(@NotNull PrismObject<ResourceType> resource, @NotNull OperationResult parentResult);
+    @Nullable BareResourceSchema fetchSchema(
+            @NotNull PrismObject<ResourceType> resource, @NotNull OperationResult parentResult);
 
     /**
      * <p>
      * Method work same as
-     * {@link com.evolveum.midpoint.provisioning.api.ProvisioningService#getNativeCapabilities(String, OperationResult)}.
+     * {@link ProvisioningService#getNativeCapabilities(String, OperationResult)}.
      * </p>
      *
      * EXPERIMENTAL feature.

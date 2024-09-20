@@ -10,8 +10,6 @@ package com.evolveum.midpoint.repo.sql.data.common.any;
 import java.util.Objects;
 import jakarta.persistence.*;
 
-import org.hibernate.annotations.ForeignKey;
-
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.id.ROExtPolyStringId;
@@ -19,6 +17,9 @@ import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.query.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
 
 /**
  * @author lazyman
@@ -30,6 +31,8 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
         @Index(name = "iExtensionPolyString", columnList = "orig")
 })
 public class ROExtPolyString extends ROExtBase<String> {
+
+    public static final String F_NORM = "norm";
 
     //orig value
     private String value;
@@ -46,11 +49,10 @@ public class ROExtPolyString extends ROExtBase<String> {
         }
     }
 
-    @Id
-    @ForeignKey(name = "fk_o_ext_poly_owner")
-    @MapsId("owner")
+    @MapsId("ownerOid")
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable
+    @JoinColumn(name = "owner_oid", foreignKey = @ForeignKey(name = "fk_o_ext_poly_owner"))
     public RObject getOwner() {
         return super.getOwner();
     }
@@ -62,6 +64,7 @@ public class ROExtPolyString extends ROExtBase<String> {
     }
 
     @Id
+    @JdbcType(IntegerJdbcType.class)
     @Column(name = "ownerType")
     @Enumerated(EnumType.ORDINAL)
     public RObjectExtensionType getOwnerType() {
@@ -79,6 +82,7 @@ public class ROExtPolyString extends ROExtBase<String> {
         return value;
     }
 
+    @Column(name = "norm")
     public String getNorm() {
         return norm;
     }
@@ -97,12 +101,13 @@ public class ROExtPolyString extends ROExtBase<String> {
         if (o == null || getClass() != o.getClass()) { return false; }
         if (!super.equals(o)) { return false; }
         ROExtPolyString that = (ROExtPolyString) o;
-        return Objects.equals(value, that.value);
+        return Objects.equals(value, that.value)
+                && Objects.equals(norm, that.norm);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), value);
+        return Objects.hash(super.hashCode(), value, norm);
     }
 
     @Override

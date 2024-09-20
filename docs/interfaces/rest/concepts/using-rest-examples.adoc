@@ -1,0 +1,198 @@
+= How To Use The REST API Examples
+:page-nav-title: REST API Examples How To
+:page-display-order: 500
+:page-keywords: [ 'rest', 'examples', 'samples' ]
+:page-toc: top
+:page-upkeep-status: green
+
+== Introduction
+
+The *REST* API documentation pages contain a large number of *examples*.
+If you are trying to use them for the first time, and you are not familiar with the tools used than you might face some issues, or maybe have some questions.
+This page is dedicated to help you with this.
+
+== Tools
+
+In the examples used through the REST api documentation pages we use the tool link:https://curl.se/[*CURL*] as a web client for issuing the REST requests.
+We use curl because it is a well known, free and open source software.
+It's well documented, and it's supported on many platforms.
+
+Usually you will see something similar to the following format of a curl command in out documentation.
+The example contains both Windows *shell* and *bash* usage, in our examples we will use *bash* as the differences are only in the "new line" escape characters.
+
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \ <1> <2>
+-H "Accept: application/json" \ <3>
+-H "Content-Type: application/json" \ <4>
+-X POST http://localhost:8080/midpoint/ws/rest/users/search \ <5>
+-v \ <6>
+--data-binary @./samples/rest/query-all.json <7>
+----
+[source,shell]
+----
+curl --user administrator:y0uR_P455woR*d ^ <1> <2>
+-H "Accept: application/json" ^ <3>
+-H "Content-Type: application/json" ^ <4>
+-X POST http://localhost:8080/midpoint/ws/rest/users/search ^ <5>
+-v ^ <6>
+--data-binary @./samples/rest/query-all.json <7>
+----
+<1> Invocation of curl
+<2> Authentication with username and password <username:password>
+<3> Reply content type header format
+<4> Response content type header format
+<5> Request with the request method and REST endpoint URI
+<6> Output is more verbose (includes request and response header data and more)
+<7> Data which should be attached to the API request
+
+== Authentication
+
+The midPoint api currently uses only basic username and password authentication. For some more information regarding
+this please see the following documentation link:
+xref:/midpoint/reference/interfaces/rest/concepts/authentication/#_basic_authentication[Authentication methods]
+
+In our REST examples you will quite often see the following:
+[source,bash]
+----
+--user administrator:y0uR_P455woR*d
+----
+
+This part of the curl command means that we authorize the request as done by the user administrator with the password "y0uR_P455woR*d".
+
+== Payload Data
+
+Some operations also are required to contain a data payload.
+The content differs based on the operation or endpoint of the request.
+
+In our examples we use the *--data-binary* parameter to mark the beginning of the payload data.
+We often reference a file on the file system, for this you need to use the *'@'* character.
+
+The *./samples/rest/* directory structure reference is used because we call the sample data from the base directory of our midPoint *samples* project.
+The project can be found on link:https://github.com/Evolveum/midpoint-samples[github].
+
+[source,bash]
+----
+--data-binary @./samples/rest/query-all.json
+----
+
+=== Request Content Type
+
+In case we are using a REST request which contains additional data in its body, we might want to specify the content type which we use.
+
+This can be done by declaring a specific "Content-Type" header.
+[source,bash]
+----
+-H "Content-Type: application/json"
+----
+
+If no header is declared a default "application/xml" is assumed.
+
+Here is a list of the  xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[supported *Media Types*].
+
+=== Reply Content Type
+
+The default reply type is "application/xml". If you would like some other type returned byt the request invocation you will have to use another type of header:
+
+The "Accept" header.
+
+[source,bash]
+----
+-H "Accept: application/json"
+----
+
+Similar to the request header, the "Accept" header has the same set of media types provided as the content header.
+
+Here is a list of the  xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[supported *Media Types*].
+
+
+== Authorizations
+
+There are two types of authorizations which you need to have configured and assigned to the account executing the request.
+
+The actual interface *access* authorizations (e.g. to access the search objects operation).
+And a *model* authorization.
+
+The model authorization permit or deny specific actions executed in the interface.
+
+=== Access Authorizations
+
+The examples which we use imply the usage of the administrator user. The administrator
+user has the *"superuser"* authorization role assigned by default this permits the user
+complete access to the interface and also model.
+
+Additionally, by accessing each operation page, the documentation contains a more "fine-grained"
+authorization which can be used. For a list of operations please see the following xref:/midpoint/reference/interfaces/rest/operations/[link]
+
+=== Model Authorizations
+
+As mentioned above the examples which we use imply the usage of the administrator user. The administrator
+user has the *"superuser"* authorization role assigned by default this permits the user
+complete access to the interface and also model.
+
+It is good practice to limit the access of users to only specific parts of the interface and
+permit only specific actions, please have a look at this xref:/midpoint/reference/security/authorization/model.adoc[link] for model authorizations.
+
+=== Troubleshooting
+
+Errors happen, here we list some frequent issues and also how to debug even those less frequent ones.
+
+==== Client Error
+
+When the client sends a request which cannot be processed, midPoint often responds with a structure called *OperationResult*.
+OperationResult contains more information, quite often a large amount of detail on the situation.
+
+In the following example we have an operation result object returned in the case when midPoint was provided a task which should execute some action on a non-existing object.
+The example is in the JSON format:
+
+.*Example of OperationResult Returned in Case of Client Error.*
+[%collapsible]
+====
+[source, json]
+----
+{
+  "@ns" : "http://prism.evolveum.com/xml/ns/public/types-3",
+  "object" : {
+    "@type" : "c:OperationResultType",
+    "operation" : "addObject",
+    "status" : "handled_error",
+    "importance" : "normal",
+    "start" : "2024-03-08T15:42:05.727+01:00",
+    "end" : "2024-03-08T15:42:05.762+01:00",
+    "microseconds" : 35816,
+    "invocationId" : 5374,
+    "token" : 1000000000000001288,
+    "message" : "Reference reportRef refers to a non-existing object dad5370f-6132-496d-8faa-6c1d3daac2b1: Object of type 'ReportType' with OID 'dad5370f-6132-496d-8faa-6c1d3daac2b1' was not found.: Reference reportRef refers to a non-existing object dad5370f-6132-496d-8faa-6c1d3daac2b1: Object of type 'ReportType' with OID 'dad5370f-6132-496d-8faa-6c1d3daac2b1' was not found.",
+    "partialResults" : [ ]
+  }
+}
+----
+====
+
+==== Frequent Issues
+
+Frequent issues on which we stumbled upon related to the usage of the REST api examples.
+
+===== Missing '@' Character In Data Content File Path
+
+A request was issued via CURL with the "--data-binary" property set to a filepath pointing to a file.
+The issue is that the '@' character was not appended to the request before the filepath string.
+
+If '@' is appended before a string in the "--data-binary" property value, CURL knows that it should look for a file rather than use the string as a paiload.
+[source,bash]
+----
+--data-binary @./samples/rest/query-all.json
+----
+
+=== Troubleshooting Tips
+
+- An error reply quite often has data in the body.
+- Check midPoint log for further information.
+- A reply of "Unauthorized",  points to lacking authorizations of the user invoking the request, these can be
+either model or access authorizations.
+
+== See Also
+
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]
+- xref:/midpoint/reference/security/authorization/service/[]

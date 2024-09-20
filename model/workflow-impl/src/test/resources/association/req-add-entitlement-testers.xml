@@ -12,13 +12,14 @@
     xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
     xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <oid>TO BE DETERMINED</oid>         <!-- this is jack's dummy account shadow -->
+    <oid>TO BE DETERMINED</oid> <!-- this is jack's dummy account shadow -->
     <itemDelta>
         <t:modificationType>add</t:modificationType>
-        <t:path>association</t:path>
-        <t:value xsi:type="c:ShadowAssociationType">
-            <c:name>ri:group</c:name>
-            <c:shadowRef oid="20000000-0000-0000-3333-000000000002" type="ShadowType"/>
+        <t:path>associations/ri:group</t:path>
+        <t:value xsi:type="c:ShadowAssociationValueType">
+            <c:objects>
+                <ri:group oid="20000000-0000-0000-3333-000000000002"/>
+            </c:objects>
         </t:value>
     </itemDelta>
 </objectModification>

@@ -75,7 +75,7 @@ public interface AdTestMixin extends InfraTestMixin {
     default ResourceObjectDefinition assertAdResourceSchema(
             PrismObject<ResourceType> resource, QName accountObjectClass)
             throws SchemaException, ConfigurationException {
-        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchemaRequired(resource.asObjectable());
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource.asObjectable());
         displayDumpable("Resource schema", resourceSchema);
         resourceSchema.validate();
         return assertAdSchema(resource, accountObjectClass);
@@ -94,16 +94,16 @@ public interface AdTestMixin extends InfraTestMixin {
             PrismObject<ResourceType> resource, QName accountObjectClass) throws SchemaException, ConfigurationException {
         ResourceObjectDefinition accountObjectClassDefinition = assertAdSchemaBase(resource, accountObjectClass);
 
-        ResourceAttributeDefinition<?> createTimestampDef =
-                accountObjectClassDefinition.findAttributeDefinition("createTimeStamp");
+        ShadowSimpleAttributeDefinition<?> createTimestampDef =
+                accountObjectClassDefinition.findSimpleAttributeDefinition("createTimeStamp");
         PrismAsserts.assertDefinition(createTimestampDef,
                 new QName(MidPointConstants.NS_RI, "createTimeStamp"), DOMUtil.XSD_DATETIME, 0, 1);
         assertTrue("createTimeStampDef read", createTimestampDef.canRead());
         assertFalse("createTimeStampDef modify", createTimestampDef.canModify());
         assertFalse("createTimeStampDef add", createTimestampDef.canAdd());
 
-        ResourceAttributeDefinition<?> whenChangedDef =
-                accountObjectClassDefinition.findAttributeDefinition("whenChanged");
+        ShadowSimpleAttributeDefinition<?> whenChangedDef =
+                accountObjectClassDefinition.findSimpleAttributeDefinition("whenChanged");
         PrismAsserts.assertDefinition(whenChangedDef,
                 new QName(MidPointConstants.NS_RI, "createTimeStamp"), DOMUtil.XSD_DATETIME, 0, 1);
         assertTrue("whenChanged read", whenChangedDef.canRead());
@@ -122,54 +122,54 @@ public interface AdTestMixin extends InfraTestMixin {
         assertNotNull("No definition for object class " + accountObjectClass, accountObjectClassDefinition);
         displayDumpable("Account object class def", accountObjectClassDefinition);
 
-        ResourceAttributeDefinition<?> cnDef = accountObjectClassDefinition.findAttributeDefinition("cn");
+        ShadowSimpleAttributeDefinition<?> cnDef = accountObjectClassDefinition.findSimpleAttributeDefinition("cn");
         PrismAsserts.assertDefinition(cnDef, QNAME_CN, DOMUtil.XSD_STRING, 0, 1);
         assertTrue("cn read", cnDef.canRead());
         assertTrue("cn modify", cnDef.canModify());
         assertTrue("cn add", cnDef.canAdd());
 
-        ResourceAttributeDefinition<?> samAccountNameDef = accountObjectClassDefinition.findAttributeDefinition(ATTRIBUTE_SAM_ACCOUNT_NAME_NAME);
+        ShadowSimpleAttributeDefinition<?> samAccountNameDef = accountObjectClassDefinition.findSimpleAttributeDefinition(ATTRIBUTE_SAM_ACCOUNT_NAME_NAME);
         PrismAsserts.assertDefinition(samAccountNameDef,
                 new QName(MidPointConstants.NS_RI, ATTRIBUTE_SAM_ACCOUNT_NAME_NAME), DOMUtil.XSD_STRING, 0, 1);
         assertTrue("samAccountNameDef read", samAccountNameDef.canRead());
         assertTrue("samAccountNameDef modify", samAccountNameDef.canModify());
         assertTrue("samAccountNameDef add", samAccountNameDef.canAdd());
 
-        ResourceAttributeDefinition<?> oDef = accountObjectClassDefinition.findAttributeDefinition("o");
+        ShadowSimpleAttributeDefinition<?> oDef = accountObjectClassDefinition.findSimpleAttributeDefinition("o");
         PrismAsserts.assertDefinition(oDef, new QName(MidPointConstants.NS_RI, "o"), DOMUtil.XSD_STRING, 0, -1);
         assertTrue("o read", oDef.canRead());
         assertTrue("o modify", oDef.canModify());
         assertTrue("o add", oDef.canAdd());
 
-        ResourceAttributeDefinition<?> isCriticalSystemObjectDef = accountObjectClassDefinition.findAttributeDefinition("isCriticalSystemObject");
+        ShadowSimpleAttributeDefinition<?> isCriticalSystemObjectDef = accountObjectClassDefinition.findSimpleAttributeDefinition("isCriticalSystemObject");
         PrismAsserts.assertDefinition(isCriticalSystemObjectDef, new QName(MidPointConstants.NS_RI, "isCriticalSystemObject"),
                 PrimitiveType.XSD_BOOLEAN, 0, 1);
         assertTrue("isCriticalSystemObject read", isCriticalSystemObjectDef.canRead());
         assertTrue("isCriticalSystemObject modify", isCriticalSystemObjectDef.canModify());
         assertTrue("isCriticalSystemObject add", isCriticalSystemObjectDef.canAdd());
 
-        ResourceAttributeDefinition<?> nTSecurityDescriptorDef = accountObjectClassDefinition.findAttributeDefinition("nTSecurityDescriptor");
+        ShadowSimpleAttributeDefinition<?> nTSecurityDescriptorDef = accountObjectClassDefinition.findSimpleAttributeDefinition("nTSecurityDescriptor");
         PrismAsserts.assertDefinition(nTSecurityDescriptorDef, new QName(MidPointConstants.NS_RI, "nTSecurityDescriptor"),
                 PrimitiveType.XSD_BASE64BINARY, 0, 1);
         assertTrue("nTSecurityDescriptor read", nTSecurityDescriptorDef.canRead());
         assertTrue("nTSecurityDescriptor modify", nTSecurityDescriptorDef.canModify());
         assertTrue("nTSecurityDescriptor add", nTSecurityDescriptorDef.canAdd());
 
-        ResourceAttributeDefinition<?> objectSidDef = accountObjectClassDefinition.findAttributeDefinition(ATTRIBUTE_OBJECT_SID_NAME);
+        ShadowSimpleAttributeDefinition<?> objectSidDef = accountObjectClassDefinition.findSimpleAttributeDefinition(ATTRIBUTE_OBJECT_SID_NAME);
         PrismAsserts.assertDefinition(objectSidDef, new QName(MidPointConstants.NS_RI, ATTRIBUTE_OBJECT_SID_NAME),
                 PrimitiveType.XSD_STRING, 0, 1);
         assertTrue("objectSid read", objectSidDef.canRead());
         assertFalse("objectSid modify", objectSidDef.canModify());
         assertFalse("objectSid add", objectSidDef.canAdd());
 
-        ResourceAttributeDefinition<?> lastLogonDef = accountObjectClassDefinition.findAttributeDefinition("lastLogon");
+        ShadowSimpleAttributeDefinition<?> lastLogonDef = accountObjectClassDefinition.findSimpleAttributeDefinition("lastLogon");
         PrismAsserts.assertDefinition(lastLogonDef, new QName(MidPointConstants.NS_RI, "lastLogon"),
                 PrimitiveType.XSD_LONG, 0, 1);
         assertTrue("lastLogonDef read", lastLogonDef.canRead());
         assertTrue("lastLogonDef modify", lastLogonDef.canModify());
         assertTrue("lastLogonDef add", lastLogonDef.canAdd());
 
-        ResourceAttributeDefinition<?> proxyAddressesDef = accountObjectClassDefinition.findAttributeDefinition(ATTRIBUTE_PROXY_ADDRESSES_NAME);
+        ShadowSimpleAttributeDefinition<?> proxyAddressesDef = accountObjectClassDefinition.findSimpleAttributeDefinition(ATTRIBUTE_PROXY_ADDRESSES_NAME);
         PrismAsserts.assertDefinition(proxyAddressesDef, new QName(MidPointConstants.NS_RI, ATTRIBUTE_PROXY_ADDRESSES_NAME),
                 PrimitiveType.XSD_STRING, 0, -1);
         assertTrue("proxyAddressesDef read", proxyAddressesDef.canRead());
@@ -183,7 +183,7 @@ public interface AdTestMixin extends InfraTestMixin {
     default void assertExchangeSchema(PrismObject<ResourceType> resource, QName accountObjectClassQName)
             throws SchemaException, ConfigurationException {
 
-        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchemaRequired(resource.asObjectable());
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getBareSchema(resource.asObjectable());
         assertExchangeSchema(resourceSchema, accountObjectClassQName);
 
         ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
@@ -195,7 +195,7 @@ public interface AdTestMixin extends InfraTestMixin {
         assertNotNull("No definition for object class " + OBJECT_CLASS_MS_EXCH_BASE_CLASS_QNAME, msExchBaseClassObjectClassDefinition);
         displayDumpable("Object class " + OBJECT_CLASS_MS_EXCH_BASE_CLASS_QNAME + " def", msExchBaseClassObjectClassDefinition);
 
-        ResourceAttributeDefinition<?> msExchHideFromAddressListsDef = msExchBaseClassObjectClassDefinition.findAttributeDefinition(ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME);
+        ShadowSimpleAttributeDefinition<?> msExchHideFromAddressListsDef = msExchBaseClassObjectClassDefinition.findSimpleAttributeDefinition(ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME);
         PrismAsserts.assertDefinition(msExchHideFromAddressListsDef, new QName(MidPointConstants.NS_RI, ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME), DOMUtil.XSD_BOOLEAN, 0, 1);
         assertTrue("msExchHideFromAddressLists read", msExchHideFromAddressListsDef.canRead());
         assertTrue("msExchHideFromAddressLists modify", msExchHideFromAddressListsDef.canModify());
@@ -205,7 +205,7 @@ public interface AdTestMixin extends InfraTestMixin {
         assertNotNull("No definition for object class " + accountObjectClassQName, accountObjectClassDef);
         displayDumpable("Object class " + accountObjectClassQName + " def", accountObjectClassDef);
 
-        ResourceAttributeDefinition<?> accountMsExchHideFromAddressListsDef = accountObjectClassDef.findAttributeDefinition(ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME);
+        ShadowSimpleAttributeDefinition<?> accountMsExchHideFromAddressListsDef = accountObjectClassDef.findSimpleAttributeDefinition(ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME);
         PrismAsserts.assertDefinition(accountMsExchHideFromAddressListsDef, new QName(MidPointConstants.NS_RI, ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME), DOMUtil.XSD_BOOLEAN, 0, 1);
         assertTrue("msExchHideFromAddressLists read", accountMsExchHideFromAddressListsDef.canRead());
         assertTrue("msExchHideFromAddressLists modify", accountMsExchHideFromAddressListsDef.canModify());

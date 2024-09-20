@@ -1,12 +1,12 @@
-MidPoint 4.7 "Johnson"
+MidPoint 4.8 "Curie"
 ----------------------
 
-Release 4.7 is a forty-fifth midPoint release code-named Johnson.
-The 4.7 release brings simulation and preview features, object marks and improvements to identity governance reporting, password reset and user experience.
+Release 4.8 is a fifty-first midPoint release code-named Curie.
+The 4.8 release brings streamlined upgrade process, role mining, security, stability and miscellaneous improvements.
 
-Release date: 14th April 2023
-Release type: Feature release
-End of support: 14th April 2024
+Release date: 17th October 2023
+Release type: Long-term support release (LTS)
+End of support: 17th October 2028
 
 Please see the release notes for detailed list of changes:
-https://docs.evolveum.com/midpoint/release/4.7/
+https://docs.evolveum.com/midpoint/release/4.8/

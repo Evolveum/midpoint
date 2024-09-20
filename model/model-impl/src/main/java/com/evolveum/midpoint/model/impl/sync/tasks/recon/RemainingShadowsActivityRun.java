@@ -13,6 +13,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.Reconciliatio
 import java.util.Collection;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.repo.common.activity.run.SearchSpecification;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -113,6 +114,7 @@ final class RemainingShadowsActivityRun
     // Ignoring configured search options. TODO ok?
     @Override
     public void customizeSearchOptions(SearchSpecification<ShadowType> searchSpecification, OperationResult result) {
+        // Actually, even the following options are ignored, because we are accessing the repository directly - TODO is that ok?!
         searchSpecification.setSearchOptions(
                 getBeans().schemaService.getOperationOptionsBuilder()
                         .errorReportingMethod(FetchErrorReportingMethodType.FETCH_RESULT)
@@ -152,6 +154,8 @@ final class RemainingShadowsActivityRun
             // For a long time, the forceRefresh option was turned off in dry run mode.
             // However, it looks like we should apply it each time, to (e.g.) force deletion of dead shadows
             // even in the dry run - see MID-7927.
+            //
+            // Note that we always go to the resource, even if shadow caching is enabled. This is a limitation in 4.9.
             Collection<SelectorOptions<GetOperationOptions>> options =
                     SchemaService.get().getOperationOptionsBuilder()
                             .doNotDiscovery() // We are doing "discovery" ourselves
@@ -201,9 +205,9 @@ final class RemainingShadowsActivityRun
             ObjectNotFoundException e,
             Task task,
             OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException, SecurityViolationException, ObjectAlreadyExistsException {
+            ConfigurationException, ExpressionEvaluationException, SecurityViolationException, ObjectAlreadyExistsException, EncryptionException {
         if (!shadow.getOid().equals(e.getOid())) {
-            LOGGER.debug("Got unrelated ObjectNotFoundException, rethrowing: " + e.getMessage(), e);
+            LOGGER.debug("Got unrelated ObjectNotFoundException, rethrowing: {}", e.getMessage(), e);
             throw e;
         }
 
@@ -225,7 +229,7 @@ final class RemainingShadowsActivityRun
     private void reactResourceObjectGone(
             ShadowType originalShadow, String requestIdentifier, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, SecurityViolationException, ObjectAlreadyExistsException {
+            ExpressionEvaluationException, SecurityViolationException, ObjectAlreadyExistsException, EncryptionException {
 
         // We reload e.g. to get current "gone" status. Otherwise the clockwork is confused.
         PrismObject<ShadowType> shadow = reloadShadow(originalShadow, task, result);
@@ -247,7 +251,7 @@ final class RemainingShadowsActivityRun
 
     private PrismObject<ShadowType> reloadShadow(ShadowType originalShadow, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException {
+            ConfigurationException, ObjectNotFoundException {
         //noinspection CaughtExceptionImmediatelyRethrown
         try {
             // 1. not read-only because we modify the shadow afterwards
@@ -256,6 +260,7 @@ final class RemainingShadowsActivityRun
             PrismObject<ShadowType> shadow = getModelBeans().provisioningService.getObject(
                     ShadowType.class, originalShadow.getOid(), GetOperationOptions.createRawCollection(), task, result);
             getModelBeans().provisioningService.determineShadowState(shadow, task, result);
+            getModelBeans().provisioningService.updateShadowMarksAndPolicies(shadow, false, task, result);
             return shadow;
         } catch (ObjectNotFoundException e) {
             result.muteLastSubresultError();
@@ -270,6 +275,8 @@ final class RemainingShadowsActivityRun
             originalShadow.setDead(true);
             originalShadow.setExists(false);
             originalShadow.setShadowLifecycleState(ShadowLifecycleStateType.TOMBSTONE);
+            getModelBeans().provisioningService.updateShadowMarksAndPolicies(
+                    originalShadow.asPrismObject(), false, task, result);
             return originalShadow.asPrismObject();
         } catch (ExpressionEvaluationException | CommunicationException | SecurityViolationException | ConfigurationException e) {
             // These shouldn't occur, because we are going in NO FETCH mode. But they can; so let's just propagate them upwards.

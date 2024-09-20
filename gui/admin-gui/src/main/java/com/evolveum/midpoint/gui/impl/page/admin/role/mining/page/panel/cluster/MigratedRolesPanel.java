@@ -7,53 +7,37 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster;
 
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.resolveDateAndTime;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.countRoleMembers;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.getRoleTypeObject;
-
-import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.util.ListModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
-import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.RoleAnalysisMigrationRoleTileTable;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
-import com.evolveum.midpoint.web.component.data.column.IconColumn;
-import com.evolveum.midpoint.web.component.util.RoleMiningProvider;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 @PanelType(name = "migratedRoles")
 @PanelInstance(
         identifier = "migratedRoles",
         applicableForType = RoleAnalysisClusterType.class,
+        childOf = RoleAnalysisClusterAction.class,
         display = @PanelDisplay(
                 label = "RoleAnalysisClusterType.migratedRoles",
                 icon = GuiStyleConstants.CLASS_GROUP_ICON,
@@ -76,14 +60,16 @@ public class MigratedRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClus
 
     @Override
     protected void initLayout() {
-
         RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectType();
         List<ObjectReferenceType> reductionObject = cluster.getResolvedPattern();
+        Task task = getPageBase().createSimpleTask("resolve role object");
+
         List<RoleType> roles = new ArrayList<>();
         for (ObjectReferenceType objectReferenceType : reductionObject) {
             String oid = objectReferenceType.getOid();
             if (oid != null) {
-                PrismObject<RoleType> roleTypeObject = getRoleTypeObject(getPageBase(), oid, result);
+                PrismObject<RoleType> roleTypeObject = getPageBase().getRoleAnalysisService()
+                        .getRoleTypeObject(oid, task, result);
                 if (roleTypeObject != null) {
                     roles.add(roleTypeObject.asObjectable());
                 }
@@ -94,190 +80,29 @@ public class MigratedRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClus
         container.setOutputMarkupId(true);
         add(container);
 
-        RoleMiningProvider<RoleType> provider = new RoleMiningProvider<>(
-                this, new ListModel<>(roles) {
+        ObjectReferenceType clusterRef = new ObjectReferenceType()
+                .oid(cluster.getOid())
+                .type(RoleAnalysisClusterType.COMPLEX_TYPE)
+                .targetName(cluster.getName());
 
-            @Serial private static final long serialVersionUID = 1L;
-
+        RoleAnalysisMigrationRoleTileTable roleAnalysisMigrationRoleTileTable = new RoleAnalysisMigrationRoleTileTable(ID_PANEL,
+                getPageBase(), new LoadableDetachableModel<>() {
             @Override
-            public void setObject(List<RoleType> object) {
-                super.setObject(roles);
+            protected List<RoleType> load() {
+                return roles;
             }
-        }, false);
-
-        BoxedTablePanel<RoleType> panel = generateTable(provider);
-        container.add(panel);
-
-    }
-
-    private BoxedTablePanel<RoleType> generateTable(RoleMiningProvider<RoleType> provider) {
-
-        BoxedTablePanel<RoleType> table = new BoxedTablePanel<>(
-                ID_PANEL, provider, initColumns()) {
+        }, clusterRef, cluster.getRoleAnalysisSessionRef()) {
             @Override
-            protected WebMarkupContainer createButtonToolbar(String id) {
-                AjaxIconButton refreshIcon = new AjaxIconButton(id, new Model<>(GuiStyleConstants.CLASS_RECONCILE),
-                        createStringResource("MainObjectListPanel.refresh")) {
-
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        onRefresh();
-                    }
-                };
-                refreshIcon.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
-                return refreshIcon;
+            protected void onRefresh(AjaxRequestTarget target) {
+                performOnRefresh();
             }
         };
-        table.setOutputMarkupId(true);
-        return table;
+        roleAnalysisMigrationRoleTileTable.setOutputMarkupId(true);
+        container.add(roleAnalysisMigrationRoleTileTable);
+
     }
 
-    private List<IColumn<RoleType, String>> initColumns() {
-
-        List<IColumn<RoleType, String>> columns = new ArrayList<>();
-
-        columns.add(new IconColumn<>(null) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public void populateItem(Item<ICellPopulator<RoleType>> cellItem, String componentId, IModel<RoleType> rowModel) {
-                super.populateItem(cellItem, componentId, rowModel);
-            }
-
-            @Override
-            protected DisplayType getIconDisplayType(IModel<RoleType> rowModel) {
-                return GuiDisplayTypeUtil
-                        .createDisplayType(IconAndStylesUtil.createDefaultBlackIcon(RoleType.COMPLEX_TYPE));
-            }
-        });
-
-        columns.add(new AbstractColumn<>(createStringResource("ObjectType.name")) {
-
-            @Override
-            public String getSortProperty() {
-                return RoleType.F_NAME.getLocalPart();
-            }
-
-            @Override
-            public boolean isSortable() {
-                return false;
-            }
-
-            @Override
-            public void populateItem(Item<ICellPopulator<RoleType>> item, String componentId,
-                    IModel<RoleType> rowModel) {
-
-                String name = rowModel.getObject().getName().toString();
-                String oid = rowModel.getObject().getOid();
-
-                AjaxLinkPanel ajaxLinkPanel = new AjaxLinkPanel(componentId, Model.of(name)) {
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-
-                        PageParameters parameters = new PageParameters();
-                        parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-
-                        ((PageBase) getPage()).navigateToNext(PageRole.class, parameters);
-                    }
-                };
-                ajaxLinkPanel.setOutputMarkupId(true);
-                item.add(ajaxLinkPanel);
-            }
-
-        });
-
-        columns.add(new AbstractColumn<>(createStringResource("Status")) {
-
-            @Override
-            public String getSortProperty() {
-                return RoleType.F_ACTIVATION.getLocalPart();
-            }
-
-            @Override
-            public boolean isSortable() {
-                return false;
-            }
-
-            @Override
-            public void populateItem(Item<ICellPopulator<RoleType>> item, String componentId,
-                    IModel<RoleType> rowModel) {
-                item.add(new Label(componentId, rowModel.getObject().getActivation().getEffectiveStatus()));
-            }
-
-        });
-
-        columns.add(new AbstractColumn<>(createStringResource("Members count")) {
-
-            @Override
-            public String getSortProperty() {
-                return RoleType.F_ASSIGNMENT.getLocalPart();
-            }
-
-            @Override
-            public boolean isSortable() {
-                return false;
-            }
-
-            @Override
-            public void populateItem(Item<ICellPopulator<RoleType>> item, String componentId,
-                    IModel<RoleType> rowModel) {
-                Integer membersCount = countRoleMembers(getPageBase(), null, rowModel.getObject().getOid(), result);
-
-                if (membersCount == null) {
-                    membersCount = 0;
-                }
-
-                item.add(new Label(componentId, membersCount));
-            }
-
-        });
-
-        columns.add(new AbstractColumn<>(createStringResource("Inducement count")) {
-
-            @Override
-            public String getSortProperty() {
-                return RoleType.F_INDUCEMENT.getLocalPart();
-            }
-
-            @Override
-            public boolean isSortable() {
-                return false;
-            }
-
-            @Override
-            public void populateItem(Item<ICellPopulator<RoleType>> item, String componentId,
-                    IModel<RoleType> rowModel) {
-                item.add(new Label(componentId, rowModel.getObject().getInducement().size()));
-            }
-
-        });
-
-        columns.add(new AbstractColumn<>(createStringResource("Created Timestamp")) {
-
-            @Override
-            public String getSortProperty() {
-                return RoleType.F_INDUCEMENT.getLocalPart();
-            }
-
-            @Override
-            public boolean isSortable() {
-                return false;
-            }
-
-            @Override
-            public void populateItem(Item<ICellPopulator<RoleType>> item, String componentId,
-                    IModel<RoleType> rowModel) {
-                item.add(new Label(componentId, resolveDateAndTime(rowModel.getObject().getMetadata().getCreateTimestamp())));
-            }
-
-        });
-
-        return columns;
-    }
-
-    private void onRefresh() {
+    private void performOnRefresh() {
         PageParameters parameters = new PageParameters();
         parameters.add(OnePageParameterEncoder.PARAMETER, getObjectDetailsModels().getObjectType().getOid());
         parameters.add(ID_PANEL, getPanelConfiguration().getIdentifier());

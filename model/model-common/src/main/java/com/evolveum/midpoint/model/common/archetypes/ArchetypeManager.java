@@ -580,4 +580,47 @@ public class ArchetypeManager implements Cache {
             }
         }
     }
+
+    public boolean isOfArchetype(AssignmentHolderType assignmentHolderType, String archetypeOid, OperationResult result) throws SchemaException, ConfigurationException {
+        List<ArchetypeType> archetypes = determineArchetypes(assignmentHolderType, result);
+
+        Optional<ArchetypeType> resultedArchetype = archetypes.stream()
+                .filter(archetype -> archetype.getOid().equals(archetypeOid))
+                .findFirst();
+        if (resultedArchetype.isPresent()) {
+            return true;
+        }
+
+        return checkSuperArchetypes(archetypes, archetypeOid, result);
+    }
+
+    public boolean isSubArchetypeOrArchetype(String archetypeOid, String parentArchetype, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        if (archetypeOid.equals(parentArchetype)) {
+            return true;
+        }
+        ArchetypeType archetypeType = getArchetype(archetypeOid, result);
+        ObjectReferenceType superArchetype = archetypeType.getSuperArchetypeRef();
+        if (superArchetype == null) {
+            return false;
+        }
+        return isSubArchetypeOrArchetype(superArchetype.getOid(), parentArchetype, result);
+    }
+
+    private boolean checkSuperArchetypes(List<ArchetypeType> archetypes, String archetypeOid, OperationResult result) throws SchemaException, ConfigurationException {
+        List<ArchetypeType> superArchetypes = new ArrayList<>();
+        for (ArchetypeType archetype : archetypes) {
+            ArchetypeType superArchetype = getSuperArchetype(archetype, result);
+            if (superArchetype == null) {
+                continue;
+            }
+            if (superArchetype.getOid().equals(archetypeOid)) {
+                return true;
+            }
+            superArchetypes.add(superArchetype);
+        }
+        if (superArchetypes.isEmpty()) {
+            return false;
+        }
+        return checkSuperArchetypes(superArchetypes, archetypeOid, result);
+    }
 }

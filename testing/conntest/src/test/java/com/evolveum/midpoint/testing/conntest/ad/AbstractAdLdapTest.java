@@ -7,41 +7,19 @@
 package com.evolveum.midpoint.testing.conntest.ad;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrderDirection;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.internals.InternalCounters;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.testing.conntest.AbstractLdapTest;
 import com.evolveum.midpoint.testing.conntest.UserLdapConnectionConfig;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
@@ -52,21 +30,13 @@ import org.apache.directory.api.ldap.model.exception.LdapInvalidDnException;
 import org.apache.directory.api.ldap.model.name.Ava;
 import org.apache.directory.api.ldap.model.name.Rdn;
 import org.apache.directory.ldap.client.api.LdapNetworkConnection;
-import org.testng.AssertJUnit;
 import org.testng.annotations.Listeners;
-import org.testng.annotations.Test;
 
-import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Collection;
-import java.util.Enumeration;
 import java.util.List;
-import java.util.Properties;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD_VALUE;
 import static com.evolveum.midpoint.schema.util.task.ActivityStateUtil.getRootSyncTokenRealValueRequired;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -189,25 +159,25 @@ public abstract class AbstractAdLdapTest extends AbstractLdapTest
     @Override
     protected void assertAccountShadow(PrismObject<ShadowType> shadow, String dn) throws SchemaException, ConfigurationException {
         super.assertAccountShadow(shadow, dn);
-        ResourceAttribute<String> primaryIdAttr = ShadowUtil.getAttribute(shadow, getPrimaryIdentifierAttributeQName());
+        ShadowSimpleAttribute<String> primaryIdAttr = ShadowUtil.getSimpleAttribute(shadow, getPrimaryIdentifierAttributeQName());
         assertNotNull("No primary identifier (" + getPrimaryIdentifierAttributeQName() + " in " + shadow, primaryIdAttr);
         String primaryId = primaryIdAttr.getRealValue();
         assertTrue("Unexpected chars in primary ID: '" + primaryId + "'", primaryId.matches("[a-z0-9\\-]+"));
 
-        ResourceAttribute<String> objectSidAttr = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, ATTRIBUTE_OBJECT_SID_NAME));
+        ShadowSimpleAttribute<String> objectSidAttr = ShadowUtil.getSimpleAttribute(shadow, new QName(MidPointConstants.NS_RI, ATTRIBUTE_OBJECT_SID_NAME));
         assertNotNull("No SID in " + shadow, objectSidAttr);
         display("SID of " + dn + ": " + objectSidAttr);
     }
 
     protected void assertSid(PrismObject<ShadowType> shadow, String expectedSid) {
-        ResourceAttribute<String> objectSidAttr = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, ATTRIBUTE_OBJECT_SID_NAME));
+        ShadowSimpleAttribute<String> objectSidAttr = ShadowUtil.getSimpleAttribute(shadow, new QName(MidPointConstants.NS_RI, ATTRIBUTE_OBJECT_SID_NAME));
         assertNotNull("No SID in " + shadow, objectSidAttr);
         display("SID of " + shadow + ": " + objectSidAttr);
         assertEquals("Wrong SID in " + shadow, expectedSid, objectSidAttr.getRealValue());
     }
 
     protected void assertObjectCategory(PrismObject<ShadowType> shadow, String expectedObjectCategory) {
-        ResourceAttribute<String> objectCategoryAttr = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, ATTRIBUTE_OBJECT_CATEGORY_NAME));
+        ShadowSimpleAttribute<String> objectCategoryAttr = ShadowUtil.getSimpleAttribute(shadow, new QName(MidPointConstants.NS_RI, ATTRIBUTE_OBJECT_CATEGORY_NAME));
         assertNotNull("No objectCategory in " + shadow, objectCategoryAttr);
         display("objectCategory of " + shadow + ": " + objectCategoryAttr);
         assertEquals("Wrong objectCategory in " + shadow, expectedObjectCategory, objectCategoryAttr.getRealValue());
@@ -299,11 +269,6 @@ public abstract class AbstractAdLdapTest extends AbstractLdapTest
 
     public <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName, T... expectedValues) {
         assertAttribute(shadow, new QName(getResourceNamespace(), attrName), expectedValues);
-    }
-
-    public <T> void assertAttribute(PrismObject<ShadowType> shadow, QName attrQname, T... expectedValues) {
-        List<T> actualValues = ShadowUtil.getAttributeValues(shadow, attrQname);
-        PrismAsserts.assertSets("attribute " + attrQname + " in " + shadow, actualValues, expectedValues);
     }
 
 }

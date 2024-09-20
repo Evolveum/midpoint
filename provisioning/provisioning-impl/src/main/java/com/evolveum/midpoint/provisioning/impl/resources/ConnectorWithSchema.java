@@ -10,7 +10,7 @@ package com.evolveum.midpoint.provisioning.impl.resources;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
+import com.evolveum.midpoint.schema.processor.ConnectorSchema;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
@@ -26,13 +26,14 @@ import org.jetbrains.annotations.Nullable;
  *
  * This is an alternative to attaching the schema data to {@link ConnectorType} {@link PrismObject} by a user data map.
  */
+@SuppressWarnings("ClassCanBeRecord")
 @Experimental
 class ConnectorWithSchema {
 
     @NotNull private final ConnectorType connector;
-    @NotNull private final PrismSchema schema;
+    @NotNull private final ConnectorSchema schema;
 
-    ConnectorWithSchema(@NotNull ConnectorType connector, @NotNull PrismSchema schema) {
+    ConnectorWithSchema(@NotNull ConnectorType connector, @NotNull ConnectorSchema schema) {
         this.connector = connector;
         this.schema = schema;
     }
@@ -45,9 +46,9 @@ class ConnectorWithSchema {
         return schema;
     }
 
-    public @NotNull PrismContainerDefinition<ConnectorConfigurationType> getConfigurationContainerDefinition()
+    @NotNull PrismContainerDefinition<ConnectorConfigurationType> getConfigurationContainerDefinition()
             throws SchemaException {
-        return ConnectorTypeUtil.findConfigurationContainerDefinitionRequired(connector, schema);
+        return schema.getConnectorConfigurationContainerDefinition();
     }
 
     @Nullable String getConnectorHostOid() {

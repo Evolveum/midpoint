@@ -14,6 +14,7 @@ import java.io.File;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -54,4 +55,7 @@ public class MidPointTestConstants {
 
     public static final QName CHANNEL_TEST = new QName(NS_CHANNEL, "test");
     public static final String CHANNEL_TEST_URI = QNameUtil.qNameToUri(CHANNEL_TEST);
+
+    public static final ItemName RI_GROUP = ItemName.from(SchemaConstants.NS_RI, "group");
+    public static final ItemName RI_PRIV = ItemName.from(SchemaConstants.NS_RI, "priv");
 }

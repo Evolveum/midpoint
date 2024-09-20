@@ -31,7 +31,7 @@
         </s:action>
     </s:pipeline>
     <s:input>
-        <s:value xsi:type="c:ObjectReferenceType" oid="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" type="UserType"/> <!-- invalid OID -->
+        <s:value xsi:type="c:ObjectReferenceType" oid="142f4a38-01d8-4864-8cb4-ea42a02b724e" type="UserType"/> <!-- non-existing OID -->
         <s:value xsi:type="c:ObjectReferenceType" oid="229487cb-59b6-490b-879d-7a6d925dd08c" type="UserType"/> <!-- jack -->
     </s:input>
     <s:options>

@@ -18,14 +18,19 @@ import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReference;
 /**
  * Querydsl query type for assignment reference tables (for assignment metadata references).
  */
-public class QAssignmentReference extends QReference<MAssignmentReference, MAssignment> {
+public class QAssignmentReference<O extends MAssignmentReference.Owner> extends QReference<MAssignmentReference, O> {
 
     private static final long serialVersionUID = 3046837007769017219L;
 
     public static final ColumnMetadata ASSIGNMENT_CID =
             ColumnMetadata.named("assignmentCid").ofType(Types.BIGINT).notNull();
 
+    public static final ColumnMetadata METADATA_CID =
+            ColumnMetadata.named("metadataCid").ofType(Types.BIGINT);
+
     public final NumberPath<Long> assignmentCid = createLong("assignmentCid", ASSIGNMENT_CID);
+    public final NumberPath<Long> metadataCid = createLong("metadataCid", METADATA_CID);
+
 
     public final PrimaryKey<MAssignmentReference> pk =
             createPrimaryKey(ownerOid, assignmentCid, referenceType, relationId, targetOid);
@@ -39,8 +44,7 @@ public class QAssignmentReference extends QReference<MAssignmentReference, MAssi
     }
 
     @Override
-    public BooleanExpression isOwnedBy(MAssignment ownerRow) {
-        return ownerOid.eq(ownerRow.ownerOid)
-                .and(assignmentCid.eq(ownerRow.cid));
+    public BooleanExpression isOwnedBy(MAssignmentReference.Owner ownerRow) {
+        return ownerRow.owns(this);
     }
 }

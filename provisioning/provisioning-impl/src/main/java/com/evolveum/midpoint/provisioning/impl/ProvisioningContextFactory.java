@@ -14,6 +14,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 
+import com.evolveum.midpoint.schema.processor.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,10 +26,6 @@ import com.evolveum.midpoint.provisioning.impl.resources.ResourceManager;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceOperationCoordinates;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
@@ -161,9 +159,8 @@ public class ProvisioningContextFactory {
                 false); // The client has explicitly requested kind/intent, so it wants the type, not the class.
     }
 
-    @NotNull
-    private ResourceObjectDefinition getDefinition(
-            @NotNull ResourceSchema schema, @NotNull ShadowKindType kind, @NotNull String intent) {
+    private @NotNull ResourceObjectDefinition getDefinition(
+            @NotNull ResourceSchema schema, @NotNull ShadowKindType kind, @NotNull String intent) throws SchemaException {
         ResourceObjectDefinition definition = schema.findObjectDefinitionRequired(kind, intent);
         return ResourceSchemaUtil.addOwnAuxiliaryObjectClasses(definition, schema);
     }
@@ -171,20 +168,21 @@ public class ProvisioningContextFactory {
     /**
      * Spawns the context for an object class on the same resource.
      *
-     * @param useRawDefinition If true, we want to get "raw" object class definition, not a refined (object class or type) one.
+     * @param useClassDefinition If true, we want to get "raw" object class definition, not a refined (object class or type) one.
+     * TODO clarify
      */
     ProvisioningContext spawnForObjectClass(
             @NotNull ProvisioningContext originalCtx,
             @NotNull Task task,
             @NotNull QName objectClassName,
-            boolean useRawDefinition) throws SchemaException, ConfigurationException {
+            boolean useClassDefinition) throws SchemaException, ConfigurationException {
         ResourceSchema resourceSchema = originalCtx.getResourceSchema();
         ResourceObjectDefinition definition = resourceSchema.findDefinitionForObjectClassRequired(objectClassName);
         ResourceObjectDefinition augmented = ResourceSchemaUtil.addOwnAuxiliaryObjectClasses(definition, resourceSchema);
         return new ProvisioningContext(
                 originalCtx,
                 task,
-                useRawDefinition ? augmented.getRawObjectClassDefinition() : augmented,
+                useClassDefinition ? augmented.getObjectClassDefinition() : augmented,
                 true);
     }
 
@@ -214,6 +212,22 @@ public class ProvisioningContextFactory {
                 task,
                 resource,
                 getObjectDefinition(resource, shadow, List.of()),
+                null, // we don't expect any searches nor other bulk actions
+                this);
+    }
+
+    /**
+     * Creates the context for a given repo shadow (pointing to resource, kind, and intent).
+     *
+     * Assuming there is no pre-resolved resource.
+     */
+    public ProvisioningContext createForRepoShadow(
+            @NotNull RepoShadow shadow, @NotNull Task task)
+            throws SchemaException, ConfigurationException {
+        return new ProvisioningContext(
+                task,
+                shadow.getResourceBean(),
+                getObjectDefinition(shadow.getResourceBean(), shadow.getBean(), List.of()),
                 null, // we don't expect any searches nor other bulk actions
                 this);
     }
@@ -299,7 +313,7 @@ public class ProvisioningContextFactory {
             @NotNull ResourceType resource,
             @NotNull ShadowType shadow,
             @NotNull Collection<QName> additionalAuxiliaryObjectClassNames) throws SchemaException, ConfigurationException {
-        ResourceSchema schema = ResourceSchemaFactory.getCompleteSchemaRequired(resource);
+        var schema = ResourceSchemaFactory.getCompleteSchemaRequired(resource);
         return schema.findDefinitionForShadow(shadow, additionalAuxiliaryObjectClassNames);
     }
 
@@ -312,17 +326,11 @@ public class ProvisioningContextFactory {
     }
 
     /** Object type/class definition with `wholeClass` option. */
-    private static class ScopedDefinition {
-        @Nullable private final ResourceObjectDefinition definition;
-        @Nullable private final Boolean wholeClass;
-
-        private ScopedDefinition(@Nullable ResourceObjectDefinition definition, @Nullable Boolean wholeClass) {
-            this.definition = definition;
-            this.wholeClass = wholeClass;
-        }
+    private record ScopedDefinition(
+            @Nullable ResourceObjectDefinition definition, @Nullable Boolean wholeClass) {
     }
 
-    public @NotNull CommonBeans getCommonBeans() {
+    @NotNull CommonBeans getCommonBeans() {
         return commonBeans;
     }
 }

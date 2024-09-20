@@ -14,9 +14,10 @@ import java.io.File;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.test.asserter.RepoShadowAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -130,20 +131,20 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
         accountWillReqestTimestampEnd = clock.currentTimeXMLGregorianCalendar();
 
-        PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
-        display("Repo shadow", shadowRepo);
-        assertPendingOperationDeltas(shadowRepo, 2);
-        PendingOperationType pendingOperation = findPendingOperation(shadowRepo,
+        var repoShadow = getShadowRepo(accountWillOid);
+        PrismObject<ShadowType> repoShadowObj = repoShadow.getPrismObject();
+        display("Repo shadow", repoShadowObj);
+        assertPendingOperationDeltas(repoShadowObj, 2);
+        PendingOperationType pendingOperation = findPendingOperation(repoShadowObj,
                 OperationResultStatusType.IN_PROGRESS, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
-        assertPendingOperation(shadowRepo, pendingOperation, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
+        assertPendingOperation(repoShadowObj, pendingOperation, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
 
         assertNotNull("No ID in pending operation", pendingOperation.getId());
         // Still old data in the repo. The operation is not completed yet.
-        assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
-        assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
-                new RawType(itemFactory().createPropertyValue(USER_WILL_NAME), ATTR_USERNAME_QNAME, prismContext));
-        assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
-                new RawType(itemFactory().createPropertyValue(USER_WILL_FULL_NAME_PIRATE), ATTR_FULLNAME_QNAME, prismContext));
+        assertShadowActivationAdministrativeStatusFromCache(repoShadowObj, ActivationStatusType.ENABLED);
+        RepoShadowAsserter.forRepoShadow(repoShadow, getCachedAttributes())
+                .assertCachedOrigValues(ATTR_USERNAME_QNAME, USER_WILL_NAME)
+                .assertCachedOrigValues(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
 
         PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
                 accountWillOid, null, task, result);
@@ -214,20 +215,20 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
         accountWillSecondReqestTimestampEnd = clock.currentTimeXMLGregorianCalendar();
 
-        PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
-        display("Repo shadow", shadowRepo);
-        assertPendingOperationDeltas(shadowRepo, 3);
-        PendingOperationType pendingOperation = findPendingOperation(shadowRepo,
+        var repoShadow = getShadowRepo(accountWillOid);
+        PrismObject<ShadowType> repoShadowObj = repoShadow.getPrismObject();
+        display("Repo shadow", repoShadowObj);
+        assertPendingOperationDeltas(repoShadowObj, 3);
+        PendingOperationType pendingOperation = findPendingOperation(repoShadowObj,
                 OperationResultStatusType.IN_PROGRESS, SchemaConstants.PATH_PASSWORD_VALUE);
-        assertPendingOperation(shadowRepo, pendingOperation, accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd);
+        assertPendingOperation(repoShadowObj, pendingOperation, accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd);
 
         assertNotNull("No ID in pending operation", pendingOperation.getId());
         // Still old data in the repo. The operation is not completed yet.
-        assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
-        assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
-                new RawType(itemFactory().createPropertyValue(USER_WILL_NAME), ATTR_USERNAME_QNAME, prismContext));
-        assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
-                new RawType(itemFactory().createPropertyValue(USER_WILL_FULL_NAME_PIRATE), ATTR_FULLNAME_QNAME, prismContext));
+        assertShadowActivationAdministrativeStatusFromCache(repoShadowObj, ActivationStatusType.ENABLED);
+        RepoShadowAsserter.forRepoShadow(repoShadow, getCachedAttributes())
+                .assertCachedOrigValues(ATTR_USERNAME_QNAME, USER_WILL_NAME)
+                .assertCachedOrigValues(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
 
         PrismObject<ShadowType> shadowProvisioning = modelService.getObject(ShadowType.class,
                 accountWillOid, null, task, result);
@@ -296,27 +297,27 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
         accountWillCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
 
-        PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
-        display("Repo shadow", shadowRepo);
+        var repoShadow = getShadowRepo(accountWillOid);
+        PrismObject<ShadowType> repoShadowObj = repoShadow.getPrismObject();
+        display("Repo shadow", repoShadowObj);
 
-        assertPendingOperationDeltas(shadowRepo, 3);
+        assertPendingOperationDeltas(repoShadowObj, 3);
 
-        PendingOperationType pendingOperation = findPendingOperation(shadowRepo,
+        PendingOperationType pendingOperation = findPendingOperation(repoShadowObj,
                 OperationResultStatusType.SUCCESS, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
-        assertPendingOperation(shadowRepo, pendingOperation,
+        assertPendingOperation(repoShadowObj, pendingOperation,
                 accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
                 PendingOperationExecutionStatusType.COMPLETED, OperationResultStatusType.SUCCESS,
                 accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
 
-        pendingOperation = findPendingOperation(shadowRepo,
+        pendingOperation = findPendingOperation(repoShadowObj,
                 OperationResultStatusType.IN_PROGRESS, SchemaConstants.PATH_PASSWORD_VALUE);
-        assertPendingOperation(shadowRepo, pendingOperation, accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd);
+        assertPendingOperation(repoShadowObj, pendingOperation, accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd);
 
-        assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.DISABLED);
-        assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
-                new RawType(itemFactory().createPropertyValue(USER_WILL_NAME), ATTR_USERNAME_QNAME, prismContext));
-        assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
-                new RawType(itemFactory().createPropertyValue(USER_WILL_FULL_NAME_PIRATE), ATTR_FULLNAME_QNAME, prismContext));
+        assertShadowActivationAdministrativeStatusFromCache(repoShadowObj, ActivationStatusType.DISABLED);
+        RepoShadowAsserter.forRepoShadow(repoShadow, getCachedAttributes())
+                .assertCachedOrigValues(ATTR_USERNAME_QNAME, USER_WILL_NAME)
+                .assertCachedOrigValues(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
 
         display("Model shadow", shadowModel);
         ShadowType shadowTypeModel = shadowModel.asObjectable();
@@ -383,27 +384,27 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         then();
         assertSuccess(result);
 
-        PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
-        display("Repo shadow", shadowRepo);
+        var repoShadow = getShadowRepo(accountWillOid);
+        PrismObject<ShadowType> repoShadowObj = repoShadow.getPrismObject();
+        display("Repo shadow", repoShadowObj);
 
-        assertPendingOperationDeltas(shadowRepo, 3);
+        assertPendingOperationDeltas(repoShadowObj, 3);
 
-        PendingOperationType pendingOperation = findPendingOperation(shadowRepo,
+        PendingOperationType pendingOperation = findPendingOperation(repoShadowObj,
                 OperationResultStatusType.SUCCESS, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
-        assertPendingOperation(shadowRepo, pendingOperation,
+        assertPendingOperation(repoShadowObj, pendingOperation,
                 accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
                 PendingOperationExecutionStatusType.COMPLETED, OperationResultStatusType.SUCCESS,
                 accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
 
-        pendingOperation = findPendingOperation(shadowRepo,
+        pendingOperation = findPendingOperation(repoShadowObj,
                 OperationResultStatusType.IN_PROGRESS, SchemaConstants.PATH_PASSWORD_VALUE);
-        assertPendingOperation(shadowRepo, pendingOperation, accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd);
+        assertPendingOperation(repoShadowObj, pendingOperation, accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd);
 
-        assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.DISABLED);
-        assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
-                new RawType(itemFactory().createPropertyValue(USER_WILL_NAME), ATTR_USERNAME_QNAME, prismContext));
-        assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
-                RawType.fromPropertyRealValue(USER_WILL_FULL_NAME_PIRATE, ATTR_FULLNAME_QNAME, prismContext));
+        assertShadowActivationAdministrativeStatusFromCache(repoShadowObj, ActivationStatusType.DISABLED);
+        RepoShadowAsserter.forRepoShadow(repoShadow, getCachedAttributes())
+                .assertCachedOrigValues(ATTR_USERNAME_QNAME, USER_WILL_NAME)
+                .assertCachedOrigValues(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
 
         PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
                 accountWillOid, null, task, result);
@@ -479,9 +480,10 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
         assertPendingOperationDeltas(shadowModel, 3);
 
-        PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
-        display("Repo shadow", shadowRepo);
-        assertPendingOperationDeltas(shadowRepo, 3);
+        var repoShadow = getShadowRepo(accountWillOid);
+        PrismObject<ShadowType> repoShadowObj = repoShadow.getPrismObject();
+        display("Repo shadow", repoShadowObj);
+        assertPendingOperationDeltas(repoShadowObj, 3);
 
         PrismObject<ShadowType> shadowModelFuture = modelService.getObject(ShadowType.class,
                 accountWillOid,
@@ -519,6 +521,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
         // WHEN
         when();
+        refreshShadowIfNeeded(accountWillOid);
         recomputeUser(userWillOid, task, result);
 
         // THEN
@@ -936,16 +939,16 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         then();
         assertSuccess(result);
 
-        PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
-        display("Repo shadow", shadowRepo);
+        var repoShadow = getShadowRepo(accountWillOid);
+        PrismObject<ShadowType> repoShadowObj = repoShadow.getPrismObject();
+        display("Repo shadow", repoShadowObj);
 
-        assertPendingOperationDeltas(shadowRepo, 0);
+        assertPendingOperationDeltas(repoShadowObj, 0);
 
-        assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
-        assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
-                RawType.fromPropertyRealValue(USER_WILL_NAME, ATTR_USERNAME_QNAME, prismContext));
-        assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
-                RawType.fromPropertyRealValue(USER_WILL_FULL_NAME_PIRATE, ATTR_FULLNAME_QNAME, prismContext));
+        assertShadowActivationAdministrativeStatusFromCache(repoShadowObj, ActivationStatusType.ENABLED);
+        RepoShadowAsserter.forRepoShadow(repoShadow, getCachedAttributes())
+                .assertCachedOrigValues(ATTR_USERNAME_QNAME, USER_WILL_NAME)
+                .assertCachedOrigValues(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
 
         PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
                 accountWillOid, null, task, result);
@@ -1004,19 +1007,19 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
         assertSteadyResources();
 
-        PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
-        display("Repo shadow", shadowRepo);
-        assertPendingOperationDeltas(shadowRepo, 1);
-        PendingOperationType pendingOperation = findPendingOperation(shadowRepo, OperationResultStatusType.IN_PROGRESS);
-        assertPendingOperation(shadowRepo, pendingOperation, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
+        var repoShadow = getShadowRepo(accountWillOid);
+        PrismObject<ShadowType> repoShadowObj = repoShadow.getPrismObject();
+        display("Repo shadow", repoShadowObj);
+        assertPendingOperationDeltas(repoShadowObj, 1);
+        PendingOperationType pendingOperation = findPendingOperation(repoShadowObj, OperationResultStatusType.IN_PROGRESS);
+        assertPendingOperation(repoShadowObj, pendingOperation, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
 
         assertNotNull("No ID in pending operation", pendingOperation.getId());
         // Still old data in the repo. The operation is not completed yet.
-        assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
-        assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
-                RawType.fromPropertyRealValue(USER_WILL_NAME, ATTR_USERNAME_QNAME, prismContext));
-        assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
-                RawType.fromPropertyRealValue(USER_WILL_FULL_NAME_PIRATE, ATTR_FULLNAME_QNAME, prismContext));
+        assertShadowActivationAdministrativeStatusFromCache(repoShadowObj, ActivationStatusType.ENABLED);
+        RepoShadowAsserter.forRepoShadow(repoShadow, getCachedAttributes())
+                .assertCachedOrigValues(ATTR_USERNAME_QNAME, USER_WILL_NAME)
+                .assertCachedOrigValues(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
 
         PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
                 accountWillOid, null, task, result);
@@ -1071,19 +1074,19 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         display("result", result);
         assertSuccess(result);
 
-        PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
-        display("Repo shadow", shadowRepo);
-        assertPendingOperationDeltas(shadowRepo, 1);
-        PendingOperationType pendingOperation = findPendingOperation(shadowRepo, OperationResultStatusType.IN_PROGRESS);
-        assertPendingOperation(shadowRepo, pendingOperation, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
+        var repoShadow = getShadowRepo(accountWillOid);
+        PrismObject<ShadowType> repoShadowObj = repoShadow.getPrismObject();
+        display("Repo shadow", repoShadowObj);
+        assertPendingOperationDeltas(repoShadowObj, 1);
+        PendingOperationType pendingOperation = findPendingOperation(repoShadowObj, OperationResultStatusType.IN_PROGRESS);
+        assertPendingOperation(repoShadowObj, pendingOperation, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
 
         assertNotNull("No ID in pending operation", pendingOperation.getId());
         // Still old data in the repo. The operation is not completed yet.
-        assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
-        assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
-                RawType.fromPropertyRealValue(USER_WILL_NAME, ATTR_USERNAME_QNAME, prismContext));
-        assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
-                RawType.fromPropertyRealValue(USER_WILL_FULL_NAME_PIRATE, ATTR_FULLNAME_QNAME, prismContext));
+        assertShadowActivationAdministrativeStatusFromCache(repoShadowObj, ActivationStatusType.ENABLED);
+        RepoShadowAsserter.forRepoShadow(repoShadow, getCachedAttributes())
+                .assertCachedOrigValues(ATTR_USERNAME_QNAME, USER_WILL_NAME)
+                .assertCachedOrigValues(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
 
         PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
                 accountWillOid, null, task, result);
@@ -1137,6 +1140,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
         // WHEN
         when();
+        refreshShadowIfNeeded(accountWillOid);
         // We need reconcile and not recompute here. We need to fetch the updated case status.
         reconcileUser(userWillOid, task, result);
 
@@ -1593,6 +1597,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
         // WHEN
         when();
+        refreshShadowIfNeeded(accountWillOid);
         // We need reconcile and not recompute here. We need to fetch the updated case status.
         reconcileUser(userWillOid, task, result);
 
@@ -1921,6 +1926,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
         // WHEN
         when();
+        refreshShadowIfNeeded(accountWillOid);
         // We need reconcile and not recompute here. We need to fetch the updated case status.
         reconcileUser(userWillOid, task, result);
 
@@ -2014,6 +2020,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
         // WHEN
         when();
+        refreshShadowIfNeeded(accountWillOid);
         // We need reconcile and not recompute here. We need to fetch the updated case status.
         reconcileUser(userWillOid, task, result);
 
@@ -2228,7 +2235,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
                 .end()
             .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
-                .assertNoAttribute(ATTR_DESCRIPTION_QNAME)
+                .assertNoSimpleAttributeIfNotCached(ATTR_DESCRIPTION_QNAME)
             .end()
             .assertNoPassword()
             .getObject();

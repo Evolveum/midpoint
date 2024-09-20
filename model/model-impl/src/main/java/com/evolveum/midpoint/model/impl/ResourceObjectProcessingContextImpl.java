@@ -7,21 +7,23 @@
 
 package com.evolveum.midpoint.model.impl;
 
+import java.util.Objects;
+
+import com.evolveum.midpoint.schema.processor.ShadowLikeValue;
+
+import com.evolveum.midpoint.schema.util.AbstractShadow;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.Objects;
 
 /**
  * The default implementation of {@link ResourceObjectProcessingContext}.
@@ -40,7 +42,6 @@ public class ResourceObjectProcessingContextImpl implements ResourceObjectProces
     @Nullable private final SystemConfigurationType systemConfiguration;
     @Nullable private final String explicitChannel;
     @NotNull private final Task task;
-    @NotNull private final ModelBeans beans;
 
     private ResourceObjectProcessingContextImpl(ResourceObjectProcessingContextBuilder builder) {
         shadowedResourceObject = Objects.requireNonNull(builder.shadowedResourceObject, "shadowedResourceObject is null");
@@ -49,12 +50,11 @@ public class ResourceObjectProcessingContextImpl implements ResourceObjectProces
         systemConfiguration = builder.systemConfiguration;
         explicitChannel = builder.explicitChannel;
         task = Objects.requireNonNull(builder.task, "task is null");
-        beans = Objects.requireNonNull(builder.beans, "beans object is null");
     }
 
     @Override
-    public @NotNull ShadowType getShadowedResourceObject() {
-        return shadowedResourceObject;
+    public @NotNull ShadowLikeValue getShadowLikeValue() {
+        return AbstractShadow.of(shadowedResourceObject);
     }
 
     @Override
@@ -83,11 +83,6 @@ public class ResourceObjectProcessingContextImpl implements ResourceObjectProces
     }
 
     @Override
-    public @NotNull ModelBeans getBeans() {
-        return beans;
-    }
-
-    @Override
     public @NotNull VariablesMap createVariablesMap() {
         VariablesMap variables = createDefaultVariablesMap();
         variables.put(ExpressionConstants.VAR_CHANNEL, getChannel(), String.class);
@@ -101,26 +96,20 @@ public class ResourceObjectProcessingContextImpl implements ResourceObjectProces
         private SystemConfigurationType systemConfiguration;
         private String explicitChannel;
         @NotNull private final Task task;
-        @NotNull private final ModelBeans beans;
 
         private ResourceObjectProcessingContextBuilder(
                 @NotNull ShadowType shadowedResourceObject,
                 @NotNull ResourceType resource,
-                @NotNull Task task,
-                @NotNull ModelBeans beans) {
+                @NotNull Task task) {
             this.shadowedResourceObject = shadowedResourceObject;
             this.resource = resource;
             this.task = task;
-            this.beans = beans;
         }
 
         // We include all obligatory parameters here to make sure they are not forgotten during initialization.
         public static ResourceObjectProcessingContextBuilder aResourceObjectProcessingContext(
-                @NotNull ShadowType shadow,
-                @NotNull ResourceType resource,
-                @NotNull Task task,
-                @NotNull ModelBeans beans) {
-            return new ResourceObjectProcessingContextBuilder(shadow, resource, task, beans);
+                @NotNull ShadowType shadow, @NotNull ResourceType resource, @NotNull Task task) {
+            return new ResourceObjectProcessingContextBuilder(shadow, resource, task);
         }
 
         public ResourceObjectProcessingContextBuilder withResourceObjectDelta(ObjectDelta<ShadowType> resourceObjectDelta) {

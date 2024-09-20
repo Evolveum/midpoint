@@ -14,7 +14,6 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.Metadata;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
@@ -32,7 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
  */
 public class MetadataFactory {
 
-    public static MetadataType toJAXB(Metadata repo, PrismContext context) {
+    public static MetadataType toJAXB(Metadata repo) {
         if (isNull(repo)) {
             return null;
         }
@@ -45,10 +44,10 @@ public class MetadataFactory {
         jaxb.setModifyTimestamp(repo.getModifyTimestamp());
 
         if (repo.getCreatorRef() != null) {
-            jaxb.setCreatorRef(repo.getCreatorRef().toJAXB(context));
+            jaxb.setCreatorRef(repo.getCreatorRef().toJAXB());
         }
         if (repo.getModifierRef() != null) {
-            jaxb.setModifierRef(repo.getModifierRef().toJAXB(context));
+            jaxb.setModifierRef(repo.getModifierRef().toJAXB());
         }
 
         if (repo instanceof RObject) {

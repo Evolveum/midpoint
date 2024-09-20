@@ -7,13 +7,20 @@
 
 package com.evolveum.midpoint.schema.merger.resource;
 
-import com.evolveum.midpoint.schema.merger.OriginMarker;
-import com.evolveum.midpoint.schema.merger.objdef.ResourceObjectTypeDefinitionMergeOperation;
+import static com.evolveum.midpoint.schema.util.ShadowUtil.resolveDefault;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.prism.OriginMarker;
 import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.schema.merger.BaseItemMerger;
+import com.evolveum.midpoint.prism.impl.BaseItemMerger;
+import com.evolveum.midpoint.prism.impl.key.NaturalKeyDefinitionImpl;
+import com.evolveum.midpoint.prism.key.NaturalKeyDefinition;
+import com.evolveum.midpoint.schema.merger.objdef.ResourceObjectTypeDefinitionMergeOperation;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -21,12 +28,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-
-import org.jetbrains.annotations.Nullable;
-
-import static com.evolveum.midpoint.schema.util.ShadowUtil.resolveDefault;
-
-import java.util.stream.Collectors;
 
 /**
  * A merger specific to resource definitions: creates inheritance relations between the same definitions
@@ -79,5 +80,13 @@ public class ObjectTypeDefinitionMerger extends BaseItemMerger<PrismContainer<Re
     private boolean matchesKindIntent(ResourceObjectTypeDefinitionType def, ShadowKindType kind, String intent) {
         return resolveDefault(def.getKind()) == resolveDefault(kind)
                 && resolveDefault(def.getIntent()).equals(resolveDefault(intent));
+    }
+
+    @Override
+    public NaturalKeyDefinition getNaturalKey() {
+        return NaturalKeyDefinitionImpl.of(
+                List.of(
+                        ResourceObjectTypeDefinitionType.F_KIND,
+                        ResourceObjectTypeDefinitionType.F_INTENT));
     }
 }

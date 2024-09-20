@@ -7,8 +7,10 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import com.evolveum.midpoint.schema.processor.SynchronizationReactionDefinition.ObjectSynchronizationReactionDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 
 import org.jetbrains.annotations.NotNull;
@@ -20,6 +22,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * Definition of "resource object type". Roughly corresponds to an `objectType` section in `schemaHandling`
@@ -50,11 +53,23 @@ public interface ResourceObjectTypeDefinition
      */
     @NotNull String getIntent();
 
+    /** Returns the identification of all ancestors. This type is not included in the list. */
+    @NotNull Set<ResourceObjectTypeIdentification> getAncestorsIds();
+
     /**
      * Returns true if this object type matches specified (non-null) kind and intent.
      */
     default boolean matches(@NotNull ShadowKindType kind, @NotNull String intent) {
         return kind == getKind() && intent.equals(getIntent());
+    }
+
+    default boolean isThisOrDescendantOf(@NotNull ResourceObjectTypeIdentification identification) {
+        return getTypeIdentification().equals(identification)
+                || getAncestorsIds().contains(identification);
+    }
+
+    default boolean isThisOrDescendantOf(@NotNull Collection<? extends ResourceObjectTypeIdentification> identifications) {
+        return identifications.stream().anyMatch(this::isThisOrDescendantOf);
     }
 
     /**
@@ -88,6 +103,9 @@ public interface ResourceObjectTypeDefinition
     /** Returns the configured capability of given class, if present. */
     @Nullable <T extends CapabilityType> T getConfiguredCapability(Class<T> capabilityClass);
 
+    /** Returns all configured capabilities, if present. */
+    @Nullable CapabilityCollectionType getSpecificCapabilities();
+
     /** Returns the correlation definition bean, if present here. (It may be standalone.) */
     @Nullable CorrelationDefinitionType getCorrelationDefinitionBean();
 
@@ -120,7 +138,7 @@ public interface ResourceObjectTypeDefinition
     boolean hasSynchronizationReactionsDefinition();
 
     /** Returns the synchronization reactions defined here. (They may be standalone.) */
-    @NotNull Collection<SynchronizationReactionDefinition> getSynchronizationReactions();
+    @NotNull Collection<? extends ObjectSynchronizationReactionDefinition> getSynchronizationReactions();
 
     /** Temporary? */
     @Nullable ExpressionType getClassificationCondition();

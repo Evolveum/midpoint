@@ -22,6 +22,8 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.LayerIcon;
 import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
 
+import org.apache.wicket.model.Model;
+
 /**
  * @author Viliam Repan (lazyman)
  * @author skublik
@@ -67,6 +69,8 @@ public abstract class AjaxCompositedIconButton extends AjaxLink<String> {
 
             return isNotEmptyModel() ? GuiDisplayTypeUtil.getDisplayTypeTitle(buttonModel.getObject().getAdditionalButtonDisplayType()) : "";
         }));
+
+        add(AttributeModifier.append("class", isHorizontalLayout() ? "d-flex" : ""));
     }
 
     private boolean isNotEmptyModel() {
@@ -86,6 +90,7 @@ public abstract class AjaxCompositedIconButton extends AjaxLink<String> {
         }
         if (icon.hasBasicIcon()) {
             String margin = titleAsLabel ? "mr-1" : "";
+            margin = isHorizontalLayout() ? margin + " mt-1" : margin;
             sb.append("<i class=\"" + margin + " ").append(icon.getBasicIcon()).append("\"");
             if (icon.hasBasicIconHtmlColor()) {
                 sb.append(" style=\"color: " + icon.getBasicIconHtmlColor() + ";\"");
@@ -105,7 +110,9 @@ public abstract class AjaxCompositedIconButton extends AjaxLink<String> {
                 if (StringUtils.isNotEmpty(entry.getIconType().getCssClass())) {
                     sb.append("<i class=\"").append(entry.getIconType().getCssClass()).append("\"");
                     if (StringUtils.isNotEmpty(entry.getIconType().getColor())) {
-                        sb.append(" style=\"color: ").append(entry.getIconType().getColor()).append(";\"");
+                        sb.append(" style=\"color: ")
+                                .append(GuiDisplayTypeUtil.removeStringAfterSemicolon(entry.getIconType().getColor()))
+                                .append(";\"");
                     }
                     sb.append(">").append(entry.hasLabel() ? entry.getLabelModel().getObject() : "").append("</i> ");
                 }
@@ -126,5 +133,9 @@ public abstract class AjaxCompositedIconButton extends AjaxLink<String> {
 
     public void titleAsLabel(boolean titleAsLabel) {
         this.titleAsLabel = titleAsLabel;
+    }
+
+    protected boolean isHorizontalLayout() {
+        return false;
     }
 }

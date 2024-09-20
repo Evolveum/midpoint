@@ -13,6 +13,8 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationContext;
 
@@ -252,6 +254,7 @@ public class FactoryResetHelper {
         OperationResult result = parent.createSubresult(OPERATION_INITIAL_IMPORT);
 
         ModelService modelService = context.getBean(ModelService.class);
+        ModelInteractionService modelInteractionService = context.getBean(ModelInteractionService.class);
         CacheDispatcher cacheDispatcher = context.getBean(CacheDispatcher.class);
         TaskManager taskManager = context.getBean(TaskManager.class);
         PrismContext prismContext = context.getBean(PrismContext.class);
@@ -263,6 +266,7 @@ public class FactoryResetHelper {
             initial.setTaskManager(taskManager);
             initial.setPrismContext(prismContext);
             initial.setConfiguration(midpointConfiguration);
+            initial.setModelInteractionService(modelInteractionService);
             initial.init(true);
 
             PostInitialDataImport postInitial = new PostInitialDataImport();

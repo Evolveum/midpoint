@@ -1,0 +1,235 @@
+= Approvals via REST HOWTO
+:page-wiki-name: Approvals via REST HOWTO
+:page-wiki-id: 52003370
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2020-11-25T11:14:58.554+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2020-11-25T11:58:59.795+01:00
+:page-upkeep-status: yellow
+:page-moved-from: midpoint/guides/approvals-via-rest-howto/index.adoc
+
+The following approval-related operations are currently available via REST service:
+
+* starting an approval process,
+
+* determining the status of the approval process.
+
+The following is doable, but currently only using an unsupported "hack", basically for demonstration purposes only:
+
+* approving or rejecting an item (i.e. the actual decision-making).
+
+In this document we'll show how to carry out these operations.
+
+
+== Starting an approval process
+
+In midPoint the approval process is started automatically when an operation requiring approval is started.
+I.e. there's no special "start an approval process" method.
+
+Let us illustrate this on an example.
+
+This is user `peter`:
+
+[source,xml]
+----
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="cac0694d-62d8-441b-a277-0a33b8caa0f7">
+    <name>peter</name>
+</user>
+----
+
+This is role `sensitive` that we want to assign to `peter`:
+
+[source,xml]
+----
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="d4930444-c5e5-4710-af96-19f79eb078cb">
+    <name>sensitive</name>
+</role>
+----
+
+The role has an approver, named `paul`:
+
+[source,xml]
+----
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="3b5b5d18-b1d9-4125-b435-a5d3aece8546">
+    <name>paul</name>
+    <assignment>
+        <targetRef oid="d4930444-c5e5-4710-af96-19f79eb078cb" type="RoleType" relation="approver"/>
+    </assignment>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000004" type="RoleType"/> <!--  Superuser, to avoid authorization issues -->
+    </assignment>
+    <credentials>
+        <password>
+            <value>5ecr3t</value>
+        </password>
+    </credentials>
+</user>
+----
+
+Paul has an assignment to role `sensitive` with a relation of `approver`, so it is an approver for all assignments of that role.
+
+Now let's start the approval process.
+We will do that by assigning role `special` to user `peter`.
+
+[source]
+----
+curl.exe -v --user administrator:5ecr3t -H "Content-Type: application/xml" -X PATCH http://localhost:8080/midpoint/ws/rest/users/cac0694d-62d8-441b-a277-0a33b8caa0f7 -d @assign-sensitive-role.xml
+----
+
+ +
+
+
+.assign-sensitive-role.xml
+[source,xml]
+----
+<objectModification
+         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
+         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <t:itemDelta>
+        <t:modificationType>add</t:modificationType>
+        <t:path>assignment</t:path>
+        <t:value xsi:type="c:AssignmentType">
+            <c:targetRef oid="d4930444-c5e5-4710-af96-19f79eb078cb" type="c:RoleType">
+                <!-- sensitive -->
+            </c:targetRef>
+        </t:value>
+    </t:itemDelta>
+</objectModification>
+----
+
+The above XML is sent to the REST service and it will be applied (as an object delta) to object `cac0694d-62d8-441b-a277-0a33b8caa0f7`, i.e. `peter`. It has one item delta, in particular creation of an assignment to `d4930444-c5e5-4710-af96-19f79eb078cb` i.e. to the `sensitive` role.
+
+The response is then like this:
+
+[source]
+----
+HTTP/1.1 204
+Date: Thu, 25 Oct 2018 12:31:26 GMT
+----
+
+I.e. the operation was successful.
+
+
+== Determining the status of the approval process
+
+The approval processes are represented as _case_ objects.
+So they can be retrieved just like any other using the REST search operation.
+An example:
+
+.get-approval-cases-for-peter.bat
+[source]
+----
+curl.exe -v --user administrator:5ecr3t -H "Content-Type: application/xml" -X POST "http://localhost:8080/midpoint/ws/rest/cases/search" -d @get-approval-cases-for-peter.xml
+----
+
+ +
+
+
+.get-approval-cases-for-peter.xml
+[source,xml]
+----
+<q:query xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <q:filter>
+        <q:text>objectRef matches (oid = '96262f4f-053a-4b0b-8901-b3ec01e3509c') AND state = "open"</q:text>
+    </q:filter>
+</q:query>
+----
+
+The above search query returns all approval processes and the whole requests that deal with the user `cac0694d-62d8-441b-a277-0a33b8caa0f7` i.e. `peter` and are still waiting to be resolved (state=open condition).
+
+[NOTE]
+====
+Formally, `state` is an URI.
+It can have both unqualified and qualified forms, e.g. `open` vs `http://midpoint.evolveum.com/xml/ns/public/common/case-3#open`. In theory, you would need to check for both, using e.g. OR filter clause.
+But practically, midPoint currently uses the unqualified form.
+
+====
+
+There are two kinds of approval-related cases:
+
+. Operation-level cases, covering the whole operation.
+Each operation can consist of one or more elementary actions, like "add assignment to role R1", "add assignment to role R2", "remove assignment of role R3".
+Operation cases have the `Operation request` archetype.
+
+. Individual approval cases; each covering a single elementary action, like "add assignment to role R1".
+Each such task corresponds to a single approval process.
+These have the `Approval case` archetype.
+
+You can use a filter on `archetypeRef` to differentiate between these two kinds; returning only what you need.
+
+
+== Approving or rejecting a work item
+
+[WARNING]
+====
+It is currently *not possible* to approve or reject a work item via REST directly.
+And it never was.In the version 3.9 there was a *unsupported "hack"* that allowed it.
+The following is an attempt to port that hack to 4.x. *DO NOT USE THIS in production.*
+
+====
+
+ +
+
+
+[NOTE]
+.Missing/incomplete feature
+====
+This is a missing or incomplete feature of midPoint and/or of other related components.
+We are perfectly capable to implement, fix and finish the feature, just the funding for the work is needed.
+Please consider the possibility for xref:/support/subscription-sponsoring/[supporting] development of this feature by means of midPoint Platform subscription.
+If you already are midPoint Platform subscriber and this feature is within the goals of your deployment you may be able to use your subscription to endorse implementation of this feature.
+
+====
+
+Having understood the above, let us describe the hack.
+This will approve the work item:
+
+.approve-work-item.bat
+[source]
+----
+curl.exe --user administrator:5ecr3t -H "Content-Type: application/xml" -X POST "http://localhost:8080/midpoint/ws/rest/rpc/executeScript" --data-binary @approve-work-item.xml
+----
+
+(--data-binary is there because otherwise the lines in script got concatenated, at least sometimes on Windows)
+
+.approve-work-item.xml
+[source,xml]
+----
+<?xml version="1.0"?>
+<s:executeScript xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <s:action>
+        <s:type>execute-script</s:type>
+        <s:parameter>
+            <s:name>script</s:name>
+            <c:value xsi:type="c:ScriptExpressionEvaluatorType">
+                <c:code>
+                    import com.evolveum.midpoint.schema.util.WorkItemId
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+
+                    caseOid = '492f3ff0-b0c7-4e97-86ff-730dc2bd8529' /* this is the OID of the approval case */
+                    localId = 4                                      /* this is 'local' work item ID */
+                    workItemId = WorkItemId.create(caseOid, localId)
+
+                    output = new AbstractWorkItemOutputType(prismContext)
+                        .outcome('http://midpoint.evolveum.com/xml/ns/public/model/approval/outcome#approve')
+
+                    midpoint.workflowService.completeWorkItem(workItemId, output, midpoint.currentTask, midpoint.currentResult)
+                </c:code>
+            </c:value>
+        </s:parameter>
+        <s:parameter>
+            <s:name>forWholeInput</s:name>
+            <c:value>true</c:value>
+        </s:parameter>
+    </s:action>
+</s:executeScript>
+----
+
+Unfortunately, the approval/rejection is logged under `administrator` account.
+It is not possible to use non-admin account to carry out this action, because Groovy script execution requires the strongest authorization (because of the security implications).
+But, as said, this is more-or-less for demonstration purposes.

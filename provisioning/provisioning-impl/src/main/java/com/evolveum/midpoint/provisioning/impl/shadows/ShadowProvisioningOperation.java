@@ -7,8 +7,21 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
+import static com.evolveum.midpoint.provisioning.impl.shadows.RepoShadowWithState.*;
+import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade.OP_DELAYED_OPERATION;
+import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.createSuccessOperationDescription;
+
+import java.util.Objects;
+
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectShadow;
+
+import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper.EffectiveMarksAndPolicies;
+
+import com.evolveum.midpoint.util.MiscUtil;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.EventDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
@@ -16,14 +29,13 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
-import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
+import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
 import com.evolveum.midpoint.provisioning.impl.shadows.errors.ErrorHandlerLocator;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.OperationResultRecorder;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowCreator;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowFinder;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowUpdater;
-
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorOperationOptions;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -32,19 +44,9 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.RunAsCapabilityType;
-
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Objects;
-
-import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade.OP_DELAYED_OPERATION;
-import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.createSuccessOperationDescription;
 
 /**
  * Superclass for "primitive" resource-updating operations: add, modify, delete [resource object / shadow].
@@ -60,8 +62,7 @@ public abstract class ShadowProvisioningOperation<OS extends ProvisioningOperati
     final ShadowUpdater shadowUpdater = ShadowsLocalBeans.get().shadowUpdater;
     private final ProvisioningContextFactory ctxFactory = ShadowsLocalBeans.get().ctxFactory;
     final ResourceObjectConverter resourceObjectConverter = ShadowsLocalBeans.get().resourceObjectConverter;
-    final EntitlementsHelper entitlementsHelper = ShadowsLocalBeans.get().entitlementsHelper;
-    final ShadowCaretaker shadowCaretaker = ShadowsLocalBeans.get().shadowCaretaker;
+    final AssociationsHelper associationsHelper = ShadowsLocalBeans.get().associationsHelper;
     final ErrorHandlerLocator errorHandlerLocator = ShadowsLocalBeans.get().errorHandlerLocator;
     private final EventDispatcher eventDispatcher = ShadowsLocalBeans.get().eventDispatcher;
     final Clock clock = ShadowsLocalBeans.get().clock;
@@ -72,7 +73,7 @@ public abstract class ShadowProvisioningOperation<OS extends ProvisioningOperati
     final ProvisioningOperationOptions options;
     @NotNull final Task task;
 
-    /** A delta that represents the original request. */
+    /** A delta that represents the original request. High-level language (associations, not references). */
     @NotNull final ObjectDelta<ShadowType> requestedDelta;
 
     /**
@@ -81,11 +82,20 @@ public abstract class ShadowProvisioningOperation<OS extends ProvisioningOperati
      * - For ADD operation, we allow it to be the same as {@link #requestedDelta}.
      * - For DELETE op, they are obviously the same.
      * - But for MODIFY op, only resource-level modifications are transferred there.
+     *
+     * During the processing, operations are transformed here from high-level form (associations) to low-level form
+     * (reference attributes).
      */
     @NotNull final ObjectDelta<ShadowType> resourceDelta;
 
-    /** A delta that represents what was executed. */
+    /** A delta that represents what was executed. High-level language (associations, not references). */
     ObjectDelta<ShadowType> executedDelta;
+
+    /**
+     * Before executing any operation, we have to determine the effective policies; to avoid e.g. modifying protected objects.
+     * Moreover, we also update the actual shadow with the most recent effective marks.
+     */
+    private EffectiveMarksAndPolicies effectiveMarksAndPolicies;
 
     OperationResultStatus statusFromErrorHandling;
 
@@ -151,7 +161,7 @@ public abstract class ShadowProvisioningOperation<OS extends ProvisioningOperati
         this.executedDelta = executedDelta;
     }
 
-    /** Returns the delta that was requested to be executed OR that was really executed. */
+    /** Returns the delta that was requested to be executed OR that was really executed. Always high-level. */
     private @NotNull ObjectDelta<ShadowType> getEffectiveDelta() {
         return Objects.requireNonNullElse(executedDelta, requestedDelta);
     }
@@ -171,9 +181,9 @@ public abstract class ShadowProvisioningOperation<OS extends ProvisioningOperati
         ShadowType shadow;
         if (isAdd()) {
             // This is more precise. Besides, there is no repo shadow in some cases (e.g. adding protected shadow). [TODO??]
-            shadow = ((ShadowAddOperation) this).getResourceObjectAddedOrToAdd();
+            shadow = ((ShadowAddOperation) this).getShadowAddedOrToAdd().getBean();
         } else {
-            shadow = opState.getRepoShadow();
+            shadow = opState.getRepoShadow().getBean();
         }
         ResourceOperationDescription operationDescription =
                 ShadowsUtil.createResourceFailureDescription(shadow, ctx.getResource(), getRequestedDelta(), message);
@@ -205,7 +215,7 @@ public abstract class ShadowProvisioningOperation<OS extends ProvisioningOperati
         parentResult.setAsynchronousOperationReference(opState.getAsynchronousOperationReference());
     }
 
-    void sendSuccessOrInProgressNotification(ShadowType shadow, OperationResult result) {
+    void sendSuccessOrInProgressNotification(RepoShadow shadow, OperationResult result) {
         ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, shadow, getEffectiveDelta());
         if (opState.isExecuting()) {
             eventDispatcher.notifyInProgress(operationDescription, ctx.getTask(), result);
@@ -228,17 +238,17 @@ public abstract class ShadowProvisioningOperation<OS extends ProvisioningOperati
             getLogger().trace("Operation runAs requested, but resource does not have the capability. Ignoring runAs");
             return null;
         }
-        PrismObject<ShadowType> runAsShadow;
+        ShadowType runAsShadow;
         try {
-            runAsShadow = shadowFinder.getShadow(runAsAccountOid, result);
+            runAsShadow = shadowFinder.getShadowBean(runAsAccountOid, result);
         } catch (ObjectNotFoundException e) {
             throw new ConfigurationException("Requested non-existing 'runAs' shadow", e);
         }
-        ProvisioningContext runAsCtx = ctxFactory.createForShadow(runAsShadow.asObjectable(), ctx.getResource(), ctx.getTask());
-        runAsCtx.applyAttributesDefinition(runAsShadow);
-        ResourceObjectIdentification runAsIdentification =
-                ResourceObjectIdentification.createFromShadow(
-                        runAsCtx.getObjectDefinitionRequired(), runAsShadow.asObjectable());
+        ProvisioningContext runAsCtx = ctxFactory.createForShadow(runAsShadow, ctx.getResource(), ctx.getTask());
+        runAsCtx.applyCurrentDefinition(runAsShadow);
+        ResourceObjectIdentification<?> runAsIdentification =
+                ResourceObjectIdentification.fromCompleteShadow(
+                        runAsCtx.getObjectDefinitionRequired(), runAsShadow);
         ConnectorOperationOptions connOptions = new ConnectorOperationOptions();
         getLogger().trace("RunAs identification: {}", runAsIdentification);
         connOptions.setRunAsIdentification(runAsIdentification);
@@ -246,17 +256,41 @@ public abstract class ShadowProvisioningOperation<OS extends ProvisioningOperati
     }
 
     boolean checkAndRecordPendingOperationBeforeExecution(OperationResult result)
-            throws SchemaException, ObjectNotFoundException {
+            throws SchemaException, ObjectNotFoundException, ConfigurationException {
         if (resourceDelta.isEmpty()) {
             return false;
         }
-        PendingOperationType duplicateOperation =
-                shadowUpdater.checkAndRecordPendingOperationBeforeExecution(ctx, resourceDelta, opState, result);
+        var duplicateOperation = shadowUpdater.checkAndRecordPendingOperationBeforeExecution(ctx, resourceDelta, opState, result);
         if (duplicateOperation != null) {
             result.setInProgress();
             return true;
         } else {
             return false;
         }
+    }
+
+    /** Does not enforce anything, just computes. */
+    void determineEffectiveMarksAndPolicies(@NotNull ResourceObjectShadow objectToAdd, @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        effectiveMarksAndPolicies = ctx.computeAndUpdateEffectiveMarksAndPolicies(objectToAdd, ShadowState.TO_BE_CREATED, result);
+    }
+
+    /** Does not enforce anything, just computes. */
+    void determineEffectiveMarksAndPolicies(@NotNull RepoShadow existingShadow, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        effectiveMarksAndPolicies = ctx.computeAndUpdateEffectiveMarksAndPolicies(existingShadow, ShadowState.EXISTING, result);
+    }
+
+    public @NotNull EffectiveMarksAndPolicies getEffectiveMarksAndPoliciesRequired() {
+        return MiscUtil.stateNonNull(
+                effectiveMarksAndPolicies,
+                "Effective marks and policies not determined yet in %s", this);
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "{" + opState + "}";
     }
 }

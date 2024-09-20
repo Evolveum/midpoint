@@ -13,6 +13,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;

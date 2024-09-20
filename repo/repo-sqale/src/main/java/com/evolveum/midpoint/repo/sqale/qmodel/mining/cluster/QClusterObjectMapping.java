@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.mining.cluster;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AnalysisClusterStatisticType.F_DETECTED_REDUCTION_METRIC;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType.F_CLUSTER_STATISTICS;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType.F_ROLE_ANALYSIS_SESSION_REF;
 
 import org.jetbrains.annotations.NotNull;
@@ -16,7 +14,6 @@ import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AnalysisClusterStatisticType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 
 public class QClusterObjectMapping

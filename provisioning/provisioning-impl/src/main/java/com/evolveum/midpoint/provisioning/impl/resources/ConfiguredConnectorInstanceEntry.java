@@ -6,46 +6,54 @@
  */
 package com.evolveum.midpoint.provisioning.impl.resources;
 
-import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorConfiguration;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
+
+import org.jetbrains.annotations.NotNull;
+
+import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
 /**
- * @author semancik
+ * A {@link ConnectorInstance} along with connector OID (that is used mainly to check whether the connector instance
+ * is applicable for a given resource).
  *
+ * TODO we could obtain connector OID from the {@link ConnectorInstance} as well, if we'd like to
+ *
+ * @author semancik
  */
-public class ConfiguredConnectorInstanceEntry {
+class ConfiguredConnectorInstanceEntry {
 
-    private String connectorOid;
-    private PrismContainer<ConnectorConfigurationType> configuration;
-    private ConnectorInstance connectorInstance;
+    @NotNull private final String connectorOid;
 
-    public String getConnectorOid() {
-        return connectorOid;
-    }
+    @NotNull private final ConnectorInstance connectorInstance;
 
-    public void setConnectorOid(String connectorOid) {
+    ConfiguredConnectorInstanceEntry(@NotNull String connectorOid, @NotNull ConnectorInstance connectorInstance) {
         this.connectorOid = connectorOid;
+        this.connectorInstance = connectorInstance;
     }
 
-    public PrismContainer<ConnectorConfigurationType> getConfiguration() {
-        return configuration;
+    boolean matchesConnectorOid(String oidToMatch) {
+        return connectorOid.equals(oidToMatch);
     }
 
-    public void setConfiguration(PrismContainer<ConnectorConfigurationType> configuration) {
-        this.configuration = configuration;
+    public ConnectorConfiguration getConfiguration() {
+        return connectorInstance.getCurrentConfiguration();
+    }
+
+    /** Assumes {@link #isConfigured()} is {@code true}. */
+    boolean isFreshRegardingSpec(@NotNull ConnectorSpec connectorSpec) {
+        var currentConfiguration =
+                stateNonNull(connectorInstance.getCurrentConfiguration(), "Not configured? %s", this);
+        return matchesConnectorOid(connectorSpec.getConnectorOid())
+                && currentConfiguration.equivalent(connectorSpec.getConnectorConfiguration());
     }
 
     public boolean isConfigured() {
-        return configuration != null;
+        return connectorInstance.getCurrentConfiguration() != null;
     }
 
-    public ConnectorInstance getConnectorInstance() {
+    @NotNull ConnectorInstance getConnectorInstance() {
         return connectorInstance;
-    }
-
-    public void setConnectorInstance(ConnectorInstance connectorInstance) {
-        this.connectorInstance = connectorInstance;
     }
 
     @Override

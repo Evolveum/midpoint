@@ -47,6 +47,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -65,6 +67,15 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
 
     private static final TestObject<ObjectTemplateType> OBJECT_TEMPLATE_USER =
             TestObject.file(TEST_DIR, "object-template-user.xml", "fc5bfc7b-0612-450a-85d2-ab5cff7e4ed9");
+
+    private static final TestObject<ArchetypeType> ARCHETYPE_DOUBLE_ASSIGNMENTS =
+            TestObject.file(TEST_DIR, "archetype-double-assignments.xml", "8d1cbdc3-52d6-4a87-9549-25d8370c3647");
+
+    private static final TestObject<ObjectTemplateType> OBJECT_TEMPLATE_USER_DOUBLE_ASSIGNMENTS =
+            TestObject.file(TEST_DIR, "object-template-user-double-assignments.xml", "e085cbb0-b88c-42ac-82c7-c5619615de36");
+
+    private static final TestObject<OrgType> ORG_EXISTING =
+            TestObject.file(TEST_DIR, "org-existing.xml", "30d37e52-0a7c-4ca2-b60c-19c359ed6fd0");
 
     private static final DummyTestResource RESOURCE_DUMMY = new DummyTestResource(TEST_DIR, "resource-dummy.xml",
             "8dfeccc9-e144-4864-a692-e483f4b1873a", "resource-preview-changes-cod", TestPreviewChangesCoD::createAttributeDefinitions);
@@ -99,6 +110,10 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
         addObject(OBJECT_TEMPLATE_USER, initTask, initResult);
         addObject(ROLE_META_ASSIGNMENT_SEARCH, initTask, initResult);
         addObject(ROLE_ORG, initTask, initResult);
+
+        addObject(OBJECT_TEMPLATE_USER_DOUBLE_ASSIGNMENTS, initTask, initResult);
+        addObject(ARCHETYPE_DOUBLE_ASSIGNMENTS, initTask, initResult);
+        addObject(ORG_EXISTING, initTask, initResult);
     }
 
     private static void createAttributeDefinitions(DummyResourceContoller controller)
@@ -237,6 +252,73 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
     }
 
     /**
+     * Simulating creation of the following structure: user -> org (CoD) -> org (existing)
+     *
+     * MID-9426
+     */
+    @Test
+    public void test170CreateOnDemandTwoAssignments() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        Map<Class<? extends ObjectType>, Integer> counts = collectCounts(task, result);
+
+        given("user ADD delta");
+        ObjectDelta<UserType> delta = createAddDeltaForUserWithDoubleOrgs();
+
+        when("previewChanges is invoked");
+        ModelContext<OrgType> context =
+                modelInteractionService.previewChanges(
+                        List.of(delta), ModelExecuteOptions.create(), task, result);
+
+        then("everything is OK; no new objects are created");
+        assertSuccess(result);
+        assertThat(context).isNotNull();
+        assertCollectedCounts(counts, task, result);
+
+        displayDumpable("context", context);
+    }
+
+    /**
+     * The same as {@link #test170CreateOnDemandTwoAssignments()} but using `executeChanges`
+     * with "no persistent effects" execution mode.
+     *
+     * MID-9426
+     */
+    @Test
+    public void test175CreateOnDemandTwoAssignments() throws Exception {
+        skipIfNotNativeRepository();
+
+        var task = getTestTask();
+        var result = task.getResult();
+
+        Map<Class<? extends ObjectType>, Integer> counts = collectCounts(task, result);
+
+        given("user ADD delta");
+        ObjectDelta<UserType> delta = createAddDeltaForUserWithDoubleOrgs();
+
+        when("executeChanges is called in simulation mode");
+        TestSimulationResult simResult = executeInProductionSimulationMode(List.of(delta), task, result);
+
+        then("everything is OK; no new objects are created");
+        assertSuccess(result);
+        assertCollectedCounts(counts, task, result);
+
+        and("there is a model context");
+        ModelContext<?> context = simResult.getLastModelContext();
+        AssertJUnit.assertNotNull(context);
+        displayDumpable("context", context);
+    }
+
+    private ObjectDelta<UserType> createAddDeltaForUserWithDoubleOrgs() {
+        UserType user = new UserType()
+                .name(getTestNameShort())
+                .organization("org170")
+                .assignment(ARCHETYPE_DOUBLE_ASSIGNMENTS.assignmentTo());
+        return user.asPrismObject().createAddDelta();
+    }
+
+    /**
      * User `bob` has `organization` of "parent:child" which means that he should be in `child` org (CoD)
      * that should be in `parent` org (CoD again).
      *
@@ -282,7 +364,7 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
             try {
                 repositoryService.deleteObject(OrgType.class, org.getOid(), result);
             } catch (Exception ex) {
-                ex.printStackTrace();
+                LOGGER.error("Couldn't delete org {}", org, ex);
             }
         });
 
@@ -291,11 +373,11 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
 
         when();
 
-        final int MAX_WORKERS = 10;
-        ExecutorService pool = Executors.newFixedThreadPool(MAX_WORKERS);
+        final int maxWorkers = 10;
+        ExecutorService pool = Executors.newFixedThreadPool(maxWorkers);
 
         List<Callable<Exception>> tasks = new ArrayList<>();
-        for (int i = 0; i < MAX_WORKERS; i++) {
+        for (int i = 0; i < maxWorkers; i++) {
             tasks.add(createMultithreadedTask(i, task));
         }
 
@@ -322,7 +404,7 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
 
         int userCount = repositoryService.countObjects(UserType.class, null, null, result);
         // user is created in each thread + administrator
-        AssertJUnit.assertEquals("Two users should be present", MAX_WORKERS + 1, userCount);
+        AssertJUnit.assertEquals("Two users should be present", maxWorkers + 1, userCount);
 
         AssertJUnit.assertEquals("Exception happened during processing", 0, exceptions.size());
     }
@@ -362,6 +444,10 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
             }
 
             if (Arrays.stream(COLLECT_COUNT_TYPES).noneMatch(c -> c.isAssignableFrom(clazz))) {
+                continue;
+            }
+
+            if (!repositoryService.supports(clazz)) {
                 continue;
             }
 

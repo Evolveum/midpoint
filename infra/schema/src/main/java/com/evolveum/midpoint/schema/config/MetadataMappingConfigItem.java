@@ -15,12 +15,8 @@ public class MetadataMappingConfigItem
         extends ConfigurationItem<MetadataMappingType>
         implements AbstractMappingConfigItem<MetadataMappingType> {
 
-    public MetadataMappingConfigItem(@NotNull MetadataMappingType value, @NotNull ConfigurationItemOrigin origin) {
-        super(value, origin);
-    }
-
-    public static MetadataMappingConfigItem embedded(@NotNull MetadataMappingType bean) {
-        return of(bean, ConfigurationItemOrigin.embedded(bean));
+    private MetadataMappingConfigItem(@NotNull MetadataMappingType value, @NotNull ConfigurationItemOrigin origin) {
+        super(value, origin, null); // TODO provide parent in the future
     }
 
     public static MetadataMappingConfigItem of(@NotNull MetadataMappingType bean, @NotNull ConfigurationItemOrigin origin) {

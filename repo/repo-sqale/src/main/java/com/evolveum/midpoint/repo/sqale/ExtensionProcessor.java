@@ -10,6 +10,8 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedDataType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,6 +27,8 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+
+import static com.evolveum.midpoint.repo.sqale.jsonb.JsonbUtils.toRealValue;
 
 public class ExtensionProcessor {
 
@@ -175,9 +179,15 @@ public class ExtensionProcessor {
             return ExtUtils.extensionDateTime((XMLGregorianCalendar) realValue);
         }
 
+        if (realValue instanceof ProtectedDataType<?> data) {
+            return JsonbUtils.protectedDataToMap(data);
+        }
+
         throw new IllegalArgumentException(
                 "Unsupported type '" + realValue.getClass().getName() + "' for value '" + realValue + "'.");
     }
+
+
 
     private void checkRealValueType(Object realValue, MExtItem extItemInfo) {
         Class<?> realValueType = ExtUtils.getRealValueClass(extItemInfo.valueType);
@@ -223,19 +233,20 @@ public class ExtensionProcessor {
                     repositoryContext.getExtensionItem(Integer.valueOf(attribute.getKey())));
             QName itemName = QNameUtil.uriToQName(mapping.itemName);
             ItemDefinition<?> definition = ExtUtils.createDefinition(itemName, mapping, true);
-            if (definition instanceof PrismPropertyDefinition) {
-                var item = pcv.findOrCreateProperty((PrismPropertyDefinition<?>) definition);
+
+            if (definition instanceof PrismPropertyDefinition<?> propertyDefinition) {
+                var item = pcv.findOrCreateProperty(propertyDefinition);
                 // In theory single-value can overwrite multi-value in the same item (with the same name) when both
                 // variants are written in JSONB - but both variants are only written when single value is present
                 // and definition is not provided. If the multi-value is changed later the single-value variant
                 // is removed from JSONB (see code in ExtensionItemDeltaProcessor).
                 switch (mapping.cardinality) {
                     case SCALAR:
-                        item.setRealValue(attribute.getValue());
+                        item.setRealValue(toRealValue(attribute.getValue(), definition.getTypeName(), repositoryContext));
                         break;
                     case ARRAY:
                         List<?> value = (List<?>) attribute.getValue();
-                        item.setRealValues(value.toArray());
+                        item.setRealValues(value.stream().map(v -> toRealValue(v, definition.getTypeName(), repositoryContext)).toArray());
                         break;
                     default:
                         throw new IllegalStateException("");

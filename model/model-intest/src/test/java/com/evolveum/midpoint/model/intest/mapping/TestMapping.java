@@ -22,6 +22,8 @@ import java.util.Collection;
 import java.util.UUID;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -289,7 +291,7 @@ public class TestMapping extends AbstractMappingTest {
         String accountOid = getSingleLinkOid(userJack);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        var accountShadow = getShadowRepo(accountOid);
         assertAccountShadowRepo(accountShadow, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, getDummyResourceType(RESOURCE_DUMMY_BLUE_NAME));
 
         // Check account
@@ -300,7 +302,7 @@ public class TestMapping extends AbstractMappingTest {
         assertDummyAccount(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDummyAccountAttribute(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_JACK_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "SystemConfiguration");
-        DummyAccount accountJackBlue = getDummyResource(RESOURCE_DUMMY_BLUE_NAME).getAccountByUsername(ACCOUNT_JACK_DUMMY_USERNAME);
+        DummyAccount accountJackBlue = getDummyResource(RESOURCE_DUMMY_BLUE_NAME).getAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
         String drinkBlue = accountJackBlue.getAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME);
         assertNotNull("No blue drink", drinkBlue);
         UUID drinkUuidBlue = UUID.fromString(drinkBlue);
@@ -1016,6 +1018,8 @@ public class TestMapping extends AbstractMappingTest {
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Wrongland");
         displayDumpable("Account before", dummyAccountBefore);
 
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_COBALT_OID);
+
         when();
         recomputeUser(USER_JACK_OID, task, result);
 
@@ -1047,6 +1051,8 @@ public class TestMapping extends AbstractMappingTest {
                 "Wrongland");
         displayDumpable("Account before", dummyAccountBefore);
 
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_COBALT_OID);
+
         when();
         reconcileUser(USER_JACK_OID, task, result);
 
@@ -1077,6 +1083,8 @@ public class TestMapping extends AbstractMappingTest {
         dummyAccountBefore.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME
                 /* no value */);
         displayDumpable("Account before", dummyAccountBefore);
+
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_COBALT_OID);
 
         when();
         recomputeUser(USER_JACK_OID, task, result);
@@ -1231,6 +1239,8 @@ public class TestMapping extends AbstractMappingTest {
                 "Wrongland");
         displayDumpable("Account before", dummyAccountBefore);
 
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_COBALT_OID);
+
         when();
         recomputeUser(USER_JACK_OID, task, result);
 
@@ -1261,6 +1271,8 @@ public class TestMapping extends AbstractMappingTest {
         dummyAccountBefore.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME
                 /* no value */);
         displayDumpable("Account before", dummyAccountBefore);
+
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_COBALT_OID);
 
         when();
         recomputeUser(USER_JACK_OID, task, result);
@@ -1382,7 +1394,7 @@ public class TestMapping extends AbstractMappingTest {
         String accountOid = getSingleLinkOid(userJack);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        var accountShadow = getShadowRepo(accountOid);
         assertAccountShadowRepo(accountShadow, accountOid, "jack", getDummyResourceType(RESOURCE_DUMMY_RED_NAME));
 
         // Check account
@@ -1755,7 +1767,7 @@ public class TestMapping extends AbstractMappingTest {
         String accountOid = getSingleLinkOid(userJack);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        var accountShadow = getShadowRepo(accountOid);
         assertAccountShadowRepo(accountShadow, accountOid, "jack", getDummyResourceType());
 
         // Check account
@@ -2053,7 +2065,7 @@ public class TestMapping extends AbstractMappingTest {
         String accountOid = getSingleLinkOid(userJack);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, task.getResult());
+        var accountShadow = getShadowRepo(accountOid);
         display("Repo shadow", accountShadow);
         assertAccountShadowRepo(accountShadow, accountOid, name, resourceCtl.getResource().asObjectable());
 
@@ -2124,6 +2136,8 @@ public class TestMapping extends AbstractMappingTest {
 
         displayDumpable("Dummy account before", dummyAccountBefore);
 
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_CRIMSON_OID);
+
         when();
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 
@@ -2159,6 +2173,8 @@ public class TestMapping extends AbstractMappingTest {
 
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         displayDumpable("Dummy account before", dummyAccountBefore);
+
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_CRIMSON_OID);
 
         when();
         reconcileUser(USER_GUYBRUSH_OID, task, result);
@@ -2204,6 +2220,8 @@ public class TestMapping extends AbstractMappingTest {
         // Make sure that only get is broken and not modify. We want to give the test
         // a chance to destroy data.
         getDummyResource(RESOURCE_DUMMY_CRIMSON_NAME).setGetBreakMode(BreakMode.IO);
+
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_CRIMSON_OID);
 
         when();
         reconcileUser(USER_GUYBRUSH_OID, task, result);
@@ -2377,6 +2395,8 @@ public class TestMapping extends AbstractMappingTest {
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         displayDumpable("Dummy account before", dummyAccountBefore);
 
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_CRIMSON_OID);
+
         // Make sure that only get is broken and not modify. We want to give the test
         // a chance to destroy data.
         getDummyResource(RESOURCE_DUMMY_CRIMSON_NAME).setGetBreakMode(BreakMode.IO);
@@ -2427,8 +2447,9 @@ public class TestMapping extends AbstractMappingTest {
                 DRINK_BRANDY, DRINK_GRAPPA);
         displayDumpable("Dummy account before", dummyAccountBefore);
 
-        // Make sure that only get is broken and not modify. We want to give the test
-        // a chance to destroy data.
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_CRIMSON_OID);
+
+        // Make sure that only get is broken and not modify. We want to give the test a chance to destroy data.
         getDummyResource(RESOURCE_DUMMY_CRIMSON_NAME).setGetBreakMode(BreakMode.IO);
 
         when();
@@ -2534,6 +2555,8 @@ public class TestMapping extends AbstractMappingTest {
 
         displayDumpable("Dummy account before", dummyAccountBefore);
 
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_LIGHT_CRIMSON_OID);
+
         when();
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 
@@ -2554,7 +2577,6 @@ public class TestMapping extends AbstractMappingTest {
         assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
                 DRINK_GIN, DRINK_MEZCAL, rumFrom(LOCALITY_BOOTY_ISLAND));
-
     }
 
     /**
@@ -2595,7 +2617,6 @@ public class TestMapping extends AbstractMappingTest {
         assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
                 DRINK_GIN, DRINK_MEZCAL, rumFrom(LOCALITY_BOOTY_ISLAND));
-
     }
 
     /**
@@ -2612,8 +2633,7 @@ public class TestMapping extends AbstractMappingTest {
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         displayDumpable("Dummy account before", dummyAccountBefore);
 
-        // Make sure that only get is broken and not modify. We want to give the test
-        // a chance to destroy data.
+        // Make sure that only get is broken and not modify. We want to give the test a chance to destroy data.
         getDummyResource(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME).setGetBreakMode(BreakMode.IO);
 
         when();
@@ -2621,7 +2641,11 @@ public class TestMapping extends AbstractMappingTest {
 
         then();
         result.computeStatus();
-        TestUtil.assertPartialError(result);
+        if (InternalsConfig.isShadowCachingOnByDefault()) {
+            assertSuccess(result);
+        } else {
+            TestUtil.assertPartialError(result);
+        }
 
         getDummyResource(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME).resetBreakMode();
 
@@ -2788,15 +2812,18 @@ public class TestMapping extends AbstractMappingTest {
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         displayDumpable("Dummy account before", dummyAccountBefore);
 
-        // Make sure that only get is broken and not modify. We want to give the test
-        // a chance to destroy data.
+        // Make sure that only get is broken and not modify. We want to give the test a chance to destroy data.
         getDummyResource(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME).setGetBreakMode(BreakMode.IO);
 
         when();
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_LOCALITY, task, result, PolyString.fromOrig(LOCALITY_BOOTY_ISLAND));
 
         then();
-        assertSuccess(result, 1);           // there's hidden PARTIAL_ERROR deep inside
+        if (InternalsConfig.isShadowCachingOnByDefault()) {
+            assertSuccess(result);
+        } else {
+            assertSuccess(result, 1); // there's hidden PARTIAL_ERROR deep inside
+        }
 
         getDummyResource(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME).resetBreakMode();
 
@@ -2819,7 +2846,10 @@ public class TestMapping extends AbstractMappingTest {
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, LOCALITY_BOOTY_ISLAND);
         assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
-                DRINK_GIN, DRINK_MEZCAL, rumFrom(LOCALITY_SCABB_ISLAND));
+                DRINK_GIN, DRINK_MEZCAL,
+                InternalsConfig.isShadowCachingOnByDefault() ?
+                        rumFrom(LOCALITY_BOOTY_ISLAND) : // the read operation was not needed
+                        rumFrom(LOCALITY_SCABB_ISLAND));
     }
 
     /**
@@ -2837,6 +2867,8 @@ public class TestMapping extends AbstractMappingTest {
         dummyAccountBefore.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
                 DRINK_BRANDY, DRINK_GRAPPA);
         displayDumpable("Dummy account before", dummyAccountBefore);
+
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_LIGHT_CRIMSON_OID);
 
         // Make sure that only get is broken and not modify. We want to give the test
         // a chance to destroy data.
@@ -3187,7 +3219,7 @@ public class TestMapping extends AbstractMappingTest {
                 .name(USER_JIM_NAME)
                 .subtype(USER_TYPE_CARTHESIAN)
                 .beginAssignment()
-                .targetRef(ROLE_SUPERUSER_OID, RoleType.COMPLEX_TYPE)
+                .targetRef(ROLE_SUPERUSER.oid, RoleType.COMPLEX_TYPE)
                 .end();
 
         when();
@@ -3268,7 +3300,7 @@ public class TestMapping extends AbstractMappingTest {
         UserType user = new UserType()
                 .name(userName)
                 .beginAssignment()
-                .targetRef(ROLE_SUPERUSER_OID, RoleType.COMPLEX_TYPE)
+                .targetRef(ROLE_SUPERUSER.oid, RoleType.COMPLEX_TYPE)
                 .<UserType>end()
                 .beginAssignment()
                 .beginConstruction()
@@ -3287,7 +3319,7 @@ public class TestMapping extends AbstractMappingTest {
 
         when();
 
-        AssignmentType roleAssignment = findAssignment(userCreated, ROLE_SUPERUSER_OID, SchemaConstants.ORG_DEFAULT);
+        AssignmentType roleAssignment = findAssignment(userCreated, ROLE_SUPERUSER.oid, SchemaConstants.ORG_DEFAULT);
         assertNotNull("role assignment not found", roleAssignment);
         PrismContainerValue<Containerable> roleAssignmentIdOnlyPcv = prismContext.itemFactory().createContainerValue();
         roleAssignmentIdOnlyPcv.setId(roleAssignment.getId());
@@ -3318,7 +3350,7 @@ public class TestMapping extends AbstractMappingTest {
         given();
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
-        final String PASSWORD = "pwd1234";
+        final String password = "pwd1234";
 
         when();
         addObject(SERVICE_ROUTER, task, result);
@@ -3329,13 +3361,13 @@ public class TestMapping extends AbstractMappingTest {
         assertService(SERVICE_ROUTER.oid, "service")
                 .display()
                 .assertLiveLinks(1)
-                .assertPassword(PASSWORD);
+                .assertPassword(password);
 
         DummyResource resource = getDummyResource(RESOURCE_DUMMY_SERVICES_OUTBOUND.name);
-        DummyAccount account = resource.getAccountByUsername(SERVICE_ROUTER_NAME);
+        DummyAccount account = resource.getAccountByName(SERVICE_ROUTER_NAME);
         new DummyAccountAsserter<>(account, RESOURCE_DUMMY_SERVICES_OUTBOUND.name)
                 .display()
-                .assertPassword(PASSWORD);
+                .assertPassword(password);
     }
 
     /**
@@ -3347,9 +3379,9 @@ public class TestMapping extends AbstractMappingTest {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
-        final String NEW_PASSWORD = "dummy";
+        final String newPassword = "dummy";
         ProtectedStringType newPasswordProtected = new ProtectedStringType();
-        newPasswordProtected.setClearValue(NEW_PASSWORD);
+        newPasswordProtected.setClearValue(newPassword);
 
         when();
         ObjectDelta<ServiceType> delta = deltaFor(ServiceType.class)
@@ -3364,13 +3396,13 @@ public class TestMapping extends AbstractMappingTest {
         assertService(SERVICE_ROUTER.oid, "service")
                 .display()
                 .assertLiveLinks(1)
-                .assertPassword(NEW_PASSWORD);
+                .assertPassword(newPassword);
 
         DummyResource resource = getDummyResource(RESOURCE_DUMMY_SERVICES_OUTBOUND.name);
-        DummyAccount account = resource.getAccountByUsername(SERVICE_ROUTER_NAME);
+        DummyAccount account = resource.getAccountByName(SERVICE_ROUTER_NAME);
         new DummyAccountAsserter<>(account, RESOURCE_DUMMY_SERVICES_OUTBOUND.name)
                 .display()
-                .assertPassword(NEW_PASSWORD);
+                .assertPassword(newPassword);
     }
 
     /**
@@ -3382,11 +3414,11 @@ public class TestMapping extends AbstractMappingTest {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
-        final String PASSWORD = "secret";
+        final String password = "secret";
 
         DummyResource resource = getDummyResource(RESOURCE_DUMMY_SERVICES_INBOUND_PWD_COPY.name);
         DummyAccount bridge = new DummyAccount(SERVICE_BRIDGE_NAME);
-        bridge.setPassword(PASSWORD);
+        bridge.setPassword(password);
         resource.addAccount(bridge);
 
         when();
@@ -3397,7 +3429,7 @@ public class TestMapping extends AbstractMappingTest {
         assertServiceByName(SERVICE_BRIDGE_NAME, "service")
                 .display()
                 .assertLiveLinks(1)
-                .assertPassword(PASSWORD);
+                .assertPassword(password);
     }
 
     /**
@@ -3406,10 +3438,10 @@ public class TestMapping extends AbstractMappingTest {
     @Test
     public void test660ImportFromInboundPwdCopyModifyPassword() throws Exception {
         given();
-        final String NEW_PASSWORD = "SeCrEt123";
+        final String newPassword = "SeCrEt123";
 
         DummyResource resource = getDummyResource(RESOURCE_DUMMY_SERVICES_INBOUND_PWD_COPY.name);
-        resource.getAccountByUsername(SERVICE_BRIDGE_NAME).setPassword(NEW_PASSWORD);
+        resource.getAccountByName(SERVICE_BRIDGE_NAME).setPassword(newPassword);
 
         when();
         rerunTask(TASK_IMPORT_PWD_COPY.oid);
@@ -3418,7 +3450,7 @@ public class TestMapping extends AbstractMappingTest {
         assertServiceByName(SERVICE_BRIDGE_NAME, "service")
                 .display()
                 .assertLiveLinks(1)
-                .assertPassword(NEW_PASSWORD);
+                .assertPassword(newPassword);
     }
 
     /**
@@ -3430,11 +3462,11 @@ public class TestMapping extends AbstractMappingTest {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
-        final String PASSWORD = "secret-gw";
+        final String password = "secret-gw";
 
         DummyResource resource = getDummyResource(RESOURCE_DUMMY_SERVICES_INBOUND_PWD_GENERATE.name);
         DummyAccount gateway = new DummyAccount(SERVICE_GATEWAY_NAME);
-        gateway.setPassword(PASSWORD);
+        gateway.setPassword(password);
         resource.addAccount(gateway);
 
         when();
@@ -3454,7 +3486,7 @@ public class TestMapping extends AbstractMappingTest {
     @Test
     public void test680ImportFromInboundPwdGenerateModifyPassword() throws Exception {
         given();
-        final String NEW_PASSWORD = "secret-gw-2";
+        final String newPassword = "secret-gw-2";
 
         PrismObject<ServiceType> serviceBefore = findObjectByName(ServiceType.class, SERVICE_GATEWAY_NAME);
         ProtectedStringType passwordBefore = serviceBefore.asObjectable().getCredentials().getPassword().getValue();
@@ -3462,7 +3494,7 @@ public class TestMapping extends AbstractMappingTest {
         System.out.println("Generated password = " + clearValueBefore);
 
         DummyResource resource = getDummyResource(RESOURCE_DUMMY_SERVICES_INBOUND_PWD_GENERATE.name);
-        resource.getAccountByUsername(SERVICE_GATEWAY_NAME).setPassword(NEW_PASSWORD);
+        resource.getAccountByName(SERVICE_GATEWAY_NAME).setPassword(newPassword);
 
         when();
         rerunTask(TASK_IMPORT_PWD_GENERATE.oid);
@@ -3730,14 +3762,7 @@ public class TestMapping extends AbstractMappingTest {
         assertDummyAccount(RESOURCE_DUMMY_PREDEFINED_ALL.name, USER_SHELDON_USERNAME);
         assertDummyAccountActivation(RESOURCE_DUMMY_PREDEFINED_ALL.name, USER_SHELDON_USERNAME, false);
 
-        assertShadow(findShadowByNameViaModel(
-                ShadowKindType.ACCOUNT,
-                "default",
-                USER_SHELDON_USERNAME,
-                getDummyResourceObject(RESOURCE_DUMMY_PREDEFINED_ALL.name),
-                null,
-                task,
-                result), "shadow after")
+        assertShadow(findShadow(RESOURCE_DUMMY_PREDEFINED_ALL, USER_SHELDON_USERNAME), "shadow after")
                 .display()
                 .asShadow()
                 .assertAdministrativeStatus(ActivationStatusType.DISABLED);
@@ -3751,15 +3776,7 @@ public class TestMapping extends AbstractMappingTest {
         assertDummyAccount(RESOURCE_DUMMY_PREDEFINED_ALL.name, USER_SHELDON_USERNAME);
         assertDummyAccountActivation(RESOURCE_DUMMY_PREDEFINED_ALL.name, USER_SHELDON_USERNAME, true);
 
-        assertShadow(
-                findShadowByNameViaModel(
-                        ShadowKindType.ACCOUNT,
-                        "default",
-                        USER_SHELDON_USERNAME,
-                        getDummyResourceObject(RESOURCE_DUMMY_PREDEFINED_ALL.name),
-                        null,
-                        task,
-                        result), "shadow after")
+        assertShadow(findShadow(RESOURCE_DUMMY_PREDEFINED_ALL, USER_SHELDON_USERNAME), "shadow after")
                 .display()
                 .asShadow()
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED);
@@ -3779,28 +3796,40 @@ public class TestMapping extends AbstractMappingTest {
         OperationResult result = getTestOperationResult();
 
         then("shadow is disabled, with a pending deletion");
-        var shadow = assertShadow(
-                findShadowByNameViaModel(
-                        ShadowKindType.ACCOUNT,
-                        "default",
-                        userName,
-                        getDummyResourceObject(resource.name),
-                        null,
-                        task,
-                        result), "shadow after")
+        var shadow = assertShadow(findShadow(resource, userName), "shadow after")
                 .display()
+                .assertAdministrativeStatus(ActivationStatusType.DISABLED)
+                .assertDisableReason(SchemaConstants.MODEL_DISABLE_REASON_DEPROVISION)
                 .triggers()
                 .assertTriggers(1)
                 .end()
-                .asShadow()
-                .assertAdministrativeStatus(ActivationStatusType.DISABLED)
-                .assertDisableReason(SchemaConstants.MODEL_DISABLE_REASON_DEPROVISION)
                 .getObjectable();
 
         var trigger = shadow.getTrigger().get(0);
         assertThat(trigger.getOriginDescription())
                 .as("trigger origin description")
                 .contains("Delayed"); // either "DelayedDeleteEvaluator" or "Delayed delete" (fragile)
+
+        when("user is recomputed (to see if the triggers will not multiply)");
+        // Not the system time, as this is to be compared with trigger timestamp
+        long recomputationTimestamp = clock.currentTimeMillis();
+        var userOid = findUserByUsername(userName).getOid();
+        recomputeUser(userOid, task, result);
+
+        then("shadow is still disabled, with a pending deletion");
+        var shadowAfterRecomputation = assertShadow(findShadow(resource, userName), "shadow after recomputation")
+                .display()
+                .assertAdministrativeStatus(ActivationStatusType.DISABLED)
+                .assertDisableReason(SchemaConstants.MODEL_DISABLE_REASON_DEPROVISION)
+                .assertDisableTimestamp(0, recomputationTimestamp) // the timestamp should not be moved by the recomputation
+                .triggers()
+                .assertTriggers(1)
+                .end()
+                .getObjectable();
+        var triggerAfterRecomputation = shadowAfterRecomputation.getTrigger().get(0);
+        assertThat(triggerAfterRecomputation)
+                .withFailMessage("Trigger is changed during recomputation: %s vs %s", triggerAfterRecomputation, trigger)
+                .isEqualTo(trigger);
 
         when("time is moved to the future and user is recomputed again");
         clock.overrideDuration(XmlTypeConverter.createDuration(true, 0, 2, 0, 0, 0, 0));
@@ -3811,6 +3840,17 @@ public class TestMapping extends AbstractMappingTest {
         assertNoDummyAccount(resource.name, userName);
 
         clock.resetOverride();
+    }
+
+    private PrismObject<ShadowType> findShadow(DummyTestResource resource, String userName) throws CommonException {
+        return findShadowByNameViaModel(
+                ShadowKindType.ACCOUNT,
+                "default",
+                userName,
+                getDummyResourceObject(resource.name),
+                null,
+                getTestTask(),
+                getTestOperationResult());
     }
 
     /**
@@ -3858,10 +3898,7 @@ public class TestMapping extends AbstractMappingTest {
     private void executeLinkingDisabledAccount(DummyTestResource resource) throws Exception {
         var shadow = linkExistingAccount(resource, false);
 
-        then("the account is there, disabled, but NOT delay-deleted");
-        assertModelShadow(shadow.getOid())
-                .assertAdministrativeStatus(ActivationStatusType.DISABLED)
-                .assertNoTrigger();
+        assertDelayDeletedAccount(resource, shadow.getName().getOrig());
     }
 
     private void executeLinkingEnabledAccount(DummyTestResource resource) throws Exception {
@@ -3897,6 +3934,84 @@ public class TestMapping extends AbstractMappingTest {
                 .linkRef(shadow.getOid(), ShadowType.COMPLEX_TYPE);
         addObject(user, task, result);
         return shadow;
+    }
+
+    /**
+     * A suspended user is being archived. His account should be disabled and delayed-deleted. MID-9220.
+     */
+    @Test
+    public void test830DelayedDeleteWhenArchivingSuspendedUser() throws CommonException {
+        testDelayedDeleteWhenArchivingSuspendedUser(RESOURCE_DUMMY_PREDEFINED_ALL);
+    }
+
+    /**
+     * As {@link #test830DelayedDeleteWhenArchivingSuspendedUser()} but using legacy configuration. MID-9220.
+     */
+    @Test
+    public void test835DelayedDeleteWhenArchivingSuspendedUserLegacy() throws CommonException {
+        testDelayedDeleteWhenArchivingSuspendedUser(RESOURCE_DUMMY_LEGACY);
+    }
+
+    private void testDelayedDeleteWhenArchivingSuspendedUser(DummyTestResource resource) throws CommonException {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        given("a regular user");
+        UserType user = new UserType()
+                .name(getTestNameShort())
+                .assignment(new AssignmentType()
+                        .construction(resource.defaultConstruction()))
+                .credentials(new CredentialsType()
+                        .password(new PasswordType()
+                                .value(new ProtectedStringType().clearValue("abcdef123456"))));
+        var userOid = addObject(user, task, result);
+
+        assertUser(userOid, "after creation")
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .singleLink()
+                .resolveTarget()
+                .display()
+                .assertAdministrativeStatus(ActivationStatusType.ENABLED);
+
+        and("he is suspended now");
+        long suspensionStart = System.currentTimeMillis();
+        executeChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_LIFECYCLE_STATE)
+                        .replace(SchemaConstants.LIFECYCLE_SUSPENDED)
+                        .asObjectDelta(userOid),
+                null, task, result);
+        long suspensionEnd = System.currentTimeMillis();
+
+        assertUser(userOid, "after suspending")
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .singleLink()
+                .resolveTarget()
+                .display()
+                .assertAdministrativeStatus(ActivationStatusType.DISABLED)
+                .assertDisableReason(SchemaConstants.MODEL_DISABLE_REASON_MAPPED)
+                .assertDisableTimestamp(suspensionStart, suspensionEnd);
+
+        when("he is archived");
+        long archivalStart = System.currentTimeMillis();
+        executeChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_LIFECYCLE_STATE)
+                        .replace(SchemaConstants.LIFECYCLE_ARCHIVED)
+                        .asObjectDelta(userOid),
+                null, task, result);
+        long archivalEnd = System.currentTimeMillis();
+
+        assertUser(userOid, "after archiving")
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .singleLink()
+                .resolveTarget()
+                .display()
+                .assertAdministrativeStatus(ActivationStatusType.DISABLED)
+                .assertDisableReason(SchemaConstants.MODEL_DISABLE_REASON_DEPROVISION)
+                .assertDisableTimestamp(archivalStart, archivalEnd) // maybe questionable
+                .triggers()
+                .assertTriggers(1);
     }
 
     private String rumFrom(String locality) {

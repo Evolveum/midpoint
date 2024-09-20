@@ -1,0 +1,61 @@
+:page-upkeep-status: green
+
+
+=== Response
+
+[%autowidth]
+|===
+| Error code | Meaning
+
+| 1xx
+| Information.
+Stay tuned, operation is in progress.
+
+| 2xx
+a| Success.
+Operation finished successfully.
+There are two custom codes:
+
+* 250 for partial error which means that during processing some error occurred but some changes was executed.
+
+* 240 for handled error which means that there was originally error, but midPoint was able to fix this using its xref:/midpoint/reference/synchronization/consistency/[consistency mechanism.]
+
+In this two cases, midPoint returns the xref:/midpoint/architecture/concepts/operation-result/[OperationResult] where there details of executed operations can be found.
+
+| 3xx
+a| Redirection or "in progress".
+This is returned mostly to indicate two cases:
+
+* Operation has finished, but the results are not in this resource.
+Redirection is issues to point the client to the results.
+Typical example is creation of an object with POST to a collection web resource.
+In this case a new object is created, new URI is assigned and the client is redirected to this URI.
+Retrieving that URI provides created object and 200 status code, indicating that the operation is finished.
+
+* Operation is in progress (asynchronous operation).
+In this case midPoint API redirects the client to a task object that can be used to track progress of the operation.
+
+| 4xx
+| Client errors.
+The client has sent request that cannot be processed.
+This indicates usual situation that are well handled by the midPoint code.
+Maybe the client request to create conflicting object, delete non-existent object, modification that violates the schema and so on.
+The xref:/midpoint/architecture/concepts/operation-result/[OperationResult] structure is usually provided in the response to provide more details about the situation.
+
+
+| 5xx
+| Server errors.
+Situations that the server cannot handle and where the cause is unknown.
+This usually means bugs in the code, insufficient resources such as RAM or disk space, unforeseen failures in the infrastructure and so on.
+The xref:/midpoint/architecture/concepts/operation-result/[OperationResult] structure might or might not be provided in this case.
+Some errors are so severe that the structured error information might not be available.
+
+
+|===
+
+Status codes and the indication of errors and asynchronous processing applies uniformly to all midPoint web resources (both RESTful and RPC).
+
+// TODO refactoring this to specific example chapters
+
+
+

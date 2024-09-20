@@ -59,7 +59,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
         InternalsConfig.setAvoidLoggingChange(false);
         // DO NOT call super.initSystem() as this will install system config. We do not want that here.
         userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
-        repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
+        repoAdd(ROLE_SUPERUSER, initResult);
         login(userAdministrator);
     }
 

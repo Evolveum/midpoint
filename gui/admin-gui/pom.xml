@@ -13,7 +13,7 @@
     <parent>
         <artifactId>gui</artifactId>
         <groupId>com.evolveum.midpoint.gui</groupId>
-        <version>4.8-SNAPSHOT</version>
+        <version>4.9-SNAPSHOT</version>
     </parent>
 
     <artifactId>admin-gui</artifactId>
@@ -193,6 +193,11 @@
             <artifactId>system-init</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>repo-sqlbase</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!-- MIDPOINT RUNTIME DEPENDENCIES -->
         <dependency>
@@ -233,11 +238,6 @@
         <dependency>
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>repo-cache</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
@@ -413,10 +413,6 @@
             <artifactId>wicket-extensions</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.wicket</groupId>
-            <artifactId>wicket-datetime</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.wicketstuff</groupId>
             <artifactId>wicketstuff-select2</artifactId>
         </dependency>
@@ -513,7 +509,7 @@
         <!-- Messaging -->
         <dependency>
             <groupId>org.apache.activemq</groupId>
-            <artifactId>artemis-jms-client</artifactId>
+            <artifactId>artemis-jakarta-client</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -584,6 +580,12 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.wicket</groupId>
+            <artifactId>wicket-tester</artifactId>
+            <version>${wicket.version}</version>
             <scope>test</scope>
         </dependency>
 

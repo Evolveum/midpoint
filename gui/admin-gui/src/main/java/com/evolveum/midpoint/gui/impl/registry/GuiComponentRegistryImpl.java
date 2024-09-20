@@ -9,6 +9,10 @@ package com.evolveum.midpoint.gui.impl.registry;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperFactory;
+import com.evolveum.midpoint.gui.impl.duplication.ContainerableDuplicateResolver;
+
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
@@ -34,6 +38,8 @@ public class GuiComponentRegistryImpl implements GuiComponentRegistry {
     Map<QName, Class<?>> wrapperPanels = new HashMap<>();
 
     List<ItemWrapperFactory<?, ?, ?>> wrapperFactories = new ArrayList<>();
+
+    List<ContainerableDuplicateResolver<?>> duplicateResolves = new ArrayList<>();
 
     @Override
     public void addToRegistry(GuiComponentFactory<?> factory) {
@@ -84,7 +90,15 @@ public class GuiComponentRegistryImpl implements GuiComponentRegistry {
     public <T extends ItemPanelContext<?, ?>> GuiComponentFactory<T> findValuePanelFactory(
             ItemWrapper<?, ?> parentItemWrapper, PrismValueWrapper<?> valueWrapper) {
         Optional<GuiComponentFactory<?>> opt = guiComponentFactories.stream()
-                .filter(f -> f.match(parentItemWrapper, valueWrapper))
+                .filter(f -> {
+                    try {
+                        return f.match(parentItemWrapper, valueWrapper);
+                    } catch (Exception e) {
+                        LOGGER.error("Couldn't call match method for factory: " + f.getClass().getSimpleName(), e);
+                        return false;
+                    }
+
+                })
                 .findFirst();
         if (!opt.isPresent()) {
             if (LOGGER.isTraceEnabled()) {
@@ -141,7 +155,47 @@ public class GuiComponentRegistryImpl implements GuiComponentRegistry {
     public void addToRegistry(ItemWrapperFactory factory) {
         wrapperFactories.add(factory);
 
-        Comparator<? super ItemWrapperFactory> comparator = (f1, f2) -> {
+        Comparator<? super WrapperFactory> comparator = createComparator();
+
+        wrapperFactories.sort(comparator);
+    }
+
+    @Override
+    public void addToRegistry(ContainerableDuplicateResolver<?> resolver) {
+        duplicateResolves.add(resolver);
+
+        Comparator<? super WrapperFactory> comparator = createComparator();
+
+        duplicateResolves.sort(comparator);
+
+    }
+
+    @Override
+    public <C extends Containerable, P extends Containerable> ContainerableDuplicateResolver<C> findContainerableDuplicateResolver(
+            PrismContainerDefinition<C> def, @Nullable PrismContainerValue<P> parent) {
+        Optional<ContainerableDuplicateResolver<C>> opt = (Optional) duplicateResolves.stream().filter(f -> f.match(def, parent)).findFirst();
+        if (opt.isEmpty()) {
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Could not find resolver for {}.", def);
+            }
+            return null;
+        }
+
+        ContainerableDuplicateResolver<C> resolver = opt.get();
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Found resolver: {}", resolver);
+        }
+
+        return resolver;
+    }
+
+    @Override
+    public <C extends Containerable> ContainerableDuplicateResolver<C> findContainerableDuplicateResolver(PrismContainerDefinition<C> def) {
+        return findContainerableDuplicateResolver(def, null);
+    }
+
+    private Comparator<? super WrapperFactory> createComparator() {
+        return (f1, f2) -> {
 
             Integer f1Order = f1.getOrder();
             Integer f2Order = f2.getOrder();
@@ -160,11 +214,7 @@ public class GuiComponentRegistryImpl implements GuiComponentRegistry {
             }
 
             return Integer.compare(f1Order, f2Order);
-
         };
-
-        wrapperFactories.sort(comparator);
     }
-
 
 }

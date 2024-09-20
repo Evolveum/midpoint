@@ -8,7 +8,11 @@ package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+
 import jakarta.annotation.PostConstruct;
+
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.prism.panel.MetadataContainerPanel;
@@ -16,6 +20,7 @@ import com.evolveum.midpoint.gui.impl.prism.panel.MetadataContainerPanel;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -43,6 +48,9 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismContainerWrapperFactoryImpl.class);
 
+    private static final QName VIRTUAL_CONTAINER_COMPLEX_TYPE = new QName("VirtualContainerType");
+    private static final QName VIRTUAL_CONTAINER = new QName("virtualContainer");
+
     @Override
     public boolean match(ItemDefinition<?> def) {
         return def instanceof PrismContainerDefinition;
@@ -68,6 +76,9 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 
         List<ItemWrapper<?, ?>> children = createChildren(parent, value, containerValueWrapper, context);
 
+        if (context.isForceCreateVirtualContainers() && (parent == null || parent.getParent() == null)) {
+            containerValueWrapper.addItems(createVirtualWrappers(containerValueWrapper, context));
+        }
         VirtualContainersSpecificationType virtualContainerSpec = null;
         if (parent != null) {
             virtualContainerSpec = context.findVirtualContainerConfiguration(parent.getPath());
@@ -92,6 +103,7 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
             parent.setVirtual(true);
             parent.setShowInVirtualContainer(true);
         }
+
         return containerValueWrapper;
     }
 
@@ -133,7 +145,15 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 
     protected List<? extends ItemDefinition> getItemDefinitions(PrismContainerWrapper<C> parent, PrismContainerValue<C> value) {
         if (parent == null) {
-            return new ArrayList<>();
+            Class<C> compileTimeClass = value.getCompileTimeClass();
+            if (compileTimeClass == null) {
+                return new ArrayList<>();
+            }
+            PrismContainerDefinition<C> containerDef = getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(compileTimeClass);
+            if (containerDef == null) {
+                return new ArrayList<>();
+            }
+            return containerDef.getDefinitions();
         }
         return parent.getDefinitions();
     }
@@ -179,7 +199,7 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 
         status = recomputeStatus(childContainer, status, ctx);
 
-        PrismContainerWrapper<C> containerWrapper = new PrismContainerWrapperImpl<>(parent, childContainer, status);
+        PrismContainerWrapper<C> containerWrapper = createWrapper(parent, childContainer, status);
         VirtualContainersSpecificationType virtualContainerSpec = ctx.findVirtualContainerConfiguration(containerWrapper.getPath());
         if (virtualContainerSpec != null) {
             containerWrapper.setVirtual(true);
@@ -189,7 +209,11 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
         return containerWrapper;
     }
 
-    ItemStatus recomputeStatus(PrismContainer<C> containerWrapper, ItemStatus defaultStatus, WrapperContext ctx) {
+    protected PrismContainerWrapper<C> createWrapper(PrismContainerValueWrapper<?> parent, PrismContainer<C> childContainer, ItemStatus status) {
+        return new PrismContainerWrapperImpl<>(parent, childContainer, status);
+    }
+
+    protected ItemStatus recomputeStatus(PrismContainer<C> containerWrapper, ItemStatus defaultStatus, WrapperContext ctx) {
         if (isShadowCredentialsOrPassword(containerWrapper.getDefinition(), ctx)) {
             return ItemStatus.NOT_CHANGED;
         }
@@ -255,6 +279,83 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
         }
 
         wrapper.setExpanded(expanded || wrapper.isSingleValue());
+    }
+
+    protected List<ItemWrapper<?, ?>> createVirtualWrappers(PrismContainerValueWrapper<C> objectValueWrapper, WrapperContext context) throws SchemaException {
+        List<ItemWrapper<?, ?>> virtualWrappers = new ArrayList<>();
+        for (VirtualContainersSpecificationType virtualContainer : context.getVirtualContainers()) {
+
+            if (virtualContainer.getPath() != null) {
+                if (virtualContainer.isExpanded() != null) {
+                    try {
+                        PrismContainerWrapper<Containerable> container =
+                                objectValueWrapper.findContainer(virtualContainer.getPath().getItemPath());
+                        if (container != null) {
+                            container.getValues().forEach(vw -> vw.setExpanded(virtualContainer.isExpanded()));
+                            container.setExpanded(virtualContainer.isExpanded());
+                        }
+                    } catch (Exception e) {
+                        //ignore exception
+                    }
+                }
+                continue;
+            }
+
+            ComplexTypeDefinition mCtd = getPrismContext().definitionFactory().newComplexTypeDefinition(VIRTUAL_CONTAINER_COMPLEX_TYPE);
+            DisplayType display = virtualContainer.getDisplay();
+
+            //TODO: support full polystring -> translations could be defined directly there.
+            if (display == null || display.getLabel() == null) {
+                mCtd.mutator().setDisplayName("N/A");
+            } else {
+                mCtd.mutator().setDisplayName(WebComponentUtil.getOrigStringFromPoly(display.getLabel()));
+                mCtd.mutator().setHelp(WebComponentUtil.getOrigStringFromPoly(display.getHelp()));
+            }
+
+            mCtd.mutator().setRuntimeSchema(true);
+
+            PrismContainerDefinition<?> def =
+                    getPrismContext().definitionFactory().newContainerDefinition(VIRTUAL_CONTAINER, mCtd);
+            def.mutator().setMaxOccurs(1);
+            if (display != null && display.getLabel() != null) {
+                if (display.getLabel().getTranslation() != null && StringUtils.isNotEmpty(display.getLabel().getTranslation().getKey())) {
+                    def.mutator().setDisplayName(display.getLabel().getTranslation().getKey());
+                } else {
+                    def.mutator().setDisplayName(WebComponentUtil.getTranslatedPolyString(display.getLabel()));
+                }
+            }
+            def.mutator().setDynamic(true);
+            def.mutator().setRuntimeSchema(true);
+
+            ItemWrapperFactory<?, ?, ?> factory = getRegistry().findWrapperFactory(def, null);
+            if (factory == null) {
+                LOGGER.warn("Cannot find factory for {}. Skipping wrapper creation.", def);
+                continue;
+            }
+
+            WrapperContext ctx = context.clone();
+            ctx.setVirtualItemSpecification(virtualContainer.getItem());
+
+            PrismContainer<?> virtualPrismContainer = def.instantiate();
+            ItemStatus virtualContainerStatus = context.getObjectStatus() != null ? context.getObjectStatus() : ItemStatus.NOT_CHANGED;
+
+            ItemWrapper<?, ?> iw = factory.createWrapper(objectValueWrapper, virtualPrismContainer, virtualContainerStatus, ctx);
+            if (iw == null) {
+                continue;
+            }
+
+            if (iw instanceof PrismContainerWrapper<?> cw) {
+                cw.setIdentifier(virtualContainer.getIdentifier());
+                cw.setVirtual(true);
+                if (virtualContainer.isExpanded() != null) {
+                    ((PrismContainerWrapper<?>) iw).setExpanded(virtualContainer.isExpanded());
+                    cw.getValues().forEach(vw -> vw.setExpanded(virtualContainer.isExpanded()));
+                }
+            }
+            iw.setVisibleOverwrite(virtualContainer.getVisibility());
+            virtualWrappers.add(iw);
+        }
+        return virtualWrappers;
     }
 
 }

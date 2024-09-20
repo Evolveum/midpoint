@@ -1,0 +1,332 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Search for All Cases With Name That Starts With Upper Case 'A'*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Accept: application/json" \
+-H "Content-Type: application/json" \
+-X POST http://localhost:8080/midpoint/ws/rest/cases/search?options=resolveNames \
+-v \
+--data-binary @./samples/rest/query-gen-cap-name.json
+----
+
+.*Show* data source example for *"Search for all Cases with name that starts with upper case 'A'"* | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/query-gen-cap-name.json[GitHub]
+[%collapsible]
+====
+[source, json]
+----
+{
+  "query": {
+    "filter": {
+      "text": "name startsWith \"A\""
+    }
+  }
+}
+----
+====
+
+The response is an HTTP 200 code in case of success with a response body containing the queried items.
+
+.Example Output is a list of objects.
+[%collapsible]
+====
+[source, json]
+----
+{
+  "@ns" : "http://prism.evolveum.com/xml/ns/public/types-3",
+  "object" : {
+    "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/api-types-3#ObjectListType",
+    "object" : [ {
+      "@type" : "c:CaseType",
+      "oid" : "3091ccc5-f3f6-4a06-92b5-803afce1ce57",
+      "version" : "1",
+      "name" : {
+        "orig" : "Assigning role \"Basic Employee\" to user \"Jack\"",
+        "norm" : "assigning role basic employee to user jack",
+        "translation" : {
+          "key" : "DefaultPolicyConstraint.Short.assignmentModification.toBeAdded",
+          "argument" : [ {
+            "translation" : {
+              "key" : "ObjectSpecification",
+              "argument" : [ {
+                "translation" : {
+                  "key" : "ObjectTypeLowercase.RoleType",
+                  "fallback" : "RoleType"
+                }
+              }, {
+                "value" : "Basic Employee"
+              } ]
+            }
+          }, {
+            "translation" : {
+              "key" : "ObjectSpecification",
+              "argument" : [ {
+                "translation" : {
+                  "key" : "ObjectTypeLowercase.UserType",
+                  "fallback" : "UserType"
+                }
+              }, {
+                "value" : "Jack"
+              } ]
+            }
+          } ]
+        }
+      },
+      "metadata" : {
+        "createTimestamp" : "2024-02-22T11:41:53.515+01:00"
+      },
+      "assignment" : {
+        "@id" : 1,
+        "targetRef" : {
+          "oid" : "00000000-0000-0000-0000-000000000342",
+          "relation" : "org:default",
+          "type" : "c:ArchetypeType",
+          "targetName" : "Approval case"
+        }
+      },
+      "archetypeRef" : {
+        "oid" : "00000000-0000-0000-0000-000000000342",
+        "relation" : "org:default",
+        "type" : "c:ArchetypeType",
+        "targetName" : "Approval case"
+      },
+      "parentRef" : {
+        "oid" : "dae84d15-ba06-44f2-81ec-45a35bd7bc8e",
+        "relation" : "org:default",
+        "type" : "c:CaseType",
+        "targetName" : "Approving and executing change of user \"Jack\" (started Feb 22, 2024, 11:41:53 AM)"
+      },
+      "objectRef" : {
+        "oid" : "a9885c61-c442-42d8-af34-8182a8653e3c",
+        "relation" : "org:default",
+        "type" : "c:UserType",
+        "targetName" : "Jack"
+      },
+      "targetRef" : {
+        "oid" : "96262f4f-053a-4b0b-8901-b3ec01e3509c",
+        "relation" : "org:default",
+        "type" : "c:RoleType",
+        "targetName" : "employee"
+      },
+      "requestorRef" : {
+        "oid" : "00000000-0000-0000-0000-000000000002",
+        "relation" : "org:default",
+        "type" : "c:UserType",
+        "targetName" : "administrator"
+      },
+      "state" : "open",
+      "event" : {
+        "@type" : "c:CaseCreationEventType",
+        "@id" : 3,
+        "timestamp" : "2024-02-22T11:41:53.515+01:00",
+        "initiatorRef" : {
+          "oid" : "00000000-0000-0000-0000-000000000002",
+          "relation" : "org:default",
+          "type" : "c:UserType",
+          "targetName" : "administrator"
+        }
+      },
+      "workItem" : {
+        "@id" : 4,
+        "name" : {
+          "orig" : "Assigning role \"Basic Employee\" to user \"Jack\"",
+          "norm" : "assigning role basic employee to user jack",
+          "translation" : {
+            "key" : "DefaultPolicyConstraint.Short.assignmentModification.toBeAdded",
+            "argument" : [ {
+              "translation" : {
+                "key" : "ObjectSpecification",
+                "argument" : [ {
+                  "translation" : {
+                    "key" : "ObjectTypeLowercase.RoleType",
+                    "fallback" : "RoleType"
+                  }
+                }, {
+                  "value" : "Basic Employee"
+                } ]
+              }
+            }, {
+              "translation" : {
+                "key" : "ObjectSpecification",
+                "argument" : [ {
+                  "translation" : {
+                    "key" : "ObjectTypeLowercase.UserType",
+                    "fallback" : "UserType"
+                  }
+                }, {
+                  "value" : "Jack"
+                } ]
+              }
+            } ]
+          }
+        },
+        "stageNumber" : 1,
+        "createTimestamp" : "2024-02-22T11:41:53.527+01:00",
+        "originalAssigneeRef" : {
+          "oid" : "472001d8-839f-4a28-acdf-d8d1c81583b0",
+          "relation" : "org:default",
+          "type" : "c:UserType",
+          "targetName" : "JohnM"
+        },
+        "assigneeRef" : {
+          "oid" : "472001d8-839f-4a28-acdf-d8d1c81583b0",
+          "relation" : "org:default",
+          "type" : "c:UserType",
+          "targetName" : "JohnM"
+        }
+      },
+      "approvalContext" : {
+        "changeAspect" : "com.evolveum.midpoint.wf.impl.processors.primary.policy.PolicyRuleBasedAspect",
+        "deltasToApprove" : {
+          "focusPrimaryDelta" : {
+            "changeType" : "modify",
+            "objectType" : "c:UserType",
+            "oid" : "a9885c61-c442-42d8-af34-8182a8653e3c",
+            "itemDelta" : [ {
+              "modificationType" : "add",
+              "path" : "c:assignment",
+              "value" : [ {
+                "@type" : "c:AssignmentType",
+                "targetRef" : {
+                  "oid" : "96262f4f-053a-4b0b-8901-b3ec01e3509c",
+                  "relation" : "org:default",
+                  "type" : "c:RoleType"
+                }
+              } ]
+            } ]
+          }
+        },
+        "immediateExecution" : false,
+        "approvalSchema" : {
+          "stage" : {
+            "@id" : 2,
+            "number" : 1,
+            "approverRef" : {
+              "oid" : "472001d8-839f-4a28-acdf-d8d1c81583b0",
+              "relation" : "org:default",
+              "type" : "c:UserType",
+              "targetName" : "JohnM"
+            },
+            "outcomeIfNoApprovers" : "reject",
+            "groupExpansion" : "byClaimingWorkItem"
+          }
+        },
+        "policyRules" : { }
+      },
+      "stageNumber" : 1
+    }, {
+      "@type" : "c:CaseType",
+      "oid" : "dae84d15-ba06-44f2-81ec-45a35bd7bc8e",
+      "version" : "0",
+      "name" : {
+        "orig" : "Approving and executing change of user \"Jack\" (started Feb 22, 2024, 11:41:53 AM)",
+        "norm" : "approving and executing change of user jack started feb 22 2024 114153 am",
+        "translation" : {
+          "key" : "ApprovingAndExecuting.ChangeOf",
+          "argument" : [ {
+            "translation" : {
+              "key" : "ObjectSpecification",
+              "argument" : [ {
+                "translation" : {
+                  "key" : "ObjectTypeLowercase.UserType",
+                  "fallback" : "UserType"
+                }
+              }, {
+                "value" : "Jack"
+              } ]
+            }
+          }, {
+            "value" : "Feb 22, 2024, 11:41:53 AM"
+          } ]
+        }
+      },
+      "metadata" : {
+        "createTimestamp" : "2024-02-22T11:41:53.516+01:00"
+      },
+      "assignment" : {
+        "@id" : 1,
+        "targetRef" : {
+          "oid" : "00000000-0000-0000-0000-000000000341",
+          "relation" : "org:default",
+          "type" : "c:ArchetypeType",
+          "targetName" : "Operation request"
+        }
+      },
+      "archetypeRef" : {
+        "oid" : "00000000-0000-0000-0000-000000000341",
+        "relation" : "org:default",
+        "type" : "c:ArchetypeType",
+        "targetName" : "Operation request"
+      },
+      "objectRef" : {
+        "oid" : "a9885c61-c442-42d8-af34-8182a8653e3c",
+        "relation" : "org:default",
+        "type" : "c:UserType",
+        "targetName" : "Jack"
+      },
+      "requestorRef" : {
+        "oid" : "00000000-0000-0000-0000-000000000002",
+        "relation" : "org:default",
+        "type" : "c:UserType",
+        "targetName" : "administrator"
+      },
+      "state" : "open",
+      "modelContext" : {
+        "state" : "primary",
+        "channel" : "http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user",
+        "focusContext" : {
+          "objectOldRef" : {
+            "oid" : "a9885c61-c442-42d8-af34-8182a8653e3c",
+            "relation" : "org:default",
+            "type" : "c:UserType",
+            "targetName" : "Jack"
+          },
+          "objectNewRef" : {
+            "oid" : "a9885c61-c442-42d8-af34-8182a8653e3c",
+            "relation" : "org:default",
+            "type" : "c:UserType",
+            "targetName" : "Jack"
+          },
+          "objectTypeClass" : "com.evolveum.midpoint.xml.ns._public.common.common_3.UserType",
+          "oid" : "a9885c61-c442-42d8-af34-8182a8653e3c",
+          "iteration" : 0,
+          "iterationToken" : "",
+          "fresh" : true,
+          "secondaryDeltas" : { }
+        },
+        "focusClass" : "com.evolveum.midpoint.xml.ns._public.common.common_3.UserType",
+        "doReconciliationForAllProjections" : false,
+        "executionPhaseOnly" : false,
+        "projectionWave" : 1,
+        "executionWave" : 0,
+        "options" : {
+          "force" : false,
+          "reconcile" : false,
+          "executeImmediatelyAfterApproval" : false,
+          "initialPartialProcessing" : {
+            "inbound" : "skip",
+            "projection" : "skip"
+          }
+        },
+        "lazyAuditRequest" : false,
+        "requestAudited" : false,
+        "executionAudited" : false,
+        "requestAuthorized" : true,
+        "stats" : { },
+        "requestMetadata" : {
+          "requestTimestamp" : "2024-02-22T11:41:53.496+01:00",
+          "requestorRef" : {
+            "oid" : "00000000-0000-0000-0000-000000000002",
+            "relation" : "org:default",
+            "type" : "c:UserType",
+            "targetName" : "administrator"
+          }
+        }
+      }
+    } ]
+  }
+}
+----
+====

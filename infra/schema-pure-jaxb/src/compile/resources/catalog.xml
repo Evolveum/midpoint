@@ -44,6 +44,7 @@ Used when building via xjc.
     <!-- common -->
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" uri="../../../target/midpoint-schema/xml/ns/public/common/api-types-3.xsd" />
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/audit-3" uri="../../../target/midpoint-schema/xml/ns/public/common/audit-3.xsd" />
+    <public publicId="http://midpoint.evolveum.com/xml/ns/public/prism-schema-3" uri="../../../target/midpoint-schema/xml/ns/public/prism-schema/prism-schema-3.xsd" />
 
     <!-- provisioning -->
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" uri="../../../target/midpoint-schema/xml/ns/public/connector/icf-1/resource-schema-3.xsd" />

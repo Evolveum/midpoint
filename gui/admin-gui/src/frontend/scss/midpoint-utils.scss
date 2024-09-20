@@ -92,3 +92,68 @@
 .lh-n {
   line-height: normal!important;
 }
+
+//Button style extensions
+div[role="button"].btn {
+  //Custom links styles (tertiary style)
+  &.btn.link-danger {
+    color:$danger;
+      &:hover {
+        color: mix(#000, $danger, 15%);
+      }
+    }
+  }
+
+//Card shadow only class
+.card-shadow {
+  box-shadow:0 0 1px rgba(0, 0, 0, 0.125), 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+//Button pill - neutralized
+div[role="button"].btn, .btn {
+  //Custom links styles (tertiary style)
+  &.btn-pill {
+    border: 1px solid $button-default-border-color;
+    border-radius: 50rem !important;
+    color: $text-toned-color;
+    background-color: $white;
+
+    & > .pill-label {
+      color:$text-color;
+    }
+
+    &:hover {
+      background-color: darken($button-default-background-color, 5%);
+
+      & > * {
+        color:$text-color;
+      }
+    }
+    &.active {
+      border: 1px solid $primary;
+      background-color: mix($primary, $white, 10%);
+
+      & > * {
+        color:$primary;
+      }
+    }
+  }
+}
+
+.txt-toned {
+  color:$text-toned-color;
+}
+
+.txt-default {
+  color:$text-color;
+}
+
+@each $color, $value in $theme-colors {
+  $backgroundValue: color-yiq($value);
+  .bg-toned-#{$color} {
+      background-color: mix(#ffffff, $value, 90%);
+  }
+  .text-toned-#{$color} {
+      color: mix(#ffffff, $value, 90%);
+  }
+}

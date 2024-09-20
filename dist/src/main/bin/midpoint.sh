@@ -70,33 +70,6 @@ if [ "${1}" = "init-native" ]; then
   if [ "${MP_CHECK:-}" != "" ]; then
     touch "${MP_CHECK}"
   fi
-  echo "Initializing native structure of the db..."
-  if [ "${MP_INIT_DB:-}" = "" -a "${MP_INIT_DB_CONCAT:-}" = "" ]; then
-    echo "MP_INIT_DB variable with target for DB init files was not set - skipping db init file processing..." >&2
-  else
-    if [ "${MP_INIT_DB_CONCAT:-}" = "" ]; then
-      if [ -e "${BASE_DIR}/doc/config/sql/native" ]; then
-        find "${BASE_DIR}/doc/config/sql/native/" -type f -name "postgres*.sql" ! -name "postgres-upgrade.sql" -exec cp \{\} "${MP_INIT_DB}/" \;
-      else
-        echo "Location with sql init structure (source) have not been found..." >&2
-        exit 1
-      fi
-    else
-      if [ -e "${BASE_DIR}/doc/config/sql/native" ]; then
-
-        [ -e "${BASE_DIR}/doc/config/sql/native/postgres.sql" ] &&
-          cp "${BASE_DIR}/doc/config/sql/native/postgres.sql" "${MP_INIT_DB_CONCAT}"
-        [ -e "${BASE_DIR}/doc/config/sql/native/postgres-audit.sql" ] &&
-          cat "${BASE_DIR}/doc/config/sql/native/postgres-audit.sql" >>"${MP_INIT_DB_CONCAT}"
-        [ -e "${BASE_DIR}/doc/config/sql/native/postgres-quartz.sql" ] &&
-          cat "${BASE_DIR}/doc/config/sql/native/postgres-quartz.sql" >>"${MP_INIT_DB_CONCAT}"
-      else
-        echo "Location with sql init structure (source) have not been found..." >&2
-        exit 1
-      fi
-
-    fi
-  fi
   if [ "${MP_INIT_CFG:-}" = "" ]; then
     echo "MP_INIT_CFG variable with target for config.xml was not set - skipping config.xml file processing..."
   else
@@ -251,57 +224,6 @@ fi
 [ "${MP_MEM_MAX:-}" != "" ] && JAVA_OPTS="$(echo ${JAVA_OPTS:-} | sed "s/-Xmx[^[:space:]]*//") -Xmx${MP_MEM_MAX}"
 [ "${MP_MEM_INIT:-}" != "" ] && JAVA_OPTS="$(echo ${JAVA_OPTS:-} | sed "s/-Xms[^[:space:]]*//") -Xms${MP_MEM_INIT}"
 
-###### Backward compatibility for ENV variables ####
-
-if [ "${MP_NO_ENV_COMPAT:-}" != "1" ]; then
-  [ "${REPO_PORT:-}" != "" ] && db_port=${REPO_PORT}
-  if [ "${REPO_DATABASE_TYPE:-}" != "" ]; then
-    export ${ENV_MAP_PREFIX}midpoint_repository_database="${REPO_DATABASE_TYPE}"
-    [ "${db_port:-}" == "default" ] && db_port=""
-    case ${REPO_DATABASE_TYPE} in
-    h2)
-      [ "${db_port:-}" == "" ] && db_port=5437
-      db_prefix="jdbc:h2:tcp://"
-      db_path="/${REPO_DATABASE:-midpoint}"
-      ;;
-    oracle)
-      [ "${db_port:-}" == "" ] && db_port=1521
-      db_prefix="jdbc:oracle:thin:@"
-      db_path="/xe"
-      ;;
-    postgresql)
-      [ "${db_port:-}" == "" ] && db_port=5432
-      db_prefix="jdbc:postgresql://"
-      db_path="/${REPO_DATABASE:-midpoint}"
-      ;;
-    sqlserver)
-      [ "${db_port:-}" == "" ] && db_port=1433
-      db_prefix="jdbc:sqlserver://"
-      db_path=";databse=${REPO_DATABASE:-midpoint}"
-      ;;
-    *)
-      if [ "${db_port:-}" == "" -a "${REPO_URL:-}" == "" ]; then
-        echo "~~~~~ please supply JDBC port for your repository ~~~~~"
-        exit 1
-      fi
-      ;;
-    esac
-    [ "${REPO_URL:-}" = "" ] && export ${ENV_MAP_PREFIX}midpoint_repository_jdbcUrl="${db_prefix}${REPO_HOST:-localhost}:${db_port}${db_path}"
-  fi
-
-  [ "${REPO_URL:-}" != "" ] && export ${ENV_MAP_PREFIX}midpoint_repository_jdbcUrl="${REPO_URL}"
-  [ "${REPO_USER:-}" != "" ] && export ${ENV_MAP_PREFIX}midpoint_repository_jdbcUsername="${REPO_USER}"
-  [ "${REPO_PASSWORD_FILE:-}" != "" ] && export ${ENV_MAP_PREFIX}midpoint_repository_jdbcPassword_FILE="${REPO_PASSWORD_FILE}"
-  [ "${REPO_MISSING_SCHEMA_ACTION:-}" != "" ] && export ${ENV_MAP_PREFIX}midpoint_repository_missingSchemaAction="${REPO_MISSING_SCHEMA_ACTION}"
-  [ "${REPO_UPGRADEABLE_SCHEMA_ACTION:-}" != "" ] && export ${ENV_MAP_PREFIX}midpoint_repository_upgradeableSchemaAction="${REPO_UPGRADEABLE_SCHEMA_ACTION}"
-  [ "${REPO_SCHEMA_VARIANT:-}" != "" ] && export ${ENV_MAP_PREFIX}midpoint_repository_schemaVariant="${REPO_SCHEMA_VARIANT}"
-  [ "${REPO_SCHEMA_VERSION_IF_MISSING:-}" != "" ] && export ${ENV_MAP_PREFIX}midpoint_repository_schemaVersionIfMissing="${REPO_SCHEMA_VERSION_IF_MISSING}"
-
-  [ "${MP_KEYSTORE_PASSWORD_FILE:-}" != "" ] && export ${ENV_MAP_PREFIX}midpoint_keystore_keyStorePassword_FILE="${MP_KEYSTORE_PASSWORD_FILE}"
-fi
-
-#############################
-
 ###### ENV Variables mapping ######
 
 JAVA_OPTS=" ${JAVA_OPTS:-}"
@@ -314,8 +236,12 @@ while read line; do
   ### exception for *_FILE key name ###
   [ "${_key: -5}" = ".FILE" ] && _key="${_key::$((${#_key} - 5))}_FILE"
   ###
-
-  echo "Processing variable (MAP) ... ${_key} .:. ${_val}"
+  if [ "${_key: -7}" = "assword" ]
+  then
+    echo "Processing variable (MAP) ... ${_key} .:. *****" >&2
+  else
+    echo "Processing variable (MAP) ... ${_key} .:. ${_val}" >&2
+  fi
 
   if [ "${_key:0:1}" = "." ]; then
     JAVA_OPTS="${JAVA_OPTS:-} -D${_key:1}=\"${_val}\""
@@ -333,7 +259,12 @@ while read line; do
   [ "${_key: -5}" = ".FILE" ] && _key="${_key::$((${#_key} - 5))}_FILE"
   ###
 
-  echo "Processing variable (UNMAP) ... ${_key} .:. ${_val}"
+  if [ "${_key: -7}" = "assword" ]
+  then
+    echo "Processing variable (UNMAP) ... ${_key} .:. *****" >&2
+  else
+    echo "Processing variable (UNMAP) ... ${_key} .:. ${_val}" >&2
+  fi
 
   JAVA_OPTS="$(echo -n "${JAVA_OPTS:-}" | sed "s/ -D${_key}=\"[^\"]*\"//g;s/ -D${_key}=[^[:space:]]*//g")"
 done < <(env | grep "^${ENV_UNMAP_PREFIX}")
@@ -453,16 +384,10 @@ if [[ "$1" == "container" ]]; then
   "${_RUNJAVA}" -version 2>&1
 
   # shellcheck disable=SC2086
-  if [ "${1:-}" = "" ]; then
-    eval "\"${_RUNJAVA}\"" \
-      ${JAVA_OPTS} \
-      -jar "\"${BASE_DIR}/lib/midpoint.jar\"" "&" 2>&1
-  else
-    eval "\"${_RUNJAVA}\"" \
+  eval "\"${_RUNJAVA}\"" \
       ${JAVA_OPTS} \
       -jar "\"${BASE_DIR}/lib/midpoint.jar\"" \
-      "$@" "&" 2>&1
-  fi
+      \"\$@\" "&" 2>&1
 
   if [[ -n "${PID_FILE}" ]]; then
     echo $! >"${PID_FILE}"
@@ -531,7 +456,7 @@ if [[ "$1" == "start" ]]; then
   eval "${_NOHUP}" "\"${_RUNJAVA}\"" \
     ${JAVA_OPTS} \
     -jar "\"${BASE_DIR}/lib/midpoint.jar\"" \
-    "$@" \
+    \"\$@\" \
     "&" >>"${BOOT_OUT}" 2>&1
 
   if [[ -n "${PID_FILE}" ]]; then

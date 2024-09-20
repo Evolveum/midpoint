@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.component.data.provider;
 import java.io.Serializable;
 import java.util.*;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 
 import com.evolveum.midpoint.web.component.data.TypedCacheKey;
@@ -17,7 +18,6 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 
 import org.apache.wicket.Component;
-import org.apache.wicket.RestartResponseException;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -31,7 +31,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.wicket.model.IModel;
@@ -122,6 +121,7 @@ public class ObjectDataProvider<W extends Serializable, O extends ObjectType>
                 getAvailableData().add(createDataObjectWrapper(object));
             }
         } catch (Exception ex) {
+            setupUserFriendlyMessage(result, ex);
             result.recordFatalError(getPageBase().createStringResource("ObjectDataProvider.message.listObjects.fatalError").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't list objects", ex);
         } finally {
@@ -129,7 +129,10 @@ public class ObjectDataProvider<W extends Serializable, O extends ObjectType>
         }
 
         if (!WebComponentUtil.isSuccessOrHandledError(result)) {
-            handleNotSuccessOrHandledErrorInIterator(result);
+            LOGGER.trace("end (with error)::iterator()");
+            //TODO later, however check all the places where used and where we rely that the object in selectable bean cannot be null
+//            return handleNotSuccessOrHandledErrorInIterator(result);
+            getPageBase().showResult(result);
         }
 
         LOGGER.trace("end::iterator()");
@@ -141,10 +144,15 @@ public class ObjectDataProvider<W extends Serializable, O extends ObjectType>
         return true;
     }
 
-    protected void handleNotSuccessOrHandledErrorInIterator(OperationResult result) {
-        getPageBase().showResult(result);
-        throw new RestartResponseException(PageError.class);
+    protected Iterator<W> handleNotSuccessOrHandledErrorInIterator(OperationResult result) {
+        List<SelectableBean<O>> errorList = new ArrayList<>(1);
+        SelectableBean<O> bean = new SelectableBeanImpl<>();
+        bean.setResult(result);
+        errorList.add(bean);
+        return (Iterator<W>) errorList.iterator();
     }
+
+
 
     public W createDataObjectWrapper(PrismObject<O> obj) {
         SelectableBean<O> selectable = new SelectableBeanImpl<>(Model.of(obj.asObjectable()));
@@ -163,6 +171,7 @@ public class ObjectDataProvider<W extends Serializable, O extends ObjectType>
             Task task = getPageBase().createSimpleTask(OPERATION_COUNT_OBJECTS);
             count = getModelService().countObjects(getType(), getQuery(), getOptionsToUse(), task, result);
         } catch (Exception ex) {
+            setupUserFriendlyMessage(result, ex);
             result.recordFatalError(getPageBase().createStringResource("ObjectDataProvider.message.countObjects.fatalError").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count objects", ex);
         } finally {
@@ -171,7 +180,8 @@ public class ObjectDataProvider<W extends Serializable, O extends ObjectType>
 
         if (!WebComponentUtil.isSuccessOrHandledError(result) && !OperationResultStatus.NOT_APPLICABLE.equals(result.getStatus())) {
             getPageBase().showResult(result);
-            throw new RestartResponseException(PageError.class);
+            // Let us do nothing. The error will be shown on the page and a count of 0 will be used.
+            // Redirecting to the error page does more harm than good (see also MID-4306).
         }
 
         LOGGER.trace("end::internalSize(): {}", count);

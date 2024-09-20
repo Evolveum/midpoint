@@ -6,15 +6,13 @@
  */
 package com.evolveum.midpoint.gui.api.component.result;
 
-import java.io.PrintWriter;
-import java.io.Serializable;
-import java.io.StringWriter;
-import java.io.Writer;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.prism.PrismContext;
 
 import org.apache.commons.lang3.Validate;
@@ -156,20 +154,26 @@ public class OpResult implements Serializable, Visitable {
         return opResult;
     }
 
-    private static IModel<String> createXmlModel(OperationResult result, PageAdminLTE page) {
-        try {
-            OperationResultType resultType = result.createOperationResultType();
-            return () -> {
+    private static LoadableModel<String> createXmlModel(OperationResult result, PageAdminLTE page) {
+        return new LoadableModel<>() {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected String load() {
                 try {
-                    return PrismContext.get().xmlSerializer().serializeAnyData(resultType, SchemaConstants.C_RESULT);
-                } catch (SchemaException e) {
-                    throw new TunnelException(e);
+                    OperationResultType resultType = result.createOperationResultType();
+                    try {
+                        return PrismContext.get().xmlSerializer().serializeAnyData(resultType, SchemaConstants.C_RESULT);
+                    } catch (SchemaException e) {
+                        throw new TunnelException(e);
+                    }
+                } catch (RuntimeException ex) {
+                    String m = "Can't create xml: " + ex;
+                    return "<?xml version='1.0'?><message>" + StringEscapeUtils.escapeXml10(m) + "</message>";
                 }
-            };
-        } catch (RuntimeException ex) {
-            String m = "Can't create xml: " + ex;
-            return Model.of("<?xml version='1.0'?><message>" + StringEscapeUtils.escapeXml10(m) + "</message>");
-        }
+            }
+        };
     }
 
     // This method should be called along with getOpResult for root operationResult. However, it might take some time,

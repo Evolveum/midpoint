@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.test;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
-
 import static com.evolveum.midpoint.test.util.TestUtil.getAttrQName;
 
 import static org.testng.AssertJUnit.*;
@@ -24,6 +22,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.schema.constants.TestResourceOpNames;
 import com.evolveum.midpoint.schema.processor.*;
 
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import org.apache.commons.lang3.StringUtils;
@@ -45,7 +44,6 @@ import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
@@ -57,7 +55,6 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -78,7 +75,7 @@ public abstract class AbstractHigherUnitTest extends AbstractUnitTest implements
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        SchemaDebugUtil.initializePrettyPrinter();
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
     }
 
@@ -176,52 +173,11 @@ public abstract class AbstractHigherUnitTest extends AbstractUnitTest implements
     }
 
     protected void assertShadowCommon(
-            PrismObject<ShadowType> accountShadow,
+            PrismObject<ShadowType> shadow,
             String oid,
             String username,
             ResourceType resourceType,
             QName objectClass) throws SchemaException, ConfigurationException {
-        assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, null, false);
-    }
-
-    protected void assertAccountShadowCommon(
-            PrismObject<ShadowType> accountShadow,
-            String oid,
-            String username,
-            ResourceType resourceType) throws SchemaException, ConfigurationException {
-        assertShadowCommon(accountShadow, oid, username, resourceType, RI_ACCOUNT_OBJECT_CLASS, null, false);
-    }
-
-    protected void assertAccountShadowCommon(
-            PrismObject<ShadowType> accountShadow,
-            String oid,
-            String username,
-            ResourceType resourceType,
-            MatchingRule<String> nameMatchingRule,
-            boolean requireNormalizedIdentifiers) throws SchemaException, ConfigurationException {
-        assertShadowCommon(accountShadow, oid, username, resourceType, RI_ACCOUNT_OBJECT_CLASS, nameMatchingRule, requireNormalizedIdentifiers);
-    }
-
-    protected void assertShadowCommon(
-            PrismObject<ShadowType> shadow,
-            String oid,
-            String username,
-            ResourceType resourceType,
-            QName objectClass,
-            MatchingRule<String> nameMatchingRule,
-            boolean requireNormalizedIdentifiers) throws SchemaException, ConfigurationException {
-        assertShadowCommon(shadow, oid, username, resourceType, objectClass, nameMatchingRule, requireNormalizedIdentifiers, false);
-    }
-
-    protected void assertShadowCommon(
-            PrismObject<ShadowType> shadow,
-            String oid,
-            String username,
-            ResourceType resourceType,
-            QName objectClass,
-            final MatchingRule<String> nameMatchingRule,
-            boolean requireNormalizedIdentifiers,
-            boolean useMatchingRuleForShadowName) throws SchemaException, ConfigurationException {
         assertShadow(shadow);
         if (oid != null) {
             assertEquals("Shadow OID mismatch (prism)", oid, shadow.getOid());
@@ -236,81 +192,26 @@ public abstract class AbstractHigherUnitTest extends AbstractUnitTest implements
         assertNotNull("Null attributes in shadow for " + username, attributesContainer);
         assertFalse("Empty attributes in shadow for " + username, attributesContainer.isEmpty());
 
-        if (useMatchingRuleForShadowName) {
-            MatchingRule<PolyString> polyMatchingRule = new MatchingRule<>() {
-
-                @Override
-                public QName getName() {
-                    return nameMatchingRule.getName();
-                }
-
-                @Override
-                public boolean supports(QName xsdType) {
-                    return nameMatchingRule.supports(xsdType);
-                }
-
-                @Override
-                public boolean match(PolyString a, PolyString b) throws SchemaException {
-                    return nameMatchingRule.match(a.getOrig(), b.getOrig());
-                }
-
-                @Override
-                public boolean matchRegex(PolyString a, String regex) throws SchemaException {
-                    return nameMatchingRule.matchRegex(a.getOrig(), regex);
-                }
-
-                @Override
-                public PolyString normalize(PolyString original) throws SchemaException {
-                    return new PolyString(nameMatchingRule.normalize(original.getOrig()));
-                }
-
-            };
-            PrismAsserts.assertPropertyValueMatch(shadow, ShadowType.F_NAME, polyMatchingRule, PrismTestUtil.createPolyString(username));
-        } else {
-            PrismAsserts.assertPropertyValue(shadow, ShadowType.F_NAME, PrismTestUtil.createPolyString(username));
-        }
+        PrismAsserts.assertPropertyValue(shadow, ShadowType.F_NAME, PrismTestUtil.createPolyString(username));
 
         ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resourceType);
         ResourceObjectDefinition ocDef = rSchema.findDefinitionForObjectClass(objectClass);
         if (ocDef.getSecondaryIdentifiers().isEmpty()) {
-            ResourceAttributeDefinition idDef = ocDef.getPrimaryIdentifiers().iterator().next();
+            ShadowSimpleAttributeDefinition idDef = ocDef.getPrimaryIdentifiers().iterator().next();
             PrismProperty<String> idProp = attributesContainer.findProperty(idDef.getItemName());
             assertNotNull("No primary identifier (" + idDef.getItemName() + ") attribute in shadow for " + username, idProp);
-            if (nameMatchingRule == null) {
-                assertEquals("Unexpected primary identifier in shadow for " + username, username, idProp.getRealValue());
-            } else {
-                if (requireNormalizedIdentifiers) {
-                    assertEquals("Unexpected primary identifier in shadow for " + username, nameMatchingRule.normalize(username), idProp.getRealValue());
-                } else {
-                    PrismAsserts.assertEquals("Unexpected primary identifier in shadow for " + username, nameMatchingRule, username, idProp.getRealValue());
-                }
-            }
+            assertEquals("Unexpected primary identifier in shadow for " + username, username, idProp.getRealValue());
         } else {
             boolean found = false;
             String expected = username;
-            if (requireNormalizedIdentifiers && nameMatchingRule != null) {
-                expected = nameMatchingRule.normalize(username);
-            }
             List<String> wasValues = new ArrayList<>();
-            for (ResourceAttributeDefinition idSecDef : ocDef.getSecondaryIdentifiers()) {
+            for (ShadowSimpleAttributeDefinition idSecDef : ocDef.getSecondaryIdentifiers()) {
                 PrismProperty<String> idProp = attributesContainer.findProperty(idSecDef.getItemName());
                 wasValues.addAll(idProp.getRealValues());
                 assertNotNull("No secondary identifier (" + idSecDef.getItemName() + ") attribute in shadow for " + username, idProp);
-                if (nameMatchingRule == null) {
-                    if (username.equals(idProp.getRealValue())) {
-                        found = true;
-                        break;
-                    }
-                } else {
-                    if (requireNormalizedIdentifiers) {
-                        if (expected.equals(idProp.getRealValue())) {
-                            found = true;
-                            break;
-                        }
-                    } else if (nameMatchingRule.match(username, idProp.getRealValue())) {
-                        found = true;
-                        break;
-                    }
+                if (username.equals(idProp.getRealValue())) {
+                    found = true;
+                    break;
                 }
             }
             if (!found) {
@@ -326,7 +227,7 @@ public abstract class AbstractHigherUnitTest extends AbstractUnitTest implements
             MatchingRule<String> nameMatchingRule) throws SchemaException, ConfigurationException {
         ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resourceType);
         ResourceObjectDefinition ocDef = rSchema.findDefinitionForObjectClass(shadow.asObjectable().getObjectClass());
-        ResourceAttributeDefinition idSecDef = ocDef.getSecondaryIdentifiers().iterator().next();
+        ShadowSimpleAttributeDefinition idSecDef = ocDef.getSecondaryIdentifiers().iterator().next();
         PrismContainer<Containerable> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
         PrismProperty<String> idProp = attributesContainer.findProperty(idSecDef.getItemName());
         assertNotNull("No secondary identifier (" + idSecDef.getItemName() + ") attribute in shadow for " + expectedIdentifier, idProp);

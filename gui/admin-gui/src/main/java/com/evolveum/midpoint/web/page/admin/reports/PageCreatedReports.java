@@ -6,9 +6,8 @@
  */
 package com.evolveum.midpoint.web.page.admin.reports;
 
-import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serial;
 import java.util.*;
 import java.util.Map.Entry;
 import javax.xml.namespace.QName;
@@ -54,7 +53,6 @@ import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.report.api.ReportManager;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -110,7 +108,6 @@ public class PageCreatedReports extends PageAdmin {
     private static final String ID_TABLE = "table";
     private static final String ID_TABLE_HEADER = "tableHeader";
 
-    private static final Map<FileFormatTypeType, String> REPORT_EXPORT_TYPE_MAP = new HashMap<>();
 
     private final IModel<ReportDeleteDialogDto> deleteModel = new Model<>();
 
@@ -121,12 +118,6 @@ public class PageCreatedReports extends PageAdmin {
     private AjaxDownloadBehaviorFromStream ajaxDownloadBehavior = null;
 
     private IModel<String> reportType;
-
-    static {
-        REPORT_EXPORT_TYPE_MAP.put(FileFormatTypeType.CSV, "text/csv; charset=UTF-8");
-        REPORT_EXPORT_TYPE_MAP.put(FileFormatTypeType.HTML, "text/html; charset=UTF-8");
-
-    }
 
     public PageCreatedReports(PageParameters pageParameters) {
         super(pageParameters);
@@ -227,16 +218,16 @@ public class PageCreatedReports extends PageAdmin {
 
         ajaxDownloadBehavior = new AjaxDownloadBehaviorFromStream() {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            protected InputStream initStream() {
-                return createReport();
+            protected InputStream getInputStream() {
+                return ReportDownloadHelper.createReport(currentReport, this, PageCreatedReports.this);
             }
 
             @Override
             public String getFileName() {
-                return getReportFileName();
+                return ReportDownloadHelper.getReportFileName(currentReport);
             }
         };
 
@@ -410,7 +401,7 @@ public class PageCreatedReports extends PageAdmin {
                     public void onClick(AjaxRequestTarget target) {
                         SelectableBeanImpl<ReportDataType> rowDto = getRowModel().getObject();
                         currentReport = rowDto.getValue();
-                        downloadPerformed(target, ajaxDownloadBehavior);
+                        ReportDownloadHelper.downloadPerformed(target, ajaxDownloadBehavior);
                     }
                 };
             }
@@ -592,66 +583,4 @@ public class PageCreatedReports extends PageAdmin {
         return (MidpointForm) get(ID_MAIN_FORM);
     }
 
-    private InputStream createReport() {
-        return createReport(currentReport, ajaxDownloadBehavior, this);
-    }
-
-    public static InputStream createReport(ReportDataType report, AjaxDownloadBehaviorFromStream ajaxDownloadBehaviorFromStream, PageBase pageBase) {
-        OperationResult result = new OperationResult(OPERATION_DOWNLOAD_REPORT);
-        ReportManager reportManager = pageBase.getReportManager();
-
-        if (report == null) {
-            return null;
-        }
-
-        String contentType = REPORT_EXPORT_TYPE_MAP.get(report.getFileFormat());
-        if (StringUtils.isEmpty(contentType)) {
-            contentType = "multipart/mixed; charset=UTF-8";
-        }
-        ajaxDownloadBehaviorFromStream.setContentType(contentType);
-
-        InputStream input = null;
-        try {
-            input = reportManager.getReportDataStream(report.getOid(), result);
-        } catch (IOException ex) {
-            LOGGER.error("Report {} is not accessible.", WebComponentUtil.getName(report));
-            result.recordPartialError("Report " + WebComponentUtil.getName(report) + " is not accessible.");
-        } catch (Exception e) {
-            pageBase.error(pageBase.getString("pageCreatedReports.message.downloadError") + " " + e.getMessage());
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't download report.", e);
-            LOGGER.trace(result.debugDump());
-        } finally {
-            result.computeStatusIfUnknown();
-        }
-
-        if (WebComponentUtil.showResultInPage(result)) {
-            pageBase.showResult(result);
-        }
-
-        return input;
-    }
-
-    private void downloadPerformed(
-            AjaxRequestTarget target, AjaxDownloadBehaviorFromStream ajaxDownloadBehavior) {
-        ajaxDownloadBehavior.initiate(target);
-    }
-
-    private String getReportFileName() {
-        return getReportFileName(currentReport);
-    }
-
-    public static String getReportFileName(ReportDataType currentReport) {
-        try {
-            String filePath = currentReport.getFilePath();
-            if (filePath != null) {
-                var fileName = new File(filePath).getName();
-                if (StringUtils.isNotEmpty(fileName)) {
-                    return fileName;
-                }
-            }
-        } catch (RuntimeException ex) {
-            // ignored
-        }
-        return "report"; // A fallback - this should not really occur
-    }
 }

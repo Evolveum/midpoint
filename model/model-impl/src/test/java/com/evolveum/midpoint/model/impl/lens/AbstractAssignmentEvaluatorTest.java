@@ -201,12 +201,9 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         DeltaSetTriple<EvaluatedAssignedResourceObjectConstructionImpl<UserType>> evaluatedConstructionTriple = construction.getEvaluatedConstructionTriple();
         assertEquals(1, evaluatedConstructionTriple.size());
         EvaluatedAssignedResourceObjectConstructionImpl<UserType> evaluatedConstruction = evaluatedConstructionTriple.getZeroSet().iterator().next();
-        assertEquals(1, evaluatedConstruction.getAttributeMappings().size());
-        //noinspection unchecked
-        var attributeMapping =
-                (MappingImpl<PrismPropertyValue<String>, PrismPropertyDefinition<String>>)
-                        evaluatedConstruction.getAttributeMappings().iterator().next();
-        PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = attributeMapping.getOutputTriple();
+        assertEquals(1, evaluatedConstruction.getAttributeTripleProducers().size());
+        var attributeMapping = evaluatedConstruction.getAttributeTripleProducers().iterator().next();
+        var outputTriple = attributeMapping.getOutputTriple();
         displayDumpable("output triple", outputTriple);
         PrismAsserts.assertTripleNoZero(outputTriple);
         PrismAsserts.assertTriplePlus(outputTriple, "The best captain the world has ever seen");
@@ -270,12 +267,9 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         DeltaSetTriple<EvaluatedAssignedResourceObjectConstructionImpl<UserType>> evaluatedConstructionTriple = construction.getEvaluatedConstructionTriple();
         assertEquals(1, evaluatedConstructionTriple.size());
         EvaluatedAssignedResourceObjectConstructionImpl<UserType> evaluatedConstruction = evaluatedConstructionTriple.getZeroSet().iterator().next();
-        assertEquals(1, evaluatedConstruction.getAttributeMappings().size());
-        //noinspection unchecked
-        var attributeMapping =
-                (PrismValueDeltaSetTripleProducer<PrismPropertyValue<String>, PrismPropertyDefinition<String>>)
-                        evaluatedConstruction.getAttributeMappings().iterator().next();
-        PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = attributeMapping.getOutputTriple();
+        assertEquals(1, evaluatedConstruction.getAttributeTripleProducers().size());
+        var attributeMapping = evaluatedConstruction.getAttributeTripleProducers().iterator().next();
+        var outputTriple = attributeMapping.getOutputTriple();
         PrismAsserts.assertTripleNoZero(outputTriple);
         PrismAsserts.assertTriplePlus(outputTriple, "The best sailor the world has ever seen");
         PrismAsserts.assertTripleMinus(outputTriple, "The best man the world has ever seen");
@@ -885,8 +879,7 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
                 evaluatedAssignment.getConstructionSet(constructionSet);
         for (AssignedResourceObjectConstruction<UserType> construction : constructions) {
             construction.getEvaluatedConstructionTriple().foreach(evaluatedConstruction -> {
-                PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> mapping =
-                        evaluatedConstruction.getAttributeMapping(new QName(MidPointConstants.NS_RI, attributeName));
+                var mapping = evaluatedConstruction.getAttributeTripleProducer(new QName(MidPointConstants.NS_RI, attributeName));
                 assertNull("Unexpected mapping for " + attributeName, mapping);
             });
         }
@@ -900,14 +893,13 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         Set<String> realValues = new HashSet<>();
         for (AssignedResourceObjectConstruction<UserType> construction : constructions) {
             construction.getEvaluatedConstructionTriple().foreach(evaluatedConstruction -> {
-                PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> mapping =
-                        evaluatedConstruction.getAttributeMapping(new QName(MidPointConstants.NS_RI, attributeName));
+                var mapping = evaluatedConstruction.getAttributeTripleProducer(new QName(MidPointConstants.NS_RI, attributeName));
                 if (mapping != null && mapping.getOutputTriple() != null) {
-                    Collection<? extends PrismPropertyValue<?>> valsInMapping = mapping.getOutputTriple().getSet(attributeSet);
+                    var valsInMapping = mapping.getOutputTriple().getSet(attributeSet);
                     if (valsInMapping != null) {
-                        for (PrismPropertyValue<?> value : valsInMapping) {
-                            if (value.getValue() instanceof String) {
-                                realValues.add((String) value.getValue());
+                        for (var value : valsInMapping) {
+                            if (((PrismPropertyValue<?>) value).getValue() instanceof String stringValue) {
+                                realValues.add(stringValue);
                             }
                         }
                     }

@@ -17,6 +17,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.shadows.ShadowTablePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -51,7 +52,7 @@ public class PreviewResourceDataWizardPanel extends AbstractWizardBasicPanel<Res
 
     private void initLayout() {
 
-        MidpointForm form = new MidpointForm(ID_FORM);
+        Form<?> form = new MidpointForm<>(ID_FORM);
         form.setOutputMarkupId(true);
         add(form);
 
@@ -69,6 +70,11 @@ public class PreviewResourceDataWizardPanel extends AbstractWizardBasicPanel<Res
 
             @Override
             protected boolean isEnabledInlineMenu() {
+                return false;
+            }
+
+            @Override
+            protected boolean isTaskButtonVisible() {
                 return false;
             }
 

@@ -248,8 +248,7 @@ public class TreeTablePanel extends BasePanel<String> {
     }
 
     private ObjectQuery createManagerQuery(OrgType org) {
-        ObjectQuery query = ObjectTypeUtil.createManagerQuery(FocusType.class, org.getOid(),
-                getPageBase().getRelationRegistry(), getPageBase().getPrismContext());
+        ObjectQuery query = ObjectTypeUtil.createManagerQuery(FocusType.class, org.getOid(), getPageBase().getRelationRegistry());
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Searching members of org {} with query:\n{}", org.getOid(), query.debugDump());
         }
@@ -409,7 +408,7 @@ public class TreeTablePanel extends BasePanel<String> {
                     public void onClick(AjaxRequestTarget target) {
                         try {
                             initObjectForAdd(
-                                    ObjectTypeUtil.createObjectRef(org.getValue(), getPageBase().getPrismContext()), target);
+                                    ObjectTypeUtil.createObjectRef(org.getValue()), target);
                         } catch (SchemaException e) {
                             throw new SystemException(e.getMessage(), e);
                         }
@@ -482,7 +481,6 @@ public class TreeTablePanel extends BasePanel<String> {
         return allowDelete;
     }
 
-    // TODO: merge this with AbstractRoleMemberPanel.initObjectForAdd, also see MID-3233
     private <O extends ObjectType> void initObjectForAdd(ObjectReferenceType parentOrgRef, AjaxRequestTarget target) throws SchemaException {
         TreeTablePanel.this.getPageBase().hideMainPopup(target);
         PrismContext prismContext = TreeTablePanel.this.getPageBase().getPrismContext();
@@ -500,9 +498,10 @@ public class TreeTablePanel extends BasePanel<String> {
         // The parentOrgRef should be added by the projector. But
         // this is needed to successfully pass through security
         // TODO: fix MID-3234
+        //  see also DetailsPageUtil.initNewObjectWithReference
         if (parentOrgRef == null) {
             ObjectType org = getTreePanel().getSelected().getValue();
-            parentOrgRef = ObjectTypeUtil.createObjectRef(org, prismContext);
+            parentOrgRef = ObjectTypeUtil.createObjectRef(org);
             parentOrgRef.setRelation(null);
             objType.getParentOrgRef().add(parentOrgRef);
         } else {
@@ -571,7 +570,7 @@ public class TreeTablePanel extends BasePanel<String> {
             }
 
             AssignmentType newRoot = new AssignmentType();
-            newRoot.setTargetRef(ObjectTypeUtil.createObjectRef(selected.getValue(), getPageBase().getPrismContext()));
+            newRoot.setTargetRef(ObjectTypeUtil.createObjectRef(selected.getValue()));
             moveOrgDelta.addModification(getPrismContext().deltaFactory().container().createModificationAdd(OrgType.F_ASSIGNMENT,
                     OrgType.class, newRoot.asPrismContainerValue()));
 

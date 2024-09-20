@@ -26,8 +26,13 @@ public class ProgressBarColumn<R extends Serializable, S extends Serializable> e
         item.add(new ProgressBarPanel(id, createProgressBarModel(rowModel)) {
 
             @Override
-            protected IModel<String> createTextModel(IModel<List<ProgressBar>> model) {
+            protected IModel<String> createSimpleTextModel(IModel<List<ProgressBar>> model) {
                 return ProgressBarColumn.this.createTextModel(rowModel, model);
+            }
+
+            @Override
+            protected boolean isPercentageBar() {
+                return ProgressBarColumn.this.isPercentageBar();
             }
         });
     }
@@ -38,5 +43,9 @@ public class ProgressBarColumn<R extends Serializable, S extends Serializable> e
 
     protected @NotNull IModel<String> createTextModel(IModel<R> rowModel, IModel<List<ProgressBar>> model) {
         return () -> null;
+    }
+
+    protected boolean isPercentageBar() {
+        return true;
     }
 }

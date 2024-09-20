@@ -7,22 +7,21 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import static com.evolveum.midpoint.prism.PrismContainerValue.asPrismContainerValues;
-import static com.evolveum.midpoint.util.MiscUtil.argCheck;
-import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+import static com.evolveum.midpoint.util.MiscUtil.*;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
+import com.evolveum.midpoint.util.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
-import com.evolveum.midpoint.model.impl.lens.projector.ValueMatcher;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -33,9 +32,6 @@ import com.evolveum.midpoint.repo.common.expression.ConsolidationValueMetadataCo
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.metadata.MidpointProvenanceEquivalenceStrategy;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -47,8 +43,9 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemType;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Consolidate the output of mappings for a single item to a delta. It takes the convenient structure of ItemValueWithOrigin triple.
- * It produces the delta considering the mapping exclusion, authoritativeness and strength. See {@link #consolidateTriples()}.
+ * Consolidate the output of mappings for a single item to a delta.
+ * It takes the convenient structure of {@link ItemValueWithOrigin} triple and produces the delta considering
+ * the mapping exclusion, authoritativeness and strength. See {@link #consolidateTriples()}.
  *
  * @author semancik
  */
@@ -68,6 +65,9 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
      * into equivalence classes.
      */
     private final List<EquivalenceClass> equivalenceClasses = new ArrayList<>();
+
+    /** This is to check whether there is no conflict for single-valued items, see MID-9621. */
+    private final List<EquivalenceClass> equivalenceClassesBeingAddedForSingleValuedItem = new ArrayList<>();
 
     /**
      * Is the item an assignment (i.e. is path = c:assignment)?
@@ -109,14 +109,10 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
     private final boolean itemDeltaExists;
 
     /**
-     * Value matcher used to compare values (for the purpose of consolidation).
+     * Comparator used to compare values.
+     * It should be forgivable enough to allow illegal values to be compared.
      */
-    private final ValueMatcher valueMatcher;
-
-    /**
-     * Comparator used to compare values. Used if valueMatcher is null or cannot be used (because item is not a property).
-     */
-    private final Comparator<V> comparator;
+    private final EqualsChecker<V> equalsChecker;
 
     /**
      * What mappings are to be considered?
@@ -175,6 +171,9 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
      */
     private final String contextDescription;
 
+    /** Definition of the item being consolidated. */
+    @NotNull private final D itemDefinition;
+
     /**
      * Operation result (currently needed for value metadata computation).
      * Experimentally we make this consolidator auto-closeable so the result is marked as closed automatically.
@@ -209,8 +208,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
         aprioriItemDelta = builder.aprioriItemDelta;
         itemDeltaExists = builder.itemDeltaExists;
 
-        valueMatcher = builder.valueMatcher;
-        comparator = builder.comparator;
+        equalsChecker = builder.equalsChecker;
 
         addUnchangedValues = builder.addUnchangedValues;
         addUnchangedValuesExceptForNormalMappings = builder.addUnchangedValuesExceptForNormalMappings;
@@ -226,10 +224,13 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
         valueMetadataComputer = builder.valueMetadataComputer;
         contextDescription = builder.contextDescription;
 
-        argCheck(builder.itemDefinition != null, "No definition for %s", itemPath);
+        this.itemDefinition =
+                argNonNull(
+                        builder.itemDefinition,
+                        "No definition for %s", itemPath);
 
         //noinspection unchecked
-        itemDelta = (ItemDelta<V, D>) builder.itemDefinition.createEmptyDelta(itemPath);
+        itemDelta = (ItemDelta<V, D>) itemDefinition.createEmptyDelta(itemPath);
 
         // Must be the last instruction here (to avoid leaving result open in case of an exception)
         result = builder.result.createMinorSubresult(OP_CONSOLIDATE_TO_DELTA)
@@ -280,6 +281,15 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
             setEstimatedOldValues();
             logEnd();
 
+            if (equivalenceClassesBeingAddedForSingleValuedItem.size() > 1) {
+                throw new SchemaException(
+                        "Strong mappings provided more than one value for single-valued item %s: %s".formatted(
+                                itemPath,
+                                equivalenceClassesBeingAddedForSingleValuedItem.stream()
+                                        .map(ec -> ec.getRepresentativeRealValue())
+                                        .toList()));
+            }
+
             return itemDelta;
         } catch (Throwable t) {
             result.recordFatalError(t);
@@ -325,8 +335,9 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
     private String getAutoCreationIdentifier(Collection<? extends ItemValueWithOrigin<V, D>> origins) {
         // let's ignore conflicts (name1 vs name2, named vs unnamed) for now
         for (ItemValueWithOrigin<V, D> origin : origins) {
-            if (origin.getMapping() != null && origin.getMapping().getIdentifier() != null) {
-                return origin.getMapping().getIdentifier();
+            var id = origin.getMappingIdentifier();
+            if (id != null) {
+                return id;
             }
         }
         return null;
@@ -336,21 +347,19 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
             Supplier<String> originMappingNameSupplier) throws SchemaException {
         //noinspection unchecked
         V cloned = (V) value.clone();
-        if (isAssignment && cloned instanceof PrismContainerValue) {
-            ((PrismContainerValue<?>) cloned).setId(null);
+        if (isAssignment && cloned instanceof PrismContainerValue<?> clonedPcv) {
+            clonedPcv.setId(null);
             String originMappingName = originMappingNameSupplier.get();
             LOGGER.trace("cloneAndApplyMetadata: originMappingName = {}", originMappingName);
             if (originMappingName != null) {
-                ((PrismContainerValue<?>) cloned)
-                        .<MetadataType>findOrCreateContainer(AssignmentType.F_METADATA)
-                        .getValue()
-                        .asContainerable()
-                        .setOriginMappingName(originMappingName);
+                // TODO what about other parts of the mapping specification? (object/resource, object type)
+                var metadata = ValueMetadataTypeUtil.getOrCreateMetadata((AssignmentType) clonedPcv.asContainerable());
+                var provenance = ValueMetadataTypeUtil.getOrCreateProvenanceMetadata(metadata);
+                ValueMetadataTypeUtil.getOrCreateMappingSpecification(provenance).setMappingName(originMappingName);
             }
         }
         return cloned;
     }
-
 
     private Collection<I> selectWeakNonNegativeValues() {
         Collection<I> nonNegativeIvwos = ivwoTriple.getNonNegativeValues();
@@ -374,7 +383,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
         Collection<I> values = new ArrayList<>();
         if (strengthSelector.isWeak()) {
             for (I ivwo : ivwos) {
-                if (ivwo.getMapping().getStrength() == MappingStrengthType.WEAK &&
+                if (ivwo.getProducer().getStrength() == MappingStrengthType.WEAK &&
                         (origin == null || origin == ivwo.getItemValue().getOriginType())) {
                     values.add(ivwo);
                 }
@@ -422,7 +431,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
         private void consolidate() throws ExpressionEvaluationException, SchemaException,
                 ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 
-            checkDeletionOfStrongValue();
+            warnIfDeletingStronglyMandatedValue();
 
             // This division is quite simplistic in the presence of metadata (yields).
             // But let's keep it for the time being.
@@ -440,7 +449,9 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
                 addingOrigins.addAll(equivalenceClass.zeroOrigins);
             } else if (addUnchangedValuesExceptForNormalMappings) {
                 for (I zeroIvwo : equivalenceClass.zeroOrigins) {
-                    if (zeroIvwo.isStrong() || zeroIvwo.isNormal() && (zeroIvwo.isSourceless() || zeroIvwo.isPushChanges()) || zeroIvwo.isWeak()) {
+                    if (zeroIvwo.isStrong()
+                            || zeroIvwo.isNormal() && (zeroIvwo.isSourceless() || zeroIvwo.isPushChanges())
+                            || zeroIvwo.isWeak()) {
                         addingOrigins.add(zeroIvwo);
                     }
                 }
@@ -477,6 +488,14 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
 
         private void addValueIfNeeded() throws CommunicationException, ObjectNotFoundException, SchemaException,
                 SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+
+            // Detecting conflicting values provided by strong mappings. Normally, this is checked on the deltas after
+            // consolidation. But if one of the conflicting values is stored in the existing item, the delta for it will not
+            // be produced. Hence, we have to check for conflicts explicitly. See MID-9621.
+            if (hasAtLeastOneStrongMapping && itemDefinition.isSingleValue()) {
+                LOGGER.trace("Including in uniqueness checking for single-valued item {}: {}", itemPath, equivalenceClass);
+                equivalenceClassesBeingAddedForSingleValuedItem.add(equivalenceClass);
+            }
 
             // Checking for presence of value0 in existing item (real or assumed)
 
@@ -561,8 +580,8 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
 
         private void deleteValueIfNeeded() throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
             if (existingItemKnown && !equivalenceClass.presentInExistingItem()) {
-                LOGGER.trace("Value {} NOT add to delta as DELETE because item {} the item does not have that value in {} (matcher: {})",
-                        equivalenceClass, itemPath, contextDescription, valueMatcher);
+                LOGGER.trace("Value {} NOT add to delta as DELETE because item {} the item does not have that value in {}",
+                        equivalenceClass, itemPath, contextDescription);
 
                 assert equivalenceClass.zeroOrigins.isEmpty();
                 // No metadata to be computed here, because no existing value and no zero nor plus origins
@@ -593,17 +612,17 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
          */
         private void decideAccordingToMetadata(String situation) throws CommunicationException, ObjectNotFoundException,
                 SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-            MetadataBasedConsolidation metadataBasedConsolidation = new MetadataBasedConsolidation(situation);
-            metadataBasedConsolidation.consolidate();
+            new MetadataBasedConsolidation(situation)
+                    .consolidate();
         }
 
         private void classifyMappings(Collection<I> origins, boolean checkExclusiveness)
                 throws ExpressionEvaluationException {
             hasAtLeastOneStrongMapping = false;
             exclusiveMapping = null;
-            for (ItemValueWithOrigin<V,D> origin : origins) {
-                PrismValueDeltaSetTripleProducer<V,D> mapping = origin.getMapping();
-                if (mapping.getStrength() == MappingStrengthType.STRONG) {
+            for (var origin : origins) {
+                var mapping = origin.getProducer();
+                if (mapping.isStrong()) {
                     hasAtLeastOneStrongMapping = true;
                 }
                 if (checkExclusiveness && mapping.isExclusive()) {
@@ -641,16 +660,20 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
                     .collect(Collectors.toList());
         }
 
-        private void checkDeletionOfStrongValue() {
-            if (aprioriItemDelta != null && aprioriItemDelta.getValuesToDelete() != null &&
-                    ItemCollectionsUtil.contains(aprioriItemDelta.getValuesToDelete(), equivalenceClass.getRepresentative(), EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS)) {
+        /** When a-priori delta requests deleting a value mandated by strong mapping, we issue a warning. */
+        private void warnIfDeletingStronglyMandatedValue() {
+            if (aprioriItemDelta != null
+                    && ItemCollectionsUtil.contains(
+                            emptyIfNull(aprioriItemDelta.getValuesToDelete()),
+                            equivalenceClass.getRepresentative(),
+                            EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS)) {
                 checkIfStrong(equivalenceClass.zeroOrigins);
                 checkIfStrong(equivalenceClass.plusOrigins);
             }
         }
 
         private void checkIfStrong(Collection<I> origins) {
-            PrismValueDeltaSetTripleProducer<V, D> strongMapping = findStrongMapping(origins);
+            var strongMapping = findStrongMapping(origins);
             if (strongMapping != null) {
                 LOGGER.warn("Attempt to delete value {} from item {} but that value is mandated by a strong mapping {} (for {})",
                         equivalenceClass.getRepresentative(), itemPath, strongMapping.toHumanReadableDescription(), contextDescription);
@@ -660,7 +683,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
         @Nullable
         private PrismValueDeltaSetTripleProducer<V, D> findStrongMapping(Collection<I> ivwos) {
             for (ItemValueWithOrigin<V,D> pvwo : MiscUtil.emptyIfNull(ivwos)) {
-                PrismValueDeltaSetTripleProducer<V,D> mapping = pvwo.getMapping();
+                PrismValueDeltaSetTripleProducer<V,D> mapping = pvwo.getProducer();
                 if (mapping.getStrength() == MappingStrengthType.STRONG) {
                     return mapping;
                 }
@@ -689,6 +712,13 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
 
             private void addYields(List<V> values, Function<YieldPresence, List<ValueMetadataType>> collection) {
                 for (V value : values) {
+                    // Values without metadata (and still somehow we are processing metadata
+                    // should end up in their own yield (empty metadata) so they are properly consolidated.
+                    if (value.getValueMetadata().isEmpty()) {
+                        var yield = new ValueMetadataType();
+                        YieldPresence yieldPresence = createOrFindYieldPresence(yield);
+                        collection.apply(yieldPresence).add(yield);
+                    }
                     for (PrismContainerValue<Containerable> yieldPcv : value.getValueMetadataAsContainer().getValues()) {
                         ValueMetadataType yield = (ValueMetadataType) yieldPcv.asContainerable();
                         YieldPresence yieldPresence = createOrFindYieldPresence(yield);
@@ -708,7 +738,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
                 return newPresence;
             }
 
-            public void consolidate() throws CommunicationException, ObjectNotFoundException,
+            void consolidate() throws CommunicationException, ObjectNotFoundException,
                     SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
                 logStart();
                 for (YieldPresence yieldPresence : yieldPresences) {
@@ -855,7 +885,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
         } else {
             Holder<Boolean> resultHolder = new Holder<>(false);
             SimpleVisitor<I> visitor = pvwo -> {
-                if (pvwo.getMapping().getStrength() == MappingStrengthType.STRONG) {
+                if (pvwo.isMappingStrong()) {
                     resultHolder.setValue(true);
                 }
             };
@@ -865,22 +895,29 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
     }
 
     private void logStart() {
-        LOGGER.trace("Consolidating {} IVwO triple:\n{}\n  Apriori Delta (exists: {}):\n{}\n  Existing item (known: {}, isEmpty: {}):\n{}\n  Parameters:\n"
-                        + "   - valueMatcher: {}\n"
-                        + "   - comparator: {}\n"
-                        + "   - strengthSelector: {}\n"
-                        + "   - addUnchangedValues: {}\n"
-                        + "   - addUnchangedValuesExceptForNormalMappings: {}\n"
-                        + "   - itemIsExclusiveStrong: {}\n"
-                        + "   - deleteExistingValues (experimental): {}\n"
-                        + "   - skipNormalMappingAPrioriDeltaCheck (experimental): {}\n"
-                        + "   - ignoreNormalMappings: {}\n"
-                        + "   - valueMetadataComputer: {}\n"
-                        + "  Context: {}\n",
+        LOGGER.trace("""
+                        Consolidating {} IVwO triple:
+                        {}
+                          Apriori Delta (exists: {}):
+                        {}
+                          Existing item (known: {}, isEmpty: {}):
+                        {}
+                          Parameters:
+                           - equalsChecker: {}
+                           - strengthSelector: {}
+                           - addUnchangedValues: {}
+                           - addUnchangedValuesExceptForNormalMappings: {}
+                           - itemIsExclusiveStrong: {}
+                           - deleteExistingValues (experimental): {}
+                           - skipNormalMappingAPrioriDeltaCheck (experimental): {}
+                           - ignoreNormalMappings: {}
+                           - valueMetadataComputer: {}
+                          Context: {}
+                        """,
                 itemPath, ivwoTriple.debugDumpLazily(1),
                 itemDeltaExists, DebugUtil.debugDumpLazily(aprioriItemDelta, 2),
                 existingItemKnown, existingItemIsEmpty, DebugUtil.debugDumpLazily(existingItem, 2),
-                valueMatcher, comparator, strengthSelector,
+                equalsChecker, strengthSelector,
                 addUnchangedValues, addUnchangedValuesExceptForNormalMappings,
                 itemIsExclusiveStrong,
                 deleteExistingValues, skipNormalMappingAPrioriDeltaCheck,
@@ -902,7 +939,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
                     trace.setDeltaSetTriple(DeltaSetTripleType.fromDeltaSetTriple(prismValueDeltaSetTriple));
                 }
                 if (existingItem != null) {
-                    trace.setExistingItem(ItemType.fromItem(existingItem, prismContext));
+                    trace.setExistingItem(ItemType.fromItem(existingItem));
                 }
                 if (aprioriItemDelta != null) {
                     trace.getAprioriDelta().addAll(DeltaConvertor.toItemDeltaTypes(aprioriItemDelta));
@@ -955,7 +992,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
 
     private boolean shouldCategorize(I ivwo, boolean takeValidInvalid) {
         return !ivwo.isWeak() && // experimental
-                !shouldSkipMapping(ivwo.getMapping().getStrength()) &&
+                !shouldSkipMapping(ivwo.getProducer().getStrength()) &&
                 (ivwo.isValid() || takeValidInvalid && ivwo.wasValid());
     }
 
@@ -1174,6 +1211,12 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
             return members.get(0);
         }
 
+        private Object getRepresentativeRealValue() {
+            // Actually not sure whether the representative can be null
+            var representative = getRepresentative();
+            return representative != null ? representative.getRealValue() : null;
+        }
+
         private boolean covers(V value) throws SchemaException {
             for (V member : members) {
                 if (areEquivalent(member, value)) {
@@ -1248,11 +1291,8 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
     private boolean areEquivalent(V value1, V value2) throws SchemaException {
         if (containerIdentifiersPresentAndEqual(value1, value2)) {
             return true;
-        } else if (valueMatcher != null && value1 instanceof PrismPropertyValue && value2 instanceof PrismPropertyValue) {
-            //noinspection unchecked
-            return valueMatcher.match(value1.getRealValue(), value2.getRealValue());
-        } else if (comparator != null) {
-            return comparator.compare(value1, value2) == 0;
+        } else if (equalsChecker != null) {
+            return equalsChecker.test(value1, value2);
         } else if (value1 != null) {
             return value1.equals(value2, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS);
         } else {
@@ -1261,9 +1301,9 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
     }
 
     private boolean containerIdentifiersPresentAndEqual(V value1, V value2) {
-        if (value1 instanceof PrismContainerValue && value2 instanceof PrismContainerValue) {
-            Long id1 = ((PrismContainerValue) value1).getId();
-            Long id2 = ((PrismContainerValue) value2).getId();
+        if (value1 instanceof PrismContainerValue<?> pcv1 && value2 instanceof PrismContainerValue<?> pcv2) {
+            Long id1 = pcv1.getId();
+            Long id2 = pcv2.getId();
             return id1 != null && id1.equals(id2);
         } else {
             return false;

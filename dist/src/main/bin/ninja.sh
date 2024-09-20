@@ -86,11 +86,6 @@ if [ "${MP_NO_ENV_COMPAT:-}" != "1" ]; then
     export ${ENV_MAP_PREFIX}midpoint_repository_database="${REPO_DATABASE_TYPE}"
     [ "${db_port:-}" == "default" ] && db_port=""
     case ${REPO_DATABASE_TYPE} in
-    h2)
-      [ "${db_port:-}" == "" ] && db_port=5437
-      db_prefix="jdbc:h2:tcp://"
-      db_path="/${REPO_DATABASE:-midpoint}"
-      ;;
     oracle)
       [ "${db_port:-}" == "" ] && db_port=1521
       db_prefix="jdbc:oracle:thin:@"
@@ -142,7 +137,12 @@ while read line; do
   [ "${_key: -5}" = ".FILE" ] && _key="${_key::$((${#_key} - 5))}_FILE"
   ###
 
-  echo "Processing variable (MAP) ... ${_key} .:. ${_val}" >&2
+  if [ "${_key: -7}" = "assword" ]
+  then
+    echo "Processing variable (MAP) ... ${_key} .:. *****" >&2
+  else
+    echo "Processing variable (MAP) ... ${_key} .:. ${_val}" >&2
+  fi
 
   if [ "${_key:0:1}" = "." ]; then
     JAVA_OPTS="${JAVA_OPTS:-} -D${_key:1}=\"${_val}\""
@@ -160,7 +160,12 @@ while read line; do
   [ "${_key: -5}" = ".FILE" ] && _key="${_key::$((${#_key} - 5))}_FILE"
   ###
 
-  echo "Processing variable (UNMAP) ... ${_key} .:. ${_val}" >&2
+  if [ "${_key: -7}" = "assword" ]
+  then
+    echo "Processing variable (UNMAP) ... ${_key} .:. *****" >&2
+  else
+    echo "Processing variable (UNMAP) ... ${_key} .:. ${_val}" >&2
+  fi
 
   JAVA_OPTS="$(echo -n "${JAVA_OPTS:-}" | sed "s/ -D${_key}=\"[^\"]*\"//g;s/ -D${_key}=[^[:space:]]*//g")"
 done < <(env | grep "^${ENV_UNMAP_PREFIX}")
@@ -211,7 +216,7 @@ done
 # would be empty and considered a class name by the "java -jar" command.
 if [ -n "${JDBC_DRIVER:-}" ]; then
   echo "Using JDBC driver path: ${JDBC_DRIVER}" >&2
-  eval "${_RUNJAVA}" ${JAVA_OPTS} "-Dloader.path=${JDBC_DRIVER}" -jar "${BASE_DIR}/lib/ninja.jar" -m "${MIDPOINT_HOME}" "$@"
+  eval "${_RUNJAVA}" ${JAVA_OPTS} "-Dloader.path=${JDBC_DRIVER}" -jar "${BASE_DIR}/lib/ninja.jar" -m "${MIDPOINT_HOME}" \"\$@\"
 else
-  eval "${_RUNJAVA}" ${JAVA_OPTS} -jar "${BASE_DIR}/lib/ninja.jar" -m "${MIDPOINT_HOME}" "$@"
+  eval "${_RUNJAVA}" ${JAVA_OPTS} -jar "${BASE_DIR}/lib/ninja.jar" -m "${MIDPOINT_HOME}" \"\$@\"
 fi

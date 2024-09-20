@@ -119,7 +119,7 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
 
     @Override
     protected UserOperationalButtonsPanel createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<UserType>> wrapperModel) {
-        return new UserOperationalButtonsPanel(id, wrapperModel, getObjectDetailsModels().getDelegationsModel(), getObjectDetailsModels().getExecuteOptionsModel(), getObjectDetailsModels().isSelfProfile()) {
+        return new UserOperationalButtonsPanel(id, wrapperModel, getObjectDetailsModels().getExecuteOptionsModel(), getObjectDetailsModels().isSelfProfile()) {
 
             private static final long serialVersionUID = 1L;
 
@@ -128,7 +128,7 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
                 PageUser.this.refresh(target);
             }
             @Override
-            protected void savePerformed(AjaxRequestTarget target) {
+            protected void submitPerformed(AjaxRequestTarget target) {
                 PageUser.this.savePerformed(target);
             }
 
@@ -268,7 +268,9 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
             ItemDefinition deltaDef = assignmentDef.findItemDefinition(deltaPath);
 
             delta.setParentPath(WebComponentUtil.joinPath(oldValue.getPath(), delta.getPath().allExceptLast()));
-            delta.applyDefinition(deltaDef);
+            if (deltaDef != null) {
+                delta.applyDefinition(deltaDef);
+            }
 
             focusDelta.addModification(delta);
         }

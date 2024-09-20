@@ -97,13 +97,14 @@ public class TestPageSystemConfiguration extends AbstractInitializedGuiIntegrati
     public void test018testModifySystemConfig() throws Exception {
         renderPage(com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.PageSystemConfiguration.class);
 
-        tester.executeAjaxEvent("container:additionalButtons:0:additionalButton:compositedButton", "click");
+        tester.executeAjaxEvent("choicePanel:list:0:tile", "click");
         tester.assertRenderedPage(PageSystemBasic.class);
 
         final String mainFormPath = "detailsView:mainForm";
-        final String descriptionPath = "mainPanel:properties:container:1:values:0:value:valueForm:valueContainer:input:propertiesLabel:properties:1:property:values:0:value:valueForm:valueContainer:input:input";
+        final String descriptionPath = "mainPanel:properties:container:1:valuesContainer:values:0:value:valueForm:valueContainer:input:"
+                + "propertiesLabel:properties:1:property:valuesContainer:values:0:value:valueForm:valueContainer:input:input";
 
-        tester.clickLink(mainFormPath + ":mainPanel:properties:container:1:values:0:value:valueForm:valueContainer:input:propertiesLabel:showEmptyButton");
+        tester.clickLink(mainFormPath + ":mainPanel:properties:container:1:valuesContainer:values:0:value:valueForm:valueContainer:input:propertiesLabel:showEmptyButton");
 
         FormTester formTester = tester.newFormTester(mainFormPath, false);
         String des = "new description";

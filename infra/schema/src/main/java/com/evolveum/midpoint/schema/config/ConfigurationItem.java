@@ -12,28 +12,24 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
 
-import com.evolveum.midpoint.prism.util.CloneUtil;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-
-import com.google.common.base.Strings;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SystemException;
-
-import org.jetbrains.annotations.Nullable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
 /**
  * Helper class that provides complex information about a configuration item (e.g., a mapping).
  * Currently, the most prominent information is the origin of the item value.
  */
 @Experimental
-public class ConfigurationItem<T extends Serializable & Cloneable> implements ConfigurationItemable<T>, Serializable, Cloneable {
+public class ConfigurationItem<T extends Serializable & Cloneable>
+        implements ConfigurationItemable<T>, Serializable, Cloneable {
 
     @Serial private static final long serialVersionUID = 0L;
 
@@ -51,40 +47,76 @@ public class ConfigurationItem<T extends Serializable & Cloneable> implements Co
      */
     private final @NotNull ConfigurationItemOrigin origin;
 
+    /** The "container" in which this item is present. */
+    private final @Nullable ConfigurationItem<?> parent;
+
     /** For internal use. */
     protected ConfigurationItem(
             @NotNull ConfigurationItem<? extends T> original) {
         this.value = original.value;
         this.origin = original.origin;
+        this.parent = original.parent;
     }
 
     public ConfigurationItem(
             @NotNull T value,
-            @NotNull ConfigurationItemOrigin origin) {
+            @NotNull ConfigurationItemOrigin origin,
+            @Nullable ConfigurationItem<?> parent) {
         this.value = value;
         this.origin = origin;
+        this.parent = parent;
     }
 
+    /** Simple way of constructing a typed configuration item. To be imported statically. */
+    public static @NotNull <T extends Serializable & Cloneable, X extends ConfigurationItem<T>> X configItem(
+            @NotNull T value, @NotNull ConfigurationItemOrigin origin, @NotNull Class<X> clazz) {
+        return of(value, origin)
+                .as(clazz);
+    }
+
+    /** Simple way of constructing a typed configuration item. To be imported statically. */
+    public static @NotNull <T extends Serializable & Cloneable, X extends ConfigurationItem<T>> X configItem(
+            @NotNull T value,
+            @NotNull ConfigurationItemOrigin origin,
+            @Nullable ConfigurationItem<?> parent,
+            @NotNull Class<X> clazz) {
+        return new ConfigurationItem<>(value, origin, parent)
+                .as(clazz);
+    }
+
+    /** Simple way of constructing a typed configuration item. To be imported statically. */
+    @Contract("!null, _, _ -> !null; null, _, _ -> null")
+    public static <T extends Serializable & Cloneable, X extends ConfigurationItem<T>> X configItemNullable(
+            @Nullable T value, @NotNull ConfigurationItemOrigin origin, @NotNull Class<X> clazz) {
+        return value != null ? configItem(value, origin, clazz) : null;
+    }
+
+    /** Use {@link #configItem(Serializable, ConfigurationItemOrigin, Class)} instead. */
+    @Deprecated
     public static @NotNull <T extends Serializable & Cloneable> ConfigurationItem<T> of(
             @NotNull T value, @NotNull ConfigurationItemOrigin origin) {
-        return new ConfigurationItem<>(value, origin);
+        return new ConfigurationItem<>(value, origin, null);
     }
 
     public static @NotNull <T extends Serializable & Cloneable> ConfigurationItem<T> embedded(@NotNull T value) {
-        return new ConfigurationItem<>(value, ConfigurationItemOrigin.embedded(value));
+        return new ConfigurationItem<>(value, ConfigurationItemOrigin.embedded(value), null);
     }
 
-    public static @NotNull <T extends Serializable & Cloneable> List<ConfigurationItem<T>> ofListEmbedded(@NotNull List<T> items) {
-        return ofList(items, OriginProvider.embedded());
+    @Contract("!null -> !null; null -> null")
+    public static <T extends Serializable & Cloneable> ConfigurationItem<T> embeddedNullable(T value) {
+        return value != null ?
+                new ConfigurationItem<>(value, ConfigurationItemOrigin.embedded(value), null) :
+                null;
     }
 
-    public static @NotNull <T extends Serializable & Cloneable> List<ConfigurationItem<T>> ofList(
+    private static @NotNull <T extends Serializable & Cloneable> List<ConfigurationItem<T>> ofList(
             @NotNull List<T> items, @NotNull OriginProvider<? super T> originProvider) {
         return items.stream()
                 .map(i -> of(i, originProvider.origin(i)))
                 .toList();
     }
 
+    // consider adding parent here
     public static @NotNull <T extends Serializable & Cloneable, X extends ConfigurationItem<T>> List<X> ofList(
             @NotNull List<T> items, @NotNull OriginProvider<? super T> originProvider, @NotNull Class<X> clazz) {
         return asList(
@@ -97,16 +129,12 @@ public class ConfigurationItem<T extends Serializable & Cloneable> implements Co
         return value;
     }
 
+    public static <T extends Serializable & Cloneable> T value(@Nullable ConfigurationItem<T> item) {
+        return item != null ? item.value() : null;
+    }
+
     public @NotNull ConfigurationItemOrigin origin() {
         return origin;
-    }
-
-    public @NotNull ConfigurationItemOrigin originFor(@NotNull ItemPath path) {
-        return origin.child(path);
-    }
-
-    public <C extends Containerable> @NotNull OriginProvider<C> originProviderFor(@NotNull ItemPath path) {
-        return item -> originFor(path);
     }
 
     /** Null-safe variant of {@link #as(Class)}. */
@@ -155,8 +183,9 @@ public class ConfigurationItem<T extends Serializable & Cloneable> implements Co
                 .toList();
     }
 
+    @Override
     @Contract("null, _, _ -> null; !null, _, _ -> !null")
-    protected <X extends Serializable & Cloneable, CI extends ConfigurationItem<X>> CI child(
+    public <X extends Serializable & Cloneable, CI extends ConfigurationItem<X>> CI child(
             @Nullable X value, @NotNull Class<CI> clazz, Object... pathSegments) {
         var ci = child(value, pathSegments);
         return ci != null ? ci.as(clazz) : null;
@@ -165,19 +194,21 @@ public class ConfigurationItem<T extends Serializable & Cloneable> implements Co
     @Contract("null, _ -> null; !null, _ -> !null")
     protected <X extends Serializable & Cloneable> ConfigurationItem<X> child(@Nullable X value, Object... pathSegments) {
         if (value != null) {
-            return of(
+            return new ConfigurationItem<>(
                     value,
-                    origin().child(pathSegments));
+                    origin().child(pathSegments),
+                    this);
         } else {
             return null;
         }
     }
 
     private <C extends Containerable> @NotNull ConfigurationItem<C> childWithId(@NotNull C value, Object... pathSegments) {
-        return of(
+        return new ConfigurationItem<>(
                 value,
                 origin().child(
-                        ItemPath.create(pathSegments).append(value.asPrismContainerValue().getId())));
+                        ItemPath.create(pathSegments).append(value.asPrismContainerValue().getId())),
+                this);
     }
 
     /** TODO better name */
@@ -221,14 +252,13 @@ public class ConfigurationItem<T extends Serializable & Cloneable> implements Co
     public ConfigurationItem<T> clone() {
         return new ConfigurationItem<>(
                 CloneUtil.cloneCloneable(value),
-                origin);
+                origin,
+                parent);
     }
 
     @Override
     public String toString() {
-        return "ConfigurationItem[" +
-                "value=" + value + ", " +
-                "origin=" + origin + ']';
+        return fullDescription();
     }
 
     /** To be overridden in specific subclasses. */
@@ -238,31 +268,15 @@ public class ConfigurationItem<T extends Serializable & Cloneable> implements Co
 
     @SuppressWarnings("WeakerAccess") // for the future
     public @NotNull String fullDescription() {
-        return localDescription() + " in " + origin.fullDescription();
+        return fullOriginLessDescription() + " " + origin.fullDescription();
     }
 
-    /**
-     * Checks the value, and if it's `false`, emits a {@link ConfigurationException}.
-     *
-     * Note that {@link #DESC} can be used as a placeholder for {@link #fullDescription()} in the `arguments`.
-     * */
-    public void configCheck(boolean value, String template, Object... arguments) throws ConfigurationException {
-        if (!value) {
-            for (int i = 0; i < arguments.length; i++) {
-                if (arguments[i] == DESC) {
-                    arguments[i] = fullDescription();
-                }
-            }
-            throw new ConfigurationException(
-                    Strings.lenientFormat(template, arguments));
+    @SuppressWarnings("WeakerAccess") // for the future
+    public @NotNull String fullOriginLessDescription() {
+        if (parent != null) {
+            return localDescription() + " in " + parent.fullOriginLessDescription();
+        } else {
+            return localDescription();
         }
-    }
-
-    /** As {@link #configCheck(boolean, String, Object...)}, but checks that the value is not null. */
-    @Contract("null, _, _ -> fail")
-    public <V> @NotNull V configNonNull(V value, String template, Object... arguments) throws ConfigurationException {
-        configCheck(value != null, template, arguments);
-        assert value != null;
-        return value;
     }
 }

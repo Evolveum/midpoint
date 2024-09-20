@@ -14,7 +14,6 @@ import jakarta.persistence.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.DynamicUpdate;
-import org.hibernate.annotations.ForeignKey;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Item;
@@ -63,10 +62,10 @@ public class RObjectTextInfo implements Serializable {
         this.text = text;
     }
 
-    @ForeignKey(name = "fk_object_text_info_owner")
-    @MapsId("owner")
+    @MapsId("ownerOid")
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable
+    @JoinColumn(name = COLUMN_OWNER_OID, foreignKey = @ForeignKey(name = "fk_object_text_info_owner"))
     public RObject getOwner() {
         return owner;
     }
@@ -146,11 +145,11 @@ public class RObjectTextInfo implements Serializable {
                 if (realValue == null) {
                     // skip
                 } else if (realValue instanceof String) {
-                    append(allWords, (String) realValue, repositoryContext.prismContext);
+                    append(allWords, (String) realValue);
                 } else if (realValue instanceof PolyString) {
-                    append(allWords, (PolyString) realValue, repositoryContext.prismContext);
+                    append(allWords, (PolyString) realValue);
                 } else {
-                    append(allWords, realValue.toString(), repositoryContext.prismContext);
+                    append(allWords, realValue.toString());
                 }
             }
         }
@@ -189,11 +188,11 @@ public class RObjectTextInfo implements Serializable {
         return rv;
     }
 
-    private static void append(List<String> allWords, String text, PrismContext prismContext) {
+    private static void append(List<String> allWords, String text) {
         if (StringUtils.isBlank(text)) {
             return;
         }
-        String normalized = prismContext.getDefaultPolyStringNormalizer().normalize(text);
+        String normalized = PrismContext.get().getDefaultPolyStringNormalizer().normalize(text);
         String[] words = StringUtils.split(normalized);
         for (String word : words) {
             if (StringUtils.isNotBlank(word)) {
@@ -204,9 +203,9 @@ public class RObjectTextInfo implements Serializable {
         }
     }
 
-    private static void append(List<String> allWords, PolyString text, PrismContext prismContext) {
+    private static void append(List<String> allWords, PolyString text) {
         if (text != null) {
-            append(allWords, text.getOrig(), prismContext);
+            append(allWords, text.getOrig());
         }
     }
 

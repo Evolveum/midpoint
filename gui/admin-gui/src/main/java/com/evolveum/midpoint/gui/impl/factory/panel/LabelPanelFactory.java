@@ -17,6 +17,9 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 
 @Component
 public class LabelPanelFactory<T> implements GuiComponentFactory<PrismPropertyPanelContext<T>> {
@@ -39,6 +42,16 @@ public class LabelPanelFactory<T> implements GuiComponentFactory<PrismPropertyPa
         if (lookupTableOid != null) {
             return new LookupTableLabelPanel(panelCtx.getComponentId(), panelCtx.getRealValueStringModel(), lookupTableOid);
         }
+
+        T object = panelCtx.getRealValueModel().getObject();
+        if (object instanceof Enum<?>) {
+            return new Label(panelCtx.getComponentId(), WebComponentUtil.createLocalizedModelForEnum((Enum<?>) object, panelCtx.getPageBase()));
+        } else if (object instanceof PolyString) {
+            return new Label(panelCtx.getComponentId(), LocalizationUtil.translatePolyString((PolyString) object));
+        } else if (object instanceof Boolean) {
+            return new Label(panelCtx.getComponentId(), WebComponentUtil.createLocalizedModelForBoolean((Boolean) object));
+        }
+
         return new Label(panelCtx.getComponentId(), panelCtx.getRealValueStringModel());
     }
 

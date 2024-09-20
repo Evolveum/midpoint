@@ -1,0 +1,161 @@
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<xsd:schema xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3" xmlns:jaxb="https://jakarta.ee/xml/ns/jaxb" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:tns="http://example.com/xml/ns/mySchema" elementFormDefault="qualified" targetNamespace="http://example.com/xml/ns/mySchema" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
+    <xsd:import namespace="https://jakarta.ee/xml/ns/jaxb"/>
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
+    <xsd:complexType name="ContainerTestType">
+        <xsd:sequence>
+            <xsd:element name="facility" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO facility
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>facility</a:displayName>
+                        <a:displayOrder>135</a:displayOrder>
+                        <a:help>The address of the facility where the employees office resides</a:help>
+                        <a:indexed>true</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="officePhone" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>office telephone number</a:displayName>
+                        <a:displayOrder>140</a:displayOrder>
+                        <a:help>The office telephone number</a:help>
+                        <a:indexed>false</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="UserExtensionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO UserExtensionType
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:extension ref="c:UserType"/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element minOccurs="0" name="customAdministrativeStatus" type="c:ActivationStatusType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO customAdministrativeStatus
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>Custom Administrative status</a:displayName>
+                        <a:displayOrder>250</a:displayOrder>
+                        <a:indexed>true</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element minOccurs="0" name="secondaryPassword" type="t:ProtectedStringType">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>Secondary Password</a:displayName>
+                        <a:displayOrder>260</a:displayOrder>
+                        <a:indexed>false</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element minOccurs="0" name="officeNumber" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>office number</a:displayName>
+                        <a:displayOrder>120</a:displayOrder>
+                        <a:indexed>true</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="favoriteColor" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>favorite color</a:displayName>
+                        <a:displayOrder>130</a:displayOrder>
+                        <a:help>The favorite color</a:help>
+                        <a:indexed>false</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="facility" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>facility</a:displayName>
+                        <a:displayOrder>135</a:displayOrder>
+                        <a:help>The address of the facility where the employees office resides</a:help>
+                        <a:indexed>true</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="officePhone" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>office telephone number</a:displayName>
+                        <a:displayOrder>140</a:displayOrder>
+                        <a:help>The office telephone number</a:help>
+                        <a:indexed>false</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="enumTest" type="tns:TestEnumType">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayOrder>180</a:displayOrder>
+                        <a:displayHint>emphasized</a:displayHint>
+                        <a:indexed>false</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="containerTest" type="tns:ContainerTestType">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayOrder>190</a:displayOrder>
+                        <a:indexed>false</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="TestEnumType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="value1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Value 1
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="VALUE_ONE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="value2">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Value 2
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="VALUE_TWO"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+</xsd:schema>

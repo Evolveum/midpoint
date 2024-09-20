@@ -1,0 +1,233 @@
+= Report Type REST Endpoint
+:page-nav-title: Report
+:page-display-order: 2600
+:page-toc: top
+:page-keywords: [ 'rest', 'report', 'endpoint' ]
+:page-upkeep-status: green
+
+== Description
+
+Here we are describing the Report object type in relation to midPoints REST API. The
+Report objects are a part of the REST API web resources.
+
+.Endpoint
+[source, http]
+----
+reports/
+----
+
+== Operations And Examples
+
+The Reports endpoint operations and examples.
+
+include::../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+
+=== Create Report Object
+
+include::../operations/examples/raw/create-report.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]
+
+=== Get Reports Type Objects
+
+Get operation for fetching a single specific object.
+
+.Get Report Type object with REST
+
+include::../operations/examples/raw/get-reports.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/get-op-rest/[Get Operation]
+
+=== Search for Report Type Objects
+
+Search operation usable for fetching the full list of objects or a list based on filter.
+
+include::../operations/examples/raw/search-all-reports.adoc[]
+
+include::../operations/examples/raw/search-all.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[Search Operation]
+
+=== Modify report Type Objects
+
+include::../operations/examples/raw/modify-attr-reports.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/modify-op-rest/[Modify Operation]
+
+=== Delete Reports Type Objects
+
+include::../operations/examples/raw/delete-reports.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/delete-op-rest/[Delete Operation]
+
+=== Generate and Validate Operations for Reports Type Objects
+
+Operations to generate or validate values.
+
+- xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]
+
+== JSON Example
+
+Example output of information regarding a specific Report object. Some parts of the example
+might have been removed or simplified for the purpose of the example.
+
+.Show JSON Example
+[%collapsible]
+====
+[source, json]
+----
+{
+	"report": {
+		"oid": "4de173d5-4dff-4e4f-bfb8-47f951f26637",
+		"version": "1",
+		"name": "All error audit records in 24h",
+		"description": "Report made from all audit records.",
+		"metadata": {},
+		"operationExecution": {},
+		"assignment": {
+			"@id": 1,
+			"identifier": "archetype",
+			"metadata": {},
+			"targetRef": {
+				"oid": "00000000-0000-0000-0000-000000000171",
+				"relation": "org:default",
+				"type": "c:ArchetypeType"
+			}
+		},
+		"iteration": 0,
+		"iterationToken": "",
+		"archetypeRef": {
+			"oid": "00000000-0000-0000-0000-000000000171",
+			"relation": "org:default",
+			"type": "c:ArchetypeType"
+		},
+		"roleMembershipRef": {
+			"@metadata": {},
+			"oid": "00000000-0000-0000-0000-000000000171",
+			"relation": "org:default",
+			"type": "c:ArchetypeType"
+		},
+		"objectCollection": {
+			"collection": {
+				"baseCollectionRef": {
+					"collectionRef": {
+						"oid": "00000000-0000-0000-0001-000000000004",
+						"relation": "org:default",
+						"type": "c:ObjectCollectionType"
+					}
+				}
+			},
+			"parameter": [
+				{
+					"@id": 2,
+					"name": "outcome",
+					"type": "#OperationResultStatusType",
+					"display": {
+						"label": {
+							"orig": "outcome",
+							"norm": "outcome",
+							"translation": {
+								"key": "AuditEventRecordType.outcome"
+							}
+						}
+					}
+				},
+				{
+					"@id": 3,
+					"name": "eventType",
+					"type": "#AuditEventTypeType",
+					"display": {
+						"label": {
+							"orig": "eventType",
+							"norm": "eventtype",
+							"translation": {
+								"key": "AuditEventRecordType.eventType"
+							}
+						}
+					}
+				},
+				{
+					"@id": 4,
+					"name": "eventStage",
+					"type": "#AuditEventStageType",
+					"display": {
+						"label": {
+							"orig": "eventStage",
+							"norm": "eventstage",
+							"translation": {
+								"key": "AuditEventRecordType.eventStage"
+							}
+						}
+					}
+				},
+				{
+					"@id": 5,
+					"name": "from",
+					"type": "#dateTime",
+					"display": {
+						"label": {
+							"orig": "from",
+							"norm": "from",
+							"translation": {
+								"key": "AuditPopupPanel.dateFrom"
+							}
+						}
+					}
+				},
+				{
+					"@id": 6,
+					"name": "to",
+					"type": "#dateTime",
+					"display": {
+						"label": {
+							"orig": "to",
+							"norm": "to",
+							"translation": {
+								"key": "AuditPopupPanel.dateTo"
+							}
+						}
+					}
+				},
+				{
+					"@id": 7,
+					"name": "targetRef",
+					"type": "c:ObjectReferenceType",
+					"display": {
+						"label": {
+							"orig": "targetRef",
+							"norm": "targetref",
+							"translation": {
+								"key": "AuditEventRecordType.targetRef"
+							}
+						}
+					}
+				},
+				{
+					"@id": 8,
+					"name": "initiatorRef",
+					"type": "c:ObjectReferenceType",
+					"display": {
+						"label": {
+							"orig": "initiatorRef",
+							"norm": "initiatorref",
+							"translation": {
+								"key": "AuditEventRecordType.initiatorRef"
+							}
+						}
+					}
+				}
+			]
+		}
+	}
+}
+----
+====
+
+== See Also
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]

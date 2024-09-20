@@ -309,6 +309,10 @@ public class ValueSelector implements DebugDumpable, Serializable {
             SecurityViolationException, ConfigurationException, ObjectNotFoundException {
         ctx.traceMatchingStart(this, value);
         for (SelectorClause clause : clauses) {
+            if (!ctx.isFullInformationAvailable() && clause.requiresFullInformation()) {
+                ctx.traceClauseNotApplicable(clause, "requires full information but it's (potentially) not available");
+                continue;
+            }
             if (!clause.matches(value, ctx)) {
                 ctx.traceMatchingEnd(this, value, false);
                 return false;

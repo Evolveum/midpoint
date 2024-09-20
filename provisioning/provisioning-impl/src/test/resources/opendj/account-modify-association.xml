@@ -16,12 +16,19 @@
     <oid>c0c010c0-d34d-b44f-f11d-333222444566</oid>
     <itemDelta>
         <t:modificationType>replace</t:modificationType>
-        <t:path>association</t:path>
+        <t:path>associations</t:path>
         <t:value>
-            <c:name>group</c:name>
-            <c:identifiers>
-                <ri:dn xsi:type="xsd:string">cn=anygroup,ou=groups,dc=example,dc=com</ri:dn>
-            </c:identifiers>
+            <ri:group>
+                <c:objects>
+                    <ri:group>
+                        <object xsi:type="c:ShadowType">
+                            <c:attributes>
+                                <ri:dn xsi:type="xsd:string">cn=anygroup,ou=groups,dc=example,dc=com</ri:dn>
+                            </c:attributes>
+                        </object>
+                    </ri:group>
+                </c:objects>
+            </ri:group>
         </t:value>
     </itemDelta>
 </objectModification>

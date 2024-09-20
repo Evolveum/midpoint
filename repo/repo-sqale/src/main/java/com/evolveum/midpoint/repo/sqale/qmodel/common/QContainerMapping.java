@@ -11,6 +11,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,6 +24,8 @@ import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -71,8 +74,30 @@ public class QContainerMapping<S extends Containerable, Q extends QContainer<R, 
     public S toSchemaObject(@NotNull Tuple tuple, @NotNull Q entityPath, @NotNull JdbcSession jdbcSession, Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException {
         var ret =  super.toSchemaObject(tuple, entityPath, jdbcSession, options);
         attachOwnerOid(ret, tuple, entityPath);
+        attachContainerIdPath(ret, tuple, entityPath);
         return ret;
     }
+
+    protected void attachContainerIdPath(S ret, Tuple tuple, Q entityPath) {
+        ret.asPrismContainerValue().setUserData(SqaleUtils.FULL_ID_PATH, containerIdPath(tuple, entityPath));
+
+    }
+
+    @Override
+    public @NotNull Path<?>[] selectExpressions(Q entity, Collection<SelectorOptions<GetOperationOptions>> options) {
+        return super.selectExpressions(entity, options);
+    }
+
+    /**
+     * Descendant path of container ids to current row
+    **/
+     protected List<Object> containerIdPath(Tuple tuple, Q e) {
+         var fullRow = tuple.get(e);
+         if (fullRow != null) {
+             return List.of(fullRow.ownerOid.toString(), fullRow.cid);
+         }
+        return List.of(tuple.get(e.ownerOid).toString(),tuple.get(e.cid));
+     }
 
     /**
      * Attaches ownerOid (UUID) to user data of container, since this is required for iterativer search for proper continuation.
@@ -124,5 +149,13 @@ public class QContainerMapping<S extends Containerable, Q extends QContainer<R, 
 
     public Predicate containerIdentityPredicate(Q entityPath, S container) {
         return entityPath.cid.eq(container.asPrismContainerValue().getId());
+    }
+
+    public int containerDepth() {
+        return 1;
+    }
+
+    public boolean useDeltaApplyResults() {
+        return false;
     }
 }

@@ -1,0 +1,12 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Modify Reports*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Content-Type: application/json" \
+-X PATCH http://localhost:8080/midpoint/ws/rest/reports/4de173d5-4dff-4e4f-bfb8-47f951f26637 \
+-v \
+--data-binary @./samples/rest/modify-attribute-gen.json
+----

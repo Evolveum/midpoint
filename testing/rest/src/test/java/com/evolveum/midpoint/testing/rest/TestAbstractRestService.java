@@ -11,24 +11,30 @@ import static org.testng.AssertJUnit.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
-import jakarta.ws.rs.core.Response;
-import jakarta.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import jakarta.ws.rs.core.Response;
+import jakarta.xml.bind.JAXBElement;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -1136,7 +1142,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         assertEquals("Wrong # of extractedResults", 2, extractedResults.size());
 
         ItemProcessingResult<OperationSpecificData> first = extractedResults.get(0);
-        assertEquals("Wrong OID in first result", "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX", first.oid);
+        assertEquals("Wrong OID in first result", "142f4a38-01d8-4864-8cb4-ea42a02b724e", first.oid);
         assertEquals("Wrong status in first result", OperationResultStatusType.FATAL_ERROR, first.status);
 
         ItemProcessingResult<OperationSpecificData> second = extractedResults.get(1);
@@ -1643,17 +1649,189 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         assertEquals("Expected 404 but got " + response.getStatus(), 404, response.getStatus());
     }
 
+    /* User has both ADD and READ model autz, but only REST getObject. So this fails. */
+    @Test
+    public void test690RestMethodNotAuthorized() {
+        WebClient client = prepareClient(USER_REST_LIMITED_NAME, USER_REST_LIMITED_PASSWORD);
+        client.path("/users");
+
+        when();
+        Response response = client.post(getRepoFile(USER_DARTHADDER_FILE));
+
+        then();
+        displayResponse(response);
+        assertStatus(response, 403);
+
+        displayDumpable("Audit", getDummyAuditService());
+        getDummyAuditService().assertRecords(1);
+        getDummyAuditService().assertFailedLogin(SchemaConstants.CHANNEL_REST_URI);
+    }
+
+    /* User has both REST and model autz for "get object" operation. So this succeeds. */
+    @Test
+    public void test695RestMethodAuthorized() {
+        WebClient client = prepareClient(USER_REST_LIMITED_NAME, USER_REST_LIMITED_PASSWORD);
+        client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
+
+        when();
+        Response response = client.get();
+
+        then();
+        displayResponse(response);
+        assertStatus(response, 200);
+    }
+
     private WebClient prepareClient() {
         return prepareClient(USER_ADMINISTRATOR_USERNAME, USER_ADMINISTRATOR_PASSWORD);
     }
 
     private void displayResponse(Response response) {
-        logger.info("response : {} ", response.getStatus());
-        logger.info("response : {} ", response.getStatusInfo().getReasonPhrase());
+        displayValue("response status", response.getStatus());
+        displayValue("response reason phrase", response.getStatusInfo().getReasonPhrase());
     }
 
     protected <O extends ObjectType> PrismObject<O> getObjectRepo(Class<O> type, String oid) throws ObjectNotFoundException, SchemaException {
         OperationResult result = new OperationResult("getObjectRepo");
         return repositoryService.getObject(type, oid, null, result);
+    }
+
+    @Test
+    public void test700CompleteWorkItemReject() throws Exception {
+        testCompletionWorkItem(SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT);
+    }
+
+    @Test
+    public void test705CompleteWorkItemAccept() throws Exception {
+        testCompletionWorkItem(SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE);
+    }
+
+    private void removeApprovedRole(String userOid, Task task) throws Exception {
+        PrismObject<UserType> jack = getUser(userOid);
+        PrismContainerValue<AssignmentType> c1 = jack.asObjectable().getAssignment().stream()
+                .filter(a -> Objects.equals(a.getTargetRef().getOid(), ROLE_TO_APPROVE_OID))
+                .map(a -> a.asPrismContainerValue())
+                .findFirst()
+                .orElse(null);
+
+        if (c1 == null) {
+            return;
+        }
+        ObjectDelta<UserType> delta = jack.createModifyDelta();
+        delta.addModificationDeleteContainer(UserType.F_ASSIGNMENT, c1.clone());
+
+        executeChanges(delta, ModelExecuteOptions.create(), task, task.getResult());
+    }
+
+    private CaseType createCase(String userOid, Task task) throws Exception {
+        OperationResult result = task.getResult();
+
+        PrismContainerValue<AssignmentType> c1 = new AssignmentType()
+                .targetRef(ROLE_TO_APPROVE_OID, RoleType.COMPLEX_TYPE)
+                .asPrismContainerValue();
+
+        PrismObject<UserType> jack = getUser(userOid);
+        ObjectDelta<UserType> delta = jack.createModifyDelta();
+        delta.addModificationAddContainer(UserType.F_ASSIGNMENT, c1);
+
+        executeChanges(delta, ModelExecuteOptions.create(), task, result);
+
+        ObjectQuery query = getPrismContext().queryFor(CaseType.class)
+                .item(CaseType.F_OBJECT_REF).ref(USER_JACK_OID)
+                .and()
+                .item(CaseType.F_STATE).eq(SchemaConstants.CASE_STATE_OPEN)
+                .and()
+                .item(CaseType.F_WORK_ITEM, CaseWorkItemType.F_ASSIGNEE_REF).ref(USER_ADMINISTRATOR_OID)
+                .build();
+
+        SearchResultList<PrismObject<CaseType>> cases = modelService.searchObjects(CaseType.class, query, null, task, result);
+        AssertJUnit.assertEquals(1, cases.size());
+
+        return cases.get(0).asObjectable();
+    }
+
+    private void testCompletionWorkItem(String outcome) throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        removeApprovedRole(USER_JACK_OID, task);
+
+        // given
+        CaseType c = createCase(USER_JACK_OID, task);
+        AssertJUnit.assertEquals(1, c.getWorkItem().size());
+
+        String caseOid = c.getOid();
+        Long workItemId = c.getWorkItem().get(0).getId();
+
+        // when
+        final String comment = "sample comment";
+
+        AbstractWorkItemOutputType data = new AbstractWorkItemOutputType();
+        data.setComment(comment);
+        data.setOutcome(outcome);
+
+        WebClient client = prepareClient();
+        client.path("/cases/" + caseOid + "/workItems/" + workItemId + "/complete");
+        Response response = client.post(data);
+
+        // then
+        assertStatus(response, 204);
+
+        CaseType changed = modelService.getObject(CaseType.class, caseOid, null, task, result).asObjectable();
+        assertEquals(SchemaConstants.CASE_STATE_CLOSED, changed.getState());
+        assertEquals(outcome, changed.getOutcome());
+
+        CaseWorkItemType workItem = changed.getWorkItem().get(0);
+        AbstractWorkItemOutputType output = workItem.getOutput();
+
+        assertEquals(comment, output.getComment());
+        assertEquals(outcome, output.getOutcome());
+    }
+
+    @Test
+    public void test710AttempToCompleteNonExistingWorkItem() throws Exception {
+        Task task = getTestTask();
+
+        removeApprovedRole(USER_JACK_OID, task);
+        CaseType c = createCase(USER_JACK_OID, task);
+
+        AbstractWorkItemOutputType data = new AbstractWorkItemOutputType();
+        data.setOutcome(SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE);
+
+        long nonExistingId = 29389283;
+
+        WebClient client = prepareClient();
+        client.path("/cases/" + c.getOid() + "/workItems/" + nonExistingId + "/complete");
+        Response response = client.post(data);
+        assertStatus(response, 500);
+
+        OperationResultType result = response.readEntity(OperationResultType.class);
+        AssertJUnit.assertTrue(result.getMessage().contains("No work item " + nonExistingId));
+
+        modelService.executeChanges(List.of(c.asPrismObject().createDeleteDelta()), null, task, task.getResult());
+    }
+
+    @Test
+    public void test720DelegateWorkItem() throws Exception {
+        Task task = getTestTask();
+
+        removeApprovedRole(USER_JACK_OID, task);
+        CaseType c = createCase(USER_JACK_OID, task);
+        CaseWorkItemType workItem = c.getWorkItem().get(0);
+
+        final String comment = "Delegating this item to you";
+
+        WorkItemDelegationRequestType data = new WorkItemDelegationRequestType();
+        data.setComment(comment);
+        data.getDelegate().add(new ObjectReferenceType().oid(USER_JACK_OID).type(UserType.COMPLEX_TYPE));
+        data.setMethod(WorkItemDelegationMethodType.ADD_ASSIGNEES);
+
+        WebClient client = prepareClient();
+        client.path("/cases/" + c.getOid() + "/workItems/" + workItem.getId() + "/delegate");
+        Response response = client.post(data);
+        assertStatus(response, 204);
+
+        CaseType changed = modelService.getObject(CaseType.class, c.getOid(), null, task, task.getResult()).asObjectable();
+        CaseWorkItemType changedWorkItem = changed.getWorkItem().get(0);
+        AssertJUnit.assertEquals(2, changedWorkItem.getAssigneeRef().size());
     }
 }

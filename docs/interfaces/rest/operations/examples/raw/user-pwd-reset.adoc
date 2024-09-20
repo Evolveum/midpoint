@@ -1,0 +1,57 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Execute Password Reset by Administrator for User*
+Please see note:
+
+[NOTE]
+====
+This example also needs a configuration change in the system global security policy. You have to enable
+the password reset feature in you configuration, please see xref:/midpoint/reference/security/credentials/password-reset#_pwd_reset_rest_api[this]
+page.
+====
+
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Accept: application/json" \
+-H "Content-Type: application/json" \
+-X POST http://localhost:8080/midpoint/ws/rest/users/e297a878-89da-43fa-b67a-d0316975388a/credential \
+-v \
+--data-binary @./samples/rest/user-pwd-reset.json
+----
+
+.*Show* data source example for *"Execute password reset by administrator for user"* | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/user-pwd-reset.json[GitHub]
+[%collapsible]
+====
+[source, json]
+----
+{
+  "executeCredentialResetRequest": {
+    "resetMethod": "passwordReset",
+    "userEntry": "5ecr3tP4s5w0rd"
+  }
+}
+----
+====
+The response is an HTTP 200 code in case of success with a response body.
+
+.*Show* example output for *"Execute password reset by administrator for user"*
+[%collapsible]
+====
+[source, json]
+----
+{
+  "@ns" : "http://prism.evolveum.com/xml/ns/public/types-3",
+  "object" : {
+    "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/api-types-3#ExecuteCredentialResetResponseType",
+    "message" : {
+      "@type" : "c:SingleLocalizableMessageType",
+      "key" : "execute.reset.credential.successful",
+      "fallbackMessage" : "Reset password was successful"
+    }
+  }
+}
+
+----
+====

@@ -107,8 +107,8 @@ public class AuditHelper {
             OperationResult parentResult) {
         for (ObjectDeltaOperation<? extends ObjectType> objectDeltaOperation : emptyIfNull(record.getDeltas())) {
             ObjectDelta<? extends ObjectType> delta = objectDeltaOperation.getObjectDelta();
-            ObjectDeltaSchemaLevelUtil.NameResolver nameResolver = (objectClass, oid) -> {
-                OperationResult result = parentResult.subresult(OP_RESOLVE_NAME)
+            ObjectDeltaSchemaLevelUtil.NameResolver nameResolver = (objectClass, oid, lResult) -> {
+                OperationResult subResult = lResult.subresult(OP_RESOLVE_NAME)
                         .setMinor()
                         .build();
                 try {
@@ -117,7 +117,7 @@ public class AuditHelper {
                         return null;
                     }
                     if (externalNameResolver != null) {
-                        PolyString externallyResolvedName = externalNameResolver.getName(objectClass, oid);
+                        PolyString externallyResolvedName = externalNameResolver.getName(objectClass, oid, subResult);
                         if (externallyResolvedName != null) {
                             return externallyResolvedName;
                         }
@@ -128,19 +128,19 @@ public class AuditHelper {
                                     .readOnly()
                                     .allowNotFound()
                                     .build();
-                    PrismObject<? extends ObjectType> object = repositoryService.getObject(objectClass, oid, options, result);
+                    PrismObject<? extends ObjectType> object = repositoryService.getObject(objectClass, oid, options, subResult);
                     return object.getName();
                 } catch (ObjectNotFoundException e) {
                     record.addNonExistingReferencedObject(oid);
                     return null;        // we will NOT record an error here
                 } catch (Throwable t) {
-                    result.recordFatalError(t);
+                    subResult.recordFatalError(t);
                     throw t;
                 } finally {
-                    result.computeStatusIfUnknown();
+                    subResult.computeStatusIfUnknown();
                 }
             };
-            resolveNames(delta, nameResolver, prismContext);
+            resolveNames(delta, nameResolver, parentResult);
         }
     }
 
@@ -175,7 +175,9 @@ public class AuditHelper {
                         ? (AuditEventRecord) returnValue.getRealValue()
                         : null;
             } finally {
-                ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
+                if (expressionEnvironmentSupplier != null) {
+                    ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
+                }
             }
         } catch (Throwable t) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't evaluate audit recording expression", t);

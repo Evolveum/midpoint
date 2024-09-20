@@ -1,0 +1,30 @@
+= Supported Media Types
+:page-nav-title: Supported Media Types
+:page-display-order: 300
+:page-upkeep-status: green
+
+== Supported media types
+
+The following formats and related media types are supported:
+
+[%autowidth]
+|===
+| Format | Media type
+
+| XML
+| `application/xml`, `++application/*+xml++`, `text/xml`
+
+
+| JSON
+| `application/json`
+
+
+| YAML
+| `application/yaml`, `application/yml`, `++application/*+yaml++`, `++application/*+yml++`,
+`text/yaml`, `text/yml`, `++text/*+yaml++`, `++text/*+yml++` +
+Note: There is no official registered media type.
+
+
+|===
+
+Some operations return plain text only (`text/plain`).

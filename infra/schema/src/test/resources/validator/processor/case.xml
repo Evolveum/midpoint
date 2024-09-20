@@ -6,11 +6,13 @@
     <modelContext>
         <state>execution</state>
         <projectionContext id="1">
-            <accountPasswordPolicy>
-                <stringPolicy>
-                    <description>123</description>
-                </stringPolicy>
-            </accountPasswordPolicy>
+            <accountPasswordPolicyRef>
+                <object>
+                    <stringPolicy>
+                        <description>123</description>
+                    </stringPolicy>
+                </object>
+            </accountPasswordPolicyRef>
         </projectionContext>
         <projectionContext id="2">
             <accountPasswordPolicyRef oid="2db718b6-243a-11e7-a9e5-bbb2545f80ed"/>

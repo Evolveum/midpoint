@@ -1,0 +1,35 @@
+= Collection report: Audit Report, Attribute Changes
+:page-nav-title: Audit Report With Changed Attributes
+:page-wiki-name: Collection report: Audit Report, Attribute Changes
+:page-wiki-id: 52003081
+:page-wiki-metadata-create-user: lskublik
+:page-wiki-metadata-create-date: 2020-08-18T15:06:52.473+02:00
+:page-wiki-metadata-modify-user: lskublik
+:page-wiki-metadata-modify-date: 2020-09-07T09:26:13.342+02:00
+:page-upkeep-status: green
+:page-upkeep-note: check TODO's after sampleRef is fully in prod remove links
+
+Please see xref:/midpoint/reference/misc/reports/configuration/#new-report[Report configuration] for basic information about configuration variables.
+
+== Example Use-case
+
+We need to create a report for audit events of modifications with a column for changed items.
+
+== Configuration
+
+Configuration for this use case consists only from the report itself, because we use an object collection from the initial objects.
+
+.*Example Report Configuration*
+[%collapsible]
+====
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/reports/audit-report-changed-attrs.xml[Git]
+
+sampleRef::samples/reports/audit-report-changed-attrs.xml[]
+====
+
+== See Also
+
+- xref:/midpoint/reference/misc/reports/examples/[Report Examples]
+- xref:/midpoint/reference/misc/reports/configuration/[Report Configuration]
+- xref:/midpoint/reference/misc/reports/configuration/collection-report.adoc[Collection Based Reports]
+- xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[Dashboard Based Reports]

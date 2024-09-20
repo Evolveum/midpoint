@@ -17,6 +17,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -70,10 +71,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        if (areMarksSupported()) {
-            repoAdd(CommonInitialObjects.ARCHETYPE_OBJECT_MARK, initResult);
-            repoAdd(CommonInitialObjects.MARK_PROTECTED, initResult);
-        }
+        CommonInitialObjects.addMarks(this, initTask, initResult);
 
         repoAddObjectFromFile(ROLE_RED_JUDGE_FILE, initResult);
         repoAddObjectFromFile(ROLE_BIG_JUDGE_FILE, initResult);
@@ -1389,8 +1387,18 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         then();
         assertSuccess(result);
 
+        assertElaineShadowAdministrativeStatus();
+    }
+
+    private void assertElaineShadowAdministrativeStatus() throws CommonException {
         PrismObject<ShadowType> accountShadow = getShadowModel(ACCOUNT_SHADOW_ELAINE_DUMMY_RED_OID);
-        assertDisableReasonShadow(accountShadow, SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
+        // The same as TestActivation.test130, see MID-9955.
+        if (InternalsConfig.isShadowCachingOnByDefault()) {
+            assertShadow(accountShadow, "after")
+                    .assertAdministrativeStatus(ActivationStatusType.ENABLED);
+        } else {
+            assertDisableReasonShadow(accountShadow, SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
+        }
     }
 
     /**
@@ -1499,11 +1507,11 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // the following assignments are used only to generate superfluous searches in validity scanner task
         userDrakeType
                 .beginAssignment()
-                    .targetRef(ROLE_SUPERUSER_OID, RoleType.COMPLEX_TYPE)
+                    .targetRef(ROLE_SUPERUSER.oid, RoleType.COMPLEX_TYPE)
                     .activation(activation.clone())
                 .<UserType>end()
                 .beginAssignment()
-                    .targetRef(ROLE_SUPERUSER_OID, RoleType.COMPLEX_TYPE)
+                    .targetRef(ROLE_SUPERUSER.oid, RoleType.COMPLEX_TYPE)
                     .activation(activation.clone())
                     .description("just to differentiate")
                 .end();
@@ -1689,8 +1697,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
         // THEN
 
-        PrismObject<ShadowType> accountShadow = getShadowModel(ACCOUNT_SHADOW_ELAINE_DUMMY_RED_OID);
-        assertDisableReasonShadow(accountShadow, SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
+        assertElaineShadowAdministrativeStatus();
     }
 
     private XMLGregorianCalendar judgeAssignmentValidFrom;
@@ -1815,14 +1822,14 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
     private void assertNotRecomputed(UserType u1) throws CommonException {
         assertUserAfter(u1.getOid())
-                .objectMetadata()
-                .assertNone();
+                .valueMetadata()
+                .assertSize(0);
     }
 
     private void assertRecomputed(UserType user) throws CommonException {
         assertUserAfter(user.getOid())
-                .objectMetadata()
-                .assertPresent();
+                .valueMetadata()
+                .assertSize(1);
     }
 
     private void setFuneralTimestamp(UserType user, String durationSpec) throws SchemaException {

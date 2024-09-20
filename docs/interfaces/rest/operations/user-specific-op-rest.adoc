@@ -1,0 +1,110 @@
+= User Specific Operations
+:page-nav-title: User Specific Operations
+:page-display-order: 1000
+:page-toc: top
+:page-keywords: [ 'rest', 'user', 'operation' ]
+:page-upkeep-status: green
+
+== Description
+A set of operations which are specific for objects of the "User" type residing on the "users" endpoint.
+
+== Request
+
+The methods which are used in the requests are HTTP GET and HTTP POST. The usage depends on the type of the operation
+which you are about to invoke. Base on this there are two specific operations for the *users* endpoint. Each
+request should contain the {oid} of a specific object for which you invoke the operation and an operation notation (e.g. "credentials")
+
+Using the GET method, you can invoke an operation which produces the value policy which is used on the User type object.
+
+.Get users value policy
+[source, http]
+----
+PUT http://localhost:8080/midpoint/ws/rest/users/{oid}/policy
+----
+
+POST can be used for a credentials reset, for a specific user.
+This operation has to also contain a "ExecuteCredentialResetRequestType" objen in the request body.
+
+.Reset credentials operation using HTTP POST
+[source, http]
+----
+POST http://localhost:8080/midpoint/ws/rest/users/{oid}/credential
+----
+
+=== Headers
+
+Regarding authorization type, the "Basic" Authorization header should be used.
+
+.Authorization header example replace {Base64EncodedCredentials} with the encoded credentials
+[source, http]
+----
+Authorization: Basic {Base64EncodedCredentials}
+----
+
+To specify the provided content type, please use the "Content-Type" header
+payload in the body:
+
+.Content type header example, other media types are supported as well
+[source, http]
+----
+"Content-Type: application/json"
+----
+
+You might need to specify the accepted type of content in case
+you are interested in a format different from xml (default):
+
+.Accept type header example, other media types are supported as well
+[source, http]
+----
+"Accept: application/json"
+----
+
+.For supported media types please refer to the following section of the documentation
+xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+
+=== Body
+
+In case of the "Reset credentials" operation, the body should contain a payload consisting of a ExecuteCredentialResetRequestType type of object.
+Please see the examples below for an example of such object.
+
+=== Options
+No operation options supported for this set of requests.
+
+include::../../rest/concepts/raw/outcome.adoc[]
+
+== Access Authorization
+
+include::../operations/raw/a-auth.adoc[]
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#resetCredential+`
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#getValuePolicy+`
+
+== Model Authorization
+
+include::../operations/raw/m-auth.adoc[]
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#rawOperation+`
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#get+`
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read+`
+
+For the "Reset Credentials" operation also additionally add use the following:
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify+`
+
+== Examples
+
+include::../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+include::../../rest/operations/examples/raw/user-get-value-policy.adoc[]
+
+include::../../rest/operations/examples/raw/user-pwd-reset.adoc[]
+
+== See Also
+
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]
+- xref:/midpoint/reference/security/authorization/service/[]

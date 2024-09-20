@@ -1,0 +1,202 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+
+.*Get Case for Employee assignment*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Accept: application/json" \
+-X GET 'http://localhost:8080/midpoint/ws/rest/cases/3091ccc5-f3f6-4a06-92b5-803afce1ce57?options=raw&options=resolveNames' \
+-v
+----
+
+The response is an HTTP 200 code in case of success with a response body containing the queried item.
+
+.Example Output of *"Get Case for Employee assignment"* example
+[%collapsible]
+====
+The example is *simplified*, some properties were removed to keep the example output "short". This example *does
+not* contain all possible properties of this object type.
+[source, json]
+----
+{
+  "case" : {
+    "oid" : "3091ccc5-f3f6-4a06-92b5-803afce1ce57",
+    "version" : "1",
+    "name" : {
+      "orig" : "Assigning role \"Basic Employee\" to user \"Jack\"",
+      "norm" : "assigning role basic employee to user jack",
+      "translation" : {
+        "key" : "DefaultPolicyConstraint.Short.assignmentModification.toBeAdded",
+        "argument" : [ {
+          "translation" : {
+            "key" : "ObjectSpecification",
+            "argument" : [ {
+              "translation" : {
+                "key" : "ObjectTypeLowercase.RoleType",
+                "fallback" : "RoleType"
+              }
+            }, {
+              "value" : "Basic Employee"
+            } ]
+          }
+        }, {
+          "translation" : {
+            "key" : "ObjectSpecification",
+            "argument" : [ {
+              "translation" : {
+                "key" : "ObjectTypeLowercase.UserType",
+                "fallback" : "UserType"
+              }
+            }, {
+              "value" : "Jack"
+            } ]
+          }
+        } ]
+      }
+    },
+    "metadata" : {},
+    "assignment" : {
+      "@id" : 1,
+      "targetRef" : {
+        "oid" : "00000000-0000-0000-0000-000000000342",
+        "relation" : "org:default",
+        "type" : "c:ArchetypeType",
+        "targetName" : "Approval case"
+      }
+    },
+    "archetypeRef" : {
+      "oid" : "00000000-0000-0000-0000-000000000342",
+      "relation" : "org:default",
+      "type" : "c:ArchetypeType",
+      "targetName" : "Approval case"
+    },
+    "parentRef" : {
+      "oid" : "dae84d15-ba06-44f2-81ec-45a35bd7bc8e",
+      "relation" : "org:default",
+      "type" : "c:CaseType",
+      "targetName" : "Approving and executing change of user \"Jack\" (started Feb 22, 2024, 11:41:53 AM)"
+    },
+    "objectRef" : {
+      "oid" : "a9885c61-c442-42d8-af34-8182a8653e3c",
+      "relation" : "org:default",
+      "type" : "c:UserType",
+      "targetName" : "Jack"
+    },
+    "targetRef" : {
+      "oid" : "96262f4f-053a-4b0b-8901-b3ec01e3509c",
+      "relation" : "org:default",
+      "type" : "c:RoleType",
+      "targetName" : "employee"
+    },
+    "requestorRef" : {
+      "oid" : "00000000-0000-0000-0000-000000000002",
+      "relation" : "org:default",
+      "type" : "c:UserType",
+      "targetName" : "administrator"
+    },
+    "state" : "open",
+    "event" : {
+      "@type" : "c:CaseCreationEventType",
+      "@id" : 3,
+      "timestamp" : "2024-02-22T11:41:53.515+01:00",
+      "initiatorRef" : {
+        "oid" : "00000000-0000-0000-0000-000000000002",
+        "relation" : "org:default",
+        "type" : "c:UserType",
+        "targetName" : "administrator"
+      }
+    },
+    "workItem" : {
+      "@id" : 4,
+      "name" : {
+        "orig" : "Assigning role \"Basic Employee\" to user \"Jack\"",
+        "norm" : "assigning role basic employee to user jack",
+        "translation" : {
+          "key" : "DefaultPolicyConstraint.Short.assignmentModification.toBeAdded",
+          "argument" : [ {
+            "translation" : {
+              "key" : "ObjectSpecification",
+              "argument" : [ {
+                "translation" : {
+                  "key" : "ObjectTypeLowercase.RoleType",
+                  "fallback" : "RoleType"
+                }
+              }, {
+                "value" : "Basic Employee"
+              } ]
+            }
+          }, {
+            "translation" : {
+              "key" : "ObjectSpecification",
+              "argument" : [ {
+                "translation" : {
+                  "key" : "ObjectTypeLowercase.UserType",
+                  "fallback" : "UserType"
+                }
+              }, {
+                "value" : "Jack"
+              } ]
+            }
+          } ]
+        }
+      },
+      "stageNumber" : 1,
+      "createTimestamp" : "2024-02-22T11:41:53.527+01:00",
+      "originalAssigneeRef" : {
+        "oid" : "472001d8-839f-4a28-acdf-d8d1c81583b0",
+        "relation" : "org:default",
+        "type" : "c:UserType",
+        "targetName" : "JohnM"
+      },
+      "assigneeRef" : {
+        "oid" : "472001d8-839f-4a28-acdf-d8d1c81583b0",
+        "relation" : "org:default",
+        "type" : "c:UserType",
+        "targetName" : "JohnM"
+      }
+    },
+    "approvalContext" : {
+      "changeAspect" : "com.evolveum.midpoint.wf.impl.processors.primary.policy.PolicyRuleBasedAspect",
+      "deltasToApprove" : {
+        "focusPrimaryDelta" : {
+          "changeType" : "modify",
+          "objectType" : "c:UserType",
+          "oid" : "a9885c61-c442-42d8-af34-8182a8653e3c",
+          "itemDelta" : [ {
+            "modificationType" : "add",
+            "path" : "c:assignment",
+            "value" : [ {
+              "@type" : "c:AssignmentType",
+              "targetRef" : {
+                "oid" : "96262f4f-053a-4b0b-8901-b3ec01e3509c",
+                "relation" : "org:default",
+                "type" : "c:RoleType"
+              }
+            } ]
+          } ]
+        }
+      },
+      "immediateExecution" : false,
+      "approvalSchema" : {
+        "stage" : {
+          "@id" : 2,
+          "number" : 1,
+          "approverRef" : {
+            "oid" : "472001d8-839f-4a28-acdf-d8d1c81583b0",
+            "relation" : "org:default",
+            "type" : "c:UserType",
+            "targetName" : "JohnM"
+          },
+          "outcomeIfNoApprovers" : "reject",
+          "groupExpansion" : "byClaimingWorkItem"
+        }
+      },
+      "policyRules" : { }
+    },
+    "stageNumber" : 1
+  }
+}
+----
+====

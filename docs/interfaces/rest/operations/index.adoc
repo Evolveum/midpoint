@@ -1,0 +1,237 @@
+= REST Operations
+:page-nav-title: Operations
+:page-display-order: 100
+:page-toc: top
+:page-keywords: [ 'rest', 'operation', 'operations']
+:page-upkeep-status: green
+
+
+== Supported Operations
+
+The base URL of REST API is link:http://localhost:8080/midpoint/ws/rest[http://localhost:8080/midpoint/ws/rest] (alternatively to */ws/rest* paths */api/model* and */rest/model* are also supported).
+
+* Use the base URL + path from the table below to request concrete operation.
+
+* Supply the \{type} with the specific type of object you want to add (or modify, delete, [.line-through]#search#, etc).
+Supported types are listed xref:/midpoint/reference/interfaces/rest/endpoints/[here]
+
+* Supply the \{oid} with the specific oid of your object.
+
+* Some operations support specifying options influencing the operation execution, e.g. if the execution is made in raw mode, or the shadows are not fetched from the resource, etc.
+*Supported options* column shows supported options for different operations.
+To specify option, use query parameters, e.g. http://localhots:8080/midpoint/api/model/users*?options=raw*
+
+* The data in the body should be written in one of the  xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[supported *Media Types*]
+
+[%autowidth]
+|===
+| Operation name | Operation type | Path | Supported options | Data | Response
+
+| xref:/midpoint/reference/interfaces/rest/operations/create-op-rest.adoc[Create new object]
+| POST
+| /\{type}
+| link:https://evolveum.com/downloads/midpoint/latest/midpoint-latest-schemadoc/http---midpoint-evolveum-com-xml-ns-public-common-common-3/type/ModelExecuteOptionsType.html[ModelExecuteOptionsType]
+| Object to create
+a| * 201 Created, Location set to point to the newly created object
+* 240 Handled error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
+* 250 Partial error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
+
+
+| xref:/midpoint/reference/interfaces/rest/operations/create-op-rest.adoc[Create or update object]
+| PUT
+| /\{type}/\{oid}
+| link:https://evolveum.com/downloads/midpoint/latest/midpoint-latest-schemadoc/http---midpoint-evolveum-com-xml-ns-public-common-common-3/type/ModelExecuteOptionsType.html[ModelExecuteOptionsType]
+| Object to create
+a| * 201 Created, Location set to point to the newly created object
+* 240 Handled error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
+* 250 Partial error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
+
+
+| xref:/midpoint/reference/interfaces/rest/operations/get-op-rest.adoc[Get object]
+| GET
+| /\{type}/\{oid}
+| link:https://github.com/Evolveum/midpoint/blob/731e408905650d81ecab410f1f1c4f07a0d8795c/infra/schema/src/main/java/com/evolveum/midpoint/schema/GetOperationOptions.java[GetOperationOptionsType]
+| -
+a| * 200 OK, current object in the response body
+
+
+| xref:/midpoint/reference/interfaces/rest/operations/modify-op-rest.adoc[Modify object]
+| PATCH, POST
+| /\{type}/\{oid}
+| link:https://evolveum.com/downloads/midpoint/latest/midpoint-latest-schemadoc/http---midpoint-evolveum-com-xml-ns-public-common-common-3/type/ModelExecuteOptionsType.html[ModelExecuteOptionsType]
+| Modifications as in *ObjectModificationType*
+a| * 204 No Content
+* 240 Handled error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
+* 250 Partial error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
+
+
+| xref:/midpoint/reference/interfaces/rest/operations/delete-op-rest.adoc[Delete object]
+| DELETE
+| /\{type}/\{oid}
+| link:https://evolveum.com/downloads/midpoint/latest/midpoint-latest-schemadoc/http---midpoint-evolveum-com-xml-ns-public-common-common-3/type/ModelExecuteOptionsType.html[ModelExecuteOptionsType]
+| -
+a| * 204 No Content
+* 240 Handled error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
+* 250 Partial error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
+
+
+| xref:/midpoint/reference/interfaces/rest/operations/resource-op-rest.adoc[Test (configured) Resource]
+| POST
+| /resources/\{oid}/test
+| No
+| -
+a| * 200 OK, result of the test operation in the body
+
+
+| xref:/midpoint/reference/interfaces/rest/operations/resource-op-rest.adoc[Import from Resource]
+| POST
+| /resources/\{oid}/import/\{objectClass}
+| No
+| -
+a| * 303 See Other, Location set to point to the concrete "import" task
+
+
+| xref:/midpoint/reference/interfaces/rest/operations/shadow-op-rest.adoc[Find owner of shadow]
+| GET
+| /shadows/\{oid}/owner
+| No
+| -
+a| * 200 OK, owner of the shadow returned in the response body
+
+
+| xref:/midpoint/reference/interfaces/rest/operations/shadow-op-rest.adoc[Import shadow]
+| POST
+| /shadows/\{oid}/import
+| No
+| -
+a| * 200 OK, result of the import operation in the body
+
+
+| xref:/midpoint/reference/interfaces/rest/operations/search-op-rest.adoc[Search]
+| POST
+| /\{type}/search
+| link:https://github.com/Evolveum/midpoint/blob/731e408905650d81ecab410f1f1c4f07a0d8795c/infra/schema/src/main/java/com/evolveum/midpoint/schema/GetOperationOptions.java[GetOperationOptionsType]
+| xref:/midpoint/reference/concepts/query/[Query] as in *QueryType*
+a| * 200 OK, list of found objects in the body
+
+
+| xref:/midpoint/reference/interfaces/rest/operations/task-specific-op-rest.adoc[Suspend tasks]
+| POST
+| /tasks/\{oid}/suspend
+| No
+| -
+a| * 204 No Content
+
+
+| xref:/midpoint/reference/interfaces/rest/operations/task-specific-op-rest.adoc[Resume tasks]
+| POST
+| /tasks/\{oid}/resume
+| No
+| -
+a| * 202 Accepted
+
+
+| xref:/midpoint/reference/interfaces/rest/operations/task-specific-op-rest.adoc[Schedule task now]
+| POST
+| /tasks/\{oid}/run
+| No
+| -
+a| * 202 Accepted
+
+
+| xref:/midpoint/reference/interfaces/rest/operations/notify-op-rest.adoc[Notify change]
+| POST
+| /notifyChange
+| No
+| Resource object shadow change description
+a| * 200 OK
+
+
+| xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest.adoc[Generate value for concrete object]
+| POST
+| /\{type}/\{oid}/generate
+| No
+| Policy for items describing how to generate the value (PolicyItemsDefinitionType)
+a| * 200 OK
+* 240 Handled error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
+* 250 Partial error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
+
+
+| xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-op-rest.adoc[Generate value]
+| POST
+| /rpc/generate
+| No
+| PolicyItemsDefinitionType
+a| * 200 OK
+* 240 Handled error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
+* 250 Partial error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
+
+
+| xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest.adoc[Validate value for concrete object]
+| POST
+| /\{type}/\{oid}/validate
+| No
+| PolicyItemsDefinitionType
+a| * 200 OK
+* 240 Handled error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
+* 250 Partial error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
+
+
+| xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-op-rest.adoc[Validate value]
+| POST
+| /rpc/validate
+| No
+| PolicyItemsDefinitionType
+a| * 200 OK
+* 240 Handled error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
+* 250 Partial error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
+
+
+| xref:/midpoint/reference/interfaces/rest/operations/user-specific-op-rest.adoc[Get user's value policy]
+| GET
+| /users/\{oid}/policy
+| No
+|
+a| * 200 OK, value policy for user in the response body
+
+
+| xref:/midpoint/reference/interfaces/rest/operations/get-op-rest.adoc[Get 'self']
+| GET
+| /self
+| No
+|
+a| * 200 OK, current object in the response body
+
+//TODO
+| xref:/midpoint/reference/interfaces/rest/operations/search-op-rest.adoc[Search objects by type]
+| GET
+| /\{type}
+| link:https://github.com/Evolveum/midpoint/blob/731e408905650d81ecab410f1f1c4f07a0d8795c/infra/schema/src/main/java/com/evolveum/midpoint/schema/GetOperationOptions.java[GetOperationOptionsType]
+|
+a| * 200 OK, list of object of specified type in the response body
+
+
+| xref:/midpoint/reference/interfaces/rest/operations/user-specific-op-rest.adoc[Reset credentials]
+| POST
+| /users/\{oid}/credential
+| No
+| ExecuteCredentialResetRequestType - specify reset method and new password
+a| * 200 OK, ExecuteCredentialResetResponseType returned in the body.
+
+
+
+| xref:/midpoint/reference/interfaces/rest/operations/script-execute-op-rest.adoc[Execute script]
+| POST
+| /rpc/executeScript
+| No
+| ExecuteScriptType
+a| * 200 OK, ExecuteScriptResponseType returned in the body
+* 201 Created, Location set to point to the newly created Task object. Only applicable is asynchronous=true parameter is used.
+* 240 Handled error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
+* 250 Partial error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
+|===
+
+== See Also
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]
+- xref:/midpoint/reference/security/authorization/service/[]

@@ -13,11 +13,11 @@
     <parent>
         <artifactId>dist</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>4.8-SNAPSHOT</version>
+        <version>4.9-SNAPSHOT</version>
     </parent>
 
     <artifactId>midpoint-api</artifactId>
-    <packaging>pom</packaging>
+    <packaging>jar</packaging>
 
     <name>midPoint API Distribution</name>
 
@@ -124,6 +124,19 @@
                 <artifactId>maven-dependency-plugin</artifactId>
                 <configuration>
                     <skip>true</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-install-plugin</artifactId>
+                <version>3.1.1</version>
+                <configuration>
+                    <!--
+                        Option needed to avoid error:
+                        The packaging plugin for this project did not assign a main file to the project but it has attachments. Change packaging to 'pom'.
+
+                        It's available since 3.1.1 (plugin version overridden in this case).
+                    -->
+                    <allowIncompleteProjects>true</allowIncompleteProjects>
                 </configuration>
             </plugin>
         </plugins>

@@ -1,0 +1,7 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+[NOTE]
+====
+In our examples we are *authenticating* with the credentials, *name "administrator"* and *password "y0uR_P455woR*d"* on a localhost instance running on *port 8080*.
+====

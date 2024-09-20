@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.repo.sql.query.definition;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
@@ -22,7 +21,7 @@ import com.evolveum.midpoint.repo.sql.query.resolution.DataSearchResult;
  * entities, provided they are resolved on creation. (The reason of using JpaEntityPointerDefinition
  * there is just to break navigation cycles e.g. when using a visitor.)
  */
-public class JpaEntityPointerDefinition extends JpaDataNodeDefinition<JpaEntityPointerDefinition> {
+public class JpaEntityPointerDefinition extends JpaDataNodeDefinition {
 
     private JpaEntityDefinition resolvedEntityDefinition; // lazily evaluated
 
@@ -45,9 +44,9 @@ public class JpaEntityPointerDefinition extends JpaDataNodeDefinition<JpaEntityP
 
     @Override
     public DataSearchResult<?> nextLinkDefinition(
-            ItemPath path, ItemDefinition<?> itemDefinition, PrismContext prismContext)
+            ItemPath path, ItemDefinition<?> itemDefinition)
             throws QueryException {
-        return resolvedEntityDefinition.nextLinkDefinition(path, itemDefinition, prismContext);
+        return resolvedEntityDefinition.nextLinkDefinition(path, itemDefinition);
     }
 
     @Override
@@ -65,7 +64,7 @@ public class JpaEntityPointerDefinition extends JpaDataNodeDefinition<JpaEntityP
     }
 
     @Override
-    public void accept(Visitor<JpaDataNodeDefinition<JpaEntityPointerDefinition>> visitor) {
+    public void accept(Visitor<JpaDataNodeDefinition> visitor) {
         visitor.visit(this);
     }
 

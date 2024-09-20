@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.session;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,7 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
  */
 public class SessionStorage implements Serializable, DebugDumpable {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     public static final String KEY_SIMULATION = "simulation";
     public static final String KEY_CONFIGURATION = "configuration";
@@ -57,6 +58,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
     public static final String KEY_ROLE_MEMBER_PANEL = UserProfileStorage.TableId.ROLE_MEMBER_PANEL.name();
     public static final String KEY_ORG_MEMBER_PANEL = UserProfileStorage.TableId.ORG_MEMBER_PANEL.name();
     public static final String KEY_SERVICE_MEMBER_PANEL = UserProfileStorage.TableId.SERVICE_MEMBER_PANEL.name();
+    public static final String KEY_POLICY_MEMBER_PANEL = UserProfileStorage.TableId.POLICY_MEMBER_PANEL.name();
     public static final String KEY_ARCHETYPE_MEMBER_PANEL = UserProfileStorage.TableId.ARCHETYPE_MEMBER_PANEL.name();
 
     public static final String KEY_GOVERNANCE_CARDS_PANEL = UserProfileStorage.TableId.PANEL_GOVERNANCE_CARDS.name();
@@ -70,7 +72,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
     private static final String KEY_TASKS = "tasks";
     private static final String KEY_SUBTASKS = "subtasks";
     private static final String KEY_CERT_CAMPAIGNS = "certCampaigns";
-    private static final String KEY_CERT_DECISIONS = "certDecisions";
+    public static final String KEY_CERT_DECISIONS = "certDecisions";
 
     public enum Mode {
 
@@ -259,6 +261,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
         } else if (key.startsWith(KEY_ORG_MEMBER_PANEL)
                 || key.startsWith(KEY_ROLE_MEMBER_PANEL)
                 || key.startsWith(KEY_SERVICE_MEMBER_PANEL)
+                || key.startsWith(KEY_POLICY_MEMBER_PANEL)
                 || key.startsWith(KEY_ARCHETYPE_MEMBER_PANEL)
                 || key.startsWith(KEY_GOVERNANCE_CARDS_PANEL)) {
             pageStorage = new MemberPanelStorage();

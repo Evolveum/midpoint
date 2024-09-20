@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.repo.sql;
 
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.displayCollection;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
@@ -24,9 +22,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.test.util.TestUtil;
-
-import org.hibernate.Session;
+import jakarta.persistence.EntityManager;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -73,6 +69,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 /**
  * @author lazyman
  */
+@SuppressWarnings("CheckStyle")
 @ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class ModifyTest extends BaseSQLRepoTest {
@@ -136,7 +133,7 @@ public class ModifyTest extends BaseSQLRepoTest {
                 ObjectModificationType.COMPLEX_TYPE);
         modification.setOid(oid);
         Collection<? extends ItemDelta<?, ?>> deltas =
-                DeltaConvertor.toModifications(modification, UserType.class, prismContext);
+                DeltaConvertor.toModifications(modification, UserType.class);
 
         repositoryService.modifyObject(UserType.class, oid, deltas, result);
     }
@@ -147,7 +144,7 @@ public class ModifyTest extends BaseSQLRepoTest {
                 MODIFY_USER_ADD_LINK, ObjectModificationType.COMPLEX_TYPE);
 
         Collection<? extends ItemDelta<?, ?>> deltas =
-                DeltaConvertor.toModifications(modification, UserType.class, prismContext);
+                DeltaConvertor.toModifications(modification, UserType.class);
         OperationResult result = new OperationResult("MODIFY");
         repositoryService.modifyObject(UserType.class, "1234", deltas, getModifyOptions(), result);
     }
@@ -171,7 +168,7 @@ public class ModifyTest extends BaseSQLRepoTest {
                 ObjectModificationType.COMPLEX_TYPE);
 
         Collection<? extends ItemDelta<?, ?>> deltas =
-                DeltaConvertor.toModifications(modification, UserType.class, prismContext);
+                DeltaConvertor.toModifications(modification, UserType.class);
 
         repositoryService.modifyObject(UserType.class, oid, deltas, getModifyOptions(), result);
 
@@ -207,7 +204,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
                 MODIFY_USER_ADD_LINK, ObjectModificationType.COMPLEX_TYPE);
         Collection<? extends ItemDelta<?, ?>> deltas =
-                DeltaConvertor.toModifications(modification, UserType.class, prismContext);
+                DeltaConvertor.toModifications(modification, UserType.class);
 
         // WHEN
         repositoryService.modifyObject(UserType.class, oid, deltas, getModifyOptions(), result);
@@ -423,21 +420,21 @@ public class ModifyTest extends BaseSQLRepoTest {
     }
 
     private void assertTaskOwner(String taskOid, String expectedOwnerOid) {
-        Session session = open();
+        EntityManager em = open();
         //noinspection unchecked
-        List<String> ownerOidList = session.createQuery("select t.ownerRefTask.targetOid from RTask t where t.oid = '" + taskOid + "'").list();
+        List<String> ownerOidList = em.createQuery("select t.ownerRefTask.targetOid from RTask t where t.oid = '" + taskOid + "'").getResultList();
         assertEquals("Wrong # of owner OIDs found", 1, ownerOidList.size());
         assertEquals("Wrong owner OID", expectedOwnerOid, ownerOidList.get(0));
-        close(session);
+        close(em);
     }
 
     private void assertUserEmployeeNumber(String userOid, String expectedValue) {
-        Session session = open();
+        EntityManager em = open();
         //noinspection unchecked
-        List<String> ownerOidList = session.createQuery("select u.employeeNumber from RUser u where u.oid = '" + userOid + "'").list();
+        List<String> ownerOidList = em.createQuery("select u.employeeNumber from RUser u where u.oid = '" + userOid + "'").getResultList();
         assertEquals("Wrong # of users found", 1, ownerOidList.size());
         assertEquals("Wrong employee number", expectedValue, ownerOidList.get(0));
-        close(session);
+        close(em);
     }
 
     @Test
@@ -468,7 +465,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(new File(TEST_DIR + "/modify-user-add-roles.xml"),
                 ObjectModificationType.COMPLEX_TYPE);
 
-        ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, UserType.class, prismContext);
+        ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, UserType.class);
 
         repositoryService.modifyObject(UserType.class, userToModifyOid, delta.getModifications(), getModifyOptions(), parentResult);
 
@@ -507,12 +504,12 @@ public class ModifyTest extends BaseSQLRepoTest {
         QName attrBazQName = new QName(MidPointConstants.NS_RI, "baz");
         PrismContainer<Containerable> attributesContainerBefore = shadowBefore.findContainer(ShadowType.F_ATTRIBUTES);
         PrismProperty<String> attrBazBefore = prismContext.itemFactory().createProperty(new QName(MidPointConstants.NS_RI, "baz"));
-        MutablePrismPropertyDefinition<String> attrBazDefBefore = prismContext.definitionFactory().createPropertyDefinition(attrBazQName, DOMUtil.XSD_STRING);
-        attrBazDefBefore.setMaxOccurs(-1);
+        PrismPropertyDefinition<String> attrBazDefBefore = prismContext.definitionFactory().newPropertyDefinition(attrBazQName, DOMUtil.XSD_STRING);
+        attrBazDefBefore.mutator().setMaxOccurs(-1);
         // Unless marked as dynamic, the repo XML object will not have xsi:type (and so the repo will parse them as raw when
         // fetching). Normally, the provisioning module is responsible for applying the definition ... but we have
         // no provisioning available here.
-        attrBazDefBefore.setDynamic(true);
+        attrBazDefBefore.mutator().setDynamic(true);
         attrBazBefore.setDefinition(attrBazDefBefore);
         attrBazBefore.addRealValue("BaZ1");
         attrBazBefore.addRealValue("BaZ2");
@@ -683,7 +680,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         repositoryService.addObject(account, null, result);
         accountOid = account.getOid();
 
-        PrismPropertyDefinition<String> definition = prismContext.definitionFactory().createPropertyDefinition(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING);
+        PrismPropertyDefinition<String> definition = prismContext.definitionFactory().newPropertyDefinition(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING);
 
         List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(ShadowType.class)
                 .item(SchemaConstants.ICFS_NAME_PATH, definition)
@@ -704,7 +701,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         assertNotNull("account-attribute was not imported in previous tests", accountOid);
 
-        PrismPropertyDefinition<String> definition = prismContext.definitionFactory().createPropertyDefinition(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING);
+        PrismPropertyDefinition<String> definition = prismContext.definitionFactory().newPropertyDefinition(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING);
 
         List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(ShadowType.class)
                 .item(SchemaConstants.ICFS_NAME_PATH, definition)
@@ -726,7 +723,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         PrismObject<UserType> user = prismContext.parseObject(new File(TEST_DIR, "user-with-assignment-extension.xml"));
         repositoryService.addObject(user, null, result);
 
-        PrismPropertyDefinition<String> definition = prismContext.definitionFactory().createPropertyDefinition(QNAME_WEAPON, DOMUtil.XSD_STRING);
+        PrismPropertyDefinition<String> definition = prismContext.definitionFactory().newPropertyDefinition(QNAME_WEAPON, DOMUtil.XSD_STRING);
 
         List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(UserType.class)
                 .item(ItemPath.create(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION, QNAME_WEAPON), definition)
@@ -758,8 +755,7 @@ public class ModifyTest extends BaseSQLRepoTest {
                 new File(TEST_DIR, "role-modify-change.xml"),
                 ObjectModificationType.COMPLEX_TYPE);
         modification.setOid(oid);
-        Collection<? extends ItemDelta<?, ?>> deltas = DeltaConvertor.toModifications(modification,
-                RoleType.class, prismContext);
+        Collection<? extends ItemDelta<?, ?>> deltas = DeltaConvertor.toModifications(modification, RoleType.class);
 
         repositoryService.modifyObject(RoleType.class, oid, deltas, getModifyOptions(), result);
 
@@ -897,8 +893,8 @@ public class ModifyTest extends BaseSQLRepoTest {
         accountOid = account.getOid();
 
         QName ATTR1_QNAME = new QName(MidPointConstants.NS_RI, "attr1");
-        PrismPropertyDefinition<String> def1 = prismContext.definitionFactory().createPropertyDefinition(ATTR1_QNAME, DOMUtil.XSD_STRING);
-        ShadowAttributesType attributes = new ShadowAttributesType(prismContext);
+        PrismPropertyDefinition<String> def1 = prismContext.definitionFactory().newPropertyDefinition(ATTR1_QNAME, DOMUtil.XSD_STRING);
+        ShadowAttributesType attributes = new ShadowAttributesType();
         PrismProperty<String> attr1 = def1.instantiate();
         attr1.setRealValue("value1");
         attributes.asPrismContainerValue().add(attr1);
@@ -910,15 +906,15 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         repositoryService.modifyObject(ShadowType.class, accountOid, itemDeltas, getModifyOptions(), result);
 
-        Session session = open();
-        List shadows = session.createQuery("from RShadow").list();
+        EntityManager em = open();
+        List shadows = em.createQuery("from RShadow").getResultList();
         logger.info("shadows:\n{}", shadows);
         //noinspection unchecked
-        List<Object[]> extStrings = session.createQuery("select e.owner.oid, e.itemId, e.value from ROExtString e").list();
+        List<Object[]> extStrings = em.createQuery("select e.owner.oid, e.itemId, e.value from ROExtString e").getResultList();
         for (Object[] extString : extStrings) {
             logger.info("-> {}", Arrays.asList(extString));
         }
-        close(session);
+        close(em);
 
         ObjectQuery query1 = prismContext.queryFor(ShadowType.class)
                 .item(ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR1_QNAME), def1).eq("value1")
@@ -927,10 +923,10 @@ public class ModifyTest extends BaseSQLRepoTest {
         logger.info("*** query1 result:\n{}", DebugUtil.debugDump(list1));
         assertEquals("Wrong # of query1 results", 1, list1.size());
 
-        session = open();
-        RObject obj = (RObject) session.createQuery("from RObject where oid = :o").setParameter("o", account.getOid()).getSingleResult();
+        em = open();
+        RObject obj = (RObject) em.createQuery("from RObject where oid = :o").setParameter("o", account.getOid()).getSingleResult();
         assertEquals(1, obj.getStrings().size());
-        close(session);
+        close(em);
 
         // delete
         itemDeltas = prismContext.deltaFor(ShadowType.class)
@@ -939,10 +935,10 @@ public class ModifyTest extends BaseSQLRepoTest {
                 .asItemDeltas();
         repositoryService.modifyObject(ShadowType.class, accountOid, itemDeltas, getModifyOptions(), result);
 
-        session = open();
-        obj = (RObject) session.createQuery("from RObject where oid = :o").setParameter("o", account.getOid()).getSingleResult();
+        em = open();
+        obj = (RObject) em.createQuery("from RObject where oid = :o").setParameter("o", account.getOid()).getSingleResult();
         assertEquals(0, obj.getStrings().size());
-        close(session);
+        close(em);
 
         // add
         itemDeltas = prismContext.deltaFor(ShadowType.class)
@@ -951,10 +947,10 @@ public class ModifyTest extends BaseSQLRepoTest {
                 .asItemDeltas();
         repositoryService.modifyObject(ShadowType.class, accountOid, itemDeltas, getModifyOptions(), result);
 
-        session = open();
-        obj = (RObject) session.createQuery("from RObject where oid = :o").setParameter("o", account.getOid()).getSingleResult();
+        em = open();
+        obj = (RObject) em.createQuery("from RObject where oid = :o").setParameter("o", account.getOid()).getSingleResult();
         assertEquals(1, obj.getStrings().size());
-        close(session);
+        close(em);
 
         // now test the "export" serialization option
 
@@ -1431,12 +1427,12 @@ public class ModifyTest extends BaseSQLRepoTest {
     }
 
     private void assertExtensionDateValue(String objectOid, int expected) {
-        Session session = open();
+        EntityManager em = open();
         //noinspection unchecked
-        List<Timestamp> values = session.createQuery("select d.value from ROExtDate d where d.ownerOid = '" + objectOid + "'").list();
+        List<Timestamp> values = em.createQuery("select d.value from ROExtDate d where d.ownerOid = '" + objectOid + "'").getResultList();
         System.out.println("Values: " + values);
         assertEquals("Wrong # of extension values found", expected, values.size());
-        close(session);
+        close(em);
     }
 
     /**

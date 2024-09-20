@@ -16,9 +16,10 @@ import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHold
 
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -57,6 +58,7 @@ public abstract class EnumWizardChoicePanel<T extends TileEnum, AHD extends Assi
                 for (T type : tileTypeClass.getEnumConstants()) {
                     Tile tile = new Tile(type.getIcon(), getString((Enum) type));
                     tile.setValue(type);
+                    tile.setDescription(getDescriptionForTile(type));
                     list.add(tile);
                 }
                 addDefaultTile(list);
@@ -64,6 +66,10 @@ public abstract class EnumWizardChoicePanel<T extends TileEnum, AHD extends Assi
                 return list;
             }
         };
+    }
+
+    protected String getDescriptionForTile(T type) {
+        return type.getDescription();
     }
 
     protected void addDefaultTile(List<Tile<T>> list) {
@@ -80,10 +86,19 @@ public abstract class EnumWizardChoicePanel<T extends TileEnum, AHD extends Assi
     protected Component createTilePanel(String id, IModel<Tile<T>> tileModel) {
         return new TilePanel(id, tileModel) {
 
+            private Boolean getDescription() {
+                return StringUtils.isNotEmpty(tileModel.getObject().getDescription());
+            }
+
             @Override
             protected void onClick(AjaxRequestTarget target) {
                 Tile<T> tile = tileModel.getObject();
                 onTileClick(tile.getValue(), target);
+            }
+
+            @Override
+            protected VisibleEnableBehaviour getDescriptionBehaviour() {
+                return new VisibleBehaviour(this::getDescription);
             }
         };
     }
@@ -115,7 +130,7 @@ public abstract class EnumWizardChoicePanel<T extends TileEnum, AHD extends Assi
     }
 
     protected void goToObjectPerformed(QName type) {
-        Class<? extends ObjectType> typeClass = WebComponentUtil.qnameToClass(PrismContext.get(), type, ObjectType.class);
+        Class<? extends ObjectType> typeClass = WebComponentUtil.qnameToClass(type, ObjectType.class);
         if (typeClass == null) {
             return;
         }

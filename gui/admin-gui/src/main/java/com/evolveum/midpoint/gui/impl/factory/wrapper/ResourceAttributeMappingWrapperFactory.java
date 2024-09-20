@@ -11,8 +11,8 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.ResourceAttributeMappingValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.ResourceAttributeMappingWrapper;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.AttributeMappingValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.ObjectTypeAttributeMappingWrapper;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
@@ -43,7 +43,7 @@ public class ResourceAttributeMappingWrapperFactory extends PrismContainerWrappe
             PrismContainerValue<ResourceAttributeDefinitionType> objectValue,
             ValueStatus status,
             WrapperContext context) {
-        ResourceAttributeMappingValueWrapper value = new ResourceAttributeMappingValueWrapper(objectWrapper, objectValue, status);
+        AttributeMappingValueWrapper<ResourceAttributeDefinitionType> value = new AttributeMappingValueWrapper<>(objectWrapper, objectValue, status);
         @Nullable ResourceAttributeDefinitionType realValue = objectValue.getRealValue();
         if (status.equals(ValueStatus.NOT_CHANGED) && realValue != null) {
             value.addAttributeMappingType(MappingDirection.OVERRIDE);
@@ -68,8 +68,8 @@ public class ResourceAttributeMappingWrapperFactory extends PrismContainerWrappe
 
         status = recomputeStatus(childContainer, status, ctx);
 
-        ResourceAttributeMappingWrapper containerWrapper =
-                new ResourceAttributeMappingWrapper(parent, childContainer, status);
+        ObjectTypeAttributeMappingWrapper containerWrapper =
+                new ObjectTypeAttributeMappingWrapper(parent, childContainer, status);
         VirtualContainersSpecificationType virtualContainerSpec = ctx.findVirtualContainerConfiguration(containerWrapper.getPath());
         if (virtualContainerSpec != null) {
             containerWrapper.setVirtual(true);

@@ -13,20 +13,18 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.util.AbstractItemDeltaItem;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
-import com.evolveum.midpoint.schema.config.ConfigurationItem;
-import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.config.AbstractMappingConfigItem;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
 import com.evolveum.midpoint.schema.util.SimulationUtil;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.expression.ConfigurableValuePolicySupplier;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.repo.common.expression.VariableProducer;
@@ -59,24 +57,48 @@ public abstract class AbstractMappingBuilder<
 
     private static final Trace LOGGER = TraceManager.getTrace(MappingImpl.class);
 
+    /** See {@link AbstractMappingImpl#variables}. */
     private final VariablesMap variables = new VariablesMap();
-    private ConfigurationItem<MBT> mappingConfigItem;
+
+    /** See {@link AbstractMappingImpl#mappingConfigItem}. */
+    private AbstractMappingConfigItem<MBT> mappingConfigItem;
+
+    /** See {@link AbstractMappingImpl#mappingKind}. */
     private MappingKindType mappingKind;
-    private ItemPath implicitSourcePath; // for tracing purposes
-    private ItemPath implicitTargetPath; // for tracing purposes
+
+    /** See {@link AbstractMappingImpl#implicitSourcePath}. */
+    private ItemPath implicitSourcePath;
+
+    /** See {@link AbstractMappingImpl#implicitTargetPath}. */
+    private ItemPath implicitTargetPath;
+
+    /** See {@link AbstractMappingImpl#targetPathOverride}. */
     private ItemPath targetPathOverride;
-    private Source<?, ?> defaultSource;
+
+    /** See {@link AbstractMappingImpl#targetPathExecutionOverride}. */
+    private ItemPath targetPathExecutionOverride;
+
+    /** See {@link AbstractMappingImpl#defaultSource}. */
+    Source<?, ?> defaultSource;
+
+    /** See {@link AbstractMappingImpl#sources}. TODO explain the exact semantics. */
     private final List<Source<?, ?>> additionalSources = new ArrayList<>();
+
+    /** See {@link AbstractMappingImpl#defaultTargetDefinition}. */
     private D defaultTargetDefinition;
     @VisibleForTesting // NEVER use for production code
     private ExpressionProfile explicitExpressionProfile;
     private ItemPath defaultTargetPath;
+
+    /** See {@link AbstractMappingImpl#originalTargetValues}. */
     private Collection<V> originalTargetValues;
-    private ObjectDeltaObject<?> sourceContext;
-    private PrismContainerDefinition<?> targetContext;
+    AbstractItemDeltaItem<?> defaultSourceContextIdi;
+    PrismContainerDefinition<?> targetContextDefinition;
     private OriginType originType;
     private ObjectType originObject;
     private ConfigurableValuePolicySupplier valuePolicySupplier;
+
+    /** @see AbstractMappingImpl#variableProducer */
     private VariableProducer variableProducer;
     private MappingPreExpression mappingPreExpression;
     private boolean conditionMaskOld = true;
@@ -86,7 +108,7 @@ public abstract class AbstractMappingBuilder<
     private XMLGregorianCalendar defaultReferenceTime;
     private boolean profiling;
     private String contextDescription;
-    private QName mappingQName;
+    QName targetItemName;
     private ModelCommonBeans beans;
 
     public abstract AbstractMappingImpl<V, D, MBT> build();
@@ -98,9 +120,14 @@ public abstract class AbstractMappingBuilder<
     }
 
     // [EP:M:OM] [EP:M:IM] [EP:M:Tag] [EP:M:FM] [EP:M:ARC] [EP:M:MM] [EP:M:PRC] DONE 6/6
-    public RT mappingBean(MBT bean, @NotNull ConfigurationItemOrigin origin) {
-        mappingConfigItem = ConfigurationItem.of(bean, origin);
+    public RT mapping(AbstractMappingConfigItem<MBT> mappingConfigItem) {
+        this.mappingConfigItem = mappingConfigItem;
         return typedThis();
+    }
+
+    // a bit of hacking, consider removing
+    public String getMappingName() {
+        return mappingConfigItem.getName();
     }
 
     public RT mappingKind(MappingKindType val) {
@@ -120,6 +147,11 @@ public abstract class AbstractMappingBuilder<
 
     public RT targetPathOverride(ItemPath val) {
         targetPathOverride = val;
+        return typedThis();
+    }
+
+    public RT targetPathExecutionOverride(ItemPath val) {
+        targetPathExecutionOverride = val;
         return typedThis();
     }
 
@@ -149,13 +181,13 @@ public abstract class AbstractMappingBuilder<
         return typedThis();
     }
 
-    public RT sourceContext(ObjectDeltaObject<?> val) {
-        sourceContext = val;
+    public RT defaultSourceContextIdi(AbstractItemDeltaItem<?> val) {
+        defaultSourceContextIdi = val;
         return typedThis();
     }
 
-    public RT targetContext(PrismContainerDefinition<?> val) {
-        targetContext = val;
+    public RT targetContextDefinition(PrismContainerDefinition<?> val) {
+        targetContextDefinition = val;
         return typedThis();
     }
 
@@ -174,7 +206,7 @@ public abstract class AbstractMappingBuilder<
         return typedThis();
     }
 
-    public RT variableResolver(VariableProducer variableProducer) {
+    public RT variableProducer(VariableProducer variableProducer) {
         this.variableProducer = variableProducer;
         return typedThis();
     }
@@ -219,8 +251,8 @@ public abstract class AbstractMappingBuilder<
         return typedThis();
     }
 
-    public RT mappingQName(QName val) {
-        mappingQName = val;
+    public RT targetItemName(QName val) {
+        targetItemName = val;
         return typedThis();
     }
 
@@ -234,20 +266,20 @@ public abstract class AbstractMappingBuilder<
     }
     //endregion
 
-    public RT rootNode(ObjectReferenceType objectRef) {
+    public RT addRootVariableDefinition(ObjectReferenceType objectRef) {
         return addVariableDefinition(null, objectRef);
     }
 
-    public RT rootNode(ObjectDeltaObject<?> odo) {
+    public RT addRootVariableDefinition(AbstractItemDeltaItem<?> odo) {
         return addVariableDefinition(null, odo);
     }
 
-    public <O extends ObjectType> RT rootNode(O objectType, PrismObjectDefinition<O> definition) {
+    public <O extends ObjectType> RT addRootVariableDefinition(O objectType, PrismObjectDefinition<O> definition) {
         variables.put(null, objectType, definition);
         return typedThis();
     }
 
-    public <O extends ObjectType> RT rootNode(PrismObject<? extends ObjectType> mpObject, PrismObjectDefinition<O> definition) {
+    public <O extends ObjectType> RT addRootVariableDefinition(PrismObject<? extends ObjectType> mpObject, PrismObjectDefinition<O> definition) {
         variables.put(null, mpObject, definition);
         return typedThis();
     }
@@ -284,19 +316,19 @@ public abstract class AbstractMappingBuilder<
     }
 
     public RT addVariableDefinition(String name, String value) {
-        MutablePrismPropertyDefinition<Object> def = beans.prismContext.definitionFactory().createPropertyDefinition(
+        var def = beans.prismContext.definitionFactory().newPropertyDefinition(
                 new QName(SchemaConstants.NS_C, name), PrimitiveType.STRING.getQname());
         return addVariableDefinition(name, value, def);
     }
 
     public RT addVariableDefinition(String name, Boolean value) {
-        MutablePrismPropertyDefinition<Object> def = beans.prismContext.definitionFactory().createPropertyDefinition(
+        var def = beans.prismContext.definitionFactory().newPropertyDefinition(
                 new QName(SchemaConstants.NS_C, name), PrimitiveType.BOOLEAN.getQname());
         return addVariableDefinition(name, value, def);
     }
 
     public RT addVariableDefinition(String name, Integer value) {
-        MutablePrismPropertyDefinition<Object> def = beans.prismContext.definitionFactory().createPropertyDefinition(
+        var def = beans.prismContext.definitionFactory().newPropertyDefinition(
                 new QName(SchemaConstants.NS_C, name), PrimitiveType.INT.getQname());
         return addVariableDefinition(name, value, def);
     }
@@ -305,11 +337,11 @@ public abstract class AbstractMappingBuilder<
         return addVariableDefinition(name, value, value.getParent().getDefinition());
     }
 
-    public RT addVariableDefinition(String name, ObjectDeltaObject<?> value) {
+    public RT addVariableDefinition(String name, AbstractItemDeltaItem<?> value) {
         if (value != null) {
             return addVariableDefinition(name, value, value.getDefinition());
         } else {
-            return addVariableDefinition(name, null, ObjectDeltaObject.class); // todo ok?
+            return addVariableDefinition(name, null, AbstractItemDeltaItem.class); // todo ok?
         }
     }
 
@@ -343,6 +375,7 @@ public abstract class AbstractMappingBuilder<
         return MappingImpl.isApplicableToChannel(mappingConfigItem.value(), channel);
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean isApplicableToExecutionMode(TaskExecutionMode executionMode) {
         return SimulationUtil.isVisible(mappingConfigItem.value(), executionMode);
     }
@@ -361,7 +394,7 @@ public abstract class AbstractMappingBuilder<
         return variables;
     }
 
-    ConfigurationItem<MBT> getMappingConfigItem() {
+    AbstractMappingConfigItem<MBT> getMappingConfigItem() {
         return mappingConfigItem;
     }
 
@@ -381,8 +414,8 @@ public abstract class AbstractMappingBuilder<
         return targetPathOverride;
     }
 
-    public Source<?, ?> getDefaultSource() {
-        return defaultSource;
+    ItemPath getTargetPathExecutionOverride() {
+        return targetPathExecutionOverride;
     }
 
     List<Source<?, ?>> getAdditionalSources() {
@@ -403,14 +436,6 @@ public abstract class AbstractMappingBuilder<
 
     Collection<V> getOriginalTargetValues() {
         return originalTargetValues;
-    }
-
-    public ObjectDeltaObject<?> getSourceContext() {
-        return sourceContext;
-    }
-
-    public PrismContainerDefinition<?> getTargetContext() {
-        return targetContext;
     }
 
     public OriginType getOriginType() {
@@ -459,10 +484,6 @@ public abstract class AbstractMappingBuilder<
 
     public String getContextDescription() {
         return contextDescription;
-    }
-
-    QName getMappingQName() {
-        return mappingQName;
     }
     //endregion
 

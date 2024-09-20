@@ -1,0 +1,91 @@
+= Lookup Table type REST Endpoint
+:page-nav-title: Lookup Table
+:page-display-order: 2100
+:page-toc: top
+:page-keywords: [ 'rest', 'lookup', 'endpoint' ]
+:page-upkeep-status: green
+
+== Description
+
+Here we are describing the Lookup Table object type in relation to midPoints REST API. The
+Lookup Table objects are a part of the REST API web resources.
+
+.Endpoint
+[source, http]
+----
+lookupTables/
+----
+
+== Operations And Examples
+
+The Lookup Table type endpoint operations and examples.
+
+include::../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+
+=== Create Lookup Table type Object
+
+- xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]
+
+=== Get Lookup Table type Objects
+
+Get operation for fetching a single specific object.
+
+- xref:/midpoint/reference/interfaces/rest/operations/get-op-rest/[Get Operation]
+
+=== Search for Lookup Table type Objects
+
+Search operation usable for fetching the full list of objects or a list based on filter.
+
+include::../operations/examples/raw/search-all.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[Search Operation]
+
+=== Modify Lookup Table type Objects
+
+- xref:/midpoint/reference/interfaces/rest/operations/modify-op-rest/[Modify Operation]
+
+=== Delete Lookup Table type Objects
+
+- xref:/midpoint/reference/interfaces/rest/operations/delete-op-rest/[Delete Operation]
+
+=== Generate and Validate Operations for Lookup Table Objects
+
+Operations to generate or validate values.
+
+- xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]
+
+== JSON Example
+
+Example output of information regarding a specific Lookup Table object. Metadata is usually a
+part of the output, yet it was removed for the purpose of the example.
+
+.Show JSON Example
+[%collapsible]
+====
+[source, json]
+----
+{
+	"lookupTable": {
+		"oid": "00000000-0000-0000-0000-000000000230",
+		"version": "1",
+		"name": "Lifecycle States",
+		"metadata": {},
+		"operationExecution": {},
+		"iteration": 0,
+		"iterationToken": "",
+		"row": {
+			"@incomplete": true
+		}
+	}
+}
+----
+====
+
+== See Also
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]

@@ -88,8 +88,8 @@ public class QAccessCertificationCampaignMapping
     }
 
     @Override
-    protected PathSet fullObjectItemsToSkip() {
-        return PathSet.of(F_CASE);
+    protected void customizeFullObjectItemsToSkip(PathSet mutableSet) {
+        mutableSet.add(F_CASE);
     }
 
     @Override

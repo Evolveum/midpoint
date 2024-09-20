@@ -11,13 +11,20 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentity
 import java.util.Objects;
 import java.util.UUID;
 
+import com.evolveum.axiom.concepts.CheckedFunction;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.schema.SchemaRegistryState;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerWithFullObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.resource.QResourceMapping;
 
+import com.evolveum.midpoint.util.exception.SystemException;
+
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
@@ -32,11 +39,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @param <OR> type of the owner row
  */
 public class QFocusIdentityMapping<OR extends MFocus>
-        extends QContainerMapping<FocusIdentityType, QFocusIdentity<OR>, MFocusIdentity, OR> {
+        extends QContainerWithFullObjectMapping<FocusIdentityType, QFocusIdentity<OR>, MFocusIdentity, OR> {
 
     public static final String DEFAULT_ALIAS_NAME = "fi";
 
+    public static final ItemPath PATH = ItemPath.create(FocusType.F_IDENTITIES, FocusIdentitiesType.F_IDENTITY);
     private static QFocusIdentityMapping<?> instance;
+
+    private final SchemaRegistryState.DerivationKey<ItemDefinition<?>> derivationKey;
+
+    private final CheckedFunction<SchemaRegistryState, ItemDefinition<?>, SystemException> derivationMapping;
+
+
 
     public static <OR extends MFocus> QFocusIdentityMapping<OR> init(
             @NotNull SqaleRepoContext repositoryContext) {
@@ -56,7 +70,11 @@ public class QFocusIdentityMapping<OR extends MFocus>
     private QFocusIdentityMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QFocusIdentity.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 FocusIdentityType.class, (Class) QFocusIdentity.class, repositoryContext);
-
+        this.derivationKey = SchemaRegistryState.derivationKeyFrom(getClass(), "DEFINITION");
+        this.derivationMapping = (registry) -> {
+            var focusDef = registry.findObjectDefinitionByCompileTimeClass(FocusType.class);
+            return focusDef.findItemDefinition(ItemPath.create(FocusType.F_IDENTITIES, FocusIdentitiesType.F_IDENTITY));
+        };
         addRelationResolver(PrismConstants.T_PARENT,
                 // mapping supplier is used to avoid cycles in the initialization code
                 TableRelationResolver.usingJoin(
@@ -90,8 +108,7 @@ public class QFocusIdentityMapping<OR extends MFocus>
     @Override
     public MFocusIdentity insert(
             FocusIdentityType schemaObject, OR ownerRow, JdbcSession jdbcSession) throws SchemaException {
-        MFocusIdentity row = initRowObject(schemaObject, ownerRow);
-        row.fullObject = createFullObject(schemaObject);
+        MFocusIdentity row = initRowObjectWithFullObject(schemaObject, ownerRow);
 
         FocusIdentitySourceType source = schemaObject.getSource();
         if (source != null) {
@@ -106,7 +123,12 @@ public class QFocusIdentityMapping<OR extends MFocus>
     }
 
     @Override
-    public FocusIdentityType toSchemaObject(MFocusIdentity row) throws SchemaException {
+    public ItemPath getItemPath() {
+        return PATH;
+    }
+
+    @Override
+    public FocusIdentityType toSchemaObjectLegacy(MFocusIdentity row) throws SchemaException {
         return parseSchemaObject(
                 row.fullObject,
                 "identity for " + row.ownerOid + "," + row.cid,
@@ -122,5 +144,20 @@ public class QFocusIdentityMapping<OR extends MFocus>
         PrismContainerValue<FocusIdentityType> pcv = identityContainer.findValue(updateContext.row().cid);
         byte[] fullObject = createFullObject(pcv.asContainerable());
         updateContext.set(updateContext.entityPath().fullObject, fullObject);
+    }
+
+    @Override
+    public OrderSpecifier<?> orderSpecifier(QFocusIdentity<OR> orqFocusIdentity) {
+        return new OrderSpecifier<>(Order.ASC, orqFocusIdentity.cid);
+    }
+
+    @Override
+    protected SchemaRegistryState.DerivationKey<ItemDefinition<?>> definitionDerivationKey() {
+        return derivationKey;
+    }
+
+    @Override
+    protected CheckedFunction<SchemaRegistryState, ItemDefinition<?>, SystemException> definitionDerivation() {
+        return derivationMapping;
     }
 }

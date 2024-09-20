@@ -1,0 +1,44 @@
+= Get User Based on His Unique Identificator
+:page-nav-title: Get user based on his unique identificator
+:page-display-order: 200
+:page-toc: top
+:page-upkeep-status: green
+
+== Description
+Example of retrieving identity data from a web resource object representing a user.
+
+For the purpose of the sample we are using the CURL tool as it is a well maintained, well
+tested, and it's widely accessible.
+
+.Authentication methods used to work with the REST api
+xref:/midpoint/reference/interfaces/rest/concepts/authentication/#_basic_authentication[Authentication methods]
+
+== Example
+
+include::../../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+[#_get_default_administrator_object]
+.Get default administrator object
+[source,bash]
+----
+# Authenticating with the credentials "administrator" and password "5ecr3t" on a localhost instance running on port 8080
+curl --user administrator:5ecr3t -X GET http://localhost:8080/midpoint/ws/rest/users/00000000-0000-0000-0000-000000000002
+----
+
+.Get Object in JSON format
+[source,bash]
+----
+# Authenticating with the credentials "administrator" and password "5ecr3t" on a localhost instance running on port 8080
+curl --user administrator:5ecr3t -H "Accept: application/json" -X GET http://localhost:8080/midpoint/ws/rest/users/00000000-0000-0000-0000-000000000002
+----
+
+include::../examples/raw/get-user-administrator.adoc[]
+
+== See Also
+
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]

@@ -23,21 +23,25 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * @author semancik
+ * Value of an item along with the information where it came from: {@link #producer} and {@link #construction}.
  *
+ * @author semancik
  */
-public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition> implements DebugDumpable {
+public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition<?>> implements DebugDumpable {
 
     private V itemValue;
-    private PrismValueDeltaSetTripleProducer<V, D> mapping;
-    private ResourceObjectConstruction construction;
+
+    /** What produced the {@link #itemValue}. This is typically a mapping. */
+    private final PrismValueDeltaSetTripleProducer<V, D> producer;
+
+    /** This is used to provide some useful information, like origin object, validity, and so on (why it's tied to ROC?) */
+    private final ResourceObjectConstruction<?, ?> construction;
 
     public ItemValueWithOrigin(V itemValue,
-            PrismValueDeltaSetTripleProducer<V, D> mapping, ResourceObjectConstruction accountConstruction) {
-        super();
+            PrismValueDeltaSetTripleProducer<V, D> producer, ResourceObjectConstruction<?, ?> construction) {
         this.itemValue = itemValue;
-        this.mapping = mapping;
-        this.construction = accountConstruction;
+        this.producer = producer;
+        this.construction = construction;
     }
 
     // the same as above, but with correct name
@@ -50,11 +54,23 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
         this.itemValue = value;
     }
 
-    public PrismValueDeltaSetTripleProducer<V, D> getMapping() {
-        return mapping;
+    public PrismValueDeltaSetTripleProducer<V, D> getProducer() {
+        return producer;
     }
 
-    public ResourceObjectConstruction getConstruction() {
+    public boolean isMappingStrong() {
+        return producer != null && producer.isStrong();
+    }
+
+    public boolean isMappingWeak() {
+        return producer != null && producer.isWeak();
+    }
+
+    String getMappingIdentifier() {
+        return producer != null ? producer.getIdentifier() : null;
+    }
+
+    public ResourceObjectConstruction<?, ?> getConstruction() {
         return construction;
     }
 
@@ -66,24 +82,17 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
         return construction == null || construction.isValid();
     }
 
-    public boolean wasValid() {
+    boolean wasValid() {
         return construction == null || construction.getWasValid();
     }
 
-    public ItemValueWithOrigin<V,D> clone() {
-        ItemValueWithOrigin<V,D> clone = new ItemValueWithOrigin<>(itemValue, mapping, construction);
-        copyValues(clone);
-        return clone;
-    }
-
-    protected void copyValues(ItemValueWithOrigin<V,D> clone) {
-        if (this.itemValue != null) {
-            clone.itemValue = (V) this.itemValue.clone();
-        }
-        if (this.mapping != null) {
-            clone.mapping = this.mapping.clone();
-        }
-        clone.construction = this.construction;
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
+    public ItemValueWithOrigin<V, D> clone() {
+        //noinspection unchecked
+        return new ItemValueWithOrigin<>(
+                itemValue != null ? (V) itemValue.clone() : null,
+                producer != null ? producer.clone() : null,
+                construction);
     }
 
     public static <V extends PrismValue, D extends ItemDefinition<?>> DeltaSetTriple<ItemValueWithOrigin<V, D>>
@@ -98,13 +107,12 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
         return PrismContext.get().deltaFactory().createDeltaSetTriple(zeroIvwoSet, plusIvwoSet, minusIvwoSet);
     }
 
-    @NotNull
-    private static <V extends PrismValue, D extends ItemDefinition> Collection<ItemValueWithOrigin<V,D>> convertSet(
+    private static <V extends PrismValue, D extends ItemDefinition<?>> @NotNull Collection<ItemValueWithOrigin<V,D>> convertSet(
             @NotNull Collection<V> valueSet, PrismValueDeltaSetTripleProducer<V, D> mapping) {
         Collection<ItemValueWithOrigin<V,D>> ivwoSet = new ArrayList<>(valueSet.size());
         for (V value: valueSet) {
-            ItemValueWithOrigin<V,D> ivwo = new ItemValueWithOrigin<>(value, mapping, null);
-            ivwoSet.add(ivwo);
+            ivwoSet.add(
+                    new ItemValueWithOrigin<>(value, mapping, null));
         }
         return ivwoSet;
     }
@@ -116,7 +124,7 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
         sb.append("ItemValueWithOrigin:\n");
         DebugUtil.debugDumpWithLabel(sb, "itemValue", itemValue, indent +1);
         sb.append("\n");
-        DebugUtil.debugDumpWithLabelToString(sb, "mapping", mapping, indent +1);
+        DebugUtil.debugDumpWithLabelToString(sb, "producer", producer, indent +1);
         sb.append("\n");
         DebugUtil.debugDumpWithLabelToString(sb, "construction", construction, indent +1);
         return sb.toString();
@@ -124,28 +132,27 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
 
     @Override
     public String toString() {
-        return "ItemValueWithOrigin(" + itemValue + ", M="
-                + mapping + ", C=" + construction + ")";
+        return "ItemValueWithOrigin(" + itemValue + ", M=" + producer + ", C=" + construction + ")";
     }
 
     public boolean isStrong() {
-        return mapping != null && mapping.isStrong();
+        return producer != null && producer.isStrong();
     }
 
     public boolean isNormal() {
-        return mapping != null && mapping.isNormal();
+        return producer != null && producer.isNormal();
     }
 
     public boolean isWeak() {
-        return mapping != null && mapping.isWeak();
+        return producer != null && producer.isWeak();
     }
 
     boolean isSourceless() {
-        return mapping != null && mapping.isSourceless();
+        return producer != null && producer.isSourceless();
     }
 
     @Experimental
     public boolean isPushChanges() {
-        return mapping != null && mapping.isPushChanges();
+        return producer != null && producer.isPushChanges();
     }
 }

@@ -50,6 +50,8 @@ class SourcesConfiguration {
     private final int multiValuedMappings;
     private final int attributeValues;
 
+    @NotNull private final OperationDelay operationDelay;
+
     private final List<DummyTestResource> generatedResources;
 
     private SourcesConfiguration() {
@@ -59,6 +61,8 @@ class SourcesConfiguration {
         multiValuedMappings = Integer.parseInt(System.getProperty(PROP_MULTI_MAPPINGS, "1"));
         attributeValues = Integer.parseInt(System.getProperty(PROP_MULTI_ATTR_VALUES, "5"));
 
+        operationDelay = OperationDelay.fromSystemProperties(PROP);
+
         generatedResources = generateDummyTestResources();
     }
 
@@ -66,7 +70,7 @@ class SourcesConfiguration {
         return numberOfResources;
     }
 
-    public int getNumberOfAccounts() {
+    int getNumberOfAccounts() {
         return numberOfAccounts;
     }
 
@@ -78,8 +82,12 @@ class SourcesConfiguration {
         return multiValuedMappings;
     }
 
-    public int getAttributeValues() {
+    int getAttributeValues() {
         return attributeValues;
+    }
+
+    @NotNull OperationDelay getOperationDelay() {
+        return operationDelay;
     }
 
     List<DummyTestResource> getGeneratedResources() {
@@ -94,6 +102,7 @@ class SourcesConfiguration {
                 ", singleValuedMappings=" + singleValuedMappings +
                 ", multiValuedMappings=" + multiValuedMappings +
                 ", attributeValues=" + attributeValues +
+                ", operationDelay=" + operationDelay +
                 '}';
     }
 

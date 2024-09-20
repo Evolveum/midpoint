@@ -1,0 +1,12 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Delete a Resource type object*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-v \
+-X DELETE http://localhost:8080/midpoint/ws/rest/resources/ef2bc95b-76e0-59e2-86d6-9999cccccccc
+----
+
+The response is an HTTP 204 code in case of success *without* a response body.

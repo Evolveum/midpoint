@@ -81,7 +81,7 @@ public class ProvisioningSearchLikeOperation<T extends ObjectType> {
             ConfigurationException, ObjectNotFoundException {
 
         if (filter instanceof NoneFilter) {
-            SearchResultList<PrismObject<T>> objListType = new SearchResultList<>(new ArrayList<>());
+            SearchResultList<PrismObject<T>> objListType = SearchResultList.empty();
             objListType.setMetadata(createNoneFilterMetadata());
             return objListType;
         }
@@ -92,7 +92,7 @@ public class ProvisioningSearchLikeOperation<T extends ObjectType> {
         } else {
             // TODO: should searching connectors trigger rediscovery?
             SearchResultList<PrismObject<T>> repoObjects =
-                    beans.cacheRepositoryService.searchObjects(type, query, createRepoOptions(), result);
+                    beans.repositoryService.searchObjects(type, query, createRepoOptions(), result);
             return completeNonShadowRepoObjects(repoObjects, result);
         }
     }
@@ -114,7 +114,7 @@ public class ProvisioningSearchLikeOperation<T extends ObjectType> {
                             handler.handle(
                                     completeNonShadowRepoObject(object, objResult),
                                     objResult);
-            return beans.cacheRepositoryService.searchObjectsIterative(
+            return beans.repositoryService.searchObjectsIterative(
                     type, query, internalHandler, createRepoOptions(), true, result);
         }
     }
@@ -130,7 +130,7 @@ public class ProvisioningSearchLikeOperation<T extends ObjectType> {
         if (ShadowType.class.isAssignableFrom(type)) {
             return beans.shadowsFacade.countObjects(query, options, context, task, result);
         } else {
-            return beans.cacheRepositoryService.countObjects(type, query, options, result);
+            return beans.repositoryService.countObjects(type, query, options, result);
         }
     }
 

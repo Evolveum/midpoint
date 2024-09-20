@@ -61,7 +61,7 @@ public class TestSecurityQuestionChallengeResponse extends RestServiceInitialize
                 + "\"answer\" : ["
                 + "{ "
                 + "\"qid\" : \"http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001\","
-                + "\"qans\" : \"5ecr3t\""
+                + "\"qans\" : \"Test5ecr3t\""
                 + "},"
                 + "{ "
                 + "\"qid\" : \"http://midpoint.evolveum.com/xml/ns/public/security/question-2#q002\","

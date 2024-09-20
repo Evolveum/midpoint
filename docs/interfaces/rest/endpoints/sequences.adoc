@@ -1,0 +1,90 @@
+= Sequence Type REST Endpoint
+:page-nav-title: Sequence
+:page-display-order: 3000
+:page-toc: top
+:page-keywords: [ 'rest', 'sequnce', 'endpoint' ]
+:page-upkeep-status: green
+
+== Description
+
+Here we are describing the Sequence object type in relation to midPoints REST API. The
+Sequence objects are a part of the REST API web resources.
+
+.Endpoint
+[source, http]
+----
+sequences/
+----
+
+== Operations And Examples
+
+The Sequence type endpoint operations and examples.
+
+include::../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+
+=== Create Sequence type Object
+
+- xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]
+
+=== Get Sequence type Objects
+
+Get operation for fetching a single specific object.
+
+- xref:/midpoint/reference/interfaces/rest/operations/get-op-rest/[Get Operation]
+
+=== Search for Sequence type Objects
+
+Search operation usable for fetching the full list of objects or a list based on filter.
+
+include::../operations/examples/raw/search-all.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[Search Operation]
+
+=== Modify Sequence type Objects
+
+- xref:/midpoint/reference/interfaces/rest/operations/modify-op-rest/[Modify Operation]
+
+=== Delete Sequence type Objects
+
+- xref:/midpoint/reference/interfaces/rest/operations/delete-op-rest/[Delete Operation]
+
+=== Generate and Validate Operations for Sequence Objects
+
+Operations to generate or validate values.
+
+- xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]
+
+== JSON Example
+
+Example output of information regarding a specific Sequence object. Metadata is usually a
+part of the output, yet it was removed for the purpose of the example.
+
+.Show JSON Example
+[%collapsible]
+====
+[source, json]
+----
+{
+  "sequence" : {
+    "oid" : "",
+    "version" : "",
+    "name" : "Employee Numbers",
+    "metadata" : {},
+    "operationExecution" : {},
+    "iteration" : 0,
+    "iterationToken" : "",
+    "counter" : 10000,
+    "maxUnusedValues" : 10
+  }
+}
+----
+====
+
+== See Also
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]

@@ -1,0 +1,129 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+With a report you can specify what kind of export file format should be used.
+If nothing is specified then there are defaults which are used based on the source of data used in the export.
+
+The default for xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[dashboard] based reports is *HTML*.
+For object collection based reports it is *CSV*.
+
+.Show *Configuration Attributes*:
+[%collapsible]
+====
+
+[%autowidth]
+|===
+| Name | Type | Description
+
+| _type_
+| *FileFormatTypeType*
+| Report data type.
+Possible values: _csv_ and _html_.
+
+
+| csv
+| *CsvFileFormatType*
+| Configuration attribute for CSV export.
+
+
+| html
+| *HtmlFileFormatType*
+| Configuration attribute for html export.
+|===
+
+====
+
+== HTML
+
+Configuration for HTML file format doesn't contain any other format specific attributes.
+
+== CSV
+
+Configuration for CSV file format contains the following attributes specific for the used format:
+
+[%autowidth]
+|===
+| Name | Type | Description | Default
+
+| _multivalueDelimiter_
+| *string*
+| Multi-value delimiter.
+| ,
+
+
+| _fieldDelimiter_
+| *string*
+| Field delimiter.
+| ;
+
+
+| _escape_
+| *string*
+| The escape character of the format.
+| \
+
+
+| _quote_
+| *string*
+| Character for the quote.
+| "
+
+
+| _quoteMode_
+| *QuoteModeType*
+| Quote Mode for records.
+Possible values is _all, allNonNull, minimal, nonNumeric_ and _none._
+| nonNumeric
+
+
+| _recordSeparator_
+| *string*
+| Separator of line of record.
+| \r\n
+
+
+| _trailingDelimiter_
+| *boolean*
+| Define, whether to add a trailing delimiter.
+| false
+
+
+| _trim_
+| *boolean*
+| Define, whether to trim leading and trailing blanks.
+| false
+
+
+| _createHeader_
+| *boolean*
+| Create header in CSV output file.
+| true
+
+
+| _encoding_
+| *string*
+| Encoding of CSV file.
+Most common encodings (UTF-8, windows-125x, ISO-8859-x) are supported.
+
+See https://www.iana.org/assignments/character-sets/character-sets.xml[IANA list of charsets]
+for proper values - generally, both IANA and MIME names are supported as well as many aliases.
+Details of supported character sets depend on the concrete JDK used to run midPoint,
+but it is unlikely that your charset is not supported.
+| UTF-8
+
+|===
+
+*QuoteModeType*
+
+* `all` - Quotes all fields.
+
+* `allNonNull` - Quotes all non-null fields.
+
+* `minimal` - Quotes fields which contain special characters such as the field delimiter, quotes character or any of the characters in the line separator string.
+
+* `nonNumeric` - Quotes all non-numeric fields.
+
+* `none` - Never quotes fields.
+When the delimiter occurs in data, the printer prefixes it with the escape character.
+If the escape character is not set, format validation throws an exception.
+

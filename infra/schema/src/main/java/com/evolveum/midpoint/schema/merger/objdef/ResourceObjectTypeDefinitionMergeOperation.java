@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType.
 
 import java.util.Map;
 
+import com.evolveum.midpoint.prism.OriginMarker;
+import com.evolveum.midpoint.prism.impl.GenericItemMerger;
 import com.evolveum.midpoint.schema.merger.*;
 
 import org.jetbrains.annotations.NotNull;

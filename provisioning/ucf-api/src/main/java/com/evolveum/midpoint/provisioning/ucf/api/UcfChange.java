@@ -7,24 +7,22 @@
 
 package com.evolveum.midpoint.provisioning.ucf.api;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.annotation.Experimental;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
-import org.jetbrains.annotations.NotNull;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.Collection;
 import java.util.Collections;
 
-import static com.evolveum.midpoint.util.MiscUtil.checkCollectionImmutable;
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Represents a change event detected by UCF.
@@ -39,52 +37,49 @@ public abstract class UcfChange implements DebugDumpable {
     private final int localSequenceNumber;
 
     /**
-     * Real value of the primary identifier of the object. Constraints:
+     * Real value of the primary identifier of the object.
      *
-     * 1. errorState.isSuccess: must be non-null
-     * 2. errorState.isError: can be null (but only if there's no way how to determine it)
+     * Although we have {@link #resourceObject} that contains this value as well, we need it also here because
+     * the object can be null.
      */
-    private final Object primaryIdentifierRealValue;
+    @NotNull private final Object primaryIdentifierValue;
 
     /**
      * Definition of the resource object. Constraints:
      *
-     * 1. errorState.isSuccess:
-     *    a. LiveSync: if delta is not DELETE or if object class was specified at request -> not null
-     *    b. AsyncUpdate: always not null
-     *
-     * 2. errorState.isError: Can be null but only if it cannot be reasonably determined.
-     *    (Unfortunately, current AsyncUpdate implementation always provides null value here.)
+     * . LiveSync: if delta is not DELETE or if object class was specified at request -> not null
+     * . AsyncUpdate: always not null
      */
     protected final ResourceObjectDefinition resourceObjectDefinition;
 
     /**
      * All identifiers of the object. Constraints:
      *
-     * 1. The collection is unmodifiable. Its elements themselves are mutable.
-     * 2. errorState.isSuccess: Always not empty.
-     * 3. errorState.isError: Should be non-empty if at all possible. However, for AU changes it is currently always empty.
-     *
-     * Note: The mutability of the elements was chosen because currently there are definitions applied to them
-     * in the further processing. So if they were immutable, they would need to be cloned every time.
+     * 1. The collection and its members are immutable.
+     * 2. Must contain at least the primary identifier - if {@link #resourceObjectDefinition} is known,
+     * unless there is a serious error, like the definition of UID attribute not present in the schema.
      */
-    @NotNull private final Collection<ResourceAttribute<?>> identifiers;
+    @NotNull private final Collection<ShadowSimpleAttribute<?>> identifiers;
 
     /**
      * Delta from the resource - if known.
      *
      * For live sync it is filled-in for ADD and DELETE events.
      * For asynchronous updates it should be always present (except for notification-only updates).
+     *
+     * Correct definitions must be applied.
      */
-    private final ObjectDelta<ShadowType> objectDelta;
+    @Nullable private final ObjectDelta<ShadowType> objectDelta;
 
     /**
      * Resource object after the change - if known.
      *
      * It could come e.g. from the ConnId sync delta. Since 4.3, it is present also for LiveSync ADD deltas.
      * It is null if not available or not existing.
+     *
+     * Correct definitions must be applied.
      */
-    private final PrismObject<ShadowType> resourceObject;
+    @Nullable private final UcfResourceObject resourceObject;
 
     /**
      * Was there any error while processing the change in UCF layer?
@@ -92,14 +87,19 @@ public abstract class UcfChange implements DebugDumpable {
      */
     @NotNull protected final UcfErrorState errorState;
 
-    UcfChange(int localSequenceNumber, Object primaryIdentifierRealValue,
+    UcfChange(
+            int localSequenceNumber,
+            @NotNull Object primaryIdentifierValue,
             ResourceObjectDefinition objectDefinition,
-            @NotNull Collection<ResourceAttribute<?>> identifiers,
-            ObjectDelta<ShadowType> objectDelta,
-            PrismObject<ShadowType> resourceObject, @NotNull UcfErrorState errorState) {
+            @NotNull Collection<ShadowSimpleAttribute<?>> identifiers,
+            @Nullable ObjectDelta<ShadowType> objectDelta,
+            @Nullable UcfResourceObject resourceObject,
+            @NotNull UcfErrorState errorState) {
         this.localSequenceNumber = localSequenceNumber;
-        this.primaryIdentifierRealValue = primaryIdentifierRealValue;
+        this.primaryIdentifierValue = primaryIdentifierValue;
         this.resourceObjectDefinition = objectDefinition;
+        identifiers.forEach(id -> id.freeze());
+        stateCheck(errorState.isError() || !identifiers.isEmpty(), "No identifiers (and no error)");
         this.identifiers = Collections.unmodifiableCollection(identifiers);
         this.resourceObject = resourceObject;
         this.objectDelta = objectDelta;
@@ -111,23 +111,23 @@ public abstract class UcfChange implements DebugDumpable {
         return localSequenceNumber;
     }
 
-    public Object getPrimaryIdentifierRealValue() {
-        return primaryIdentifierRealValue;
+    public @NotNull Object getPrimaryIdentifierValue() {
+        return primaryIdentifierValue;
     }
 
     public ResourceObjectDefinition getResourceObjectDefinition() {
         return resourceObjectDefinition;
     }
 
-    public @NotNull Collection<ResourceAttribute<?>> getIdentifiers() {
+    public @NotNull Collection<ShadowSimpleAttribute<?>> getIdentifiers() {
         return identifiers;
     }
 
-    public ObjectDelta<ShadowType> getObjectDelta() {
+    public @Nullable ObjectDelta<ShadowType> getObjectDelta() {
         return objectDelta;
     }
 
-    public PrismObject<ShadowType> getResourceObject() {
+    public @Nullable UcfResourceObject getResourceObject() {
         return resourceObject;
     }
 
@@ -140,7 +140,7 @@ public abstract class UcfChange implements DebugDumpable {
         return getClass().getSimpleName()
                 + "(seq=" + localSequenceNumber
                 + ", class=" + getObjectClassLocalName()
-                + ", uid=" + primaryIdentifierRealValue
+                + ", uid=" + primaryIdentifierValue
                 + ", identifiers=" + identifiers
                 + ", objectDelta=" + objectDelta
                 + ", resourceObject=" + resourceObject
@@ -161,13 +161,13 @@ public abstract class UcfChange implements DebugDumpable {
         DebugUtil.indentDebugDump(sb, indent);
         sb.append(getClass().getSimpleName());
         sb.append("\n");
+        DebugUtil.debugDumpWithLabelLn(sb, "errorState", errorState, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "localSequenceNumber", localSequenceNumber, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "primaryIdentifierValue", String.valueOf(primaryIdentifierRealValue), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "primaryIdentifierValue", String.valueOf(primaryIdentifierValue), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "objectClassDefinition", resourceObjectDefinition, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "identifiers", identifiers, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "objectDelta", objectDelta, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "resourceObject", resourceObject, indent + 1);
-        DebugUtil.debugDumpWithLabel(sb, "errorState", errorState, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "resourceObject", resourceObject, indent + 1);
         debugDumpExtra(sb, indent);
         return sb.toString();
     }
@@ -186,23 +186,8 @@ public abstract class UcfChange implements DebugDumpable {
         if (!InternalsConfig.consistencyChecks) {
             return;
         }
-        checkPrimaryIdentifierRealValuePresence();
         checkObjectClassDefinitionPresence();
-        checkIdentifiersCollection();
-    }
-
-    private void checkPrimaryIdentifierRealValuePresence() {
-        if (errorState.isSuccess()) {
-            stateCheck(primaryIdentifierRealValue != null, "Primary identifier real value is null");
-        }
     }
 
     protected abstract void checkObjectClassDefinitionPresence();
-
-    private void checkIdentifiersCollection() {
-        checkCollectionImmutable(identifiers);
-        if (errorState.isSuccess()) {
-            stateCheck(!identifiers.isEmpty(), "No identifiers");
-        }
-    }
 }

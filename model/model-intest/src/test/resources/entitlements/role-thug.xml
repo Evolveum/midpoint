@@ -10,7 +10,6 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-        xmlns:riOrange="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>Thug</name>
@@ -38,15 +37,12 @@
             <kind>account</kind>
             <intent>default</intent>
             <association>
-                <ref>riOrange:group</ref>
+                <ref>ri:group</ref>
                 <outbound>
                     <expression>
                         <associationTargetSearch>
                             <filter>
-                                <q:equal>
-                                    <q:path>attributes/icfs:name</q:path>
-                                    <q:value>thug</q:value>
-                                </q:equal>
+                                 <q:text>attributes/icfs:name = "thug"</q:text>
                             </filter>
                             <searchStrategy>onResourceIfNeeded</searchStrategy>
                         </associationTargetSearch>
@@ -54,15 +50,12 @@
                 </outbound>
             </association>
             <association>
-                <ref>riOrange:group</ref>
+                <ref>ri:group</ref>
                 <outbound>
                     <expression>
                         <associationTargetSearch>
                             <filter>
-                                <q:equal>
-                                    <q:path>attributes/icfs:name</q:path>
-                                    <q:value>thug-wannabe</q:value>
-                                </q:equal>
+                                 <q:text>attributes/icfs:name = "thug-wannabe"</q:text>
                             </filter>
                             <searchStrategy>onResourceIfNeeded</searchStrategy>
                         </associationTargetSearch>

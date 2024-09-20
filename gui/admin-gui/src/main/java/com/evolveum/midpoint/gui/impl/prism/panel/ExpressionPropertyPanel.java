@@ -49,7 +49,7 @@ public class ExpressionPropertyPanel extends PrismPropertyPanel<ExpressionType> 
     }
 
     @Override
-    protected Component createHeaderPanel() {
+    protected ItemHeaderPanel createHeaderPanel() {
         ExpressionWrapper expressionWrapper = (ExpressionWrapper) getModelObject();
         if (expressionWrapper != null && (expressionWrapper.isAssociationExpression() || expressionWrapper.isAttributeExpression())) {
             return new ExpressionPropertyHeaderPanel(ID_HEADER, getModel()) {
@@ -107,7 +107,7 @@ public class ExpressionPropertyPanel extends PrismPropertyPanel<ExpressionType> 
         try {
             ExpressionType newExpressionValue = new ExpressionType();
             if (ExpressionValueTypes.SHADOW_REF_EXPRESSION.equals(expressionType)) {
-                ExpressionUtil.addShadowRefEvaluatorValue(newExpressionValue, null, getPrismContext());
+                ExpressionUtil.addShadowRefEvaluatorValue(newExpressionValue, null); // TODO will this work (null oid)?
             } else if (ExpressionValueTypes.ASSOCIATION_TARGET_SEARCH_EXPRESSION.equals(expressionType)) {
                 ExpressionUtil.getOrCreateAssociationTargetSearchValues(newExpressionValue, getPrismContext());
             } else if (ExpressionValueTypes.LITERAL_VALUE_EXPRESSION.equals(expressionType)) {

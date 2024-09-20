@@ -9,11 +9,10 @@ package com.evolveum.midpoint.gui.impl.prism.panel;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Consumer;
 
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 
-import com.evolveum.midpoint.web.component.util.SerializableBiConsumer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -93,11 +92,16 @@ public class ItemRefinedPanel<C extends ItemRefinedDefinitionType> extends BaseP
             }
 
             @Override
-            protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc) {
-                if (customNewItemPerformed(target, relationSepc)) {
+            protected boolean isDuplicationSupported() {
+                return ItemRefinedPanel.this.isDuplicationSupported();
+            }
+
+            @Override
+            protected void newItemPerformed(PrismContainerValue<C> value, AjaxRequestTarget target, AssignmentObjectRelation relationSpec, boolean isDuplicate) {
+                if (customNewItemPerformed(target, relationSpec)) {
                     return;
                 }
-                super.newItemPerformed(target, relationSepc);
+                super.newItemPerformed(value, target, relationSpec, isDuplicate);
             }
 
             @Override
@@ -150,6 +154,10 @@ public class ItemRefinedPanel<C extends ItemRefinedDefinitionType> extends BaseP
             }
         };
         add(table);
+    }
+
+    protected boolean isDuplicationSupported() {
+        return isCreateNewObjectVisible();
     }
 
     protected boolean customNewItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc) {

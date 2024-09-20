@@ -8,15 +8,17 @@ package com.evolveum.midpoint.gui.impl.component.search.panel;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.gui.impl.component.input.DateTimePickerPanel;
+
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
+
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.component.input.DatePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.util.DateValidator;
@@ -56,18 +58,18 @@ public class DateIntervalSearchPopupPanel extends PopoverSearchPopupPanel {
             return "col-12";
         }));
         popoverForm.add(fromValueContainer);
-        DatePanel fromDatePanel = new DatePanel(ID_DATE_FROM_VALUE, fromDateModel);
+        DateTimePickerPanel fromDatePanel = DateTimePickerPanel.createByXMLGregorianCalendarModel(ID_DATE_FROM_VALUE, fromDateModel);
         fromDatePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         fromValueContainer.add(fromDatePanel);
-        validator.setDateFrom((DateTimeField) fromDatePanel.getBaseFormComponent());
+        validator.setDateFrom(fromDatePanel.getBaseFormComponent());
 
         WebMarkupContainer toContainer = new WebMarkupContainer(ID_DATE_TO_CONTAINER);
         toContainer.add(new VisibleBehaviour(() -> isInterval()));
         popoverForm.add(toContainer);
-        DatePanel toDatePanel = new DatePanel(ID_DATE_TO_VALUE, toDateModel);
+        DateTimePickerPanel toDatePanel = DateTimePickerPanel.createByXMLGregorianCalendarModel(ID_DATE_TO_VALUE, toDateModel);
         toDatePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         toContainer.add(toDatePanel);
-        validator.setDateFrom((DateTimeField) toDatePanel.getBaseFormComponent());
+        validator.setDateFrom(toDatePanel.getBaseFormComponent());
     }
 
     protected boolean isInterval() {

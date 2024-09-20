@@ -6,8 +6,7 @@
  */
 package com.evolveum.midpoint.schema.result;
 
-import com.evolveum.midpoint.util.exception.CommonException;
-
+import com.evolveum.midpoint.util.exception.SeverityAwareException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationPolicyViolationSeverityType;
 
 import org.jetbrains.annotations.Contract;
@@ -114,49 +113,35 @@ public enum OperationResultStatus {
             return null;
         }
 
-        switch (status) {
-            case SUCCESS:
-                return OperationResultStatusType.SUCCESS;
-            case WARNING:
-                return OperationResultStatusType.WARNING;
-            case FATAL_ERROR:
-                return OperationResultStatusType.FATAL_ERROR;
-            case PARTIAL_ERROR:
-                return OperationResultStatusType.PARTIAL_ERROR;
-            case HANDLED_ERROR:
-                return OperationResultStatusType.HANDLED_ERROR;
-            case NOT_APPLICABLE:
-                return OperationResultStatusType.NOT_APPLICABLE;
-            case IN_PROGRESS:
-                return OperationResultStatusType.IN_PROGRESS;
-            default:
-                return OperationResultStatusType.UNKNOWN;
-        }
+        return switch (status) {
+            case SUCCESS -> OperationResultStatusType.SUCCESS;
+            case WARNING -> OperationResultStatusType.WARNING;
+            case FATAL_ERROR -> OperationResultStatusType.FATAL_ERROR;
+            case PARTIAL_ERROR -> OperationResultStatusType.PARTIAL_ERROR;
+            case HANDLED_ERROR -> OperationResultStatusType.HANDLED_ERROR;
+            case NOT_APPLICABLE -> OperationResultStatusType.NOT_APPLICABLE;
+            case IN_PROGRESS -> OperationResultStatusType.IN_PROGRESS;
+            default -> OperationResultStatusType.UNKNOWN;
+        };
     }
 
     static OperationResultStatus forThrowable(Throwable cause) {
-        if (cause instanceof CommonException) {
-            return forCommonExceptionStatus(((CommonException) cause).getSeverity());
+        if (cause instanceof SeverityAwareException severityAwareException) {
+            return forCommonExceptionStatus(severityAwareException.getSeverity());
         } else {
             return FATAL_ERROR;
         }
     }
 
-    private static OperationResultStatus forCommonExceptionStatus(@NotNull CommonException.Severity severity) {
-        switch (severity) {
-            case FATAL_ERROR:
-                return FATAL_ERROR;
-            case PARTIAL_ERROR:
-                return PARTIAL_ERROR;
-            case WARNING:
-                return WARNING;
-            case HANDLED_ERROR:
-                return HANDLED_ERROR;
-            case SUCCESS:
-                return SUCCESS;
-            default:
-                throw new AssertionError(severity);
-        }
+    private static OperationResultStatus forCommonExceptionStatus(@NotNull SeverityAwareException.Severity severity) {
+        return switch (severity) {
+            case FATAL_ERROR -> FATAL_ERROR;
+            case PARTIAL_ERROR -> PARTIAL_ERROR;
+            case WARNING -> WARNING;
+            case HANDLED_ERROR -> HANDLED_ERROR;
+            case SUCCESS -> SUCCESS;
+            case NOT_APPLICABLE -> NOT_APPLICABLE;
+        };
     }
 
     public static OperationResultStatus forViolationSeverity(@NotNull OperationPolicyViolationSeverityType severity) {

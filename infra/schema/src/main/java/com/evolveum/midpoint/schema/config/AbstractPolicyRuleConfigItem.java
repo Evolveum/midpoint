@@ -28,13 +28,13 @@ import java.util.stream.Collectors;
 /** Exception from naming rules */
 public abstract class AbstractPolicyRuleConfigItem<R extends PolicyRuleType> extends ConfigurationItem<R> {
 
-    @SuppressWarnings("unused") // invoked dynamically
-    AbstractPolicyRuleConfigItem(@NotNull ConfigurationItem<R> original) {
+    @SuppressWarnings({ "unused", "WeakerAccess" }) // invoked dynamically
+    public AbstractPolicyRuleConfigItem(@NotNull ConfigurationItem<R> original) {
         super(original);
     }
 
     AbstractPolicyRuleConfigItem(@NotNull R value, @NotNull ConfigurationItemOrigin origin) {
-        super(value, origin);
+        super(value, origin, null); // TODO provide parent some day
     }
 
     public @Nullable String getName() {

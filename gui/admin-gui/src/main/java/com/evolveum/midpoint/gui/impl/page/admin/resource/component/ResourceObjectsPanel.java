@@ -9,33 +9,41 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
 import static com.evolveum.midpoint.common.LocalizationTestUtil.getLocalizationService;
 
+import java.io.Serial;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.basic.AssociationDefinitionWrapper;
+import com.evolveum.midpoint.gui.impl.util.AssociationChildWrapperUtil;
+import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+import com.evolveum.midpoint.web.session.ResourceContentStorage;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.button.ReloadableButton;
@@ -45,21 +53,16 @@ import com.evolveum.midpoint.gui.impl.component.input.LifecycleStatePanel;
 import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
-import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.ResourceObjectTypeWizardPreviewPanel;
-import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.ResourceObjectTypeWizardChoicePanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.authentication.CompiledShadowCollectionView;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -77,14 +80,11 @@ import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.ResourceObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItemWithCount;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.page.admin.resources.SynchronizationTaskFlavor;
-import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.shadows.ShadowTablePanel;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -92,25 +92,27 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.wicket.chartjs.ChartConfiguration;
 import com.evolveum.wicket.chartjs.ChartJsPanel;
 
-public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<ResourceType, ResourceDetailsModel> {
+public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectsPanel.class);
+
     private static final String DOT_CLASS = ResourceObjectsPanel.class.getName() + ".";
     private static final String OPERATION_GET_TOTALS = DOT_CLASS + "getTotals";
     private static final String ID_OBJECT_TYPE = "objectType";
     private static final String ID_TABLE = "table";
     private static final String ID_TITLE = "title";
+    private static final String ID_DEFAULT_OPERATIONAL_POLICIES = "defaultOperationalPolicies";
     private static final String ID_CONFIGURATION = "configuration";
     private static final String ID_LIFECYCLE_STATE = "lifecycleState";
     private static final String OP_SET_LIFECYCLE_STATE_FOR_OBJECT_TYPE = DOT_CLASS + "setLyfecycleStateForObjectType";
+    private static final String ID_CHART_CONTAINER = "chartContainer";
     private static final String ID_STATISTICS = "statistics";
     private static final String ID_SHOW_STATISTICS = "showStatistics";
     private static final String ID_TASKS = "tasks";
-    private static final String OP_CREATE_TASK = DOT_CLASS + "createTask";
 
-    private static final String OP_COUNT_TASKS = DOT_CLASS + "countTasks";
+    private final IModel<Boolean> showStatisticsModel = Model.of(false);
 
-    private IModel<Boolean> showStatisticsModel = Model.of(false);
+    private LoadableDetachableModel<PrismPropertyWrapper<String>> lifecycleStateModel;
 
     public ResourceObjectsPanel(String id, ResourceDetailsModel resourceDetailsModel, ContainerPanelConfigurationType config) {
         super(id, resourceDetailsModel, config);
@@ -123,10 +125,12 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
 
         createLifecycleStatePanel();
         createConfigureButton();
-        createTasksButton();
+        createTasksButton(ID_TASKS);
 
         createShowStatistics();
         createStatisticsPanel();
+
+        createDefaultOperationalPolicies();
 
         createShadowTable();
 
@@ -134,25 +138,27 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
     }
 
     private void createLifecycleStatePanel() {
-        IModel<PrismPropertyWrapper<String>> model = new LoadableDetachableModel<>() {
-            @Override
-            protected PrismPropertyWrapper<String> load() {
-                if (getSelectedObjectType() != null) {
-                    ItemPath pathToProperty = ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE)
-                            .append(getSelectedObjectType().asPrismContainerValue().getPath())
-                            .append(ResourceObjectTypeDefinitionType.F_LIFECYCLE_STATE);
-                    try {
-                        return getObjectWrapperModel().getObject().findProperty(pathToProperty);
-                    } catch (SchemaException e) {
-                        LOGGER.error("Couldn't find property with path " + pathToProperty);
+        if (lifecycleStateModel == null) {
+            lifecycleStateModel = new LoadableDetachableModel<>() {
+                @Override
+                protected PrismPropertyWrapper<String> load() {
+                    if (getSelectedObjectType() != null) {
+                        ItemPath pathToProperty = ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE)
+                                .append(getSelectedObjectType().asPrismContainerValue().getPath())
+                                .append(ResourceObjectTypeDefinitionType.F_LIFECYCLE_STATE);
+                        try {
+                            return getObjectWrapperModel().getObject().findProperty(pathToProperty);
+                        } catch (SchemaException e) {
+                            LOGGER.error("Couldn't find property with path " + pathToProperty);
+                        }
                     }
+
+                    return null;
                 }
+            };
+        }
 
-                return null;
-            }
-        };
-
-        LifecycleStatePanel panel = new LifecycleStatePanel(ID_LIFECYCLE_STATE, model) {
+        LifecycleStatePanel panel = new LifecycleStatePanel(ID_LIFECYCLE_STATE, lifecycleStateModel) {
             @Override
             protected void onInitialize() {
                 super.onInitialize();
@@ -180,11 +186,11 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
 
                         try {
                             if (result.isSuccess()) {
-                                String realValue = model.getObject().getValue().getRealValue();
-                                model.getObject().getValue().getOldValue().setValue(realValue);
+                                String realValue = lifecycleStateModel.getObject().getValue().getRealValue();
+                                lifecycleStateModel.getObject().getValue().getOldValue().setValue(realValue);
                             }
                         } catch (SchemaException e) {
-                            LOGGER.error("Couldn't get value of " + model.getObject());
+                            LOGGER.error("Couldn't get value of " + lifecycleStateModel.getObject());
                         }
                     }
                 });
@@ -201,11 +207,106 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
         add(title);
     }
 
+    private void createDefaultOperationalPolicies() {
+        Label defaultOperationalPolicies = new Label(ID_DEFAULT_OPERATIONAL_POLICIES, getDefaultOperationPolicy());
+        defaultOperationalPolicies.add(AttributeAppender.append("title", getDefaultOperationPolicyTitle()));
+        defaultOperationalPolicies.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(getDefaultOperationPolicy().getObject())));
+        defaultOperationalPolicies.setOutputMarkupId(true);
+        add(defaultOperationalPolicies);
+    }
+
+    private IModel<String> getDefaultOperationPolicyTitle() {
+        IModel<String> objectTypeModel = () -> {
+            ResourceObjectTypeDefinition def = getSelectedObjectTypeDefinition();
+            if (def == null) {
+                return null;
+            }
+
+            return GuiDisplayNameUtil.getDisplayName(getSelectedObjectTypeDefinition().getDefinitionBean());
+        };
+
+        return createStringResource(
+                "ResourceObjectsPanel.defaultOperationPolicy",
+                new Object[] {
+                        objectTypeModel,
+                        getDefaultOperationPolicy() }
+        );
+    }
+
+    private IModel<String> getDefaultOperationPolicy() {
+        return () -> {
+            ResourceObjectTypeDefinition def = getSelectedObjectTypeDefinition();
+            if (def == null) {
+                return null;
+            }
+
+            @NotNull ResourceObjectTypeDefinitionType objectType = def.getDefinitionBean();
+            if (objectType.getDefaultOperationPolicy().isEmpty()) {
+                return null;
+            }
+
+            Object[] marks = objectType.getDefaultOperationPolicy().stream()
+                    .filter(policy -> policy != null && policy.getPolicyRef() != null && !policy.getPolicyRef().asReferenceValue().isEmpty())
+                    .map(policy -> new AbstractMap.SimpleEntry(WebModelServiceUtils.loadObject(policy.getPolicyRef(), getPageBase()), policy.getLifecycleState()))
+                    .filter(pair -> pair.getKey() != null)
+                    .map(pair -> WebComponentUtil.getDisplayNameOrName((PrismObject) pair.getKey())
+                            + (((pair.getValue() != null && !SchemaConstants.LIFECYCLE_ACTIVE.equals(pair.getValue())) ?
+                            (" (" + LocalizationUtil.translateLifecycleState((String) pair.getValue(), getPageBase()) + ")") : "")))
+                    .toArray();
+
+            return StringUtils.joinWith(", ", marks);
+        };
+    }
+
     private void createObjectTypeChoice() {
-        var objectTypes = new DropDownChoicePanel<>(ID_OBJECT_TYPE,
-                Model.of(getObjectDetailsModels().getDefaultObjectType(getKind())),
-                () -> getObjectDetailsModels().getResourceObjectTypesDefinitions(getKind()),
-                new ResourceObjectTypeChoiceRenderer(), true);
+
+        LoadableDetachableModel<ResourceObjectTypeIdentification> objectTypeModel = new LoadableDetachableModel<>() {
+            @Override
+            protected ResourceObjectTypeIdentification load() {
+                ResourceContentStorage storage = getPageStorage();
+                String intent = null;
+                if (storage != null) {
+                    intent = storage.getContentSearch().getIntent();
+                }
+                if (intent == null) {
+                    return null;
+                }
+                return getObjectDetailsModels().getObjectTypeDefinition(getKind(), intent).getTypeIdentification();
+            }
+
+            @Override
+            public void setObject(ResourceObjectTypeIdentification object) {
+                ResourceContentStorage storage = getPageStorage();
+                if (storage != null) {
+                    storage.getContentSearch().setIntent(object == null ? null : object.getIntent());
+                }
+            }
+        };
+
+        if (getPageStorage() == null || getPageStorage().getContentSearch().getIntent() == null) {
+            ResourceObjectTypeDefinition defaultObjectTypeDef = getObjectDetailsModels().getDefaultObjectType(getKind());
+            if (defaultObjectTypeDef != null) {
+                objectTypeModel.setObject(defaultObjectTypeDef.getTypeIdentification());
+            }
+        }
+
+        LoadableDetachableModel<List<? extends ResourceObjectTypeIdentification>> choices = new LoadableDetachableModel<>() {
+            @Override
+            protected List<? extends ResourceObjectTypeIdentification> load() {
+                List<? extends ResourceObjectTypeDefinition> choices = getObjectDetailsModels()
+                        .getResourceObjectTypesDefinitions(getKind());
+                return choices != null ? choices.stream().map(ResourceObjectTypeDefinition::getTypeIdentification).toList() : Collections.emptyList();
+            }
+        };
+
+        var objectTypes = new DropDownChoicePanel<>(
+                ID_OBJECT_TYPE,
+                objectTypeModel,
+                choices,
+                new ResourceObjectTypeChoiceRenderer(getObjectDetailsModels()), true) {
+
+        };
+
         objectTypes.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -213,7 +314,10 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
                 target.add(get(ID_LIFECYCLE_STATE).getParent());
                 target.add(get(ID_CONFIGURATION));
                 target.add(get(ID_TASKS));
+                target.add(get(ID_DEFAULT_OPERATIONAL_POLICIES));
                 target.add(getShadowTable());
+                lifecycleStateModel.detach();
+                objectTypeModel.detach();
             }
         });
         objectTypes.setOutputMarkupId(true);
@@ -224,36 +328,38 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
 
         List<InlineMenuItem> items = new ArrayList<>();
         items.add(createWizardItemPanel(
-                ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType.BASIC,
+                ResourceObjectTypeWizardChoicePanel.ResourceObjectTypePreviewTileType.BASIC,
                 "showResourceObjectTypeBasicWizard"));
 
         items.add(createWizardItemPanel(
-                ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType.SYNCHRONIZATION,
+                ResourceObjectTypeWizardChoicePanel.ResourceObjectTypePreviewTileType.SYNCHRONIZATION,
                 "showSynchronizationWizard"));
 
         items.add(createWizardItemPanel(
-                ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType.ATTRIBUTE_MAPPING,
+                ResourceObjectTypeWizardChoicePanel.ResourceObjectTypePreviewTileType.ATTRIBUTE_MAPPING,
                 "showAttributeMappingWizard"));
 
         items.add(createWizardItemPanel(
-                ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType.CORRELATION,
+                ResourceObjectTypeWizardChoicePanel.ResourceObjectTypePreviewTileType.CORRELATION,
                 "showCorrelationWizard"));
 
         items.add(createWizardItemPanel(
-                ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType.CAPABILITIES,
+                ResourceObjectTypeWizardChoicePanel.ResourceObjectTypePreviewTileType.CAPABILITIES,
                 "showCapabilitiesWizard"));
 
         items.add(createWizardItemPanel(
-                ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType.CREDENTIALS,
+                ResourceObjectTypeWizardChoicePanel.ResourceObjectTypePreviewTileType.CREDENTIALS,
                 "showCredentialsWizard"));
 
         items.add(createWizardItemPanel(
-                ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType.ACTIVATION,
+                ResourceObjectTypeWizardChoicePanel.ResourceObjectTypePreviewTileType.ACTIVATION,
                 "showActivationsWizard"));
 
         items.add(createWizardItemPanel(
-                ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType.ASSOCIATIONS,
-                "showAssociationsWizard"));
+                ResourceObjectTypeWizardChoicePanel.ResourceObjectTypePreviewTileType.POLICIES,
+                "showPoliciesWizard"));
+
+        addingAssociationButtonItems(items);
 
         DropdownButtonDto model = new DropdownButtonDto(null, "fa fa-cog", getString("ResourceObjectsPanel.button.configure"), items);
         DropdownButtonPanel configurationPanel = new DropdownButtonPanel(ID_CONFIGURATION, model) {
@@ -276,18 +382,240 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
         add(configurationPanel);
     }
 
-    private ButtonInlineMenuItem createWizardItemPanel(
-            @NotNull ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType wizardType,
-            @NotNull String methodName
-    ) {
-        return new ButtonInlineMenuItem(
-                createStringResource(wizardType)) {
-            private static final long serialVersionUID = 1L;
+    private void addingAssociationButtonItems(List<InlineMenuItem> items) {
+        ButtonInlineMenuItem menu = new ButtonInlineMenuItem(
+                createStringResource("ResourceObjectsPanel.button.association.create")) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public InlineMenuItemAction initAction() {
                 return new ColumnMenuAction<>() {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        try {
+                            Method method = PageResource.class.getMethod(
+                                    "showAssociationTypeWizard", AjaxRequestTarget.class);
+                            method.invoke(getObjectDetailsModels().getPageResource(), target);
+                        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                            LOGGER.error("Couldn't invoke method showAssociationTypeWizard in PageResource class");
+                        }
+                    }
+                };
+            }
+
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder("fa fa-code-compare");
+            }
+        };
+        items.add(menu);
+
+        menu = new ButtonInlineMenuItem(
+                createStringResource("ResourceObjectsPanel.button.association.inbound")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<>() {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        ResourceObjectTypeDefinition selectedObjectType = getSelectedObjectTypeDefinition();
+                        if (selectedObjectType == null) {
+                            getPageBase().warn(LocalizationUtil.translate("PageResource.objectTypeIsNullForAssociation"));
+                            target.add(getPageBase().getFeedbackPanel());
+                            return;
+                        }
+
+                        try {
+                            List<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> associations =
+                                    AssociationChildWrapperUtil.findAssociationDefinitions(getObjectWrapper(), selectedObjectType);
+
+                            if (associations.isEmpty()) {
+                                return;
+                            }
+
+                            if (associations.size() == 1) {
+                                showAssociationInboundWizard(associations.iterator().next(), target);
+                            } else {
+                                ChoiceAssociationPopupPanel popup = new ChoiceAssociationPopupPanel(
+                                        getPageBase().getMainPopupBodyId(),
+                                        getObjectDetailsModels(),
+                                        associations) {
+                                    @Override
+                                    protected void onTileClickPerformed(AssociationDefinitionWrapper value, AjaxRequestTarget target) {
+                                        showAssociationInboundWizard(value.getSourceValue(), target);
+                                    }
+                                };
+                                getPageBase().showMainPopup(popup, target);
+                            }
+
+                        } catch (SchemaException e) {
+                            LOGGER.error("Couldn't load association for " + selectedObjectType);
+                        }
+                    }
+                };
+            }
+
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder("fa fa-arrow-right-to-bracket");
+            }
+        };
+        menu.setVisible(createAssociationMenuItemVisibilityModel());
+        items.add(menu);
+
+        menu = new ButtonInlineMenuItem(
+                createStringResource("ResourceObjectsPanel.button.association.outbound")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<>() {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        ResourceObjectTypeDefinition selectedObjectType = getSelectedObjectTypeDefinition();
+                        if (selectedObjectType == null) {
+                            getPageBase().warn(LocalizationUtil.translate("PageResource.objectTypeIsNullForAssociation"));
+                            target.add(getPageBase().getFeedbackPanel());
+                            return;
+                        }
+
+                        try {
+                            List<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> associations =
+                                    AssociationChildWrapperUtil.findAssociationDefinitions(getObjectWrapper(), selectedObjectType);
+
+                            if (associations.isEmpty()) {
+                                return;
+                            }
+
+                            if (associations.size() == 1) {
+                                showAssociationOutboundWizard(associations.iterator().next(), target);
+                            } else {
+                                ChoiceAssociationPopupPanel popup = new ChoiceAssociationPopupPanel(
+                                        getPageBase().getMainPopupBodyId(),
+                                        getObjectDetailsModels(),
+                                        associations) {
+                                    @Override
+                                    protected void onTileClickPerformed(AssociationDefinitionWrapper value, AjaxRequestTarget target) {
+                                        showAssociationOutboundWizard(value.getSourceValue(), target);
+                                    }
+                                };
+                                getPageBase().showMainPopup(popup, target);
+                            }
+
+                        } catch (SchemaException e) {
+                            LOGGER.error("Couldn't load association for " + selectedObjectType);
+                        }
+                    }
+                };
+            }
+
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder("fa fa-arrow-right-from-bracket");
+            }
+        };
+        menu.setVisible(createAssociationMenuItemVisibilityModel());
+        items.add(menu);
+    }
+
+    private IModel<Boolean> createAssociationMenuItemVisibilityModel() {
+        return () -> {
+            ResourceObjectTypeDefinition selectedObjectType = getSelectedObjectTypeDefinition();
+            if (selectedObjectType == null) {
+                return false;
+            }
+            try {
+                List<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> associations =
+                        AssociationChildWrapperUtil.findAssociationDefinitions(getObjectWrapper(), selectedObjectType);
+                return !associations.isEmpty();
+            } catch (SchemaException e) {
+                LOGGER.error("Couldn't load association for " + selectedObjectType);
+                return false;
+            }
+        };
+    }
+
+    private void showAssociationInboundWizard(PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType> associationWrapper, AjaxRequestTarget target) {
+        String methodName;
+        ItemPath path;
+
+        ShadowAssociationTypeDefinitionType association = associationWrapper.getRealValue();
+        if (association == null) {
+            return;
+        }
+
+        if (association.getSubject() == null || association.getSubject().getAssociation() == null) {
+            return;
+        }
+
+        if (association.getSubject().getAssociation().getInbound().size() == 1) {
+            methodName = "showAssociationInboundWizard";
+            path = association.getSubject().getAssociation().getInbound().iterator().next().asPrismContainerValue().getPath();
+        } else {
+            methodName = "showAssociationInboundsWizard";
+            path = association.asPrismContainerValue().getPath()
+                    .append(ShadowAssociationTypeDefinitionType.F_SUBJECT)
+                    .append(ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION);
+        }
+
+        showAssociationWizard(association, methodName, path, target);
+    }
+
+    private void showAssociationWizard(ShadowAssociationTypeDefinitionType association, String methodName, ItemPath path, AjaxRequestTarget target) {
+        try {
+            Method method = PageResource.class.getMethod(
+                    methodName, AjaxRequestTarget.class, ItemPath.class, ShadowAssociationTypeDefinitionType.class);
+            method.invoke(getObjectDetailsModels().getPageResource(), target, path, association);
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            LOGGER.error("Couldn't invoke method " + methodName + " in PageResource class");
+        }
+    }
+
+    private void showAssociationOutboundWizard(PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType> associationWrapper, AjaxRequestTarget target) {
+        String methodName;
+        ItemPath path;
+
+        ShadowAssociationTypeDefinitionType association = associationWrapper.getRealValue();
+        if (association == null) {
+            return;
+        }
+
+        if (association.getSubject() == null || association.getSubject().getAssociation() == null) {
+            return;
+        }
+
+        if (association.getSubject().getAssociation().getOutbound().size() == 1) {
+            methodName = "showAssociationOutboundWizard";
+            path = association.getSubject().getAssociation().getOutbound().iterator().next().asPrismContainerValue().getPath();
+        } else {
+            methodName = "showAssociationOutboundsWizard";
+            path = association.asPrismContainerValue().getPath()
+                    .append(ShadowAssociationTypeDefinitionType.F_SUBJECT)
+                    .append(ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION);
+        }
+
+        showAssociationWizard(association, methodName, path, target);
+    }
+
+    private ButtonInlineMenuItem createWizardItemPanel(
+            @NotNull ResourceObjectTypeWizardChoicePanel.ResourceObjectTypePreviewTileType wizardType,
+            @NotNull String methodName
+    ) {
+        return new ButtonInlineMenuItem(
+                createStringResource(wizardType)) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<>() {
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
@@ -302,7 +630,7 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
                                         ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE)
                                                 .append(selectedObjectType.asPrismContainerValue().getPath()));
                             } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-                                LOGGER.error("Couldn't invoke method " + methodName + "in PageResource class");
+                                LOGGER.error("Couldn't invoke method " + methodName + " in PageResource class");
                             }
                         }
                     }
@@ -317,12 +645,13 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
     }
 
     private void createShowStatistics() {
-        CheckBoxPanel showStatistics = new CheckBoxPanel(ID_SHOW_STATISTICS, showStatisticsModel, createStringResource("ResourceObjectsPanel.showStatistics")) {
+        CheckBoxPanel showStatistics = new CheckBoxPanel(ID_SHOW_STATISTICS, showStatisticsModel,
+                createStringResource("ResourceObjectsPanel.showStatistics")) {
 
             @Override
             public void onUpdate(AjaxRequestTarget target) {
                 super.onUpdate(target);
-                target.add(getStatisticsPanel());
+                target.add(getStatisticsPanel().getParent());
             }
         };
         showStatistics.setOutputMarkupId(true);
@@ -330,6 +659,11 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
     }
 
     private void createStatisticsPanel() {
+        WebMarkupContainer chartContainer = new WebMarkupContainer(ID_CHART_CONTAINER);
+        chartContainer.setOutputMarkupId(true);
+        chartContainer.add(new VisibleBehaviour(showStatisticsModel::getObject));
+        add(chartContainer);
+
         ShadowStatisticsModel statisticsModel = new ShadowStatisticsModel() {
 
             protected Integer createTotalsModel(final ObjectFilter situationFilter) {
@@ -349,8 +683,7 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
                 new ChartJsPanel<>(ID_STATISTICS, statisticsModel);
         shadowStatistics.setOutputMarkupId(true);
         shadowStatistics.setOutputMarkupPlaceholderTag(true);
-        shadowStatistics.add(new VisibleBehaviour(() -> showStatisticsModel.getObject()));
-        add(shadowStatistics);
+        chartContainer.add(shadowStatistics);
     }
 
     private Integer countFor(ObjectFilter situationFilter) {
@@ -384,7 +717,7 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
 
             @Override
             public PageStorage getPageStorage() {
-                return getPageBase().getSessionStorage().getResourceContentStorage(getKind());
+                return ResourceObjectsPanel.this.getPageStorage();
             }
 
             @Override
@@ -396,6 +729,13 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
             protected SearchContext createAdditionalSearchContext() {
                 SearchContext searchContext = new SearchContext();
                 searchContext.setPanelType(CollectionPanelType.REPO_SHADOW);
+                // MID-9569: selectedObjectDefinition has knowledge about detailed shadow type, so we can provide it
+                // directly to search (since we are also adding coordinates to filter) so Axiom Query can access
+                // additional attributes
+                var resTypeDef = getSelectedObjectTypeDefinition();
+                if (resTypeDef != null) {
+                    searchContext.setDefinitionOverride(resTypeDef.getPrismObjectDefinition());
+                }
                 return searchContext;
             }
 
@@ -427,26 +767,12 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
         add(shadowTablePanel);
     }
 
-    private void createTasksButton() {
+    private ResourceContentStorage getPageStorage() {
+        return getPageBase().getSessionStorage().getResourceContentStorage(getKind());
+    }
 
-        List<InlineMenuItem> items = new ArrayList<>();
-        items.add(new ButtonInlineMenuItem(createStringResource("ResourceObjectsPanel.button.createTask")) {
-            @Override
-            public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder("fa fa-plus-circle");
-            }
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new InlineMenuItemAction() {
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        createTaskPerformed(target);
-                    }
-                };
-            }
-        });
-
+    @Override
+    protected void addViewMenuItemsForCreateTaskButton(List<InlineMenuItem> items) {
         items.add(createTaskViewMenuItem(
                 createStringResource("ResourceObjectsPanel.button.viewSimulatedTasks"),
                 null,
@@ -466,112 +792,9 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
                 createStringResource("ResourceObjectsPanel.button.viewReconciliationTasks"),
                 SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value(),
                 false));
-
-        DropdownButtonDto model = new DropdownButtonDto(
-                null, "fa fa-tasks", getString("ResourceObjectsPanel.button.tasks"), items);
-        DropdownButtonPanel createTask = new DropdownButtonPanel(ID_TASKS, model) {
-            @Override
-            protected String getSpecialButtonClass() {
-                return "btn-sm btn-default";
-            }
-
-            protected String getSpecialDropdownMenuClass() {
-                return "dropdown-menu-left";
-            }
-
-            @Override
-            protected boolean showIcon() {
-                return true;
-            }
-        };
-        createTask.setOutputMarkupId(true);
-        add(createTask);
     }
 
-    private InlineMenuItem createTaskViewMenuItem(StringResourceModel label, String archetypeOid, boolean isSimulationTasks) {
-        return new ButtonInlineMenuItemWithCount(label) {
-            @Override
-            protected boolean isBadgeVisible() {
-                if (!getPageBase().isNativeRepo()) {
-                    return false;
-                }
-
-                return super.isBadgeVisible();
-            }
-
-            @Override
-            public int getCount() {
-                if (!getPageBase().isNativeRepo()) {
-                    return 0;
-                }
-
-                ObjectQuery query = createQueryFroTasks(isSimulationTasks);
-                if (archetypeOid != null) {
-                    query.addFilter(PrismContext.get()
-                            .queryFor(TaskType.class)
-                            .item(TaskType.F_ARCHETYPE_REF)
-                            .ref(archetypeOid)
-                            .buildFilter());
-                }
-
-                Task task = getPageBase().createSimpleTask(OP_COUNT_TASKS);
-                Integer count = null;
-                try {
-                    count = getPageBase().getModelService().countObjects(
-                            TaskType.class, query, null, task, task.getResult());
-                } catch (CommonException e) {
-                    LOGGER.error("Couldn't count tasks");
-                    getPageBase().showResult(task.getResult());
-                }
-
-                if (count == null) {
-                    return 0;
-                }
-                return count;
-            }
-
-            @Override
-            public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder("fa fa-eye");
-            }
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new InlineMenuItemAction() {
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-
-                        if (warnIfNonNative(target)) {
-                            return;
-                        }
-
-                        redirectToTasksListPage(archetypeOid, isSimulationTasks);
-                    }
-
-                };
-            }
-
-        };
-    }
-
-    private void redirectToTasksListPage(@Nullable String archetypeOid, boolean isSimulationTasks) {
-        PageParameters pageParameters = new PageParameters();
-        if (archetypeOid != null) {
-            String taskCollectionViewName =
-                    getPageBase().getCompiledGuiProfile().findApplicableArchetypeView(archetypeOid).getViewIdentifier();
-
-            if (StringUtils.isNotEmpty(taskCollectionViewName)) {
-                pageParameters.add(PageBase.PARAMETER_OBJECT_COLLECTION_NAME, taskCollectionViewName);
-            }
-        }
-
-        ObjectQuery query = createQueryFroTasks(isSimulationTasks);
-
-        PageTasks pageTasks = new PageTasks(query, pageParameters);
-        getPageBase().setResponsePage(pageTasks);
-    }
-
-    private ObjectQuery createQueryFroTasks(boolean isSimulationTasks) {
+    protected ObjectQuery createQueryForTasks(boolean isSimulationTasks) {
         S_FilterExit filter = PrismContext.get()
                 .queryFor(TaskType.class)
                 .item(ItemPath.create(
@@ -602,25 +825,21 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
         if (isSimulationTasks) {
             filter = addSimulationRule(
                     filter.and().block(),
-                    true,
-                    ActivityAffectedObjectsType.F_EXECUTION_MODE,
+                    false,
                     ExecutionModeType.PREVIEW);
             filter = addSimulationRule(
                     filter.or(),
-                    true,
-                    ActivityAffectedObjectsType.F_EXECUTION_MODE,
+                    false,
                     ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW);
             filter = filter.endBlock();
         } else {
             filter = addSimulationRule(
                     filter.and(),
-                    false,
-                    ActivityAffectedObjectsType.F_EXECUTION_MODE,
+                    true,
                     ExecutionModeType.PREVIEW);
             filter = addSimulationRule(
                     filter.and(),
-                    false,
-                    ActivityAffectedObjectsType.F_EXECUTION_MODE,
+                    true,
                     ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW);
 
         }
@@ -628,73 +847,15 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
         return filter.build();
     }
 
-    private S_FilterExit addSimulationRule(S_FilterEntry filter, boolean isSimulationTasks, ItemName itemName, Object value) {
-        if (!isSimulationTasks) {
-            filter = filter.not();
-        }
-
-        return filter
-                .item(ItemPath.create(
-                        TaskType.F_AFFECTED_OBJECTS,
-                        TaskAffectedObjectsType.F_ACTIVITY,
-                        itemName))
-                .eq(value);
-    }
-
-    private void createTaskPerformed(AjaxRequestTarget target) {
-        TaskCreationPopup createTaskPopup = new TaskCreationPopup(getPageBase().getMainPopupBodyId(), () -> getSelectedObjectType()) {
+    @Override
+    protected TaskCreationPopup<?> createNewTaskPopup() {
+        return new TaskCreationFoCategorizedObjectsPopup(getPageBase().getMainPopupBodyId()) {
 
             @Override
             protected void createNewTaskPerformed(SynchronizationTaskFlavor flavor, boolean simulate, AjaxRequestTarget target) {
                 ResourceObjectsPanel.this.createNewTaskPerformed(flavor, simulate, target);
             }
         };
-        getPageBase().showMainPopup(createTaskPopup, target);
-
-    }
-
-    private boolean warnIfNonNative(AjaxRequestTarget target) {
-        if (!getPageBase().isNativeRepo()) {
-            String warnMessage = getString("PageAdmin.operation.nonNativeRepositoryWarning");
-            String localeWarnMessage = getLocalizationService()
-                    .translate(PolyString.fromOrig(warnMessage),
-                            WebComponentUtil.getCurrentLocale(), true);
-            warn(localeWarnMessage);
-            target.add(getPageBase().getFeedbackPanel());
-            return true;
-        }
-        return false;
-    }
-
-    private void createNewTaskPerformed(SynchronizationTaskFlavor flavor, boolean isSimulation, AjaxRequestTarget target) {
-        var newTask = getPageBase().taskAwareExecutor(target, OP_CREATE_TASK)
-                .hideSuccessfulStatus()
-                .run((task, result) -> {
-
-                    ResourceType resource = getObjectDetailsModels().getObjectType();
-                    ResourceTaskCreator creator =
-                            ResourceTaskCreator.forResource(resource, getPageBase())
-                                    .ofFlavor(flavor)
-                                    .ownedByCurrentUser()
-                                    .withCoordinates(
-                                            getKind(), // FIXME not static
-                                            getIntent(), // FIXME not static
-                                            getObjectClass()); // FIXME not static
-
-                    if (isSimulation) {
-                        creator = creator
-                                .withExecutionMode(ExecutionModeType.PREVIEW)
-                                .withPredefinedConfiguration(PredefinedConfigurationType.DEVELOPMENT)
-                                .withSimulationResultDefinition(
-                                        new SimulationDefinitionType().useOwnPartitionForProcessedObjects(false));
-                    }
-
-                    return creator.create(task, result);
-                });
-
-        if (newTask != null) {
-            DetailsPageUtil.dispatchToNewObject(newTask, getPageBase());
-        }
     }
 
     protected abstract UserProfileStorage.TableId getRepositorySearchTableId();
@@ -704,10 +865,6 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
     protected final RepositoryShadowBeanObjectDataProvider createProvider(IModel<Search<ShadowType>> searchModel, CompiledShadowCollectionView collection) {
         RepositoryShadowBeanObjectDataProvider provider = new RepositoryShadowBeanObjectDataProvider(
                 getPageBase(), searchModel, null) {
-            @Override
-            protected PageStorage getPageStorage() {
-                return getPageBase().getSessionStorage().getResourceContentStorage(getKind());
-            }
 
             @Override
             protected ObjectQuery getCustomizeContentQuery() {
@@ -751,27 +908,6 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
         return null;
     }
 
-    private void showNewObjectTypeWizard(AjaxRequestTarget target) {
-        var objectTypeWrapper = PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(),
-                ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE));
-
-        getObjectDetailsModels().getPageResource().showObjectTypeWizard(target, objectTypeWrapper.getObject().getPath());
-    }
-
-    private void showEditObjectTypeWizard(AjaxRequestTarget target, PrismContainerValue<ResourceObjectTypeDefinitionType> selectedObjectType) {
-        try {
-            PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> def = getObjectWrapperModel().getObject()
-                    .findContainerValue(ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE, selectedObjectType.getPath()));
-            getObjectDetailsModels().getPageResource().showResourceObjectTypePreviewWizard(
-                    target,
-                    def.getPath());
-        } catch (Exception e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Cannot find object type definition", e);
-            target.add(getPageBase().getFeedbackPanel());
-        }
-
-    }
-
     private ReloadableButton createReloadButton(String buttonId) {
 
         ReloadableButton reload = new ReloadableButton(
@@ -783,7 +919,7 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
             }
 
             @Override
-            protected ActivityDefinitionType createActivityDefinition() throws SchemaException {
+            protected ActivityDefinitionType createActivityDefinition() {
 
                 ResourceObjectTypeDefinition objectType = getSelectedObjectTypeDefinition();
                 ShadowKindType kind;
@@ -823,14 +959,15 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
     }
 
     private ResourceObjectTypeDefinition getSelectedObjectTypeDefinition() {
-        DropDownChoicePanel<ResourceObjectTypeDefinition> objectTypeSelector = getObjectTypeSelector();
-        if (objectTypeSelector != null && objectTypeSelector.getModel() != null) {
-            return objectTypeSelector.getModel().getObject();
+        DropDownChoicePanel<ResourceObjectTypeIdentification> objectTypeSelector = getObjectTypeSelector();
+        if (objectTypeSelector != null && objectTypeSelector.getModel() != null && objectTypeSelector.getModel().getObject() != null) {
+            ResourceObjectTypeIdentification objectTypeIdentifier = objectTypeSelector.getModel().getObject();
+            return getObjectDetailsModels().getObjectTypeDefinition(objectTypeIdentifier.getKind(), objectTypeIdentifier.getIntent());
         }
         return null;
     }
 
-    private String getIntent() {
+    protected String getIntent() {
         ResourceObjectTypeDefinition objectType = getSelectedObjectTypeDefinition();
         if (objectType != null) {
             return objectType.getIntent();
@@ -838,7 +975,7 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
         return null;
     }
 
-    private QName getObjectClass() {
+    protected QName getObjectClass() {
         ResourceObjectTypeDefinition objectType = getSelectedObjectTypeDefinition();
         if (objectType != null) {
             return objectType.getObjectClassName();
@@ -846,16 +983,17 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
         return null;
     }
 
-    private DropDownChoicePanel<ResourceObjectTypeDefinition> getObjectTypeSelector() {
-        return (DropDownChoicePanel<ResourceObjectTypeDefinition>) get(ID_OBJECT_TYPE);
+    @SuppressWarnings("unchecked")
+    private DropDownChoicePanel<ResourceObjectTypeIdentification> getObjectTypeSelector() {
+        return (DropDownChoicePanel<ResourceObjectTypeIdentification>) get(ID_OBJECT_TYPE);
     }
 
     private ShadowTablePanel getShadowTable() {
         return (ShadowTablePanel) get(ID_TABLE);
     }
 
-    private ChartJsPanel getStatisticsPanel() {
-        return (ChartJsPanel) get(ID_STATISTICS);
+    private WebMarkupContainer getStatisticsPanel() {
+        return (WebMarkupContainer) get(ID_CHART_CONTAINER);
     }
 
 }

@@ -18,13 +18,14 @@ import java.util.List;
 
 public class ObjectTemplateItemDefinitionConfigItem extends ConfigurationItem<ObjectTemplateItemDefinitionType> {
 
+    @SuppressWarnings("unused")
     public ObjectTemplateItemDefinitionConfigItem(@NotNull ConfigurationItem<ObjectTemplateItemDefinitionType> original) {
         super(original);
     }
 
-    public ObjectTemplateItemDefinitionConfigItem(
+    private ObjectTemplateItemDefinitionConfigItem(
             @NotNull ObjectTemplateItemDefinitionType value, @NotNull ConfigurationItemOrigin origin) {
-        super(value, origin);
+        super(value, origin, null); // TODO provide parent in the future
     }
 
     public static ObjectTemplateItemDefinitionConfigItem of(
@@ -40,7 +41,6 @@ public class ObjectTemplateItemDefinitionConfigItem extends ConfigurationItem<Ob
                                 childWithOrWithoutId(val, ObjectTemplateItemDefinitionType.F_MAPPING)))
                 .toList();
     }
-
 
     @Override
     public @NotNull String localDescription() {

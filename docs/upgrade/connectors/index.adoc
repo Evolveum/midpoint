@@ -1,0 +1,210 @@
+= Connector Upgrade
+:page-wiki-name: Connector Upgrade
+:page-wiki-id: 8061320
+:page-wiki-metadata-create-user: vix
+:page-wiki-metadata-create-date: 2013-05-06T17:14:00.867+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2018-06-13T17:12:34.296+02:00
+:page-alias: { "parent" : "/connectors/connid/", "slug" : "upgrade" }
+:page-upkeep-status: yellow
+
+== Motivation and Background
+
+There is a difference between connector and resource in midPoint.
+Connector is a piece of code that is used to connect to a particular class of systems (e.g. "any LDAP server"). Resource is a specific system (e.g. "OpenLDAP server link:http://ldap.example.com[ldap.example.com]"). Obviously, every resource has to tell which connector it is supposed to use to reach that particular system.
+As both resources and connectors are midPoint objects this is quite easy.
+Resource contains xref:/midpoint/reference/schema/object-references/[object reference] to the connector: `connectorRef`. Therefore when midPoint need to reach a particular resource it will fetch resource object from the repository, look at the connectorRef reference, look up referred connector object in the reposity and that connector object points to the connector code.
+
+The trouble is, that connector objects (xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/connectortype/[ConnectorType]) are not entirely ordinary objects.
+These objects refer to the connector code that resides in midPoint servers or xref:/connectors/connid/1.x/connector-server/[connector servers]. Connector objects are usually generated automatically by midPoint servers during server startup.
+At that time midPoint looks for all the connectors that are locally available to that server.
+This essentially means looking for JAR files that contain connector code.
+When a connector is discovered then the server creates a new connector object (xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/connectortype/[ConnectorType]). And this automatic generation of connector objects is kind of a trouble.
+Because those objects will have unpredicatable xref:/midpoint/devel/prism/concepts/object-identifier/[OIDs]. Therefore resource definitions (xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/resourcetype/[ResourceType]) cannot have fixed OIDs in their `connectorRef`s.
+
+Fortunately, midPoint has a mechanism how to resolve a reference dynamically when an object is imported.
+Therefore the usual practice is that the resourceRef does not contain fixed OID.
+It contains a search filter instead.
+The search filter is executed when resource definition is imported to midPoint.
+The filter looks up appropriate connector object and fills in the OID.
+
+
+== Bundled and Unbundled Connectors
+
+The Identity Connectors are quite independent of the midPoint releases.
+
+Some connectors are _bundled_ with midPoint.
+Which means that they are part of midPoint code.
+Those are the connectors that are almost always used in any midPoint deployment.
+Such as LDAP, Active Directory or CSV connector.
+
+Most of the connectors are _unbundled_. This means they are not distributed with midPoint.
+These connectors must be downloaded separately and installed in xref:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home directory] or in a xref:/connectors/connid/1.x/connector-server/[connector server]. The connectors are not bundled with midPoint for many reasons.
+One of the reason is that many connectors are rarely used or even outright exotic.
+Bundling them all would make midPoint distribution too big.
+There are connectors that require third-party libraries to work and we simply cannot bundle them at all.
+But unbundling has also a positive side: connector may have their own lifecycle.
+You can upgrade the connectors without upgrading midPoint itself.
+So you can use upgraded connectors that provide required features or fix outstanding bugs.
+
+
+== Upgrade
+
+When a connector is upgraded, then new connector object (xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/connectortype/[ConnectorType]) is created for new connector version.
+This is quite natural thing to do.
+ConnId framework can support several versions of the same connector running at the same time.
+And this is a very nice feature, as it allows gradual upgrades.
+E.g. this is especially nice for deployments that have 100 resources with the same connector.
+We definitely do not want to change the connector version for all of them at once.
+The new connector version may have some changes that can break existing resources.
+So it make sense test the new connector version only on a couple non-critical resources.
+And roll out the upgrade only if the new connector is tested.
+
+This method works well with unbundled connectors.
+Just install a new version of the connector in addition to the old one.
+The test the new version and change connector references on all resources.
+Then remove the old connector version.
+
+However, it is somehow different for bundled connectors - especially if midPoint itself is upgraded.
+In that case the old connector version suddenly disappears and there is a new connector version as a replacement.
+However, all the resources are pointing to the old connector versions, which is no longer there.
+Filters in dynamic `connectorRef` references are not evaluated again as the resource were not re-imported.
+Nothing has really changed as far as midPoint itself is concerned.
+However, the references suddenly point to nowhere and the resources do not work.
+
+There are several strategies how to deal with bundled connector upgrades:
+
+. Be proactive and explicitly deploy old connector version to midPoint home directory as part of the upgrade process.
+Therefore upgraded midPoint detects both old and new connector versions.
+And the resources will work.
+Then there is sufficient time to gradually upgrade the resources.
+
+. Fix the references before any damage happens.
+Suspend all the synchronization and propagation tasks before the upgrade.
+Stop all user access to midPoint (e.g. by disabling load balancer).
+Upgrade midPoint and start the server.
+The resources will not work at this moment, but there is nothing that would attempt to work the resources right now.
+Use that moment to update connectorRef references.
+Then resume the tasks and let users in.
+
+. Use the power of xref:/support/subscription-sponsoring/[platform subscription] to let us implement some smarter strategy.
+There are may possibilities how midPoint can be improved.
+E.g. we can support runtime or "upgrade-time" dynamic reference resolution.
+Or implement smart references that points to "latest connector version".
+Or have some kind of post-upgrade process to handle the references.
+There are many possibilities.
+
+Note that midPoint will not delete the old connector object even if the connector code disappears and midPoint can no longer detect the connector.
+This may sound strange, but it is in fact an important safety feature.
+The connector code may have disappeared by mistake, e.g. midPoint home directory is restored from an earlier backup than the database backup.
+Therefore there are connector objects, but connector code is missing.
+In that case we do not want to delete the connector objects.
+Remember, connector object OIDs are generated.
+If we would delete the objects that it will be very difficult to restore the connector references.
+Especially if many custom connectors are used.
+And there are too many ways how such mistakes and various corner cases can happen - and the impact is usually quite bad.
+Therefore we have decided not to delete connector objects automatically.
+It is no big trouble to do it manually anyway.
+A connector is not upgraded every day.
+
+
+=== Example Upgrade Procedure
+
+
+==== Backup First
+
+Before doing anything, backup your resource in _Configuration_ -_ Repository Objects_ - _Resource_, click on the resource and copy/paste the data to a file.
+Then write down your existing connector version.
+Go to _Configuration_ - _Repository objects_ - _Connectors_ or click _Resources_ and check your resource details.
+For this page, assume that you have "ICF org.identityconnectors.ldap.LdapConnector v1.1.0.0-e1" LDAP connector installed.
+
+
+==== Prepare New Connector
+
+Prepare (download, build etc.) the new version of the connector and copy it to the $midPoint.home/icf-connectors directory.
+Then, restart your application server.
+
+
+==== Update Resource(s)
+
+After restart, check if your new connector was discovered.
+Go to _Configuration_ - _Repository objects_ - _Connectors_ and look for the connector.
+For example, you may see:
+
+* ICF org.identityconnectors.ldap.LdapConnector v1.1.0.0-e1 (this is the original version of the LDAP connector)
+
+* ICF org.identityconnectors.ldap.LdapConnector v1.1.0.e6320d (this is the new version of the LDAP connector)
+
+Please check both Connectors and write down the following information (the table contains example values):
+
+[%autowidth,cols="h,1,1,1"]
+|===
+| Parameter (Connector Object) | Original (Old) Connector | Upgraded (New) Connector | Notes
+
+| oid
+| 5e8a944b-8e7d-4f7b-bc64-6838b804353f
+| c80f9e96-cead-4a41-a846-999f27d94099
+| The old "oid" attribute is referenced by existing resources and must be updated to the new connector "oid".
+
+
+| namespace
+| http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap.ldap/org.identityconnectors.ldap.LdapConnector
+| http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap-connector/org.identityconnectors.ldap.LdapConnector
+| The "namespace" attribute may occasionaly change (as in this example, notice the "." replaced with "-").
+
+
+| connectorType
+| org.identityconnectors.ldap.LdapConnector
+| org.identityconnectors.ldap.LdapConnector
+| The "connectorType" attribute is unlikely to change.
+
+
+| connectorVersion
+| 1.1.0.0-e1
+| 1.1.0.e6320d
+| The "connectorVersion" should indicate old/new version.
+
+
+| connectorBundle
+| org.forgerock.openicf.connectors.ldap.ldap
+| org.forgerock.openicf.connectors.ldap-connector
+| The "connectorBundle" attribute may occasionally change (as in this example, notice the "." replaced with "-").
+
+
+|===
+
+Now you have to edit your resource objecs(s) using _Configuration_ - _Repository Objects_ - _Resource_.
+
+Replace the connector "oid" in the connectorRef element with the upgraded connector "oid" value (do not change the resource "oid" attribute)!
+
+Check all occurences of the old "namespace" value such as "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap.ldap/org.identityconnectors.ldap.LdapConnector" with the new "namespace" value, such as "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap-connector/org.identityconnectors.ldap.LdapConnector". Be patient
+
+Click _Save_.
+
+Now you can check your resource in _Resources_. The connector version should indicate the upgraded version is in use.
+You should also test the resource connection.
+
+
+==== Remove Old Connector
+
+If all works well, you may eventually remove the original (old) Connector objects in _Configuration_ - _Repository Objects_ - _Connector_ and the connector JAR file from $midpoint.home/icf-connectors directory.
+After that you have to restart your application server.
+
+
+== Future
+
+MidPoint can do all kind of smart things with resources and connectors.
+But most of the configuration needs to be done with XML/JSON/YAML files.
+The user interface support for connector and resource configuration is somehow limited.
+And this seems to be perfectly acceptable for many midPoint users.
+
+However, there is always a possibility to extend midPoint user interface.
+Especially some user interface to manage the connectors and assist connector upgrades would be useful.
+Evolveum offers xref:/support/subscription-sponsoring/[subscription programs] that can be used to fill in missing midPoint functionality.
+
+
+== See Also
+
+* xref:/midpoint/reference/resources/connector-setup/[Connector Setup]
+
+* xref:/midpoint/reference/resources/resource-schema/explanation/[Resource and Connector Schema Explanation]

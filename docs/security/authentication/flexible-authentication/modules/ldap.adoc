@@ -1,0 +1,91 @@
+= Module ldap
+:page-nav-title: Module ldap
+
+LDAP authentication module supports authentication via LDAP server.
+This module contains next attributes:
+
+[%autowidth]
+|===
+| Name | Description | Required | Type
+
+| `host`
+| Host of the LDAP server.
+| true
+| _String_
+
+
+| `userDn`
+| The user distinguished name.
+| true
+| _String_
+
+
+| `userPassword`
+| The password (credentials) to use for getting authenticated contexts.
+| true
+| _String_
+
+
+| `dnPattern`
+| The pattern which will be used to supply a DN for the user.
+| false
+| _String_
+
+
+| `search`
+| Search configuration which uses an Ldap filter to locate the user.
+| false
+| _AuthenticationModuleLdapSearchType_
+
+|===
+
+
+== AuthenticationModuleLdapSearchType
+
+[%autowidth]
+|===
+| Name | Description | Required | Type
+
+| `pattern`
+| The filter expression used in the user search.
+This is an LDAP search filter (as defined in 'RFC 2254') with optional arguments.
+Example: `(uid=\{0})`
+| true
+| _String_
+
+
+| `namingAttr`
+| Specifying explicit LDAP attribute that is retrieved from user's LDAP account and contains value that matches midPoint's username.
+| false
+| _String_
+
+
+| `subtree`
+| If true then searches the entire subtree as identified by context, if false (the default) then only searches the level identified by the context.
+| false
+| _Boolean_
+
+|===
+
+
+.Example of ldap module
+[source,xml]
+----
+<ldap>
+    <identifier>ldapAuth</identifier>
+    <host>ldap://localhost:389/dc=example,dc=com</host>
+    <userDn>cn=admin,dc=example,dc=com</userDn>
+    <userPassword>
+        <t:clearValue>secret</t:clearValue>
+    </userPassword>
+    <dnPattern>uid={0},ou=people</dnPattern>
+    <search>
+        <pattern>(uid={0})</pattern>
+        <namingAttr>uid</namingAttr>
+        <subtree>true</subtree>
+    </search>
+</ldap>
+----
+
+== See also
+* xref:/midpoint/reference/security/authentication/flexible-authentication/configuration/[Flexible Authentication]

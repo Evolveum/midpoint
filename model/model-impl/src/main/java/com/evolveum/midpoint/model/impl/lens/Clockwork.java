@@ -24,6 +24,7 @@ import com.evolveum.midpoint.task.api.SimulationTransaction;
 
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -58,8 +59,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * @author semancik
+ * The "clockwork" that drives the change processing. The main entry is {@link #run(LensContext, Task, OperationResult)} method.
  *
+ * As a special responsibility, this class ensures the conflict resolution with the help of {@link ClockworkConflictResolver}.
+ *
+ * @author semancik
  */
 @Component
 public class Clockwork {
@@ -158,14 +162,22 @@ public class Clockwork {
                     } else if (mode == HookOperationMode.ERROR) {
                         return mode;
                     }
+
+                    if (ModelExecuteOptions.isFirstClickOnly(context.getOptions())) {
+                        // Assuming that the first click was in the INITIAL state.
+                        LOGGER.trace("Initial state only processing requested, exiting the clockwork");
+                        return mode;
+                    }
                 }
-                // One last click in FINAL state
+
+                // One last click in FINAL state (unless limited to INITIAL only)
                 HookOperationMode mode = click(context, task, result);
                 if (mode == HookOperationMode.FOREGROUND) {
                     // We must check inside here - before watchers are unregistered
                     clockworkConflictResolver.detectFocusConflicts(context, conflictResolutionContext, result);
                 }
                 return mode;
+
             } catch (ConflictDetectedException e) {
                 LOGGER.debug("Clockwork conflict detected", e);
                 conflictResolutionContext.recordConflictException();
@@ -329,12 +341,12 @@ public class Clockwork {
         }
     }
 
-    public <F extends ObjectType> LensContext<F> previewChanges(LensContext<F> context, Collection<ProgressListener> listeners,
+    public <F extends ObjectType> LensContext<F> previewChangesLegacy(LensContext<F> context, Collection<ProgressListener> listeners,
             Task task, OperationResult result)
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
             ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
         try {
-            context.setPreview(true);
+            context.setLegacyPreview();
 
             LOGGER.trace("Preview changes context:\n{}", context.debugDumpLazily());
             context.setProgressListeners(listeners);
@@ -402,6 +414,7 @@ public class Clockwork {
         //DefaultSearchExpressionEvaluatorCache.exitCache();
     }
 
+    @VisibleForTesting
     public <F extends ObjectType> @NotNull HookOperationMode click(
             @NotNull LensContext<F> context,
             @NotNull Task task, @NotNull OperationResult result)

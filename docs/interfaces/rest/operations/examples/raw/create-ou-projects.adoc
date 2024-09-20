@@ -1,0 +1,36 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Create a new Organizational Unit object in MidPoint with file data source*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Content-Type: application/json" \
+-X POST http://localhost:8080/midpoint/ws/rest/orgs \
+-v \
+--data-binary @./samples/rest/org-project.json
+----
+
+.*Show* data source example for *"Create a new Organizational Unit object in MidPoint"* | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/org-project.json[GitHub]
+[%collapsible]
+====
+[source, json]
+----
+{
+  "org": {
+    "name": "P0000",
+    "displayName": "Projects"
+  }
+}
+----
+====
+
+The response is an HTTP 201 code in case of success *without* a response body.
+Also, the response contains a *Location Header* pointing to the location of the created
+user.
+
+.Example location header
+[source, bash]
+----
+ #Location: http://localhost:8080/midpoint/ws/rest/orgs/e5ae2f30-141c-4990-8387-4c8e7433132d
+----

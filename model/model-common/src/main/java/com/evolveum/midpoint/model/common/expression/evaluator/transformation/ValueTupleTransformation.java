@@ -95,14 +95,14 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
     private final int numberOfSources;
 
     /**
-     * What state (old, new) should be input variables taken from?
+     * What state (old, new) should be input variables taken from? Bound to {@link #outputSet}.
      */
     private final InputVariableState inputVariableState;
 
     /**
      * To what set should the output go?
      */
-    private final PlusMinusZero outputSet;
+    @NotNull private final PlusMinusZero outputSet;
 
     /**
      * Result of condition evaluation (or true if there's no condition).
@@ -115,8 +115,12 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
      */
     private Collection<V> transformationResult;
 
-    ValueTupleTransformation(@NotNull List<PlusMinusZero> sets, List<PrismValue> valuesTuple, PlusMinusZero outputSet,
-            CombinatorialEvaluation<V, ?, ?> combinatorialEvaluation, OperationResult parentResult) {
+    ValueTupleTransformation(
+            @NotNull List<PlusMinusZero> sets,
+            List<PrismValue> valuesTuple,
+            @NotNull PlusMinusZero outputSet,
+            CombinatorialEvaluation<V, ?, ?> combinatorialEvaluation,
+            OperationResult parentResult) {
         this.combinatorialEvaluation = combinatorialEvaluation;
         this.context = combinatorialEvaluation.context;
         this.sourceTripleList = combinatorialEvaluation.sourceTripleList;
@@ -145,7 +149,7 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
         try {
             if (!combinatorialEvaluation.evaluator.isIncludeNullInputs() && MiscUtil.isAllNull(valuesTuple)) {
                 // The case that all the sources are null. There is no point executing the expression.
-                setTraceComment("All sources are null and includeNullInputs is true.");
+                setTraceComment("All sources are null and includeNullInputs is false.");
                 return;
             }
             VariablesMap staticVariables = createStaticVariablesFromSources();
@@ -221,49 +225,6 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
         }
     }
 
-//    private boolean isApplicableRegardingPlusMinusSetPresence() {
-//        if (!hasPlus && !hasMinus && !hasZero && !MiscUtil.isAllNull(valuesTuple)) {
-//            throw new IllegalStateException("Internal error! The impossible has happened! tuple=" + valuesTuple + "; source triples: " + sourceTripleList + "; in " + context.getContextDescription());
-//        }
-//
-//        if (hasPlus && hasMinus) {
-//            // The combination of values that are both in plus and minus. Evaluating this combination does not make sense.
-//            // Just skip it.
-//            //
-//            // Note: There will NOT be a single value that is in both plus and minus (e.g. "replace with itself" case).
-//            // That case is handled when setting hasPlus/hasMinus/hasZero in prepareStaticVariables() method.
-//            //
-//            // This case strictly applies to combination of different values from the plus and minus sets.
-//            setTraceComment("The combination of values that are both in plus and minus. Evaluating this combination does not make sense. Just skip it.");
-//            return false;
-//        } else if (hasPlus && context.isSkipEvaluationPlus()) {
-//            setTraceComment("The results will end up in the plus set and skipEvaluationPlus is true, therefore we can skip them.");
-//            return false;
-//        } else if (hasMinus && context.isSkipEvaluationMinus()) {
-//            setTraceComment("The results will end up in the minus set and skipEvaluationMinus is true, therefore we can skip them.");
-//            return false;
-//        } else {
-//            return true;
-//        }
-//    }
-
-//    private void determineInputStateAndOutputSet() {
-//        if (hasPlus) {
-//            // Pluses and zeroes: Result goes to plus set, use NEW values for variables
-//            // (No minus! This has been checked earlier)
-//            outputSet = PlusMinusZero.PLUS;
-//            inputVariableState = InputVariableState.NEW;
-//        } else if (hasMinus) {
-//            // Minuses and zeroes: Result goes to minus set, use OLD values for variables
-//            outputSet = PlusMinusZero.MINUS;
-//            inputVariableState = InputVariableState.OLD;
-//        } else {
-//            // All zeros: Result goes to zero set, use NEW values for variables
-//            outputSet = PlusMinusZero.ZERO;
-//            inputVariableState = InputVariableState.NEW;
-//        }
-//    }
-
     private void evaluateConditionAndTransformation(VariablesMap staticVariables) {
         try {
             conditionResult = evaluateCondition(staticVariables);
@@ -306,9 +267,11 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
     @NotNull
     private List<V> evaluateTransformation(VariablesMap staticVariables) throws ExpressionEvaluationException,
             ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-        List<V> transformationOutput = combinatorialEvaluation.evaluator.transformSingleValue(staticVariables, outputSet,
-                inputVariableState == InputVariableState.NEW, context,
-                context.getContextDescription(), context.getTask(), result);
+        var vtCtx = new ValueTransformationContext(
+                context, staticVariables,
+                outputSet != PlusMinusZero.MINUS,
+                "(to: " + outputSet + ") " + context.getContextDescription());
+        List<V> transformationOutput = combinatorialEvaluation.evaluator.transformSingleValue(vtCtx, result);
         computeAndApplyOutputValueMetadata(transformationOutput);
         return transformationOutput;
     }
@@ -359,7 +322,7 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
                 for (PrismValue value : valuesTuple) {
                     SourceTriple<?, ?> sourceTriple = sourceTriplesIterator.next();
                     sb.append(sourceTriple.getName().getLocalPart()).append('=');
-                    sb.append(value == null ? null : value.getRealValueOrRawType(combinatorialEvaluation.prismContext));
+                    sb.append(value == null ? null : value.getRealValueOrRawType());
                     if (sourceTriplesIterator.hasNext()) {
                         sb.append(", ");
                     }
@@ -373,7 +336,7 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
         Iterator<SourceTriple<?, ?>> sourceTriplesIterator = combinatorialEvaluation.sourceTripleList.iterator();
         for (PrismValue pval : valuesTuple) {
             SourceTriple<?, ?> sourceTriple = sourceTriplesIterator.next();
-            trace.getInput().add(TraceUtil.toNamedValueType(pval, sourceTriple.getName(), combinatorialEvaluation.prismContext));
+            trace.getInput().add(TraceUtil.toNamedValueType(pval, sourceTriple.getName()));
         }
         trace.setInputOrigin(
                 sets.stream()
@@ -415,7 +378,7 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
         if (trace != null) {
             trace.setDestination(PlusMinusZeroType.fromValue(outputSet));
             trace.setConditionResult(conditionResult);
-            trace.getOutput().addAll(TraceUtil.toAnyValueTypeList(transformationResult, combinatorialEvaluation.prismContext));
+            trace.getOutput().addAll(TraceUtil.toAnyValueTypeList(transformationResult));
         }
     }
 

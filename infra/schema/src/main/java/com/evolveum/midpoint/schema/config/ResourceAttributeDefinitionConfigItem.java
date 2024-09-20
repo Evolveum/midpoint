@@ -9,13 +9,20 @@ package com.evolveum.midpoint.schema.config;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
+
+import java.util.List;
 
 public class ResourceAttributeDefinitionConfigItem extends ConfigurationItem<ResourceAttributeDefinitionType> {
 
@@ -24,15 +31,16 @@ public class ResourceAttributeDefinitionConfigItem extends ConfigurationItem<Res
         super(original);
     }
 
-    public ResourceAttributeDefinitionConfigItem(
-            @NotNull ResourceAttributeDefinitionType value, @NotNull ConfigurationItemOrigin origin) {
-        super(value, origin);
-    }
-
-    public @NotNull QName getAttributeName() throws ConfigurationException {
-        return configNonNull(
-                ItemPathTypeUtil.asSingleNameOrFailNullSafe(value().getRef()),
-                "No attribute name (ref) in %s", DESC);
+    public @NotNull QName getAttributeNameSyntax() throws ConfigurationException {
+        var ref = value().getRef();
+        if (ref == null) {
+            throw configException("Missing 'ref' element in %s", DESC);
+        }
+        ItemPath path = ref.getItemPath();
+        if (path.size() != 1) {
+            throw configException("Invalid 'ref' element (%s) in %s", path, DESC);
+        }
+        return path.asSingleNameOrFail();
     }
 
     public boolean hasInbounds() {
@@ -41,7 +49,12 @@ public class ResourceAttributeDefinitionConfigItem extends ConfigurationItem<Res
 
     @Override
     public @NotNull String localDescription() {
-        return "resource attribute definition for '" + value().getRef() + "'";
+        ItemPathType ref = value().getRef();
+        if (ref == null) {
+            return "attribute definition";
+        } else {
+            return "attribute '" + ref + "' definition";
+        }
     }
 
     public @Nullable MappingConfigItem getOutbound() {
@@ -52,5 +65,26 @@ public class ResourceAttributeDefinitionConfigItem extends ConfigurationItem<Res
         } else {
             return null;
         }
+    }
+
+    public boolean isIgnored() throws ConfigurationException {
+        List<PropertyLimitationsType> limitations = value().getLimitations();
+        if (limitations == null) {
+            return false;
+        }
+        PropertyLimitationsType limitationsBean;
+        try {
+            // TODO review as part of MID-7929 resolution
+            limitationsBean = MiscSchemaUtil.getLimitationsLabeled(limitations, LayerType.MODEL);
+        } catch (SchemaException e) {
+            throw configException("Couldn't get limitations in %s", DESC);
+        }
+        if (limitationsBean == null) {
+            return false;
+        }
+        if (limitationsBean.getProcessing() != null) {
+            return limitationsBean.getProcessing() == ItemProcessingType.IGNORE;
+        }
+        return false;
     }
 }

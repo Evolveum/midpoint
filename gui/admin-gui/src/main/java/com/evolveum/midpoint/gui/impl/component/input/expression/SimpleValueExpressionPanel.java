@@ -75,10 +75,6 @@ public class SimpleValueExpressionPanel extends EvaluatorExpressionPanel {
     }
 
     protected void initLayout(MarkupContainer parent) {
-
-
-        parent.add(new Label(ID_VALUE_CONTAINER_LABEL, getValueContainerLabelModel()));
-
         AjaxLink<Void> addButton = new AjaxLink<>(ID_ADD_BUTTON) {
             private static final long serialVersionUID = 1L;
 

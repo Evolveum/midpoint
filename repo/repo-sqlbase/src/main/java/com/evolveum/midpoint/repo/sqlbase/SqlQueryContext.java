@@ -11,6 +11,8 @@ import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.exception.TunnelException;
+
 import com.querydsl.core.QueryMetadata;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Expression;
@@ -248,7 +250,7 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
 
         while (path.size() > 1) {
             ItemRelationResolver<CQ, CR, ?, ?> resolver = mapping.relationResolver(path); // Resolves only first element
-            ItemRelationResolver.ResolutionResult<?, ?> resolution = resolver.resolve(context);
+            ItemRelationResolver.ResolutionResult<?, ?> resolution = resolver.resolveUsingJoin(context);
             if (resolution.subquery) {
                 throw new QueryException("Item path '" + inputPath
                         + "' cannot be used for ordering because subquery is used to resolve it.");
@@ -533,10 +535,10 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
             throws SchemaException, QueryException {
         try {
             ResultListRowTransformer<S, Q, R> rowTransformer =
-                    entityPathMapping.createRowTransformer(this, jdbcSession);
+                    entityPathMapping.createRowTransformer(this, jdbcSession, options);
 
             rowTransformer.beforeTransformation(result.content(), entityPath);
-            PageOf<S> transformedResult = result.map(row -> rowTransformer.transform(row, entityPath, options));
+            PageOf<S> transformedResult = result.map(row -> rowTransformer.transform(row, entityPath));
             rowTransformer.finishTransformation();
 
             return transformedResult;
@@ -549,6 +551,11 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
             } else {
                 throw e;
             }
+        } catch (TunnelException e) {
+            if (e.getCause() instanceof SchemaException schemaEx) {
+                throw schemaEx;
+            }
+            throw e;
         }
     }
 

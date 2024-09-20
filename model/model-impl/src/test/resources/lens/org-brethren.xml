@@ -13,6 +13,7 @@
     <inducement>
         <focusMappings>
             <mapping>
+                <name>brethen-organization</name>
                 <expression>
                     <value>Pirate Brethren</value>
                 </expression>

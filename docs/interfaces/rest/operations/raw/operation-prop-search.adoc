@@ -1,0 +1,17 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+*Usage of Exclude*
+
+To exclude an attribute in the output of your request, you can specify
+the "exclude" parameter in your query request. The attribute which is
+mentioned after the equals sign will be excluded. In case of excluding
+multiple attributes, specify each exclude with an "&" character after each
+other.
+
+*Example*:
+
+[source,bash]
+----
+?exclude=metadata&exclude=credentials/password/value
+----

@@ -12,7 +12,6 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 import static com.evolveum.midpoint.schema.util.SimulationMetricPartitionTypeUtil.ALL_DIMENSIONS;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
-import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -22,6 +21,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.simulation.SimulationMetricReference;
+import com.evolveum.midpoint.schema.util.ShadowAssociationsCollection;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -271,9 +271,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 simulationTransaction.getTransactionId(),
                 elementContext.getOid(),
                 type,
-                // We should provide the old value here, just like for name and discriminator. See MID-8610.
-                elementContext instanceof LensFocusContext<?> ?
-                        ((LensFocusContext<?>) elementContext).getStructuralArchetypeRef() : null,
+                determineStructuralArchetypeRef(anyState, result),
                 determineShadowDiscriminator(anyState),
                 anyState.getName(),
                 delta != null ?
@@ -391,11 +389,19 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         return !Objects.equals(ownerOptionsBefore, ownerOptionsAfter);
     }
 
-    private static <O extends ObjectType> ShadowDiscriminatorType determineShadowDiscriminator(O object) {
-        if (!(object instanceof ShadowType)) {
+    private static <O extends ObjectType> @Nullable ObjectReferenceType determineStructuralArchetypeRef(
+            @NotNull O object, @NotNull OperationResult result) throws SchemaException {
+        if (!(object instanceof AssignmentHolderType assignmentHolder)) {
             return null;
         }
-        ShadowType shadow = (ShadowType) object;
+        var archetype = ModelBeans.get().archetypeManager.determineStructuralArchetype(assignmentHolder, result);
+        return ObjectTypeUtil.createObjectRef(archetype);
+    }
+
+    private static <O extends ObjectType> ShadowDiscriminatorType determineShadowDiscriminator(O object) {
+        if (!(object instanceof ShadowType shadow)) {
+            return null;
+        }
         ObjectReferenceType resourceRef = shadow.getResourceRef();
         return new ShadowDiscriminatorType()
                 .resourceRef(resourceRef != null ? resourceRef.clone() : null)
@@ -462,8 +468,8 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
 
     @Override
     public @NotNull Collection<ObjectReferenceType> getEffectiveObjectMarksRefs() {
-        return getBeforeOrAfterRequired()
-                .getEffectiveMarkRef();
+        return ObjectTypeUtil.getReallyEffectiveMarkRefs(
+                getBeforeOrAfterRequired());
     }
 
     @Override
@@ -677,26 +683,64 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
     }
 
     /**
+     * Counts modifications based on the specified path, excluding changes in ADD/DELETE deltas.
+     * <p>
+     * The item path must exactly match the configuration.
+     * </p>
+     * Sub-item modifications are not counted.
+     *
+     * @param itemPath the path to count modifications for
+     * @return the number of attribute modifications.
+     */
+    @SuppressWarnings("unused") // used in scripts
+    public int getItemModificationsCount(@NotNull ItemPath itemPath) {
+        return getItemModificationsCount(itemPath, false);
+    }
+
+    /**
+     * Counts modifications based on the specified path, excluding changes in ADD/DELETE deltas.
+     * <p>
+     * The item path must exactly match the configuration.
+     * </p>
+     * If {@code allowSubPaths} is true, sub-item modifications are also counted.
+     *
+     * @param itemPath the path to count modifications for
+     * @param allowSubPaths if true, sub-item modifications are allowed
+     * @return the number of attribute modifications
+     */
+    @SuppressWarnings("unused") // used in scripts
+    public int getItemModificationsCount(@NotNull ItemPath itemPath, boolean allowSubPaths) {
+        if (delta == null || !delta.isModify()) {
+            return 0;
+        }
+
+        return (int) delta.getModifications().stream()
+                .filter(itemDelta -> {
+                    ItemPath deltaPath = itemDelta.getPath();
+                    return allowSubPaths
+                            ? deltaPath.isSuperPathOrEquivalent(itemPath)
+                            : deltaPath.equivalent(itemPath);
+                })
+                .count();
+    }
+
+    /**
      * Returns the number of VALUES of associations added or deleted.
      *
      * Not counting changes in ADD/DELETE deltas.
      * Assuming that there are no REPLACE modifications of associations.
+     * Assuming that there are no ADD/DELETE modifications of the whole associations container.
      */
     @SuppressWarnings("unused") // used in scripts
-    @VisibleForTesting
-    public int getAssociationValuesChanged() {
+    public int getAssociationValuesChanged() throws SchemaException {
         if (delta == null || !delta.isModify()) {
             return 0;
         }
-        return delta.getModifications().stream()
-                .filter(mod -> ShadowType.F_ASSOCIATION.equivalent(mod.getPath()))
-                .mapToInt(mod -> getChangedValues(mod))
-                .sum();
-    }
-
-    private int getChangedValues(ItemDelta<?, ?> mod) {
-        return emptyIfNull(mod.getValuesToAdd()).size()
-                + emptyIfNull(mod.getValuesToDelete()).size();
+        int sum = 0;
+        for (ItemDelta<?, ?> mod : delta.getModifications()) {
+            sum += ShadowAssociationsCollection.ofDelta(mod).getNumberOfValues();
+        }
+        return sum;
     }
 
     @Nullable MetricValue getMetricValue(@NotNull SimulationMetricReference ref) {

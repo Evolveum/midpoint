@@ -1,0 +1,47 @@
+= Reporting
+
+Here we describe the definition of reporting for xref:../[activities].
+
+[NOTE]
+====
+Not all of these options are supported for all activities!
+Usually, activities that do not support multi-threading (like cleanup)
+also do not support these options.
+====
+
+[%header]
+[%autowidth]
+|===
+| Item | Meaning | Default
+
+| xref:logging.adoc[`logging`]
+| Controls logging aspects of an activity execution.
+| See the description.
+
+| xref:tracing.adoc[`tracing`]
+| Specifies when and how should be the activity execution traced.
+| No tracing.
+
+| xref:profiling.adoc[`profiling`]
+| Specifies when and how should be the activity execution dynamically profiled.
+This functionality is deprecated. The tracing should be used instead.
+| No profiling.
+
+| xref:execution-reports.adoc[`executionReports`]
+| Configures specific activity execution reports: on buckets, items, and so on.
+| No reports.
+
+| xref:item-counting.adoc[`itemCounting`]
+| How should the activity deal with item counting, i.e. determining "expected progress"
+for a bucket or overall.
+| TODO
+
+| xref:state-overview.adoc[`stateOverview`]
+| Parameters related to the maintenance of activity tree state overview.
+| TODO
+
+| xref:simulation-result.adoc[`simulationResult`]
+| Whether we want to create a simulation result object for this activity run.
+Since 4.7.
+| No.
+|===

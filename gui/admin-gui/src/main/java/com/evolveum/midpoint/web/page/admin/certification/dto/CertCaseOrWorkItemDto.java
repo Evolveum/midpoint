@@ -8,13 +8,11 @@ package com.evolveum.midpoint.web.page.admin.certification.dto;
 
 import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.web.component.util.SelectableRow;
 
@@ -71,7 +69,10 @@ public class CertCaseOrWorkItemDto extends Selectable<CertCaseOrWorkItemDto> imp
     }
 
     public QName getObjectType() {
-        return certCase.getObjectRef().getType();
+        if (certCase.getObjectRef() != null) {
+            return certCase.getObjectRef().getType();
+        }
+        return null;
     }
 
     public QName getObjectType(CertDecisionHelper.WhichObject which) {
@@ -94,7 +95,10 @@ public class CertCaseOrWorkItemDto extends Selectable<CertCaseOrWorkItemDto> imp
     }
 
     public QName getTargetType() {
-        return certCase.getTargetRef().getType();
+        if (certCase.getTargetRef() != null) {
+            return certCase.getTargetRef().getType();
+        }
+        return null;
     }
 
     public ObjectReferenceType getCampaignRef() {
@@ -179,13 +183,13 @@ public class CertCaseOrWorkItemDto extends Selectable<CertCaseOrWorkItemDto> imp
             }
 
             if (delta > 0) {
-                return PageBase.createStringResourceStatic("PageCert.in", WebComponentUtil
-                                .formatDurationWordsForLocal(delta, true, true, page))
-                        .getString();
+                return LocalizationUtil.translate("PageCert.in",
+                                new Object[] {WebComponentUtil.formatDurationWordsForLocal(
+                                        delta, true, true, page)});
             } else if (delta < 0) {
-                return PageBase.createStringResourceStatic("PageCert.ago", WebComponentUtil
-                                .formatDurationWordsForLocal(-delta, true, true, page))
-                        .getString();
+                return LocalizationUtil.translate("PageCert.ago",
+                                new Object[] {WebComponentUtil.formatDurationWordsForLocal(
+                                        -delta, true, true, page)});
             } else {
                 return page.getString("PageCert.now");
             }

@@ -6,11 +6,13 @@
  */
 package com.evolveum.midpoint.gui.impl.component.data.provider;
 
+import java.io.Serial;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -22,7 +24,6 @@ import com.evolveum.midpoint.gui.impl.model.SelectableObjectModel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -38,7 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * @author semancik
  */
 public class SelectableBeanObjectDataProvider<O extends ObjectType> extends SelectableBeanDataProvider<O> {
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(SelectableBeanObjectDataProvider.class);
 
@@ -88,7 +89,8 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
     protected Integer countObjects(Class<O> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> currentOptions,
             Task task, OperationResult result) throws CommonException {
-        return getModelService().countObjects(type, getQuery(), currentOptions, task, result);
+        return getModelService().countObjects(
+                type, getQuery(), currentOptions, task, result);
     }
 
     protected boolean isMemberPanel() {
@@ -98,7 +100,6 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
     public void setIsMemberPanel(boolean isMemberPanel) {
         this.isMemberPanel = isMemberPanel;
     }
-
 
     @Override
     protected List<O> searchObjects(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws CommonException {

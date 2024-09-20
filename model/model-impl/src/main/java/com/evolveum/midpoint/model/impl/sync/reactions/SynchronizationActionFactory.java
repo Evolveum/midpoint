@@ -7,19 +7,17 @@
 
 package com.evolveum.midpoint.model.impl.sync.reactions;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.impl.sync.action.SynchronizationAction;
 import com.evolveum.midpoint.model.impl.sync.action.BaseAction;
+import com.evolveum.midpoint.model.impl.sync.action.SynchronizationAction;
 import com.evolveum.midpoint.schema.processor.SynchronizationActionDefinition;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractSynchronizationActionType;
@@ -32,9 +30,9 @@ public class SynchronizationActionFactory {
 
     private static final Trace LOGGER = TraceManager.getTrace(SynchronizationActionFactory.class);
 
-    @NotNull private final Map<String, Class<? extends BaseAction<?>>> classesByActionUri = new HashMap<>();
-    @NotNull private final Map<Class<? extends AbstractSynchronizationActionType>, Class<? extends BaseAction<?>>>
-            classesByDefinitionBeanClass = new HashMap<>();
+    @NotNull private final Map<String, ActionProvider> providersByActionUri = new HashMap<>();
+    @NotNull private final Map<Class<? extends AbstractSynchronizationActionType>, ActionProvider>
+            providersByDefinitionBeanClass = new HashMap<>();
 
     SynchronizationAction getActionInstance(@NotNull ActionInstantiationContext<?> context)
             throws ConfigurationException {
@@ -54,44 +52,35 @@ public class SynchronizationActionFactory {
     private SynchronizationAction getByBeanClass(
             Class<? extends AbstractSynchronizationActionType> beanClass, ActionInstantiationContext<?> context)
             throws ConfigurationException {
-        return instantiate(
-                MiscUtil.requireNonNull(
-                        classesByDefinitionBeanClass.get(beanClass),
-                        () -> new ConfigurationException("No synchronization action class found for definition " + beanClass)),
-                context);
+        return MiscUtil.requireNonNull(
+                        providersByDefinitionBeanClass.get(beanClass),
+                        () -> new ConfigurationException("No synchronization action class found for definition " + beanClass))
+                .instantiate(context);
     }
 
     private SynchronizationAction getByLegacyUri(String actionUri, ActionInstantiationContext<?> context)
             throws ConfigurationException {
-        return instantiate(
-                MiscUtil.requireNonNull(
-                        classesByActionUri.get(actionUri),
-                        () -> new ConfigurationException("No synchronization action class found for URI " + actionUri)),
-                context);
+        return MiscUtil.requireNonNull(
+                        providersByActionUri.get(actionUri),
+                        () -> new ConfigurationException("No synchronization action class found for URI " + actionUri))
+                .instantiate(context);
     }
 
-    private SynchronizationAction instantiate(
-            Class<? extends SynchronizationAction> clazz,
-            ActionInstantiationContext<?> context) {
-        try {
-            return clazz.getDeclaredConstructor(ActionInstantiationContext.class)
-                    .newInstance(context);
-        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
-            throw SystemException.unexpected(e, "when instantiating synchronization action " + clazz);
-        }
-    }
-
-    public <T extends BaseAction<?>> void register(Class<T> actionClass) {
+    public <T extends BaseAction<?>> void register(Class<T> actionClass, ActionProvider provider) {
         ActionUris urisAnnotation = actionClass.getAnnotation(ActionUris.class);
         if (urisAnnotation != null) {
             for (String uri : urisAnnotation.value()) {
-                classesByActionUri.put(uri, actionClass);
+                providersByActionUri.put(uri, provider);
             }
         }
         ActionDefinitionClass definitionClassAnnotation = actionClass.getAnnotation(ActionDefinitionClass.class);
         if (definitionClassAnnotation != null) {
-            classesByDefinitionBeanClass.put(definitionClassAnnotation.value(), actionClass);
+            providersByDefinitionBeanClass.put(definitionClassAnnotation.value(), provider);
         }
         LOGGER.trace("Registered action class {}", actionClass);
+    }
+
+    public interface ActionProvider {
+        @NotNull BaseAction<?> instantiate(ActionInstantiationContext<?> ctx);
     }
 }

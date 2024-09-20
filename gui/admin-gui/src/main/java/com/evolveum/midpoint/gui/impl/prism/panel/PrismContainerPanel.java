@@ -21,9 +21,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * @author katka
- *
  */
-public class PrismContainerPanel<C extends Containerable, PCW extends PrismContainerWrapper<C>> extends ItemPanel<PrismContainerValueWrapper<C>, PCW>{
+public class PrismContainerPanel<C extends Containerable, PCW extends PrismContainerWrapper<C>> extends ItemPanel<PrismContainerValueWrapper<C>, PCW> {
 
     private static final long serialVersionUID = 1L;
 
@@ -37,7 +36,6 @@ public class PrismContainerPanel<C extends Containerable, PCW extends PrismConta
     protected void onInitialize() {
         super.onInitialize();
 
-
         add(AttributeModifier.append("class", () -> {
 
             if (getModelObject() != null && getModelObject().isMultiValue()) {
@@ -49,8 +47,36 @@ public class PrismContainerPanel<C extends Containerable, PCW extends PrismConta
     }
 
     @Override
-    protected Component createHeaderPanel() {
-        return new PrismContainerHeaderPanel<C, PCW>(ID_HEADER, getModel()) {
+    protected Component createValuesPanel() {
+        Component valueContainer = super.createValuesPanel();
+        valueContainer.add(AttributeAppender.append(
+                "aria-label",
+                () -> {
+                    if (getModelObject() != null && getModelObject().isMultiValue()) {
+                        //TODO check it
+                        if (getHeader() == null) {
+                            return getParentPage().createStringResource(
+                                    "PrismContainerPanel.container");
+                        }
+                        return getParentPage().createStringResource(
+                                        "PrismContainerPanel.container", getHeader().createLabelModel().getObject())
+                                .getString();
+                    }
+                    return null;
+                }));
+        valueContainer.add(AttributeAppender.append(
+                "tabindex",
+                () -> getModelObject() != null && getModelObject().isMultiValue() ? "0" : null));
+        return valueContainer;
+    }
+
+    private PrismContainerHeaderPanel getHeader() {
+        return (PrismContainerHeaderPanel) get(ID_HEADER);
+    }
+
+    @Override
+    protected ItemHeaderPanel createHeaderPanel() {
+        PrismContainerHeaderPanel<C, PCW> header = new PrismContainerHeaderPanel(ID_HEADER, getModel()) {
             @Override
             protected void onExpandClick(AjaxRequestTarget target) {
                 PrismContainerWrapper<C> wrapper = PrismContainerPanel.this.getModelObject();
@@ -63,11 +89,18 @@ public class PrismContainerPanel<C extends Containerable, PCW extends PrismConta
                 target.add(PrismContainerPanel.this);
             }
         };
+
+        header.add(AttributeAppender.append(
+                "aria-label",
+                () -> getParentPage().createStringResource(
+                        "PrismContainerPanel.header",
+                        getHeader().createLabelModel().getObject())));
+        return header;
     }
 
     @Override
     protected boolean getHeaderVisibility() {
-        if(!super.getHeaderVisibility()) {
+        if (!super.getHeaderVisibility()) {
             return false;
         }
         return getModelObject() != null && getModelObject().isMultiValue();
@@ -85,13 +118,13 @@ public class PrismContainerPanel<C extends Containerable, PCW extends PrismConta
         };
         panel.add(AttributeAppender.replace("style", getModelObject().isMultiValue() && !getModelObject().isExpanded() ? "display:none" : ""));
         item.add(panel);
+
         return panel;
     }
 
     protected String getCssClassForValueContainer() {
         return "";
     }
-
 
     @SuppressWarnings("unchecked")
     @Override

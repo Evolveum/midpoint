@@ -11,6 +11,7 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
@@ -75,11 +76,15 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
     }
 
     private void createTitle() {
-        Component displayName = createTitle(new PropertyModel<>(getModel(), "displayName"));
+        Component displayName = createTitle(createLabelModel());
         displayName.add(new AttributeModifier("style", getDeprecatedCss())); //TODO create deprecated css class?
 
         add(displayName);
 
+    }
+
+    public IModel<String> createLabelModel() {
+        return new PropertyModel<>(getModel(), "displayName");
     }
 
     protected abstract Component createTitle(IModel<String> model);
@@ -91,6 +96,9 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
         help.add(AttributeModifier.replace("title", createStringResource(helpModel.getObject() != null ? helpModel.getObject() : "")));
         help.add(new InfoTooltipBehavior());
         help.add(new VisibleBehaviour(this::isHelpTextVisible));
+        help.add(AttributeAppender.append(
+                "aria-label",
+                getParentPage().createStringResource("ItemHeaderPanel.helpTooltip", createLabelModel().getObject())));
         add(help);
     }
 
@@ -170,6 +178,7 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
                 return isAddButtonVisible();
             }
         });
+        addButton.add(AttributeAppender.append("title", getTitleForAddButton()));
         add(addButton);
 
         AjaxLink<Void> removeButton = new AjaxLink<>(ID_REMOVE_BUTTON) {
@@ -181,28 +190,37 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
             }
         };
         removeButton.add(new VisibleBehaviour(this::isButtonEnabled));
+        removeButton.add(AttributeAppender.append("title", getTitleForRemoveAllButton()));
         add(removeButton);
+    }
+
+    protected IModel<String> getTitleForRemoveAllButton() {
+        return getParentPage().createStringResource("ItemHeaderPanel.removeAll");
+    }
+
+    protected IModel<String> getTitleForAddButton() {
+        return getParentPage().createStringResource("ItemHeaderPanel.addValue");
     }
 
     private void addValue(AjaxRequestTarget target) {
         IW parentWrapper = getModelObject();
         try {
-            parentWrapper.add(createNewValue(parentWrapper), getPageBase());
+            parentWrapper.add(createNewValue(parentWrapper), getParentPage());
         } catch (SchemaException e) {
             getSession().error(getString("ItemHeaderPanel.value.add.failed", e.getMessage()));
             LOGGER.error("Failed to add new value for {}, reason: {}", parentWrapper, e.getMessage(), e);
-            target.add(getPageBase().getFeedbackPanel());
+            target.add(getParentPage().getFeedbackPanel());
         }
         refreshPanel(target);
     }
 
     private void removeItem(AjaxRequestTarget target) {
         try {
-            getModelObject().removeAll(getPageBase());
+            getModelObject().removeAll(getParentPage());
         } catch (SchemaException e) {
             LOGGER.error("Cannot remove value: {}", getModelObject());
             getSession().error("Cannot remove value " + getModelObject());
-            target.add(getPageBase().getFeedbackPanel());
+            target.add(getParentPage().getFeedbackPanel());
 
         }
         refreshPanel(target);
@@ -219,4 +237,7 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
         return getModelObject() != null && !getModelObject().isReadOnly() && getModelObject().isMultiValue();
     }
 
+    public Component getLabelComponent() {
+        return get(ID_LABEL);
+    }
 }

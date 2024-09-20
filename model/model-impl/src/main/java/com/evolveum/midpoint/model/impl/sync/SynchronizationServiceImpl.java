@@ -91,9 +91,11 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
             syncCtx.getUpdater().updateCoordinates();
 
-            if (shouldSkipSynchronization(syncCtx, result)) {
+            var skipSyncReason = shouldSkipSynchronization(syncCtx, result);
+            if (skipSyncReason != null) {
                 // sync metadata updates are prepared by the above method
                 syncCtx.getUpdater().commit(result);
+                result.recordNotApplicable(skipSyncReason);
                 return;
             }
             // FIXME: Somewhere here we should validate preFocus
@@ -124,17 +126,17 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             }
 
             LOGGER.debug("SYNCHRONIZATION: DONE (mode '{}') for {}",
-                    completeCtx.getExecutionMode(), completeCtx.getShadowedResourceObject());
+                    completeCtx.getExecutionMode(), completeCtx.getShadowLikeValue());
 
         } catch (SystemException ex) {
             // avoid unnecessary re-wrap
-            result.recordFatalError(ex);
+            result.recordException(ex);
             throw ex;
         } catch (Exception ex) {
-            result.recordFatalError(ex);
+            result.recordException(ex);
             throw new SystemException(ex);
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
         }
     }
 
@@ -192,9 +194,11 @@ public class SynchronizationServiceImpl implements SynchronizationService {
      *  Why not: technically, this is NOT a full synchronization
      *  Why yes: we want to avoid re-processing of these objects in 3rd stage of reconciliation (that looks after full sync ts)
      *  For the time being, let us keep this. But should decide on it some day.
+     *
+     * @return non-null reason for sync skip (or null if it should not be skipped)
      */
-    private boolean shouldSkipSynchronization(SynchronizationContext<?> syncCtx, OperationResult result)
-            throws SchemaException {
+    private String shouldSkipSynchronization(SynchronizationContext<?> syncCtx, OperationResult result)
+            throws SchemaException, ConfigurationException {
         ShadowType shadow = syncCtx.getShadowedResourceObject();
         QName objectClass = shadow.getObjectClass();
         ResourceType resource = syncCtx.getResource();
@@ -206,9 +210,8 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                     shadow, objectClass, resource, channel);
             LOGGER.debug(message);
             syncCtx.getUpdater().updateBasicSyncTimestamp();
-            result.recordNotApplicable(message);
             syncCtx.recordSyncExclusionInTask(NO_SYNCHRONIZATION_POLICY); // at least temporary
-            return true;
+            return message;
         }
 
         if (!syncCtx.isComplete()) {
@@ -219,9 +222,8 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                             + "ignoring change from channel %s", shadow, objectClass, resource, channel);
             LOGGER.debug(message);
             syncCtx.getUpdater().updateBothSyncTimestamps(); // TODO see the above question on full sync timestamp
-            result.recordNotApplicable(message);
             syncCtx.recordSyncExclusionInTask(NO_SYNCHRONIZATION_POLICY);
-            return true;
+            return message;
         }
 
         if (!syncCtx.isSynchronizationEnabled()) {
@@ -229,9 +231,8 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                     "SYNCHRONIZATION is not enabled for %s, ignoring change from channel %s", resource, channel);
             LOGGER.debug(message);
             syncCtx.getUpdater().updateBothSyncTimestamps(); // TODO see the above question on full sync timestamp
-            result.recordNotApplicable(message);
             syncCtx.recordSyncExclusionInTask(SYNCHRONIZATION_DISABLED);
-            return true;
+            return message;
         }
 
         if (syncCtx.isMarkedSkipSynchronization(result) || syncCtx.isProtected()) {
@@ -239,12 +240,11 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                     "SYNCHRONIZATION is skipped for marked/protected shadow %s, ignoring change from channel %s", shadow, channel);
             LOGGER.debug(message);
             syncCtx.getUpdater().updateBothSyncTimestamps(); // TODO see the above question on full sync timestamp
-            result.recordNotApplicable(message);
             syncCtx.recordSyncExclusionInTask(PROTECTED);
-            return true;
+            return message;
         }
 
-        return false;
+        return null;
     }
 
     private void checkConsistence(ResourceObjectShadowChangeDescription change) {
@@ -309,14 +309,14 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             OperationResult result) throws ConfigurationException {
         F linkedOwner = syncCtx.getLinkedOwner();
         F correlatedOwner = syncCtx.getCorrelatedOwner(); // may be null; or may be provided by sync sorter
+        var shadow = syncCtx.getShadowedResourceObject();
 
-        LOGGER.trace("Shadow {} has linked owner: {}, correlated owner: {}", syncCtx.getShadowedResourceObject(),
-                linkedOwner, correlatedOwner);
+        LOGGER.trace("Shadow {} has linked owner: {}, correlated owner: {}", shadow, linkedOwner, correlatedOwner);
 
         if (correlatedOwner != null && linkedOwner != null && !correlatedOwner.getOid().equals(linkedOwner.getOid())) {
             LOGGER.error("Cannot synchronize {}, linked owner and expected owner are not the same. "
-                    + "Linked owner: {}, expected owner: {}", syncCtx.getShadowedResourceObject(), linkedOwner, correlatedOwner);
-            String msg = "Cannot synchronize " + syncCtx.getShadowedResourceObject()
+                    + "Linked owner: {}, expected owner: {}", shadow, linkedOwner, correlatedOwner);
+            String msg = "Cannot synchronize " + shadow
                     + ", linked owner and expected owner are not the same. Linked owner: " + linkedOwner
                     + ", expected owner: " + correlatedOwner;
             result.recordFatalError(msg);
@@ -356,7 +356,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
         setupResourceRefInShadowIfNeeded(change);
 
-        evaluatePreMappings(syncCtx, result);
+        PreMappingsEvaluator.computePreFocus(syncCtx, result);
         setObjectTemplateForCorrelation(syncCtx, syncCtx.getTask(), result);
 
         if (syncCtx.isUpdatingCorrelatorsOnly()) {
@@ -371,30 +371,11 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
         LOGGER.debug("Correlation result:\n{}", correlationResult.debugDumpLazily(1));
 
-        SynchronizationSituationType state;
-        F owner;
-        switch (correlationResult.getSituation()) {
-            case EXISTING_OWNER:
-                state = SynchronizationSituationType.UNLINKED;
-                //noinspection unchecked
-                owner = (F) correlationResult.getOwner();
-                break;
-            case NO_OWNER:
-                state = SynchronizationSituationType.UNMATCHED;
-                owner = null;
-                break;
-            case UNCERTAIN:
-            case ERROR:
-                state = SynchronizationSituationType.DISPUTED;
-                owner = null;
-                break;
-            default:
-                throw new AssertionError(correlationResult.getSituation());
-        }
-        LOGGER.debug("Determined synchronization situation: {} with owner: {}", state, owner);
+        SynchronizationState<F> syncState = SynchronizationState.fromCorrelationResult(correlationResult);
+        LOGGER.debug("Determined synchronization state: {}", syncState);
 
-        syncCtx.setCorrelatedOwner(owner);
-        syncCtx.setSituationIfNull(state);
+        syncCtx.setCorrelatedOwner(syncState.owner());
+        syncCtx.setSituationIfNull(syncState.situation());
 
         if (correlationResult.isError()) {
             // This is a very crude and preliminary error handling: we just write pending deltas to the shadow
@@ -416,13 +397,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                         null,
                         task,
                         result));
-    }
-
-    private <F extends FocusType> void evaluatePreMappings(SynchronizationContext<F> syncCtx, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
-        new PreMappingsEvaluation<>(syncCtx, beans)
-                .evaluate(result);
     }
 
     // This is maybe not needed

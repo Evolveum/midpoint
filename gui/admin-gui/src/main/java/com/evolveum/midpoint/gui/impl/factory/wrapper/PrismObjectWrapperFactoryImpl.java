@@ -6,14 +6,18 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.impl.duplication.ContainerableDuplicateResolver;
+
+import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
+
 import jakarta.annotation.PostConstruct;
-import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.MetadataItemProcessingSpec;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.ItemWrapperFactory;
@@ -21,7 +25,6 @@ import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismObjectValueWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismObjectWrapperImpl;
 import com.evolveum.midpoint.prism.*;
@@ -32,16 +35,16 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
+import java.util.List;
+
 /**
  * @author katka
  */
 @Component
-public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismContainerWrapperFactoryImpl<O> implements PrismObjectWrapperFactory<O> {
+public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismContainerWrapperFactoryImpl<O> implements ContainerableDuplicateResolver<O>, PrismObjectWrapperFactory<O> {
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismObjectWrapperFactoryImpl.class);
 
-    private static final QName VIRTUAL_CONTAINER_COMPLEX_TYPE = new QName("VirtualContainerType");
-    private static final QName VIRTUAL_CONTAINER = new QName("virtualContainer");
 
     public PrismObjectWrapper<O> createObjectWrapper(PrismObject<O> object, ItemStatus status, WrapperContext context) throws SchemaException {
 
@@ -119,67 +122,9 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
             return objectValueWrapper;
         }
 
-        for (VirtualContainersSpecificationType virtualContainer : context.getVirtualContainers()) {
 
-            if (virtualContainer.getPath() != null) {
-                continue;
-            }
-
-            MutableComplexTypeDefinition mCtd = getPrismContext().definitionFactory().createComplexTypeDefinition(VIRTUAL_CONTAINER_COMPLEX_TYPE);
-            DisplayType display = virtualContainer.getDisplay();
-
-            //TODO: support full polystring -> translations could be defined directly there.
-            if (display == null || display.getLabel() == null) {
-                mCtd.setDisplayName("N/A");
-            } else {
-                mCtd.setDisplayName(WebComponentUtil.getOrigStringFromPoly(display.getLabel()));
-                mCtd.setHelp(WebComponentUtil.getOrigStringFromPoly(display.getHelp()));
-            }
-
-            mCtd.setRuntimeSchema(true);
-
-            MutablePrismContainerDefinition<?> def = getPrismContext().definitionFactory().createContainerDefinition(VIRTUAL_CONTAINER, mCtd);
-            def.setMaxOccurs(1);
-            if (display != null && display.getLabel() != null) {
-                if (display.getLabel().getTranslation() != null && StringUtils.isNotEmpty(display.getLabel().getTranslation().getKey())) {
-                    def.setDisplayName(display.getLabel().getTranslation().getKey());
-                } else {
-                    def.setDisplayName(WebComponentUtil.getTranslatedPolyString(display.getLabel()));
-                }
-            }
-            def.setDynamic(true);
-            def.setRuntimeSchema(true);
-
-            ItemWrapperFactory<?, ?, ?> factory = getRegistry().findWrapperFactory(def, null);
-            if (factory == null) {
-                LOGGER.warn("Cannot find factory for {}. Skipping wrapper creation.", def);
-                continue;
-            }
-
-            WrapperContext ctx = context.clone();
-            ctx.setVirtualItemSpecification(virtualContainer.getItem());
-
-            PrismContainer<?> virtualPrismContainer = def.instantiate();
-            ItemStatus virtualContainerStatus = context.getObjectStatus() != null ? context.getObjectStatus() : ItemStatus.NOT_CHANGED;
-
-            ItemWrapper<?, ?> iw = factory.createWrapper(objectValueWrapper, virtualPrismContainer, virtualContainerStatus, ctx);
-            if (iw == null) {
-                continue;
-            }
-
-            if (iw instanceof PrismContainerWrapper) {
-                PrismContainerWrapper<?> cw = (PrismContainerWrapper<?>) iw;
-                cw.setIdentifier(virtualContainer.getIdentifier());
-                cw.setVirtual(true);
-                if (virtualContainer.isExpanded() != null) {
-                    cw.getValues().forEach(vw -> vw.setExpanded(virtualContainer.isExpanded()));
-                }
-            }
-            iw.setVisibleOverwrite(virtualContainer.getVisibility());
-
-            objectValueWrapper.addItem(iw);
-
-        }
+        List<ItemWrapper<?, ?>> virtualWrappers = createVirtualWrappers(objectValueWrapper, context);
+        objectValueWrapper.addItems(virtualWrappers);
 
         return objectValueWrapper;
     }
@@ -194,7 +139,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
 
         try {
             PrismObjectDefinition<O> objectDef = getModelInteractionService().getEditObjectDefinition(object, phase, task, result);
-            object.applyDefinition(objectDef, true);
+            object.applyDefinition(objectDef);
         } catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException
                 | CommunicationException | SecurityViolationException e) {
             LOGGER.error("Exception while applying security constraints: {}", e.getMessage(), e);
@@ -223,7 +168,8 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
     @Override
     @PostConstruct
     public void register() {
-        getRegistry().addToRegistry(this);
+        getRegistry().addToRegistry((ItemWrapperFactory) this);
+        getRegistry().addToRegistry((ContainerableDuplicateResolver) this);
     }
 
     @Override
@@ -231,4 +177,16 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
         return 100;
     }
 
+    @Override
+    public O duplicateObject(O originalObject, PageBase pageBase) {
+        PrismObject<? extends ObjectType> duplicatedObject = DuplicationProcessHelper.duplicateObjectDefault(originalObject.asPrismObject());
+        O duplicatedBean = (O) duplicatedObject.asObjectable();
+        String copyOf = LocalizationUtil.translate("DuplicationProcessHelper.copyOf", new Object[]{originalObject.getName().getOrig()});
+
+        duplicatedBean
+                .name(copyOf)
+                .description(copyOf +
+                        (originalObject.getDescription() == null ? "" : (System.lineSeparator() + originalObject.getDescription())));
+        return duplicatedBean;
+    }
 }

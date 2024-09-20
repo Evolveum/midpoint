@@ -10,11 +10,14 @@ import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
-import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.impl.component.wizard.*;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
@@ -29,6 +32,8 @@ import java.util.List;
  */
 
 public class ConstructionWizardPanel<AR extends AbstractRoleType> extends AbstractWizardPanel<AssignmentType, FocusDetailsModels<AR>> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(ConstructionWizardPanel.class);
 
     public ConstructionWizardPanel(String id, WizardPanelHelper<AssignmentType, FocusDetailsModels<AR>> helper) {
         super(id, helper);
@@ -76,11 +81,48 @@ public class ConstructionWizardPanel<AR extends AbstractRoleType> extends Abstra
             }
         });
 
-        steps.add(new ConstructionGroupStepPanel<>(getHelper().getDetailsModel(), selectResource.getValueModel()){
+        List<AbstractWizardItemVariableStepPanel> variableSteps = new ArrayList<>();
+
+        variableSteps.add(new AbstractWizardItemVariableStepPanel() {
             @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
-                super.onExitPerformed(target);
-                ConstructionWizardPanel.this.onExitPerformed(target);
+            public boolean isApplicable() {
+                return !isKind(selectResource.getValueModel(), ShadowKindType.ENTITLEMENT);
+            }
+
+            @Override
+            public AbstractWizardStepPanel<?> createStepWizardPanel() {
+                return new ConstructionGroupStepPanel<>(getHelper().getDetailsModel(), selectResource.getValueModel()){
+                    @Override
+                    protected void onExitPerformed(AjaxRequestTarget target) {
+                        super.onExitPerformed(target);
+                        ConstructionWizardPanel.this.onExitPerformed(target);
+                    }
+                };
+            }
+        });
+
+        variableSteps.add(new AbstractWizardItemVariableStepPanel() {
+            @Override
+            public boolean isApplicable() {
+                return isKind(selectResource.getValueModel(), ShadowKindType.ENTITLEMENT);
+            }
+
+            @Override
+            public AbstractWizardStepPanel<?> createStepWizardPanel() {
+                return new ConstructionResourceObjectTypeMembershipStepPanel<>(getHelper().getDetailsModel(), selectResource.getValueModel()){
+                    @Override
+                    protected void onExitPerformed(AjaxRequestTarget target) {
+                        super.onExitPerformed(target);
+                        ConstructionWizardPanel.this.onExitPerformed(target);
+                    }
+                };
+            }
+        });
+
+        steps.add(new WizardVariableStepPanel(variableSteps){
+            @Override
+            public IModel<String> getTitle() {
+                return createStringResource("ConstructionWizardPanel.membership");
             }
         });
 
@@ -110,6 +152,25 @@ public class ConstructionWizardPanel<AR extends AbstractRoleType> extends Abstra
         return steps;
     }
 
+    private boolean isKind(IModel<PrismContainerValueWrapper<AssignmentType>> valueModel, ShadowKindType shadowKindType) {
+        if (valueModel == null || valueModel.getObject() == null) {
+            return false;
+        }
+
+        try {
+            PrismPropertyWrapper<Object> kind = valueModel.getObject().findProperty(
+                    ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_KIND));
+            if (kind.getValue() == null || kind.getValue().getRealValue() == null) {
+                return false;
+            }
+
+            return shadowKindType == kind.getValue().getRealValue();
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't find property for kind in " + valueModel.getObject(), e);
+        }
+        return false;
+    }
+
     private void showOutboundAttributeMappingWizardFragment(
             AjaxRequestTarget target,
             IModel<PrismContainerValueWrapper<MappingType>> rowModel,
@@ -126,14 +187,12 @@ public class ConstructionWizardPanel<AR extends AbstractRoleType> extends Abstra
         steps.add(new ConstructionOutboundMainStepPanel<>(getAssignmentHolderModel(), rowModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                WebComponentUtil.showToastForRecordedButUnsavedChanges(target, valueModel.getObject());
                 showConstructionWizard(target, valueModel, ConstructionOutboundMappingsStepPanel.PANEL_TYPE);
             }
         });
         steps.add(new ConstructionOutboundOptionalStepPanel(getAssignmentHolderModel(), rowModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                WebComponentUtil.showToastForRecordedButUnsavedChanges(target, valueModel.getObject());
                 showConstructionWizard(target, valueModel, ConstructionOutboundMappingsStepPanel.PANEL_TYPE);
             }
         });

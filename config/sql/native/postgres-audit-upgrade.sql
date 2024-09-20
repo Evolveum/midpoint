@@ -151,8 +151,16 @@ $aa$);
 call apply_audit_change(8, $aa$
 ALTER TYPE AuditEventTypeType ADD VALUE IF NOT EXISTS 'INFORMATION_DISCLOSURE' AFTER 'DISCOVER_OBJECT';
 $aa$);
+
+
+--- Policy Type
+call apply_audit_change(9, $aa$
+ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'POLICY' AFTER 'ORG';
+$aa$);
+
 -- WRITE CHANGES ABOVE ^^
--- IMPORTANT: update apply_audit_change number at the end of postgres-new-audit.sql
+
+-- IMPORTANT: update apply_audit_change number at the end of postgres-audit.sql
 -- to match the number used in the last change here!
 -- Also update SqaleUtils.CURRENT_SCHEMA_AUDIT_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java

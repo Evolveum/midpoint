@@ -6,8 +6,17 @@
  */
 package com.evolveum.icf.dummy.resource;
 
+import com.evolveum.midpoint.util.MiscUtil;
+
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import static com.evolveum.midpoint.util.MiscUtil.*;
 
 /**
  * @author Radovan Semancik
@@ -15,13 +24,36 @@ import java.util.Collection;
  */
 public class DummyObjectClass {
 
-    private Collection<DummyAttributeDefinition> attributeDefinitions;
+    @NotNull private final Collection<DummyAttributeDefinition> attributeDefinitions = new ArrayList<>();
+
+    /** Links relevant to this object class. Maintained by the resource itself. Indexed by (non-null) local link name.*/
+    @NotNull private final Map<String, LinkDefinition> linkDefinitionsMap = new ConcurrentHashMap<>();
+
+    /** True if this class represents objects that are embedded into "normal" ones. */
+    private final boolean embeddedObject;
 
     public DummyObjectClass() {
-        attributeDefinitions = new ArrayList<>();
+        this(false);
     }
 
-    public Collection<DummyAttributeDefinition> getAttributeDefinitions() {
+    public DummyObjectClass(boolean embeddedObject) {
+        this.embeddedObject = embeddedObject;
+    }
+
+    /**
+     * Creates a standard/standalone object class, i.e. not an embedded one. The object class can be structural or auxiliary,
+     * depending on how it's used.
+     */
+    public static DummyObjectClass standard() {
+        return new DummyObjectClass();
+    }
+
+    /** Creates an object class for embedded objects. Should be used as a structural one for now. */
+    public static DummyObjectClass embedded() {
+        return new DummyObjectClass(true);
+    }
+
+    public @NotNull Collection<DummyAttributeDefinition> getAttributeDefinitions() {
         return attributeDefinitions;
     }
 
@@ -40,24 +72,41 @@ public class DummyObjectClass {
 
     public void clear() {
         attributeDefinitions.clear();
+        linkDefinitionsMap.clear();
     }
 
     public void addAttributeDefinition(String attributeName) {
-        addAttributeDefinition(attributeName,String.class,false,false);
+        addAttributeDefinition(attributeName, String.class, false, false);
     }
 
-    public void addAttributeDefinition(String attributeName, Class<?> attributeType) {
-        addAttributeDefinition(attributeName,attributeType,false,false);
+    public void addAttributeDefinition(
+            String attributeName, Class<?> attributeType, boolean isRequired, boolean isMulti) {
+        add(new DummyAttributeDefinition(attributeName, attributeType, isRequired, isMulti));
     }
 
-    public void addAttributeDefinition(String attributeName, Class<?> attributeType, boolean isOptional) {
-        addAttributeDefinition(attributeName,attributeType,isOptional,false);
+    public Collection<LinkDefinition> getLinkDefinitions() {
+        return Collections.unmodifiableCollection(
+                linkDefinitionsMap.values());
     }
 
-    public void addAttributeDefinition(String attributeName, Class<?> attributeType, boolean isRequired,
-            boolean isMulti) {
-        DummyAttributeDefinition attrDef = new DummyAttributeDefinition(attributeName,attributeType,isRequired,isMulti);
-        add(attrDef);
+    LinkDefinition getLinkDefinition(@NotNull String linkName) {
+        return linkDefinitionsMap.get(linkName);
     }
 
+    LinkDefinition getLinkDefinitionRequired(@NotNull String linkName) {
+        return MiscUtil.argNonNull(
+                linkDefinitionsMap.get(linkName),
+                "No link '%s' definition in %s", linkName, this);
+    }
+
+    /** The definition must be visible on this class. */
+    synchronized void addLinkDefinition(LinkDefinition definition) {
+        var name = definition.getLinkNameRequired();
+        stateCheck(!linkDefinitionsMap.containsKey(name), "Link definition for %s already exists", name);
+        linkDefinitionsMap.put(name, definition);
+    }
+
+    public boolean isEmbeddedObject() {
+        return embeddedObject;
+    }
 }

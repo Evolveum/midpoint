@@ -1,0 +1,115 @@
+= Upgradeability
+:page-wiki-name: Upgradeability
+:page-wiki-id: 14745847
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2014-04-11T09:53:44.417+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2020-03-11T17:14:31.311+01:00
+:page-upkeep-status: orange
+:page-upkeep-note: Reword? Restructure?
+:page-toc: top
+
+MidPoint is designed to be upgradeable.
+MidPoint has a semi-fixed release cycle with two releases per year therefore upgradeability from one version to another is critical.
+MidPoint has a built-in tools to support the upgrades as well as every minor release contains database scripts and upgrade instructions.
+We also recommend to all our partners to offer free upgrades of midPoint to their customers at least once per year.
+
+== MidPoint Releases and Upgradability
+
+There are xref:/midpoint/versioning/[three types of midPoint releases].
+The upgradeability of each particular release type is different.
+
+* *Maintenance* and patch releases (e.g. version 4.0.2): The upgrade is *trivial*.
+There are usually no changes to the database structure and there are only compatible changes to the data model.
+Therefore it is usually sufficient to replace the software (e.g. replace/redeploy WAR file) and that's it.
+In some cases it may be needed to run a database script to extend the tables with new columns.
+But no data migration is necessary.
+
+* *Minor* release (e.g. version 4.1): The upgrade is *easy* and it is a routine task.
+As minor releases are introducing new features the changes to a data model are expected.
+But the changes are backwards compatible.
+Therefore there is usually no need to change midPoint configuration at all.
+It is usually enough to run a database script to adjust the database structure.
+In a very rare cases an export and re-import of the data may be needed (e.g. in case that the database structure was re-optimized for performance and needs to be re-initialized).
+
+* *Major* release (e.g. version 5.0).
+The upgrade may be *challenging*.
+Major releases are big leaps in midPoint development.
+Such releases bring new and unique functionality, change of paradigms and general evolution of the software.
+We try very hard to avoid incompatible changes during midPoint development.
+Bit it is usually not possible to both maintain strict compatibility and efficiently develop new exciting features.
+Therefore we provide a compromise: compatibility is kept for minor releases.
+But we relax that requirement for major releases to allow efficient evolution of the product.
+As major releases happen only once per 3-6 years this strategy is acceptable both from maintenance and software development point of view.
+
+The important thing to remember is that *there is always an upgrade path* for deployment that have midPoint *subscription*.
+Even for major releases.
+The only difference is the difficulty of individual upgrades.
+*MidPoint protects your investment*.
+Your work on midPoint configuration will never be ruined by upgrading from one release to another.
+Even if there are major changes and parts of functionality are dropped you will have enough time to adapt to the change (see below).
+
+== Upgrade Support and Subscription
+
+Upgradeability may look like an easy thing to do.
+But it is not.
+In fact, it is one of the most difficult parts of software lifecycle management.
+Especially when it comes to upgrades of such a complex and flexible piece of software as all Identity Management products tend to be.
+We have done our best in midPoint to support smooth upgradeability.
+We have a support for xref:/midpoint/devel/prism/[data structures] that are xref:/midpoint/architecture/archive/subsystems/repo/[independent of actual database structure].
+We have support for namespaces which reduces the risk of conflicting extensions and new midPoint features.
+The namespaces also properly support data format versioning.
+And many more features that are unique in both identity management field and also in open source software in general.
+These features contribute to a *relatively easy upgrades*.
+But upgrades are never completely easy.
+Care should be taken during upgrades.
+We strongly recommend reading the release notes carefully and to test the configuration thoroughly after each upgrade.
+
+There are two possible upgrade paths:
+
+* *Follow every release*: The upgrade path to any specific release is from the most recent previous release.
+E.g. the upgrade path may look like this: 3.8  -> 3.9 -> 4.0 LTS -> 4.1 -> 4.2.
+In other words this upgrade path is _linear_.
+
+* This is the upgrade path for *feature releases*.
+This path is recommended for users that prefer new features and are willing to upgrade several times per year.
+
+* *Long-term support (LTS) path*: Upgrade path from one LTS release to a following LTS release: 4.0 LTS -> 4.4 LTS -> 5.0 LTS.
+This path is recommended for users that prefer stability to new features.
+
+Please see xref:/support/long-term-support/[Long-Term Support] page for the details.
+
+== Support Duration
+
+Support is provided only to xref:/support/subscription-sponsoring/[midPoint subscribers].
+Support lifetimes are different for feature releases and long-term support (LTS) release.
+
+Please see xref:/support/long-term-support/[Long-Term Support] page for the details.
+
+Some midPoint features may become obsolete over time.
+When a feature becomes obsolete it will be marked as *deprecated* but it is *not* removed immediately.
+The feature will remain operational for at least one minor release, but it usually remains available for much longer time.
+The feature may be removed in any subsequent release after the release in which it was marked as deprecated.
+
+== Community
+
+MidPoint support is a paid service provided by Evolveum.
+*There is no free service* provided by Evolveum to support midPoint.
+
+However, there is a community communication channel that can be used to discuss midPoint-related topics, in a form of xref:/community/mailing-lists/[public mailing lists].
+This is community service, which means it is provided to the community by community.
+It is not provided by Evolveum.
+Evolveum only maintains the means of communication (mailing lists) and occasionally participates in the service.
+But there are absolutely no guarantees regarding any communication in midPoint community.
+
+Bugs reported by community are considered to be low priority issues.
+Community bug reports are processed by midPoint development team, however ti may take a long time until the issues get fixed (usually counted in years).
+Fixes based on reports from the community will not be backported to the maintenance (support) branch.
+The only exception are security issues and critical functionality bugs.
+Such fixes may be included in the next maintenance release.
+
+== See Also
+
+* xref:/midpoint/versioning/[Release Process]
+
+* xref:/midpoint/reference/upgrade/upgrade-guide/[Upgrade HOWTO]

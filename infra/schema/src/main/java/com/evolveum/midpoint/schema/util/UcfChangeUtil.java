@@ -39,10 +39,9 @@ import static org.apache.commons.collections4.MapUtils.emptyIfNull;
 @SuppressWarnings("unused")
 public class UcfChangeUtil {
 
-    public static UcfChangeType createForNewObject(QName objectClassName, Map<QName, Object> attributes,
-            PrismContext prismContext) throws SchemaException {
-        ShadowType shadow = new ShadowType(prismContext);
-        copyAttributes(attributes, shadow.asPrismObject().findOrCreateContainer(ShadowType.F_ATTRIBUTES).getValue(), prismContext);
+    public static UcfChangeType createForNewObject(QName objectClassName, Map<QName, Object> attributes) throws SchemaException {
+        ShadowType shadow = new ShadowType();
+        copyAttributes(attributes, shadow.asPrismObject().findOrCreateContainer(ShadowType.F_ATTRIBUTES).getValue());
         UcfChangeType change = new UcfChangeType();
         ObjectDelta<ShadowType> addDelta = DeltaFactory.Object.createAddDelta(shadow.asPrismObject());
         change.setObjectClass(objectClassName);
@@ -50,27 +49,27 @@ public class UcfChangeUtil {
         return change;
     }
 
-    private static void copyAttributes(Map<QName, Object> attributes, PrismContainerValue<?> target, PrismContext prismContext)
+    private static void copyAttributes(Map<QName, Object> attributes, PrismContainerValue<?> target)
             throws SchemaException {
         for (Map.Entry<QName, Object> entry : attributes.entrySet()) {
-            PrismProperty<Object> attribute = prismContext.itemFactory().createProperty(entry.getKey());
-            if (entry.getValue() instanceof Collection) {
-                for (Object value : (Collection) entry.getValue()) {
-                    attribute.addValue(prismContext.itemFactory().createPropertyValue(value));
+            PrismProperty<Object> attribute = PrismContext.get().itemFactory().createProperty(entry.getKey());
+            if (entry.getValue() instanceof Collection<?> collection) {
+                for (Object value : collection) {
+                    attribute.addValue(PrismContext.get().itemFactory().createPropertyValue(value));
                 }
             } else {
-                attribute.setValue(prismContext.itemFactory().createPropertyValue(entry.getValue()));
+                attribute.setValue(PrismContext.get().itemFactory().createPropertyValue(entry.getValue()));
             }
             target.add(attribute);
         }
     }
 
-    public static UcfChangeType create(QName objectClassName, Map<QName, Object> identifiers, ObjectDeltaType delta, PrismContext prismContext)
+    public static UcfChangeType create(QName objectClassName, Map<QName, Object> identifiers, ObjectDeltaType delta)
             throws SchemaException {
         UcfChangeType change = new UcfChangeType();
         change.setObjectClass(objectClassName);
-        change.setIdentifiers(new ShadowAttributesType(prismContext));
-        copyAttributes(identifiers, change.getIdentifiers().asPrismContainerValue(), prismContext);
+        change.setIdentifiers(new ShadowAttributesType());
+        copyAttributes(identifiers, change.getIdentifiers().asPrismContainerValue());
         change.setObjectDelta(delta);
         return change;
     }
@@ -85,11 +84,11 @@ public class UcfChangeUtil {
         String operation = request.getOperation();
         QName objectClass = uriToQName(request.getObjectClass(), defaultNamespace);
         if (request.isAdd()) {
-            return UcfChangeUtil.createForNewObject(objectClass, getAttributes(request, defaultNamespace), prismContext);
+            return UcfChangeUtil.createForNewObject(objectClass, getAttributes(request, defaultNamespace));
         } else if (request.isModify()) {
-            return UcfChangeUtil.create(objectClass, getIdentifiers(request, defaultNamespace), createModifyDelta(request, defaultNamespace, prismContext), prismContext);
+            return UcfChangeUtil.create(objectClass, getIdentifiers(request, defaultNamespace), createModifyDelta(request, defaultNamespace));
         } else if (request.isDelete()) {
-            return UcfChangeUtil.create(objectClass, getIdentifiers(request, defaultNamespace), createDeleteDelta(), prismContext);
+            return UcfChangeUtil.create(objectClass, getIdentifiers(request, defaultNamespace), createDeleteDelta());
         } else {
             throw new IllegalArgumentException("Unsupported operation: " + request.getOperation());
         }
@@ -119,7 +118,7 @@ public class UcfChangeUtil {
         return delta;
     }
 
-    private static ObjectDeltaType createModifyDelta(JsonAsyncProvisioningRequest request, String defaultNamespace, PrismContext prismContext) {
+    private static ObjectDeltaType createModifyDelta(JsonAsyncProvisioningRequest request, String defaultNamespace) {
         ObjectDeltaType delta = new ObjectDeltaType();
         delta.setChangeType(ChangeTypeType.MODIFY);
 
@@ -128,13 +127,13 @@ public class UcfChangeUtil {
                     ItemPath.create(ShadowType.F_ATTRIBUTES, uriToQName(entry.getKey(), defaultNamespace)));
             JsonAsyncProvisioningRequest.DeltaValues deltaValues = entry.getValue();
             if (deltaValues.getReplace() != null) {
-                delta.getItemDelta().add(createItemDelta(REPLACE, path, deltaValues.getReplace(), prismContext));
+                delta.getItemDelta().add(createItemDelta(REPLACE, path, deltaValues.getReplace()));
             } else {
                 if (CollectionUtils.isNotEmpty(deltaValues.getAdd())) {
-                    delta.getItemDelta().add(createItemDelta(ADD, path, deltaValues.getAdd(), prismContext));
+                    delta.getItemDelta().add(createItemDelta(ADD, path, deltaValues.getAdd()));
                 }
                 if (CollectionUtils.isNotEmpty(deltaValues.getDelete())) {
-                    delta.getItemDelta().add(createItemDelta(DELETE, path, deltaValues.getDelete(), prismContext));
+                    delta.getItemDelta().add(createItemDelta(DELETE, path, deltaValues.getDelete()));
                 }
             }
         }
@@ -142,12 +141,12 @@ public class UcfChangeUtil {
         return delta;
     }
 
-    private static ItemDeltaType createItemDelta(ModificationTypeType type, ItemPathType path, Collection<?> values, PrismContext prismContext) {
+    private static ItemDeltaType createItemDelta(ModificationTypeType type, ItemPathType path, Collection<?> values) {
         ItemDeltaType itemDelta = new ItemDeltaType();
         itemDelta.setModificationType(type);
         itemDelta.setPath(path);
         for (Object value : values) {
-            itemDelta.getValue().add(RawType.fromPropertyRealValue(value, null, prismContext));
+            itemDelta.getValue().add(RawType.fromPropertyRealValue(value, null));
         }
         return itemDelta;
     }

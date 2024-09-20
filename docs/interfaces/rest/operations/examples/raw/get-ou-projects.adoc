@@ -1,0 +1,36 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Get Organizational Unit*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Accept: application/json" \
+-X GET http://localhost:8080/midpoint/ws/rest/orgs/e5ae2f30-141c-4990-8387-4c8e7433132d?options=raw \
+-v
+----
+
+The response is an HTTP 200 code in case of success with a response body containing the queried item.
+
+.Example Output of *"Get Organizational Unit"* example
+[%collapsible]
+====
+The example is *simplified*, some properties were removed to keep the example output "short". This example *does
+not* contain all possible properties of this object type.
+[source, json]
+----
+{
+  "org" : {
+    "oid" : "e5ae2f30-141c-4990-8387-4c8e7433132d",
+    "version" : "1",
+    "name" : "P0000",
+    "metadata" : {},
+    "operationExecution" : {},
+    "iteration" : 0,
+    "iterationToken" : "",
+    "activation" : {},
+    "displayName" : "Projects"
+  }
+}
+----
+====

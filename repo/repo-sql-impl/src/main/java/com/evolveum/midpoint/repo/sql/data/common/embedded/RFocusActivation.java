@@ -7,6 +7,8 @@
 package com.evolveum.midpoint.repo.sql.data.common.embedded;
 
 import java.util.Objects;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -15,6 +17,9 @@ import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
 
 /**
  * Embeddable mapping for ActivationType, specific for R_FOCUS.
@@ -26,6 +31,7 @@ public class RFocusActivation extends RActivation {
 
     private RLockoutStatus lockoutStatus;
 
+    @JdbcType(IntegerJdbcType.class)
     public RLockoutStatus getLockoutStatus() {
         return lockoutStatus;
     }
@@ -41,8 +47,8 @@ public class RFocusActivation extends RActivation {
         repo.setLockoutStatus(RUtil.getRepoEnumValue(jaxb.getLockoutStatus(), RLockoutStatus.class));
     }
 
-    public static void copyToJAXB(RFocusActivation repo, ActivationType jaxb, PrismContext prismContext) {
-        RActivation.copyToJAXB(repo, jaxb, prismContext);
+    public static void copyToJAXB(RFocusActivation repo, ActivationType jaxb) {
+        RActivation.copyToJAXB(repo, jaxb);
 
         if (repo.getLockoutStatus() != null) {
             jaxb.setLockoutStatus(repo.getLockoutStatus().getSchemaValue());

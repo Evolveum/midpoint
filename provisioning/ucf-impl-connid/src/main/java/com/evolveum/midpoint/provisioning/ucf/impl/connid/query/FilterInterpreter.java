@@ -13,7 +13,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.query.LogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
-import com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdNameMapper;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -25,9 +24,9 @@ public class FilterInterpreter {
         this.objectDefinition = objectDefinition;
     }
 
-    public Filter interpret(ObjectFilter filter, ConnIdNameMapper icfNameMapper) throws SchemaException{
+    public Filter interpret(ObjectFilter filter) throws SchemaException{
         return createOperation(filter)
-                .interpret(filter, icfNameMapper);
+                .interpret(filter);
     }
 
     @NotNull

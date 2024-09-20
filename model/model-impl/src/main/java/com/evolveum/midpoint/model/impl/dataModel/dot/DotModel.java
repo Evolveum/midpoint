@@ -7,17 +7,13 @@
 
 package com.evolveum.midpoint.model.impl.dataModel.dot;
 
-import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.model.impl.dataModel.DataModel;
 import com.evolveum.midpoint.model.impl.dataModel.DataModelVisualizerImpl;
 import com.evolveum.midpoint.model.impl.dataModel.model.*;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -101,19 +97,19 @@ public class DotModel {
                 sb1.append(indent(indent + 1)).append("fontname=\"times-bold\";\n\n");
                 String previousNodeName = null;
                 indent++;
-                for (ResourceAttributeDefinition attrDef : def.getAttributeDefinitions()) {
+                for (ShadowSimpleAttributeDefinition attrDef : def.getSimpleAttributeDefinitions()) {
                     if (attrDef.isIgnored()) {
                         continue;
                     }
                     ResourceDataItem item = dataModel.findResourceItem(resource.getOid(), def.getKind(), def.getIntent(), getObjectClassName(def), attrDef.getItemName());
                     previousNodeName = addResourceItem(itemsShown, indent, sb1, previousNodeName, item);
                 }
-                for (ResourceAssociationDefinition assocDef : def.getAssociationDefinitions()) {
+                for (var assocDef : def.getReferenceAttributeDefinitions()) {
                     if (assocDef.isIgnored()) {
                         continue;
                     }
                     ResourceDataItem item = dataModel.findResourceItem(resource.getOid(), def.getKind(), def.getIntent(),
-                            getObjectClassName(def), assocDef.getName());
+                            getObjectClassName(def), assocDef.getItemName());
                     previousNodeName = addResourceItem(itemsShown, indent, sb1, previousNodeName, item);
                 }
                 previousNodeName = addResourceItem(itemsShown, indent, sb1, previousNodeName,
@@ -256,10 +252,11 @@ public class DotModel {
             sb.append(definition.getDisplayName());
             sb.append(formatted ? LF : "/");
         }
-        if (definition instanceof ResourceObjectTypeDefinition) {
-            sb.append(ResourceTypeUtil.fillDefault(((ResourceObjectTypeDefinition) definition).getKind()));
+        var typeDefinition = definition.getTypeDefinition();
+        if (typeDefinition != null) {
+            sb.append(typeDefinition.getKind());
             sb.append(formatted ? LF : "/");
-            sb.append(ResourceTypeUtil.fillDefault(((ResourceObjectTypeDefinition) definition).getIntent()));
+            sb.append(typeDefinition.getIntent());
             sb.append(formatted ? LF : "/");
         } else {
             sb.append(definition.getObjectClassName().getLocalPart());

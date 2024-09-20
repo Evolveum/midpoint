@@ -74,8 +74,8 @@ public class LinkedReferencePanel<R extends Referencable> extends BasePanel<R> {
                 if (value.getObject() == null) {
                     Task task = getPageBase().createSimpleTask(OPERATION_LOAD_REFERENCED_OBJECT);
                     OperationResult result = task.getResult();
-                    PrismObject<ObjectType> referencedObject = WebModelServiceUtils.loadObject(ref,
-                            true, getPageBase(), task, result);
+                    PrismObject<ObjectType> referencedObject = WebModelServiceUtils.resolveReferenceNoFetch(getModelObject(), getPageBase(),
+                            task, result);
                     if (referencedObject != null) {
                         value.setObject(referencedObject.clone());
                     }
@@ -87,7 +87,7 @@ public class LinkedReferencePanel<R extends Referencable> extends BasePanel<R> {
 
     private void initLayout() {
         setOutputMarkupId(true);
-        add(AttributeAppender.append("class", "d-flex flex-wrap gap-2 align-items-center"));
+        add(AttributeAppender.append("class", getAdditionalCssStyle()));
 
         IModel<DisplayType> displayModel = () -> {
 
@@ -138,5 +138,9 @@ public class LinkedReferencePanel<R extends Referencable> extends BasePanel<R> {
         });
         nameLinkText.setRenderBodyOnly(true);
         nameLink.add(nameLinkText);
+    }
+
+    protected String getAdditionalCssStyle() {
+        return "d-flex flex-wrap gap-2 align-items-center";
     }
 }

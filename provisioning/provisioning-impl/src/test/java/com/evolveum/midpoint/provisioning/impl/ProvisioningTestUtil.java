@@ -6,24 +6,19 @@
  */
 package com.evolveum.midpoint.provisioning.impl;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-
 import java.io.File;
 import java.util.Collection;
-
-import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
+import com.evolveum.midpoint.schema.util.RawRepoShadow;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author semancik
@@ -31,10 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 public class ProvisioningTestUtil {
 
-    public static final File COMMON_TEST_DIR_FILE = new File("src/test/resources/common/");
-    public static final File TEST_DIR_IMPL_FILE = new File("src/test/resources/impl/");
-
-    public static final String RESOURCE_DUMMY_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
+    static final File COMMON_TEST_DIR_FILE = new File("src/test/resources/common/");
 
     public static final String DOT_JPG_FILENAME = "src/test/resources/common/dot.jpg";
 
@@ -45,36 +37,39 @@ public class ProvisioningTestUtil {
     public static final String CONNID_NAME_NAME = "__NAME__";
     public static final String CONNID_DESCRIPTION_NAME = "__DESCRIPTION__";
 
-    public static void checkRepoAccountShadow(PrismObject<ShadowType> repoShadow) {
+    public static void checkRepoAccountShadow(RawRepoShadow repoShadow) {
         checkRepoShadow(repoShadow, ShadowKindType.ACCOUNT);
     }
 
-    public static void checkRepoEntitlementShadow(PrismObject<ShadowType> repoShadow) {
+    public static void checkRepoEntitlementShadow(RawRepoShadow repoShadow) {
         checkRepoShadow(repoShadow, ShadowKindType.ENTITLEMENT);
     }
 
-    public static void checkRepoShadow(PrismObject<ShadowType> repoShadow, ShadowKindType kind) {
+    public static void checkRepoShadow(RawRepoShadow repoShadow, ShadowKindType kind) {
         checkRepoShadow(repoShadow, kind, 2);
     }
 
-    public static void checkRepoShadow(PrismObject<ShadowType> repoShadow, ShadowKindType kind, Integer expectedNumberOfAttributes) {
-        ShadowType repoShadowType = repoShadow.asObjectable();
-        assertNotNull("No OID in repo shadow "+repoShadow, repoShadowType.getOid());
-        assertNotNull("No name in repo shadow "+repoShadow, repoShadowType.getName());
-        assertNotNull("No objectClass in repo shadow "+repoShadow, repoShadowType.getObjectClass());
-        assertEquals("Wrong kind in repo shadow "+repoShadow, kind, repoShadowType.getKind());
-        PrismContainer<Containerable> attributesContainer = repoShadow.findContainer(ShadowType.F_ATTRIBUTES);
+    public static void checkRepoShadow(RawRepoShadow repoShadow, ShadowKindType kind, Integer expectedNumberOfAttributes) {
+        ShadowType bean = repoShadow.getBean();
+        assertNotNull("No OID in repo shadow "+repoShadow, bean.getOid());
+        assertNotNull("No name in repo shadow "+repoShadow, bean.getName());
+        assertNotNull("No objectClass in repo shadow "+repoShadow, bean.getObjectClass());
+        assertEquals("Wrong kind in repo shadow "+repoShadow, kind, bean.getKind());
+        PrismContainer<Containerable> attributesContainer = repoShadow.getPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
         assertNotNull("No attributes in repo shadow "+repoShadow, attributesContainer);
         Collection<Item<?,?>> attributes = attributesContainer.getValue().getItems();
         assertFalse("Empty attributes in repo shadow "+repoShadow, attributes.isEmpty());
         if (expectedNumberOfAttributes != null) {
-            assertEquals("Unexpected number of attributes in repo shadow "+repoShadow, (int)expectedNumberOfAttributes, attributes.size());
+            if (InternalsConfig.isShadowCachingOnByDefault()) {
+                assertThat(attributes)
+                        .as("attributes in repo shadow " + repoShadow)
+                        .hasSizeGreaterThanOrEqualTo(expectedNumberOfAttributes);
+            } else {
+                assertEquals("Unexpected number of attributes in repo shadow " + repoShadow, (int) expectedNumberOfAttributes, attributes.size());
+            }
         }
+        assertThat(bean.getShadowLifecycleState())
+                .as("shadow lifecycle of " + repoShadow)
+                .isNull();
     }
-
-    public static QName getDefaultAccountObjectClass(ResourceType resourceType) {
-        String namespace = MidPointConstants.NS_RI;
-        return new QName(namespace, SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
-    }
-
 }

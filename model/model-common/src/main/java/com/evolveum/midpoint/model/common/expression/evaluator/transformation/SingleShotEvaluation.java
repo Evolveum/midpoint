@@ -9,14 +9,15 @@ package com.evolveum.midpoint.model.common.expression.evaluator.transformation;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.repo.common.expression.TransformationValueMetadataComputer;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.DeltaSetTripleUtil;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -60,6 +61,9 @@ class SingleShotEvaluation<V extends PrismValue, D extends ItemDefinition<?>, E 
             outputTriple = evaluateAbsoluteExpressionWithoutDeltas();
         }
 
+        addValueMetadata(outputTriple.getPlusSet(),parentResult);
+        addValueMetadata(outputTriple.getZeroSet(), parentResult);
+        //addValueMetadata(outputTriple.getMinusSet(), parentResult);
         recordEvaluationEnd(outputTriple);
         return outputTriple;
     }
@@ -70,7 +74,7 @@ class SingleShotEvaluation<V extends PrismValue, D extends ItemDefinition<?>, E 
         Collection<V> outputForOldState = context.isSkipEvaluationMinus() ? null : evaluateExpressionInState(false);
         Collection<V> outputForNewState = context.isSkipEvaluationPlus() ? null : evaluateExpressionInState(true);
 
-        return DeltaSetTripleUtil.diffPrismValueDeltaSetTriple(outputForOldState, outputForNewState, evaluator.getPrismContext());
+        return DeltaSetTripleUtil.diffPrismValueDeltaSetTriple(outputForOldState, outputForNewState);
     }
 
     @NotNull
@@ -79,7 +83,7 @@ class SingleShotEvaluation<V extends PrismValue, D extends ItemDefinition<?>, E 
         // No need to execute twice. There is no change.
         Collection<V> outputForNewState = evaluateExpressionInState(true);
 
-        return DeltaSetTripleUtil.allToZeroSet(outputForNewState, evaluator.getPrismContext());
+        return DeltaSetTripleUtil.allToZeroSet(outputForNewState);
     }
 
     private Collection<V> evaluateExpressionInState(boolean useNewValues) throws ExpressionEvaluationException, ObjectNotFoundException,
@@ -97,9 +101,11 @@ class SingleShotEvaluation<V extends PrismValue, D extends ItemDefinition<?>, E 
             addSourcesToStaticVariables(staticVariables, useNewValues);
             assert !staticVariables.haveDeltas();
 
-            List<V> evalResults = evaluator.transformSingleValue(staticVariables, null, useNewValues, context,
-                    (useNewValues ? "(new) " : "(old) " ) + context.getContextDescription(),
-                    context.getTask(), result);
+            var vtCtx = new ValueTransformationContext(
+                    context, staticVariables, useNewValues,
+                    (useNewValues ? "(new) " : "(old) ") + context.getContextDescription());
+
+            List<V> evalResults = evaluator.transformSingleValue(vtCtx, result);
 
             return removeEmptyOutputValues(evalResults);
         } catch (Throwable t) {
@@ -168,5 +174,31 @@ class SingleShotEvaluation<V extends PrismValue, D extends ItemDefinition<?>, E 
             outputSet.add(pval);
         }
         return outputSet;
+    }
+
+    private void addValueMetadata(@NotNull Collection<V> output, OperationResult result) throws CommunicationException, ObjectNotFoundException,
+            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        TransformationValueMetadataComputer valueMetadataComputer = context.getValueMetadataComputer();
+
+        if (valueMetadataComputer == null) {
+            // TODO clear existing metadata?
+            LOGGER.trace("No value metadata computer present, skipping metadata computation.");
+        } else if (output != null || !output.isEmpty()) {
+            // FIXME: Here we should have some source values list probably
+            var sourceValues = Collections.<PrismValue>emptyList();
+            ValueMetadataType outputValueMetadata = valueMetadataComputer.compute(sourceValues, result);
+            if (outputValueMetadata != null) {
+                ValueMetadata metadata = PrismContext.get().getValueMetadataFactory().createEmpty();
+                metadata.addMetadataValue(outputValueMetadata.asPrismContainerValue());
+                var iter = output.iterator();
+                for (var oVal: output)  {
+                    if (oVal != null) {
+                        oVal.setValueMetadata(metadata.clone());
+                    }
+                }
+            } else {
+                // TODO clear existing metadata?
+            }
+        }
     }
 }

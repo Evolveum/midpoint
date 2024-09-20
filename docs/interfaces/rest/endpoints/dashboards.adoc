@@ -1,0 +1,90 @@
+= Dashboard type REST Endpoint
+:page-nav-title: Dashboard
+:page-display-order: 1600
+:page-toc: top
+:page-keywords: [ 'rest', 'dashboard' ,'endpoint' ]
+:page-upkeep-status: green
+
+== Description
+
+Here we are describing the Dashboard object type in relation to midPoints REST API. The
+Dashboard objects are a part of the REST API web resources.
+
+.Endpoint
+[source, http]
+----
+dashboards/
+----
+
+== Operations And Examples
+
+The Dashboard type endpoint operations and examples.
+
+include::../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+
+=== Create Dashboard type Object
+
+- xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]
+
+=== Get Dashboard type Objects
+
+Get operation for fetching a single specific object.
+
+- xref:/midpoint/reference/interfaces/rest/operations/get-op-rest/[Get Operation]
+
+=== Search for Dashboard type Objects
+
+Search operation usable for fetching the full list of objects or a list based on filter.
+
+include::../operations/examples/raw/search-all.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[Search Operation]
+
+=== Modify Dashboard type Objects
+
+- xref:/midpoint/reference/interfaces/rest/operations/modify-op-rest/[Modify Operation]
+
+=== Delete Dashboard type Objects
+
+- xref:/midpoint/reference/interfaces/rest/operations/delete-op-rest/[Delete Operation]
+
+=== Generate and Validate Operations for Dashboard type Objects
+
+Operations to generate or validate values.
+
+- xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]
+
+== JSON Example
+
+Example output of information regarding a specific Dashboard object. Metadata is usually a part
+of the output, yet it was removed for the purpose of the example.
+
+.Show JSON Example
+[%collapsible]
+====
+[source, json]
+----
+{
+	"dashboard": {
+		"oid": "00000000-0000-0000-0001-000000000001",
+		"version": "1",
+		"name": "admin-dashboard",
+		"metadata": {},
+		"operationExecution": {},
+		"iteration": 0,
+		"iterationToken": "",
+		"display": {},
+		"widget": []
+	}
+}
+----
+====
+
+== See Also
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]

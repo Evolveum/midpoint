@@ -6,17 +6,21 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ACCOUNT;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.io.File;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.internals.InternalCounters;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.icf.dummy.resource.DummyPrivilege;
+
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.test.DummyResourceContoller;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -25,23 +29,58 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyTestResource;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+/**
+ * Various intent-related tests:
+ *
+ * . `test1xx`: basic functioning of multiple intents (assigning/unassigning accounts with different intents)
+ * . `test2xx`: synchronization tasks in environments with multiple intents
+ */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestIntent extends AbstractInitializedModelIntegrationTest {
 
     private static final String ACCOUNT_INTENT_TEST = "test";
+
     private String accountOid;
+
+    private static final File TEST_DIR = new File("src/test/resources/intents");
+
+    private static final DummyTestResource RESOURCE_DUMMY_INTENTS = new DummyTestResource(
+            TEST_DIR, "resource-dummy-intents.xml", "82fcb11c-136d-4d9e-a2bb-6e6c79c547e4", "intents");
+
+    private DummyPrivilege guestPrivilege;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
+        var testResult = testResource(RESOURCE_DUMMY_OID, initTask, initResult);
+        assertSuccess(testResult);
+
         addObject(SHADOW_GROUP_DUMMY_TESTERS_FILE, initTask, initResult);
+
+        initTestObjects(initTask, initResult,
+                RESOURCE_DUMMY_INTENTS);
+
+        guestPrivilege = new DummyPrivilege("guest");
+        RESOURCE_DUMMY_INTENTS.controller.getDummyResource().addPrivilege(guestPrivilege);
+
+        var schema = ResourceSchemaFactory.getCompleteSchema(getDummyResourceType());
+        displayDumpable("dummy schema", schema);
 
         rememberSteadyResources();
     }
@@ -53,16 +92,12 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-        ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID,
-                RESOURCE_DUMMY_OID, null, true);
-        deltas.add(accountAssignmentUserDelta);
-
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
-        // WHEN
-        when();
-        modelService.executeChanges(deltas, null, task, result);
+        when("user is assigned a default account");
+        executeChanges(
+                createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, true),
+                null, task, result);
 
         // THEN
         then();
@@ -77,7 +112,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         accountOid = getSingleLinkOid(userJack);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        var accountShadow = getShadowRepo(accountOid);
         assertDummyAccountShadowRepo(accountShadow, accountOid, ACCOUNT_JACK_DUMMY_USERNAME);
         assertEnableTimestampShadow(accountShadow, startTime, endTime);
 
@@ -110,16 +145,12 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-        ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID,
-                RESOURCE_DUMMY_OID, ACCOUNT_INTENT_TEST, true);
-        deltas.add(accountAssignmentUserDelta);
-
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
-        // WHEN
-        when();
-        modelService.executeChanges(deltas, null, task, result);
+        when("user is assigned 'test' account");
+        executeChanges(
+                createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, ACCOUNT_INTENT_TEST, true),
+                null, task, result);
 
         // THEN
         then();
@@ -131,11 +162,11 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         display("User after change execution", userJack);
         assertUserJack(userJack);
         assertLiveLinks(userJack, 2);
-        String accountOidDefault = getLinkRefOid(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
-        String accountOidTest = getLinkRefOid(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, ACCOUNT_INTENT_TEST);
+        String accountOidDefault = getLinkRefOid(userJack, RESOURCE_DUMMY_OID, ACCOUNT, SchemaConstants.INTENT_DEFAULT);
+        String accountOidTest = getLinkRefOid(userJack, RESOURCE_DUMMY_OID, ACCOUNT, ACCOUNT_INTENT_TEST);
 
         // Check shadow: intent=default
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOidDefault, null, result);
+        var accountShadow = getShadowRepo(accountOidDefault);
         assertDummyAccountShadowRepo(accountShadow, accountOidDefault, ACCOUNT_JACK_DUMMY_USERNAME);
 
         // Check account: intent=default
@@ -146,7 +177,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
 
         // Check shadow: intent=test
-        PrismObject<ShadowType> accountShadowTest = repositoryService.getObject(ShadowType.class, accountOidTest, null, result);
+        var accountShadowTest = getShadowRepo(accountOidTest);
         assertDummyAccountShadowRepo(accountShadowTest, accountOidTest, "T"+ACCOUNT_JACK_DUMMY_USERNAME);
         assertEnableTimestampShadow(accountShadowTest, startTime, endTime);
 
@@ -182,7 +213,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, PrismTestUtil.createPolyString("cpt. Jack Sparrow"));
+        modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, PolyString.fromOrig("cpt. Jack Sparrow"));
 
         // THEN
         then();
@@ -193,11 +224,11 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         display("User after change execution", userJack);
         assertUserJack(userJack, "cpt. Jack Sparrow", "Jack", "Sparrow");
         assertLiveLinks(userJack, 2);
-        String accountOidDefault = getLinkRefOid(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
-        String accountOidTest = getLinkRefOid(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, ACCOUNT_INTENT_TEST);
+        String accountOidDefault = getLinkRefOid(userJack, RESOURCE_DUMMY_OID, ACCOUNT, SchemaConstants.INTENT_DEFAULT);
+        String accountOidTest = getLinkRefOid(userJack, RESOURCE_DUMMY_OID, ACCOUNT, ACCOUNT_INTENT_TEST);
 
         // Check shadow: intent=default
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOidDefault, null, result);
+        var accountShadow = getShadowRepo(accountOidDefault);
         assertDummyAccountShadowRepo(accountShadow, accountOidDefault, ACCOUNT_JACK_DUMMY_USERNAME);
 
         // Check account: intent=default
@@ -208,7 +239,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "cpt. Jack Sparrow", true);
 
         // Check shadow: intent=test
-        PrismObject<ShadowType> accountShadowTest = repositoryService.getObject(ShadowType.class, accountOidTest, null, result);
+        var accountShadowTest = getShadowRepo(accountOidTest);
         assertDummyAccountShadowRepo(accountShadowTest, accountOidTest, "T"+ACCOUNT_JACK_DUMMY_USERNAME);
 
         // Check account: intent=test
@@ -239,14 +270,10 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-        ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID,
-                RESOURCE_DUMMY_OID, null, false);
-        deltas.add(accountAssignmentUserDelta);
-
-        // WHEN
-        when();
-        modelService.executeChanges(deltas, null, task, result);
+        when("account/default is unassigned");
+        executeChanges(
+                createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, false),
+                null, task, result);
 
         // THEN
         then();
@@ -257,10 +284,10 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         display("User after change execution", userJack);
         assertUserJack(userJack, "cpt. Jack Sparrow", "Jack", "Sparrow");
         assertLiveLinks(userJack, 1);
-        String accountOidTest = getLinkRefOid(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, ACCOUNT_INTENT_TEST);
+        String accountOidTest = getLinkRefOid(userJack, RESOURCE_DUMMY_OID, ACCOUNT, ACCOUNT_INTENT_TEST);
 
         // Check shadow: intent=test
-        PrismObject<ShadowType> accountShadowTest = repositoryService.getObject(ShadowType.class, accountOidTest, null, result);
+        var accountShadowTest = getShadowRepo(accountOidTest);
         assertDummyAccountShadowRepo(accountShadowTest, accountOidTest, "T"+ACCOUNT_JACK_DUMMY_USERNAME);
 
         // Check account: intent=test
@@ -293,13 +320,10 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-        ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID,
-                RESOURCE_DUMMY_OID, ACCOUNT_INTENT_TEST, false);
-        deltas.add(accountAssignmentUserDelta);
-
-        // WHEN
-        modelService.executeChanges(deltas, null, task, result);
+        when("unassigning account/test");
+        executeChanges(
+                createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, ACCOUNT_INTENT_TEST, false),
+                null, task, result);
 
         // THEN
         assertSuccess(result);
@@ -330,6 +354,150 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         assertSteadyResources();
     }
 
+    /**
+     * Searching for accounts that are defined by classification conditions.
+     * (It would be more appropriate to have this test in the provisioning module,
+     * but the required script expression evaluator is not available there.)
+     *
+     * MID-9591
+     */
+    @Test
+    public void test200SearchForAccounts() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        given("accounts are created on the resource");
+        createDummyAccountWithPrivilege("100200");
+        createDummyAccountWithPrivilege("T100200");
+        createDummyAccountWithPrivilege("O100200");
+
+        when("searching for all accounts");
+        var accounts = provisioningService.searchObjects(
+                ShadowType.class,
+                Resource.of(RESOURCE_DUMMY_INTENTS.get())
+                        .queryFor(RI_ACCOUNT_OBJECT_CLASS)
+                        .build(),
+                null, task, result);
+
+        then("three accounts are found");
+        display("ri:AccountObjectClass", accounts);
+        assertThat(accounts).hasSize(3);
+
+        when("searching for account/main");
+        var main = provisioningService.searchObjects(
+                ShadowType.class,
+                Resource.of(RESOURCE_DUMMY_INTENTS.get())
+                        .queryFor(ShadowKindType.ACCOUNT, "main")
+                        .build(),
+                null, task, result);
+
+        then("three accounts are found (provisioning does not do filtering here)");
+        display("account/main", main);
+        assertThat(main).hasSize(3);
+
+        when("searching for account/test");
+        var test = provisioningService.searchObjects(
+                ShadowType.class,
+                Resource.of(RESOURCE_DUMMY_INTENTS.get())
+                        .queryFor(ShadowKindType.ACCOUNT, "test")
+                        .build(),
+                null, task, result);
+
+        then("three accounts are found (provisioning does not do filtering here)");
+        display("account/test", test);
+        assertThat(test).hasSize(3);
+    }
+
+    /** MID-9591 */
+    @Test
+    public void test210ReconcileAllAccounts() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        String main100210 = "100210";
+        String test100210 = "T100210";
+        String other100210 = "O100210";
+
+        given("accounts are created on the resource");
+        createDummyAccountWithPrivilege(main100210);
+        createDummyAccountWithPrivilege(test100210);
+        createDummyAccountWithPrivilege(other100210);
+
+        when("all accounts are reconciled");
+        reconcileAccountsRequest()
+                .withResourceOid(RESOURCE_DUMMY_INTENTS.oid)
+                .withWholeObjectClass(RI_ACCOUNT_OBJECT_CLASS)
+                .withProcessingAllAccounts()
+                .execute(result);
+
+        then("main + test users are there");
+        assertUserAfterByUsername(main100210);
+        assertUserAfterByUsername(test100210);
+        assertNoObjectByName(UserType.class, other100210, task, result);
+    }
+
+    private void createDummyAccountWithPrivilege(String name) throws Exception {
+        var account = RESOURCE_DUMMY_INTENTS.controller.addAccount(name);
+        account.addAttributeValues(DummyResourceContoller.DUMMY_ENTITLEMENT_PRIVILEGE_NAME, guestPrivilege.getName());
+    }
+
+    /** MID-9591 */
+    @Test
+    public void test220ReconcileIntentMain() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        String main100220 = "100220";
+        String test100220 = "T100220";
+        String other100220 = "O100220";
+
+        given("accounts are created on the resource");
+        createDummyAccountWithPrivilege(main100220);
+        createDummyAccountWithPrivilege(test100220);
+        createDummyAccountWithPrivilege(other100220);
+
+        when("account/main is reconciled");
+        reconcileAccountsRequest()
+                .withResourceOid(RESOURCE_DUMMY_INTENTS.oid)
+                .withTypeIdentification(ResourceObjectTypeIdentification.of(ACCOUNT, "main"))
+                .withProcessingAllAccounts()
+                .execute(result);
+
+        then("only the main user is there");
+        assertUserAfterByUsername(main100220);
+        assertNoObjectByName(UserType.class, test100220, task, result);
+        assertNoObjectByName(UserType.class, other100220, task, result);
+    }
+
+    /** MID-9591 */
+    @Test
+    public void test230ReconcileIntentTest() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        String main100230 = "100230";
+        String test100230 = "T100230";
+        String other100230 = "O100230";
+
+        given("accounts are created on the resource");
+        createDummyAccountWithPrivilege(main100230);
+        createDummyAccountWithPrivilege(test100230);
+        createDummyAccountWithPrivilege(other100230);
+
+        when("account/test is reconciled");
+        reconcileAccountsRequest()
+                .withResourceOid(RESOURCE_DUMMY_INTENTS.oid)
+                .withTypeIdentification(ResourceObjectTypeIdentification.of(ACCOUNT, "test"))
+                .withProcessingAllAccounts()
+                .execute(result);
+
+        then("only the test user is there");
+        assertNoObjectByName(UserType.class, main100230, task, result);
+        assertUserAfterByUsername(test100230);
+        assertNoObjectByName(UserType.class, other100230, task, result);
+    }
+
+    @SuppressWarnings("SameParameterValue")
     private void preTestCleanup(AssignmentPolicyEnforcementType enforcementPolicy) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         assumeAssignmentPolicy(enforcementPolicy);
         dummyAuditService.clear();

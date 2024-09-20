@@ -7,14 +7,14 @@
 
 package com.evolveum.midpoint.provisioning.ucf.api;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
@@ -33,12 +33,12 @@ public class UcfLiveSyncChange extends UcfChange {
     public UcfLiveSyncChange(
             int localSequenceNumber,
             @NotNull Object primaryIdentifierRealValue,
-            @NotNull Collection<ResourceAttribute<?>> identifiers,
-            ResourceObjectDefinition objectDefinition,
-            ObjectDelta<ShadowType> objectDelta,
-            PrismObject<ShadowType> resourceObject,
+            @NotNull Collection<ShadowSimpleAttribute<?>> identifiers,
+            @Nullable ResourceObjectDefinition objectDefinition,
+            @Nullable ObjectDelta<ShadowType> objectDelta,
+            @Nullable UcfResourceObject resourceObject,
             @NotNull UcfSyncToken token,
-            UcfErrorState errorState) {
+            @NotNull UcfErrorState errorState) {
         super(localSequenceNumber, primaryIdentifierRealValue, objectDefinition, identifiers,
                 objectDelta, resourceObject, errorState);
         this.token = token;
@@ -61,8 +61,7 @@ public class UcfLiveSyncChange extends UcfChange {
 
     @Override
     protected void checkObjectClassDefinitionPresence() {
-        if (errorState.isSuccess()) {
-            stateCheck(isDelete() || resourceObjectDefinition != null, "No object class definition for non-delete LS change");
-        }
+        stateCheck(isDelete() || resourceObjectDefinition != null,
+                "No object class definition for non-delete LS change");
     }
 }

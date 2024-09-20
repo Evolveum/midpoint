@@ -29,7 +29,6 @@ import java.util.List;
 
 public class IconAndStylesUtil {
 
-
     public static <T extends ObjectType> String createDefaultIcon(PrismObject<T> object) {
         Class<T> type = object.getCompileTimeClass();
         if (type.equals(UserType.class)) {
@@ -56,12 +55,38 @@ public class IconAndStylesUtil {
             return createSimulationResultIcon();
         } else if (type == MarkType.class) {
             return createMarkIcon();
-        }else if (type == RoleAnalysisSessionType.class) {
+        } else if (type == RoleAnalysisSessionType.class) {
             return createRoleAnalysisSessionIcon();
-        }else if (type == RoleAnalysisClusterType.class) {
+        } else if (type == RoleAnalysisClusterType.class) {
             return createRoleAnalysisClusterIcon();
+        } else if (type == RoleAnalysisOutlierType.class) {
+            return createRoleAnalysisOutlierIcon();
+        } else if (type == SchemaType.class) {
+            return createSchemaIcon();
+        } else if (type == PolicyType.class) {
+            return createPolicyIcon();
+        } else if (type == AccessCertificationCampaignType.class) {
+            return createCertCampaignIcon();
+        } else if (type == AccessCertificationDefinitionType.class) {
+            return createCertCampaignDefinitionIcon();
         }
         return "";
+    }
+
+    private static String createCertCampaignDefinitionIcon() {
+        return getObjectNormalIconStyle(GuiStyleConstants.CLASS_OBJECT_CERT_DEF_ICON);
+    }
+
+    private static String createCertCampaignIcon() {
+        return getObjectNormalIconStyle(GuiStyleConstants.CLASS_OBJECT_CERT_CAMPAIGN_ICON);
+    }
+
+    private static String createPolicyIcon() {
+        return getObjectNormalIconStyle(GuiStyleConstants.CLASS_OBJECT_POLICY_ICON);
+    }
+
+    private static String createSchemaIcon() {
+        return getObjectNormalIconStyle(GuiStyleConstants.CLASS_OBJECT_SCHEMA_TEMPLATE_ICON);
     }
 
     // TODO reconcile with ObjectTypeGuiDescriptor
@@ -97,6 +122,12 @@ public class IconAndStylesUtil {
             return GuiStyleConstants.CLASS_ICON_RESOURCE_SCHEMA_HANDLING_COLORED;
         } else if (QNameUtil.match(ResourceAttributeDefinitionType.COMPLEX_TYPE, objectType)) {
             return "fa fa-navicon";
+        } else if (QNameUtil.match(RoleAnalysisClusterType.COMPLEX_TYPE, objectType)) {
+            return GuiStyleConstants.CLASS_ROLE_ANALYSIS_CLUSTER_ICON;
+        } else if (QNameUtil.match(RoleAnalysisSessionType.COMPLEX_TYPE, objectType)) {
+            return GuiStyleConstants.CLASS_ROLE_ANALYSIS_SESSION_ICON;
+        } else if (QNameUtil.match(RoleAnalysisOutlierType.COMPLEX_TYPE, objectType)) {
+            return GuiStyleConstants.CLASS_OUTLIER_ICON;
         } else {
             return "";
         }
@@ -114,6 +145,8 @@ public class IconAndStylesUtil {
             return GuiStyleConstants.CLASS_OBJECT_ORG_ICON;
         } else if (QNameUtil.match(ServiceType.COMPLEX_TYPE, objectType)) {
             return GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON;
+        } else if (QNameUtil.match(PolicyType.COMPLEX_TYPE, objectType)) {
+            return GuiStyleConstants.CLASS_OBJECT_POLICY_ICON;
         } else if (QNameUtil.match(TaskType.COMPLEX_TYPE, objectType)) {
             return GuiStyleConstants.CLASS_OBJECT_TASK_ICON;
         } else if (QNameUtil.match(ResourceType.COMPLEX_TYPE, objectType) || QNameUtil.match(ConstructionType.COMPLEX_TYPE, objectType)) {
@@ -138,9 +171,15 @@ public class IconAndStylesUtil {
             return GuiStyleConstants.EVO_ARCHETYPE_TYPE_ICON;
         } else if (QNameUtil.match(ObjectTemplateType.COMPLEX_TYPE, objectType)) {
             return GuiStyleConstants.CLASS_OBJECT_TEMPLATE_ICON;
+        } else if (QNameUtil.match(RoleAnalysisClusterType.COMPLEX_TYPE, objectType)) {
+            return GuiStyleConstants.CLASS_ROLE_ANALYSIS_CLUSTER_ICON;
+        } else if (QNameUtil.match(RoleAnalysisSessionType.COMPLEX_TYPE, objectType)) {
+            return GuiStyleConstants.CLASS_ROLE_ANALYSIS_SESSION_ICON;
         } else if (QNameUtil.match(MappingType.COMPLEX_TYPE, objectType)) {
             //TODO fix icon style for mapping type
             return "";
+        } else if (QNameUtil.match(RoleAnalysisOutlierType.COMPLEX_TYPE, objectType)) {
+            return GuiStyleConstants.CLASS_ICON_OUTLIER;
         } else {
             return "";
         }
@@ -350,6 +389,10 @@ public class IconAndStylesUtil {
 
     private static String createRoleAnalysisClusterIcon() {
         return getObjectNormalIconStyle(GuiStyleConstants.CLASS_ROLE_ANALYSIS_CLUSTER_ICON);
+    }
+
+    private static String createRoleAnalysisOutlierIcon() {
+        return getObjectNormalIconStyle(GuiStyleConstants.CLASS_ICON_OUTLIER);
     }
 
     private static String createSimulationResultIcon() {

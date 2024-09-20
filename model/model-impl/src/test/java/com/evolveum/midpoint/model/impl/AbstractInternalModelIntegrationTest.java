@@ -99,6 +99,12 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelImplement
     protected static final File PASSWORD_POLICY_GLOBAL_FILE = new File(COMMON_DIR, "password-policy-global.xml");
     protected static final String PASSWORD_POLICY_GLOBAL_OID = "12344321-0000-0000-0000-000000000003";
 
+    public static final File ROLE_DUMMY_ACCOUNT = new File(COMMON_DIR, "role-dummy-account.xml");
+    public static final String ROLE_DUMMY_ACCOUNT_OID = "550df511-7b28-4f9a-b8a3-9169d4af27e7";
+
+    public static final File ROLE_DUMMY_GROUP = new File(COMMON_DIR, "role-dummy-group.xml");
+    public static final String ROLE_DUMMY_GROUP_OID = "a43f203c-2389-48f1-b7cd-d70541924583";
+
     protected static final String MOCK_CLOCKWORK_HOOK_URL = MidPointConstants.NS_MIDPOINT_TEST_PREFIX + "/mockClockworkHook";
 
     protected PrismObject<UserType> userAdministrator;

@@ -10,6 +10,11 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 
+import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Classes implementing this interface are used to handle arbitrary objects (not always {@link PrismObject} instances),
  * typically - but not necessarily - coming from iterative search operation.

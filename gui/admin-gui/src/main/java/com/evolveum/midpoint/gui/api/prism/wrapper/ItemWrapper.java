@@ -12,10 +12,13 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
+import com.evolveum.midpoint.gui.impl.util.ExecutedDeltaPostProcessor;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -25,7 +28,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElement
  * @author katka
  *
  */
-public interface ItemWrapper<I extends Item, VW extends PrismValueWrapper> extends ItemDefinition<I>, Revivable, DebugDumpable, Serializable {
+public interface ItemWrapper<I extends Item<?, ?>, VW extends PrismValueWrapper>
+        extends ItemDefinition<I>, Revivable, DebugDumpable, Serializable {
 
 
     String debugDump(int indent);
@@ -96,4 +100,9 @@ public interface ItemWrapper<I extends Item, VW extends PrismValueWrapper> exten
     boolean isValidated();
 
     void setValidated(boolean validated);
+
+    /**
+     * Collect processor with deltas and consumer, that should be processed before basic deltas of showed object
+     */
+    Collection<ExecutedDeltaPostProcessor> getPreconditionDeltas(ModelServiceLocator serviceLocator, OperationResult result) throws CommonException;
 }

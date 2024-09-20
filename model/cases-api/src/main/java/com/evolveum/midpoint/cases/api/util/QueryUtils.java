@@ -10,11 +10,13 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryFactory;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -196,7 +198,29 @@ public class QueryUtils {
         return newQuery;
     }
 
-    public static ObjectQuery createQueryForOpenWorkItems(
+    public static ObjectQuery createQueryForOpenWorkItemsForCampaigns(
+            List<String> campaignOids, MidPointPrincipal principal, boolean notDecidedOnly) {
+        if (campaignOids == null || campaignOids.isEmpty()) {
+            return null;
+        }
+        S_FilterEntry queryPrefix = PrismContext.get().queryFor(AccessCertificationWorkItemType.class).block();
+        S_FilterExit filterExit = null;
+        for (String oid : campaignOids) {
+             filterExit = queryPrefix
+                    .exists(PrismConstants.T_PARENT)
+                    .ownerId(oid);
+             if (campaignOids.indexOf(oid) < campaignOids.size() - 1) {
+                 queryPrefix = filterExit.or();
+             }
+        }
+        if (filterExit == null) {
+            return null;
+        }
+        ObjectQuery query = filterExit.endBlock().build();
+        return createQueryForOpenWorkItems(query, principal, notDecidedOnly);
+    }
+
+   public static ObjectQuery createQueryForOpenWorkItems(
             ObjectQuery baseWorkItemsQuery, MidPointPrincipal principal, boolean notDecidedOnly) {
         ObjectFilter reviewerAndEnabledFilter = getReviewerAndEnabledFilterForWI(principal);
 

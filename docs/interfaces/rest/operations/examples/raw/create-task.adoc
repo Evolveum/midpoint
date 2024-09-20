@@ -1,0 +1,51 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Create a new Task object in MidPoint with file data source*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Content-Type: application/json" \
+-X POST http://localhost:8080/midpoint/ws/rest/tasks \
+-v \
+--data-binary @./samples/rest/task-recompute-members-employee.json
+----
+
+.*Show* data source example for *"Create a new Task object in MidPoint"* | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/task-recompute-members-employee.json[GitHub]
+[%collapsible]
+====
+[source, json]
+----
+{
+  "task" : {
+    "name" : "Recompute all direct members of Role Basic Employee",
+    "schedulingState" : "ready",
+    "binding" : "loose",
+    "activity" : {
+      "work" : {
+        "recomputation" : {
+          "objects" : {
+            "type" : "UserType",
+            "query" : {
+              "filter" : {
+                "text" : "assignment matches (targetRef matches (oid = '96262f4f-053a-4b0b-8901-b3ec01e3509c'))"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+----
+====
+
+The response is an HTTP 202 code in case of success *without* a response body.
+Also, the response contains a *Location Header* pointing to the location of the created
+user.
+
+.Example location header
+[source, bash]
+----
+Location: http://localhost:8080/midpoint/ws/rest/tasks/6d13632c-6b75-4a33-9744-ec9523375f6b
+----

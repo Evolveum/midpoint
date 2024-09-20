@@ -1,0 +1,13 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Search for All Tasks With Name That Starts With 'a'*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Accept: application/json" \
+-H "Content-Type: application/json" \
+-X POST http://localhost:8080/midpoint/ws/rest/tasks/search \
+-v \
+--data-binary @./samples/rest/query-gen-name.json
+----

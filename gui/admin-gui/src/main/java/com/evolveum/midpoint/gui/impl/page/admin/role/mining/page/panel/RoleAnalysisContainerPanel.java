@@ -10,37 +10,34 @@ import java.io.Serial;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemEditabilityHandler;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOptionsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.RoleAnalysisRoleSessionOptions;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.RoleAnalysisUserSessionOptions;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.NotNull;
+
 @PanelType(name = "roleAnalysisPanel")
-@PanelInstance(
-        identifier = "clusterStatistic",
-        applicableForType = RoleAnalysisClusterType.class,
-        display = @PanelDisplay(
-                label = "AnalysisClusterStatisticType.clusterStatistic",
-                icon = GuiStyleConstants.CLASS_REPORT_ICON,
-                order = 40
-        ),
-        containerPath = "clusterStatistics",
-        type = "AnalysisClusterStatisticType",
-        expanded = true
-)
 
 @PanelInstance(
         identifier = "detectionOption",
         applicableForType = RoleAnalysisClusterType.class,
         display = @PanelDisplay(
                 label = "RoleAnalysisClusterType.detectionOption",
-                icon = GuiStyleConstants.CLASS_OPTIONS,
-                order = 30
+                icon = GuiStyleConstants.CLASS_OPTIONS_COGS,
+                order = 20
         ),
+        childOf = RoleAnalysisClusterOptionsPanel.class,
         containerPath = "detectionOption",
         type = "RoleAnalysisDetectionOptionType",
         expanded = true
@@ -51,9 +48,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         applicableForType = RoleAnalysisSessionType.class,
         display = @PanelDisplay(
                 label = "RoleAnalysisSessionType.sessionOptions",
-                icon = GuiStyleConstants.CLASS_OPTIONS,
-                order = 40
+                icon = GuiStyleConstants.CLASS_OPTIONS_COGS,
+                order = 20
         ),
+        childOf = RoleAnalysisRoleSessionOptions.class,
         containerPath = "roleModeOptions",
         type = "RoleAnalysisSessionOptionType",
         expanded = true)
@@ -63,24 +61,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         applicableForType = RoleAnalysisSessionType.class,
         display = @PanelDisplay(
                 label = "RoleAnalysisSessionType.sessionOptions",
-                icon = GuiStyleConstants.CLASS_OPTIONS,
-                order = 40
+                icon = GuiStyleConstants.CLASS_OPTIONS_COG,
+                order = 20
         ),
+        childOf = RoleAnalysisUserSessionOptions.class,
         containerPath = "userModeOptions",
         type = "UserAnalysisSessionOptionType",
-        expanded = true
-)
-
-@PanelInstance(
-        identifier = "sessionStatistics",
-        applicableForType = RoleAnalysisSessionType.class,
-        display = @PanelDisplay(
-                label = "RoleAnalysisSessionType.sessionStatistic",
-                icon = GuiStyleConstants.CLASS_REPORT_ICON,
-                order = 50
-        ),
-        containerPath = "sessionStatistic",
-        type = "RoleAnalysisSessionStatisticType",
         expanded = true
 )
 
@@ -89,9 +75,24 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         applicableForType = RoleAnalysisSessionType.class,
         display = @PanelDisplay(
                 label = "RoleAnalysisDetectionOptionType.defaultDetectionOption",
-                icon = GuiStyleConstants.CLASS_OPTIONS,
+                icon = GuiStyleConstants.CLASS_OPTIONS_COG,
                 order = 30
         ),
+        childOf = RoleAnalysisUserSessionOptions.class,
+        containerPath = "defaultDetectionOption",
+        type = "RoleAnalysisDetectionOptionType",
+        expanded = true
+)
+
+@PanelInstance(
+        identifier = "sessionDefaultDetectionOption",
+        applicableForType = RoleAnalysisSessionType.class,
+        display = @PanelDisplay(
+                label = "RoleAnalysisDetectionOptionType.defaultDetectionOption",
+                icon = GuiStyleConstants.CLASS_OPTIONS_COG,
+                order = 30
+        ),
+        childOf = RoleAnalysisRoleSessionOptions.class,
         containerPath = "defaultDetectionOption",
         type = "RoleAnalysisDetectionOptionType",
         expanded = true
@@ -109,28 +110,62 @@ public class RoleAnalysisContainerPanel<AH extends AssignmentHolderType> extends
     @Override
     protected void initLayout() {
 
+
+        @SuppressWarnings({ "rawtypes", "unchecked" })
         SingleContainerPanel components = new SingleContainerPanel(ID_PANEL,
                 getObjectWrapperModel(),
                 getPanelConfiguration()) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
+            protected ItemVisibility getVisibility(@SuppressWarnings("rawtypes") ItemWrapper itemWrapper) {
+                return getBasicTabVisibility(itemWrapper.getPath());
+            }
+
+            @Override
             protected ItemEditabilityHandler getEditabilityHandler() {
-                ContainerPanelConfigurationType config = getPanelConfiguration();
-                return setItemEditabilityHandler(config);
+                return wrapper -> false;
             }
         };
         add(components);
     }
 
-    private static ItemEditabilityHandler setItemEditabilityHandler(ContainerPanelConfigurationType config) {
-        for (VirtualContainersSpecificationType container : config.getContainer()) {
-            if (container.getPath() != null
-                    && (container.getPath().getItemPath().equivalent(RoleAnalysisClusterType.F_DETECTION_OPTION))) {
-                return wrapper -> true;
+    private @NotNull ItemVisibility getBasicTabVisibility(@NotNull ItemPath path) {
+        RoleAnalysisCategoryType analysisCategory = null;
+        RoleAnalysisProcessModeType processMode = null;
+        if (getObjectWrapper().getObject().getRealValue() instanceof RoleAnalysisSessionType session) {
+            RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+            analysisCategory = analysisOption.getAnalysisCategory();
+            processMode = analysisOption.getProcessMode();
+        }
+
+        if (processMode != null && processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
+            if (path.equivalent(ItemPath.create(RoleAnalysisSessionType.F_ROLE_MODE_OPTIONS,
+                    AbstractAnalysisSessionOptionType.F_IS_INDIRECT))) {
+                return ItemVisibility.HIDDEN;
             }
         }
-        return wrapper -> false;
+
+        if (analysisCategory == null
+                || analysisCategory.equals(RoleAnalysisCategoryType.ADVANCED)
+                || analysisCategory.equals(RoleAnalysisCategoryType.DEPARTMENT)) {
+            return ItemVisibility.AUTO;
+        } else {
+            if (path.equivalent(ItemPath.create(RoleAnalysisSessionType.F_ROLE_MODE_OPTIONS,
+                    AbstractAnalysisSessionOptionType.F_ANALYSIS_ATTRIBUTE_SETTING))) {
+                return ItemVisibility.HIDDEN;
+            } else if (path.equivalent(ItemPath.create(RoleAnalysisSessionType.F_ROLE_MODE_OPTIONS,
+                    AbstractAnalysisSessionOptionType.F_CLUSTERING_ATTRIBUTE_SETTING))) {
+                return ItemVisibility.HIDDEN;
+            } else if (path.equivalent(ItemPath.create(RoleAnalysisSessionType.F_USER_MODE_OPTIONS,
+                    AbstractAnalysisSessionOptionType.F_CLUSTERING_ATTRIBUTE_SETTING))) {
+                return ItemVisibility.HIDDEN;
+            } else if (path.equivalent(ItemPath.create(RoleAnalysisSessionType.F_USER_MODE_OPTIONS,
+                    AbstractAnalysisSessionOptionType.F_ANALYSIS_ATTRIBUTE_SETTING))) {
+                return ItemVisibility.HIDDEN;
+            }
+            return ItemVisibility.AUTO;
+        }
     }
 
 }

@@ -7,21 +7,17 @@
 
 package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -29,7 +25,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
@@ -99,19 +94,14 @@ public class ConnectorConfigurationWrapperFactoryImpl extends PrismContainerWrap
 
                     if (connector != null) {
                         ConnectorType connectorType = connector.asObjectable();
-                        PrismSchema schema = ConnectorTypeUtil.parseConnectorSchema(connectorType);
-                        PrismContainerDefinition<ConnectorConfigurationType> definition =
-                                ConnectorTypeUtil.findConfigurationContainerDefinitionRequired(connectorType, schema);
-                        // Fixing (errorneously) set maxOccurs = unbounded. See MID-2317 and related issues.
-                        PrismContainerDefinition<ConnectorConfigurationType> definitionFixed = definition.clone();
-                        definitionFixed.toMutable().setMaxOccurs(1);
+                        var schema = ConnectorTypeUtil.parseConnectorSchema(connectorType);
 
                         if (childItem == null) {
                             childItem = parent.getNewValue().findOrCreateContainer(name);
                         }
 
 //                        childItem = definitionFixed.instantiate();
-                        childItem.applyDefinition(definitionFixed, true);
+                        childItem.applyDefinition(schema.getConnectorConfigurationContainerDefinition());
 //                        parent.getNewValue().addReplaceExisting(childItem);
                     }
                 } catch (Exception e) {
@@ -130,8 +120,8 @@ public class ConnectorConfigurationWrapperFactoryImpl extends PrismContainerWrap
     protected void addItemWrapper(ItemDefinition<?> def, PrismContainerValueWrapper<?> containerValueWrapper,
             WrapperContext context, List<ItemWrapper<?,?>> wrappers) throws SchemaException {
         if (def.isMandatory()) {
-            def.toMutable().toMutable().setEmphasized(true);
-            def.toMutable().setDisplayOrder(50);
+            def.mutator().setEmphasized(true);
+            def.mutator().setDisplayOrder(50);
         }
 
         ItemWrapper<?,?> wrapper = createChildWrapper(def, containerValueWrapper, context);

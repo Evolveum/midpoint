@@ -1,0 +1,28 @@
+= REST examples
+:page-nav-title: Examples
+:page-display-order: 100
+:page-toc: top
+
+== Description
+Common use-cases and user story examples for the midPoint REST API.
+
+Please have a look on the child pages of this document.
+This branch of the documentation contains mainly user story and other, more complex examples.
+For examples on the basic usage of specific API operations please have a look on the specific operation documentation page.
+
+For a list of operation please see xref:/midpoint/reference/interfaces/rest/operations/[this] page.
+
+Additionally, each REST endpoint (REST object type) has some basic examples preset.
+For the list of endpoints please consult the xref:/midpoint/reference/interfaces/rest/endpoints/[following] page.
+
+
+=== User Story Examples
+
+++++
+{% children %}
+++++
+
+== See Also
+
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]

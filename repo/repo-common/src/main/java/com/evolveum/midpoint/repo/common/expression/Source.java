@@ -13,6 +13,8 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ItemDeltaUtil;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -114,12 +116,16 @@ public class Source<V extends PrismValue, D extends ItemDefinition<?>>
     @NotNull
     public ItemDeltaItemType toItemDeltaItemType() throws SchemaException {
         ItemDeltaItemType rv = new ItemDeltaItemType();
-        rv.setOldItem(ItemType.fromItem(getItemOld(), PrismContext.get()));
+        rv.setOldItem(ItemType.fromItem(getItemOld()));
         ItemDelta<V, D> delta = getDelta();
         if (delta != null) {
             rv.getDelta().addAll(DeltaConvertor.toItemDeltaTypes(delta));
         }
-        rv.setNewItem(ItemType.fromItem(getItemNew(), PrismContext.get()));
+        rv.setNewItem(ItemType.fromItem(getItemNew()));
         return rv;
+    }
+
+    public PrismValueDeltaSetTriple<V> getDeltaSetTriple() throws SchemaException {
+        return ItemDeltaUtil.toDeltaSetTriple(getItemOld(), getDelta());
     }
 }

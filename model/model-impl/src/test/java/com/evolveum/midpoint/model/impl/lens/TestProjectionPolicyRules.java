@@ -12,9 +12,7 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
 import java.io.File;
 import java.util.List;
-
-import com.evolveum.midpoint.schema.TaskExecutionMode;
-import com.evolveum.midpoint.test.DummyResourceContoller;
+import javax.xml.namespace.QName;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -23,17 +21,17 @@ import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.schema.util.ShadowAssociationsUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import javax.xml.namespace.QName;
 
 /**
  * Tests policy rules attached to projections.
@@ -63,9 +61,9 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
                         controller.getAccountObjectClass(), ATTR_MEMBER_OF_ORG, String.class, false, true);
             });
 
-    @BeforeMethod
-    public void onNativeOnly() {
-        skipIfNotNativeRepository();
+    @Override
+    protected boolean requiresNativeRepository() {
+        return true;
     }
 
     @Override
@@ -251,10 +249,8 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
         when("account group membership is changed");
         ObjectDelta<ShadowType> delta = Resource.of(RESOURCE_DUMMY_EVENT_MARKS.get())
                 .deltaFor(RI_ACCOUNT_OBJECT_CLASS)
-                .item(ShadowType.F_ASSOCIATION)
-                .add(new ShadowAssociationType()
-                        .name(ASSOCIATION_GROUP)
-                        .shadowRef(ObjectTypeUtil.createObjectRef(wheelShadow, ORG_DEFAULT)))
+                .item(ShadowType.F_ASSOCIATIONS, ASSOCIATION_GROUP)
+                .add(ShadowAssociationsUtil.createSingleRefRawValue(ASSOCIATION_GROUP, wheelShadow))
                 .asObjectDelta(user.getLinkRef().get(0).getOid());
         LensContext<UserType> lensContext = runClockwork(List.of(delta), null, task, result);
 
@@ -287,10 +283,8 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
         when("account org membership is changed");
         ObjectDelta<ShadowType> delta = Resource.of(RESOURCE_DUMMY_EVENT_MARKS.get())
                 .deltaFor(RI_ACCOUNT_OBJECT_CLASS)
-                .item(ShadowType.F_ASSOCIATION)
-                .add(new ShadowAssociationType()
-                        .name(ASSOCIATION_ORG)
-                        .shadowRef(ObjectTypeUtil.createObjectRef(topOrgShadow, ORG_DEFAULT)))
+                .item(ShadowType.F_ASSOCIATIONS, ASSOCIATION_ORG)
+                .add(ShadowAssociationsUtil.createSingleRefRawValue(ASSOCIATION_ORG, topOrgShadow))
                 .asObjectDelta(user.getLinkRef().get(0).getOid());
         LensContext<UserType> lensContext = runClockwork(List.of(delta), null, task, result);
 

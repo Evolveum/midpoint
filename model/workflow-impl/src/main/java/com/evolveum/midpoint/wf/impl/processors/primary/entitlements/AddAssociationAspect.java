@@ -7,25 +7,32 @@
 
 package com.evolveum.midpoint.wf.impl.processors.primary.entitlements;
 
+import java.util.*;
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.ModificationType;
+import com.evolveum.midpoint.schema.util.*;
+
+import com.evolveum.midpoint.schema.util.ShadowAssociationsCollection.IterableAssociationValue;
+import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.model.api.ObjectTreeDeltas;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.model.api.ObjectTreeDeltas;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.OidUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -35,11 +42,8 @@ import com.evolveum.midpoint.wf.impl.processors.ModelInvocationContext;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpStartInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang3.Validate;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.stereotype.Component;
 
-import java.util.*;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
 
 /**
  * Aspect for adding associations.
@@ -94,7 +98,7 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
 
     private List<Request> getApprovalRequests(
             LensContext<?> modelContext, PrimaryChangeProcessorConfigurationType wfConfiguration,
-            ObjectTreeDeltas<?> changes, Task taskFromModel, OperationResult result) {
+            ObjectTreeDeltas<?> changes, Task taskFromModel, OperationResult result) throws SchemaException {
 
         List<Request> requests = new ArrayList<>();
 
@@ -129,15 +133,27 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
         LOGGER.trace("Relevant associations in shadow add delta:");
 
         List<Request> approvalRequestList = new ArrayList<>();
-        ShadowType shadowType = change.getObjectToAdd().asObjectable();
-        Iterator<ShadowAssociationType> associationIterator = shadowType.getAssociation().iterator();
-        while (associationIterator.hasNext()) {
-            ShadowAssociationType a = associationIterator.next();
-            AssociationAdditionType itemToApprove = createItemToApprove(a, projectionContextKey);
-            if (isAssociationRelevant(config, itemToApprove, projectionContextKey, modelContext, taskFromModel, result)) {
-                approvalRequestList.add(createApprovalRequest(config, itemToApprove, modelContext, taskFromModel, result));
-                associationIterator.remove();
-                generateProjectionOidIfNeeded(modelContext, shadowType, projectionContextKey);
+        ShadowType shadow = change.getObjectToAdd().asObjectable();
+        ShadowAssociationsType associationsBean = shadow.getAssociations();
+        if (associationsBean != null) {
+            //noinspection unchecked
+            var associationsIterator =
+                    ((PrismContainerValue<ShadowAssociationsType>) associationsBean.asPrismContainerValue()).getItems().iterator();
+            while (associationsIterator.hasNext()) {
+                //noinspection unchecked
+                var association = (PrismContainer<ShadowAssociationValueType>) associationsIterator.next();
+                for (var associationPcv : List.copyOf(association.getValues())) {
+                    AssociationAdditionType itemToApprove =
+                            createItemToApprove(association.getElementName(), associationPcv.getValue(), projectionContextKey);
+                    if (isAssociationRelevant(config, itemToApprove, projectionContextKey, modelContext, taskFromModel, result)) {
+                        approvalRequestList.add(createApprovalRequest(config, itemToApprove, modelContext, taskFromModel, result));
+                        generateProjectionOidIfNeeded(modelContext, shadow, projectionContextKey);
+                        association.remove(associationPcv);
+                    }
+                }
+                if (association.hasNoValues()) {
+                    associationsIterator.remove();
+                }
             }
         }
         return approvalRequestList;
@@ -159,10 +175,11 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
         projCtx.setOid(newOid);
     }
 
-    private AssociationAdditionType createItemToApprove(ShadowAssociationType a, ProjectionContextKey rsd) {
-        ShadowAssociationType aCopy = cloneAndCanonicalizeAssociation(a);
+    private @NotNull AssociationAdditionType createItemToApprove(
+            QName assocName, ShadowAssociationValueType value, ProjectionContextKey rsd) {
         AssociationAdditionType aat = new AssociationAdditionType();
-        aat.setAssociation(aCopy);
+        aat.setName(assocName);
+        aat.setValue(value.clone());
         aat.setResourceShadowDiscriminator(rsd.toResourceShadowDiscriminatorType());
         return aat;
     }
@@ -174,62 +191,45 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
             ProjectionContextKey key,
             LensContext<?> modelContext,
             Task taskFromModel,
-            OperationResult result) {
+            OperationResult result) throws SchemaException {
         LOGGER.trace("Relevant associations in shadow modify delta:");
 
         List<Request> approvalRequestList = new ArrayList<>();
         Iterator<? extends ItemDelta<?, ?>> deltaIterator = change.getModifications().iterator();
 
+        // FIXME what about adding/deleting/replacing the whole container?
+
         while (deltaIterator.hasNext()) {
             ItemDelta<?, ?> delta = deltaIterator.next();
-            if (!ShadowType.F_ASSOCIATION.equivalent(delta.getPath())) {
-                continue;
-            }
-
-            if (delta.getValuesToAdd() != null && !delta.getValuesToAdd().isEmpty()) {
-                //noinspection unchecked
-                Iterator<PrismContainerValue<ShadowAssociationType>> valueIterator =
-                        (Iterator<PrismContainerValue<ShadowAssociationType>>) delta.getValuesToAdd().iterator();
-                while (valueIterator.hasNext()) {
-                    PrismContainerValue<ShadowAssociationType> association = valueIterator.next();
-                    Request req = processAssociationToAdd(config, association, key, modelContext, taskFromModel, result);
-                    if (req != null) {
-                        approvalRequestList.add(req);
-                        valueIterator.remove();
+            var valueIterator = ShadowAssociationsCollection.ofDelta(delta).iterator();
+            while (valueIterator.hasNext()) {
+                var iterableAssociationValue = valueIterator.next();
+                var modType = iterableAssociationValue.modificationType();
+                if (modType == ModificationType.DELETE) {
+                    continue;
+                }
+                if (modType == ModificationType.REPLACE) {
+                    if (existsEquivalentValue(shadowOld, iterableAssociationValue)) {
+                        continue; // not really being added
                     }
                 }
-            }
-            if (delta.getValuesToReplace() != null && !delta.getValuesToReplace().isEmpty()) {
-                //noinspection unchecked
-                Iterator<PrismContainerValue<ShadowAssociationType>> valueIterator =
-                        (Iterator<PrismContainerValue<ShadowAssociationType>>) delta.getValuesToReplace().iterator();
-                while (valueIterator.hasNext()) {
-                    PrismContainerValue<ShadowAssociationType> association = valueIterator.next();
-                    if (existsEquivalentValue(shadowOld, association)) {
-                        continue;
-                    }
-                    Request req = processAssociationToAdd(config, association, key, modelContext, taskFromModel, result);
-                    if (req != null) {
-                        approvalRequestList.add(req);
-                        valueIterator.remove();
-                    }
+                Request req = processAssociationToAdd(
+                        config, iterableAssociationValue, key, modelContext, taskFromModel, result);
+                if (req != null) {
+                    approvalRequestList.add(req);
+                    valueIterator.remove();
                 }
             }
-            // let's sanitize the delta
-            if (delta.getValuesToAdd() != null && delta.getValuesToAdd().isEmpty()) {         // empty set of values to add is an illegal state
-                delta.resetValuesToAdd();
-            }
-            if (delta.getValuesToAdd() == null && delta.getValuesToReplace() == null && delta.getValuesToDelete() == null) {
+            if (delta.isEmpty()) {
                 deltaIterator.remove();
             }
         }
         return approvalRequestList;
     }
 
-    private boolean existsEquivalentValue(PrismObject<ShadowType> shadowOld, PrismContainerValue<ShadowAssociationType> association) {
-        ShadowType shadowType = shadowOld.asObjectable();
-        for (ShadowAssociationType existing : shadowType.getAssociation()) {
-            if (existing.asPrismContainerValue().equals(association, EquivalenceStrategy.REAL_VALUE)) {        // TODO better check
+    private boolean existsEquivalentValue(PrismObject<ShadowType> shadowOld, IterableAssociationValue iterableAssociationValue) {
+        for (var existing : ShadowUtil.getAssociationValuesRaw(shadowOld, iterableAssociationValue.name())) {
+            if (existing.equals(iterableAssociationValue.value())) { // TODO better check
                 return true;
             }
         }
@@ -238,13 +238,13 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
 
     private Request processAssociationToAdd(
             PcpAspectConfigurationType config,
-            PrismContainerValue<ShadowAssociationType> associationCval,
+            IterableAssociationValue iterableAssociationValue,
             ProjectionContextKey key,
             LensContext<?> modelContext,
             Task taskFromModel,
             OperationResult result) {
-        ShadowAssociationType association = associationCval.asContainerable();
-        AssociationAdditionType itemToApprove = createItemToApprove(association, key);
+        var associationValue = iterableAssociationValue.value();
+        AssociationAdditionType itemToApprove = createItemToApprove(iterableAssociationValue.name(), associationValue, key);
         if (isAssociationRelevant(config, itemToApprove, key, modelContext, taskFromModel, result)) {
             return createApprovalRequest(config, itemToApprove, modelContext, taskFromModel, result);
         } else {
@@ -264,8 +264,7 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
 
             LOGGER.trace("Approval request = {}", approvalRequest);
             AssociationAdditionType associationAddition = approvalRequest.addition;
-            ShadowAssociationType association = associationAddition.getAssociation();
-            ShadowType target = getAssociationApprovalTarget(association, result);
+            ShadowType target = getAssociationApprovalTarget(associationAddition.getValue(), result);
             Validate.notNull(target, "No target in association to be approved");
 
             String targetName = target.getName() != null ? target.getName().getOrig() : "(unnamed)";
@@ -284,7 +283,7 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
             instruction.setDeltasToApprove(objectTreeDeltas);
 
             instruction.setObjectRef(ctx);     // TODO - or should we take shadow as an object?
-            instruction.setTargetRef(ObjectTypeUtil.createObjectRef(target, prismContext), result);
+            instruction.setTargetRef(ObjectTypeUtil.createObjectRef(target), result);
 
             // set the names of midPoint task and process instance
             String andExecuting = instruction.isExecuteApprovedChangeImmediately() ? "and execution " : "";
@@ -304,7 +303,7 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
                 ProjectionContextKey.fromBean(addition.getResourceShadowDiscriminator());
         String projectionOid = modelContext.findProjectionContextByKeyExact(projectionContextKey).getOid();
         ObjectDelta<ShadowType> objectDelta = prismContext.deltaFor(ShadowType.class)
-                .item(ShadowType.F_ASSOCIATION).add(addition.getAssociation().clone())
+                .item(ShadowType.F_ASSOCIATIONS, addition.getName()).add(addition.getValue().clone())
                 .asObjectDelta(projectionOid);
 
         changes.addProjectionChange(projectionContextKey, objectDelta);
@@ -322,16 +321,13 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
             OperationResult result) {
         LOGGER.trace(" - considering: {}", itemToApprove);
         VariablesMap variables = new VariablesMap();
-        variables.put(ExpressionConstants.VAR_ASSOCIATION, itemToApprove.getAssociation(), ShadowAssociationType.class);
+        var association = itemToApprove.getValue().clone();
+        variables.put(ExpressionConstants.VAR_ASSOCIATION, association, ShadowAssociationValueType.class);
         variables.put(ExpressionConstants.VAR_SHADOW_DISCRIMINATOR, projectionContextKey, ProjectionContextKey.class);
         boolean applicable = primaryChangeAspectHelper.evaluateApplicabilityCondition(
                 config, modelContext, itemToApprove, variables, this, task, result);
         LOGGER.trace("   - result: applicable = {}", applicable);
         return applicable;
-    }
-
-    private ShadowAssociationType cloneAndCanonicalizeAssociation(ShadowAssociationType a) {
-        return a.clone();       // TODO - should we canonicalize?
     }
 
     // creates an approval requests (e.g. by providing approval schema) for a given assignment and a target
@@ -348,19 +344,19 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
     }
 
     // retrieves the relevant target for a given assignment - a role, an org, or a resource
-    private ShadowType getAssociationApprovalTarget(ShadowAssociationType association, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private ShadowType getAssociationApprovalTarget(ShadowAssociationValueType association, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
         if (association == null) {
             return null;
         }
-        ObjectReferenceType shadowRef = association.getShadowRef();
+        var shadowRef = ShadowAssociationsUtil.getSingleObjectRefRelaxed(association);
         if (shadowRef == null || shadowRef.getOid() == null) {
             throw new IllegalStateException("None or null-OID shadowRef in " + association);
         }
-        PrismObject<ShadowType> shadow = shadowRef.asReferenceValue().getObject();
+        PrismObject<ShadowType> shadow = shadowRef.getObject();
         if (shadow == null) {
-            Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
-                    GetOperationOptions.createNoFetch());
-            shadow = repositoryService.getObject(ShadowType.class, shadowRef.getOid(), options, result);
+            // FIXME here should be provisioning call, right?
+            shadow = repositoryService.getObject(ShadowType.class, shadowRef.getOid(), createNoFetchCollection(), result);
             shadowRef.asReferenceValue().setObject(shadow);
         }
         return shadow.asObjectable();

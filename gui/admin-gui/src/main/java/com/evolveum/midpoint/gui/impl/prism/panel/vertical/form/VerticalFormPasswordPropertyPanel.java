@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.prism.panel.vertical.form;
 
 import com.evolveum.midpoint.gui.api.component.password.ProtectedStringPropertyPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemHeaderPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -30,8 +31,8 @@ public class VerticalFormPasswordPropertyPanel extends ProtectedStringPropertyPa
     }
 
     @Override
-    protected Component createHeaderPanel() {
-        return new VerticalFormPrismPropertyHeaderPanel<ProtectedStringType>(ID_HEADER, getModel()) {
+    protected ItemHeaderPanel createHeaderPanel() {
+        return new VerticalFormPrismPropertyHeaderPanel<>(ID_HEADER, getModel()) {
             @Override
             protected void refreshPanel(AjaxRequestTarget target) {
                 target.add(VerticalFormPasswordPropertyPanel.this);

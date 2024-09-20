@@ -5,6 +5,30 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
+.main-sidebar .sidebar > .user-panel {
+  padding-left: 0.55rem;
+
+  & > .image {
+    //padding-left: 0.8rem;
+    position: relative;
+    width: 100%;
+    min-width: 2.5rem;
+    max-width: 2.5rem;
+    padding:0;
+    transition: all ease 0.08s !important;
+    -webkit-transition: all ease 0.08s !important;
+
+    & > .user-image {
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-position: center;
+      position: relative;
+      height: 0;
+      padding-bottom: 100%;
+    }
+  }
+}
+
 .user-panel {
   border-bottom: 0 !important;
 
@@ -35,10 +59,6 @@
   margin-right: -0.625rem;
 }
 
-.role-catalog-tiles-table div.img-circle {
-  background-color: #f5f5f5;
-}
-
 .dropdown-toggle:after {
   vertical-align: middle;
   /*margin: 0 0.255em;*/
@@ -48,8 +68,46 @@
 .login-box-msg,
 .register-box-msg {
   padding: 0 20px 10px;
+  font-size:1.5rem;
 }
 
 .popover {
   z-index:1040;
+}
+
+/* Override for info button based on new bootstrap color*/
+/*.btn-info {
+  color: $button-default-color;
+
+  &:hover, &:focus, &:focus-visible, &:active {
+    color: $button-default-color;
+    background-color: lighten($info, 10%);
+    border-color: lighten($info, 10%);
+  }
+}*/
+
+.navbar .navbar-nav .nav-item .breadcrumb a > i {
+  color: $white;
+}
+
+.main-footer {
+  color: #737373;
+}
+
+.layout-navbar-fixed.sidebar-mini.sidebar-collapse .wrapper .brand-link,
+.layout-navbar-fixed.sidebar-mini-md.sidebar-collapse .wrapper .brand-link,
+.layout-navbar-fixed.sidebar-mini-xs.sidebar-collapse .wrapper .brand-link {
+  height: 3.5rem;
+}
+
+.nav-tabs {
+  & .nav-link.active {
+    color: $primary;
+  }
+  & .nav-link {
+    color: $text-toned-color;
+  }
+  & .nav-link:hover {
+    color: $primary;
+  }
 }

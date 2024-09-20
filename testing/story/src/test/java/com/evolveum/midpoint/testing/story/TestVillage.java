@@ -9,7 +9,6 @@ package com.evolveum.midpoint.testing.story;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
-import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
@@ -324,7 +323,7 @@ public class TestVillage extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         PrismObject<ResourceType> resourceBefore = modelService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, result);
-        ResourceSchema resourceSchemaBefore = ResourceSchemaFactory.getRawSchema(resourceBefore);
+        ResourceSchema resourceSchemaBefore = ResourceSchemaFactory.getBareSchema(resourceBefore);
         ResourceSchema refinedSchemaBefore = ResourceSchemaFactory.getCompleteSchema(resourceBefore);
 
         rememberCounter(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT);
@@ -347,7 +346,7 @@ public class TestVillage extends AbstractStoryTest {
         TestUtil.assertSuccess(result);
 
         long t2 = System.currentTimeMillis();
-        ResourceSchema resourceSchemaAfter = ResourceSchemaFactory.getRawSchema(resourceAfter);
+        ResourceSchema resourceSchemaAfter = ResourceSchemaFactory.getBareSchema(resourceAfter);
         long t3 = System.currentTimeMillis();
         ResourceSchema refinedSchemaAfter = ResourceSchemaFactory.getCompleteSchema(resourceAfter);
         long t4 = System.currentTimeMillis();
@@ -457,7 +456,7 @@ public class TestVillage extends AbstractStoryTest {
 
     @Test
     public void test105ModifySrcAccountHermanRemoveLoc() throws Exception {
-        DummyAccount account = dummyResourceSrc.getAccountByUsername(ACCOUNT_HERMAN_USERNAME);
+        DummyAccount account = dummyResourceSrc.getAccountByName(ACCOUNT_HERMAN_USERNAME);
 
         // WHEN
         account.replaceAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_SRC_LOC);
@@ -485,7 +484,7 @@ public class TestVillage extends AbstractStoryTest {
 
     @Test
     public void test107ModifySrcAccountHermanAddLoc() throws Exception {
-        DummyAccount account = dummyResourceSrc.getAccountByUsername(ACCOUNT_HERMAN_USERNAME);
+        DummyAccount account = dummyResourceSrc.getAccountByName(ACCOUNT_HERMAN_USERNAME);
 
         // WHEN
         account.replaceAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_SRC_LOC, ACCOUNT_HERMAN_LOC);
@@ -500,7 +499,7 @@ public class TestVillage extends AbstractStoryTest {
 
     @Test
     public void test108ModifySrcAccountHermanRemoveLoc() throws Exception {
-        DummyAccount account = dummyResourceSrc.getAccountByUsername(ACCOUNT_HERMAN_USERNAME);
+        DummyAccount account = dummyResourceSrc.getAccountByName(ACCOUNT_HERMAN_USERNAME);
 
         // WHEN
         account.replaceAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_SRC_LOC);
@@ -644,7 +643,7 @@ public class TestVillage extends AbstractStoryTest {
      */
     @Test
     public void test150ModifySrcAccountHermanReplaceOrg() throws Exception {
-        DummyAccount account = dummyResourceSrc.getAccountByUsername(ACCOUNT_HERMAN_USERNAME);
+        DummyAccount account = dummyResourceSrc.getAccountByName(ACCOUNT_HERMAN_USERNAME);
 
         // WHEN
         account.replaceAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_SRC_ORG, ORG_INFRA_NAME);
@@ -664,7 +663,7 @@ public class TestVillage extends AbstractStoryTest {
      */
     @Test
     public void test152ModifySrcAccountHermanDeleteOrg() throws Exception {
-        DummyAccount account = dummyResourceSrc.getAccountByUsername(ACCOUNT_HERMAN_USERNAME);
+        DummyAccount account = dummyResourceSrc.getAccountByName(ACCOUNT_HERMAN_USERNAME);
 
         // WHEN
         when();
@@ -780,7 +779,7 @@ public class TestVillage extends AbstractStoryTest {
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(RESOURCE_OPENDJ_OID, GROUP_OF_UNIQUE_NAMES_OBJECTCLASS_QNAME)
                 .and().itemWithDef(
-                        prismContext.definitionFactory().createPropertyDefinition(new QName(RESOURCE_OPENDJ_NAMESPACE, "cn"), DOMUtil.XSD_STRING),
+                        prismContext.definitionFactory().newPropertyDefinition(new QName(RESOURCE_OPENDJ_NAMESPACE, "cn"), DOMUtil.XSD_STRING),
                         ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NAMESPACE, "cn")).eq("admins")
                 .build();
 
@@ -796,8 +795,8 @@ public class TestVillage extends AbstractStoryTest {
 
         display("groupShadows", groupShadows);
         assertEquals("Wrong number of shadows found", 1, groupShadows.size());
-        PrismObject<ShadowType> groupShadow = groupShadows.get(0);
-        List<ShadowAssociationType> associations = groupShadow.asObjectable().getAssociation();
+//        PrismObject<ShadowType> groupShadow = groupShadows.get(0);
+//        List<ShadowAssociationType> associations = groupShadow.asObjectable().getAssociation();
         // MID-3430, MID-3429
 //        assertEquals("Wrong number of associations in "+groupShadow, 1, associations.size());
     }

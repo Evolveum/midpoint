@@ -16,10 +16,7 @@ import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.FocusConstraintsChecker;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.ProjectionMappingSetEvaluator;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
-import com.evolveum.midpoint.prism.ConsistencyCheckScope;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
@@ -169,8 +166,18 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
         ObjectDelta<E> effectiveDelta = computeEffectiveDelta();
         if (ObjectDelta.isEmpty(effectiveDelta)) {
             LOGGER.debug("Skipping execution of delta because it was already executed: {}", elementContext.getHumanReadableName());
-            objectAfterModification = elementContext.getObjectCurrent();
-            return;
+            if (elementContext instanceof LensFocusContext<?> && context.hasProjectionChange()) {
+                LOGGER.debug("However, there was a projection change, so we have to record that");
+                if (effectiveDelta != null) {
+                    delta = effectiveDelta;
+                } else {
+                    delta = PrismContext.get().deltaFactory().object().createEmptyModifyDelta(
+                            elementContext.getObjectTypeClass(), elementContext.getOid());
+                }
+            } else {
+                objectAfterModification = elementContext.getObjectCurrent();
+                return;
+            }
         } else {
             delta = effectiveDelta;
         }
@@ -385,8 +392,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
         if (!deltaForExecution.hasCompleteDefinition()) { // TODO reconsider this
             throw new SchemaException("object delta does not have complete definition");
         }
-        LensObjectDeltaOperation<E> objectDeltaOp = LensUtil.createObjectDeltaOperation(
-                deltaForExecution.clone(), result, elementContext, null, resource);
+        var objectDeltaOp = LensUtil.createObjectDeltaOperation(deltaForExecution.clone(), result, elementContext, resource);
         LOGGER.trace("Recording executed delta:\n{}", lazy(() -> objectDeltaOp.shorterDebugDump(1)));
         elementContext.addToExecutedDeltas(objectDeltaOp);
         return objectDeltaOp;
@@ -395,7 +401,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
     private void addTrace(LensObjectDeltaOperation<E> objectDeltaOp, OperationResult result) throws SchemaException {
         if (result.isTracingNormal(ModelExecuteDeltaTraceType.class)) {
             TraceType trace = new ModelExecuteDeltaTraceType()
-                    .delta(objectDeltaOp.clone().toLensObjectDeltaOperationType()); // todo kill operation result?
+                    .delta(objectDeltaOp.clone().toLensObjectDeltaOperationBean()); // todo kill operation result?
             result.addTrace(trace);
         }
     }
@@ -467,7 +473,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
                 resolveAssignmentIdentifiersOnAdd((AssignmentHolderType) objectBeanToAdd, focusContext.getAssignmentIdStore());
             }
 
-            b.metadataManager.applyMetadataAdd(context, objectToAdd, b.clock.currentTimeXMLGregorianCalendar(), task);
+            b.metadataManager.applyMetadataOnObjectAddOp(context, objectToAdd, b.clock.currentTimeXMLGregorianCalendar(), task);
             b.indexingManager.updateIndexDataOnElementAdd(objectBeanToAdd, elementContext, task, result);
             b.taskOperationalDataManager.updateOnElementAdd(objectBeanToAdd, result);
 
@@ -602,21 +608,26 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
         // wave changes already applied.
         PrismObject<E> baseObject = elementContext.getObjectCurrent();
         try {
-            b.securityEnforcer.authorize(
-                    ModelAuthorizationAction.MODIFY.getUrl(),
-                    AuthorizationPhaseType.EXECUTION,
-                    AuthorizationParameters.Builder.buildObjectDelta(baseObject, delta),
-                    enforcerOptionsWithLensOwnerResolver(result),
-                    task,
-                    result);
+            if (!delta.isEmpty()) {
+                b.securityEnforcer.authorize(
+                        ModelAuthorizationAction.MODIFY.getUrl(),
+                        AuthorizationPhaseType.EXECUTION,
+                        AuthorizationParameters.Builder.buildObjectDelta(baseObject, delta, true),
+                        enforcerOptionsWithLensOwnerResolver(result),
+                        task,
+                        result);
+            } else {
+                // No need to authorize empty delta, because it means that we will update only the metadata
+                // (which is explicitly allowed in execution phase anyway).
+            }
 
             if (elementContext instanceof LensFocusContext<E> focusContext && focusContext.isOfType(AssignmentHolderType.class)) {
                 resolveAssignmentIdentifiersOnModify(focusContext.getAssignmentIdStore());
             }
 
             if (shouldApplyModifyMetadata(objectClass)) {
-                b.metadataManager.applyMetadataModify(
-                        delta, objectClass, elementContext, b.clock.currentTimeXMLGregorianCalendar(), task, context);
+                b.metadataManager.applyMetadataOnObjectModifyOp(
+                        delta, elementContext, b.clock.currentTimeXMLGregorianCalendar(), task, context);
             }
             b.indexingManager.updateIndexDataOnElementModify(
                     asObjectable(baseObject), delta, objectClass, elementContext, task, result);

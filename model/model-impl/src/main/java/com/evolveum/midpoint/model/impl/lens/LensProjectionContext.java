@@ -10,9 +10,12 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.Consumer;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.*;
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.ElementState.CurrentObjectAdjuster;
 import com.evolveum.midpoint.model.impl.lens.ElementState.ObjectDefinitionRefiner;
 import com.evolveum.midpoint.model.impl.lens.construction.ConstructionTargetKey;
@@ -25,12 +28,14 @@ import com.evolveum.midpoint.model.impl.sync.action.DeleteResourceObjectAction;
 import com.evolveum.midpoint.model.impl.sync.action.UnlinkAction;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.*;
@@ -57,7 +62,9 @@ import com.evolveum.midpoint.util.DebugUtil;
 
 import static com.evolveum.midpoint.model.impl.lens.ChangeExecutionResult.getExecutedDelta;
 import static com.evolveum.midpoint.model.impl.lens.ElementState.in;
+import static com.evolveum.midpoint.schema.util.ObjectOperationPolicyTypeUtil.*;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
 /**
  * @author semancik
@@ -129,7 +136,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      *
      * Lifecycle: Since 4.6 we try to determine the key as soon as realistically possible; and we try to keep it updated all
      * the time. So we try to update along with the shadow in this projection context. Resource OID, kind, and intent
-     * are treated by {@link #updateKeyIfNeeded(ShadowType)}. The {@link ProjectionContextKey#gone} flag should be set via
+     * are treated by {@link #onObjectChange(ShadowType)}. The {@link ProjectionContextKey#gone} flag should be set via
      * {@link #markGone()} method.
      *
      * NOTE: When updating the key, think about invalidating the {@link #state}. It's the most safe to use
@@ -144,6 +151,12 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      *  We need to clarify that.
      */
     private boolean fullShadow;
+
+    /**
+     * A temporary solution for the misuse of {@link ElementState#fresh} field for projections.
+     * We set this to {@code true} when the projection should be re-loaded, at least from the repository. MID-9944.
+     */
+    private boolean reloadNeeded;
 
     /**
      * True if the account is assigned to the user by a valid assignment. It may be false for accounts that are either
@@ -266,9 +279,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      * - Source: ConsolidationProcessor
      * - Target: ReconciliationProcessor
      */
-    private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> squeezedAttributes;
-    private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>>> squeezedAssociations;
-    private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>>>> squeezedAuxiliaryObjectClasses;
+    private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>, PrismPropertyDefinition<?>>>> squeezedAttributes;
+    private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<ShadowAssociationValue, ShadowAssociationDefinition>>> squeezedAssociations;
+    private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>>>> squeezedAuxiliaryObjectClasses;
 
     /** Dependency-defining beans *with the defaults filled-in*. All of resource OID, kind, and intent are not null. */
     private transient Collection<ResourceObjectTypeDependencyType> dependencies;
@@ -365,43 +378,47 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     @Override
     public void setLoadedObject(@NotNull PrismObject<ShadowType> object) {
         state.setCurrentAndOptionallyOld(object, !state.hasOldObject() && !isAdd());
-        updateKeyIfNeeded(object.asObjectable());
+        onObjectChange(object.asObjectable());
     }
 
     @Override
     public void setInitialObject(@NotNull PrismObject<ShadowType> object) {
         super.setInitialObject(object);
-        updateKeyIfNeeded(object.asObjectable());
+        onObjectChange(object.asObjectable());
     }
 
     @Override
     public void setCurrentObject(@Nullable PrismObject<ShadowType> object) {
         super.setCurrentObject(object);
         if (object != null) {
-            updateKeyIfNeeded(object.asObjectable());
+            onObjectChange(object.asObjectable());
         }
     }
 
     @Override
     public void setCurrentObjectAndOid(@NotNull PrismObject<ShadowType> object) {
         super.setCurrentObjectAndOid(object);
-        updateKeyIfNeeded(object.asObjectable());
+        onObjectChange(object.asObjectable());
     }
 
     @Override
     public void replaceOldAndCurrentObject(String oid, PrismObject<ShadowType> objectOld, PrismObject<ShadowType> objectCurrent) {
         super.replaceOldAndCurrentObject(oid, objectOld, objectCurrent);
         if (objectCurrent != null) {
-            updateKeyIfNeeded(objectCurrent.asObjectable()); // just for sure?
+            onObjectChange(objectCurrent.asObjectable()); // just for sure?
         }
     }
 
     /**
-     * Updates and checks the key against the information from shadow: resource OID, kind, intent.
+     * 1. Invalidates human readable name, as it is heavily bound to the object
+     * 2. Updates and checks the key against the information from shadow: resource OID, kind, intent.
      *
      * We intentionally not deal with the "gone" flag here. The client is responsible for updating that.
      */
-    private void updateKeyIfNeeded(@NotNull ShadowType shadow) {
+    private void onObjectChange(@NotNull ShadowType shadow) {
+
+        invalidateHumanReadableName(); // better safe than sorry
+
         ProjectionContextKey updated =
                 key.checkOrUpdateResourceOid(
                         ShadowUtil.getResourceOidRequired(shadow));
@@ -443,7 +460,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             } else if (shouldCreateObjectCurrent()) {
                 ResourceObjectDefinition rOCD = getCompositeObjectDefinition();
                 if (rOCD != null) {
-                    return rOCD.createBlankShadow(getResourceOid(), key.getTag());
+                    return rOCD
+                            .createBlankShadowWithTag(key.getTag())
+                            .getPrismObject();
                 } else {
                     return null;
                 }
@@ -458,7 +477,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return (rawDefinition) -> {
             try {
                 PrismObjectDefinition<ShadowType> shadowDefinition
-                        = ShadowUtil.applyObjectDefinition(rawDefinition, getCompositeObjectDefinition());
+                        = ShadowUtil.applyObjectDefinition(rawDefinition, getCompositeObjectDefinitionRequired());
                 shadowDefinition.freeze();
                 return shadowDefinition;
             } catch (SchemaException | ConfigurationException e) {
@@ -704,6 +723,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
 
     public void setResource(ResourceType resource) {
+        invalidateHumanReadableName();
         this.resource = resource;
         if (resource != null) {
             String existingResourceOid = key.getResourceOid();
@@ -823,6 +843,10 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         state.invalidate(); // policy decision is a parameter for current object adjuster
     }
 
+    public boolean isSynchronizationDecisionAdd() {
+        return synchronizationPolicyDecision == SynchronizationPolicyDecision.ADD;
+    }
+
     public void setBroken() {
         setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
     }
@@ -851,16 +875,128 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     /**
      * Returns true if full shadow is available, either loaded or in a create delta.
+     *
+     * NOTE: The distinction between {@link #isFullShadow()} and this method is subtle but sometimes important.
+     * The {@link #isFullShadow()} method is used to determine whether the shadow is fully loaded from the resource.
+     * This method can return {@code true} also if we know how the shadow would need to be created. But resource-provided
+     * attributes may be missing in such cases! Like {@code uid} in case of LDAP. Inbound mappings could fail in such cases.
      */
     public boolean hasFullShadow() {
-        if (synchronizationPolicyDecision == SynchronizationPolicyDecision.ADD) {
-            return true;
-        }
-        return isFullShadow();
+        return isSynchronizationDecisionAdd() || isFullShadow();
     }
 
     public void setFullShadow(boolean fullShadow) {
         this.fullShadow = fullShadow;
+    }
+
+    private ItemLoadedStatus getGenericItemLoadedAnswer() throws SchemaException, ConfigurationException {
+        if (isFullShadow()) {
+            return ItemLoadedStatus.FULL_SHADOW;
+        } else if (!isCachedShadowsUseAllowed()) {
+            return ItemLoadedStatus.NOT_ALLOWED;
+        } else {
+            return null; // Let's look at the status of the specific item
+        }
+    }
+
+    /** @see #isAttributeLoaded(QName) */
+    public boolean isActivationLoaded() throws SchemaException, ConfigurationException {
+        ItemLoadedStatus status;
+        var generic = getGenericItemLoadedAnswer();
+        if (generic != null) {
+            status = generic;
+        } else {
+            status = ItemLoadedStatus.fromItemCachedStatus(
+                    ShadowUtil.getActivationCachedStatus(
+                            getObjectCurrent(),
+                            getCompositeObjectDefinitionRequired(),
+                            getCurrentTime()));
+        }
+        LOGGER.trace("Activation loaded status: {}", status);
+        return status.isLoaded();
+    }
+
+    /** @see #isAttributeLoaded(QName) */
+    public boolean isPasswordValueLoaded() throws SchemaException, ConfigurationException {
+        ItemLoadedStatus status;
+        var generic = getGenericItemLoadedAnswer();
+        if (generic != null) {
+            status = generic;
+        } else {
+            status = ItemLoadedStatus.fromItemCachedStatus(
+                    ShadowUtil.isPasswordValueLoaded(
+                            getObjectCurrent(),
+                            getCompositeObjectDefinitionRequired(),
+                            getCurrentTime()));
+        }
+        LOGGER.trace("Password value loaded status: {}", status);
+        return status.isLoaded();
+    }
+
+    /** @see #isAttributeLoaded(QName) */
+    public boolean isAuxiliaryObjectClassPropertyLoaded() throws SchemaException, ConfigurationException {
+        ItemLoadedStatus status;
+        var generic = getGenericItemLoadedAnswer();
+        if (generic != null) {
+            status = generic;
+        } else {
+            status = ItemLoadedStatus.fromItemCachedStatus(
+                    ShadowUtil.isAuxiliaryObjectClassPropertyLoaded(
+                            getObjectCurrent(),
+                            getCompositeObjectDefinitionRequired(),
+                            getCurrentTime()));
+        }
+        LOGGER.trace("Auxiliary object class property loaded status: {}", status);
+        return status.isLoaded();
+    }
+
+    private static XMLGregorianCalendar getCurrentTime() {
+        return ModelBeans.get().clock.currentTimeXMLGregorianCalendar();
+    }
+
+    /**
+     * Returns {@code true} if the attribute is available for processing. It must either be freshly loaded
+     * (in the {@link #isFullShadow()} sense) or it must be cached *and* the use of cache for computations
+     * must be allowed.
+     */
+    public boolean isAttributeLoaded(QName attrName) throws SchemaException, ConfigurationException {
+        ItemLoadedStatus status;
+        var generic = getGenericItemLoadedAnswer();
+        if (generic != null) {
+            status = generic;
+        } else {
+            status = ItemLoadedStatus.fromItemCachedStatus(
+                    ShadowUtil.isAttributeLoaded(
+                            ItemName.fromQName(attrName),
+                            getObjectCurrent(),
+                            getCompositeObjectDefinitionRequired(),
+                            getCurrentTime()));
+        }
+        LOGGER.trace("Attribute '{}' loaded status: {}", attrName, status);
+        return status.isLoaded();
+    }
+
+    /** @see #isAttributeLoaded(QName) */
+    public boolean isAssociationLoaded(QName assocName) throws SchemaException, ConfigurationException {
+        ItemLoadedStatus status;
+        var generic = getGenericItemLoadedAnswer();
+        if (generic != null) {
+            status = generic;
+        } else {
+            status = ItemLoadedStatus.fromItemCachedStatus(
+                    ShadowUtil.isAssociationLoaded(
+                            ItemName.fromQName(assocName),
+                            getObjectCurrent(),
+                            getCompositeObjectDefinitionRequired(),
+                            getCurrentTime()));
+        }
+        LOGGER.trace("Association '{}' loaded status: {}", assocName, status);
+        return status.isLoaded();
+    }
+
+    public Collection<QName> getCachedAttributesNames() throws SchemaException, ConfigurationException {
+        return ShadowUtil.getCachedAttributesNames(
+                getObjectCurrent(), getCompositeObjectDefinitionRequired(), getCurrentTime());
     }
 
     public ShadowKindType getKind() {
@@ -894,12 +1030,12 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         this.squeezedAttributes = squeezedAttributes;
     }
 
-    public Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>>> getSqueezedAssociations() {
+    public Map<QName, DeltaSetTriple<ItemValueWithOrigin<ShadowAssociationValue, ShadowAssociationDefinition>>> getSqueezedAssociations() {
         return squeezedAssociations;
     }
 
     public void setSqueezedAssociations(
-            Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>>> squeezedAssociations) {
+            Map<QName, DeltaSetTriple<ItemValueWithOrigin<ShadowAssociationValue, ShadowAssociationDefinition>>> squeezedAssociations) {
         this.squeezedAssociations = squeezedAssociations;
     }
 
@@ -920,17 +1056,21 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         }
     }
 
-    public ResourceSchema getResourceSchema() throws SchemaException, ConfigurationException {
+    public CompleteResourceSchema getResourceSchema() throws SchemaException, ConfigurationException {
         if (resource == null) {
             return null;
         }
         return ResourceSchemaFactory.getCompleteSchema(resource, LayerType.MODEL);
     }
 
+    public @NotNull CompleteResourceSchema getResourceSchemaRequired() throws SchemaException, ConfigurationException {
+        return stateNonNull(getResourceSchema(), "No resource schema in %s", this);
+    }
+
     /** Returns immutable definition. */
     public @Nullable ResourceObjectDefinition getStructuralObjectDefinition() throws SchemaException, ConfigurationException {
         if (structuralObjectDefinition == null) {
-            ResourceSchema resourceSchema = getResourceSchema();
+            var resourceSchema = getResourceSchema();
             if (resourceSchema == null) {
                 LOGGER.trace("No resource schema -> no structural object definition");
                 return null;
@@ -962,6 +1102,18 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return structuralObjectDefinition;
     }
 
+    public @NotNull ResourceObjectDefinition getStructuralObjectDefinitionRequired()
+            throws SchemaException, ConfigurationException {
+        var objectDef = getStructuralObjectDefinition();
+        if (objectDef != null) {
+            return objectDef;
+        } else {
+            LOGGER.error("Definition for {} not found in the context, but it should be there, dumping context:\n{}",
+                    key, lensContext.debugDump(1));
+            throw new IllegalStateException("Definition for " + key + " not found in the context, but it should be there");
+        }
+    }
+
     private QName getObjectClassName() {
         PrismObject<ShadowType> anyShadow = getObjectAny();
         return anyShadow != null ? anyShadow.asObjectable().getObjectClass() : null;
@@ -986,7 +1138,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         auxiliaryObjectClassDefinitions = new ArrayList<>(auxiliaryObjectClassQNames.size());
         for (QName auxiliaryObjectClassQName: auxiliaryObjectClassQNames) {
             ResourceObjectDefinition auxiliaryObjectClassDef =
-                    schema.findObjectClassDefinition(auxiliaryObjectClassQName);
+                    schema.findDefinitionForObjectClass(auxiliaryObjectClassQName);
             if (auxiliaryObjectClassDef == null) {
                 throw new SchemaException("Auxiliary object class %s specified in %s does not exist".formatted(
                         auxiliaryObjectClassQName, this));
@@ -1027,18 +1179,17 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         }
     }
 
-    public ResourceAttributeDefinition<?> findAttributeDefinition(QName attrName) throws SchemaException, ConfigurationException {
-        ResourceAttributeDefinition<?> attrDef = getStructuralObjectDefinition().findAttributeDefinition(attrName);
-        if (attrDef != null) {
-            return attrDef;
+    public ShadowAttributeDefinition<?, ?, ?, ?> findAttributeDefinition(QName attrName)
+            throws SchemaException, ConfigurationException {
+        var fromStructuralDef = getStructuralObjectDefinitionRequired().findAttributeDefinition(attrName);
+        if (fromStructuralDef != null) {
+            return fromStructuralDef;
         }
-        for (ResourceObjectDefinition auxOcDef: getAuxiliaryObjectClassDefinitions()) {
-            ResourceAttributeDefinition<?> auxAttrDef = auxOcDef.findAttributeDefinition(attrName);
-            if (auxAttrDef != null) {
-                return auxAttrDef;
-            }
-        }
-        return null;
+        return getAuxiliaryObjectClassDefinitions().stream()
+                .map(auxOcDef -> auxOcDef.findAttributeDefinition(attrName))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
     }
 
     @Override
@@ -1164,16 +1315,10 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
                 // We need to convert modify delta to ADD
                 ObjectDelta<ShadowType> addDelta = PrismContext.get().deltaFactory().object().create(getObjectTypeClass(),
                     ChangeType.ADD);
-                ResourceObjectDefinition objectTypeDef = getCompositeObjectDefinition();
-
-                if (objectTypeDef == null) {
-                    throw new IllegalStateException("Definition for account type " + getKey()
-                            + " not found in the context, but it should be there");
-                }
-                PrismObject<ShadowType> newAccount = objectTypeDef.createBlankShadow(
-                        getResourceOid(), key.getTag());
-                addDelta.setObjectToAdd(newAccount);
-
+                addDelta.setObjectToAdd(
+                        getCompositeObjectDefinitionRequired()
+                                .createBlankShadowWithTag(key.getTag())
+                                .getPrismObject());
                 if (origDelta != null) {
                     addDelta.merge(origDelta);
                 }
@@ -1208,6 +1353,12 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             return origDelta.clone();
         } else {
             return origDelta;
+        }
+    }
+
+    public void checkConsistenceIfNeeded() {
+        if (InternalsConfig.consistencyChecks) {
+            checkConsistence("", lensContext.isFresh(), lensContext.isForce());
         }
     }
 
@@ -1252,11 +1403,11 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     @Override
     void doExtraObjectConsistenceCheck(@NotNull PrismObject<ShadowType> object, String elementDesc, String contextDesc) {
-        ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(object);
+        ShadowAttributesContainer attributesContainer = ShadowUtil.getAttributesContainer(object);
         if (attributesContainer != null) {
             ResourceType resource = getResource();
             if (resource != null) {
-                for (ResourceAttribute<?> attribute : attributesContainer.getAttributes()) {
+                for (var attribute : attributesContainer.getAttributes()) {
                     QName attrName = attribute.getElementName();
                     if (SchemaConstants.NS_ICF_SCHEMA.equals(attrName.getNamespaceURI())) {
                         continue;
@@ -1378,8 +1529,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     @Override
     public @NotNull String getHumanReadableName() {
         if (humanReadableName == null) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("account(");
+            var sb = new StringBuilder();
+            sb.append("shadow(");
             String humanReadableAccountIdentifier = getHumanReadableIdentifier();
             if (StringUtils.isEmpty(humanReadableAccountIdentifier)) {
                 sb.append("no ID");
@@ -1388,8 +1539,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
                 sb.append(humanReadableAccountIdentifier);
             }
             sb.append(", ");
-            ProjectionContextKey key = getKey();
-            ResourceObjectTypeIdentification typeId = key.getTypeIdentification();
+            var typeId = key.getTypeIdentification();
             if (typeId != null) {
                 sb.append(typeId);
             } else {
@@ -1408,20 +1558,24 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return humanReadableName;
     }
 
+    private void invalidateHumanReadableName() {
+        humanReadableName = null;
+    }
+
     private String getHumanReadableIdentifier() {
         PrismObject<ShadowType> object = getObjectAny();
         if (object == null) {
             return null;
         }
         if (object.canRepresent(ShadowType.class)) { // probably always the case
-            Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(object);
+            Collection<ShadowSimpleAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(object);
             if (identifiers == null) {
                 return null;
             }
             StringBuilder sb = new StringBuilder();
-            Iterator<ResourceAttribute<?>> iterator = identifiers.iterator();
+            Iterator<ShadowSimpleAttribute<?>> iterator = identifiers.iterator();
             while (iterator.hasNext()) {
-                ResourceAttribute<?> id = iterator.next();
+                ShadowSimpleAttribute<?> id = iterator.next();
                 sb.append(id.toHumanReadableString());
                 if (iterator.hasNext()) {
                     sb.append(",");
@@ -1457,7 +1611,27 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (fullShadow) {
             sb.append(", full");
         } else {
-            sb.append(", shadow-only (not full)");
+            sb.append(", shadow-only (not full) ");
+            var current = getObjectCurrent();
+            if (current != null) {
+                ResourceObjectDefinition definition = null;
+                try {
+                    definition = getStructuralObjectDefinition();
+                    if (definition == null) {
+                        sb.append("(no definition)");
+                    } else {
+                        sb.append("(caching status: ");
+                        sb.append(
+                                ShadowUtil.getShadowCachedStatus(
+                                        current, ModelBeans.get().clock.currentTimeXMLGregorianCalendar()));
+                        sb.append(")");
+                    }
+                } catch (Throwable t) {
+                    sb.append("(definition/freshness error: ").append(t.getMessage()).append(")");
+                }
+            } else {
+                sb.append("(no current)");
+            }
         }
         sb.append(", exists=").append(exists);
         if (!shadowExistsInRepo) {
@@ -1475,6 +1649,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             sb.append(", NOT FRESH");
         } else {
             sb.append(", fresh");
+        }
+        if (reloadNeeded) {
+            sb.append(", reload needed");
         }
         if (isGone()) {
             sb.append(", GONE");
@@ -1558,8 +1735,16 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     @Override
     public String toString() {
-        return "LensProjectionContext(shadow " + getOid() + " of " + key
-                + (resource != null ? " (" + resource.getName() + ")" : "");
+        try {
+            return getHumanReadableName();
+        } catch (Throwable t) {
+            return simpleToString() + " (error getting human readable name: " + MiscUtil.getClassWithMessage(t) + ")";
+        }
+    }
+
+    private @NotNull String simpleToString() {
+        return "LensProjectionContext(shadow %s of %s%s)".formatted(
+                getOid(), key, resource != null ? " (" + resource.getName() + ")" : "");
     }
 
     /**
@@ -1812,12 +1997,56 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
         rot();
 
+        if (modifiesCachedAttributes(execDelta)) {
+            setReloadNeeded();
+        }
+
         // Propagate to higher-order projections
         for (LensProjectionContext relCtx : lensContext.findRelatedContexts(this)) {
             relCtx.rot();
         }
 
         return true;
+    }
+
+    private boolean modifiesCachedAttributes(ObjectDelta<ShadowType> execDelta) {
+        if (!ObjectDelta.isModify(execDelta)) {
+            return false;
+        }
+        ResourceObjectDefinition def;
+        try {
+            def = getStructuralObjectDefinition();
+        } catch (SchemaException | ConfigurationException e) {
+            LoggingUtils.logUnexpectedException(
+                    LOGGER, "Got unexpected exception while getting structural object definition for {}; "
+                            + "assuming that shadow need to be reloaded", e, this);
+            return true;
+        }
+        if (def == null) {
+            LOGGER.debug("No object definition for {}, assuming that shadow need to be reloaded", this);
+            return true;
+        }
+        for (var modifiedItemPath : execDelta.getModifiedItems()) {
+            if (def.isEffectivelyCached(modifiedItemPath)) {
+                LOGGER.trace("Modified item '{}' is effectively cached -> shadow needs to be reloaded: {}",
+                        modifiedItemPath, this);
+                return true;
+            }
+        }
+        LOGGER.trace("Found no modified items that are effectively cached -> shadow does not need to be reloaded: {}", this);
+        return false;
+    }
+
+    private void setReloadNeeded() {
+        reloadNeeded = true;
+    }
+
+    public void setReloadNotNeeded() {
+        reloadNeeded = false;
+    }
+
+    public boolean isReloadNeeded() {
+        return reloadNeeded;
     }
 
     private <P extends ObjectType> boolean isShadowDeltaSignificant(ObjectDelta<P> delta) {
@@ -1929,8 +2158,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (objectDefinition == null) {
             return null;
         }
-        ResourceObjectTypeDefinition typeDefinition = objectDefinition.getTypeDefinition();
-        return typeDefinition != null ? typeDefinition.getArchetypeOid() : null;
+        return objectDefinition.getFocusSpecification().getArchetypeOid();
     }
 
     /** Returns focus identity source information for data created from this projection. */
@@ -2024,35 +2252,45 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
 
     @Nullable
-    private ObjectOperationPolicyType operationPolicy(OperationResult result) {
-        if (getObjectNewOrCurrentOrOld() == null) {
+    private ObjectOperationPolicyType operationPolicy(OperationResult result) throws ConfigurationException {
+        var object = getObjectNewOrCurrentOrOld();
+        if (object == null) {
             return null;
         }
-        return ObjectOperationPolicyHelper.get().getEffectivePolicy(getObjectNewOrCurrentOrOld().asObjectable(), result);
+        return ObjectOperationPolicyHelper.get().getEffectivePolicy(
+                object.asObjectable(),
+                getTaskExecutionMode(),
+                result);
     }
 
-    public boolean isMarkedReadOnly(OperationResult result) {
+    public boolean isMarkedReadOnly(OperationResult result) throws ConfigurationException {
         var policy = operationPolicy(result);
         if (policy == null) {
             return false;
         }
-        return !policy.getAdd().isEnabled() && !policy.getModify().isEnabled() && !policy.getDelete().isEnabled();
+        return isAddDisabled(policy) && isModifyDisabled(policy) && isDeleteDisabled(policy);
     }
 
-    public boolean isInboundSyncDisabled(OperationResult result) {
+    public boolean areInboundSyncMappingsDisabled(OperationResult result) throws ConfigurationException {
         var policy = operationPolicy(result);
         if (policy == null) {
             return false;
         }
-        return !policy.getSynchronize().getInbound().isEnabled();
+        return areSyncInboundMappingsDisabled(policy); // TODO severity
     }
 
-    public boolean isOutboundSyncDisabled(OperationResult result) {
+    public boolean isOutboundSyncDisabled(OperationResult result) throws ConfigurationException {
+        return Objects.requireNonNullElse(
+                isOutboundSyncDisabledNullable(result),
+                false);
+    }
+
+    public Boolean isOutboundSyncDisabledNullable(OperationResult result) throws ConfigurationException {
         var policy = operationPolicy(result);
         if (policy == null) {
-            return false;
+            return null;
         }
-        return !policy.getSynchronize().getOutbound().isEnabled();
+        return isSyncOutboundDisabled(policy); // TODO severity
     }
 
     /**
@@ -2088,5 +2326,31 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             }
         }
         return false;
+    }
+
+    public boolean isCachedShadowsUseAllowed() throws SchemaException, ConfigurationException {
+        return getCachedShadowsUse() != CachedShadowsUseType.USE_FRESH;
+    }
+
+    public @NotNull CachedShadowsUseType getCachedShadowsUse() throws SchemaException, ConfigurationException {
+        // From model execution options
+        var fromOptions = ModelExecuteOptions.getCachedShadowsUse(lensContext.getOptions());
+        if (fromOptions != null) {
+            return fromOptions;
+        }
+        // From the resource (if accessible)
+        var objectDefinition = getStructuralObjectDefinition();
+        if (objectDefinition != null) {
+            var fromResource = objectDefinition.getEffectiveShadowCachingPolicy().getDefaultCacheUse();
+            if (fromResource != null) {
+                return fromResource;
+            }
+        }
+        // The default
+        return CachedShadowsUseType.USE_FRESH;
+    }
+
+    public boolean hasLowerOrderContext() {
+        return lensContext.hasLowerOrderContextThan(this);
     }
 }

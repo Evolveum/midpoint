@@ -9,16 +9,16 @@ package com.evolveum.midpoint.provisioning.impl.dummy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.createDetitleDelta;
-import static com.evolveum.midpoint.test.IntegrationTestTools.createEntitleDelta;
-
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.util.AbstractShadow;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
@@ -32,10 +32,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -47,8 +43,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
-
-import org.w3c.dom.Element;
 
 /**
  * Almost the same as TestDummy but with some extra things, such as:
@@ -70,7 +64,7 @@ public class TestDummyExtra extends TestDummy {
 
     private static final String DUMMY_ACCOUNT_ATTRIBUTE_MATE_NAME = "mate";
 
-    protected static final QName ASSOCIATION_CREW_NAME = new QName(RESOURCE_DUMMY_NS, "crew");
+    private static final QName ASSOCIATION_CREW_NAME = new QName(MidPointConstants.NS_RI, "crew");
 
     @Override
     protected File getResourceDummyFile() {
@@ -89,16 +83,16 @@ public class TestDummyExtra extends TestDummy {
     }
 
     @Override
-    protected void assertSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType) throws Exception {
+    protected void assertBareSchemaSanity(BareResourceSchema resourceSchema, ResourceType resourceType) throws Exception {
         // schema is extended, displayOrders are changed
         dummyResourceCtl.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType, false, 20);
 
-        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
+        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource); // TODO for this resource, or the one obtained as argument? (probably they are the same)
         ResourceObjectDefinition accountRDef = refinedSchema.findDefaultDefinitionForKindRequired(ShadowKindType.ACCOUNT);
 
-        Collection<ResourceAssociationDefinition> associationDefinitions = accountRDef.getAssociationDefinitions();
+        var associationDefinitions = accountRDef.getReferenceAttributeDefinitions();
         assertEquals("Wrong number of association defs", 3, associationDefinitions.size());
-        ResourceAssociationDefinition crewAssociationDef = accountRDef.findAssociationDefinition(ASSOCIATION_CREW_NAME);
+        ShadowReferenceAttributeDefinition crewAssociationDef = accountRDef.findReferenceAttributeDefinition(ASSOCIATION_CREW_NAME);
         assertNotNull("No definition for crew association", crewAssociationDef);
     }
 
@@ -107,7 +101,7 @@ public class TestDummyExtra extends TestDummy {
         PasswordCapabilityType passwordCapabilityType = capCred.getPassword();
         assertNotNull("password native capability not present", passwordCapabilityType);
         Boolean readable = passwordCapabilityType.isReadable();
-        assertNotNull("No 'readable' inducation in password capability", readable);
+        assertNotNull("No 'readable' indication in password capability", readable);
         assertTrue("Password not 'readable' in password capability", readable);
     }
 
@@ -118,14 +112,14 @@ public class TestDummyExtra extends TestDummy {
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
-        PrismObject<ShadowType> account = prismContext.parseObject(ACCOUNT_ELIZABETH_FILE);
-        account.checkConsistence();
+        PrismObject<ShadowType> accountToAdd = prismContext.parseObject(ACCOUNT_ELIZABETH_FILE);
+        accountToAdd.checkConsistence();
 
-        display("Adding shadow", account);
+        display("Adding shadow", accountToAdd);
 
         // WHEN
         when();
-        String addedObjectOid = provisioningService.addObject(account, null, null, task, result);
+        String addedObjectOid = provisioningService.addObject(accountToAdd, null, null, task, result);
 
         // THEN
         then();
@@ -133,20 +127,19 @@ public class TestDummyExtra extends TestDummy {
 
         assertEquals(ACCOUNT_ELIZABETH_OID, addedObjectOid);
 
-        account.checkConsistence();
+        accountToAdd.checkConsistence();
 
         syncServiceMock.assertSingleNotifySuccessOnly();
 
-        PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(ShadowType.class,
-                ACCOUNT_ELIZABETH_OID, null, task, result);
+        var accountAfter = provisioningService.getShadow(ACCOUNT_ELIZABETH_OID, null, task, result);
 
-        display("Account will from provisioning", accountProvisioning);
+        display("Account will from provisioning", accountAfter);
 
         DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_ELIZABETH_USERNAME, ACCOUNT_ELIZABETH_USERNAME);
         assertNotNull("No dummy account", dummyAccount);
         assertTrue("The account is not enabled", dummyAccount.isEnabled());
 
-        checkUniqueness(accountProvisioning);
+        checkUniqueness(accountAfter);
         assertSteadyResource();
     }
 
@@ -160,7 +153,7 @@ public class TestDummyExtra extends TestDummy {
 
         syncServiceMock.reset();
 
-        ObjectDelta<ShadowType> delta = createEntitleDelta(ACCOUNT_WILL_OID, ASSOCIATION_CREW_NAME, ACCOUNT_ELIZABETH_OID);
+        var delta = createEntitleDelta(ACCOUNT_WILL_OID, ASSOCIATION_CREW_NAME, ACCOUNT_ELIZABETH_OID);
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
@@ -184,10 +177,9 @@ public class TestDummyExtra extends TestDummy {
         assertTrue("The account will is not enabled", dummyAccountWill.isEnabled());
         assertDummyAttributeValues(dummyAccountWill, DUMMY_ACCOUNT_ATTRIBUTE_MATE_NAME, ACCOUNT_ELIZABETH_USERNAME);
 
-        PrismObject<ShadowType> accountWillProvisioning = provisioningService.getObject(ShadowType.class,
-                ACCOUNT_WILL_OID, null, task, result);
-        display("Account will from provisioning", accountWillProvisioning);
-        assertAssociation(accountWillProvisioning, ASSOCIATION_CREW_NAME, ACCOUNT_ELIZABETH_OID);
+        var accountWill = provisioningService.getShadow(ACCOUNT_WILL_OID, null, task, result);
+        display("Account will from provisioning", accountWill);
+        assertAssociation(accountWill, ASSOCIATION_CREW_NAME, ACCOUNT_ELIZABETH_OID);
 
         assertSteadyResource();
     }
@@ -281,10 +273,9 @@ public class TestDummyExtra extends TestDummy {
                             latch.await();
                             long time = System.nanoTime();
                             ConnectorType connector = getCsvConnector(result);
-                            var hasSchema = ConnectorTypeUtil.parseConnectorSchema(connector) != null;
-                            Element elem = ConnectorTypeUtil.getConnectorXsdSchema(connector);
-                            System.out.println(time + ": " + Thread.currentThread().getId() + ": " + System.identityHashCode(elem));
-                            return hasSchema;
+                            var schema = ConnectorTypeUtil.parseConnectorSchemaIfPresent(connector);
+                            System.out.println(time + ": " + Thread.currentThread().getId() + ": " + System.identityHashCode(schema));
+                            return schema != null;
                         } catch (SchemaException e) {
                             throw new AssertionError(e);
                         }
@@ -312,9 +303,9 @@ public class TestDummyExtra extends TestDummy {
 
     @Override
     protected void checkAccountWill(
-            PrismObject<ShadowType> shadow, OperationResult result, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs)
+            AbstractShadow shadow, OperationResult result, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs)
             throws SchemaException, EncryptionException, ConfigurationException {
         super.checkAccountWill(shadow, result, startTs, endTs);
-        assertPassword(shadow.asObjectable(), accountWillCurrentPassword);
+        assertPassword(shadow.getBean(), accountWillCurrentPassword);
     }
 }

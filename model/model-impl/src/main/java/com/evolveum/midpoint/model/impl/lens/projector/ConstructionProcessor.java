@@ -11,11 +11,11 @@ import java.util.function.Function;
 import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 import com.evolveum.midpoint.model.impl.lens.PersonaKey;
 import com.evolveum.midpoint.model.impl.lens.construction.*;
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
@@ -38,26 +38,23 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 @Component
 public class ConstructionProcessor {
 
-    @Autowired private PrismContext prismContext;
-
     private static final Trace LOGGER = TraceManager.getTrace(ConstructionProcessor.class);
 
     /**
      * Categorizes assigned constructions (resource object or persona ones) from evaluated assignments into
      * other structures by calling appropriate methods on the consumer.
      *
-     * @param evaluatedAssignmentTriple Constructions collected during assignment evaluation.
-     * @param constructionTripleExtractor Method that extracts constructions of given type - resource objects or personas -
-     *                                    (in the form of triple i.e. added/deleted/kept) from evaluated assignment. See {@link ConstructionCollector}.
-     * @param keyGenerator Method that generates indexing key for constructions, under which they are collected. See K type.
-     * @param consumer Object that receives categorized constructions (via methods like onAssigned, onUnchangedValid, ...).
      * @param <AH> Focus type
      * @param <K> Indexing key type. Currently, for resource object constructions it is {@link ProjectionContextKey};
-     *            for personas it is {@link PersonaKey} (type+subtypes).
+     * for personas it is {@link PersonaKey} (type+subtypes).
      * @param <ACT> Construction bean type.
      * @param <AC> Construction type.
      * @param <EC> Evaluated construction type.
-     *
+     * @param evaluatedAssignmentTriple Constructions collected during assignment evaluation.
+     * @param constructionTripleExtractor Method that extracts constructions of given type - resource objects or personas -
+     * (in the form of triple i.e. added/deleted/kept) from evaluated assignment. See {@link ConstructionCollector}.
+     * @param keyGenerator Method that generates indexing key for constructions, under which they are collected. See K type.
+     * @param consumer Object that receives categorized constructions (via methods like onAssigned, onUnchangedValid, ...).
      * @return Constructions sorted out by status (plus/minus/zero) and indexing key ({@link ProjectionContextKey}
      * or {@link PersonaKey}).
      */
@@ -71,14 +68,15 @@ public class ConstructionProcessor {
             DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple,
             Function<EvaluatedAssignmentImpl<AH>, DeltaSetTriple<AC>> constructionTripleExtractor,
             FailableLensFunction<EC, K> keyGenerator,
-            ComplexConstructionConsumer<K, EC> consumer)
+            ComplexConstructionConsumer<K, EC> consumer,
+            Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
 
         // We will be collecting the evaluated account constructions into these three maps.
         // It forms a kind of delta set triple for the account/persona constructions.
         ConstructionCollector<AH, K, ACT, AC, EC> constructionCollector =
-                new ConstructionCollector<>(constructionTripleExtractor, keyGenerator, prismContext);
+                new ConstructionCollector<>(constructionTripleExtractor, keyGenerator);
         constructionCollector.collect(evaluatedAssignmentTriple);
         DeltaMapTriple<K, EvaluatedConstructionPack<EC>> evaluatedConstructionMapTriple =
                 constructionCollector.getEvaluatedConstructionMapTriple();
@@ -110,7 +108,9 @@ public class ConstructionProcessor {
                     plusEvaluatedConstructionPack,
                     consumer,
                     evaluatedConstructionMapTriple,
-                    desc);
+                    desc,
+                    task,
+                    result);
 
             consumer.after(key, desc, evaluatedConstructionMapTriple);
         }
@@ -153,7 +153,9 @@ public class ConstructionProcessor {
             EvaluatedConstructionPack<EC> plusEvaluatedConstructionPack,
             ComplexConstructionConsumer<K, EC> consumer,
             DeltaMapTriple<K, EvaluatedConstructionPack<EC>> evaluatedConstructionMapTriple,
-            String desc)
+            String desc,
+            Task task,
+            OperationResult result)
             throws SchemaException, ConfigurationException {
         // SITUATION: The construction is ASSIGNED
         if (plusEvaluatedConstructionPack != null && plusEvaluatedConstructionPack.hasNonWeakConstruction()) {
@@ -161,14 +163,14 @@ public class ConstructionProcessor {
             if (plusEvaluatedConstructionPack.hasValidAssignment()) {
                 if (zeroEvaluatedConstructionPack != null && zeroEvaluatedConstructionPack.hasValidAssignment()) {
                     LOGGER.trace("Construction {}: unchanged (valid) + assigned (valid)", desc);
-                    consumer.onUnchangedValid(key, desc);
+                    consumer.onUnchangedValid(key, desc, task, result);
                 } else {
                     LOGGER.trace("Construction {}: assigned (valid)", desc);
-                    consumer.onAssigned(key, desc);
+                    consumer.onAssigned(key, desc, task, result);
                 }
             } else if (zeroEvaluatedConstructionPack != null && zeroEvaluatedConstructionPack.hasValidAssignment()) {
                 LOGGER.trace("Construction {}: unchanged (valid) + assigned (invalid)", desc);
-                consumer.onUnchangedValid(key, desc);
+                consumer.onUnchangedValid(key, desc, task, result);
             } else {
                 // Just ignore it, do not even create projection context
                 LOGGER.trace("Construction {} ignoring: assigned (invalid)", desc);
@@ -178,7 +180,7 @@ public class ConstructionProcessor {
         } else if (zeroEvaluatedConstructionPack != null && zeroEvaluatedConstructionPack.hasValidAssignment() && zeroEvaluatedConstructionPack.hasNonWeakConstruction()) {
 
             LOGGER.trace("Construction {}: unchanged (valid)", desc);
-            consumer.onUnchangedValid(key, desc);
+            consumer.onUnchangedValid(key, desc, task, result);
 
         // SITUATION: The projection is both ASSIGNED and UNASSIGNED;
         // TODO evaluatedConstructionMapTriple.plusMap.get(key) is the same as plusEvaluatedConstructionPack, isn't it?
@@ -194,7 +196,7 @@ public class ConstructionProcessor {
             if (plusPack.hasValidAssignment() && minusPack.hasValidAssignment()) {
 
                 LOGGER.trace("Construction {}: both assigned and unassigned (valid)", desc);
-                consumer.onUnchangedValid(key, desc);
+                consumer.onUnchangedValid(key, desc, task, result);
 
             } else if (!plusPack.hasValidAssignment() && !minusPack.hasValidAssignment()) {
                 // Just ignore it, do not even create projection context
@@ -203,7 +205,7 @@ public class ConstructionProcessor {
             } else if (plusPack.hasValidAssignment() && !minusPack.hasValidAssignment()) {
                 // Assignment became valid. Same as if it was assigned.
                 LOGGER.trace("Construction {}: both assigned and unassigned (invalid->valid)", desc);
-                consumer.onAssigned(key, desc);
+                consumer.onAssigned(key, desc, task, result);
 
             } else if (!plusPack.hasValidAssignment() && minusPack.hasValidAssignment()) {
                 // Assignment became invalid. Same as if it was unassigned.

@@ -1,0 +1,61 @@
+= Pipeline
+:page-wiki-name: Pipeline
+:page-wiki-id: 24086050
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2017-05-11T19:01:09.418+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2017-05-11T19:08:41.885+02:00
+:page-upkeep-status: yellow
+
+== Description
+
+Chains a set of expression together.
+They are executed one after another; input sent to the pipeline as a whole is sent to the first expression.
+Output from the N-th expression is sent as an input to the N+1-th expression.
+Output of the last expression is considered to be the output of the whole pipeline.
+
+
+== Input
+
+Any value.
+It is sent to the first expression.
+
+
+== Output
+
+Output of the last expression.
+
+
+== Properties
+
+[%autowidth]
+|===
+| Property name | Meaning
+
+| (scripting expressions)
+| Expressions that present the content of the pipeline
+
+
+|===
+
+
+== Examples
+
+.Takes all accounts of all users, logs and resolves them
+[source,xml]
+----
+<pipeline>
+    <search>
+        <type>UserType</type>
+    </search>
+    <select>
+        <path>linkRef</path>
+    </select>
+    <action>
+        <type>log</type>
+    </action>
+    <action>
+        <type>resolve</type>
+    </action>
+</pipeline>
+----

@@ -7,12 +7,15 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -69,13 +72,14 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.gui.api.component.form.TextArea;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
 public class CartSummaryPanel extends BasePanel<RequestAccess> implements AccessRequestMixin {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_TABLE = "table";
     private static final String ID_TABLE_HEADER_FRAGMENT = "tableHeaderFragment";
@@ -99,6 +103,7 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
     private final WizardModel wizard;
 
     private IModel<List<RelationDefinitionType>> systemRelations;
+    private LoadableDetachableModel<List<ShoppingCartItem>> shoppingCartItemsModel;
 
     public CartSummaryPanel(String id, WizardModel wizard, IModel<RequestAccess> model, PageBase page) {
         super(id, model);
@@ -119,6 +124,7 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
                 return registry.getRelationDefinitions();
             }
         };
+        shoppingCartItemsModel = initShoppingCartItemsModel();
     }
 
     @Override
@@ -135,7 +141,7 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
     private void initLayout() {
         List<IColumn<ShoppingCartItem, String>> columns = createColumns();
 
-        ISortableDataProvider<ShoppingCartItem, String> provider = new ListDataProvider<>(this, () -> getModelObject().getShoppingCartItems());
+        ISortableDataProvider<ShoppingCartItem, String> provider = new ListDataProvider<>(this, shoppingCartItemsModel);
         BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider, columns) {
 
             @Override
@@ -288,6 +294,7 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
     }
 
     protected void openConflictPerformed(AjaxRequestTarget target) {
+        // intentionally empty
     }
 
     private void submitPerformed(AjaxRequestTarget target, IModel<CustomValidity> customValidity) {
@@ -302,7 +309,7 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
         XMLGregorianCalendar from = XmlTypeConverter.createXMLGregorianCalendar(cv.getFrom());
         XMLGregorianCalendar to = XmlTypeConverter.createXMLGregorianCalendar(cv.getTo());
 
-        access.setValidity(from, to);
+        access.setRequestItemsValidity(from, to);
 
         submitPerformed(target);
     }
@@ -418,11 +425,34 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
                     }
                 };
             }
+
+            @Override
+            protected DisplayType createDisplayType(IModel<ShoppingCartItem> model) {
+                AssignmentType a = model.getObject().getAssignment();
+                ObjectReferenceType ref = a != null ? a.getTargetRef() : null;
+
+                if (ref == null || ref.getType() == null) {
+                    return null;
+                }
+
+                PrismObject object = WebModelServiceUtils.loadObject(ref, getPageBase());
+                if (object == null) {
+                    String icon = IconAndStylesUtil.createDefaultColoredIcon(ref.getType());
+
+                    return new DisplayType()
+                            .icon(new IconType()
+                                    .cssClass(icon));
+                }
+
+                OperationResult result = new OperationResult("getIcon");
+                return GuiDisplayTypeUtil.getDisplayTypeForObject(object, result, getPageBase());
+            }
         });
         columns.add(new AbstractColumn<>(createStringResource("ShoppingCartPanel.accessName")) {
 
             @Override
             public void populateItem(Item<ICellPopulator<ShoppingCartItem>> item, String id, IModel<ShoppingCartItem> model) {
+                item.add(AttributeAppender.append("class", "align-middle"));
                 item.add(new Label(id, () -> {
                     ShoppingCartItem cartItem = model.getObject();
 
@@ -499,6 +529,11 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
             protected void closePerformed(AjaxRequestTarget target, IModel<ShoppingCartItem> model) {
                 getPageBase().hideMainPopup(target);
             }
+
+            @Override
+            protected void assignmentUpdatePerformed(AjaxRequestTarget target) {
+                reloadTable(target);
+            }
         };
 
         page.showMainPopup(panel, target);
@@ -551,5 +586,32 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
         params.set(WizardModel.PARAM_STEP, PersonOfInterestPanel.STEP_ID);
 
         setResponsePage(PageRequestAccess.class, params);
+    }
+
+    private LoadableDetachableModel<List<ShoppingCartItem>> initShoppingCartItemsModel() {
+        return new LoadableDetachableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected List<ShoppingCartItem> load() {
+                return getModelObject().getShoppingCartItems();
+            }
+        };
+    }
+
+    private void reloadTable(AjaxRequestTarget target) {
+        if (shoppingCartItemsModel != null) {
+            shoppingCartItemsModel.detach();
+        }
+        Component table = get(ID_TABLE);
+        target.add(table);
+    }
+
+    @Override
+    protected void onDetach() {
+        if (shoppingCartItemsModel != null) {
+            shoppingCartItemsModel.detach();
+        }
+        super.onDetach();
     }
 }

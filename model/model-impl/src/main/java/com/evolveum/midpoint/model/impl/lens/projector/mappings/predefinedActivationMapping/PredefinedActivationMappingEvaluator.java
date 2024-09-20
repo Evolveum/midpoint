@@ -11,6 +11,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.ProjectionMappingLoader;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -77,7 +78,7 @@ public abstract class PredefinedActivationMappingEvaluator {
     public <F extends FocusType> void defineActivationProperty(
             LensContext<F> context, LensProjectionContext projCtx, ItemPath path, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, MappingLoader.NotLoadedException {
         if (SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS.equivalent(path)) {
             getLogger().trace("Start evaluating predefined activation mapping for administrative status");
             defineAdministratorStatus(context, projCtx, task, result);
@@ -116,7 +117,7 @@ public abstract class PredefinedActivationMappingEvaluator {
     protected <F extends FocusType> void defineAdministratorStatus(
             LensContext<F> context, LensProjectionContext projCtx, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, MappingLoader.NotLoadedException {
         // nothing here by default
     }
 
@@ -216,11 +217,11 @@ public abstract class PredefinedActivationMappingEvaluator {
     <V extends PrismValue, D extends ItemDefinition<?>> void setTargetPropertyValue(
             LensProjectionContext projCtx, ItemPath path, Object value, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, MappingLoader.NotLoadedException {
 
         loadFullShadowIfNeeded(projCtx, task, result);
 
-        if (projCtx.hasFullShadow()) {
+        if (projCtx.isActivationLoaded()) {
             // Note that we also accept the "new" state; if there is a match, then there is no need to add a delta again.
             var object = projCtx.getObjectNewOrCurrentRequired();
             var property = object.findProperty(path);
@@ -247,9 +248,9 @@ public abstract class PredefinedActivationMappingEvaluator {
 
     private void loadFullShadowIfNeeded(LensProjectionContext projCtx, Task task, OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
-        if (!projCtx.hasFullShadow()) {
-            var loader = new ProjectionMappingLoader<>(projCtx, ModelBeans.get().contextLoader);
+            SecurityViolationException, ExpressionEvaluationException, MappingLoader.NotLoadedException {
+        if (!projCtx.isActivationLoaded()) {
+            var loader = new ProjectionMappingLoader(projCtx, ModelBeans.get().contextLoader, projCtx::isActivationLoaded);
             String loadReason = "target property going to be set by " + getName();
             loader.load(loadReason, task, result);
             getLogger().trace("Projection was loaded because of: {}", loadReason);

@@ -71,6 +71,13 @@ public class PrismIdentifierGenerator implements DebugDumpable {
         List<PrismContainer<?>> values = new ArrayList<>();
 
         object.accept(visitable -> {
+            if (visitable instanceof PrismContainerValue<?> val) {
+                var metadata = val.getValueMetadataAsContainer();
+                if (!metadata.isEmpty()) {
+                    values.add(metadata);
+                }
+            }
+
             if (!(visitable instanceof PrismContainer)) {
                 return;
             }

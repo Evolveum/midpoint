@@ -7,22 +7,29 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="user-panel my-3 pb-2 d-flex align-items-center">
+    <div class="user-panel pb-2 pt-3 d-flex align-items-center">
         <div class="image">
-            <img wicket:id="menuPhoto" class="user-image img-circle elevation-2"/>
+            <div wicket:id="menuPhoto" class="user-image img-circle elevation-1" wicket:message="alt:SideBarMenuPanel.loginUserPhoto"/>
         </div>
-        <div class="info">
-            <div class="text-lightblue" wicket:id="username"/>
-            <div class="text-sm text-gray text-truncate" wicket:id="usernameDescription"/>
+        <div class="info" tabindex="0" role="region">
+            <div class="sr-only"><wicket:message key="SideBarMenuPanel.loginUser"/></div>
+            <div class="sr-only"><wicket:message key="SideBarMenuPanel.loginUserUsername"/></div>
+            <div class="text-lightblue text-capitalize pl-1" wicket:id="username"/>
+            <div class="sr-only"><wicket:message key="SideBarMenuPanel.loginUserDescription"/></div>
+            <div class="text-sm text-gray text-truncate pl-1" wicket:id="usernameDescription"/>
         </div>
     </div>
 
     <nav class="mt-2">
-        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" wicket:id="sidebar">
+        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" wicket:id="sidebar" wicket:message="aria-label:SideBarMenuPanel.label">
             <wicket:container wicket:id="menuItems">
-                <li class="nav-header" wicket:id="header">
-                    <span wicket:id="name"/>
-                    <i class="fa fa-chevron-down ml-2"></i>
+                <li class="nav-header pr-3" wicket:id="header" role="separator" aria-haspopup="true" tabindex="0">
+                    <div class="d-flex">
+                        <span wicket:id="name"/>
+                        <span class="ml-auto">
+                            <i class="fa fa-chevron-down"></i>
+                        </span>
+                    </div>
                 </li>
                 <wicket:container wicket:id="items">
                     <wicket:container wicket:id="item"/>

@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -31,11 +32,12 @@ public class ObjectDeltaSchemaLevelUtil {
 
     @FunctionalInterface
     public interface NameResolver {
-        PolyString getName(Class<? extends ObjectType> objectClass, String oid) throws ObjectNotFoundException, SchemaException;
+        PolyString getName(Class<? extends ObjectType> objectClass, String oid, OperationResult result)
+                throws ObjectNotFoundException, SchemaException;
     }
 
     public static void resolveNames(
-            ObjectDelta<? extends ObjectType> delta, NameResolver nameResolver, PrismContext prismContext) {
+            ObjectDelta<? extends ObjectType> delta, NameResolver nameResolver, OperationResult result) {
         Map<String, PolyString> resolvedOids = new HashMap<>();
         Visitor namesResolver = visitable -> {
             if (visitable instanceof PrismReferenceValue) {
@@ -55,17 +57,19 @@ public class ObjectDeltaSchemaLevelUtil {
                 } else {
                     PrismObjectDefinition<? extends ObjectType> objectDefinition = null;
                     if (refVal.getTargetType() != null) {
-                        objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByType(refVal.getTargetType());
+                        objectDefinition = PrismContext.get().getSchemaRegistry().findObjectDefinitionByType(refVal.getTargetType());
                     }
                     Class<? extends ObjectType> objectClass = null;
                     if (objectDefinition != null) {
                         objectClass = objectDefinition.getCompileTimeClass();
                     }
                     if (objectClass == null) {
+
                         objectClass = ObjectType.class; // the default (shouldn't be needed)
+                        // FIXME: We should avoid getting name using ObjectType type
                     }
                     try {
-                        PolyString name = nameResolver.getName(objectClass, oid);
+                        PolyString name = nameResolver.getName(objectClass, oid, result);
                         refVal.setTargetName(name);
                         resolvedOids.put(oid, name);
                         LOGGER.trace("Resolved {}: {} to {}", objectClass, oid, name);

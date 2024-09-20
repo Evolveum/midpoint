@@ -180,7 +180,8 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
     protected boolean isCollectionViewWithoutMorePossibleNewType(CompiledObjectCollectionView collectionView) {
         if (isViewForObjectCollectionType(collectionView, "00000000-0000-0000-0002-000000000007", ObjectCollectionType.COMPLEX_TYPE)
                 || isViewForObjectCollectionType(collectionView, SystemObjectsType.ARCHETYPE_UTILITY_TASK.value(), ArchetypeType.COMPLEX_TYPE)
-                || isViewForObjectCollectionType(collectionView, SystemObjectsType.ARCHETYPE_SYSTEM_TASK.value(), ArchetypeType.COMPLEX_TYPE)){
+                || isViewForObjectCollectionType(collectionView, SystemObjectsType.ARCHETYPE_SYSTEM_TASK.value(), ArchetypeType.COMPLEX_TYPE)
+                || isViewForObjectCollectionType(collectionView, "00000000-0000-0000-0002-000000000008", ObjectCollectionType.COMPLEX_TYPE)) {
             return false;
         }
         return true;
@@ -189,10 +190,14 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
     @Override
     protected @NotNull List<CompiledObjectCollectionView> getNewObjectInfluencesList() {
         //HACK TODO clenup and think about generic mechanism for this
-        CompiledObjectCollectionView objectCollectionView  = getObjectCollectionView();
+        CompiledObjectCollectionView objectCollectionView = getObjectCollectionView();
 
-        if (isViewForObjectCollectionType(objectCollectionView, "00000000-0000-0000-0002-000000000007", ObjectCollectionType.COMPLEX_TYPE)){
+        if (isViewForObjectCollectionType(objectCollectionView, "00000000-0000-0000-0002-000000000007", ObjectCollectionType.COMPLEX_TYPE)) {
             return getNewTaskInfluencesList(TaskOperationUtils.getReportArchetypesList());
+        }
+
+        if (isViewForObjectCollectionType(objectCollectionView, "00000000-0000-0000-0002-000000000008", ObjectCollectionType.COMPLEX_TYPE)) {
+            return getNewTaskInfluencesList(TaskOperationUtils.getCertificationArchetypesList());
         }
 
         if (isViewForObjectCollectionType(objectCollectionView, SystemObjectsType.ARCHETYPE_UTILITY_TASK.value(), ArchetypeType.COMPLEX_TYPE)) {
@@ -213,7 +218,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         List<CompiledObjectCollectionView> compiledObjectCollectionViews = getPageBase().getCompiledGuiProfile().findAllApplicableArchetypeViews(TaskType.COMPLEX_TYPE, OperationTypeType.ADD);
         List<CompiledObjectCollectionView> filteredObjectCollectionViews = new ArrayList<>();
         for (CompiledObjectCollectionView compiledObjectCollectionView : compiledObjectCollectionViews) {
-            for (String oid :oids) {
+            for (String oid : oids) {
                 if (isViewForObjectCollectionType(compiledObjectCollectionView, oid, ArchetypeType.COMPLEX_TYPE)) {
                     filteredObjectCollectionViews.add(compiledObjectCollectionView);
                 }
@@ -371,6 +376,8 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         XMLGregorianCalendar stalledSince = taskInformation.getCompletelyStalledSince();
         if (stalledSince != null) {
             return getString("pageTasks.stalledSince", XmlTypeConverter.toDate(stalledSince).toLocaleString(), progress);
+        } else if (progress.toLowerCase().equals(ActivitySimplifiedRealizationStateType.COMPLETE.value())) {
+            return createStringResource("PageTasks.message.complete").getString();
         } else {
             return progress;
         }
@@ -421,7 +428,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
             String icon, String confirmationMessageKey,
             SerializableFunction<TaskType, Boolean> visibilityHandler) {
 
-        ButtonInlineMenuItem buttonInlineMenuItem =  new ButtonInlineMenuItem(createStringResource(buttonNameKey)) {
+        ButtonInlineMenuItem buttonInlineMenuItem = new ButtonInlineMenuItem(createStringResource(buttonNameKey)) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -571,7 +578,6 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
             public boolean isHeaderMenuItem() {
                 return header;
             }
-
 
         };
 

@@ -26,10 +26,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.List;
+
+import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
 /**
  * "One stop shop" for accessing various aspects of a resource (defined by {@link ResourceType} object).
@@ -67,12 +70,8 @@ public class Resource {
         return new Resource(resourceObject.asObjectable());
     }
 
-    public @Nullable ResourceSchema getRawSchema() throws SchemaException {
-        return ResourceSchemaFactory.getRawSchema(resourceBean);
-    }
-
-    public @NotNull ResourceSchema getRawSchemaRequired() throws SchemaException, ConfigurationException {
-        return ResourceSchemaFactory.getRawSchemaRequired(resourceBean);
+    public @NotNull ResourceType getBean() {
+        return resourceBean;
     }
 
     public @Nullable ResourceSchema getCompleteSchema() throws SchemaException, ConfigurationException {
@@ -113,8 +112,12 @@ public class Resource {
                 .and().item(ShadowType.F_OBJECT_CLASS).eq(objectClassName);
     }
 
-    // Beware, no kind/intent/OC filter is set here. Must be private.
-    private S_FilterExit queryFor(@NotNull ResourceObjectDefinition objectDefinition) {
+    /**
+     * Beware, no kind/intent/OC filter is set here. Use with care, only for resources that do not have own schema,
+     * e.g., in low-level tests.
+     */
+    @VisibleForTesting
+    public @NotNull S_FilterExit queryFor(@NotNull ResourceObjectDefinition objectDefinition) {
         return PrismContext.get().queryFor(ShadowType.class, new ResourceItemDefinitionResolver(objectDefinition))
                 .item(ShadowType.F_RESOURCE_REF).ref(resourceBean.getOid());
     }
@@ -130,11 +133,21 @@ public class Resource {
         return PrismContext.get().deltaFor(ShadowType.class, new ResourceItemDefinitionResolver(objectDefinition));
     }
 
-    private static class ResourceItemDefinitionResolver implements ItemDefinitionResolver {
+    public @NotNull String getOid() {
+        return stateNonNull(resourceBean.getOid(), "no OID in %s", this);
+    }
+
+    @Override
+    public String toString() {
+        return resourceBean.toString();
+    }
+
+    // TODO move to a better place
+    public static class ResourceItemDefinitionResolver implements ItemDefinitionResolver {
 
         @NotNull private final ResourceObjectDefinition definition;
 
-        private ResourceItemDefinitionResolver(@NotNull ResourceObjectDefinition definition) {
+        public ResourceItemDefinitionResolver(@NotNull ResourceObjectDefinition definition) {
             this.definition = definition;
         }
 
@@ -149,7 +162,7 @@ public class Resource {
             if (attrName == null) {
                 return null;
             } else {
-                return definition.findAttributeDefinition(attrName);
+                return definition.findSimpleAttributeDefinition(attrName);
             }
         }
     }

@@ -19,6 +19,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.expression.*;
 
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.testng.AssertJUnit;
 import org.testng.SkipException;
@@ -49,7 +51,6 @@ import com.evolveum.midpoint.test.util.ParallelTestThread;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -74,7 +75,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        SchemaDebugUtil.initializePrettyPrinter();
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
     }
 
@@ -355,10 +356,10 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
             VariablesMap variables, String shortDesc, OperationResult opResult)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
             CommunicationException, ConfigurationException, SecurityViolationException {
-        MutableItemDefinition<?> outputDefinition = PrismTestUtil.getPrismContext()
-                .definitionFactory().createPropertyDefinition(PROPERTY_NAME, typeName);
+        ItemDefinition<?> outputDefinition =
+                PrismTestUtil.getPrismContext().definitionFactory().newPropertyDefinition(PROPERTY_NAME, typeName);
         if (!scalar) {
-            outputDefinition.setMaxOccurs(-1);
+            outputDefinition.mutator().setMaxOccurs(-1);
         }
         return evaluateExpression(scriptType, outputDefinition, variables, shortDesc, opResult);
     }

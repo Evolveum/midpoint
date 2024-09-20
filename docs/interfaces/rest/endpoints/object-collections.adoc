@@ -1,0 +1,107 @@
+= Object Collection Type REST Endpoint
+:page-nav-title: Object Collection
+:page-display-order: 2400
+:page-toc: top
+:page-keywords: [ 'rest', 'object', 'collection', 'endpoint' ]
+:page-upkeep-status: green
+
+== Description
+
+Here we are describing the Object Collection object type in relation to midPoints REST API. The
+Object Collection objects are a part of the REST API web resources.
+
+.Endpoint
+[source, http]
+----
+objectCollections/
+----
+
+== Operations And Examples
+
+The Object Collection type endpoint operations and examples.
+
+include::../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+
+=== Create Object Collection type Object
+
+- xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]
+
+=== Get Object Collection type Objects
+
+Get operation for fetching a single specific object.
+
+- xref:/midpoint/reference/interfaces/rest/operations/get-op-rest/[Get Operation]
+
+=== Search for Object Collection type Objects
+
+Search operation usable for fetching the full list of objects or a list based on filter.
+
+include::../operations/examples/raw/search-all.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[Search Operation]
+
+=== Modify Object Collection type Objects
+
+- xref:/midpoint/reference/interfaces/rest/operations/modify-op-rest/[Modify Operation]
+
+=== Delete Object Collection type Objects
+
+- xref:/midpoint/reference/interfaces/rest/operations/delete-op-rest/[Delete Operation]
+
+=== Generate and Validate Operations for Object Collection Objects
+
+Operations to generate or validate values.
+
+- xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]
+
+== JSON Example
+
+Example output of information regarding a specific Object Collection object. Metadata is usually
+a part of the output, yet it was removed for the purpose of the example.
+
+.Show JSON Example
+[%collapsible]
+====
+[source, json]
+----
+{
+  "objectCollection" : {
+    "oid" : "00000000-0000-0000-0001-000000000005",
+    "version" : "",
+    "name" : "Active tasks",
+    "metadata" : {},
+    "operationExecution" : {
+      "@id" : 4,
+      "recordType" : "simple",
+      "timestamp" : "",
+      "operation" : {},
+      "status" : "success",
+      "channel" : "http://midpoint.evolveum.com/xml/ns/public/common/channels-3#init"
+    },
+    "assignment" : {},
+    "iteration" : 0,
+    "iterationToken" : "",
+    "type" : "#TaskType",
+    "filter" : {
+      "text" : "executionState = \"runnable\" and parent not exists"
+    },
+    "domain" : {
+      "collectionRef" : {
+        "oid" : "00000000-0000-0000-0001-000000000007",
+        "relation" : "org:default",
+        "type" : "c:ObjectCollectionType"
+      }
+    }
+  }
+}
+----
+====
+
+== See Also
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]

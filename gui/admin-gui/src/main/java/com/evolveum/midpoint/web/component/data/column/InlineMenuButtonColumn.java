@@ -10,7 +10,6 @@ package com.evolveum.midpoint.web.component.data.column;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.MenuMultiButtonPanel;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
@@ -22,6 +21,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAc
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -122,11 +122,22 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
                         setRowModelToButtonAction(rowModel, buttonMenuItems);
                         buttonMenuItemClickPerformed(index, buttonMenuItems, target);
                     }
+
+                    @Override
+                    protected boolean isHorizontalLayout() {
+                        return true;
+                    }
+
+                    @Override
+                    protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                        super.updateAjaxAttributes(attributes);
+                        attributes.setEventPropagation(AjaxRequestAttributes.EventPropagation.STOP);
+                    }
                 };
 
-                btn.add(AttributeAppender.append("class", "btn btn-default btn-xs"));
+                btn.add(AttributeAppender.append("class", getInlineMenuItemCssClass()));
                 btn.add(new EnableBehaviour(() -> isButtonMenuItemEnabled(model)));
-
+                btn.titleAsLabel(showButtonLabel(index, buttonMenuItems));
                 return btn;
             }
 
@@ -237,5 +248,16 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
 
         }
         return false;
+    }
+
+    private boolean showButtonLabel(int id, List<ButtonInlineMenuItem> buttonMenuItems) {
+        if (id >= buttonMenuItems.size()){
+            return false;
+        }
+        return buttonMenuItems.get(id).isLabelVisible();
+    }
+
+    protected String getInlineMenuItemCssClass() {
+        return "btn btn-default btn-xs";
     }
 }

@@ -9,8 +9,9 @@ package com.evolveum.midpoint.web.page.admin.workflow.dto;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.input.converter.DateConverter;
+
 import org.apache.commons.lang3.Validate;
-import org.apache.wicket.datetime.PatternDateConverter;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -33,12 +34,11 @@ public class ProcessInstanceDto extends Selectable<ProcessInstanceDto> {
 
     @NotNull private final CaseType aCase;
 
-    private final PatternDateConverter converter;
+    private final DateConverter converter;
 
     public ProcessInstanceDto(@NotNull CaseType aCase, String dateTimeStyle) {
         this.aCase = aCase;
-        converter = new PatternDateConverter
-                (WebComponentUtil.getLocalizedDatePattern(dateTimeStyle), true);
+        converter = new DateConverter(WebComponentUtil.getLocalizedDatePattern(dateTimeStyle), true);
         Validate.notNull(aCase.getApprovalContext(), "Case has no workflow context");
     }
 
@@ -50,11 +50,13 @@ public class ProcessInstanceDto extends Selectable<ProcessInstanceDto> {
         return aCase.getCloseTimestamp();
     }
 
+    @SuppressWarnings("unused") //used by property expression in PropertyModel
     public String getStartFormatted() {
         return getStartTimestamp() != null ? converter.convertToString(XmlTypeConverter.toDate(getStartTimestamp()),
                 WebComponentUtil.getCurrentLocale()) : "";
     }
 
+    @SuppressWarnings("unused") //used by property expression in PropertyModel
     public String getEndFormatted() {
         return getEndTimestamp() != null ? converter.convertToString(XmlTypeConverter.toDate(getEndTimestamp()),
                 WebComponentUtil.getCurrentLocale()) : "";

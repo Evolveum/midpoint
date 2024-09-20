@@ -9,7 +9,9 @@ package com.evolveum.midpoint.web.boot;
 import java.lang.management.ManagementFactory;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import java.util.Collections;
+import java.util.*;
+
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 
 import org.apache.catalina.Context;
 import org.apache.catalina.Manager;
@@ -109,6 +111,9 @@ public class MidPointSpringApplication extends AbstractSpringBootApplication {
         System.setProperty("xml.catalog.className", "com.evolveum.midpoint.prism.impl.schema.CatalogImpl");
         String mode = args != null && args.length > 0 ? args[0] : null;
 
+        // FIXME temporary; implement more seriously before 4.9 release
+        InternalsConfig.shadowCachingDefaultDefault = InternalsConfig.ShadowCachingDefault.STANDARD;
+
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("PID:" + ManagementFactory.getRuntimeMXBean().getName() +
                     " Application mode:" + mode + " context:" + applicationContext);
@@ -119,6 +124,7 @@ public class MidPointSpringApplication extends AbstractSpringBootApplication {
 
         } else {
             try {
+                MidPointJarSignatureChecker.setupJarSignature();
                 applicationContext = configureApplication(new SpringApplicationBuilder()).run(args);
             } catch (Throwable e) {
                 reportFatalErrorToStdErr(e);

@@ -9,12 +9,18 @@ package com.evolveum.midpoint.ninja.impl;
 import static com.evolveum.midpoint.common.configuration.api.MidpointConfiguration.REPOSITORY_CONFIGURATION;
 
 import java.io.Closeable;
-import java.io.File;
 import java.io.PrintStream;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaRegistry;
+
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -23,11 +29,9 @@ import org.springframework.context.support.GenericXmlApplicationContext;
 
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.init.StartupConfiguration;
 import com.evolveum.midpoint.ninja.action.BaseOptions;
 import com.evolveum.midpoint.ninja.action.ConnectionOptions;
 import com.evolveum.midpoint.ninja.action.PolyStringNormalizerOptions;
-import com.evolveum.midpoint.ninja.util.InputParameterException;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.QueryConverter;
@@ -45,6 +49,7 @@ public class NinjaContext implements Closeable {
     private static final String AUDIT_SERVICE_BEAN = "auditService";
 
     private static final String CTX_NINJA = "classpath*:ctx-ninja.xml";
+    private static final String RESOURCE_SCHEMA_REGISTRY_BEAN = "resourceSchemaRegistry";
 
     public final PrintStream out;
 
@@ -69,6 +74,7 @@ public class NinjaContext implements Closeable {
     private SchemaService schemaService;
 
     private final Map<String, String> systemPropertiesBackup = new HashMap<>();
+    private ResourceSchemaRegistry resourceSchemaRegistry;
 
     public NinjaContext(
             @NotNull PrintStream out,
@@ -142,8 +148,6 @@ public class NinjaContext implements Closeable {
 
         String midpointHome = options.getMidpointHome();
 
-        checkAndWarnMidpointHome(midpointHome);
-
         backupAndUpdateSystemProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY, midpointHome);
         overrideRepoConfiguration(options);
 
@@ -156,27 +160,6 @@ public class NinjaContext implements Closeable {
 
         if (applicationContextLevel.containsPrismInitialization()) {
             updatePolyStringNormalizationConfiguration(ctx.getBean(PrismContext.class));
-        }
-    }
-
-    private void checkAndWarnMidpointHome(String midpointHome) {
-        if (StringUtils.isEmpty(midpointHome)) {
-            throw new InputParameterException("Midpoint home " + ConnectionOptions.P_MIDPOINT_HOME + " option expected, but not defined");
-        }
-
-        File file = new File(midpointHome);
-        if (!file.exists() || !file.isDirectory()) {
-            throw new InputParameterException("Midpoint home directory '" + midpointHome + "' doesn't exist or is not a directory");
-        }
-
-        String configFile = StartupConfiguration.DEFAULT_CONFIG_FILE_NAME;
-        if (System.getProperty(MidpointConfiguration.MIDPOINT_CONFIG_FILE_PROPERTY) != null) {
-            configFile = System.getProperty(MidpointConfiguration.MIDPOINT_CONFIG_FILE_PROPERTY);
-        }
-
-        File config = new File(file, configFile);
-        if (!config.exists() || config.isDirectory()) {
-            throw new InputParameterException("Midpoint home config xml file '" + config.getAbsolutePath() + "' doesn't exist");
         }
     }
 
@@ -220,8 +203,6 @@ public class NinjaContext implements Closeable {
             return "sqlserver";
         } else if (postfix.startsWith("oracle")) {
             return "oracle";
-        } else if (postfix.startsWith("h2")) {
-            return "h2";
         }
 
         throw new IllegalStateException("Unknown database for url " + url);
@@ -265,6 +246,26 @@ public class NinjaContext implements Closeable {
 
         repository = getApplicationContext().getBean(REPOSITORY_SERVICE_BEAN, RepositoryService.class);
         return repository;
+    }
+
+    public synchronized ResourceSchemaRegistry getResourceSchemaRegistry() {
+        if (resourceSchemaRegistry != null) {
+            return resourceSchemaRegistry;
+        }
+
+        resourceSchemaRegistry = getApplicationContext().getBean(RESOURCE_SCHEMA_REGISTRY_BEAN, ResourceSchemaRegistry.class);
+        resourceSchemaRegistry.registerResourceObjectLoader( oid -> {
+            try {
+                var result = new OperationResult("loading object");
+                return getRepository().getObject(ResourceType.class, oid, null, result);
+            } catch (Exception e) {
+                // Fail silently.
+            }
+            return null;
+                }
+        );
+
+        return resourceSchemaRegistry;
     }
 
     public AuditService getAuditService() {

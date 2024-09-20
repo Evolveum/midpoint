@@ -19,6 +19,8 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
 import com.querydsl.core.types.Predicate;
@@ -70,7 +72,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     public static final String REPO_OP_PREFIX = SqaleRepositoryService.class.getSimpleName() + '.';
     public static final String AUDIT_OP_PREFIX = SqaleAuditService.class.getSimpleName() + '.';
 
-    private static final int QUERY_BUFFER_SIZE = 1000;
+    private static final int QUERY_BUFFER_SIZE = 2000;
     public static final String SYSTEM_PROPERTY_SKIP_DB_CLEAR = "skipDbClear";
 
     private static boolean cacheTablesCleared = false;
@@ -103,6 +105,10 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     private void clearDatabase() {
         try (JdbcSession jdbcSession = startTransaction()) {
             // object delete cascades to sub-rows of the "object aggregate"
+
+            // Simulations results have dynamic partitions, we need to execute delete triggers to clean them.
+            jdbcSession.executeStatement("DELETE FROM m_simulation_result CASCADE;");
+            jdbcSession.executeStatement("DELETE FROM m_shadow_partition_def CASCADE;");
 
             jdbcSession.executeStatement("TRUNCATE m_object CASCADE;");
             // truncate does not run ON DELETE trigger, many refs/container tables are not cleaned
@@ -697,7 +703,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     public class ShadowAttributesHelper {
 
         private final ShadowAttributesType attributesContainer;
-        private final MutablePrismContainerDefinition<Containerable> attrsDefinition;
+        private final PrismContainerDefinition<Containerable> attrsDefinition;
 
         /**
          * Creates the attribute helper for the shadow, adding attributes container to the shadow.
@@ -708,14 +714,14 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
             // let's create the container+PCV inside the shadow object
             object.attributes(attributesContainer);
 
-            MutableComplexTypeDefinition ctd = prismContext.definitionFactory()
-                    .createComplexTypeDefinition(ShadowAttributesType.COMPLEX_TYPE);
+            ComplexTypeDefinition ctd =
+                    prismContext.definitionFactory().newComplexTypeDefinition(ShadowAttributesType.COMPLEX_TYPE);
             //noinspection unchecked
-            attrsDefinition = (MutablePrismContainerDefinition<Containerable>)
+            attrsDefinition = (PrismContainerDefinition<Containerable>)
                     prismContext.definitionFactory()
-                            .createContainerDefinition(ShadowType.F_ATTRIBUTES, ctd);
+                            .newContainerDefinition(ShadowType.F_ATTRIBUTES, ctd);
             object.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES)
-                    .applyDefinition(attrsDefinition, true);
+                    .applyDefinition(attrsDefinition);
         }
 
         /** Creates definition for attribute (first parameters) and sets the value(s) (vararg). */
@@ -723,7 +729,8 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         public final <V> ShadowAttributesHelper set(
                 QName attributeName, QName type, int minOccurrence, int maxOccurrence,
                 V... values) throws SchemaException {
-            attrsDefinition.createPropertyDefinition(attributeName, type, minOccurrence, maxOccurrence);
+            var def = attrsDefinition.mutator().createPropertyDefinition(attributeName, type, minOccurrence, maxOccurrence);
+            def.mutator().setDynamic(true); // MID-2119 (reconsider)
             addExtensionValue(attributesContainer, attributeName.getLocalPart(), values);
             return this;
         }
@@ -770,6 +777,85 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         } finally {
             queryRecorder.stopRecording();
             display(queryRecorder.dumpQueryBuffer());
+        }
+    }
+
+    public class TestShadowDefinition implements ItemDefinitionResolver {
+
+
+        public final PrismObjectDefinition<ShadowType> objectDefinition;
+        private final PrismContainerDefinition<?> attributesDefinition;
+        private final PrismContainerDefinition<?> referenceAttributesDefinition;
+
+        private final ShadowKindType kind;
+        private final String intent;
+        private final QName objectClass;
+
+        private final String resourceRef;
+
+
+        public TestShadowDefinition(String resourceRef, QName objectClass, ShadowKindType kind, String intent) {
+            this.resourceRef = resourceRef;
+            this.objectClass = objectClass;
+            this.kind = kind;
+            this.intent = intent;
+            objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class).clone();
+            ComplexTypeDefinition ctd =
+                    prismContext.definitionFactory().newComplexTypeDefinition(ShadowAttributesType.COMPLEX_TYPE);
+            attributesDefinition = (PrismContainerDefinition<Containerable>)
+                    prismContext.definitionFactory()
+                            .newContainerDefinition(ShadowType.F_ATTRIBUTES, ctd);
+            referenceAttributesDefinition = (PrismContainerDefinition<Containerable>)
+                    prismContext.definitionFactory()
+                            .newContainerDefinition(ShadowType.F_REFERENCE_ATTRIBUTES, ctd.clone());
+            objectDefinition.replaceDefinition(ShadowType.F_ATTRIBUTES, attributesDefinition);
+            objectDefinition.replaceDefinition(ShadowType.F_REFERENCE_ATTRIBUTES, referenceAttributesDefinition);
+        }
+
+        public ItemName itemName(String name) {
+            return ItemName.interned(SchemaConstants.NS_RI, name);
+        }
+
+        public ItemName defineAttribute(String name, QName type) {
+            var itemName = itemName(name);
+            var minOccurrence = 0;
+            var maxOccurrence = 1;
+            var def = attributesDefinition.mutator().createPropertyDefinition(itemName, type, minOccurrence, maxOccurrence);
+            def.mutator().setDynamic(true);
+            def.mutator().setIndexed(true);
+            return itemName;
+        }
+
+        public ItemName defineReference(String name, int maxOccurs) {
+            var itemName = itemName(name);
+            var refDef = prismContext.definitionFactory().newReferenceDefinition(itemName, ObjectReferenceType.COMPLEX_TYPE, 0, maxOccurs);
+            refDef.mutator().setTargetTypeName(ShadowType.COMPLEX_TYPE);
+            referenceAttributesDefinition.getComplexTypeDefinition().mutator().add(refDef);
+            return itemName;
+        }
+
+        public ShadowType newShadow(String name) {
+            var ret = new ShadowType();
+            ret.asPrismObject().setDefinition(objectDefinition);
+            return ret
+                    .name(name)
+                    .resourceRef(resourceRef, ResourceType.COMPLEX_TYPE)
+                    .kind(kind)
+                    .intent(intent)
+                    .objectClass(objectClass);
+        }
+
+        @Override
+        public @Nullable ItemDefinition<?> findItemDefinition(@NotNull Class<? extends Containerable> type, @NotNull ItemPath itemPath) {
+            if (ShadowType.class.equals(type)) {
+                return objectDefinition.findItemDefinition(itemPath);
+            }
+            return null;
+
+        }
+
+        public S_ItemEntry newDelta() throws SchemaException {
+            return PrismContext.get().deltaFor(ShadowType.class, this);
         }
     }
 }

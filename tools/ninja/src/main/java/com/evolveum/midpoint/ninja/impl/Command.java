@@ -7,12 +7,11 @@
 package com.evolveum.midpoint.ninja.impl;
 
 import com.evolveum.midpoint.ninja.action.*;
-import com.evolveum.midpoint.ninja.action.audit.ExportAuditOptions;
-import com.evolveum.midpoint.ninja.action.audit.ExportAuditRepositoryAction;
-import com.evolveum.midpoint.ninja.action.audit.ImportAuditOptions;
-import com.evolveum.midpoint.ninja.action.audit.ImportAuditRepositoryAction;
+import com.evolveum.midpoint.ninja.action.audit.*;
 import com.evolveum.midpoint.ninja.action.mining.ExportMiningOptions;
 import com.evolveum.midpoint.ninja.action.mining.ExportMiningRepositoryAction;
+import com.evolveum.midpoint.ninja.action.mining.generator.GeneratorMiningRepositoryAction;
+import com.evolveum.midpoint.ninja.action.mining.generator.GeneratorOptions;
 import com.evolveum.midpoint.ninja.action.trace.EditTraceAction;
 import com.evolveum.midpoint.ninja.action.trace.EditTraceOptions;
 import com.evolveum.midpoint.ninja.action.upgrade.action.*;
@@ -40,7 +39,11 @@ public enum Command {
 
     EXPORT_AUDIT("export-audit", ExportAuditOptions.class, ExportAuditRepositoryAction.class),
 
+    VERIFY_AUDIT("verify-audit", VerifyAuditOptions.class, VerifyAuditRepositoryAction.class),
+
     EXPORT_MINING("export-mining", ExportMiningOptions.class, ExportMiningRepositoryAction.class),
+
+    GENERATE_RBAC_DATA("generate-rbac-data", GeneratorOptions.class, GeneratorMiningRepositoryAction.class),
 
     TRACE("trace", EditTraceOptions.class, EditTraceAction.class),
 

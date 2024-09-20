@@ -70,8 +70,8 @@ public class ProjectionContextAsserter<RA> extends ElementContextAsserter<ModelP
     }
 
     @Override
-    public ObjectDeltaAsserter<ShadowType, ProjectionContextAsserter<RA>> secondaryDelta() {
-        return (ObjectDeltaAsserter<ShadowType, ProjectionContextAsserter<RA>>) super.secondaryDelta();
+    public ObjectDeltaAsserter<ShadowType, ProjectionContextAsserter<RA>> summarySecondaryDelta() {
+        return (ObjectDeltaAsserter<ShadowType, ProjectionContextAsserter<RA>>) super.summarySecondaryDelta();
     }
 
     @Override

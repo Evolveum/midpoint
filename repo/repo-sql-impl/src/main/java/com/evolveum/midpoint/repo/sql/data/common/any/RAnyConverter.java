@@ -29,7 +29,6 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
-import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -166,7 +165,7 @@ public class RAnyConverter {
 
         ItemDefinition definition = item.getDefinition();
         Set<RAnyValue<?>> rValues = new HashSet<>();
-        if (!isIndexed(definition, item.getElementName(), areDynamicsOfThisKindIndexed(ownerType), prismContext)) {
+        if (!isIndexed(definition, item.getElementName(), areDynamicsOfThisKindIndexed(ownerType))) {
             return rValues;
         }
 
@@ -204,8 +203,7 @@ public class RAnyConverter {
     /**
      * @return null if item is not indexed
      */
-    public static ValueType getValueType(ItemDefinition<?> definition,
-            ItemName itemName, boolean indexAlsoDynamics, PrismContext prismContext)
+    public static ValueType getValueType(ItemDefinition<?> definition, ItemName itemName, boolean indexAlsoDynamics)
             throws SchemaException {
         if (definition == null) {
             return null;
@@ -228,7 +226,7 @@ public class RAnyConverter {
             return null;
         }
 
-        IndexableStatus status = getIndexableStatus(pDefinition, prismContext);
+        IndexableStatus status = getIndexableStatus(pDefinition);
         if (isIndexed == null) {
             return status.indexedByDefault ? status.valueType : null;
         } else {
@@ -252,20 +250,19 @@ public class RAnyConverter {
         }
     }
 
-    private static IndexableStatus getIndexableStatus(PrismPropertyDefinition<?> definition, PrismContext prismContext) {
+    private static IndexableStatus getIndexableStatus(PrismPropertyDefinition<?> definition) {
         QName type = definition.getTypeName();
         ValueType valueType = TYPE_MAP.get(type);
         if (valueType != null) {
             return new IndexableStatus(true, valueType);
         } else {
-            Collection<? extends TypeDefinition> typeDefinitions = prismContext.getSchemaRegistry()
-                    .findTypeDefinitionsByType(definition.getTypeName());
+            Collection<? extends TypeDefinition> typeDefinitions =
+                    PrismContext.get().getSchemaRegistry().findTypeDefinitionsByType(definition.getTypeName());
             if (typeDefinitions.size() != 1) {
                 return new IndexableStatus(false, null);        // shouldn't occur
             }
             TypeDefinition typeDef = typeDefinitions.iterator().next();
-            if (typeDef instanceof SimpleTypeDefinition) {
-                SimpleTypeDefinition simpleTypeDef = (SimpleTypeDefinition) typeDef;
+            if (typeDef instanceof SimpleTypeDefinition simpleTypeDef) {
                 if (DOMUtil.XSD_STRING.equals(simpleTypeDef.getBaseTypeName())
                         && simpleTypeDef.getDerivationMethod() == SimpleTypeDefinition.DerivationMethod.RESTRICTION) {
                     return new IndexableStatus(true, ValueType.STRING);
@@ -276,10 +273,9 @@ public class RAnyConverter {
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    private static boolean isIndexed(ItemDefinition definition, ItemName elementName,
-            boolean indexAlsoDynamics, PrismContext prismContext)
+    public static boolean isIndexed(ItemDefinition<?> definition, ItemName elementName, boolean indexAlsoDynamics)
             throws SchemaException {
-        return getValueType(definition, elementName, indexAlsoDynamics, prismContext) != null;
+        return getValueType(definition, elementName, indexAlsoDynamics) != null;
     }
 
     public static boolean areDynamicsOfThisKindIndexed(RObjectExtensionType extensionType) {
@@ -297,7 +293,7 @@ public class RAnyConverter {
 
         Object object = value.getValue();
         if (object instanceof Element) {
-            object = getRealRepoValue(definition, (Element) object, prismContext);
+            object = getRealRepoValue(definition, (Element) object);
         } else if (object instanceof RawType) {
             RawType raw = (RawType) object;
             object = raw.getParsedRealValue(returnType);        // todo this can return null!
@@ -314,7 +310,7 @@ public class RAnyConverter {
                 + " expected return type " + returnType + ", actual type " + (object == null ? null : object.getClass()));
     }
 
-    private static ValueType getValueType(QName qname) {
+    public static ValueType getValueType(QName qname) {
         if (qname == null) {
             return ValueType.STRING;
         }
@@ -327,34 +323,6 @@ public class RAnyConverter {
     }
 
     /**
-     * This method provides extension type (in real it's table) string for definition and value
-     * defined as parameters.
-     *
-     * @return One of "strings", "longs", "dates", "clobs"
-     */
-    public static String getAnySetType(ItemDefinition definition, PrismContext prismContext) throws
-            SchemaException, QueryException {
-        if (!isIndexed(definition, definition.getItemName(), true, prismContext)) {
-            throw new QueryException("Can't query non-indexed value for '" + definition.getItemName()
-                    + "', definition " + definition);
-        }
-        QName typeName = definition.getTypeName();
-
-        ValueType valueType = getValueType(typeName);
-        switch (valueType) {
-            case BOOLEAN:
-                return "booleans";
-            case DATE:
-                return "dates";
-            case LONG:
-                return "longs";
-            case STRING:
-            default:
-                return "strings";
-        }
-    }
-
-    /**
      * This method provides transformation of {@link Element} value to its object form, e.g. <value>1</value> to
      * {@link Integer} number 1. It's based on element definition from schema registry or xsi:type attribute
      * in that element.
@@ -364,7 +332,7 @@ public class RAnyConverter {
      * [pm] is this method really used? i.e. do we ever try to store PrismPropertyValue<Element>?
      */
     @NotNull
-    public static Object getRealRepoValue(ItemDefinition definition, Element value, PrismContext prismContext) throws SchemaException {
+    public static Object getRealRepoValue(ItemDefinition definition, Element value) throws SchemaException {
         ValueType willBeSavedAs;
         QName typeName;
         if (definition != null) {
@@ -385,7 +353,7 @@ public class RAnyConverter {
                 return DOMUtil.serializeDOMToString(value);     //composite elements or containers
             }
         } else {
-            Object object = prismContext.parserFor(value).type(typeName).parseRealValue();
+            Object object = PrismContext.get().parserFor(value).type(typeName).parseRealValue();
             object = getAggregatedRepoObject(object);
             if (object == null) {
                 throw new IllegalStateException("Can't extract value for saving from prism property value\n" + value);
@@ -402,44 +370,47 @@ public class RAnyConverter {
     public static Object getAggregatedRepoObject(Object object) {
         //check float/double to string
         if (object instanceof Float) {
-            object = object.toString();
+            return object.toString();
         } else if (object instanceof Double) {
-            object = object.toString();
+            return object.toString();
         } else if (object instanceof BigInteger) {
-            object = object.toString();
+            return object.toString();
         } else if (object instanceof BigDecimal) {
-            object = object.toString();
+            return object.toString();
         }
 
         //check short/integer to long
-        if (object instanceof Short) {
-            object = ((Short) object).longValue();
-        } else if (object instanceof Integer) {
-            object = ((Integer) object).longValue();
+        if (object instanceof Short shortValue) {
+            return shortValue.longValue();
+        } else if (object instanceof Integer integer) {
+            return integer.longValue();
         }
 
-        //check gregorian calendar, xmlgregorian calendar to date
-        if (object instanceof GregorianCalendar) {
-            object = ((GregorianCalendar) object).getTime();
-        } else if (object instanceof XMLGregorianCalendar) {
-            object = XMLGregorianCalendarType.asDate(((XMLGregorianCalendar) object));
+        if (object instanceof GregorianCalendar gregorianCalendar) {
+            return toTimestamp(gregorianCalendar.getTime());
+        } else if (object instanceof XMLGregorianCalendar xmlGregorianCalendar) {
+            return toTimestamp(XMLGregorianCalendarType.asDate(xmlGregorianCalendar));
         }
 
-        if (object instanceof Date) {
-            object = new Timestamp(((Date) object).getTime());
+        if (object instanceof Date date) {
+            return toTimestamp(date);
         }
 
         //if object instance of boolean, nothing to do
 
         if (object instanceof Enum<?>) {
-            object = getEnumStringValue((Enum<?>) object);
+            return getEnumStringValue((Enum<?>) object);
         }
 
         if (object instanceof byte[]) {
-            object = new String((byte[]) object);
+            return new String((byte[]) object);
         }
 
         return object;
+    }
+
+    private static @NotNull Timestamp toTimestamp(Date object) {
+        return new Timestamp(object.getTime());
     }
 
     // TODO fix this!

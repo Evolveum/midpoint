@@ -6,13 +6,18 @@
  */
 package com.evolveum.midpoint.gui.impl.component.wizard;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 
@@ -21,10 +26,14 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
+import java.util.Collection;
+
 /**
  * @author lskublik
  */
 public abstract class AbstractWizardPanel<C extends Containerable, AHD extends AssignmentHolderDetailsModel> extends BasePanel {
+
+    private static final Trace LOGGER = TraceManager.getTrace(AbstractWizardPanel.class);
 
     private static final String ID_FRAGMENT = "fragment";
     private static final String ID_CHOICE_FRAGMENT = "choiceFragment";
@@ -34,18 +43,27 @@ public abstract class AbstractWizardPanel<C extends Containerable, AHD extends A
     private static final String ID_WIZARD = "wizard";
 
     private final WizardPanelHelper<C, AHD> helper;
+    private final boolean startWithChoiceTemplate;
 
     public AbstractWizardPanel(
             String id,
             WizardPanelHelper<C, AHD> helper) {
         super(id);
         this.helper = helper;
+        startWithChoiceTemplate = nameOfObjectIsNotNull();
     }
 
     @Override
     protected void onInitialize() {
         super.onInitialize();
         initLayout();
+    }
+
+    /**
+     * Define if will be showed introductory selection some options.
+     */
+    protected final boolean isStartWithChoiceTemplate() {
+        return startWithChoiceTemplate;
     }
 
     protected abstract void initLayout();
@@ -108,5 +126,40 @@ public abstract class AbstractWizardPanel<C extends Containerable, AHD extends A
 
     public WizardPanelHelper<C, AHD> getHelper() {
         return helper;
+    }
+
+    private boolean nameOfObjectIsNotNull() {
+        if (getHelper().getValueModel() == null) {
+            return true;
+        }
+
+        PrismContainerValueWrapper<C> value = getHelper().getValueModel().getObject();
+        if (value == null) {
+            return true;
+        }
+
+        C bean = value.getRealValue();
+        if (!(bean instanceof ObjectType)) {
+            return true;
+        }
+
+        if (((ObjectType) bean).getName() == null) {
+            return true;
+        }
+
+        return false;
+    }
+
+    protected final void showUnsavedChangesToast(AjaxRequestTarget target){
+        if (getValueModel() != null) {
+            try {
+                Collection<?> deltas = getValueModel().getObject().getDeltas();
+                if (!deltas.isEmpty()) {
+                    WebComponentUtil.showToastForRecordedButUnsavedChanges(target, getValueModel().getObject());
+                }
+            } catch (SchemaException e) {
+                LOGGER.error("Couldn't collect deltas from " + getValueModel().getObject(), e);
+            }
+        }
     }
 }

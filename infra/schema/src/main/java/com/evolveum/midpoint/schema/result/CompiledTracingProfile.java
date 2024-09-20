@@ -50,15 +50,15 @@ public final class CompiledTracingProfile implements Serializable {
         this.operationMonitoringConfiguration = OperationMonitoringConfiguration.create(definition.getOperationMonitoring());
     }
 
-    public static CompiledTracingProfile create(TracingProfileType resolvedProfile, PrismContext prismContext) {
+    public static CompiledTracingProfile create(TracingProfileType resolvedProfile) {
         CompiledTracingProfile compiledProfile = new CompiledTracingProfile(resolvedProfile);
-        PrismSchema commonSchema = prismContext.getSchemaRegistry().findSchemaByNamespace(SchemaConstants.NS_C);
+        PrismSchema commonSchema = PrismContext.get().getSchemaRegistry().findSchemaByNamespace(SchemaConstants.NS_C);
         for (ComplexTypeDefinition complexTypeDefinition : commonSchema.getComplexTypeDefinitions()) {
             Class<?> clazz = complexTypeDefinition.getCompileTimeClass();
             if (clazz != null && TraceType.class.isAssignableFrom(clazz)) {
                 //noinspection unchecked
                 Class<? extends TraceType> traceClass = (Class<? extends TraceType>) clazz;
-                compiledProfile.levelMap.put(traceClass, getLevel(resolvedProfile, traceClass, prismContext));
+                compiledProfile.levelMap.put(traceClass, getLevel(resolvedProfile, traceClass));
             }
         }
         return compiledProfile;
@@ -75,11 +75,11 @@ public final class CompiledTracingProfile implements Serializable {
     }
 
     @NotNull
-    private static TracingLevelType getLevel(TracingProfileType resolvedProfile, Class<? extends TraceType> traceClass, PrismContext prismContext) {
+    private static TracingLevelType getLevel(TracingProfileType resolvedProfile, Class<? extends TraceType> traceClass) {
         if (!resolvedProfile.getRef().isEmpty()) {
             throw new IllegalArgumentException("Profile is not resolved: " + resolvedProfile);
         }
-        List<QName> ancestors = getAncestors(traceClass, prismContext);
+        List<QName> ancestors = getAncestors(traceClass);
         LOGGER.trace("Ancestors for {}: {}", traceClass, ancestors);
         for (QName ancestor : ancestors) {
             TracingLevelType level = getLevel(resolvedProfile, ancestor);
@@ -90,13 +90,13 @@ public final class CompiledTracingProfile implements Serializable {
         return TracingLevelType.MINIMAL;
     }
 
-    private static List<QName> getAncestors(Class<? extends TraceType> traceClass, PrismContext prismContext) {
+    private static List<QName> getAncestors(Class<? extends TraceType> traceClass) {
         List<QName> rv = new ArrayList<>();
         for (;;) {
             if (!TraceType.class.isAssignableFrom(traceClass)) {
                 throw new IllegalStateException("Wrong trace class: " + traceClass);
             }
-            rv.add(prismContext.getSchemaRegistry().findTypeDefinitionByCompileTimeClass(traceClass, ComplexTypeDefinition.class).getTypeName());
+            rv.add(PrismContext.get().getSchemaRegistry().findTypeDefinitionByCompileTimeClass(traceClass, ComplexTypeDefinition.class).getTypeName());
             if (traceClass.equals(TraceType.class)) {
                 return rv;
             }
@@ -121,11 +121,7 @@ public final class CompiledTracingProfile implements Serializable {
         }
     }
 
-    public boolean isLevel(@NotNull Class<? extends TraceType> traceClass, @NotNull TracingLevelType level) {
-        return getLevel(traceClass).ordinal() >= level.ordinal();
-    }
-
-    public boolean isCollectingLogEntries() {
+    boolean isCollectingLogEntries() {
         return Boolean.TRUE.equals(definition.isCollectLogEntries());
     }
 
@@ -148,7 +144,7 @@ public final class CompiledTracingProfile implements Serializable {
         return !Boolean.FALSE.equals(definition.isMeasureCpuTime());
     }
 
-    public @NotNull OperationMonitoringConfiguration getOperationMonitoringConfiguration() {
+    @NotNull OperationMonitoringConfiguration getOperationMonitoringConfiguration() {
         return operationMonitoringConfiguration;
     }
 }

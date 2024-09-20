@@ -10,63 +10,60 @@ package com.evolveum.midpoint.provisioning.impl.shadows.manager;
 import static com.evolveum.midpoint.provisioning.impl.shadows.manager.MetadataUtil.addCreationMetadata;
 import static com.evolveum.midpoint.provisioning.impl.shadows.manager.MetadataUtil.addModificationMetadataDeltas;
 import static com.evolveum.midpoint.util.DebugUtil.debugDumpLazily;
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import javax.xml.datatype.Duration;
 
-import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.AddOperationState;
-
-import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.provisioning.impl.RepoShadow;
+import com.evolveum.midpoint.provisioning.impl.RepoShadowModifications;
 import com.evolveum.midpoint.provisioning.impl.shadows.*;
+import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.AddOperationState;
+import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.AbstractShadow;
+import com.evolveum.midpoint.schema.util.RawRepoShadow;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import javax.xml.datatype.Duration;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.InternalsConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataRecordingStrategyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 /**
- * A bridge between {@link ShadowProvisioningOperation} and the rest of shadow manager package: records the result of the operation
- * into the corresponding shadows.
+ * A bridge between {@link ShadowProvisioningOperation} and the rest of shadow manager package:
+ * records the result of the operation into the corresponding shadows.
  *
  * This is one of public classes of the shadow manager package.
  */
 @Component
 public class OperationResultRecorder {
 
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService repositoryService;
-
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired private PrismContext prismContext;
     @Autowired private ProvisioningService provisioningService;
-    @Autowired private ShadowDeltaComputerAbsolute shadowDeltaComputerAbsolute;
     @Autowired private ShadowUpdater shadowUpdater;
-    @Autowired private ShadowCreator shadowCreator;
+    @Autowired private ShadowObjectComputer shadowObjectComputer;
     @Autowired private PendingOperationsHelper pendingOperationsHelper;
     @Autowired private Clock clock;
 
@@ -102,25 +99,28 @@ public class OperationResultRecorder {
 
         ProvisioningContext ctx = operation.getCtx();
         AddOperationState opState = operation.getOpState();
-        ShadowType resourceObject = operation.getResourceObjectAddedOrToAdd();
+        AbstractShadow shadow = operation.getShadowAddedOrToAdd();
 
-        ShadowType repoShadowToAdd = shadowCreator.createShadowForRepoStorage(ctx, resourceObject);
-        opState.setRepoShadow(repoShadowToAdd);
+        RawRepoShadow rawRepoShadowToAdd = shadowObjectComputer.createShadowForRepoStorage(ctx, shadow);
+        var repoShadowBeanToAdd = rawRepoShadowToAdd.getBean(); // to be updated below
 
-        if (!opState.isCompleted()) {
+        if (opState.isCompleted()) {
+            repoShadowBeanToAdd.setExists(true);
+        } else {
+            repoShadowBeanToAdd.setExists(false);
             pendingOperationsHelper.addPendingOperationIntoNewShadow(
-                    repoShadowToAdd, resourceObject, opState, null);
+                    repoShadowBeanToAdd, shadow.getBean(), opState, null);
         }
 
-        addCreationMetadata(repoShadowToAdd);
+        addCreationMetadata(repoShadowBeanToAdd);
 
-        LOGGER.trace("Adding repository shadow\n{}", repoShadowToAdd.debugDumpLazily(1));
+        LOGGER.trace("Adding repository shadow\n{}", repoShadowBeanToAdd.debugDumpLazily(1));
         String oid;
 
         try {
 
-            ConstraintsChecker.onShadowAddOperation(repoShadowToAdd); // TODO migrate to repo cache invalidation
-            oid = repositoryService.addObject(repoShadowToAdd.asPrismObject(), null, result);
+            ConstraintsChecker.onShadowAddOperation(repoShadowBeanToAdd); // TODO migrate to repo cache invalidation
+            oid = repositoryService.addObject(repoShadowBeanToAdd.asPrismObject(), null, result);
 
         } catch (ObjectAlreadyExistsException ex) {
             // This should not happen. The OID is not supplied and it is generated by the repo.
@@ -129,29 +129,31 @@ public class OperationResultRecorder {
             throw new ObjectAlreadyExistsException(
                     "Couldn't add shadow object to the repository. Shadow object already exist. Reason: " + ex.getMessage(), ex);
         }
-        repoShadowToAdd.setOid(oid);
+        repoShadowBeanToAdd.setOid(oid);
+        opState.setRepoShadow(
+                ctx.adoptRawRepoShadow(repoShadowBeanToAdd));
 
-        LOGGER.trace("Active shadow added to the repository: {}", repoShadowToAdd);
+        LOGGER.trace("Active shadow added to the repository: {}", repoShadowBeanToAdd);
     }
 
     private void recordAddResultInExistingShadow(ShadowAddOperation addOperation, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException {
 
-        ProvisioningContext ctx = addOperation.getCtx();
-        ShadowType resourceShadow = addOperation.getResourceObjectAddedOrToAdd();
-        AddOperationState opState = addOperation.getOpState();
+        var shadowModifications = computePendingOperationsAndLifecycleStateModifications(addOperation);
 
-        Collection<ItemDelta<?, ?>> shadowModifications = computePendingOperationsAndLifecycleStateModifications(addOperation);
+        ProvisioningContext ctx = addOperation.getCtx();
+
+        var repoShadow = addOperation.getOpState().getRepoShadow();
+        ctx.updateShadowState(repoShadow); // TODO is this needed?
+
+        var resourceObject = addOperation.getShadowAddedOrToAdd();
 
         // Here we compute the deltas that would align the repository shadow with the "full" version of the resource object.
         // We use the same mechanism (shadow delta computer) as is used for shadows coming from the resource.
-        ShadowType repoShadow = opState.getRepoShadow();
-        ShadowLifecycleStateType shadowState = ctx.determineShadowState(repoShadow);
         shadowModifications.addAll(
-                shadowDeltaComputerAbsolute
-                        .computeShadowDelta(
-                                ctx, repoShadow, resourceShadow, null, shadowState, false)
-                        .getModifications());
+                ShadowDeltaComputerAbsolute.computeShadowModifications(
+                        ctx, repoShadow, resourceObject, null,
+                        addOperation.getEffectiveMarksAndPoliciesRequired(), false));
 
         addModificationMetadataDeltas(shadowModifications, repoShadow);
 
@@ -159,29 +161,28 @@ public class OperationResultRecorder {
     }
 
     public void recordModifyResult(ShadowModifyOperation operation, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException {
+            throws SchemaException, ObjectNotFoundException {
 
-        ProvisioningContext ctx = operation.getCtx();
-        ProvisioningOperationState.ModifyOperationState opState = operation.getOpState();
-        ShadowType repoShadow = opState.getRepoShadowRequired();
-        Collection<? extends ItemDelta<?, ?>> effectiveModifications = operation.getEffectiveModifications();
+        var ctx = operation.getCtx();
+        var opState = operation.getOpState();
+        var repoShadow = opState.getRepoShadowRequired();
 
-        List<ItemDelta<?, ?>> shadowModifications = computePendingOperationsAndLifecycleStateModifications(operation);
-
-        List<ItemDelta<?, ?>> allModifications;
+        var allModifications = new RepoShadowModifications();
         if (opState.isCompleted()) {
-            //noinspection unchecked,rawtypes
-            allModifications = MiscUtil.join(effectiveModifications, (List) shadowModifications);
-        } else {
-            allModifications = shadowModifications;
+            allModifications.addAll(operation.getRequestedNonResourceModifications());
+            allModifications.addAll(
+                    emptyIfNull(operation.getEffectiveResourceLevelModifications()),
+                    ctx.getObjectDefinitionRequired());
         }
+        allModifications.addAll(computePendingOperationsAndLifecycleStateModifications(operation));
         if (shouldApplyModifyMetadata()) {
             addModificationMetadataDeltas(allModifications, opState.getRepoShadow());
         }
-        LOGGER.trace("Updating repository {} after MODIFY operation {}, {} repository shadow modifications",
-                repoShadow, opState, effectiveModifications.size());
 
-        shadowUpdater.modifyRepoShadow(ctx, repoShadow, allModifications, result);
+        LOGGER.trace("Updating repository {} after MODIFY operation {}, {}/{} modifications",
+                repoShadow, opState, allModifications.size(), allModifications.sizeRaw());
+
+        shadowUpdater.modifyRepoShadow(ctx, repoShadow, allModifications.getItemDeltas(), result);
     }
 
     private boolean shouldApplyModifyMetadata() {
@@ -194,13 +195,13 @@ public class OperationResultRecorder {
     /**
      * Returns updated repo shadow, or null if shadow is deleted from repository.
      */
-    public ShadowType recordDeleteResult(ShadowDeleteOperation operation, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException {
+    public RepoShadow recordDeleteResult(ShadowDeleteOperation operation, OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
 
         ProvisioningContext ctx = operation.getCtx();
         ProvisioningOperationState<AsynchronousOperationResult> opState = operation.getOpState();
         ProvisioningOperationOptions options = operation.getOptions();
-        ShadowType repoShadow = opState.getRepoShadow();
+        var repoShadow = opState.getRepoShadow();
 
         if (ProvisioningOperationOptions.isForce(options)) {
             LOGGER.trace("Deleting repository {} (forced deletion): {}", repoShadow, opState);
@@ -210,7 +211,7 @@ public class OperationResultRecorder {
         }
 
         if (!opState.hasCurrentPendingOperation() && opState.isCompleted()) {
-            if (repoShadow.getPendingOperation().isEmpty() && opState.isSuccess()) {
+            if (!repoShadow.hasPendingOperations() && opState.isSuccess()) {
                 LOGGER.trace("Deleting repository {}: {}", repoShadow, opState);
                 shadowUpdater.executeRepoShadowDeletion(repoShadow, ctx.getTask(), result);
                 opState.setRepoShadow(null);
@@ -219,46 +220,50 @@ public class OperationResultRecorder {
                 // There are unexpired pending operations in the shadow. We cannot delete the shadow yet.
                 // Therefore just mark shadow as dead.
                 LOGGER.trace("Keeping dead {} because of pending operations or operation result", repoShadow);
-                ShadowType updatedShadow = shadowUpdater.markShadowTombstone(repoShadow, ctx.getTask(), result);
+                RepoShadow updatedShadow = shadowUpdater.markShadowTombstone(repoShadow, ctx.getTask(), result);
                 opState.setRepoShadow(updatedShadow);
                 return updatedShadow;
             }
         }
         LOGGER.trace("Recording the result of pending delete operation in repository {}: {}", repoShadow, opState);
-        List<ItemDelta<?, ?>> shadowModifications = computePendingOperationsAndLifecycleStateModifications(operation);
+        var shadowModifications = computePendingOperationsAndLifecycleStateModifications(operation);
         addModificationMetadataDeltas(shadowModifications, opState.getRepoShadow());
 
-        if (repoShadow.getPrimaryIdentifierValue() != null) {
+        var logicalModifications = new ArrayList<>(shadowModifications.getItemDeltas());
+        if (repoShadow.getBean().getPrimaryIdentifierValue() != null) {
             // State goes to reaping or corpse or tombstone -> primaryIdentifierValue must be freed (if not done so yet)
             ItemDeltaCollectionsUtil.addNotEquivalent(
-                    shadowModifications,
+                    logicalModifications,
                     prismContext.deltaFor(ShadowType.class)
                             .item(ShadowType.F_PRIMARY_IDENTIFIER_VALUE).replace()
                             .asItemDeltas());
         }
 
         LOGGER.trace("Updating repository {} after DELETE operation {}, {} repository shadow modifications",
-                repoShadow, opState, shadowModifications.size());
-        shadowUpdater.modifyRepoShadow(ctx, repoShadow, shadowModifications, result); // May be also directly executed
+                repoShadow, opState, logicalModifications.size());
+        shadowUpdater.modifyRepoShadow(ctx, repoShadow, logicalModifications, result); // May be also directly executed
         return repoShadow; // The shadow is obviously updated also in opState (it is the same Java object).
     }
 
-    private List<ItemDelta<?, ?>> computePendingOperationsAndLifecycleStateModifications(ShadowProvisioningOperation<?> operation)
+    private @NotNull RepoShadowModifications computePendingOperationsAndLifecycleStateModifications(
+            ShadowProvisioningOperation<?> operation)
             throws SchemaException {
 
-        List<ItemDelta<?, ?>> shadowModifications = new ArrayList<>();
-        pendingOperationsHelper.computePendingOperationsDeltas(shadowModifications, operation);
+        var shadowModifications = new RepoShadowModifications();
+        shadowModifications.addAll(
+                pendingOperationsHelper.computePendingOperationsDeltas(operation));
 
         ProvisioningOperationState<?> opState = operation.getOpState();
-        ShadowType repoShadow = opState.getRepoShadowRequired();
+        RepoShadow repoShadow = opState.getRepoShadowRequired();
         if (opState.isCompleted() && opState.isSuccess()) {
             if (operation instanceof ShadowDeleteOperation) {
-                shadowUpdater.addTombstoneDeltas(repoShadow, shadowModifications);
-            } else if (!ShadowUtil.isExists(repoShadow)) {
+                shadowModifications.addAll(
+                        shadowUpdater.createTombstoneDeltas(repoShadow));
+            } else if (!repoShadow.doesExist()) {
                 shadowModifications.add(
                         prismContext.deltaFor(ShadowType.class)
                                 .item(ShadowType.F_EXISTS)
-                                .replace()
+                                .replace(true)
                                 .asItemDelta());
             }
         }
@@ -274,17 +279,18 @@ public class OperationResultRecorder {
             throws SchemaException, ObjectNotFoundException {
         ProvisioningContext ctx = operation.getCtx();
         ProvisioningOperationState<?> opState = operation.getOpState();
-        ShadowType repoShadow = opState.getRepoShadow();
+        RepoShadow repoShadow = opState.getRepoShadow();
         if (repoShadow == null) {
             // Shadow does not exist. As this operation immediately ends up with an error then
             // we not even bother to create a shadow.
             return;
         }
 
-        List<ItemDelta<?, ?>> shadowModifications = new ArrayList<>();
+        var shadowModifications = new RepoShadowModifications();
 
         opState.setDefaultResultStatus(OperationResultStatus.FATAL_ERROR);
-        pendingOperationsHelper.computePendingOperationsDeltas(shadowModifications, operation);
+        shadowModifications.addAll(
+                pendingOperationsHelper.computePendingOperationsDeltas(operation));
 
         if (operation.isAdd()) {
             // This means we have failed add operation here. We tried to add object,
@@ -299,7 +305,7 @@ public class OperationResultRecorder {
                 return;
             }
 
-            if (!ShadowUtil.isDead(repoShadow)) {
+            if (!repoShadow.isDead()) {
                 shadowModifications.addAll(
                         prismContext.deltaFor(ShadowType.class)
                                 .item(ShadowType.F_DEAD).replace(true)

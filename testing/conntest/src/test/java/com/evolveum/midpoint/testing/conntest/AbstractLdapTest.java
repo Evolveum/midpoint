@@ -21,6 +21,10 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.provisioning.api.LiveSyncEvent;
+import com.evolveum.midpoint.provisioning.api.LiveSyncEventHandler;
+import com.evolveum.midpoint.provisioning.api.LiveSyncToken;
+import com.evolveum.midpoint.provisioning.api.LiveSyncTokenStorage;
 import com.evolveum.midpoint.test.TestTask;
 
 import org.apache.directory.api.ldap.codec.api.DefaultConfigurableBinaryAttributeDetector;
@@ -360,6 +364,30 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 
         resource = getObject(ResourceType.class, getResourceOid());
         displayXml("Resource after test connection", resource);
+
+        showToken();
+    }
+
+    /** This is to diagnose issues with the initial token. */
+    void showToken() throws CommonException {
+        DummyTokenStorage tokenStorage = new DummyTokenStorage();
+        provisioningService.synchronize(
+                ResourceOperationCoordinates.ofResource(getResourceOid()),
+                null,
+                tokenStorage,
+                new LiveSyncEventHandler() {
+                    @Override
+                    public void allEventsSubmitted(OperationResult result) {
+                    }
+
+                    @Override
+                    public boolean handle(LiveSyncEvent event, OperationResult opResult) {
+                        return true;
+                    }
+                },
+                getTestTask(),
+                getTestOperationResult());
+        displayValue("Token", tokenStorage.token);
     }
 
     @Test
@@ -388,6 +416,8 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         displayXml("Resource after test connection", resource.asPrismObject());
 
         assertNull("Resource was saved to repo, during partial configuration test", findObjectByName(ResourceType.class, "newResource"));
+
+        showToken();
     }
 
     @Test
@@ -415,11 +445,13 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         displayXml("Resource after test connection", resource.asPrismObject());
 
         assertNull("Resource was saved to repo, during partial configuration test", findObjectByName(ResourceType.class, "newResource"));
+
+        showToken();
     }
 
     @Test
     public void test020Schema() throws Exception {
-        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource);
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getBareSchema(resource);
         displayDumpable("Raw resource schema", resourceSchema);
 
         ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
@@ -429,19 +461,19 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         assertThat(accountDefinition).as("account definition").isInstanceOf(ResourceObjectTypeDefinition.class);
         displayDumpable("Account object class def", accountDefinition);
 
-        ResourceAttributeDefinition<?> cnDef = accountDefinition.findAttributeDefinition("cn");
+        ShadowSimpleAttributeDefinition<?> cnDef = accountDefinition.findSimpleAttributeDefinition("cn");
         PrismAsserts.assertDefinition(cnDef, QNAME_CN, DOMUtil.XSD_STRING, 1, 1);
         assertTrue("cn read", cnDef.canRead());
         assertTrue("cn modify", cnDef.canModify());
         assertTrue("cn add", cnDef.canAdd());
 
-        ResourceAttributeDefinition<?> oDef = accountDefinition.findAttributeDefinition("o");
+        ShadowSimpleAttributeDefinition<?> oDef = accountDefinition.findSimpleAttributeDefinition("o");
         PrismAsserts.assertDefinition(oDef, new QName(MidPointConstants.NS_RI, "o"), DOMUtil.XSD_STRING, 0, -1);
         assertTrue("o read", oDef.canRead());
         assertTrue("o modify", oDef.canModify());
         assertTrue("o add", oDef.canAdd());
 
-        ResourceAttributeDefinition<?> createTimestampDef = accountDefinition.findAttributeDefinition(getCreateTimeStampAttributeName());
+        ShadowSimpleAttributeDefinition<?> createTimestampDef = accountDefinition.findSimpleAttributeDefinition(getCreateTimeStampAttributeName());
         PrismAsserts.assertDefinition(createTimestampDef, new QName(MidPointConstants.NS_RI, getCreateTimeStampAttributeName()),
                 getTimestampXsdType(), 0, 1);
         assertTrue(getCreateTimeStampAttributeName() + " def read", createTimestampDef.canRead());
@@ -449,6 +481,8 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         assertFalse(getCreateTimeStampAttributeName() + " def read", createTimestampDef.canAdd());
 
         assertStableSystem();
+
+        showToken();
     }
 
     protected String getCreateTimeStampAttributeName() {
@@ -483,6 +517,8 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         assertAdditionalCapabilities(nativeCapabilities);
 
         assertStableSystem();
+
+        showToken();
     }
 
     protected void assertActivationCapability(ActivationCapabilityType activationCapabilityType) {
@@ -500,7 +536,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
     }
 
     protected <T> ObjectFilter createAttributeFilter(String attrName, T attrVal) {
-        ResourceAttributeDefinition<?> ldapAttrDef = accountDefinition.findAttributeDefinition(attrName);
+        ShadowSimpleAttributeDefinition<?> ldapAttrDef = accountDefinition.findSimpleAttributeDefinition(attrName);
         return prismContext.queryFor(ShadowType.class)
                 .itemWithDef(ldapAttrDef, ShadowType.F_ATTRIBUTES, ldapAttrDef.getItemName()).eq(attrVal)
                 .buildFilter();
@@ -1027,7 +1063,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
     }
 
     protected void assertAccountShadow(PrismObject<ShadowType> shadow, String dn) throws SchemaException, ConfigurationException {
-        assertShadowCommon(shadow, null, dn, resourceType, getAccountObjectClass(), ciMatchingRule, false);
+        assertShadowCommon(shadow, null, dn, resourceType, getAccountObjectClass(), ciMatchingRule);
     }
 
     protected void assertGroupShadow(PrismObject<ShadowType> shadow, String dn) throws SchemaException, ConfigurationException {
@@ -1104,5 +1140,20 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 
     protected int getNumberOfFdsPerLdapConnectorInstance() {
         return 7;
+    }
+
+    public static class DummyTokenStorage implements LiveSyncTokenStorage {
+
+        LiveSyncToken token;
+
+        @Override
+        public LiveSyncToken getToken() {
+            return token;
+        }
+
+        @Override
+        public void setToken(LiveSyncToken token, OperationResult result) {
+            this.token = token;
+        }
     }
 }

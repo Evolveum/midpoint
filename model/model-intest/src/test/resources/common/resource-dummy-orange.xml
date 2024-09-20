@@ -45,7 +45,10 @@
             <icfi:requireExplicitEnable>true</icfi:requireExplicitEnable>
             <icfi:tolerateDuplicateValues>false</icfi:tolerateDuplicateValues>
             <icfi:uselessGuardedString>
-                <clearValue>whatever</clearValue>
+                <t:externalData>
+                    <t:provider>properties-provider</t:provider>
+                    <t:key>resource-dummy-orange</t:key>
+                </t:externalData>
             </icfi:uselessGuardedString>
             <icfi:uselessString>
                 <expression>
@@ -377,7 +380,6 @@
                     <expression>
                         <value>
                             <!-- "testers" group -->
-                            <name>ri:group</name>
                             <shadowRef oid="20000000-0000-0000-3333-000000000002" type="ShadowType"/>
                         </value>
                     </expression>

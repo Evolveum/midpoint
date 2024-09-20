@@ -1,30 +1,26 @@
 package com.evolveum.midpoint.provisioning.ucf.api;
 
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.schema.AbstractOptions;
-import com.evolveum.midpoint.schema.result.OperationResult;
-
-import com.evolveum.midpoint.util.ShortDumpable;
-
-import javax.xml.namespace.QName;
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.List;
+
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.schema.AbstractOptions;
+import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
+import com.evolveum.midpoint.schema.processor.NativeResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.ShortDumpable;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 /**
- * Options driving the {@link ConnectorInstance#configure(PrismContainerValue, ConnectorConfigurationOptions, OperationResult)}
+ * Options driving the {@link ConnectorInstance#configure(ConnectorConfiguration, ConnectorConfigurationOptions, OperationResult)}
  * operation.
  *
- * TODO consider whether to include the configuration (a {@link PrismContainerValue}) itself here.
+ * TODO consider removing, as currently only "do not cache" flag remanined here (but others may appear in the future)
  */
 public class ConnectorConfigurationOptions extends AbstractOptions implements Cloneable, Serializable, ShortDumpable {
-
-    /**
-     * The list of the object classes which should be generated in schema (null or empty means "all").
-     *
-     * The list is immutable. Ensured by the setter method.
-     */
-    private final List<QName> generateObjectClasses;
 
     /**
      * If set to `true`, the connector configuration is not ready to be shared with other clients,
@@ -36,31 +32,12 @@ public class ConnectorConfigurationOptions extends AbstractOptions implements Cl
      */
     private final Boolean doNotCache;
 
-    public static final ConnectorConfigurationOptions DEFAULT = new ConnectorConfigurationOptions();
-
     public ConnectorConfigurationOptions() {
-        generateObjectClasses = null;
         doNotCache = null;
     }
 
-    // Assuming generateObjectClasses is immutable. Not wrapping it here, to avoid re-wraps.
-    private ConnectorConfigurationOptions(List<QName> generateObjectClasses, Boolean doNotCache) {
-        this.generateObjectClasses = generateObjectClasses;
+    private ConnectorConfigurationOptions(Boolean doNotCache) {
         this.doNotCache = doNotCache;
-    }
-
-    public List<QName> getGenerateObjectClasses() {
-        return generateObjectClasses;
-    }
-
-    public ConnectorConfigurationOptions generateObjectClasses(List<QName> value) {
-        return new ConnectorConfigurationOptions(
-                value != null ? Collections.unmodifiableList(value) : null,
-                doNotCache);
-    }
-
-    public Boolean getDoNotCache() {
-        return doNotCache;
     }
 
     public boolean isDoNotCache() {
@@ -68,12 +45,11 @@ public class ConnectorConfigurationOptions extends AbstractOptions implements Cl
     }
 
     public ConnectorConfigurationOptions doNotCache(boolean value) {
-        return new ConnectorConfigurationOptions(generateObjectClasses, value);
+        return new ConnectorConfigurationOptions(value);
     }
 
     @Override
     public void shortDump(StringBuilder sb) {
-        appendVal(sb, "generateObjectClasses", generateObjectClasses);
         appendFlag(sb, "doNotCache", doNotCache);
         removeLastComma(sb);
     }
@@ -84,6 +60,23 @@ public class ConnectorConfigurationOptions extends AbstractOptions implements Cl
             return (ConnectorConfigurationOptions) super.clone();
         } catch (CloneNotSupportedException e) {
             throw new AssertionError();
+        }
+    }
+
+    /** TODO we will probably remove this */
+    public interface CompleteSchemaProvider extends Serializable {
+
+        CompleteResourceSchema completeSchema(NativeResourceSchema nativeSchema)
+                throws SchemaException, ConfigurationException;
+
+        static @NotNull CompleteSchemaProvider forResource(@NotNull ResourceType resource) {
+            return (rawSchema) -> ResourceSchemaFactory.parseCompleteSchema(resource, rawSchema);
+        }
+
+        static @NotNull CompleteSchemaProvider none() {
+            return (rawSchema) -> {
+                throw new UnsupportedOperationException();
+            };
         }
     }
 }

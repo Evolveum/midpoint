@@ -1,0 +1,115 @@
+= Dashboard report: Audit events which change administrativeStatus on resource
+:page-nav-title: Example: Audit, administrativeStatus
+:page-wiki-name: Dashboard report: Audit events which change administrativeStatus on resource
+:page-wiki-id: 52002844
+:page-wiki-metadata-create-user: lskublik
+:page-wiki-metadata-create-date: 2020-05-04T13:35:21.566+02:00
+:page-wiki-metadata-modify-user: lskublik
+:page-wiki-metadata-modify-date: 2020-09-04T08:41:08.212+02:00
+:page-upkeep-status: yellow
+:page-upkeep-note: check TODO's after sampleRef is fully in prod remove links
+
+Please see xref:/midpoint/reference/admin-gui/dashboards/configuration/[Dashboard configuration] for basic information about configuration variables and Auditing-Custom column for steps how to add custom column.
+
+== Example Use-case
+
+Administrator needs display all audit events which contains delta with changes on administrativeStatus of account on resource R1
+
+== Configuration
+
+As first, we need add custom column to m_audit_event table, on it use next sql commands:
+
+.*Adding new custom column*
+[source,sql]
+----
+ALTER TABLE ma_audit_event ADD custSituation VARCHAR(255);
+
+CREATE INDEX iAuditEventCustSituation
+    ON ma_audit_event (custSituation);
+----
+
+//TODO check after sampleRef is fully in prod
+.*Example Resource Configuration*
+[%collapsible]
+====
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/resources/csv/resource-csv-username.xml[Git]
+
+sampleRef::samples/resources/csv/resource-csv-username.xml[]
+====
+
+//TODO check after sampleRef is fully in prod
+.*Example CSV Source File*
+[%collapsible]
+====
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/resources/csv/midpoint-username.csv[Git]
+
+sampleRef::samples/resources/csv/midpoint-username.csv[]
+====
+
+As next adding we're adding next snippet of configuration to config.xml file in Midpoint home directory.
+
+//TODO check after sampleRef is fully in prod
+.*config.xml configuration snippet*
+[%collapsible]
+====
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/misc/config-custom-column.xml[Git]
+
+sampleRef::samples/misc/config-custom-column.xml[]
+====
+
+After modifying config.xml we have to restart Midpoint. As last part of adding custom column adding next configuration to system configuration.
+
+//TODO check after sampleRef is fully in prod
+.*Snippet of system configuration*
+[%collapsible]
+====
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/misc/system-config-event-rec.xml[Git]
+
+sampleRef::samples/misc/system-config-event-rec.xml[]
+====
+
+ I chose situations are split by '|', but you can use more columns. Now, we need configure object collection for audit records.
+In object collection for audit events we use sql select command.
+
+//TODO check after sampleRef is fully in prod
+.*Object collection*
+[%collapsible]
+====
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/objectCollection/admin-status-modification.xml[Git]
+
+sampleRef::samples/objectCollection/admin-status-modification.xml[]
+====
+
+When we have object collection, then import Dashboard object with widget for our object collection.
+
+//TODO check after sampleRef is fully in prod
+.*Dashboard*
+[%collapsible]
+====
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/change-of-admin-status-custom-column.xml[Git]
+
+sampleRef::samples/dashboard/change-of-admin-status-custom-column.xml[]
+====
+
+After successful import of dashboard object and reload of page you can see dashboard in menu *Dashboards* > *Changes of administrativeStatus(R1)*.
+
+We want report with table of audit events, so we import dashboard report.
+
+//TODO check after sampleRef is fully in prod
+.*Report*
+[%collapsible]
+====
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/reports/dashboard-report-custom-column.xml[Git]
+
+sampleRef::samples/reports/dashboard-report-custom-column.xml[]
+====
+
+Now we can run report in report menu, show task, and download report.
+Every report from dashboard is in HTML format.
+
+== See Also
+
+- xref:/midpoint/reference/misc/reports/examples/[Report Examples]
+- xref:/midpoint/reference/misc/reports/configuration/[Report Configuration]
+- xref:/midpoint/reference/misc/reports/configuration/collection-report.adoc[Collection Based Reports]
+- xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[Dashboard Based Reports]

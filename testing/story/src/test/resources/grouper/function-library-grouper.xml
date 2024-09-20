@@ -126,7 +126,7 @@
                     itemDelta = new ItemDeltaType()
                     itemDelta.modificationType = eventType == 'MEMBERSHIP_ADD' ? ModificationTypeType.ADD : ModificationTypeType.DELETE
                     itemDelta.path = new ItemPathType(ItemPath.create(ShadowType.F_ATTRIBUTES, 'members'))
-                    itemDelta.value.add(RawType.fromPropertyRealValue(subjectId, null, prismContext))
+                    itemDelta.value.add(RawType.fromPropertyRealValue(subjectId, null))
                     delta = new ObjectDeltaType()
                     delta.changeType = ChangeTypeType.MODIFY
                     delta.itemDelta.add(itemDelta)
@@ -136,7 +136,7 @@
                             .createForNamedUser(subjectId)
                     log.info('Recompute trigger for {}: {}', subjectId, added ? 'added' : 'not added (already present or user not found)')
 
-                    return UcfChangeUtil.create(GROUP_OBJECT_CLASS, identifiers, delta, prismContext)
+                    return UcfChangeUtil.create(GROUP_OBJECT_CLASS, identifiers, delta)
                 } else if (eventType == 'GROUP_ADD' || eventType == 'GROUP_DELETE') {
                     groupName = esbEvent['name']
                     groupId = esbEvent['id']
@@ -155,7 +155,7 @@
                     } else {
                         delta = null
                     }
-                    return UcfChangeUtil.create(GROUP_OBJECT_CLASS, identifiers, delta, prismContext)
+                    return UcfChangeUtil.create(GROUP_OBJECT_CLASS, identifiers, delta)
                 } else if (eventType == 'GROUP_UPDATE') {
                     groupName = esbEvent['name']
                     groupId = esbEvent['id']
@@ -168,7 +168,7 @@
                     identifiers = new HashMap()
                     identifiers.put(ICFS_NAME, groupName)
                     identifiers.put(ICFS_UID, groupId)
-                    return UcfChangeUtil.create(GROUP_OBJECT_CLASS, identifiers, null, prismContext)
+                    return UcfChangeUtil.create(GROUP_OBJECT_CLASS, identifiers, null)
                 } else {
                     log.warn('Unsupported event type: {} -> {}', eventType, esbEvent)
                     return null

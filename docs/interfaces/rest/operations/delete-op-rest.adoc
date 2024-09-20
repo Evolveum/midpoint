@@ -1,0 +1,75 @@
+= Delete Operation
+:page-nav-title: Delete
+:page-display-order: 400
+:page-toc: top
+:page-keywords: [ 'rest', 'delete', 'opeation' ]
+:page-upkeep-status: green
+
+== Delete With Rest
+Request to delete a midPoint object.
+
+== Request
+For the request use the HTTP DELETE method
+
+Using the DELETE method, the client has to provide the type of the web resource which
+should be deleted "{endpoint}" and the oid of the specific object which should be deleted
+"{oid}".
+
+.Delete operation
+[source, http]
+----
+DELETE http://localhost:8080/midpoint/ws/rest/{endpoint}/{oid}
+----
+
+=== Headers
+
+Regarding authorization type, the "Basic" Authorization header should be used.
+
+.Authorization header example replace {Base64EncodedCredentials} with the encoded credentials
+[source, http]
+----
+Authorization: Basic {Base64EncodedCredentials}
+----
+
+=== Body
+
+No additional data needed in the request body.
+
+=== Options
+
+No additional option parameters supported for these types of requests.
+
+include::../../rest/concepts/raw/outcome.adoc[]
+
+== Access Authorization
+
+include::../operations/raw/a-auth.adoc[]
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#deleteObject+`
+
+== Model Authorizations
+
+include::../operations/raw/m-auth.adoc[]
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#deleteObject+`
+
+== Examples
+
+include::../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+
+include::../../rest/operations/examples/raw/delete-user.adoc[]
+
+include::../../rest/operations/examples/raw/delete-role.adoc[]
+
+include::../../rest/operations/examples/raw/delete-resource.adoc[]
+
+== See Also
+
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]
+- xref:/midpoint/reference/security/authorization/service/[]

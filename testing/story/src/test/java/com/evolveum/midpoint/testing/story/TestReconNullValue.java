@@ -24,7 +24,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -270,6 +270,7 @@ public class TestReconNullValue extends AbstractStoryTest {
 
         // WHEN
         when();
+        refreshShadowIfNeeded(getSingleLiveLinkOid(userBefore));
         modelService.recompute(UserType.class, userBefore.getOid(), null, task, result);
 
         display("LDAP after reconcile");
@@ -323,6 +324,7 @@ public class TestReconNullValue extends AbstractStoryTest {
 
         // WHEN
         when();
+        refreshShadowIfNeeded(getSingleLiveLinkOid(userBefore));
         modelService.recompute(UserType.class, userBefore.getOid(), null, task, result);
 
         display("LDAP after reconcile");
@@ -372,6 +374,7 @@ public class TestReconNullValue extends AbstractStoryTest {
 
         // WHEN
         when();
+        refreshShadowIfNeeded(getSingleLiveLinkOid(userBefore));
         modifyUserReplace(userBefore.getOid(), UserType.F_GIVEN_NAME, task, result /* no value */);
 
         display("LDAP after reconcile");
@@ -395,7 +398,6 @@ public class TestReconNullValue extends AbstractStoryTest {
         display("accountModel after attribute addition", accountModel);
 
         PrismAsserts.assertNoItem(accountModel, openDJController.getAttributePath(ACCOUNT_ATTRIBUTE_GIVENNAME));
-
     }
 
     private void dumpLdap() throws DirectoryException {
@@ -427,10 +429,10 @@ public class TestReconNullValue extends AbstractStoryTest {
         List<String> valuesList = new ArrayList<>(Arrays.asList(values));
 
         for (Object att : objShadow.asObjectable().getAttributes().asPrismContainerValue().getItems()) {
-            if (att instanceof ResourceAttribute) {
-                Collection propVals = ((ResourceAttribute) att).getRealValues();
+            if (att instanceof ShadowSimpleAttribute) {
+                Collection propVals = ((ShadowSimpleAttribute) att).getRealValues();
 
-                if (attribute.equals(((ResourceAttribute) att).getNativeAttributeName())) {
+                if (attribute.equals(((ShadowSimpleAttribute) att).getNativeAttributeName())) {
 
                     List<String> propValsString = new ArrayList<>(propVals.size());
                     for (Object pval : propVals) {

@@ -5,38 +5,28 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-      oid="88888888-8888-8888-8888-000000000009">
-   <name>LDAP Admins role</name>
-
-   <inducement>
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="88888888-8888-8888-8888-000000000009">
+    <name>LDAP Admins role</name>
+    <inducement>
         <construction>
-         <resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" type="c:ResourceType"/>
-
-
-         <association>
-            <ref>ri:group</ref>
-            <tolerant>true</tolerant>
-            <outbound>
-
-               <expression>
-               <associationTargetSearch>
-                        <filter>
-                            <q:equal>
-                                <q:path>attributes/ri:dn</q:path>
-                                <q:value>cn=admins,ou=groups,dc=example,dc=com</q:value>
-                            </q:equal>
-                        </filter>
-                    <searchStrategy>onResourceIfNeeded</searchStrategy>
-               </associationTargetSearch>
-
-               </expression>
-            </outbound>
-         </association>
-
-
-      </construction>
-   </inducement>
+            <resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" type="c:ResourceType"/>
+            <association>
+                <ref>ri:group</ref>
+                <tolerant>true</tolerant>
+                <outbound>
+                    <expression>
+                        <associationTargetSearch>
+                            <filter>
+                                <q:text>attributes/ri:dn = "cn=admins,ou=groups,dc=example,dc=com"</q:text>
+                            </filter>
+                            <searchStrategy>onResourceIfNeeded</searchStrategy>
+                        </associationTargetSearch>
+                    </expression>
+                </outbound>
+            </association>
+        </construction>
+    </inducement>
 </role>

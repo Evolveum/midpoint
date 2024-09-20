@@ -7,6 +7,7 @@
 
 <shadow xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         oid="88519fca-3f4a-44ca-91c8-dc9be5bf3d03" version="0">
     <name>hbarbossa</name>
@@ -25,6 +26,13 @@
         <gen913:uid>hbarbossa</gen913:uid>
         <icfs:uid>8daaeeae-f0c7-41c9-b258-2a3351aa8876</icfs:uid>
     </attributes>
+    <associations>
+        <ri:group>
+            <objects>
+                <ri:default oid="93c53b24-a95a-40a7-bab5-18a1e5528435"/>
+            </objects>
+        </ri:group>
+    </associations>
     <activation>
         <administrativeStatus>enabled</administrativeStatus>
     </activation>

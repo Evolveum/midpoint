@@ -119,7 +119,7 @@ class CombinatorialEvaluation<V extends PrismValue, D extends ItemDefinition<?>,
     }
 
     private void transformToPlusAndZeroSets() {
-        MiscUtil.carthesian(setsOccupiedPlusZero, sets -> {
+        MiscUtil.cartesian(setsOccupiedPlusZero, sets -> {
             if (isAllZeros(sets)) {
                 transform(sets, PlusMinusZero.ZERO);
             } else {
@@ -131,7 +131,7 @@ class CombinatorialEvaluation<V extends PrismValue, D extends ItemDefinition<?>,
     }
 
     private void transformToMinusSets() {
-        MiscUtil.carthesian(setsOccupiedMinusZero, sets -> {
+        MiscUtil.cartesian(setsOccupiedMinusZero, sets -> {
             if (isAllZeros(sets)) {
                 // already done
             } else {
@@ -144,10 +144,10 @@ class CombinatorialEvaluation<V extends PrismValue, D extends ItemDefinition<?>,
         return sets.stream().allMatch(set -> set == null || set == PlusMinusZero.ZERO);
     }
 
-    private void transform(List<PlusMinusZero> sets, PlusMinusZero outputSet) {
+    private void transform(List<PlusMinusZero> sets, @NotNull PlusMinusZero outputSet) {
         List<Collection<PrismValue>> domains = createDomainsForSets(sets);
         logDomainsForSets(domains, sets, outputSet);
-        MiscUtil.carthesian(domains, valuesTuple -> {
+        MiscUtil.cartesian(domains, valuesTuple -> {
             try (ValueTupleTransformation<V> valueTupleTransformation =
                     new ValueTupleTransformation<>(sets, valuesTuple, outputSet, this, parentResult)) {
                 valueTupleTransformation.evaluate();
@@ -250,7 +250,7 @@ class CombinatorialEvaluation<V extends PrismValue, D extends ItemDefinition<?>,
     }
 
     private SourceTriple<V, D> createSourceTriple(Source<V, D> source) throws SchemaException {
-        SourceTriple<V, D> sourceTriple = new SourceTriple<>(source, prismContext);
+        SourceTriple<V, D> sourceTriple = new SourceTriple<>(source);
         ItemDelta<V, D> delta = source.getDelta();
         if (delta != null) {
             sourceTriple.merge(delta.toDeltaSetTriple(source.getItemOld()));

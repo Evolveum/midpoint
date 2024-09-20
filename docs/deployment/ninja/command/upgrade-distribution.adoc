@@ -1,0 +1,26 @@
+= Upgrade distribution
+
+Upgrade distribution command a composite command that will do multiple steps at once:
+
+* xref:./pre-upgrade-check.adoc[Pre-upgrade check
+* xref:./verify.adoc[Verification]
+* xref:./download-distribution.adoc[Download distribution]
+* Upgrade DB schema
+* xref:./upgrade-installation.adoc[Upgrade installation]
+
+MidPoint has to be down before this command is executed.
+
+Pre-upgrade check can be skipped if necessary using `--skip-pre-check` option.
+This might be useful for custom builds with DB schema version that doesn't match proper version of relevant midPoint release.
+
+Verification in step two will check for items with _critical_ priority and stops upgrade if there are any.
+Although not recommended, verification step can be skipped by using `--skip-verification` option.
+
+Download distribution step can be customized with option `--distribution-version` to download specific version of midPoint.
+To skip download altogether, ninja can be pointed to already downloaded archive using `--distribution-archive` option.
+
+Upgrade DB schema will use xref:../command/run-sql.adoc[run-sql] command to upgrade DB schema using SQL scripts downloaded in previous steps.
+
+Final step is upgrade installation that will update midPoint installation directory with new distribution.
+Backup of files can be created using `--backup-midpoint-directory` option.
+`midpoint.home` directory is not changed during this step.

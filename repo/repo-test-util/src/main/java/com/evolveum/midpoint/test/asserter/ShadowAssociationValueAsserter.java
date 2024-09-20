@@ -11,6 +11,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Item;
@@ -20,26 +22,31 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.SchemaService;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowIdentifiersType;
 
 public class ShadowAssociationValueAsserter<R> extends AbstractAsserter<R> {
 
-    @NotNull private final ShadowAssociationType value;
+    @NotNull private final ShadowAssociationValue value;
 
-    ShadowAssociationValueAsserter(@NotNull ShadowAssociationType value, R returnAsserter, String details) {
+    ShadowAssociationValueAsserter(@NotNull ShadowAssociationValue value, R returnAsserter, String details) {
         super(returnAsserter, details);
         assertThat(value).as("association value").isNotNull();
         this.value = value;
     }
 
+    public ShadowAssociationValueAsserter<R> assertSingleObjectRef(@NotNull String expectedOid) {
+        assertThat(value.getSingleObjectRefRelaxed())
+                .as("object reference in " + desc())
+                .isNotNull()
+                .extracting(ObjectReferenceType::getOid)
+                .isEqualTo(expectedOid);
+        return this;
+    }
+
     public ShadowAssociationValueAsserter<R> assertIdentifierValueMatching(ItemName identifierName, String expectedValue)
             throws SchemaException {
-        ShadowIdentifiersType identifiers = value.getIdentifiers();
-        assertThat(identifiers).as("identifiers in " + desc()).isNotNull();
-        var identifier = identifiers.asPrismContainerValue().findItem(identifierName);
-
+        var identifier = value.getSingleObjectShadowRequired().findAttribute(identifierName);
         String identifierDesc = "identifier '" + identifierName + "' in " + desc();
         assertThat(identifier).as(identifierDesc).isNotNull();
         //noinspection unchecked
@@ -65,6 +72,16 @@ public class ShadowAssociationValueAsserter<R> extends AbstractAsserter<R> {
         } else {
             return null;
         }
+    }
+
+    public ShadowAsserter<ShadowAssociationValueAsserter<R>> associationObject() {
+        var asserter =
+                new ShadowAsserter<>(
+                        value.getAssociationDataObject().getPrismObject(),
+                        this,
+                        "association object in "+desc());
+        copySetupTo(asserter);
+        return asserter;
     }
 
     protected String desc() {

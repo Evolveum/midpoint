@@ -13,8 +13,10 @@ import java.util.Objects;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeIdentificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.schema.util.ResourceObjectTypeDefinitionTypeUtil;
@@ -24,6 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import org.jetbrains.annotations.Nullable;
 
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+import static com.evolveum.midpoint.util.MiscUtil.argNonNull;
 
 /**
  * Identifies a resource object type - by kind and intent.
@@ -31,6 +34,9 @@ import static com.evolveum.midpoint.util.MiscUtil.argCheck;
  * The values are *never* `unknown`.
  */
 public class ResourceObjectTypeIdentification implements Serializable {
+
+    public static final ResourceObjectTypeIdentification ACCOUNT_DEFAULT =
+            ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
 
     @NotNull private final ShadowKindType kind;
     @NotNull private final String intent;
@@ -45,6 +51,14 @@ public class ResourceObjectTypeIdentification implements Serializable {
     public static @NotNull ResourceObjectTypeIdentification of(
             @NotNull ShadowKindType kind, @NotNull String intent) {
         return new ResourceObjectTypeIdentification(kind, intent);
+    }
+
+    /** Assumes the configuration was already checked. */
+    public static @NotNull ResourceObjectTypeIdentification of(
+            @NotNull ResourceObjectTypeIdentificationType bean) {
+        return ResourceObjectTypeIdentification.of(
+                argNonNull(bean.getKind(), "No kind"),
+                argNonNull(bean.getIntent(), "No intent"));
     }
 
     public static @NotNull ResourceObjectTypeIdentification of(@NotNull ResourceObjectTypeDefinitionType definitionBean) {
@@ -77,6 +91,17 @@ public class ResourceObjectTypeIdentification implements Serializable {
 
     public @NotNull String getIntent() {
         return intent;
+    }
+
+    public @NotNull ResourceObjectTypeIdentificationType asBean() {
+        return new ResourceObjectTypeIdentificationType()
+                .kind(kind)
+                .intent(intent);
+    }
+
+    @Contract("null -> null; !null -> !null")
+    public static ResourceObjectTypeIdentificationType asBean(ResourceObjectTypeIdentification identification) {
+        return identification != null ? identification.asBean() : null;
     }
 
     @Override

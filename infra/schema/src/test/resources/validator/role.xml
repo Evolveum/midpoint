@@ -1,0 +1,34 @@
+<!-- invalid OID format -->
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="6d1a2464-db78-43e8-b1f1-cdf73cd54fxx">
+
+    <name>validation role</name>
+
+    <!-- deprecated item -->
+    <subtype>deprecated item</subtype>
+
+    <parentOrgRef oid="00000000-8888-6666-0000-100000000001" type="OrgType"/>
+    <!-- multivalue ref without oid -->
+    <parentOrgRef>
+        <filter>
+            <q:text>name = "sample"</q:text>
+        </filter>
+    </parentOrgRef>
+
+    <credentials>
+        <password>
+            <value>
+                <!-- clear value, external data shoud be there -->
+                <t:clearValue>qwe123</t:clearValue>
+            </value>
+        </password>
+    </credentials>
+
+    <!-- missing natural key -->
+    <inducement>
+        <!-- invalid OID format -->
+        <targetRef oid="73ca6aa2-e8ac-4097-a9b7-ca539dec45xx" type="RoleType"/>
+    </inducement>
+</role>

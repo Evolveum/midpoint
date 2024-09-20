@@ -7,11 +7,16 @@
 package com.evolveum.midpoint.model.common.expression.evaluator;
 
 import java.util.Collection;
-import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
+
+import jakarta.xml.bind.JAXBElement;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.common.expression.AbstractObjectResolvableExpressionEvaluatorFactory;
@@ -23,10 +28,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchObjectExpressionEvaluatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * @author semancik
@@ -60,14 +61,30 @@ public class AssociationTargetSearchExpressionEvaluatorFactory extends AbstractO
         SearchObjectExpressionEvaluatorType evaluatorBean =
                 getSingleEvaluatorBean(evaluatorElements, SearchObjectExpressionEvaluatorType.class, contextDescription);
 
-        //noinspection unchecked
-        return (ExpressionEvaluator<V>)
-                new AssociationTargetSearchExpressionEvaluator(
-                        ELEMENT_NAME,
-                        evaluatorBean,
-                        (PrismContainerDefinition<ShadowAssociationType>) outputDefinition,
-                        protector,
-                        getObjectResolver(),
-                        getLocalizationService());
+        if (outputDefinition instanceof ShadowAssociationDefinition associationDefinition) {
+            //noinspection unchecked
+            return (ExpressionEvaluator<V>)
+                    new AssociationTargetSearchExpressionEvaluator(
+                            ELEMENT_NAME,
+                            evaluatorBean,
+                            associationDefinition,
+                            protector,
+                            getObjectResolver(),
+                            getLocalizationService());
+        } else if (outputDefinition instanceof ShadowReferenceAttributeDefinition referenceAttributeDefinition) {
+            //noinspection unchecked
+            return (ExpressionEvaluator<V>)
+                    new ReferenceAttributeTargetSearchExpressionEvaluator(
+                            ELEMENT_NAME,
+                            evaluatorBean,
+                            referenceAttributeDefinition,
+                            protector,
+                            getObjectResolver(),
+                            getLocalizationService());
+        } else {
+            // We actually require object definition to be non-null here
+            throw new UnsupportedOperationException(
+                    "Association target search evaluator cannot be used with output definition of " + outputDefinition);
+        }
     }
 }

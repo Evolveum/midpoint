@@ -57,6 +57,9 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
     private List<QName> supportedTypes = new ArrayList<>();
     boolean multiselect;
 
+    // todo this should be falseeeeee
+    private boolean useObjectCollectionSearch = true;
+
     /**
      * @param defaultType specifies type of the object that will be selected by default
      */
@@ -84,7 +87,7 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
                 this.defaultType = (Class<? extends O>) ObjectType.class;
             }
             this.defaultType =
-                    (Class<? extends O>) WebComponentUtil.qnameToClass(parentPage.getPrismContext(),
+                    (Class<? extends O>) WebComponentUtil.qnameToClass(
                             supportedTypes.iterator().next());
         } else {
             this.defaultType = defaultType;
@@ -193,10 +196,14 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
                 createStringResource("Button.cancel")) {
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                getPageBase().hideMainPopup(ajaxRequestTarget);
+                onClickCancelButton(ajaxRequestTarget);
             }
         };
         add(cancelButton);
+    }
+
+    protected void onClickCancelButton(AjaxRequestTarget ajaxRequestTarget) {
+        getPageBase().hideMainPopup(ajaxRequestTarget);
     }
 
     protected void onClick(AjaxRequestTarget target, O focus) {
@@ -214,6 +221,14 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
                 multiselect) {
 
             private static final long serialVersionUID = 1L;
+
+            @Override
+            protected boolean isCollectionViewPanelForWidget() {
+                if (!useObjectCollectionSearch) {
+                    return false;
+                }
+                return super.isCollectionViewPanelForWidget();
+            }
 
             @Override
             protected void onSelectPerformed(AjaxRequestTarget target, O object) {
@@ -238,9 +253,10 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
             public List<O> getSelectedRealObjects() {
                 return getPreselectedObjectList();
             }
-
         };
         listPanel.setOutputMarkupId(true);
+        listPanel.setUseCollectionView(useObjectCollectionSearch);
+
         return listPanel;
     }
 
@@ -291,5 +307,9 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
 
     protected StringResourceModel getAddButtonTitle() {
         return createStringResource("userBrowserDialog.button.addButton");
+    }
+
+    public void setUseObjectCollectionSearch(boolean useObjectCollectionSearch) {
+        this.useObjectCollectionSearch = useObjectCollectionSearch;
     }
 }

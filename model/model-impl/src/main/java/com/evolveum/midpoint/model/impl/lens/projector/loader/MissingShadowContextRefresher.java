@@ -36,6 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 
 /**
@@ -147,7 +148,6 @@ public class MissingShadowContextRefresher<F extends ObjectType> {
                 // The "exists" information in the projection context can be obsolete - reflecting the fact that
                 // resource object couldn't be found.
                 deadProjectionContext.setExists(ShadowUtil.isExists(shadow));
-                deadProjectionContext.recompute();
                 return true;
             } else {
                 LOGGER.trace("-> Unfortunately, this shadow is not usable; continuing through the linkRefs.");
@@ -160,18 +160,21 @@ public class MissingShadowContextRefresher<F extends ObjectType> {
 
     /** We have a linkRef with OID not matching any existing projection context. Is it compatible with the dead one? */
     private @Nullable ShadowType getShadowIfCompatible(
-            ObjectReferenceType linkRef, FocusType reloadedFocus, OperationResult result) throws SchemaException {
+            ObjectReferenceType linkRef, FocusType reloadedFocus, OperationResult result)
+            throws SchemaException, ConfigurationException {
         ShadowType shadow;
         try {
             // Consider read-only option later (but now the object is inserted into projection context, so using R/W mode).
-            shadow = beans.cacheRepositoryService
-                    .getObject(ShadowType.class, linkRef.getOid(), null, result)
-                    .asObjectable();
+            shadow = beans.provisioningService
+                    .getShadow(linkRef.getOid(), createNoFetchCollection(), task, result)
+                    .getBean();
         } catch (ObjectNotFoundException e) {
             LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't resolve {}, unlinking it from the focus {}",
                     e, linkRef.getOid(), reloadedFocus);
             swallowUnlinkDelta(linkRef);
             return null;
+        } catch (ExpressionEvaluationException | CommunicationException | SecurityViolationException e) {
+            throw SystemException.unexpected(e, "while getting shadow with OID " + linkRef.getOid() + " (no fetch mode)");
         }
 
         if (shadowMatchesDeadContext(shadow)) {

@@ -33,6 +33,7 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
      * */
     public enum TableId {
         TABLE_CLUSTER,
+        TABLE_SESSION,
         PAGE_USER_SELECTION,
         TABLE_ROLES,
         TABLE_CASES,
@@ -54,6 +55,7 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
         ORG_MEMBER_PANEL,
         ARCHETYPE_MEMBER_PANEL,
         SERVICE_MEMBER_PANEL,
+        POLICY_MEMBER_PANEL,
         TREE_TABLE_PANEL_CHILD,
         TREE_TABLE_PANEL_MEMBER,
         TREE_TABLE_PANEL_MANAGER,
@@ -80,6 +82,7 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
         PAGE_REPORTS,
         PAGE_CERT_CAMPAIGN_OUTCOMES_PANEL,
         PAGE_CERT_CAMPAIGNS_PANEL,
+        PAGE_CAMPAIGNS,
         PAGE_CERT_DECISIONS_PANEL,
         PAGE_CERT_DEFINITIONS_PANEL,
         PAGE_CASE_WORK_ITEMS_PANEL,
@@ -105,7 +108,7 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
         PAGE_CASE_WORKITEMS_TAB,
         PAGE_CASE_CHILD_CASES_TAB,
         PAGE_CASE_EVENTS_TAB,
-        TABLE_SCHEMA_HANDLING,
+        PANEL_RESOURCE_OBJECT_TYPES,
         PANEL_OBJECT_COLLECTION_VIEWS,
         PANEL_OBJECT_POLICY_CONTENT,
         PANEL_RELATIONS_CONTENT,
@@ -138,7 +141,24 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
         PAGE_SIMULATION_RESULT_PROCESSED_OBJECTS,
         PAGE_MARKS_TABLE,
         PANEL_USER_ACCESSES,
-        MARK_MARKED_SHADOWS_PANEL
+        MARK_MARKED_SHADOWS_PANEL,
+        PANEL_FILE_SECRET_PROVIDERS,
+        PANEL_PROPERTIES_SECRET_PROVIDERS,
+        PANEL_ENVIRONMENT_VARIABLES_SECRET_PROVIDERS,
+        PANEL_CUSTOM_SECRET_PROVIDERS,
+        PANEL_ASSOCIATION_TYPES,
+        PAGE_SCHEMAS_TABLE,
+        PANEL_DETECTED_PATTERN,
+        PANEL_MIGRATED_ROLES,
+        PANEL_CANDIDATE_ROLES,
+        PANEL_OUTLIER_PROPERTIES,
+        TABLE_OUTLIERS,
+        PANEL_OUTLIER_PARTITIONS,
+        PANEL_ASSOCIATION_INBOUND,
+        PANEL_ASSOCIATION_OUTBOUND,
+        PANEL_MARKING_WIZARD,
+        PANEL_DEFAULT_OPERATION_POLICIES_WIZARD,
+        PANEL_MARKS_OF_OBJECT
     }
 
     private final Map<String, Integer> tables = new HashMap<>();

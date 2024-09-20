@@ -15,11 +15,15 @@ import java.util.Map;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemCardinality;
+
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedByteArrayType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.MutableItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -53,6 +57,9 @@ public class ExtUtils {
         addType(DOMUtil.XSD_DOUBLE, Double.class);
         addType(DOMUtil.XSD_DATETIME, XMLGregorianCalendar.class);
         addType(PolyStringType.COMPLEX_TYPE, PolyString.class);
+        addType(ProtectedStringType.COMPLEX_TYPE,ProtectedStringType.class);
+        addType(ProtectedByteArrayType.COMPLEX_TYPE, ProtectedByteArrayType.class);
+
     }
 
     private static void addType(QName typeName, Class<?> valueClass) {
@@ -90,19 +97,26 @@ public class ExtUtils {
     }
 
     /** Creates definition from {@link MExtItem}. */
-    public static ItemDefinition<?> createDefinition(QName name, MExtItem itemInfo, boolean indexOnly) {
+    public static @NotNull ItemDefinition<?> createDefinition(QName name, MExtItem itemInfo, boolean indexOnly) {
         QName typeName = ExtUtils.getSupportedTypeName(itemInfo.valueType);
-        final MutableItemDefinition<?> def;
+        final ItemDefinition<?> def;
         if (ObjectReferenceType.COMPLEX_TYPE.equals(typeName)) {
-            def = PrismContext.get().definitionFactory().createReferenceDefinition(name, typeName);
+            def = PrismContext.get().definitionFactory().newReferenceDefinition(name, typeName);
         } else {
-            def = PrismContext.get().definitionFactory().createPropertyDefinition(name, typeName);
+            def = PrismContext.get().definitionFactory().newPropertyDefinition(name, typeName);
         }
-        def.setMinOccurs(0);
-        def.setMaxOccurs(-1);
-        def.setRuntimeSchema(true);
-        def.setDynamic(true);
-        def.setIndexOnly(indexOnly);
+        def.mutator().setMinOccurs(0);
+        if (itemInfo.cardinality == MExtItemCardinality.SCALAR) {
+            def.mutator().setMaxOccurs(1);
+        } else {
+            def.mutator().setMaxOccurs(-1);
+        }
+
+
+
+        def.mutator().setRuntimeSchema(true);
+        def.mutator().setDynamic(true);
+        def.mutator().setIndexOnly(indexOnly);
         return def;
     }
 

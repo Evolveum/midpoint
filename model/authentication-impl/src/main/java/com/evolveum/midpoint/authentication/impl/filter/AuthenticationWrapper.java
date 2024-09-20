@@ -19,7 +19,6 @@ import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAut
 import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
 import com.evolveum.midpoint.authentication.impl.util.AuthenticationSequenceModuleCreator;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.correlation.CompleteCorrelationResult;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
@@ -301,7 +300,7 @@ class AuthenticationWrapper {
             if (processingDifferentSequence) {
                 clearAuthentication(httpRequest);
             }
-            updateMidpointAuthenticationModules(authModules, mpAuthentication);
+            updateMidpointAuthenticationModules(this.sequence, authModules, mpAuthentication);
         } else {
             authModules = mpAuthentication.getAuthModules();
         }
@@ -313,12 +312,12 @@ class AuthenticationWrapper {
         return mpAuthentication == null || !sequenceIdentifiersMatch(sequence, mpAuthentication.getSequence());
     }
 
-    private void updateMidpointAuthenticationModules(List<AuthModule<?>> authModules, MidpointAuthentication mpAuthentication) {
+    private void updateMidpointAuthenticationModules(AuthenticationSequenceType sequence, List<AuthModule<?>> authModules, MidpointAuthentication mpAuthentication) {
         if (mpAuthentication == null) {
             return;
         }
-        mpAuthentication.getAuthModules().clear();
         mpAuthentication.setAuthModules(authModules);
+        mpAuthentication.setSequence(sequence);
     }
 
     private void clearAuthentication(HttpServletRequest httpRequest) {

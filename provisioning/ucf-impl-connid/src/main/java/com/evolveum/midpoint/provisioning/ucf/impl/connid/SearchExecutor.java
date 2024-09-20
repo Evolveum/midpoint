@@ -7,15 +7,14 @@
 
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
+import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdNameMapper.ucfAttributeNameToConnId;
 import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdUtil.processConnIdException;
-import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnectorInstanceConnIdImpl.toShadowDefinition;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.reporting.ConnIdOperation;
 
-import com.evolveum.midpoint.provisioning.ucf.api.UcfExecutionContext;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -27,7 +26,6 @@ import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -42,7 +40,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
 
@@ -54,16 +51,15 @@ class SearchExecutor {
     private static final Trace LOGGER = TraceManager.getTrace(SearchExecutor.class);
 
     @NotNull private final ResourceObjectDefinition resourceObjectDefinition;
-    @NotNull private final PrismObjectDefinition<ShadowType> prismObjectDefinition;
     @NotNull private final ObjectClass icfObjectClass;
     private final ObjectQuery query;
     private final Filter connIdFilter;
     @NotNull private final UcfObjectHandler handler;
-    private final AttributesToReturn attributesToReturn;
+    private final ShadowItemsToReturn shadowItemsToReturn;
     private final PagedSearchCapabilityType pagedSearchConfiguration;
     private final SearchHierarchyConstraints searchHierarchyConstraints;
     private final UcfFetchErrorReportingMethod errorReportingMethod;
-    private final UcfExecutionContext reporter;
+    @NotNull private final ConnectorOperationContext operationContext;
     @NotNull private final ConnectorInstanceConnIdImpl connectorInstance;
 
     /**
@@ -76,28 +72,28 @@ class SearchExecutor {
             @NotNull ResourceObjectDefinition resourceObjectDefinition,
             ObjectQuery query,
             @NotNull UcfObjectHandler handler,
-            AttributesToReturn attributesToReturn,
+            ShadowItemsToReturn shadowItemsToReturn,
             PagedSearchCapabilityType pagedSearchConfiguration,
             SearchHierarchyConstraints searchHierarchyConstraints,
             UcfFetchErrorReportingMethod errorReportingMethod,
-            UcfExecutionContext reporter,
+            @NotNull ConnectorOperationContext operationContext,
             @NotNull ConnectorInstanceConnIdImpl connectorInstance) throws SchemaException {
 
         this.resourceObjectDefinition = resourceObjectDefinition;
-        this.prismObjectDefinition = toShadowDefinition(resourceObjectDefinition);
         this.icfObjectClass = connectorInstance.objectClassToConnId(resourceObjectDefinition);
         this.query = query;
         this.connIdFilter = connectorInstance.convertFilterToIcf(query, resourceObjectDefinition);
         this.handler = handler;
-        this.attributesToReturn = attributesToReturn;
+        this.shadowItemsToReturn = shadowItemsToReturn;
         this.pagedSearchConfiguration = pagedSearchConfiguration;
         this.searchHierarchyConstraints = searchHierarchyConstraints;
         this.errorReportingMethod = errorReportingMethod;
-        this.reporter = reporter;
+        this.operationContext = operationContext;
         this.connectorInstance = connectorInstance;
     }
 
-    public SearchResultMetadata execute(OperationResult result) throws CommunicationException, ObjectNotFoundException,
+    public SearchResultMetadata execute(OperationResult result)
+            throws CommunicationException, ObjectNotFoundException,
             GenericFrameworkException, SchemaException, SecurityViolationException {
 
         if (isNoConnectorPaging() && query != null && query.getPaging() != null &&
@@ -130,7 +126,7 @@ class SearchExecutor {
     }
 
     private void setupAttributesToGet(OperationOptionsBuilder optionsBuilder) throws SchemaException {
-        connectorInstance.convertToIcfAttrsToGet(resourceObjectDefinition, attributesToReturn, optionsBuilder);
+        connectorInstance.convertToIcfAttrsToGet(resourceObjectDefinition, shadowItemsToReturn, optionsBuilder);
     }
 
     private void setupPagingAndSorting(OperationOptionsBuilder optionsBuilder) throws SchemaException {
@@ -162,8 +158,7 @@ class SearchExecutor {
             desc = "(default orderBy attribute from capability definition)";
         }
         if (orderByAttributeName != null) {
-            String orderByIcfName = connectorInstance.connIdNameMapper.convertAttributeNameToConnId(
-                    orderByAttributeName, resourceObjectDefinition, desc);
+            String orderByIcfName = ucfAttributeNameToConnId(orderByAttributeName, resourceObjectDefinition, desc);
             optionsBuilder.setSortKeys(new SortKey(orderByIcfName, isAscending));
         }
     }
@@ -176,26 +171,35 @@ class SearchExecutor {
 
     private void setupSearchHierarchyScope(OperationOptionsBuilder optionsBuilder) throws SchemaException {
         if (searchHierarchyConstraints != null) {
-            ResourceObjectIdentification baseContextIdentification = searchHierarchyConstraints.getBaseContext();
+            ResourceObjectIdentification.WithPrimary baseContextIdentification = searchHierarchyConstraints.getBaseContext();
             if (baseContextIdentification != null) {
                 // Only LDAP connector really supports base context. And this one will work better with
                 // DN. And DN is secondary identifier (__NAME__). This is ugly, but practical. It works around ConnId problems.
-                ResourceAttribute<?> secondaryIdentifier = baseContextIdentification.getSecondaryIdentifier();
-                String identifierValue;
-                if (secondaryIdentifier == null) {
+                //
+                // Limitations/assumptions: there is exactly one identifier - either secondary (and it's DN in that case)
+                // or primary which is the same as secondary (for the particular resource).
+                ResourceObjectIdentifier<?> identifierToUse;
+                var secIdentifiers = baseContextIdentification.getSecondaryIdentifiers();
+                if (secIdentifiers.size() == 1) {
+                    // the standard case
+                    identifierToUse = secIdentifiers.iterator().next();
+                } else if (secIdentifiers.isEmpty()) {
                     if (resourceObjectDefinition.getSecondaryIdentifiers().isEmpty()) {
                         // This object class obviously has __NAME__ and __UID__ the same. Primary identifier will work here.
-                        identifierValue = baseContextIdentification.getPrimaryIdentifier().getRealValue(String.class);
+                        identifierToUse = baseContextIdentification.getPrimaryIdentifier();
                     } else {
-                        throw new SchemaException("No secondary identifier in base context identification " + baseContextIdentification);
+                        throw new SchemaException(
+                                "No secondary identifier in base context identification " + baseContextIdentification);
                     }
                 } else {
-                    identifierValue = secondaryIdentifier.getRealValue(String.class);
+                    throw new SchemaException(
+                            "More than one secondary identifier in base context identification is not supported: %s".formatted(
+                                    baseContextIdentification));
                 }
                 ObjectClass baseContextIcfObjectClass = connectorInstance.objectClassToConnId(
                         baseContextIdentification.getResourceObjectDefinition());
-                QualifiedUid containerQualifiedUid = new QualifiedUid(baseContextIcfObjectClass, new Uid(identifierValue));
-                optionsBuilder.setContainer(containerQualifiedUid);
+                optionsBuilder.setContainer(
+                        new QualifiedUid(baseContextIcfObjectClass, new Uid(identifierToUse.getStringOrigValue())));
             }
             SearchHierarchyScope scope = searchHierarchyConstraints.getScope();
             if (scope != null) {
@@ -218,7 +222,7 @@ class SearchExecutor {
 
         try {
             LOGGER.trace("Executing ConnId search operation: {}", operation);
-            connIdSearchResult = connectorInstance.getConnIdConnectorFacade()
+            connIdSearchResult = connectorInstance.getConnIdConnectorFacadeRequired()
                     .search(
                             icfObjectClass,
                             connIdFilter,
@@ -227,12 +231,11 @@ class SearchExecutor {
             recordIcfOperationEnd(operation, null);
 
             result.recordSuccess();
-        } catch (IntermediateException inEx) {
-            Throwable ex = inEx.getCause();
+        } catch (IntermediateSchemaException inEx) {
+            SchemaException ex = inEx.getSchemaException();
             recordIcfOperationEnd(operation, ex);
             result.recordFatalError(ex);
-            throwProperException(ex, ex);
-            throw new AssertionError("should not get here");
+            throw ex;
         } catch (Throwable ex) {
             recordIcfOperationEnd(operation, ex);
             Throwable midpointEx = processConnIdException(ex, connectorInstance, result);
@@ -245,42 +248,46 @@ class SearchExecutor {
     }
 
     /** Do some kind of acrobatics to do proper throwing of checked exception */
-    private void throwProperException(Throwable transformed, Throwable original) throws CommunicationException,
-            ObjectNotFoundException, GenericFrameworkException, SchemaException, SecurityViolationException {
-        if (transformed instanceof CommunicationException) {
-            throw (CommunicationException) transformed;
-        } else if (transformed instanceof ObjectNotFoundException) {
-            throw (ObjectNotFoundException) transformed;
-        } else if (transformed instanceof GenericFrameworkException) {
-            throw (GenericFrameworkException) transformed;
-        } else if (transformed instanceof SchemaException) {
-            throw (SchemaException) transformed;
-        } else if (transformed instanceof SecurityViolationException) {
-            throw (SecurityViolationException) transformed;
-        } else if (transformed instanceof RuntimeException) {
-            throw (RuntimeException) transformed;
-        } else if (transformed instanceof Error) {
-            throw (Error) transformed;
+    private void throwProperException(Throwable transformed, Throwable original)
+            throws CommunicationException, ObjectNotFoundException, GenericFrameworkException, SchemaException,
+            SecurityViolationException {
+        if (transformed instanceof CommunicationException communicationException) {
+            throw communicationException;
+        } else if (transformed instanceof ObjectNotFoundException objectNotFoundException) {
+            throw objectNotFoundException;
+        } else if (transformed instanceof GenericFrameworkException genericFrameworkException) {
+            throw genericFrameworkException;
+        } else if (transformed instanceof SchemaException schemaException) {
+            throw schemaException;
+        } else if (transformed instanceof SecurityViolationException securityViolationException) {
+            throw securityViolationException;
+        } else if (transformed instanceof RuntimeException runtimeException) {
+            throw runtimeException;
+        } else if (transformed instanceof Error error) {
+            throw error;
         } else {
-            throw new SystemException("Got unexpected exception: " + original.getClass().getName() + ": " + original.getMessage(),
+            throw new SystemException(
+                    "Got unexpected exception: %s: %s".formatted(
+                            original.getClass().getName(), original.getMessage()),
                     original);
         }
     }
 
     private ConnIdOperation recordIcfOperationStart() {
-        return connectorInstance.recordIcfOperationStart(reporter, ProvisioningOperation.ICF_SEARCH, resourceObjectDefinition);
+        return connectorInstance.recordIcfOperationStart(
+                operationContext.ucfExecutionContext(), ProvisioningOperation.ICF_SEARCH, resourceObjectDefinition);
     }
 
     private void recordIcfOperationEnd(ConnIdOperation operation, Throwable ex) {
-        connectorInstance.recordIcfOperationEnd(reporter, operation, ex);
+        connectorInstance.recordIcfOperationEnd(operationContext.ucfExecutionContext(), operation, ex);
     }
 
     private void recordIcfOperationResume(@NotNull ConnIdOperation operation) {
-        connectorInstance.recordIcfOperationResume(reporter, operation);
+        connectorInstance.recordIcfOperationResume(operationContext.ucfExecutionContext(), operation);
     }
 
     private void recordIcfOperationSuspend(@NotNull ConnIdOperation operation) {
-        connectorInstance.recordIcfOperationSuspend(reporter, operation);
+        connectorInstance.recordIcfOperationSuspend(operationContext.ucfExecutionContext(), operation);
     }
 
     @Nullable
@@ -343,14 +350,13 @@ class SearchExecutor {
                     }
                 }
 
-                UcfObjectFound ucfObject = connectorInstance.connIdConvertor.convertToUcfObject(
-                        connectorObject, prismObjectDefinition, false, connectorInstance.isCaseIgnoreAttributeNames(),
-                        connectorInstance.isLegacySchema(), errorReportingMethod, result);
+                var ucfObject = connectorInstance.connIdObjectConvertor.convertToUcfObject(
+                        connectorObject, resourceObjectDefinition, errorReportingMethod, operationContext, result);
 
                 return handler.handle(ucfObject, result);
 
             } catch (SchemaException e) {
-                throw new IntermediateException(e);
+                throw new IntermediateSchemaException(e);
             } finally {
                 recordIcfOperationResume(operation);
             }

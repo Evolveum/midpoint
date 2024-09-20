@@ -322,7 +322,7 @@ public class CertCampaignTypeUtil {
         }
     }
 
-    protected static Integer accountForClosingStates(Integer stage, AccessCertificationCampaignStateType state) {
+    public static Integer accountForClosingStates(Integer stage, AccessCertificationCampaignStateType state) {
         if (stage != null && (state == IN_REMEDIATION || state == CLOSED)) {
             return stage - 1;          // move to last campaign state
         } else {
@@ -350,20 +350,39 @@ public class CertCampaignTypeUtil {
 
     // TODO use this also from GUI and maybe notifications
     @SuppressWarnings("unused")  // used by certification cases report
-    public static List<ObjectReferenceType> getCurrentlyAssignedReviewers(PrismContainerValue<AccessCertificationCaseType> pcv) {
-        return getCurrentlyAssignedReviewers(pcv.asContainerable());
-    }
-
     public @NotNull static List<ObjectReferenceType> getCurrentlyAssignedReviewers(@NotNull AccessCertificationCaseType aCase) {
         List<ObjectReferenceType> rv = new ArrayList<>();
-        for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
-            for (ObjectReferenceType assigneeRef : workItem.getAssigneeRef()) {
-                if (workItem.getCloseTimestamp() == null
-                        && Objects.equals(workItem.getStageNumber(), aCase.getStageNumber())) {
-                    rv.add(assigneeRef);
-                }
+        aCase.getWorkItem().forEach(workItem -> rv.addAll(getCurrentlyAssignedReviewers(workItem, aCase.getStageNumber())));
+        return rv;
+    }
+
+    public @NotNull
+    static List<ObjectReferenceType> getCurrentlyAssignedReviewers(
+            @NotNull AccessCertificationWorkItemType certItem, int certCaseStageNumber) {
+        List<ObjectReferenceType> rv = new ArrayList<>();
+        for (ObjectReferenceType assigneeRef : certItem.getAssigneeRef()) {
+            if (certItem.getCloseTimestamp() == null
+                    && Objects.equals(certItem.getStageNumber(), certCaseStageNumber)) {
+                rv.add(assigneeRef);
             }
         }
+        return rv;
+    }
+
+    public @NotNull
+    static List<ObjectReferenceType> getAssignedReviewersForStage(@NotNull AccessCertificationCaseType aCase,
+            int certCaseStageNumber) {
+        List<ObjectReferenceType> rv = new ArrayList<>();
+        aCase.getWorkItem().forEach(certItem -> {
+            for (ObjectReferenceType assigneeRef : certItem.getAssigneeRef()) {
+                if (Objects.equals(certItem.getStageNumber(), certCaseStageNumber)) {
+                    boolean alreadyInList = rv.stream().anyMatch(r -> r.getOid().equals(assigneeRef.getOid()));
+                    if (!alreadyInList) {
+                        rv.add(assigneeRef);
+                    }
+                }
+            }
+        });
         return rv;
     }
 
@@ -423,14 +442,27 @@ public class CertCampaignTypeUtil {
         return rv;
     }
 
-    public static ObjectQuery createCasesForCampaignQuery(String campaignOid, PrismContext prismContext) {
-        return prismContext.queryFor(AccessCertificationCaseType.class)
+    public static List<String> getCommentsForStage(PrismContainerValue<AccessCertificationCaseType> pcv, int stageNumber) {
+        List<String> rv = new ArrayList<>();
+        for (AccessCertificationWorkItemType workItem : pcv.asContainerable().getWorkItem()) {
+            if (workItem.getStageNumber() != stageNumber) {
+                continue;
+            }
+            if (!StringUtils.isEmpty(WorkItemTypeUtil.getComment(workItem))) {
+                rv.add(WorkItemTypeUtil.getComment(workItem));
+            }
+        }
+        return rv;
+    }
+
+    public static ObjectQuery createCasesForCampaignQuery(String campaignOid) {
+        return PrismContext.get().queryFor(AccessCertificationCaseType.class)
                 .ownerId(campaignOid)
                 .build();
     }
 
-    public static ObjectQuery createWorkItemsForCampaignQuery(String campaignOid, PrismContext prismContext) {
-        return prismContext.queryFor(AccessCertificationWorkItemType.class)
+    public static ObjectQuery createWorkItemsForCampaignQuery(String campaignOid) {
+        return PrismContext.get().queryFor(AccessCertificationWorkItemType.class)
                 .exists(PrismConstants.T_PARENT)
                    .ownerId(campaignOid)
                 .build();

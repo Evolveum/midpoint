@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.component.menu;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -13,11 +14,11 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.certification.*;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysis;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.outlier.PageOutliers;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-
-import com.evolveum.midpoint.web.page.admin.resources.PageResourceTemplates;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -69,7 +70,6 @@ import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItem;
 import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItemsAll;
 import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItemsAllocatedToMe;
 import com.evolveum.midpoint.web.page.admin.cases.PageWorkItemsClaimable;
-import com.evolveum.midpoint.web.page.admin.certification.*;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboardConfigurable;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboardInfo;
@@ -87,8 +87,6 @@ import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession.PARAM_IS_WIZARD;
 
 public class LeftMenuPanel extends BasePanel<Void> {
 
@@ -309,6 +307,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
         menu.addMainMenuItem(createOrganizationsMenu());
         menu.addMainMenuItem(createRolesMenu());
         menu.addMainMenuItem(createServicesItems());
+        menu.addMainMenuItem(createPoliciesItems());
         menu.addMainMenuItem(createResourcesItems());
         if (getPageBase().getCaseManager().isEnabled()) {
             menu.addMainMenuItem(createWorkItemsItems());
@@ -405,8 +404,10 @@ public class LeftMenuPanel extends BasePanel<Void> {
                 PageRoleAnalysis.class), 1);
         roleMenu.addMenuItem(new MenuItem("PageRoleAnalysisSession.menu.title",
                 GuiStyleConstants.CLASS_PLUS_CIRCLE,
-                PageRoleAnalysisSession.class,
-                new PageParameters().add(PARAM_IS_WIZARD, true)));
+                PageRoleAnalysisSession.class));
+        roleMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.outliers",
+                GuiStyleConstants.CLASS_OUTLIER_ICON,
+                PageOutliers.class));
 
         return roleMenu;
     }
@@ -417,14 +418,17 @@ public class LeftMenuPanel extends BasePanel<Void> {
         return serviceMenu;
     }
 
+    private MainMenuItem createPoliciesItems() {
+        MainMenuItem serviceMenu = createMainMenuItem("PageAdmin.menu.top.policies", GuiStyleConstants.CLASS_OBJECT_POLICY_ICON_COLORED);
+        createBasicAssignmentHolderMenuItems(serviceMenu, PageTypes.POLICY);
+        return serviceMenu;
+    }
+
     private MainMenuItem createResourcesItems() {
         MainMenuItem resourceMenu = createMainMenuItem(
                 "PageAdmin.menu.top.resources", GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON_COLORED);
 
         createBasicAssignmentHolderMenuItems(resourceMenu, PageTypes.RESOURCE);
-
-        resourceMenu.addMenuItemAtIndex(new MenuItem("PageAdmin.menu.top.resource.templates.list",
-                GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON, PageResourceTemplates.class), 1);
 
         resourceMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.resources.import", PageImportResource.class));
         resourceMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.connectorHosts.list", PageConnectorHosts.class));
@@ -476,13 +480,41 @@ public class LeftMenuPanel extends BasePanel<Void> {
         }
 
 //        if (isFullyAuthorized()) {  // workaround for MID-5917
-        certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.allDecisions", PageCertDecisionsAll.class));
+        certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.certificationActiveCampaigns", PageActiveCampaigns.class) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isMenuActive(WebPage page) {
+                boolean isMenuActive = super.isMenuActive(page);
+                return isMenuActive || classMatches(PageCertItems.class);
+            }
+        });
+
+        boolean certItemsMenusEnabled = WebComponentUtil.isCertItemsMenusEnabled(getPageBase());
+        if (certItemsMenusEnabled) {
+            certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.certificationItems", PageCertItems.class));
+        }
 
 //        }
-        certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.decisions", PageCertDecisions.class));
+        certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.myCertificationActiveCampaigns", PageMyActiveCampaigns.class) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isMenuActive(WebPage page) {
+                boolean isMenuActive = super.isMenuActive(page);
+                return isMenuActive || classMatches(PageMyCertItems.class);
+            }
+        });
+
+        if (certItemsMenusEnabled) {
+            certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.myCertificationItems", PageMyCertItems.class));
+        }
 
         MenuItem newCertificationMenu = new MenuItem("PageAdmin.menu.top.certification.newDefinition", GuiStyleConstants.CLASS_PLUS_CIRCLE, PageCertDefinition.class);
         certificationMenu.addMenuItem(newCertificationMenu);
+
         return certificationMenu;
     }
 
@@ -539,14 +571,27 @@ public class LeftMenuPanel extends BasePanel<Void> {
         return menu;
     }
 
+    private MainMenuItem createSchemaItems() {
+        MainMenuItem menu = createMainMenuItem("PageAdmin.menu.top.schemas", GuiStyleConstants.CLASS_ICON_RESOURCE_SCHEMA);
+        createBasicAssignmentHolderMenuItems(menu, PageTypes.SCHEMA);
+
+        return menu;
+    }
+
     private SideBarMenuItem createConfigurationMenu(boolean experimentalFeaturesEnabled) {
-        SideBarMenuItem item = new SideBarMenuItem("PageAdmin.menu.top.configuration", experimentalFeaturesEnabled);
+        SideBarMenuItem item = new SideBarMenuItem("PageAdmin.menu.top.configuration", experimentalFeaturesEnabled) {
+            @Override
+            public boolean isVisible() {
+                return true;
+            }
+        };
         item.addMainMenuItem(createArchetypesItems());
         item.addMainMenuItem(createMessageTemplatesItems());
         item.addMainMenuItem(createObjectsCollectionItems());
         item.addMainMenuItem(createObjectTemplatesItems());
         item.addMainMenuItem(createMarkItems());
-        item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.bulkActions", "fa fa-bullseye", PageBulkAction.class));
+        item.addMainMenuItem(createSchemaItems());
+        item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.actions", "fa fa-bullseye", PageAction.class));
         item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.importObject", "fa fa-upload", PageImportObject.class));
         item.addMainMenuItem(createRepositoryObjectsMenu());
 
@@ -783,9 +828,15 @@ public class LeftMenuPanel extends BasePanel<Void> {
     }
 
     private void createSystemConfigurationMenu(SideBarMenuItem item) {
-        MainMenuItem system = createMainMenuItem("PageAdmin.menu.top.configuration.basic",
+        MainMenuItem system = new MainMenuItem(
+                "PageAdmin.menu.top.configuration.basic",
                 GuiStyleConstants.CLASS_SYSTEM_CONFIGURATION_ICON,
-                com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.PageSystemConfiguration.class);
+                com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.PageSystemConfiguration.class) {
+            @Override
+            public boolean isVisible() {
+                return true;
+            }
+        };
         PageBase page = getPageBase();
         if (page != null && PageBaseSystemConfiguration.class.isAssignableFrom(page.getClass())) {
 

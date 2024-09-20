@@ -25,9 +25,9 @@ class TestCandidateOwner {
         this.confidence = confidence;
     }
 
-    public static TestCandidateOwner of(CandidateOwner candidateOwner) {
+    public static TestCandidateOwner of(CandidateOwner.ObjectBased candidateOwner) {
         return new TestCandidateOwner(
-                candidateOwner.getObject().getName().getOrig(),
+                candidateOwner.getValue().getName().getOrig(),
                 candidateOwner.getConfidence());
     }
 

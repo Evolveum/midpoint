@@ -7,19 +7,23 @@
 
 package com.evolveum.midpoint.model.impl.correlator.idmatch;
 
+import static com.evolveum.midpoint.model.api.correlator.Confidence.full;
+import static com.evolveum.midpoint.model.api.correlator.Confidence.zero;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieveCollection;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+
+import com.evolveum.midpoint.model.api.correlation.CorrelationPropertyDefinition;
+import com.evolveum.midpoint.model.api.correlator.*;
+
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
-import com.evolveum.midpoint.model.api.correlator.CandidateOwner;
-import com.evolveum.midpoint.model.api.correlator.CandidateOwnersMap;
-import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
-import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.model.api.correlator.idmatch.*;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.correlator.BaseCorrelator;
@@ -46,7 +50,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
  * . This correlator is not to be used as a child of the composite correlator.
  * . Currently supports only shadow-based correlations.
  */
-class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
+public class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
 
     private static final double DEFAULT_CONFIDENCE_LIMIT = 0.9;
 
@@ -87,7 +91,7 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
     }
 
     @Override
-    protected double checkCandidateOwnerInternal(
+    protected @NotNull Confidence checkCandidateOwnerInternal(
             @NotNull CorrelationContext correlationContext,
             @NotNull FocusType candidateOwner,
             @NotNull OperationResult result)
@@ -159,22 +163,22 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
             return mResult;
         }
 
-        double checkCandidateOwner(@NotNull FocusType candidateOwner, OperationResult result)
+        @NotNull Confidence checkCandidateOwner(@NotNull FocusType candidateOwner, OperationResult result)
                 throws SchemaException, CommunicationException, SecurityViolationException, ConfigurationException {
             MatchingResult mResult = executeMatchAndStoreTheResult(result);
             String definiteReferenceId = mResult.getReferenceId();
             if (definiteReferenceId != null) {
-                return checkCandidateOwnerByReferenceId(candidateOwner, definiteReferenceId) ? 1 : 0;
+                return checkCandidateOwnerByReferenceId(candidateOwner, definiteReferenceId) ? full() : zero();
             } else {
                 for (PotentialMatch potentialMatch : mResult.getPotentialMatches()) {
                     String referenceId = potentialMatch.getReferenceId();
                     if (referenceId != null) {
                         if (checkCandidateOwnerByReferenceId(candidateOwner, referenceId)) {
-                            return getConfidence(potentialMatch);
+                            return Confidence.of(getConfidenceValue(potentialMatch));
                         }
                     }
                 }
-                return 0;
+                return zero();
             }
         }
 
@@ -192,8 +196,8 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
                 // Note that ID Match does not provide confidence values for certain matches
                 // And we don't support custom confidence values here. Hence always 1.0.
                 return CorrelationResult.of(
-                        CandidateOwnersMap.from(
-                                List.of(new CandidateOwner(focus, referenceId, 1.0))));
+                        CandidateOwners.from(
+                                List.of(new CandidateOwner.ObjectBased(focus, referenceId, 1.0))));
             } else {
                 return CorrelationResult.empty();
             }
@@ -244,25 +248,25 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
                 @NotNull MatchingResult mResult,
                 @NotNull OperationResult result)
                 throws SchemaException, ConfigurationException {
-            CandidateOwnersMap candidateOwnersMap = new CandidateOwnersMap();
+            CandidateOwners candidateOwners = new CandidateOwners();
             for (PotentialMatch potentialMatch : mResult.getPotentialMatches()) {
                 String referenceId = potentialMatch.getReferenceId();
                 if (referenceId != null) {
                     var candidate = findFocusWithGivenReferenceId(referenceId, result);
                     if (candidate != null) {
-                        candidateOwnersMap.put(
+                        candidateOwners.putObject(
                                 candidate,
                                 referenceId,
-                                getConfidence(potentialMatch));
+                                getConfidenceValue(potentialMatch));
                     } else {
                         LOGGER.debug("Potential match with no corresponding user: {}", potentialMatch);
                     }
                 }
             }
-            return CorrelationResult.of(candidateOwnersMap);
+            return CorrelationResult.of(candidateOwners);
         }
 
-        private double getConfidence(PotentialMatch potentialMatch) {
+        private double getConfidenceValue(PotentialMatch potentialMatch) {
             double confidenceLimit = Objects.requireNonNullElse(
                     configurationBean.getCandidateConfidenceLimit(), DEFAULT_CONFIDENCE_LIMIT);
             Double confidence = potentialMatch.getConfidenceScaledToOne();
@@ -350,6 +354,12 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
             throws SchemaException, ConfigurationException {
         return new IdMatchObjectCreator(correlatorContext, preFocus, shadow)
                 .create();
+    }
+
+    @Override
+    public @NotNull Collection<CorrelationPropertyDefinition> getCorrelationPropertiesDefinitions(
+            PrismObjectDefinition<? extends FocusType> focusDefinition, @NotNull Task task, @NotNull OperationResult result) {
+        return List.of(); // Implement if really needed. (For the time being, properties from pre-focus are sufficient.)
     }
 
     private class ReferenceIdResolutionConfig { // TODO better name

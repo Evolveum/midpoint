@@ -6,6 +6,8 @@
  */
 
 import Sparkline from "sparklines";
+import { TempusDominus } from '@eonasdan/tempus-dominus';
+import { DateTime } from '@eonasdan/tempus-dominus/dist/js/tempus-dominus.js';
 
 export default class MidPointTheme {
 
@@ -35,13 +37,25 @@ export default class MidPointTheme {
                     // expand the panel
                     $(this).nextUntil('.nav-header').slideDown();
                     $(this).removeClass('closed');
+                    $(this).attr("aria-expanded", "true")
                 } else {
                     // collapse the panel
                     $(this).nextUntil('.nav-header').slideUp();
                     $(this).addClass('closed');
+                    $(this).attr("aria-expanded", "false")
                 }
             });
         });
+
+        jQuery(function ($) {
+                    $('.nav-sidebar li.nav-item[aria-haspopup="true"]').on("click", function (e) {
+                        if ($(this).hasClass('menu-open')) {
+                            $(this).attr("aria-expanded", "false");
+                        } else {
+                            $(this).attr("aria-expanded", "true");
+                        }
+                    });
+                });
 
         !function ($) {
             $.fn.passwordFieldValidatorPopover = function (inputId, popover) {
@@ -130,8 +144,8 @@ export default class MidPointTheme {
             }
         })(jQuery);
 
-        jQuery(function ($) {
-            $(document).on("mouseenter", "*[data-toggle='tooltip']", function (e, t) {
+        (function ($) {
+            $.fn.showTooltip = function () {
                 if (typeof $(this).tooltip === "function") {
                     var wl = $.fn.tooltip.Constructor.Default.whiteList;
                     wl['xsd:documentation'] = [];
@@ -142,8 +156,16 @@ export default class MidPointTheme {
                     }
                     $(this).tooltip({html: true, whiteList: wl, 'container': container});
                     $(this).tooltip("show");
-                }
-                ;
+                };
+            }
+        })(jQuery);
+
+        jQuery(function ($) {
+            $(document).on("mouseenter", "*[data-toggle='tooltip']", function (e) {
+                $(this).showTooltip();
+            });
+            $(document).on("focus", "*[data-toggle='tooltip']", function (e) {
+                $(this).showTooltip();
             });
         });
 
@@ -155,7 +177,57 @@ export default class MidPointTheme {
                 }
             });
         });
+
+        jQuery(function ($) {
+            $(document).on("click", ".showPasswordButton", function (e, t) {
+                $(this).showPassword();
+            });
+        });
+
+        jQuery(function ($) {
+            $(document).on("keydown", ".showPasswordButton", function (e, t) {
+                if (e.key == " " || e.code == "Space" || e.keyCode == 32 ||
+                        e.key == "Enter" || e.keyCode == 13) {
+                    $(this).showPassword();
+                  }
+            });
+        });
+
+        (function ($) {
+            $.fn.showPassword = function () {
+                var parent = $(this).closest(".password-parent");
+                var input = parent.find("input");
+
+                if (input.attr('type') === "password") {
+                    input.attr('type', 'text');
+                    $(this).addClass("fa-eye-slash");
+                    $(this).removeClass("fa-eye");
+                } else {
+                    input.attr('type', 'password');
+                    $(this).removeClass("fa-eye-slash");
+                    $(this).addClass("fa-eye");
+                }
+            }
+        })(jQuery);
+
+        jQuery(function ($) {
+                    $(document).on("keydown", ".clickable-by-enter", function (e, t) {
+                        if (e.key == " " || e.code == "Space" || e.keyCode == 32 ||
+                                e.key == "Enter" || e.keyCode == 13) {
+                            $(this).click();
+                          }
+                    });
+                });
     }
+
+initDateTimePicker(containerId, configuration) {
+    new TempusDominus(containerId, configuration);
+}
+
+createCurrentDateForDatePicker(containerId, configuration) {
+    const date = new Date();
+    return new DateTime(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0);
+}
 
 breakLongerTextInTableCell(cellId) {
     $("#" + cellId).css("word-break", function (index, origValue) {
@@ -485,19 +557,6 @@ breakLongerTextInTableCell(cellId) {
         }
     }
 
-    showPassword(iconElement) {
-        var parent = iconElement.closest(".password-parent");
-        var input = parent.querySelector("input");
-
-        if (input.type === "password") {
-            input.type = "text";
-            iconElement.className = 'fa fa-eye-slash';
-        } else {
-            input.type = "password";
-            iconElement.className = 'fa fa-eye';
-        }
-    }
-
     updatePageUrlParameter(paramName, paramValue) {
         var queryParams = new URLSearchParams(window.location.search);
         queryParams.set(paramName, paramValue);
@@ -550,21 +609,28 @@ breakLongerTextInTableCell(cellId) {
         });
     }
 
-    /**
-    * used in SimulationModePanel.java
-    *
-    * @param compId
-    */
-    initDropdownResize(panelId) {
-        var panel = $('#' + panelId);
-        panel.find("option.width-tmp-option").html(panel.find("select.resizing-select option:selected").text());
-        panel.find("select.resizing-select").width(panel.find("select.width-tmp-select").width());
-    }
+//    /**
+//     * used in SimulationModePanel.java
+//     *
+//     * @param compId
+//     */
+//    initDropdownResize(panelId) {
+//        var panel = $('#' + panelId);
+//        console.log('initDropdownResize panel: ' + panel);
+//        panel.find("option.width-tmp-option").html(panel.find("select.resizing-select option:selected").text());
+//        panel.find("select.resizing-select").width(panel.find("select.width-tmp-select").width());
+//    }
 
+    /**
+    * Used for scaling tables, images and charts (Role Mining)
+    *
+    * @param containerId
+    */
     initScaleResize(containerId) {
         let div = document.querySelector(containerId);
         let scale = 0.5;
         let component = null;
+        const minDragDistance = 10
 
         if (!div) {
             console.error('Container not found');
@@ -573,60 +639,99 @@ breakLongerTextInTableCell(cellId) {
 
         if (containerId === '#tableScaleContainer') {
             component = div.querySelector('table');
-        } else if (containerId === '#imageScaleContainer') {
-            component = div.querySelector('img');
         } else if (containerId === '#chartScaleContainer') {
             component = div.querySelector('canvas');
-                     }
-
-        if (component) {
-            div.addEventListener('wheel', handleZoom);
-        } else {
-            console.error('Component not found');
         }
+
+        if (!component) {
+            console.error('Component not found');
+            return
+        }
+
+        div.addEventListener('wheel', handleZoom);
+        div.addEventListener('mousedown', startDrag);
+        div.addEventListener('mouseup', stopDrag);
+        div.addEventListener('mouseleave', stopDrag);
+
+        let startX, startY, startScrollLeft, startScrollTop;
+        let isMouseDown = false
+        let isDragging = false
+
+        function startDrag(e) {
+                e.preventDefault();
+                isMouseDown = true
+                startX = e.clientX;
+                startY = e.clientY;
+                startScrollLeft = div.scrollLeft;
+                startScrollTop = div.scrollTop;
+                div.addEventListener('mousemove', drag);
+            }
+
+            function drag(e) {
+                e.preventDefault();
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                const delta = Math.sqrt(dx * dx + dy * dy)
+                if (!isDragging && isMouseDown && delta > minDragDistance) {
+                  // mouse-down-move at least `minDragDistance` pixels from the origin to assume dragging
+                  isDragging = true
+                  // prevents other gesture handlers to interact
+                  component.style['pointer-events'] = 'none'
+                }
+                if (!isDragging) {
+                  return
+                }
+                div.scrollLeft = startScrollLeft - dx;
+                div.scrollTop = startScrollTop - dy;
+            }
+
+            function stopDrag(e) {
+                isMouseDown = false
+                isDragging = false
+                e.preventDefault()
+                component.style['pointer-events'] = 'inherit'
+                div.removeEventListener('mousemove', drag);
+            }
 
         function handleZoom(e) {
             e.preventDefault();
             let rectBefore = component.getBoundingClientRect();
-            let x = (e.clientX - rectBefore.left) / rectBefore.width * 100;
-            let y = (e.clientY - rectBefore.top) / rectBefore.height * 100;
 
             if (e.deltaY < 0) {
-                zoomIn(rectBefore, x, y);
+                zoomIn(rectBefore, containerId === '#chartScaleContainer' ? true : false);
             } else if (e.deltaY > 0) {
-                zoomOut(rectBefore);
+                zoomOut(rectBefore, containerId === '#chartScaleContainer' ? 1.0 : 0.1);
             }
         }
 
-        function zoomIn(rectBefore, x, y) {
+        function zoomIn(rectBefore, isChart) {
             console.log('Zooming in');
-            scale += 0.03;
 
-            let prevScale = scale - 0.1;
+            if(isChart && scale < 1.0){
+                 scale = 1.0;
+            }
+            scale += 0.05;
+
+            let prevScale = scale - 0.05;
             let scaleFactor = scale / prevScale;
-
-            let deltaX = (x / 100) * rectBefore.width * (scaleFactor - 1);
-            let deltaY = (y / 100) * rectBefore.height * (scaleFactor - 1);
-
-            setTransform(x, y, scale, rectBefore, deltaX, deltaY, scaleFactor);
+            //TODO target to cursor (temporarily disabled because of display rendering issues)
+            setTransform(0, 0, scale, rectBefore, scaleFactor);
         }
 
-        function zoomOut(rectBefore) {
+        function zoomOut(rectBefore, maxScale) {
             console.log('Zooming out');
-            scale -= 0.03;
-            scale = Math.max(0.1, scale);
+            scale -= 0.05;
+            scale = Math.max(maxScale, scale);
 
-            setTransform(0, 0, scale, rectBefore, 0, 0, 1);
+            setTransform(0, 0, scale, rectBefore, 1);
         }
 
-        function setTransform(x, y, scale, rectBefore, deltaX, deltaY, scaleFactor) {
-            component.style.transformOrigin = `${x}% ${y}%`;
+        function setTransform(x, y, scale, rectBefore, scaleFactor) {
+            component.style.transformOrigin = '0% 0%';
             component.style.transition = 'transform 0.3s';
             component.style.transform = `scale(${scale})`;
-
-            let rectAfter = component.getBoundingClientRect();
-            div.scrollLeft += (rectAfter.left - rectBefore.left) + deltaX - (e.clientX - rectBefore.left) * (scaleFactor - 1);
-            div.scrollTop += (rectAfter.top - rectBefore.top) + deltaY - (e.clientY - rectBefore.top) * (scaleFactor - 1);
+            div.scrollLeft = 0;
+            div.scrollTop = 0;
         }
     }
 

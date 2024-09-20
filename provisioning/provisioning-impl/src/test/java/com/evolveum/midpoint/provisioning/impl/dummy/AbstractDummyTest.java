@@ -12,28 +12,26 @@ import static org.testng.AssertJUnit.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.test.DummyTestResource;
+import com.evolveum.midpoint.schema.processor.BareResourceSchema;
+import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.test.*;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.icf.dummy.connector.DummyConnector;
 import com.evolveum.icf.dummy.resource.*;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.match.MatchingRule;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -41,23 +39,12 @@ import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTe
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.asserter.DummyAccountAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 /**
  * @author semancik
@@ -69,7 +56,6 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 
     public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
     public static final String RESOURCE_DUMMY_OID = "ef2bc95b-76e0-59e2-86d6-9999dddddddd";
-    public static final String RESOURCE_DUMMY_NS = MidPointConstants.NS_RI;
     public static final String RESOURCE_DUMMY_INTENT_GROUP = "group";
 
     protected static final String RESOURCE_DUMMY_NONEXISTENT_OID = "ef2bc95b-000-000-000-009900dddddd";
@@ -140,11 +126,17 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
     protected static final String OBJECTCLASS_GROUP_LOCAL_NAME = "GroupObjectClass";
     protected static final String OBJECTCLASS_PRIVILEGE_LOCAL_NAME = "CustomprivilegeObjectClass";
 
-    protected static final QName ASSOCIATION_GROUP_NAME = new QName(RESOURCE_DUMMY_NS, "group");
-    protected static final QName ASSOCIATION_PRIV_NAME = new QName(RESOURCE_DUMMY_NS, "priv");
+    protected static final QName ASSOCIATION_GROUP_NAME = new QName(MidPointConstants.NS_RI, "group");
+    protected static final QName ASSOCIATION_PRIV_NAME = new QName(MidPointConstants.NS_RI, "priv");
+
+    protected static final ObjectClassName AC_GROUP_MEMBERSHIP_NAME = ObjectClassName.custom("groupMembership");
+    protected static final ObjectClassName AC_ACCOUNT_PRIVILEGE_NAME = ObjectClassName.custom("accountPrivilege");
 
     protected PrismObject<ResourceType> resource;
     protected ResourceType resourceBean;
+    /** True if the resource was successfully tested and {@link #resource} and {@link #resourceBean} contain complete schema. */
+    protected boolean resourceInitialized;
+    protected static boolean resourceShutDown;
     protected static DummyResource dummyResource;
     protected static DummyResourceContoller dummyResourceCtl;
 
@@ -153,9 +145,17 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
     protected static final TestObject<ArchetypeType> ARCHETYPE_OBJECT_MARK = TestObject.classPath(
             "initial-objects/archetype", "701-archetype-object-mark.xml", SystemObjectsType.ARCHETYPE_OBJECT_MARK.value());
 
+    private static final TestObject<ArchetypeType> ARCHETYPE_SHADOW_POLICY_MARK = TestObject.classPath(
+            "initial-objects/archetype", "705-archetype-shadow-policy-mark.xml",
+            SystemObjectsType.ARCHETYPE_SHADOW_POLICY_MARK.value());
+
     protected static final TestObject<MarkType> MARK_PROTECTED_SHADOW = TestObject.classPath(
             "initial-objects/mark", "800-mark-protected.xml",
             SystemObjectsType.MARK_PROTECTED.value());
+
+    protected static final TestObject<MarkType> MARK_INVALID_DATA = TestObject.classPath(
+            "initial-objects/mark", "804-mark-invalid-data.xml",
+            SystemObjectsType.MARK_INVALID_DATA.value());
 
     @Autowired
     protected ProvisioningContextFactory provisioningContextFactory;
@@ -165,6 +165,10 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
     @Override
     protected PrismObject<ResourceType> getResource() {
         return resource;
+    }
+
+    protected boolean areReferencesSupportedNatively() {
+        return false;
     }
 
     @Override
@@ -179,6 +183,19 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
         dummyResource = dummyResourceCtl.getDummyResource();
         extraDummyResourceInit();
 
+        if (areMarksSupported()) {
+            repoAdd(ARCHETYPE_OBJECT_MARK, initResult);
+            repoAdd(ARCHETYPE_SHADOW_POLICY_MARK, initResult);
+            repoAdd(MARK_PROTECTED_SHADOW, initResult);
+            repoAdd(MARK_INVALID_DATA, initResult);
+        }
+    }
+
+    /**
+     * Not called during the initialization, because the resource is not yet configured.
+     * We need the definition to create the repo shadow.
+     */
+    void addAccountDaemon(OperationResult result) throws Exception {
         DummyAccount dummyAccountDaemon = new DummyAccount(ACCOUNT_DAEMON_USERNAME);
         dummyAccountDaemon.setEnabled(true);
         dummyAccountDaemon.addAttributeValues("fullname", "Evil Daemon");
@@ -189,12 +206,8 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
         if (!isIcfNameUidSame()) {
             setIcfUid(shadowDaemon, dummyAccountDaemon.getId());
         }
-        repositoryService.addObject(shadowDaemon, null, initResult);
-
-        if(areMarksSupported()) {
-            repoAdd(ARCHETYPE_OBJECT_MARK, initResult);
-            repoAdd(MARK_PROTECTED_SHADOW, initResult);
-        }
+        convertAttributesToRepoFormat(shadowDaemon);
+        repositoryService.addObject(shadowDaemon, null, result);
     }
 
     protected String getDummyConnectorType() {
@@ -209,19 +222,41 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
         // nothing to do here
     }
 
-    protected void setIcfUid(PrismObject<ShadowType> shadow, String icfUid) {
+    private void setIcfUid(PrismObject<ShadowType> shadow, String icfUid) {
         PrismProperty<String> icfUidAttr = shadow.findProperty(SchemaConstants.ICFS_UID_PATH);
         icfUidAttr.setRealValue(icfUid);
     }
 
-    protected String getIcfUid(ShadowType shadowType) {
-        return getIcfUid(shadowType.asPrismObject());
+    void convertAttributesToRepoFormat(PrismObject<ShadowType> shadow) throws SchemaException, ConfigurationException {
+        PrismContainer<ShadowAttributesType> origAttrContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
+        var attrContainerClone = origAttrContainer.clone();
+        var objectDef = Resource.of(resourceBean)
+                .getCompleteSchemaRequired()
+                .findDefinitionForObjectClassRequired(shadow.asObjectable().getObjectClass());
+        attrContainerClone.applyDefinition(objectDef.toShadowAttributesContainerDefinition());
+
+        PrismContainerValue<ShadowAttributesType> origAttrContainerValue = origAttrContainer.getValue();
+        origAttrContainerValue.clear();
+        for (Item<?, ?> clonedItem : attrContainerClone.getValue().getItems()) {
+            origAttrContainerValue.add(
+                    objectDef.findSimpleAttributeDefinitionRequired(clonedItem.getElementName())
+                            .toNormalizationAware()
+                            .adoptRealValuesAndInstantiate(clonedItem.getRealValues()));
+        }
+    }
+
+    protected String getIcfUid(RawRepoShadow shadow) {
+        return getIcfUid(shadow.getPrismObject());
+    }
+
+    protected String getIcfUid(AbstractShadow shadow) {
+        return getIcfUid(shadow.getPrismObject());
     }
 
     @Override
     protected String getIcfUid(PrismObject<ShadowType> shadow) {
-        PrismProperty<String> icfUidAttr = shadow.findProperty(SchemaConstants.ICFS_UID_PATH);
-        return icfUidAttr.getRealValue();
+        Object value = shadow.findProperty(SchemaConstants.ICFS_UID_PATH).getRealValue();
+        return value instanceof PolyString polyString ? polyString.getOrig() : (String) value;
     }
 
     protected String getIcfName(PrismObject<ShadowType> shadow) {
@@ -237,8 +272,8 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
         return ACCOUNT_WILL_FILE;
     }
 
-    protected String transformNameFromResource(String origName) {
-        return origName;
+    protected String getWillNameOnResource() {
+        return transformNameToResource(ACCOUNT_WILL_USERNAME);
     }
 
     protected String transformNameToResource(String origName) {
@@ -249,61 +284,55 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
         return true;
     }
 
-    protected <T extends ShadowType> void checkUniqueness(Collection<PrismObject<T>> shadows) throws SchemaException {
-        for (PrismObject<T> shadow : shadows) {
+    protected void checkUniqueness(Collection<? extends AbstractShadow> shadows) throws SchemaException {
+        for (AbstractShadow shadow : shadows) {
             checkUniqueness(shadow);
         }
     }
 
-    protected void checkUniqueness(PrismObject<? extends ShadowType> object) throws SchemaException {
+    protected void checkUniqueness(AbstractShadow object) throws SchemaException {
+        checkUniqueness(object, false);
+    }
 
+    protected void checkUniqueness(AbstractShadow object, boolean liveOnly) throws SchemaException {
         OperationResult result = createOperationResult("checkUniqueness");
-
-        PrismPropertyDefinition itemDef = ShadowUtil.getAttributesContainer(object).getDefinition().findAttributeDefinition(SchemaConstants.ICFS_NAME);
-
-        logger.info("item definition: {}", itemDef.debugDump());
-        //TODO: matching rule
-        ObjectQuery query = prismContext.queryFor(ShadowType.class)
-                .itemWithDef(itemDef, ShadowType.F_ATTRIBUTES, itemDef.getItemName()).eq(getWillRepoIcfName())
-                .build();
-
-        System.out.println("Looking for shadows of \"" + getWillRepoIcfName() + "\" with filter "
-                + query.debugDump());
-        display("Looking for shadows of \"" + getWillRepoIcfName() + "\" with filter "
-                + query.debugDump());
-
-        List<PrismObject<ShadowType>> objects = repositoryService.searchObjects(ShadowType.class, query,
-                null, result);
-
-        assertEquals("Wrong number of repo shadows for ICF NAME \"" + getWillRepoIcfName() + "\"", 1, objects.size());
-
+        var nameAttr = object.getSimpleAttributeRequired(SchemaConstants.ICFS_NAME);
+        var q = prismContext.queryFor(ShadowType.class)
+                .item(ShadowType.F_RESOURCE_REF).ref(object.getResourceOidRequired())
+                .and().item(ShadowType.F_OBJECT_CLASS).eq(object.getObjectClass())
+                .and().filter(nameAttr.normalizationAwareEqFilter());
+        if (liveOnly) {
+            q = q.and().block()
+                    .item(ShadowType.F_DEAD).isNull()
+                    .or().item(ShadowType.F_DEAD).eq(false)
+                    .endBlock();
+        }
+        var query = q.build();
+        displayDumpable("Filter for checking the uniqueness", query);
+        var objects = repositoryService.searchObjects(ShadowType.class, query, null, result);
+        assertEquals("Wrong number of repo shadows for ICF NAME \"" + nameAttr + "\"", 1, objects.size());
     }
 
-    protected <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName, T... expectedValues) {
-        assertAttribute(resource, shadow.asObjectable(), attrName, expectedValues);
-    }
-
-    protected <T> void assertAttribute(PrismObject<ShadowType> shadow, QName attrName, T... expectedValues) {
+    @SafeVarargs
+    protected final <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName, T... expectedValues) {
         assertAttribute(shadow.asObjectable(), attrName, expectedValues);
     }
 
-    protected <T> void assertAttribute(PrismObject<ShadowType> shadow,
-            MatchingRule<T> matchingRule, QName attrName, T... expectedValues)
-            throws SchemaException {
-        assertAttribute(resource, shadow.asObjectable(), matchingRule, attrName, expectedValues);
+    protected void assertNoAttribute(AbstractShadow shadow, String attrName) {
+        assertNoAttribute(resource, shadow.getBean(), attrName);
     }
 
     protected void assertNoAttribute(PrismObject<ShadowType> shadow, String attrName) {
         assertNoAttribute(resource, shadow.asObjectable(), attrName);
     }
 
-    protected void assertSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType) throws Exception {
+    protected void assertBareSchemaSanity(BareResourceSchema resourceSchema, ResourceType resourceType) throws Exception {
         dummyResourceCtl.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType, true);
     }
 
     protected DummyAccount getDummyAccount(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         if (isIcfNameUidSame()) {
-            return dummyResource.getAccountByUsername(icfName);
+            return dummyResource.getAccountByName(icfName);
         } else {
             return dummyResource.getAccountById(icfUid);
         }
@@ -311,7 +340,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 
     protected DummyAccount getDummyAccountAssert(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         if (isIcfNameUidSame()) {
-            return dummyResource.getAccountByUsername(icfName);
+            return dummyResource.getAccountByName(icfName);
         } else {
             DummyAccount account = dummyResource.getAccountById(icfUid);
             assertNotNull("No dummy account with ICF UID " + icfUid + " (expected name " + icfName + ")", account);
@@ -320,7 +349,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
         }
     }
 
-    protected DummyAccountAsserter assertDummyAccount(String icfName, String icfUid)
+    protected DummyAccountAsserter<Void> assertDummyAccount(String icfName, String icfUid)
             throws ConnectException, FileNotFoundException, SchemaViolationException,
             ConflictException, InterruptedException {
         if (isIcfNameUidSame()) {
@@ -333,15 +362,15 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
     protected void assertNoDummyAccount(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         DummyAccount account;
         if (isIcfNameUidSame()) {
-            account = dummyResource.getAccountByUsername(icfName);
+            account = dummyResource.getAccountByName(icfName);
         } else {
             account = dummyResource.getAccountById(icfUid);
         }
         assertNull("Unexpected dummy account with ICF UID " + icfUid + " (name " + icfName + ")", account);
     }
 
+    @SuppressWarnings({ "SameParameterValue", "WeakerAccess" })
     protected DummyGroup getDummyGroup(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
-//        if (isNameUnique()) {
         if (isIcfNameUidSame()) {
             return dummyResource.getGroupByName(icfName);
         } else {
@@ -350,7 +379,6 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
     }
 
     protected DummyGroup getDummyGroupAssert(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
-//        if (isNameUnique()) {
         if (isIcfNameUidSame()) {
             return dummyResource.getGroupByName(icfName);
         } else {
@@ -361,8 +389,8 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
         }
     }
 
+    @SuppressWarnings({ "SameParameterValue", "WeakerAccess" })
     protected DummyPrivilege getDummyPrivilege(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
-//        if (isNameUnique()) {
         if (isIcfNameUidSame()) {
             return dummyResource.getPrivilegeByName(icfName);
         } else {
@@ -371,7 +399,6 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
     }
 
     protected DummyPrivilege getDummyPrivilegeAssert(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
-//        if (isNameUnique()) {
         if (isIcfNameUidSame()) {
             return dummyResource.getPrivilegeByName(icfName);
         } else {
@@ -382,14 +409,21 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
         }
     }
 
-    protected <T> void assertDummyAccountAttributeValues(String accountName, String accountUid, String attributeName, T... expectedValues) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+    @SuppressWarnings("WeakerAccess")
+    @SafeVarargs
+    protected final <T> void assertDummyAccountAttributeValues(
+            String accountName, String accountUid, String attributeName, T... expectedValues)
+            throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         DummyAccount dummyAccount = getDummyAccountAssert(accountName, accountUid);
         assertNotNull("No account '" + accountName + "'", dummyAccount);
         assertDummyAttributeValues(dummyAccount, attributeName, expectedValues);
     }
 
-    protected <T> void assertDummyAttributeValues(
+    @SuppressWarnings("WeakerAccess")
+    @SafeVarargs
+    protected final <T> void assertDummyAttributeValues(
             DummyObject object, String attributeName, T... expectedValues) {
+        //noinspection unchecked
         Set<T> attributeValues = (Set<T>) object.getAttributeValues(attributeName, expectedValues[0].getClass());
         assertNotNull("No attribute " + attributeName + " in " + object.getShortTypeName() + " " + object, attributeValues);
         TestUtil.assertSetEquals("Wrong values of attribute " + attributeName + " in " + object.getShortTypeName() + " " + object, attributeValues, expectedValues);
@@ -400,7 +434,11 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
         assertNotNull("Unexpected attribute " + attributeName + " in " + object.getShortTypeName() + " " + object + ": " + attributeValues, attributeValues);
     }
 
-    protected String getWillRepoIcfName() {
+    String getWillRepoIcfName() {
+        return ACCOUNT_WILL_USERNAME;
+    }
+
+    String getWillRepoIcfNameNorm() {
         return ACCOUNT_WILL_USERNAME;
     }
 
@@ -420,16 +458,38 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
         IntegrationTestTools.assertNoGroupMember(group, accountId);
     }
 
-    protected void assertEntitlementGroup(PrismObject<ShadowType> account, String entitlementOid) {
+    /**
+     * Asserts privileges.
+     *
+     * The default implementation uses old-school simulation attribute.
+     * (Overridden by the use of links for native references.)
+     *
+     * Treats {@link #PRIVILEGE_NONSENSE_NAME} privilege specially.
+     */
+    protected void assertPrivileges(DummyAccount dummyAccount, String... expected) {
+        assertNotNull("Account is gone!", dummyAccount);
+        Set<String> accountPrivileges = dummyAccount.getAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, String.class);
+        PrismAsserts.assertSets(
+                "account privileges",
+                accountPrivileges,
+                Arrays.stream(expected)
+                        .map(origName ->
+                                PRIVILEGE_NONSENSE_NAME.equals(origName) ?
+                                        origName : // nonsense does not exist on resource, so it's not transformed
+                                        transformNameToResource(origName))
+                        .toList());
+    }
+
+    protected void assertGroupAssociation(AbstractShadow account, String entitlementOid) {
         assertAssociation(account, ASSOCIATION_GROUP_NAME, entitlementOid);
     }
 
-    protected void assertEntitlementPriv(PrismObject<ShadowType> account, String entitlementOid) {
+    protected void assertPrivAssociation(AbstractShadow account, String entitlementOid) {
         assertAssociation(account, ASSOCIATION_PRIV_NAME, entitlementOid);
     }
 
-    protected void checkRepoAccountShadow(PrismObject<ShadowType> shadowFromRepo) {
-        ProvisioningTestUtil.checkRepoAccountShadow(shadowFromRepo);
+    protected void checkRepoAccountShadow(RawRepoShadow repoShadow) {
+        ProvisioningTestUtil.checkRepoAccountShadow(repoShadow);
     }
 
     protected void assertDummyConnectorInstances(int expectedConnectorInstances)
@@ -469,5 +529,17 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
     @NotNull
     protected ObjectQuery getAllAccountsQuery(DummyTestResource resource) {
         return ObjectQueryUtil.createResourceAndObjectClassQuery(resource.oid, RI_ACCOUNT_OBJECT_CLASS);
+    }
+
+    /** Useful for standalone running of supported tests. */
+    void initializeResourceIfNeeded() throws CommonException {
+        if (!resourceInitialized) {
+            var task = getTestTask();
+            var result = task.getResult();
+            provisioningService.testResource(RESOURCE_DUMMY_OID, task, result);
+            resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
+            resourceBean = resource.asObjectable();
+            resourceInitialized = true;
+        }
     }
 }

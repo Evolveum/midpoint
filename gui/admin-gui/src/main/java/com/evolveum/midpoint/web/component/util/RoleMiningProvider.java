@@ -71,8 +71,8 @@ public class RoleMiningProvider<T extends Serializable> extends BaseSortableData
                 double prop3, prop4;
                 try {
 
-                    prop3 = Double.parseDouble(String.valueOf(PropertyUtils.getProperty(o1, propertyName)));
-                    prop4 = Double.parseDouble(String.valueOf(PropertyUtils.getProperty(o2, propertyName)));
+                    prop3 = Double.parseDouble(String.valueOf(PropertyUtils.getProperty(o1, propertyName)).replace(',', '.'));
+                    prop4 = Double.parseDouble(String.valueOf(PropertyUtils.getProperty(o2, propertyName)).replace(',', '.'));
 
                 } catch (RuntimeException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                     throw new SystemException("Couldn't sort the object list: " + e.getMessage(), e);

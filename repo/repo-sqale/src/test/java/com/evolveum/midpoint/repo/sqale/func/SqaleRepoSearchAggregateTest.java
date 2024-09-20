@@ -171,7 +171,10 @@ public class SqaleRepoSearchAggregateTest extends SqaleRepoBaseTest {
         shadow1Oid = repositoryService.addObject(shadow1.asPrismObject(), null, result);
         // another shadow just to check we don't select shadow1 accidentally/randomly
         repositoryService.addObject(
-                new ShadowType().name("shadow-2").asPrismObject(), null, result);
+                new ShadowType().name("shadow-2")
+                        .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE) // what relation is used for shadow->resource?
+                        .objectClass(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS)
+                        .asPrismObject(), null, result);
 
         // tasks
         task1Oid = repositoryService.addObject(
@@ -405,10 +408,12 @@ public class SqaleRepoSearchAggregateTest extends SqaleRepoBaseTest {
                                 .stageNumber(1)
                                 .iteration(1)
                                 .workItem(new AccessCertificationWorkItemType()
+                                        .assigneeRef(user1Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT)
                                         .stageNumber(11)
                                         .iteration(1)
                                         .assigneeRef(user1Oid, UserType.COMPLEX_TYPE))
                                 .workItem(new AccessCertificationWorkItemType()
+                                        .assigneeRef(user1Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT)
                                         .stageNumber(12)
                                         .iteration(1)))
                         ._case(new AccessCertificationCaseType()
@@ -417,9 +422,15 @@ public class SqaleRepoSearchAggregateTest extends SqaleRepoBaseTest {
                                 .iteration(2)
                                 .targetRef(user1Oid, UserType.COMPLEX_TYPE)
                                 .workItem(new AccessCertificationWorkItemType()
+                                        .assigneeRef(user1Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT)
+                                        .assigneeRef(user2Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT)
+                                        .output(new AbstractWorkItemOutputType().outcome("OUTCOME one"))
                                         .stageNumber(21)
                                         .iteration(1))
                                 .workItem(new AccessCertificationWorkItemType()
+                                        .assigneeRef(user1Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT)
+                                        .assigneeRef(user2Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT)
+                                        .output(new AbstractWorkItemOutputType().outcome("OUTCOME one"))
                                         .stageNumber(22)
                                         .iteration(1)))
                         .asPrismObject(),
@@ -566,6 +577,37 @@ public class SqaleRepoSearchAggregateTest extends SqaleRepoBaseTest {
 
 
             spec.orderBy(spec.getResultItem(F_ASSIGNMENT), OrderDirection.DESCENDING);
+
+            SearchResultList<PrismContainerValue<?>> result = repositoryService.searchAggregate(spec, opResult);
+
+            assertThat(result)
+                    .isNotEmpty();
+            ;
+        } finally {
+            queryRecorder.dumpQueryBuffer();
+        }
+
+    }
+
+    @Test
+    public void test300AggregateWorkItems() throws Exception {
+        // owner name
+        var opResult = createOperationResult();
+        var dereferencedName = ItemPath.create(AccessCertificationWorkItemType.F_ASSIGNEE_REF, new ObjectReferencePathSegment(), F_NAME);
+        var outcomePath = ItemPath.create(AccessCertificationWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME);
+        queryRecorder.startRecording();
+        try {
+            var spec = AggregateQuery.forType(AccessCertificationWorkItemType.class)
+                    .resolveNames()
+                    .retrieve(AccessCertificationWorkItemType.F_ASSIGNEE_REF) // Resolver assignee
+                    .retrieve(AbstractWorkItemOutputType.F_OUTCOME, outcomePath)
+                    .count(AccessCertificationCaseType.F_WORK_ITEM, ItemPath.SELF_PATH);
+
+            spec.filter(PrismContext.get().queryFor(AbstractWorkItemType.class)
+                    .ownerId(accCertCampaign1Oid)
+                    .buildFilter()
+            );
+            spec.orderBy(spec.getResultItem(AccessCertificationWorkItemType.F_ASSIGNEE_REF), OrderDirection.DESCENDING);
 
             SearchResultList<PrismContainerValue<?>> result = repositoryService.searchAggregate(spec, opResult);
 

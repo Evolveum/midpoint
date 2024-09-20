@@ -142,9 +142,9 @@ public class TestCsvSimulationReport extends TestCsvReport {
 
     private List<UserType> existingUsers;
 
-    @BeforeMethod
-    public void onNativeOnly() {
-        skipIfNotNativeRepository();
+    @Override
+    protected boolean requiresNativeRepository() {
+        return true;
     }
 
     @Override
@@ -436,10 +436,12 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .execute(result);
 
         then("CSV is OK");
+        // In addition to previous report, this one contains "activation/disableTimestamp" and "activation/effectiveStatus".
+        // Note that unlike tradition metadata, the new value metadata changes are not present in this report (now).
         assertCsv(itemsLines2, "after")
                 .parse()
                 .display()
-                .assertRecords((a) -> a.hasSizeGreaterThan(40)); // too many
+                .assertRecords(25);
 
         when("item-level report is created - 'name' only");
         var itemsLines3 = REPORT_SIMULATION_ITEMS_CHANGED.export()
@@ -505,7 +507,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
         assertCsv(valuesLines2, "after")
                 .parse()
                 .display()
-                .assertRecords((a) -> a.hasSizeGreaterThan(50)); // too many
+                .assertRecords(40);
     }
 
     /** Checks whether account add ("link") operation is reported correctly. */
@@ -1049,7 +1051,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .end()
                 .record(3)
                 .assertValue(C_TYPE, "ShadowType")
-                .assertValue(C_ITEM_CHANGED, "association")
+                .assertValue(C_ITEM_CHANGED, "associations/group")
                 .end();
 
         when("value-level report is created (default)");
@@ -1108,9 +1110,9 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .record(3)
                 .assertValue(C_TYPE, "ShadowType")
                 .assertValue(C_STATE, "Modified")
-                .assertValue(C_ITEM_CHANGED, "association")
+                .assertValue(C_ITEM_CHANGED, "associations/group")
                 .assertValue(C_VALUE_STATE, "DELETED")
-                .assertValue(C_VALUE, "group: admin")
+                .assertValue(C_VALUE, "admin")
                 .end();
 
         when("result-level report is created (default)");
@@ -1301,12 +1303,12 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .end()
                 .record(2)
                 .assertValue(C_TYPE, "ShadowType")
-                .assertValue(C_ITEM_CHANGED, "association")
-                .assertValue(C_OLD_VALUES, "group: admin")
+                .assertValue(C_ITEM_CHANGED, "associations/group")
+                .assertValue(C_OLD_VALUES, "admin")
                 .assertValue(C_NEW_VALUES,
-                        a -> a.contains("group: developer")
-                                .contains("group: admin"))
-                .assertValue(C_VALUES_ADDED, "group: developer")
+                        a -> a.contains("developer")
+                                .contains("admin"))
+                .assertValue(C_VALUES_ADDED, "developer")
                 .assertValue(C_VALUES_DELETED, "")
                 .end();
 
@@ -1348,9 +1350,9 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .end()
                 .record(4)
                 .assertValue(C_TYPE, "ShadowType")
-                .assertValue(C_ITEM_CHANGED, "association")
+                .assertValue(C_ITEM_CHANGED, "associations/group")
                 .assertValue(C_VALUE_STATE, "ADDED")
-                .assertValue(C_VALUE, "group: developer")
+                .assertValue(C_VALUE, "developer")
                 .end();
     }
 

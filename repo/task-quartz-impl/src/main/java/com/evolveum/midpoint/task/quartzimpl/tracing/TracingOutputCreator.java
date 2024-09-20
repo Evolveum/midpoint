@@ -39,7 +39,6 @@ public class TracingOutputCreator {
 
     private static final Trace LOGGER = TraceManager.getTrace(TracerImpl.class);
 
-    @Autowired private PrismContext prismContext;
     @Autowired private TracerImpl tracer;
     @Autowired private TaskManager taskManager;
 
@@ -107,10 +106,10 @@ public class TracingOutputCreator {
         private int objectsChecked = 0;
         private int objectsAdded = 0;
 
-        private ExtractingVisitor(TraceDictionaryType dictionary, int dictionaryId, PrismContext prismContext) {
+        private ExtractingVisitor(TraceDictionaryType dictionary, int dictionaryId) {
             this.dictionary = dictionary;
             this.dictionaryId = dictionaryId;
-            this.prismContext = prismContext;
+            this.prismContext = PrismContext.get();
         }
 
 //        @Override
@@ -212,16 +211,12 @@ public class TracingOutputCreator {
         }
 
         <T extends ObjectType> PrismObject<T> cloneExceptForFetchResult(PrismObject<T> source) {
-            PrismObject<T> clone = new PrismObjectImpl<>(
-                    source.getElementName(),
-                    source.getDefinition(),
-                    PrismContext.get());
+            PrismObject<T> clone = new PrismObjectImpl<>(source.getElementName(), source.getDefinition());
             for (Item<?, ?> sourceItem : source.getValue().getItems()) {
                 if (ObjectType.F_FETCH_RESULT.equals(sourceItem.getElementName())) {
                     continue;
                 }
                 try {
-                    //noinspection unchecked
                     clone.getValue().add(
                             sourceItem.clone());
                 } catch (SchemaException e) {
@@ -246,7 +241,7 @@ public class TracingOutputCreator {
         int newDictionaryId = generateDictionaryId(embeddedDictionaries);
         dictionary.setIdentifier(newDictionaryId);
 
-        ExtractingVisitor extractingVisitor = new ExtractingVisitor(dictionary, newDictionaryId, prismContext);
+        ExtractingVisitor extractingVisitor = new ExtractingVisitor(dictionary, newDictionaryId);
         extractDictionary(resultBean, extractingVisitor);
         extractingVisitor.logDiagnosticInformation();
 

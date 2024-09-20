@@ -37,11 +37,6 @@ public class MemberSearchPanel extends AbstractSearchItemPanel<AbstractRoleSearc
             @Override
             protected void onScopeItemChanged(AjaxRequestTarget target) {
                 refreshSearchItems(target);
-//                target.add(MemberSearchPanel.this);
-//                SearchPanel searchPanel = (SearchPanel) findParent(SearchPanel.class);
-//                if (searchPanel != null) {
-//                    target.add(searchPanel);
-//                }
             }
         };
         scopeSearchItemPanel.add(new VisibleBehaviour(this::isScopeVisible));
@@ -60,10 +55,6 @@ public class MemberSearchPanel extends AbstractSearchItemPanel<AbstractRoleSearc
             @Override
             protected void onIndirectItemChanged(AjaxRequestTarget target) {
                 refreshSearchItems(target);
-//                SearchPanel searchPanel = (SearchPanel) findParent(SearchPanel.class);
-//                if (searchPanel != null) {
-//                    target.add(searchPanel);
-//                }
             }
         };
         indirectSearchItemPanel.add(new VisibleBehaviour(this::isIndirectVisible));
@@ -118,7 +109,7 @@ public class MemberSearchPanel extends AbstractSearchItemPanel<AbstractRoleSearc
     }
 
     private boolean isProjectVisible() {
-        return getModelObject().isTenantVisible();
+        return getModelObject().isProjectVisible();
     }
 
 }

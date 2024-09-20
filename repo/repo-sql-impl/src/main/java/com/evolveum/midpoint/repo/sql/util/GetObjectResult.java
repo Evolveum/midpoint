@@ -23,14 +23,10 @@ public class GetObjectResult implements Serializable {
             ROExtReference.class, ROExtPolyString.class, ROExtBoolean.class};
 
     public static final ResultStyle RESULT_STYLE = new ResultStyle() {
+
         @Override
         public ResultTransformer getResultTransformer() {
-            return new ResultTransformer() {
-                @Override
-                public Object transformTuple(Object[] tuple, String[] aliases) {
-                    return new GetObjectResult((String) tuple[0], (byte[]) tuple[1]);
-                }
-            };
+            return (tuple, aliases) -> new GetObjectResult((String) tuple[0], (byte[]) tuple[1]);
         }
 
         @Override

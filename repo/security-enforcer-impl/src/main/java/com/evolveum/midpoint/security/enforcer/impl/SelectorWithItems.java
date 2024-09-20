@@ -50,6 +50,8 @@ public class SelectorWithItems {
     @NotNull private final PathSet positives;
     @NotNull private final PathSet negatives;
 
+    private final boolean exceptMetadata;
+
     /** TODO what kind of description is here? */
     @NotNull private final String description;
 
@@ -57,31 +59,34 @@ public class SelectorWithItems {
             @NotNull ValueSelector selector,
             @NotNull PathSet positives,
             @NotNull PathSet negatives,
-            @NotNull String description) {
+            @NotNull String description,
+            boolean exceptMetadata) {
         this.selector = selector;
         this.positives = positives;
         this.negatives = negatives;
         this.description = description;
+        this.exceptMetadata = exceptMetadata;
     }
 
     /** TODO explain the meaning of this method i.e. why there are no paths? */
     public static SelectorWithItems of(@NotNull ValueSelector selector) {
-        return new SelectorWithItems(selector, PathSet.of(), PathSet.of(), "");
+        return new SelectorWithItems(selector, PathSet.of(), PathSet.of(), "", false);
     }
 
     public static SelectorWithItems of(
             @NotNull ValueSelector selector,
             @NotNull PathSet positives,
             @NotNull PathSet negatives,
-            @NotNull String description) throws ConfigurationException {
+            @NotNull String description,
+            boolean exceptMetadata) throws ConfigurationException {
         configCheck(positives.isEmpty() || negatives.isEmpty(),
                 "'item' and 'exceptItem' cannot be combined: %s vs %s in %s",
                 positives, negatives, description);
-        return new SelectorWithItems(selector, positives, negatives, description);
+        return new SelectorWithItems(selector, positives, negatives, description, exceptMetadata);
     }
 
     public static @NotNull SelectorWithItems all() {
-        return new SelectorWithItems(ValueSelector.empty(), PathSet.of(), PathSet.of(), "");
+        return new SelectorWithItems(ValueSelector.empty(), PathSet.of(), PathSet.of(), "", false);
     }
 
     public @NotNull String getDescription() {
@@ -108,7 +113,8 @@ public class SelectorWithItems {
      * by stepping down: creating a new selector for {@link AssignmentType} with a parent clause pointing to the original
      * selector.
      */
-    <T> SelectorWithItems adjustToSubObjectFilter(@NotNull Class<T> filterType) throws SchemaException, ConfigurationException {
+    @Nullable <T> SelectorWithItems adjustToSubObjectFilter(@NotNull Class<T> filterType)
+            throws SchemaException, ConfigurationException {
 
         Class<?> selectorType = selector.getEffectiveType();
         if (selectorType.isAssignableFrom(filterType) || filterType.isAssignableFrom(selectorType)) {
@@ -146,7 +152,7 @@ public class SelectorWithItems {
                                     candidateAdjustment.path)),
                     positives.remainder(candidateAdjustment.path),
                     negatives.remainder(candidateAdjustment.path),
-                    "adjusted " + description);
+                    "adjusted " + description, exceptMetadata);
         }
 
         return null;
@@ -242,7 +248,7 @@ public class SelectorWithItems {
     }
 
     private SelectorWithItems withSelectorReplaced(@NotNull ValueSelector newSelector) {
-        return new SelectorWithItems(newSelector, positives, negatives, description);
+        return new SelectorWithItems(newSelector, positives, negatives, description, exceptMetadata);
     }
 
     @Override
@@ -257,6 +263,15 @@ public class SelectorWithItems {
 
     boolean isParentLess() {
         return selector.isParentLess();
+    }
+
+    boolean hasOverlapWith(@NotNull Class<?> requiredType) {
+        return selector.getEffectiveType().isAssignableFrom(requiredType)
+                || requiredType.isAssignableFrom(selector.getEffectiveType());
+    }
+
+    public boolean isExceptMetadata() {
+        return exceptMetadata;
     }
 
     private record Adjustment(@NotNull QName typeName, @NotNull ItemPath path) {

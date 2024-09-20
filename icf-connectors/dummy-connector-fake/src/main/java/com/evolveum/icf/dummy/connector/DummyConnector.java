@@ -123,7 +123,6 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         // __ACCOUNT__ objectclass
         ObjectClassInfoBuilder objClassBuilder = new ObjectClassInfoBuilder();
 
-
         AttributeInfoBuilder attrBuilder = new AttributeInfoBuilder(FAKE_ATTR_NAME, String.class);
         attrBuilder.setMultiValued(true);
         attrBuilder.setRequired(false);

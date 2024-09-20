@@ -48,6 +48,9 @@
             <name>parentDescription</name>
             <path>description</path>
         </source>
+        <target>
+            <path>assignment</path>
+        </target>
         <expression>
             <assignmentTargetSearch>
                 <targetType>OrgType</targetType>
@@ -115,6 +118,7 @@
                 </code>
             </script>
         </condition>
+
     </mapping>
 
     <mapping>
@@ -137,6 +141,9 @@
 
     <mapping>
         <documentation>Assigns a metarole</documentation>
+        <source>
+            <path>description</path>
+        </source>
         <expression>
             <assignmentTargetSearch>
                 <targetType>RoleType</targetType>
@@ -146,5 +153,10 @@
         <target>
             <path>assignment</path>
         </target>
+        <condition>
+            <script>
+                <code>description != 'no-projection'</code>
+            </script>
+        </condition>
     </mapping>
 </objectTemplate>

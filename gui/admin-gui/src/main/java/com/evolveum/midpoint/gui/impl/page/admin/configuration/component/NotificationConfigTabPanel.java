@@ -43,7 +43,7 @@ import com.evolveum.midpoint.gui.impl.component.data.column.EditableColumn;
 import com.evolveum.midpoint.gui.impl.component.form.TriStateFormGroup;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
-import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.component.DeprecatedPropertyWrapperModel;
+import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.component.notification.DeprecatedPropertyWrapperModel;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -254,10 +254,6 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            protected PageStorage getPageStorage() {
-                return pageStorage;
-            }
         };
 
         UserProfileStorage.TableId tableId = UserProfileStorage.TableId.NOTIFICATION_TAB_MAIL_SERVER_TABLE;
@@ -396,13 +392,13 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
             @Override
             protected Component createStaticPanel(String componentId, IModel<MailServerConfiguration> rowModel) {
-                return new PasswordPropertyPanel(componentId, Model.of(rowModel.getObject().getValue().getPassword()), true, false);
+                return new PasswordPropertyPanel(componentId, Model.of(rowModel.getObject().getValue().getPassword()), true, false, true);
             }
 
             @Override
             protected Component createInputPanel(String componentId, IModel<MailServerConfiguration> rowModel) {
                 MailServerConfigurationType mailServer = rowModel.getObject().getValue();
-                return new PasswordPropertyPanel(componentId, new PropertyModel<>(mailServer, "password"), false, true);
+                return new PasswordPropertyPanel(componentId, new PropertyModel<>(mailServer, "password"), false, true, true);
             }
         });
 

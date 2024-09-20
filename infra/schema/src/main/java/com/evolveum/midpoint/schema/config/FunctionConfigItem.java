@@ -31,6 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
 public class FunctionConfigItem extends ExpressionConfigItem {
 
     // called dynamically
+    @SuppressWarnings("unused")
     public FunctionConfigItem(@NotNull ConfigurationItem<ExpressionType> original) {
         super(original);
     }
@@ -50,7 +51,7 @@ public class FunctionConfigItem extends ExpressionConfigItem {
                 () -> "No name in " + fullDescription());
     }
 
-    public @NotNull String getCommaDelimitedParameterNames() {
+    private @NotNull String getCommaDelimitedParameterNames() {
         return value().getParameter().stream()
                 .map(p -> "'" + p.getName() + "'")
                 .collect(Collectors.joining(", "));

@@ -11,91 +11,96 @@
 <wicket:extend>
     <div wicket:id="mainPopup"/>
     <div class="wrapper">
+        <div id="skip-link">
+            <a href="#main-content" class="btn-sm">
+                <wicket:message key="Accessibility.PageBase.skiplink.title"/>
+            </a>
+        </div>
         <nav wicket:id="mainHeader" class="main-header navbar navbar-expand border-bottom-0">
-            <ul class="navbar-nav">
-                <li class="nav-item">
-                    <a wicket:id="menuToggle" class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
-                </li>
-                <li class="nav-item">
-                    <div class="ml-2 navbar-title" wicket:id="pageTitleContainer">
-                        <span class="page-title" wicket:id="pageTitle">
-                            <span wicket:id="deploymentName"/>
-                            <span wicket:id="pageTitleReal"/>
-                        </span>
-                    </div>
-                </li>
-                <li class="nav-item">
-                    <div class="ml-3 mt-2">
-                        <i id="ajax_busy" class="fas fa-sync fa-spin fa-lg" style="visibility: hidden;"></i>
-                    </div>
-                </li>
-            </ul>
-            <ul class="navbar-nav ml-auto">
-                <li class="nav-item d-none d-md-inline">
-                    <ol class="breadcrumb">
+            <div class="navbar-nav">
+                <a wicket:id="menuToggle" class="nav-link" data-widget="pushmenu" href="#" role="button" wicket:message="title:Accessibility.PageBase.pushmenu.title"><i class="fas fa-bars"></i></a>
+            </div>
+            <div class="ml-2 navbar-title" wicket:id="pageTitleContainer" role="heading" aria-level="1">
+                <span class="page-title" wicket:id="pageTitle">
+                    <span wicket:id="deploymentName"/>
+                    <span wicket:id="pageTitleReal"/>
+                </span>
+            </div>
+            <div class="ml-3 mt-2">
+                <i id="ajax_busy" class="fas fa-sync fa-spin fa-lg" style="visibility: hidden;"></i>
+            </div>
+            <div class="navbar-right">
+                <div class="nav-item d-none d-md-inline" style="min-width: 0; width: 100%">
+                    <ol class="breadcrumb d-none d-xl-flex justify-content-end" wicket:message="aria-label:PageBase.breadcrumb" role="navigation" style="width: 100%; overflow: hidden;">
                         <li wicket:id="breadcrumb">
                             <a wicket:id="bcLink">
                                 <i wicket:id="bcIcon"></i>&nbsp;
+                                <span class="sr-only" wicket:id="bcSrCurrentMessage"><wicket:message key="PageBase.bcSrCurrentMessage"/></span>
                                 <span wicket:id="bcName"/>
                             </a>
                         </li>
                     </ol>
-                </li>
-                <wicket:enclosure child="cartLink">
-                    <li class="nav-item">
-                        <a class="nav-link" wicket:id="cartLink">
-                            <i class="fas fa-cart-shopping"></i>
-                            <span class="badge badge-danger navbar-badge" wicket:id="cartCount"/>
-                        </a>
+                </div>
+                <ul class="navbar-nav" role="menu">
+                    <wicket:enclosure child="cartLink">
+                        <li class="nav-item" role="menuitem">
+                            <a class="nav-link" wicket:id="cartLink">
+                                <i class="fas fa-cart-shopping"></i>
+                                <span class="badge badge-danger navbar-badge" wicket:id="cartCount"/>
+                            </a>
+                        </li>
+                    </wicket:enclosure>
+                    <wicket:remove>
+                        <li class="nav-item notification" role="menuitem">
+                            <a class="nav-link">
+                                <i class="fas fa-bell"></i>
+                                <span class="badge badge-danger">1</span>
+                            </a>
+                        </li>
+                    </wicket:remove>
+                    <li class="nav-item dropdown" role="menuitem">
+                        <div wicket:id="locale"/>
                     </li>
-                </wicket:enclosure>
-                <wicket:remove>
-                <li class="nav-item notification">
-                    <a class="nav-link">
-                        <i class="fas fa-bell"></i>
-                        <span class="badge badge-danger">1</span>
-                    </a>
-                </li>
-                </wicket:remove>
-                <li class="nav-item dropdown">
-                    <div wicket:id="locale"/>
-                </li>
-                <wicket:enclosure child="mode">
-                    <li class="nav-item">
-                        <a class="nav-link" href="#" wicket:id="mode"/>
-                    </li>
-                </wicket:enclosure>
-                <wicket:enclosure child="logoutForm">
-                    <li class="nav-item">
-                        <form method="post" wicket:id="logoutForm">
-                            <button type="submit" class="btn btn-link nav-link" wicket:message="title:PageBase.logout">
-                                <i class="fas fa-power-off"></i>
-                            </button>
-                        </form>
-                    </li>
-                </wicket:enclosure>
-            </ul>
+                    <wicket:enclosure child="mode">
+                        <li class="nav-item" role="menuitem">
+                            <a class="nav-link" href="#" wicket:id="mode"/>
+                        </li>
+                    </wicket:enclosure>
+                    <wicket:enclosure child="logoutForm">
+                        <li class="nav-item" role="menuitem">
+                            <form method="post" wicket:id="logoutForm">
+                                <button type="submit" class="btn btn-link nav-link" wicket:message="title:PageBase.logout">
+                                    <i class="fas fa-power-off"></i>
+                                </button>
+                            </form>
+                        </li>
+                    </wicket:enclosure>
+                </ul>
+            </div>
         </nav>
 
         <wicket:enclosure child="sidebarMenu">
             <aside class="main-sidebar" wicket:id="sidebarMenu"/>
         </wicket:enclosure>
 
-        <div class="content-wrapper" style="min-height: 916px; padding: 15px 0">
+        <main class="content-wrapper" id="main-content" role="main" style="min-height: 916px; padding: 15px 0">
             <section class="content">
-                <div class="container-fluid">
-                    <div wicket:id="feedbackContainer" class="feedbackContainer">
-                        <div wicket:id="feedback" class="messagePanel"/>
+                <wicket:enclosure child="contentVisible">
+                    <div wicket:id="contentVisible"/>
+                    <div class="container-fluid">
+                        <div wicket:id="feedbackContainer" class="feedbackContainer">
+                            <div wicket:id="feedback" class="messagePanel"/>
+                        </div>
+                        <wicket:child/>
                     </div>
-                    <wicket:child/>
-                </div>
+                </wicket:enclosure>
             </section>
-        </div>
-        <footer wicket:id="footerContainer" class="main-footer">
-            <span class="pull-right hidden-xs" wicket:id="version">
+        </main>
+        <footer wicket:id="footerContainer" class="main-footer d-flex flex-wrap">
+            <span class="pull-right hidden-xs mr-1" wicket:id="version">
                 <b><wicket:message key="PageTemplate.version"/></b> <wicket:message key="midpoint.system.build"/>
             </span>
-            <span wicket:id="copyrightMessage" class="pull-left"><wicket:message key="PageTemplate.copyright" /></span>
+            <span wicket:id="copyrightMessage" class="pull-left"><wicket:message key="PageTemplate.copyright"/></span>
             <span wicket:id="subscriptionMessage"/>
         </footer>
     </div>

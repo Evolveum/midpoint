@@ -120,7 +120,7 @@ public class ItemPathCanonicalizationTest extends AbstractSchemaTest {
 
     @Test
     public void testCanonicalizationLong() {
-        ItemPath path = ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION, SchemaConstants.ICF_CONFIGURATION_PROPERTIES,
+        ItemPath path = ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION, SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME,
                 RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME);
         assertCanonical(path, null, "\\" + COMMON + "#connectorConfiguration",
                 "\\" + COMMON + "#connectorConfiguration\\" + ICFS + "#configurationProperties",
@@ -128,7 +128,7 @@ public class ItemPathCanonicalizationTest extends AbstractSchemaTest {
     }
 
     private void assertCanonical(ItemPath path, QName objectType, String... representations) {
-        CanonicalItemPathImpl canonicalItemPath = CanonicalItemPathImpl.create(path, objectType, getPrismContext());
+        CanonicalItemPathImpl canonicalItemPath = CanonicalItemPathImpl.create(path, objectType);
         System.out.println(path + " => " + canonicalItemPath.asString() + "  (" + objectType + ")");
         for (int i = 0; i < representations.length; i++) {
             String c = canonicalItemPath.allUpToIncluding(i).asString();

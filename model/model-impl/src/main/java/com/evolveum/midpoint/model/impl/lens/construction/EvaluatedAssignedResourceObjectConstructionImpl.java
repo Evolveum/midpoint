@@ -16,8 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.schema.config.MappingConfigItem;
 import com.evolveum.midpoint.schema.config.ResourceAttributeDefinitionConfigItem;
-import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -50,14 +49,14 @@ public class EvaluatedAssignedResourceObjectConstructionImpl<AH extends Assignme
     }
 
     @Override
-    protected List<AttributeEvaluation<AH>> getAttributesToEvaluate(ConstructionEvaluation<AH, ?> constructionEvaluation)
+    List<AttributeMapper<AH, ?, ?>> getAttributeMappers(ConstructionEvaluation<AH, ?> constructionEvaluation)
             throws ConfigurationException {
 
-        List<AttributeEvaluation<AH>> attributesToEvaluate = new ArrayList<>();
+        List<AttributeMapper<AH, ?, ?>> attributesToEvaluate = new ArrayList<>();
 
         // [EP:CONST] DONE
         for (ResourceAttributeDefinitionConfigItem attributeConstrDefinitionCI : getTypedConfigItemRequired().getAttributes()) {
-            QName attrName = attributeConstrDefinitionCI.getAttributeName();
+            QName attrName = attributeConstrDefinitionCI.getAttributeNameSyntax();
 
             attributeConstrDefinitionCI.configCheck(
                     !attributeConstrDefinitionCI.hasInbounds(), "Cannot process inbound section in %s", DESC);
@@ -67,7 +66,7 @@ public class EvaluatedAssignedResourceObjectConstructionImpl<AH extends Assignme
                     attributeConstrDefinitionCI.configNonNull(
                             attributeConstrDefinitionCI.getOutbound(), "No outbound section in %s", DESC);
 
-            ResourceAttributeDefinition<?> attributeDef =
+            var attributeDef =
                     attributeConstrDefinitionCI.configNonNull(
                             construction.findAttributeDefinition(attrName),
                             "Attribute '%s' not found in schema for resource object type %s on %s; as defined in %s",
@@ -80,7 +79,7 @@ public class EvaluatedAssignedResourceObjectConstructionImpl<AH extends Assignme
             }
 
             attributesToEvaluate.add(
-                    new AttributeEvaluation<>(
+                    new AttributeMapper<>(
                             constructionEvaluation,
                             attributeDef,
                             outboundMappingCI, // [EP:M:OM] DONE
@@ -91,41 +90,34 @@ public class EvaluatedAssignedResourceObjectConstructionImpl<AH extends Assignme
     }
 
     @Override
-    protected List<AssociationEvaluation<AH>> getAssociationsToEvaluate(ConstructionEvaluation<AH, ?> constructionEvaluation)
+    List<AssociationMapper<AH>> getAssociationMappers(ConstructionEvaluation<AH, ?> constructionEvaluation)
             throws ConfigurationException {
 
-        List<AssociationEvaluation<AH>> associationsToEvaluate = new ArrayList<>();
+        List<AssociationMapper<AH>> mappers = new ArrayList<>();
 
-        for (var associationDefinitionCI : getTypedConfigItemRequired().getAssociations()) {
-            QName assocName = associationDefinitionCI.getAssociationName();
+        for (var associationConstructionCI : getTypedConfigItemRequired().getAssociations()) {
 
-            associationDefinitionCI.configCheck(
-                    !associationDefinitionCI.hasInbounds(), "Cannot process inbound section in %s", DESC);
+            associationConstructionCI.configCheck(
+                    !associationConstructionCI.hasInbounds(), "Cannot process inbound section in %s", DESC);
 
-            // [EP:M:OM] DONE, transforming to [EP:CONSTR] (via association definition in the construction)
-            var outboundMappingCI =
-                    associationDefinitionCI.configNonNull(
-                            associationDefinitionCI.getOutbound(), "No outbound section in %s", DESC);
+            var associationDef =
+                    construction.findAssociationDefinitionRequired(
+                            associationConstructionCI.getItemName(),
+                            associationConstructionCI);
 
-            ResourceAssociationDefinition associationDef =
-                    associationDefinitionCI.configNonNull(
-                            construction.findAssociationDefinition(assocName),
-                            "Association '%s' not found in schema for resource object type %s on %s; as defined in %s",
-                            assocName, getTypeIdentification(), construction.getResolvedResource().resource, DESC);
-
-            if (!associationDef.isVisible(constructionEvaluation.task.getExecutionMode())) {
+            if (!associationDef.isVisible(constructionEvaluation.task)) {
                 LOGGER.trace("Skipping processing outbound mapping for association {} because it is not visible in current "
                         + "execution mode", associationDef);
                 continue;
             }
-            associationsToEvaluate.add(
-                    new AssociationEvaluation<>(
+            mappers.add(
+                    new AssociationMapper<>(
                             constructionEvaluation,
                             associationDef,
-                            outboundMappingCI, // [EP:M:OM] DONE
+                            associationConstructionCI.getOutboundMappingRequired(), // [EP:M:OM] DONE
                             OriginType.ASSIGNMENTS,
                             MappingKindType.CONSTRUCTION));
         }
-        return associationsToEvaluate;
+        return mappers;
     }
 }

@@ -12,10 +12,10 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.impl.PrismContextImpl;
 import com.evolveum.midpoint.prism.impl.PrismPropertyImpl;
 import com.evolveum.midpoint.prism.impl.PrismReferenceValueImpl;
-import com.evolveum.midpoint.prism.impl.xnode.MapXNodeImpl;
 import com.evolveum.midpoint.prism.impl.xnode.XNodeImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -32,7 +32,6 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Consumer;
 
 import static com.evolveum.midpoint.util.MiscUtil.requireNonNull;
 
@@ -71,7 +70,7 @@ class ItemDeltaBeanToNativeConversion<IV extends PrismValue, ID extends ItemDefi
      */
     private ItemDefinition<?> itemDefinition;
 
-    private boolean convertUnknownTypes;
+    private final boolean convertUnknownTypes;
 
     /**
      * Definition of the item parent container. It is used only when itemDefinition cannot be determined directly.
@@ -80,7 +79,10 @@ class ItemDeltaBeanToNativeConversion<IV extends PrismValue, ID extends ItemDefi
      */
     private PrismContainerDefinition<?> parentDefinition;
 
-    ItemDeltaBeanToNativeConversion(@NotNull ItemDeltaType deltaBean, @NotNull PrismContainerDefinition<?> rootContainerDef, boolean convertUnknownTypes)
+    ItemDeltaBeanToNativeConversion(
+            @NotNull ItemDeltaType deltaBean,
+            @NotNull PrismContainerDefinition<?> rootContainerDef,
+            boolean convertUnknownTypes)
             throws SchemaException {
         this.deltaBean = deltaBean;
         itemPath =
@@ -101,12 +103,11 @@ class ItemDeltaBeanToNativeConversion<IV extends PrismValue, ID extends ItemDefi
                 // checks are made on it's content.
                 // This allows for GUI to visualize JSON form of data
                 var replacementDef = PrismContext.get().definitionFactory()
-                        .createPropertyDefinition(itemDefinition.getItemName(), T_RAW_TYPE);
-                replacementDef.setAnnotation(DeltaConvertor.LEGACY_DELTA, DeltaConvertor.LEGACY_DELTA);
+                        .newPropertyDefinition(itemDefinition.getItemName(), T_RAW_TYPE);
+                replacementDef.mutator().setAnnotation(DeltaConvertor.LEGACY_DELTA, DeltaConvertor.LEGACY_DELTA);
                 itemDefinition = replacementDef;
             }
         }
-
 
         Collection<IV> parsedValues = getParsedValues(deltaBean.getValue());
         ItemDelta<IV, ID> itemDelta = createDelta();
@@ -130,7 +131,7 @@ class ItemDeltaBeanToNativeConversion<IV extends PrismValue, ID extends ItemDefi
             //noinspection unchecked
             return (ItemDelta<IV, ID>) itemDefinition.createEmptyDelta(itemPath);
         } else {
-            PrismProperty<?> property = new PrismPropertyImpl<>(itemName, PrismContext.get());
+            PrismProperty<?> property = new PrismPropertyImpl<>(itemName);
             //noinspection unchecked
             return (ItemDelta<IV, ID>) property.createDelta(itemPath);
         }
@@ -196,6 +197,11 @@ class ItemDeltaBeanToNativeConversion<IV extends PrismValue, ID extends ItemDefi
         if (explicitTypeName == null) {
             return false;
         }
+        // Supported XSD types do not have type definition as of 4.9-M3
+        if (XmlTypeConverter.canConvert(explicitTypeName)) {
+            return false;
+        }
+
         var typeDef = PrismContext.get().getSchemaRegistry().findTypeDefinitionByType(explicitTypeName);
         return typeDef == null;
     }

@@ -165,6 +165,7 @@
             <attribute>
                 <ref>ri:uid</ref>
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <secondaryIdentifier>true</secondaryIdentifier>
                 <outbound>
                     <!-- This MUST be weak in case of OpenDJ. If DN (name) is changed then the uid will be changed
                          as a side-effect as it is a naming attribute. -->

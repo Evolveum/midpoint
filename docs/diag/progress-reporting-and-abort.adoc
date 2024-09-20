@@ -1,0 +1,50 @@
+= Operation Progress Reporting and Abort
+:page-wiki-name: Configuring progress reporting and abort functionality HOWTO
+:page-wiki-id: 17235999
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2014-09-17T12:34:34.186+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2014-09-17T12:34:35.186+02:00
+:page-upkeep-status: yellow
+
+Progress reporting and abort functionality are experimental features in midPoint GUI.
+
+Although they seem basically to work, their nature (namely, executing operations asynchronously and updating their state using rather frequent AJAX requests) can lead to unpredictable complications in some cases - for example, on slow networks between browsers and the application server hosting midPoint.
+
+Until more serious configuration possibilities are available, here are the basic ones.
+
+Progress reporting and abort functionality is configured in midPoint configuration file (usually config.xml), in this way:
+
+[source,xml]
+----
+<configuration>
+    <midpoint>
+        <webApplication>
+            <abortEnabled>true</abortEnabled>
+            <progressRefreshInterval>400</progressRefreshInterval>
+        </webApplication>
+        <!-- ... -->
+    </midpoint>
+</configuration>
+----
+
+There are two parameters:
+
+[%autowidth]
+|===
+| Parameter | Meaning
+
+| abortEnabled
+| If set to true (the default) the abort button is present and can be used.
+Note that the meaning of this button is to *attempt to* abort long-running operation that seems to take a too much time.
+*No actions that are already carried out when pressing this button are undone.* Moreover, some actions, e.g. TCP connect to remote host, are implemented in current version of ConnId/OpenICF in such a way that they are not interruptible.
+So the effect of Abort button is currently a bit limited.
+
+
+| progressRefreshInterval
+| Specifies the time interval (in milliseconds) that is used to refresh progress information.
+*If set to zero, no progress information is displayed, and all requests are carried out synchronously* (it is the old behavior).
+The default value of 400 should be OK for most cases.
+If you have slower lines, you might consider increasing the value.
+
+|===

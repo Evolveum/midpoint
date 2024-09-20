@@ -7,6 +7,9 @@
 
 package com.evolveum.midpoint.provisioning.impl.misc;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowClassificationModeType.FORCED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowClassificationModeType.NORMAL;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.schema.TaskExecutionMode.*;
@@ -16,7 +19,13 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindTyp
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ENTITLEMENT;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
+
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+
+import com.evolveum.midpoint.schema.SelectorOptions;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
@@ -30,7 +39,7 @@ import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTe
 import com.evolveum.midpoint.provisioning.impl.mock.SimulationTransactionMock;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.task.api.SimulationData;
@@ -126,6 +135,7 @@ public class TestResourceLifecycle extends AbstractProvisioningIntegrationTest {
                 "e_test100_4",
                 I_EMPLOYEE,
                 I_DEMO,
+                false,
                 false); // reclassification is disabled because of the production config
 
         // The production object type with "shadow-simulated development" task
@@ -136,6 +146,7 @@ public class TestResourceLifecycle extends AbstractProvisioningIntegrationTest {
                 "e_test100_5",
                 I_EMPLOYEE,
                 I_DEMO,
+                false,
                 false); // reclassification is disabled because of the production config
 
         // In all the following cases, the reclassification from I_NONSENSE must occur, because nonsense type should
@@ -179,6 +190,7 @@ public class TestResourceLifecycle extends AbstractProvisioningIntegrationTest {
                 "e_test100_14",
                 I_EMPLOYEE,
                 I_NONSENSE,
+                false,
                 true);
 
         // The production object type with "shadow-simulated development" task
@@ -189,6 +201,28 @@ public class TestResourceLifecycle extends AbstractProvisioningIntegrationTest {
                 "e_test100_15",
                 I_EMPLOYEE,
                 I_NONSENSE,
+                false,
+                true);
+
+        // Forced reclassification - it should reclassify account regardless of the resource/object-type/task mode
+        checkClassificationForced(
+                RESOURCE_DUMMY_ACTIVE,
+                PRODUCTION,
+                ACCOUNT,
+                "e_test100_1_forced",
+                I_EMPLOYEE,
+                I_DEMO,
+                I_EMPLOYEE); // forced reclassification
+
+        // The same with checking the simulation - without forced reclassification, it would not be done (see "4" test above)
+        checkShadowSimulatedClassification(
+                RESOURCE_DUMMY_ACTIVE,
+                SIMULATED_SHADOWS_PRODUCTION,
+                ACCOUNT,
+                "e_test100_4_forced",
+                I_EMPLOYEE,
+                I_DEMO,
+                true,
                 true);
     }
 
@@ -236,6 +270,7 @@ public class TestResourceLifecycle extends AbstractProvisioningIntegrationTest {
                 "e_test110_4",
                 I_EMPLOYEE,
                 I_DEMO,
+                false,
                 false); // reclassification is disabled because of the production task mode
 
         // The development object type with "shadow-simulated development" task
@@ -246,6 +281,7 @@ public class TestResourceLifecycle extends AbstractProvisioningIntegrationTest {
                 "e_test110_5",
                 I_EMPLOYEE,
                 I_DEMO,
+                false,
                 true); // reclassification is disabled because of the development config and task mode
     }
 
@@ -393,6 +429,18 @@ public class TestResourceLifecycle extends AbstractProvisioningIntegrationTest {
     }
 
     @SuppressWarnings("SameParameterValue")
+    private void checkClassificationForced(
+            DummyTestResource resource,
+            TaskExecutionMode taskExecutionMode,
+            ShadowKindType kind,
+            String objectName,
+            String intentAfterCreation,
+            String changeTo,
+            String intentAfterChange) throws Exception {
+        checkClassificationInternal(
+                resource, taskExecutionMode, kind, objectName, intentAfterCreation, changeTo, intentAfterChange, true);
+    }
+
     private void checkClassification(
             DummyTestResource resource,
             TaskExecutionMode taskExecutionMode,
@@ -401,10 +449,26 @@ public class TestResourceLifecycle extends AbstractProvisioningIntegrationTest {
             String intentAfterCreation,
             String changeTo,
             String intentAfterChange) throws Exception {
+        checkClassificationInternal(
+                resource, taskExecutionMode, kind, objectName, intentAfterCreation, changeTo, intentAfterChange, false);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private void checkClassificationInternal(
+            DummyTestResource resource,
+            TaskExecutionMode taskExecutionMode,
+            ShadowKindType kind,
+            String objectName,
+            String intentAfterCreation,
+            String changeTo,
+            String intentAfterChange,
+            boolean forcedClassification) throws Exception {
 
         Task task = getTestTask();
         OperationResult result = task.getResult();
         String modeSuffix = " (" + taskExecutionMode + ")";
+
+        var retrievalOptions = createRetrievalOptions(forcedClassification);
 
         task.setExecutionMode(taskExecutionMode);
         try {
@@ -412,13 +476,17 @@ public class TestResourceLifecycle extends AbstractProvisioningIntegrationTest {
             addResourceObject(resource, kind, objectName);
 
             when("it is retrieved the first time" + modeSuffix);
-            PrismObject<ShadowType> account = searchByName(resource, kind, objectName, task, result);
+            PrismObject<ShadowType> account = searchByName(resource, kind, objectName, retrievalOptions, task, result);
 
             then("it has intent of '" + intentAfterCreation + "'" + modeSuffix);
             assertIntent(account, kind, intentAfterCreation);
 
-            changeIntentAndCheck(account, resource, null, intentAfterCreation, task, result);
-            changeIntentAndCheck(account, resource, changeTo, intentAfterChange, task, result);
+            // First, we try the reclassification by clearing the intent in the repository, and reading the object back.
+            changeIntentAndCheck(account, resource, null, intentAfterCreation, null, task, result);
+
+            // Now we set the intent in the repository to "changeTo" value, and check if it gets re-classified;
+            // we apply the retrieval options (~ forced reclassification) here.
+            changeIntentAndCheck(account, resource, changeTo, intentAfterChange, retrievalOptions, task, result);
 
         } finally {
             task.setExecutionMode(PRODUCTION);
@@ -445,16 +513,19 @@ public class TestResourceLifecycle extends AbstractProvisioningIntegrationTest {
             String objectName,
             String intentAfterCreation,
             String changeTo,
+            boolean forcedClassification,
             boolean reclassificationExpected) throws Exception {
 
         Task task = getTestTask();
         OperationResult result = task.getResult();
         String modeSuffix = " (" + taskExecutionMode + ")";
 
+        var retrievalOptions = createRetrievalOptions(forcedClassification);
+
         addResourceObject(resource, kind, objectName);
 
         when("it is retrieved the first time" + modeSuffix);
-        PrismObject<ShadowType> account = searchByName(resource, kind, objectName, task, result);
+        PrismObject<ShadowType> account = searchByName(resource, kind, objectName, retrievalOptions, task, result);
 
         then("it has intent of '" + intentAfterCreation + "'" + modeSuffix);
         assertIntent(account, kind, intentAfterCreation);
@@ -467,13 +538,17 @@ public class TestResourceLifecycle extends AbstractProvisioningIntegrationTest {
 
             // When doing shadow management simulation, the would-be changes are returned in the shadow itself.
             // Hence expected1 and expected2. See also 64bd2f31b421367f7e1610187e779c17ae1a228a/MID-8613.
+
+            // First, we try the reclassification by clearing the intent in the repository, and reading the object back.
             String expected1 = taskExecutionMode.areShadowChangesSimulated() ? intentAfterCreation : null;
-            changeIntentAndCheck(account, resource, null, expected1, task, result);
+            changeIntentAndCheck(account, resource, null, expected1, null, task, result);
             assertSimulatedIntentChange(simulationTransactionMock, null, intentAfterCreation);
 
-            String expected2 = reclassificationExpected && taskExecutionMode.areShadowChangesSimulated() ?
-                    intentAfterCreation : changeTo;
-            changeIntentAndCheck(account, resource, changeTo, expected2, task, result);
+            // Second, we set the intent in the repository to "changeTo" value, and check if it gets re-classified;
+            // we apply the retrieval options (~ forced reclassification) here.
+            String expected2 =
+                    reclassificationExpected && taskExecutionMode.areShadowChangesSimulated() ? intentAfterCreation : changeTo;
+            changeIntentAndCheck(account, resource, changeTo, expected2, retrievalOptions, task, result);
             if (reclassificationExpected) {
                 assertSimulatedIntentChange(simulationTransactionMock, changeTo, intentAfterCreation);
             } else {
@@ -509,11 +584,13 @@ public class TestResourceLifecycle extends AbstractProvisioningIntegrationTest {
                 .isEmpty();
     }
 
+    /** Does the cycle "set intent + retrieve shadow" first for searchObjects, then for getObject. */
     private void changeIntentAndCheck(
             PrismObject<ShadowType> account,
             DummyTestResource resource,
             String newIntent,
             String expectedIntent,
+            Collection<SelectorOptions<GetOperationOptions>> retrievalOptions,
             Task task,
             OperationResult result) throws CommonException {
 
@@ -523,17 +600,24 @@ public class TestResourceLifecycle extends AbstractProvisioningIntegrationTest {
 
         when("intent is set to '" + newIntent + "' and account is searched for again" + modeSuffix);
         changeIntent(account.getOid(), newIntent, result);
-        account = searchByName(resource, kind, accountName, task, result);
+        account = searchByName(resource, kind, accountName, retrievalOptions, task, result);
 
         then("it has intent of '" + expectedIntent + "'" + modeSuffix);
         assertIntent(account, kind, expectedIntent);
 
         when("intent is set to '" + newIntent + "' and account is got by OID" + modeSuffix);
         changeIntent(account.getOid(), newIntent, result);
-        account = provisioningService.getObject(ShadowType.class, account.getOid(), null, task, result);
+
+        account = provisioningService.getObject(ShadowType.class, account.getOid(), retrievalOptions, task, result);
 
         then("it has intent of '" + expectedIntent + "'" + modeSuffix);
         assertIntent(account, kind, expectedIntent);
+    }
+
+    private static Collection<SelectorOptions<GetOperationOptions>> createRetrievalOptions(boolean forcedClassification) {
+        return GetOperationOptionsBuilder.create()
+                .shadowClassificationMode(forcedClassification ? FORCED : NORMAL)
+                .build();
     }
 
     private void assertIntent(PrismObject<ShadowType> account, ShadowKindType kind, String expected) {
@@ -543,7 +627,8 @@ public class TestResourceLifecycle extends AbstractProvisioningIntegrationTest {
     }
 
     private PrismObject<ShadowType> searchByName(
-            DummyTestResource resource, ShadowKindType kind, String accountName, Task task, OperationResult result)
+            DummyTestResource resource, ShadowKindType kind, String accountName,
+            Collection<SelectorOptions<GetOperationOptions>> retrievalOptions, Task task, OperationResult result)
             throws CommonException {
         var accounts = provisioningService.searchObjects(
                 ShadowType.class,
@@ -551,7 +636,7 @@ public class TestResourceLifecycle extends AbstractProvisioningIntegrationTest {
                         .queryFor(kind == ACCOUNT ? RI_ACCOUNT_OBJECT_CLASS : RI_GROUP_OBJECT_CLASS)
                         .and().item(ShadowType.F_ATTRIBUTES, ICFS_NAME).eq(accountName)
                         .build(),
-                null,
+                retrievalOptions,
                 task,
                 result);
         assertThat(accounts).as("objects named " + accountName).hasSize(1);
@@ -709,7 +794,7 @@ public class TestResourceLifecycle extends AbstractProvisioningIntegrationTest {
                 .beginAttributes()
                 .<ShadowType>end()
                 .asPrismObject();
-        ResourceAttribute<String> nameAttr = resource.controller.createAccountAttribute(SchemaConstants.ICFS_NAME);
+        ShadowSimpleAttribute<String> nameAttr = resource.controller.createAccountAttribute(SchemaConstants.ICFS_NAME);
         nameAttr.setRealValue(name);
         shadow.findContainer(ShadowType.F_ATTRIBUTES).getValue().add(nameAttr);
         return shadow;

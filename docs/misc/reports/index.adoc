@@ -1,0 +1,69 @@
+---
+midpoint-feature: reporting
+doc-type: intro
+---
+= Reports
+:page-nav-title: Reports
+:page-wiki-name: Reporting
+:page-wiki-id: 655423
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2011-04-29T12:15:51.162+02:00
+:page-wiki-metadata-modify-user: vix
+:page-wiki-metadata-modify-date: 2016-10-19T10:04:33.028+02:00
+:page-keywords: [ 'report', 'reports', 'reporting' ]
+:page-upkeep-status: green
+:search-alias: "reports"
+
+== Description
+
+MidPoint contains a *native* reporting *mechanism* which is *highly flexible* and follows the same rules as other midPoint objects.
+
+Each deployment has its own requirements on reporting, with midPoint we already prepared a large number of *pre-configured reports* from which you can choose.
+Also, there is a large number of places through the *GUI* where you are capable of *creating a report from what you currently see* on your screen.
+Alternatively both possibilities can be customized, or you can create your own custom report completely from scratch.
+
+As in the case with a large portion of midPoint objects, reports can be *customized* via configuration.
+This is done either *directly in the GUI* or in case of some advanced scenarios by *editing* the *raw report object definition*.
+
+== How To Use Reports
+
+As mentioned above there are multiple possibilities for the usage of reports.
+Either you can use the reports which are present in your midPoint instance *out of the box*.
+For an example of this please see this xref:/midpoint/reference/misc/reports/create-report-guide/#_create_o_o_t_b[link].
+
+You can execute a report in a couple of clicks *from dedicated places in the GUI*, as you can see in xref:/midpoint/reference/misc/reports/create-report-guide[this] example.
+
+Or you can create your own report completely *from scratch*, or modify any existing one to serve your needs.
+A more in depth look regarding this is documented xref:/midpoint/reference/misc/reports/configuration/index.adoc[here].
+
+Both cases work with a *report definition*, a sort of prescription how a report should look like, what should be present and from where we get the data.
+
+The report it-self has to be generated.
+For this you need to specify the format of the generated file, and if you are confident with the report definition *"run" the report*.
+
+== Generating Reports
+
+Current implementation supports exporting reports to *CSV* and *HTML* files, other formats such as *XSLX* are planned to be added later.
+The report is "run" or generated via an asynchronous task, which is automatically created by the "run" action.
+
+Every report output is stored in export subdirectory in xref:/midpoint/reference/deployment/midpoint-home-directory/[`midpoint.home`] directory.
+It is also possible to send generated reports via email xref:/midpoint/reference/misc/notifications[notifications].
+
+For more information on export formats please have a look at xref:/midpoint/reference/misc/reports/report-formats.adoc[this] page.
+
+
+== Dashboards
+
+MidPoint also contains a dynamic way how to present the same data which we can use in reports.
+This is done with customizable dashboards and dashboard widgets.
+Dashboard configuration has its own section in the midPoint documentation.
+For more information on customizable dashboards please have a look at this xref:/midpoint/reference/admin-gui/dashboards/index.adoc[link].
+
+== See Also
+
+- xref:/midpoint/reference/misc/reports/examples/[Report Examples]
+- xref:/midpoint/reference/misc/reports/configuration/[Report Configuration]
+- xref:/midpoint/reference/misc/reports/configuration/collection-report.adoc[Collection Based Reports]
+- xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[Dashboard Based Reports]
+- xref:/midpoint/reference/misc/reports/configuration/report-security.adoc[Report Security]
+- xref:/midpoint/reference/misc/reports/configuration/report-task-definition.adoc[Report Task Definition]

@@ -17,8 +17,6 @@ import java.util.Set;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 
-import com.evolveum.midpoint.prism.PrismValue;
-
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 
@@ -160,7 +158,7 @@ class ResourceExpansionOperation {
     /** Applies all known connector definitions to given resource object. */
     private void applyConnectorDefinitions(@NotNull ResourceType resource) throws SchemaException, ConfigurationException {
         for (ConnectorSpec connectorSpec : ConnectorSpec.all(resource)) {
-            PrismContainer<ConnectorConfigurationType> configurationContainer = connectorSpec.getConnectorConfiguration();
+            var configurationContainer = connectorSpec.getConnectorConfigurationContainer();
             if (configurationContainer == null) {
                 continue;
             }
@@ -169,8 +167,7 @@ class ResourceExpansionOperation {
                     MiscUtil.requireNonNull(
                             connectorConfigurationDefinitions.get(connectorName),
                             () -> new IllegalStateException("No connector schema for '" + connectorName + "' in " + resource));
-            definitionFromConnector.adoptElementDefinitionFrom(configurationContainer.getDefinition());
-            configurationContainer.applyDefinition(definitionFromConnector, true);
+            configurationContainer.applyDefinition(definitionFromConnector);
         }
     }
 
@@ -260,7 +257,7 @@ class ResourceExpansionOperation {
         private @NotNull ResourceType getResource(String oid, OperationResult result)
                 throws ObjectNotFoundException, SchemaException, ConfigurationException {
             if (firstPass) {
-                ResourceType resource = beans.cacheRepositoryService
+                ResourceType resource = beans.repositoryService
                         .getObject(ResourceType.class, oid, createReadOnlyCollection(), result)
                         .asObjectable();
                 if (resourceCache.put(oid, resource) != null) {

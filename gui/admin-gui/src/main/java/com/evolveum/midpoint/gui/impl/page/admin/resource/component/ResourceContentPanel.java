@@ -13,6 +13,7 @@ import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.web.page.admin.resources.SynchronizationTaskFlavor;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -41,7 +42,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.ResourceObjectTypeWizardChoicePanel.ResourceObjectTypePreviewTileType;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
@@ -59,7 +60,7 @@ import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.model.ContainerValueWrapperFromObjectWrapperModel;
+import com.evolveum.midpoint.web.model.PrismContainerValueWrapperModel;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceContentRepositoryPanel;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceContentResourcePanel;
 import com.evolveum.midpoint.web.page.admin.resources.content.dto.ResourceContentSearchDto;
@@ -178,7 +179,6 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         initCapabilitiesButton(topButtons);
         initCredentialsButton(topButtons);
         initActivationsButton(topButtons);
-        initAssociationsButton(topButtons);
 
         topButtonsContainer.add(topButtons);
 
@@ -201,7 +201,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                     } else {
                         return Collections.emptyIterator();
                     }
-                } catch (SchemaException | ConfigurationException e) {
+                } catch (CommonException e) {
                     return Collections.emptyIterator();
                 }
             }
@@ -405,9 +405,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                 IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel =
                         getResourceObjectTypeValue(target);
                 if (valueModel != null && valueModel.getObject() != null) {
-                    getObjectDetailsModels().getPageResource().showSynchronizationWizard(
-                            target,
-                            valueModel.getObject().getPath());
+                    getObjectDetailsModels().getPageResource().showSynchronizationWizard(target, valueModel.getObject().getPath());
                 }
             }
         };
@@ -427,9 +425,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                 IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel =
                         getResourceObjectTypeValue(target);
                 if (valueModel != null && valueModel.getObject() != null) {
-                    getObjectDetailsModels().getPageResource().showCorrelationWizard(
-                            target,
-                            valueModel.getObject().getPath());
+                    getObjectDetailsModels().getPageResource().showCorrelationWizard(target, valueModel.getObject().getPath());
                 }
             }
         };
@@ -451,7 +447,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                 if (valueModel != null && valueModel.getObject() != null) {
                     getObjectDetailsModels().getPageResource().showCapabilitiesWizard(
                             target,
-                            valueModel.getObject().getPath());
+                            valueModel.getObject().getPath().append(ResourceObjectTypeDefinitionType.F_CONFIGURED_CAPABILITIES));
                 }
             }
         };
@@ -473,7 +469,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                 if (valueModel != null && valueModel.getObject() != null) {
                     getObjectDetailsModels().getPageResource().showCredentialsWizard(
                             target,
-                            valueModel.getObject().getPath());
+                            valueModel.getObject().getPath().append(ResourceObjectTypeDefinitionType.F_CREDENTIALS));
                 }
             }
         };
@@ -495,7 +491,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                 if (valueModel != null && valueModel.getObject() != null) {
                     getObjectDetailsModels().getPageResource().showActivationsWizard(
                             target,
-                            valueModel.getObject().getPath());
+                            valueModel.getObject().getPath().append(ResourceObjectTypeDefinitionType.F_ACTIVATION));
                 }
             }
         };
@@ -503,28 +499,6 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         activationButton.showTitleAsLabel(true);
         activationButton.add(new VisibleBehaviour(() -> isTopTableButtonsVisible()));
         topButtons.add(activationButton);
-    }
-
-    private void initAssociationsButton(RepeatingView topButtons) {
-        AjaxIconButton associationConfButton = new AjaxIconButton(
-                topButtons.newChildId(),
-                Model.of(ResourceObjectTypePreviewTileType.ASSOCIATIONS.getIcon()),
-                getPageBase().createStringResource(ResourceObjectTypePreviewTileType.ASSOCIATIONS)) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel =
-                        getResourceObjectTypeValue(target);
-                if (valueModel != null && valueModel.getObject() != null) {
-                    getObjectDetailsModels().getPageResource().showAssociationsWizard(
-                            target,
-                            valueModel.getObject().getPath());
-                }
-            }
-        };
-        associationConfButton.setOutputMarkupId(true);
-        associationConfButton.showTitleAsLabel(true);
-        associationConfButton.add(new VisibleBehaviour(() -> isTopTableButtonsVisible()));
-        topButtons.add(associationConfButton);
     }
 
     private IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getResourceObjectTypeValue(
@@ -587,7 +561,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             }
             foundValue = defaultValue;
         }
-        return new ContainerValueWrapperFromObjectWrapperModel<>(getObjectWrapperModel(), foundValue.getPath());
+        return PrismContainerValueWrapperModel.fromContainerWrapper(getObjectWrapperModel(), foundValue.getPath());
     }
 
     protected boolean isTopTableButtonsVisible() {
@@ -598,7 +572,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         ResourceSchema refinedSchema;
         try {
             refinedSchema = ResourceSchemaFactory.getCompleteSchema(model.getObject().getObjectApplyDelta());
-        } catch (SchemaException | ConfigurationException e) {
+        } catch (CommonException e) {
             warn("Could not determine defined object classes for resource");
             return new ArrayList<>();
         }

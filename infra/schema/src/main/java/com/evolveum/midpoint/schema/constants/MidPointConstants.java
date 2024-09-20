@@ -34,6 +34,9 @@ public class MidPointConstants {
     public static final QName RA_SECONDARY_IDENTIFIER = new QName(NS_RA, "secondaryIdentifier");
     public static final QName RA_DEFAULT = new QName(NS_RA, "default");
     public static final QName RA_AUXILIARY = new QName(NS_RA, "auxiliary");
+    public static final QName RA_EMBEDDED = new QName(NS_RA, "embedded");
+    public static final QName RA_ROLE_IN_REFERENCE = new QName(NS_RA, "roleInReference");
+    public static final QName RA_REFERENCED_OBJECT_CLASS_NAME = new QName(NS_RA, "referencedObjectClassName");
 
     public static final String NS_RI = NS_MIDPOINT_PUBLIC_PREFIX+"/resource/instance-3";
     public static final String PREFIX_NS_RI = "ri";
@@ -44,4 +47,7 @@ public class MidPointConstants {
 
     public static final String PROFILING_LOGGER_NAME = OperationExecutionLogger.PROFILING_LOGGER_NAME;
     public static final String JAVA_HOME_ENVIRONMENT_VARIABLE = "JAVA_HOME";
+
+    public static final String NS_JAXB = "https://jakarta.ee/xml/ns/jaxb";
+    public static final String PREFIX_NS_JAXB = "jaxb";
 }

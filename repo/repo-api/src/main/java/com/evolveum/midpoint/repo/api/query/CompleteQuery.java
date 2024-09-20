@@ -52,8 +52,8 @@ public class CompleteQuery<T extends ObjectType> implements DebugDumpable {
      * (Currently no paging nor options is allowed.)
      */
     @NotNull
-    public static CompleteQuery<?> or(List<CompleteQuery<?>> completeQueries, PrismContext prismContext) {
-        QueryFactory queryFactory = prismContext.queryFactory();
+    public static CompleteQuery<?> or(List<CompleteQuery<?>> completeQueries) {
+        QueryFactory queryFactory = PrismContext.get().queryFactory();
 
         Class<? extends ObjectType> commonType = getCommonAncestor(completeQueries);
         List<ObjectFilter> disjuncts = new ArrayList<>();
@@ -73,7 +73,7 @@ public class CompleteQuery<T extends ObjectType> implements DebugDumpable {
                     disjuncts.add(filter);
                 }
             } else {
-                QName typeName = prismContext.getSchemaRegistry().determineTypeForClassRequired(type);
+                QName typeName = PrismContext.get().getSchemaRegistry().determineTypeForClassRequired(type);
                 disjuncts.add(queryFactory.createType(typeName, filter));
             }
         }
@@ -100,20 +100,19 @@ public class CompleteQuery<T extends ObjectType> implements DebugDumpable {
         }
     }
 
-    public static CompleteQuery<?> inOid(Collection<PrismReferenceValue> references, PrismContext prismContext) {
-        Class<? extends ObjectType> commonAncestor = getCommonAncestorForReferences(references, prismContext);
+    public static CompleteQuery<?> inOid(Collection<PrismReferenceValue> references) {
+        Class<? extends ObjectType> commonAncestor = getCommonAncestorForReferences(references);
         String[] oids = references.stream().map(PrismReferenceValue::getOid).distinct().toArray(String[]::new);
-        ObjectQuery query = prismContext.queryFor(commonAncestor)
+        ObjectQuery query = PrismContext.get().queryFor(commonAncestor)
                 .id(oids)
                 .build();
         return new CompleteQuery<>(commonAncestor, query, null);
     }
 
     @NotNull
-    private static Class<? extends ObjectType> getCommonAncestorForReferences(Collection<PrismReferenceValue> references,
-            PrismContext prismContext) {
+    private static Class<? extends ObjectType> getCommonAncestorForReferences(Collection<PrismReferenceValue> references) {
         Class<? extends ObjectType> commonAncestor1;
-        SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
+        SchemaRegistry schemaRegistry = PrismContext.get().getSchemaRegistry();
         Set<QName> typeNames = references.stream()
                 .map(PrismReferenceValue::getTargetType)
                 .collect(Collectors.toSet());
@@ -130,9 +129,10 @@ public class CompleteQuery<T extends ObjectType> implements DebugDumpable {
         return commonAncestor1;
     }
 
-    public static <T extends ObjectType> CompleteQuery<T> none(Class<T> type, PrismContext prismContext) {
+    public static <T extends ObjectType> CompleteQuery<T> none(Class<T> type) {
         return new CompleteQuery<>(type,
-                prismContext.queryFactory().createQuery(prismContext.queryFactory().createNone()),
+                PrismContext.get().queryFactory().createQuery(
+                        PrismContext.get().queryFactory().createNone()),
                 null);
     }
 

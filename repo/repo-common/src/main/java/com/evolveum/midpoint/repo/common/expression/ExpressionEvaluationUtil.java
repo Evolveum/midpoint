@@ -11,12 +11,10 @@ import java.util.Collection;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.util.exception.SchemaException;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
@@ -86,10 +84,10 @@ public class ExpressionEvaluationUtil {
             outputDefinition = (D) existingDefinition.clone();
         } else {
             //noinspection unchecked
-            outputDefinition = (D) PrismContext.get().definitionFactory().createPropertyDefinition(
+            outputDefinition = (D) PrismContext.get().definitionFactory().newPropertyDefinition(
                     SchemaConstantsGenerated.C_VALUE, returnTypeName);
         }
-        outputDefinition.toMutable().setMaxOccurs(function.isReturnMultiValue() ? -1 : 1);
+        outputDefinition.mutator().setMaxOccurs(function.isReturnMultiValue() ? -1 : 1);
         return outputDefinition;
     }
 
@@ -97,7 +95,7 @@ public class ExpressionEvaluationUtil {
     // FIXME why the multiplicity is taken from functionToExecute?!
     public static <D extends ItemDefinition<?>> D determineVariableOutputDefinition(
             @NotNull FunctionConfigItem functionToExecute, @NotNull String paramName)
-            throws SchemaException, ConfigurationException {
+            throws ConfigurationException {
         var functionParameter = functionToExecute.getParameter(paramName);
 
         QName returnType = functionParameter.getType();
@@ -107,9 +105,9 @@ public class ExpressionEvaluationUtil {
             //noinspection unchecked
             return (D) returnTypeDef;
         } else {
-            MutablePrismPropertyDefinition<?> dynamicReturnTypeDef =
-                    PrismContext.get().definitionFactory().createPropertyDefinition(SchemaConstantsGenerated.C_VALUE, returnType);
-            dynamicReturnTypeDef.setMaxOccurs(functionToExecute.isReturnSingleValue() ? 1 : -1);
+            PrismPropertyDefinition<?> dynamicReturnTypeDef =
+                    PrismContext.get().definitionFactory().newPropertyDefinition(SchemaConstantsGenerated.C_VALUE, returnType);
+            dynamicReturnTypeDef.mutator().setMaxOccurs(functionToExecute.isReturnSingleValue() ? 1 : -1);
             //noinspection unchecked
             return (D) dynamicReturnTypeDef;
         }

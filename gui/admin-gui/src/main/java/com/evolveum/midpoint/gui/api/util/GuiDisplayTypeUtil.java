@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.api.util;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
@@ -29,6 +30,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.model.IModel;
 
 import javax.xml.namespace.QName;
 
@@ -174,7 +176,7 @@ public class GuiDisplayTypeUtil {
                         relationValue = relation.getLocalPart();
                     }
                 }
-                displayType.setLabel(new PolyStringType(typeValue + " " + relationValue));
+                displayType.setLabel(new PolyStringType(typeValue + " (" + relationValue + ")"));
 
                 relationTitle = pageBase.createStringResource("abstractRoleMemberPanel.withRelation", relationValue).getString();
 
@@ -195,14 +197,16 @@ public class GuiDisplayTypeUtil {
             displayType = createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green", "");
         }
 
-        if (displayType.getIcon() == null || displayType.getIcon().getCssClass() == null){
+        if (displayType.getIcon() == null || displayType.getIcon().getCssClass() == null) {
             MiscSchemaUtil.mergeDisplay(displayType, createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green", ""));
         }
 
-        if (PolyStringUtils.isEmpty(displayType.getTooltip()) && !PolyStringUtils.isEmpty(displayType.getLabel())) {
+        if (!PolyStringUtils.isEmpty(displayType.getSingularLabel()) || !PolyStringUtils.isEmpty(displayType.getLabel())) {
+            PolyStringType label = !PolyStringUtils.isEmpty(displayType.getSingularLabel()) ?
+                    displayType.getSingularLabel() : displayType.getLabel();
             String sb = pageBase.createStringResource("MainObjectListPanel.newObject").getString()
                     + " "
-                    + displayType.getLabel().getOrig().toLowerCase();
+                    + label.getOrig().toLowerCase();
             displayType.setTooltip(WebComponentUtil.createPolyFromOrigString(sb));
         }
         return view != null ? view.getDisplay() : null;
@@ -229,6 +233,13 @@ public class GuiDisplayTypeUtil {
         return displayType;
     }
 
+    public static String getDisplayCssClass(DisplayType displayType) {
+        if (displayType == null) {
+            return "";
+        }
+        return displayType.getCssClass();
+    }
+
     public static String getIconCssClass(DisplayType displayType) {
         if (displayType == null || displayType.getIcon() == null) {
             return "";
@@ -251,7 +262,7 @@ public class GuiDisplayTypeUtil {
         if (displayType == null || displayType.getIcon() == null) {
             return "";
         }
-        return displayType.getIcon().getColor();
+        return removeStringAfterSemicolon(displayType.getIcon().getColor());
     }
 
     public static String getHelp(DisplayType displayType) {
@@ -276,17 +287,17 @@ public class GuiDisplayTypeUtil {
     }
 
     public static boolean existsIconDisplay(CompiledObjectCollectionView view) {
-        if (view == null){
+        if (view == null) {
             return false;
         }
         return existsIconDisplay(view.getDisplay());
     }
 
     private static boolean existsIconDisplay(DisplayType display) {
-        if (display == null){
+        if (display == null) {
             return false;
         }
-        if (display.getIcon() == null){
+        if (display.getIcon() == null) {
             return false;
         }
         return StringUtils.isNotBlank(display.getIcon().getCssClass());
@@ -314,5 +325,37 @@ public class GuiDisplayTypeUtil {
         help.setTranslation(translationHelp);
         display.setHelp(help);
         return display;
+    }
+
+    public static String removeStringAfterSemicolon(String headerColor) {
+        if (headerColor == null || !headerColor.contains(";")) {
+            return headerColor;
+        }
+        return headerColor.substring(0, headerColor.indexOf(";"));
+    }
+
+    public static DisplayType getDisplayTypeForStrengthOfMapping(IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
+        PrismContainerValueWrapper<MappingType> mapping = rowModel.getObject();
+        MappingType mappingBean = mapping.getRealValue();
+
+        MappingStrengthType strength = mappingBean.getStrength();
+        if (strength == null) {
+            strength = MappingStrengthType.NORMAL;
+        }
+
+        String cssClass = "fa fa-circle-half-stroke";
+
+        switch (strength) {
+            case WEAK -> cssClass = "fa-regular fa-circle";
+            case STRONG -> cssClass = "fa fa-circle";
+        }
+
+        return new DisplayType()
+                .tooltip(LocalizationUtil.translate(
+                        "AbstractSpecificMappingTileTable.tile.help",
+                        new Object[]{LocalizationUtil.translateEnum(strength)}))
+                .beginIcon()
+                .cssClass(cssClass)
+                .end();
     }
 }

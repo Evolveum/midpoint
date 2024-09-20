@@ -1,0 +1,131 @@
+= FAQ, issues during upgrade
+:toc:
+
+This document is a collection of frequently asked questions and answers about the upgrade process.
+It is intended to help you to solve problems that may occur during or after the upgrade process.
+It contains also information about important changes in midPoint configuration and usage.
+
+== Upgrade from 4.4 LTS to 4.8 LTS
+
+NOTE: Always upgrade to the latest midPoint 4.4-based release before attempting to upgrade to 4.8 LTS. At the time of writing this document, the latest 4.4-based release is https://docs.evolveum.com/midpoint/release/4.4.6/[midPoint 4.4.6].
+
+=== [Read this first please] First Steps Methodology
+
+Evolveum has created xref:/midpoint/methodology/first-steps/[First Steps Methodology] to guide your midPoint deployment.
+Even if you are upgrading from midPoint 4.4 LTS and not installing from scratch, some of the information may be valuable for you as the methodology explains the new midPoint deployment approach leveraging xref:/midpoint/reference/admin-gui/simulations/[simulations] and other midPoint 4.8 features.
+
+=== midPoint attempts to start the old (4.4-based) midPoint version instead of the new one when using Systemd or service startup scripts
+
+*Make sure you have updated your Systemd service unit file / service startup script for midPoint.*
+
+midPoint 4.4 uses `midpoint.war` while new midPoint 4.8 uses `midpoint.jar` file!
+
+If you have followed xref:/midpoint/reference/deployment/ninja/use-case/upgrade-with-ninja[] page, after the application is upgraded, the `lib/` directory contains both (old) `midpoint.war` and (new) `midpoint.jar`.
+
+Please check and fix your Systemd service unit file or service startup file for `midPoint.war` references and replace them with `midpoint.jar`.
+
+See also xref:/midpoint/install/bare-installation/systemd/[Running midPoint with systemd].
+
+[#_resource_schema_change]
+=== Do I need to update my 4.4-based resources after upgrade to 4.8 LTS?
+
+midPoint 4.8 LTS uses an updated resource definition.
+Some parts of resource definition are marked as *DEPRECATED* and the functionality will be eventually removed, e.g. `<objectSynchronization>` element defined in resource synchronization.
+
+Also, `<auxiliaryObjectClass>`, `<baseContext>`, `<searchHierarchyScope>` in the resource object type definition are *DEPRECATED*.
+They were moved to the new xref:/midpoint/reference/resources/resource-configuration/schema-handling/changes-in-4.6/#resource-object-type-delineation[`<delineation>`] item.
+
+The old resources should still work in 4.8 LTS (while the deprecated elements are still in midPoint schema), but cannot be edited using xref:/midpoint/reference/admin-gui/resource-wizard/[resource wizard].
+
+Please refer to xref:/midpoint/reference/resources/resource-configuration/schema-handling/changes-in-4.6/[schema handling changes documentation] for more information how to change your resource definitions after you upgrade midPoint to 4.8 LTS.
+
+=== Do I need to update my 4.4-based correlation configuration in resources after upgrade to 4.8 LTS?
+
+midPoint 4.8 LTS uses an improved correlation mechanism named xref:/midpoint/reference/correlation/[Smart correlation].
+
+The old query-only-based correlation is still supported, but it is *DEPRECATED* does cannot be edited using xref:/midpoint/reference/admin-gui/resource-wizard/[resource wizard].
+
+We recommend to upgrade your resource definitions to use the new mechanism, especially the easy-to-use xref:/midpoint/reference/correlation/items-correlator/[Items correlator] after you upgrade midPoint to 4.8 LTS.
+
+=== Do I need to update my 4.4-based synchronization situations and reactions in resources after upgrade to 4.8 LTS?
+
+There are two relevant improvements related to synchronization situations in 4.8 LTS:
+
+. The synchronization situations and reactions are now much more human-readable.
++
+[cols="h,1"]
+|===
+
+
+^.^|midPoint 4.8 LTS
+a|
+[source,xml]
+----
+<synchronization>
+  <reaction>
+    <situation>unlinked</situation>
+      <actions>
+        <link/>
+      </actions>
+  </reaction>
+  . . .
+</synchronization>
+----
+
+^.^|midPoint 4.4 LTS
+a|
+[source,xml]
+----
+. . .
+<reaction>
+  <situation>unlinked</situation>
+  <synchronize>true</synchronize>
+  <action>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+  </action>
+</reaction>
+. . .
+----
+
+|===
+
+. The new recommended action for `deleted` situation is *synchronize* (instead of *unlink* used in midPoint 4.4 LTS).
+
+See also answer for  xref:#_resource_schema_change[Do I need to update my 4.4-based resources after upgrade to 4.8 LTS?].
+
+=== Can I use the resource wizard in 4.8 LTS to create the same configuration as using midPoint XML language?
+
+xref:/midpoint/reference/admin-gui/resource-wizard/[midPoint resource wizard] can be currently used to create and update resource definitions mainly for your first steps midPoint.
+There are limitations in supported expressions (e.g. it supports "As is", "Literal", "Script" and "Generate" expressions) and correlation (e.g. it does not support "correlation by query" yet).
+Also, mapping domain / ranges are not currently supported.
+
+If the resource wizard does not meet your expectations, feel free to define your resources using midPoint XML language.
+
+The resource wizard features will be gradually improved in future midPoint releases.
+
+=== How do I disable mappings in midPoint 4.8 LTS?
+
+In midPoint 4.4, mappings could be disabled to temporarily switch them off from processing.
+This feature is *DEPRECATED* in midPoint 4.8 LTS.
+
+Please use the mapping's `lifecycleState` set to `draft` to switch off the mapping.
+This is supported also in the xref:/midpoint/reference/admin-gui/resource-wizard/[resource wizard].
+In addition to `draft`, there are other lifecycle states supporting xref:/midpoint/reference/simulation/[simulations] and other operations.
+
+=== Why resource wizard's mapping editor shows a Name column for all my mappings?
+
+The xref:/midpoint/reference/admin-gui/resource-wizard/[resource wizard] allows setting a name for all your mappings.
+Mapping names can significantly help with xref:/midpoint/reference/diag/troubleshooting/mappings/[mapping troubleshooting].
+They are also used for merging configuration if you use xref:/midpoint/reference/resources/resource-configuration/inheritance/[Resource and Object Type Inheritance (e.g. resource templates)].
+
+We recommend to use mapping names and this is why resource wizard displays the mapping names as the first (prominent) column in the resource mappings table.
+
+=== Why is the audit log getting bigger after upgrade to 4.8 LTS? / What is the new RESOURCE audit stage?
+
+In midPoint 4.8 LTS, there is a new `Resource` phase in auditing subsystem (and audit log).
+This phase audits all operations performed on provisioning level - changes of resource objects.
+
+The `Resource` phase auditing is *turned on by default in midPoint 4.8 LTS*.
+It can significantly increase audit log size, especially when the deployment manages a lot of resources.
+
+Please refer to xref:/midpoint/reference/security/audit/#_auditing_of_resource_object_changes[Auditing of Resource Object Changes] if you want to turn this auditing off.

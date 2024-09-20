@@ -7,117 +7,86 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
-import java.util.Collection;
+import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.provisioning.impl.InitializableMixin;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.ucf.api.UcfObjectFound;
-import com.evolveum.midpoint.provisioning.util.InitializationState;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.provisioning.ucf.api.UcfResourceObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
- * Represents a resource object (e.g. an account) found by the {@link ResourceObjectConverter#searchResourceObjects(
- * ProvisioningContext, ResourceObjectHandler, ObjectQuery, boolean, FetchErrorReportingMethodType, OperationResult)} method.
- *
- * See also {@link ResourceObjectChange}.
- *
- * In the future we might create also analogous data structure for objects retrieved by
- * {@link ResourceObjectConverter#getResourceObject(ProvisioningContext, Collection, boolean, OperationResult)} method.
+ * Represents a *lazily-initializable* resource object (e.g. an account) found by the *search* or *fetch* operation.
  */
-@SuppressWarnings("JavadocReference")
 @Experimental
-public class ResourceObjectFound implements InitializableMixin {
+public class ResourceObjectFound extends AbstractLazilyInitializableResourceEntity {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectFound.class);
 
-    /**
-     * Resource object that has been found.
-     *
-     * 1. When created: Object as received from UCF.
-     *
-     * 2. When initialized-OK: The same object, with:
-     *    a. protected flag set,
-     *    b. exists flag not null,
-     *    c. simulated activation done,
-     *    d. associations fetched (if requested).
-     *
-     * 3. When initialized-error:
-     *    a. has primary identifier present, assuming: object class known + primary identifier value known.
-     *
-     * 4. When initialized-not-applicable:
-     *    a. Nothing guaranteed.
-     *
-     * 5. If initialization failed:
-     *    a. Nothing guaranteed.
-     */
-    @NotNull private final ShadowType resourceObject;
+    /** The initial information that came from UCF. Used for some clients. */
+    @NotNull private final UcfResourceObject initialUcfResourceObject;
 
     /**
-     * Real value of the object primary identifier (e.g. ConnId UID).
-     * Usually not null (e.g. in ConnId 1.x), but this can change in the future.
-     *
-     * See {@link UcfObjectFound#primaryIdentifierValue}.
+     * The resource object, as provided by UCF, with the simple conversion only (no simulated associations, activation, etc).
+     * Its content may be modified during processing here (no cloning is done).
+     * Ultimately, it should be transformed into {@link #completeResourceObject}.
      */
-    private final Object primaryIdentifierValue;
+    @NotNull private final ExistingResourceObjectShadow initialResourceObject;
 
-    /** State of the initialization of this object. */
-    @NotNull private final InitializationState initializationState;
+    /** Result of the processing. */
+    private CompleteResourceObject completeResourceObject;
 
-    /** Data needed for the initialization. Provided at object creation. */
-    private final InitializationContext ictx;
-
-    /** Useful beans from Resource Objects layer. */
-    private final ResourceObjectsBeans beans;
-
-    ResourceObjectFound(
-            UcfObjectFound ucfObject,
-            ResourceObjectConverter converter,
-            ProvisioningContext ctx,
+    private ResourceObjectFound(
+            @NotNull ProvisioningContext ctx,
+            @NotNull UcfResourceObject initialUcfResourceObject,
             boolean fetchAssociations) {
-        this.resourceObject = ucfObject.getResourceObject().clone().asObjectable();
-        this.primaryIdentifierValue = ucfObject.getPrimaryIdentifierValue();
-        this.initializationState = InitializationState.fromUcfErrorState(ucfObject.getErrorState(), null);
-        this.ictx = new InitializationContext(ctx, fetchAssociations);
-        this.beans = converter.getBeans();
+        super(ctx, fetchAssociations);
+        this.initialUcfResourceObject = initialUcfResourceObject;
+        this.initialResourceObject = ExistingResourceObjectShadow.fromUcf(initialUcfResourceObject, ctx.getResourceRef());
     }
 
-    public void initializeInternal(Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException,
-            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-
-        if (initializationState.isInitialStateOk()) {
-            beans.resourceObjectConverter
-                    .postProcessResourceObjectRead(ictx.ctx, resourceObject.asPrismObject(), ictx.fetchAssociations, result);
-        } else {
-            addFakePrimaryIdentifierIfNeeded();
-        }
+    static ResourceObjectFound fromUcf(
+            @NotNull UcfResourceObject ucfResourceObject,
+            @NotNull ProvisioningContext ctx,
+            boolean fetchAssociations) {
+        return new ResourceObjectFound(ctx, ucfResourceObject, fetchAssociations);
     }
 
-    private void addFakePrimaryIdentifierIfNeeded() throws SchemaException {
-        ResourceObjectDefinition definition = ictx.ctx.getObjectDefinitionRequired();
-        ResourceAttributeContainer attrContainer = ShadowUtil.getOrCreateAttributesContainer(resourceObject, definition);
-        beans.fakeIdentifierGenerator.addFakePrimaryIdentifierIfNeeded(attrContainer, primaryIdentifierValue, definition);
+    /**
+     * We do not need to deal specifically with OK/error states here.
+     * {@link ResourceObjectCompleter} handles both cases, and sets the state in {@link #completeResourceObject} appropriately.
+     *
+     * We only have to set the resulting state to {@link #initializationState}.
+     */
+    @Override
+    public void initializeInternal(Task task, OperationResult result) throws CommonException {
+        effectiveCtx = originalCtx.spawn(task);
+        completeResourceObject =
+                ResourceObjectCompleter.completeResourceObject(effectiveCtx, initialResourceObject, fetchAssociations, result);
+        getInitializationState().recordError(completeResourceObject.errorState());
     }
 
-    public @NotNull ShadowType getResourceObject() {
-        return resourceObject;
+    /** For clients that want to access the "raw" data. */
+    @NotNull UcfResourceObject getInitialUcfResourceObject() {
+        return initialUcfResourceObject;
     }
 
-    public Object getPrimaryIdentifierValue() {
-        return primaryIdentifierValue;
+    /** Returns the best available resource object. */
+    public @NotNull ExistingResourceObjectShadow getResourceObject() {
+        return getCompleteResourceObject().resourceObject();
+    }
+
+    private @NotNull CompleteResourceObject getCompleteResourceObject() {
+        checkInitialized();
+        return Objects.requireNonNullElseGet(
+                completeResourceObject,
+                () -> CompleteResourceObject.of(initialResourceObject, initializationState.getErrorState()));
     }
 
     @Override
@@ -126,20 +95,14 @@ public class ResourceObjectFound implements InitializableMixin {
     }
 
     @Override
-    public @NotNull InitializationState getInitializationState() {
-        return initializationState;
-    }
-
-    @Override
     public void checkConsistence() {
-        // TODO
+        initialResourceObject.checkConsistence();
     }
 
     @Override
     public String toString() {
-        return "FetchedResourceObject{" +
-                "resourceObject=" + resourceObject +
-                ", primaryIdentifierValue=" + primaryIdentifierValue +
+        return getClass().getSimpleName() + "{" +
+                "resourceObject=" + initialResourceObject +
                 ", initializationState=" + initializationState +
                 '}';
     }
@@ -151,19 +114,9 @@ public class ResourceObjectFound implements InitializableMixin {
         DebugUtil.indentDebugDump(sb, indent);
         sb.append(getClass().getSimpleName());
         sb.append("\n");
-        DebugUtil.debugDumpWithLabelLn(sb, "resourceObject", resourceObject, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "primaryIdentifierValue", String.valueOf(primaryIdentifierValue), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "initializationState", String.valueOf(initializationState), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "resourceObject", initialResourceObject, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "completeResourceObject", completeResourceObject, indent + 1);
         return sb.toString();
-    }
-
-    private static class InitializationContext {
-        private final ProvisioningContext ctx;
-        private final boolean fetchAssociations;
-
-        private InitializationContext(ProvisioningContext ctx, boolean fetchAssociations) {
-            this.ctx = ctx;
-            this.fetchAssociations = fetchAssociations;
-        }
     }
 }

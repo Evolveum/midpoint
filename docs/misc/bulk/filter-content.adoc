@@ -1,0 +1,54 @@
+= Filter Content
+:page-wiki-name: Filter Content
+:page-wiki-id: 24086064
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2017-05-15T14:07:47.874+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2017-05-15T14:07:47.874+02:00
+:page-upkeep-status: yellow
+
+== Description
+
+Removes selected items from the input data.
+For example, give a list of users, removes all the data except for names and password values.
+
+
+== Input
+
+Any container value.
+
+
+== Output
+
+Container value with selected subitems removed.
+
+
+== Properties
+
+[%autowidth]
+|===
+| Property name | Meaning
+
+| keep
+| List of paths to keep.
+
+
+| remove
+| List of paths to remove.
+
+
+|===
+
+These properties are mutually exclusive.
+
+
+== Examples
+
+.Assuming users on input, keeps only their names and password values
+[source,xml]
+----
+<filterContent>
+  <keep>name</keep>
+  <keep>credentials/password/value</keep>
+</filterContent>
+----

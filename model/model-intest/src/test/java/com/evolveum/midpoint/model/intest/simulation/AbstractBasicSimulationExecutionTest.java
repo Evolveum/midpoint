@@ -24,10 +24,13 @@ import com.evolveum.midpoint.model.test.TestSimulationResult;
 import com.evolveum.midpoint.model.test.asserter.ProcessedObjectAsserter;
 import com.evolveum.midpoint.model.test.asserter.ProcessedObjectsAsserter;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.schema.util.SimulationResultTypeUtil;
+
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.testng.annotations.Test;
 
@@ -151,11 +154,11 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                         .assertObjectTypeClass(UserType.class)
                         .objectToAdd()
                             .assertName("test100")
-                            .objectMetadata()
+                            .valueMetadataSingle()
                                 .assertRequestTimestampPresent()
                                 .assertCreateTimestampPresent()
                                 .assertCreateChannel(CHANNEL_USER_URI)
-                            .end()
+                            .end().end()
                             .asFocus()
                                 .activation()
                                     .assertEffectiveStatus(ActivationStatusType.ENABLED)
@@ -185,7 +188,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                         PATH_ACTIVATION_ENABLE_TIMESTAMP,
                         FocusType.F_ITERATION,
                         FocusType.F_ITERATION_TOKEN,
-                        FocusType.F_METADATA,
+                        InfraItemName.METADATA,
                         FocusType.F_ROLE_MEMBERSHIP_REF,
                         FocusType.F_ARCHETYPE_REF);
         // @formatter:on
@@ -263,12 +266,12 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                     .delta()
                     .objectToAdd()
                         .assertName(name)
-                        .objectMetadata()
+                        .valueMetadataSingle()
                             .assertRequestTimestampPresent()
                             .assertCreateTimestampPresent()
                             .assertLastProvisioningTimestampPresent(accountShouldExist)
                             .assertCreateChannel(CHANNEL_USER_URI)
-                        .end()
+                        .end().end()
                         .asFocus()
                             .activation()
                                 .assertEffectiveStatus(ActivationStatusType.ENABLED)
@@ -375,12 +378,12 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                     .delta()
                     .objectToAdd()
                         .assertName(name)
-                        .objectMetadata()
+                        .valueMetadataSingle()
                             .assertRequestTimestampPresent()
                             .assertCreateTimestampPresent()
                             .assertLastProvisioningTimestampPresent(accountShouldExist)
                             .assertCreateChannel(CHANNEL_USER_URI)
-                        .end()
+                        .end().end()
                         .asFocus()
                             .activation()
                                 .assertEffectiveStatus(ActivationStatusType.ENABLED)
@@ -464,7 +467,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                         .delta()
                         .assertModifiedExclusive(
                                 UserType.F_LINK_REF,
-                                UserType.F_METADATA)
+                                InfraItemName.METADATA)
                     .end();
             assertAccountAdded(name, target, processedObjects);
         } else {
@@ -534,7 +537,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                     .delta()
                     .assertModified(
                             UserType.F_ASSIGNMENT,
-                            UserType.F_METADATA)
+                            InfraItemName.METADATA)
                 .assertModifications(7 + (accountShouldExist ? 2 : 0));
 
         if (accountShouldExist) {
@@ -543,7 +546,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                     .by().changeType(ChangeType.MODIFY).objectType(UserType.class).find()
                         .delta()
                         .assertModified(
-                                PATH_METADATA_LAST_PROVISIONING_TIMESTAMP,
+                                PATH_METADATA_LAST_PROVISIONING_TIMESTAMP_NAMES_ONLY,
                                 UserType.F_LINK_REF)
                     .end();
             assertAccountAdded(name, target, processedObjects);
@@ -560,7 +563,8 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
     }
 
     private void assertAccountAdded(
-            String name, DummyTestResource target, Collection<? extends ProcessedObject<?>> processedObjects) {
+            String name, DummyTestResource target, Collection<? extends ProcessedObject<?>> processedObjects)
+            throws SchemaException {
         assertProcessedObjects(processedObjects, "objects")
                 .by().changeType(ChangeType.ADD).objectType(ShadowType.class).find()
                     .assertEventMarks(MARK_PROJECTION_ACTIVATED, MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED)
@@ -575,11 +579,10 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                         .attributes()
                             .assertValue(ICFS_NAME, name)
                         .end()
-                        .objectMetadata()
+                        .valueMetadataSingle()
                             .assertRequestTimestampPresent()
                             .assertCreateTimestampPresent()
-                            .assertCreateChannel(SchemaConstants.CHANNEL_USER_URI)
-                        .end();
+                            .assertCreateChannel(SchemaConstants.CHANNEL_USER_URI);
     }
 
     /** Enabling a user. */
@@ -667,12 +670,12 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                     .delta()
                         .objectToAdd()
                             .assertName("test200")
-                            .objectMetadata()
+                            .valueMetadataSingle()
                                 .assertRequestTimestampPresent()
                                 .assertCreateTimestampPresent()
                                 .assertLastProvisioningTimestampPresent()
                                 .assertCreateChannel(CHANNEL_IMPORT_URI)
-                            .end()
+                            .end().end()
                             .asFocus()
                                 .activation()
                                     .assertEffectiveStatus(ActivationStatusType.ENABLED)
@@ -689,7 +692,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                     .assertModifiedExclusive(
                             ShadowType.F_ITERATION,
                             ShadowType.F_ITERATION_TOKEN,
-                            ShadowType.F_METADATA)
+                            InfraItemName.METADATA)
                 .end();
         // @formatter:on
 
@@ -725,12 +728,12 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                     .delta()
                         .objectToAdd()
                             .assertName("test205")
-                            .objectMetadata()
+                            .valueMetadataSingle()
                                 .assertRequestTimestampPresent()
                                 .assertCreateTimestampPresent()
                                 .assertLastProvisioningTimestampPresent()
                                 .assertCreateChannel(CHANNEL_IMPORT_URI)
-                            .end()
+                            .end().end()
                             .asFocus()
                                 .activation()
                                     .assertEffectiveStatus(ActivationStatusType.ENABLED)
@@ -747,7 +750,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                     .assertModifiedExclusive(
                             ShadowType.F_ITERATION,
                             ShadowType.F_ITERATION_TOKEN,
-                            ShadowType.F_METADATA)
+                            InfraItemName.METADATA)
                 .end();
         // @formatter:on
 
@@ -871,7 +874,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                             .assertModifiedExclusive(
                                     ShadowType.F_ITERATION,
                                     ShadowType.F_ITERATION_TOKEN,
-                                    ShadowType.F_METADATA)
+                                    InfraItemName.METADATA)
                         .end()
                     .end()
                     .assertSize(2);
@@ -889,7 +892,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         //  - low-level "shadow-simulated" import -> produces classification simulation result
 
         when("account 'type' attribute is changed to 'person'");
-        resource.controller.getDummyResource().getAccountByUsername(accountName)
+        resource.controller.getDummyResource().getAccountByName(accountName)
                 .addAttributeValue(ATTR_TYPE, "person");
 
         and("the account is imported with shadow-simulation (on background)");
@@ -1058,7 +1061,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                 .assertIntent(INTENT_DEFAULT);
 
         when("shadow is changed so it will belong to 'person' type");
-        resource.controller.getDummyResource().getAccountByUsername(accountName)
+        resource.controller.getDummyResource().getAccountByName(accountName)
                 .addAttributeValue(ATTR_TYPE, "person");
 
         and("shadow is retrieved in development-low-level-simulation mode");
@@ -1242,11 +1245,11 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                     .assertObjectTypeClass(UserType.class)
                     .objectToAdd()
                         .assertName("test300")
-                        .objectMetadata()
+                        .valueMetadataSingle()
                             .assertRequestTimestampPresent()
                             .assertCreateTimestampPresent()
                             .assertCreateChannel(CHANNEL_USER_URI)
-                        .end()
+                        .end().end()
                         .asFocus()
                             .activation()
                                 .assertEffectiveStatus(ActivationStatusType.ENABLED)
@@ -1316,6 +1319,38 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         } else {
             assertThat(orgs).as("user orgs").isEmpty();
         }
+    }
+
+    /**
+     * When the structural archetype is changed, the "processed object" record should refer to the old archetype.
+     *
+     * MID-8610
+     */
+    @Test
+    public void test320SimulateArchetypeChange() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        given("a user with archetype 'person'");
+        UserType user = new UserType()
+                .name("test320")
+                .assignment(ARCHETYPE_PERSON.assignmentTo());
+        addObject(user, task, result);
+
+        when("archetype is changed to 'customer' (in simulation)");
+        TestSimulationResult simResult =
+                executeWithSimulationResult(
+                        List.of(deltaFor(UserType.class)
+                                .item(UserType.F_ASSIGNMENT)
+                                .replace(ARCHETYPE_CUSTOMER.assignmentTo())
+                                .asObjectDelta(user.getOid())),
+                        getExecutionMode(), defaultSimulationDefinition(), task, result);
+
+        then("simulation result points still to 'person' archetype");
+        assertProcessedObjects(simResult)
+                .display()
+                .single()
+                .assertStructuralArchetypeOid(ARCHETYPE_PERSON.oid);
     }
 
     private boolean isDevelopmentConfigurationSeen() {

@@ -10,6 +10,10 @@ package com.evolveum.midpoint.gui.impl.page.admin.task;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangeExecutor;
+
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangesExecutorImpl;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -70,14 +74,9 @@ public class PageTask extends PageAssignmentHolderDetails<TaskType, TaskDetailsM
         }
     }
 
-    @Override
-    protected void initLayout() {
-        if (runWizard) {
-            DetailsFragment detailsFragment = createDetailsFragment();
-            add(detailsFragment);
-            return;
-        }
-        super.initLayout();
+    public PageTask(PrismObject<TaskType> task, boolean showWizard) {
+        super(task);
+        this.runWizard = showWizard;
     }
 
     @Override
@@ -96,28 +95,17 @@ public class PageTask extends PageAssignmentHolderDetails<TaskType, TaskDetailsM
     }
 
     @Override
-    protected DetailsFragment createDetailsFragment() {
-        if (!runWizard) {
-            return super.createDetailsFragment();
-        }
-
-        return createTaskWizardFragment();
+    protected boolean canShowWizard() {
+        return runWizard;
     }
 
-    private DetailsFragment createTaskWizardFragment() {
+    @Override
+    protected DetailsFragment createWizardFragment() {
         return new DetailsFragment(ID_DETAILS_VIEW, ID_TEMPLATE_VIEW, PageTask.this) {
             @Override
             protected void initFragmentLayout() {
                 TaskWizardPanel wizardPanel = new TaskWizardPanel(ID_TEMPLATE, createObjectWizardPanelHelper());
                 add(wizardPanel);
-//                try {
-//                    Constructor<? extends AbstractWizardPanel> constructor = clazz.getConstructor(String.class, WizardPanelHelper.class);
-//                    AbstractWizardPanel wizard = constructor.newInstance(ID_TEMPLATE, createObjectWizardPanelHelper());
-//                    add(wizard);
-//                } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-//                    LOGGER.error("Couldn't create panel by constructor for class " + clazz.getSimpleName()
-//                            + " with parameters type: String, WizardPanelHelper");
-//                }
             }
         };
 
@@ -144,8 +132,8 @@ public class PageTask extends PageAssignmentHolderDetails<TaskType, TaskDetailsM
             }
 
             @Override
-            protected void savePerformed(AjaxRequestTarget target) {
-                super.savePerformed(target);
+            protected void submitPerformed(AjaxRequestTarget target) {
+                super.submitPerformed(target);
                 PageTask.this.savePerformed(target);
             }
 
@@ -154,6 +142,13 @@ public class PageTask extends PageAssignmentHolderDetails<TaskType, TaskDetailsM
                 return PageTask.this.hasUnsavedChanges(target);
             }
         };
+    }
+
+    @Override
+    protected void showResultAfterExecuteChanges(ObjectChangeExecutor changeExecutor, OperationResult result) {
+        if (changeExecutor instanceof ObjectChangesExecutorImpl) {
+            showResult(result);
+        }
     }
 
     @Override
@@ -167,6 +162,12 @@ public class PageTask extends PageAssignmentHolderDetails<TaskType, TaskDetailsM
             result.setBackgroundTaskOid(taskOid);
         }
         super.postProcessResult(result, executedDeltas, target);
+    }
+
+    @Override
+    protected void postProcessResultForWizard(OperationResult result, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, AjaxRequestTarget target) {
+        super.postProcessResultForWizard(result, executedDeltas, target);
+        postProcessResult(result, executedDeltas, target);
     }
 
     @Override

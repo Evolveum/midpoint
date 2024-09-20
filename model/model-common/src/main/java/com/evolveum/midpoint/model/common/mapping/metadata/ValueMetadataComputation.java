@@ -11,7 +11,6 @@ import java.util.*;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.config.MetadataMappingConfigItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -100,8 +99,8 @@ abstract public class ValueMetadataComputation {
         this.outputMetadata = new ValueMetadataType().asPrismContainerValue();
     }
 
-    @NotNull
-    public ValueMetadataType execute(OperationResult parentResult) throws CommunicationException, ObjectNotFoundException, SchemaException,
+    public @NotNull ValueMetadataType execute(OperationResult parentResult)
+            throws CommunicationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         result = parentResult.createMinorSubresult(OP_EXECUTE);
         try {
@@ -169,7 +168,7 @@ abstract public class ValueMetadataComputation {
                 .createMappingBuilder(mappingBean, mappingCI.origin(), env.contextDescription);
         createSources(builder, mappingBean);
         createCustomMappingVariables(builder, mappingBean);
-        builder.targetContext(metadataDefinition)
+        builder.targetContextDefinition(metadataDefinition)
                 .now(env.now)
                 .conditionMaskOld(false); // We are not interested in old values (deltas are irrelevant in metadata mappings).
         return builder.build();
@@ -180,11 +179,12 @@ abstract public class ValueMetadataComputation {
         for (VariableBindingDefinitionType sourceDef : mappingBean.getSource()) {
             ItemPath sourcePath = getSourcePath(sourceDef);
             QName sourceName = getSourceName(sourceDef, sourcePath);
-            ItemDefinition sourceDefinition = getAdaptedSourceDefinition(sourcePath);
+            ItemDefinition<?> sourceDefinition = getAdaptedSourceDefinition(sourcePath);
+            //noinspection rawtypes
             Item sourceItem = sourceDefinition.instantiate();
             //noinspection unchecked
             sourceItem.addAll(getSourceValues(sourcePath));
-            //noinspection unchecked
+            //noinspection unchecked,rawtypes
             Source<?, ?> source = new Source<>(sourceItem, null, null, sourceName, sourceDefinition);
             source.recompute();
             builder.additionalSource(source);
@@ -194,14 +194,12 @@ abstract public class ValueMetadataComputation {
     void createCustomMappingVariables(MetadataMappingBuilder<?,?> builder, MetadataMappingType mappingBean) {
     }
 
-    @NotNull
-    private MutableItemDefinition getAdaptedSourceDefinition(ItemPath sourcePath) {
-        ItemDefinition sourceDefinition =
+    private @NotNull ItemDefinition<?> getAdaptedSourceDefinition(ItemPath sourcePath) {
+        ItemDefinition<?> sourceDefinition =
                 Objects.requireNonNull(metadataDefinition.findItemDefinition(sourcePath),
                         () -> "No definition for '" + sourcePath + "' in " + env.contextDescription);
-        MutableItemDefinition sourceDefinitionMultivalued =
-                sourceDefinition.clone().toMutable();
-        sourceDefinitionMultivalued.setMaxOccurs(-1);
+        ItemDefinition<?> sourceDefinitionMultivalued = sourceDefinition.clone();
+        sourceDefinitionMultivalued.mutator().setMaxOccurs(-1);
         return sourceDefinitionMultivalued;
     }
 

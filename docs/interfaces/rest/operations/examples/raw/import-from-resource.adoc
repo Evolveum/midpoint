@@ -1,0 +1,24 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Execute the import operation for a Resource object in MidPoint*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Accept: application/json" \
+-H "Content-Type: application/json" \
+-X POST http://localhost:8080/midpoint/ws/rest/resources/ef2bc95b-76e0-59e2-86d6-9999cccccccc/import/AccountObjectClass \
+-v
+----
+
+
+The response is an HTTP 303 code in case of success *without* a response body. Yet there
+is a location header which can be used for a redirect. The object which is referred is a task
+used for asynchronous execution of the import operation. Please see xref:/midpoint/reference/interfaces/rest/endpoints/tasks.adoc[this]
+link for more information on the tasks endpoint.
+
+.Example Location Header of *"Import Operation from Resource object"* example
+----
+Location: http://localhost:8080/midpoint/ws/rest/tasks/31e60ee4-8bb9-4a8d-a001-88ef6191d4ee
+----
+

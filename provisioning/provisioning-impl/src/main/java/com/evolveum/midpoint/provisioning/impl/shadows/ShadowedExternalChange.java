@@ -10,15 +10,14 @@ package com.evolveum.midpoint.provisioning.impl.shadows;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExternalResourceObjectChange;
-import com.evolveum.midpoint.provisioning.impl.shadows.sync.ChangeProcessingBeans;
 
 /**
- * Adopted "external" change.
+ * Shadowed "external" change.
  */
 public class ShadowedExternalChange extends ShadowedChange<ExternalResourceObjectChange> {
 
-    public ShadowedExternalChange(@NotNull ExternalResourceObjectChange resourceObjectChange, ChangeProcessingBeans beans) {
-        super(resourceObjectChange, beans);
+    public ShadowedExternalChange(@NotNull ExternalResourceObjectChange resourceObjectChange) {
+        super(resourceObjectChange);
     }
 
     @Override

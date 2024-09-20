@@ -10,8 +10,10 @@ package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -143,7 +145,10 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> implement
         submitData();
 
         getWizard().next();
-        target.add(getWizard().getPanel());
+        Component component = getWizard().getPanel();
+        target.add(component);
+        Form form = component.findParent(Form.class);
+        target.add(form);
 
         return false;
     }

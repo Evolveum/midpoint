@@ -12,7 +12,7 @@
     <parent>
         <artifactId>infra</artifactId>
         <groupId>com.evolveum.midpoint.infra</groupId>
-        <version>4.8-SNAPSHOT</version>
+        <version>4.9-SNAPSHOT</version>
     </parent>
 
     <artifactId>schema</artifactId>
@@ -175,8 +175,18 @@
                     <schemaFiles>
                         <schemaFile>src/main/resources/xml/ns/public/common/common-3.xsd</schemaFile>
                         <schemaFile>src/main/resources/xml/ns/public/common/api-types-3.xsd</schemaFile>
+                        <schemaFile>target/additional-schemas/prism-impl/xml/ns/public/annotation-3.xsd</schemaFile>
+                        <schemaFile>src/main/resources/xml/ns/public/prism-schema/prism-schema-3.xsd</schemaFile>
                         <schemaFile>src/main/resources/xml/ns/public/connector/icf-1/resource-schema-3.xsd</schemaFile>
                         <schemaFile>src/main/resources/xml/ns/public/model/scripting/scripting-3.xsd</schemaFile>
+                        <!--
+                        The following ones were not originally here. After fixing the schema parser in 4.9, they need to
+                        be parsed as well, otherwise the parsing fails, as the references to them cannot be resolved.
+                        TODO we should mark them somehow so that the docs for them won't be generated
+                        -->
+                        <schemaFile>src/main/resources/xml/ns/public/common/audit-3.xsd</schemaFile>
+                        <schemaFile>src/main/resources/xml/ns/public/resource/capabilities-3.xsd</schemaFile>
+                        <schemaFile>src/main/resources/xml/ns/public/connector/icf-1/connector-schema-3.xsd</schemaFile>
                     </schemaFiles>
                     <catalogFiles>
                         <catalogFile>src/compile/resources/jax-ws-catalog.xml</catalogFile>
@@ -203,6 +213,8 @@
                         <schemaFile>src/main/resources/xml/ns/public/common/common-3.xsd</schemaFile>
                         <schemaFile>src/main/resources/xml/ns/public/common/audit-3.xsd</schemaFile>
                         <schemaFile>src/main/resources/xml/ns/public/common/api-types-3.xsd</schemaFile>
+                        <schemaFile>target/additional-schemas/prism-impl/xml/ns/public/annotation-3.xsd</schemaFile>
+                        <schemaFile>src/main/resources/xml/ns/public/prism-schema/prism-schema-3.xsd</schemaFile>
                         <schemaFile>src/main/resources/xml/ns/public/resource/capabilities-3.xsd</schemaFile>
                         <schemaFile>src/main/resources/xml/ns/public/connector/icf-1/resource-schema-3.xsd</schemaFile>
                         <schemaFile>src/main/resources/xml/ns/public/connector/icf-1/connector-schema-3.xsd</schemaFile>
@@ -276,6 +288,11 @@
                             <prefix>XSD</prefix>
                             <namespace>http://www.w3.org/2001/XMLSchema</namespace>
                             <name>XSD</name>
+                        </constant>
+                        <constant>
+                            <prefix>PRISMS</prefix>
+                            <namespace>http://midpoint.evolveum.com/xml/ns/public/common/prism-schema</namespace>
+                            <name>PRISM_SCHEMA</name>
                         </constant>
                     </constants>
                 </configuration>

@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.testing.story;
 
 import java.io.File;
+import java.util.List;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyGroup;
@@ -109,22 +110,23 @@ public class TestEnergy extends AbstractStoryTest {
 
         PrismObject<ResourceType> ad = getObject(ResourceType.class, RESOURCE_AD.oid);
 
-        assertShadow(findShadowByName(groupOcName, "MP_ALPHA", ad, result), "after")
+        // FIXME resolve the repo vs normal shadow conflict
+        assertShadow(findShadowByName(groupOcName, "MP_ALPHA", ad, result), List.of(), "after")
                 .assertKind(ShadowKindType.ENTITLEMENT)
                 .assertIntent(INTENT_GROUP);
-        assertShadow(findShadowByName(groupOcName, "MP_BETA", ad, result), "after")
+        assertShadow(findShadowByName(groupOcName, "MP_BETA", ad, result), List.of(), "after")
                 .assertKind(ShadowKindType.ENTITLEMENT)
                 .assertIntent(INTENT_GROUP);
-        assertShadow(findShadowByName(groupOcName, "MP_GAMMA", ad, result), "after")
+        assertShadow(findShadowByName(groupOcName, "MP_GAMMA", ad, result), List.of(), "after")
                 .assertKind(ShadowKindType.ENTITLEMENT)
                 .assertIntent(INTENT_GROUP);
-        assertShadow(findShadowByName(groupOcName, "EXT_ONE", ad, result), "after")
+        assertShadow(findShadowByName(groupOcName, "EXT_ONE", ad, result), List.of(), "after")
                 .assertKind(ShadowKindType.UNKNOWN)
                 .assertIntent(SchemaConstants.INTENT_UNKNOWN);
-        assertShadow(findShadowByName(groupOcName, "EXT_TWO", ad, result), "after")
+        assertShadow(findShadowByName(groupOcName, "EXT_TWO", ad, result), List.of(), "after")
                 .assertKind(ShadowKindType.UNKNOWN)
                 .assertIntent(SchemaConstants.INTENT_UNKNOWN);
-        assertShadow(findShadowByName(groupOcName, "EXT_THREE", ad, result), "after")
+        assertShadow(findShadowByName(groupOcName, "EXT_THREE", ad, result), List.of(), "after")
                 .assertKind(ShadowKindType.UNKNOWN)
                 .assertIntent(SchemaConstants.INTENT_UNKNOWN);
     }
@@ -152,32 +154,33 @@ public class TestEnergy extends AbstractStoryTest {
         QName groupOcName = RI_GROUP_OBJECT_CLASS;
         PrismObject<ResourceType> ad = getObject(ResourceType.class, RESOURCE_AD.oid);
 
-        assertShadow(findShadowByName(groupOcName, "MP_ALPHA", ad, result), "after")
+        // FIXME resolve the repo vs normal shadow conflict
+        assertShadow(findShadowByName(groupOcName, "MP_ALPHA", ad, result), List.of(), "after")
                 .assertKind(ShadowKindType.ENTITLEMENT)
                 .assertIntent(INTENT_GROUP);
-        assertShadow(findShadowByName(groupOcName, "MP_BETA", ad, result), "after")
+        assertShadow(findShadowByName(groupOcName, "MP_BETA", ad, result), List.of(), "after")
                 .assertKind(ShadowKindType.ENTITLEMENT)
                 .assertIntent(INTENT_GROUP);
-        assertShadow(findShadowByName(groupOcName, "MP_GAMMA", ad, result), "after")
+        assertShadow(findShadowByName(groupOcName, "MP_GAMMA", ad, result), List.of(), "after")
                 .assertKind(ShadowKindType.ENTITLEMENT)
                 .assertIntent(INTENT_WRONG); // assuming this will not be fixed by reconciliation
-        assertShadow(findShadowByName(groupOcName, "EXT_ONE", ad, result), "after")
+        assertShadow(findShadowByName(groupOcName, "EXT_ONE", ad, result), List.of(), "after")
                 .assertKind(ShadowKindType.ENTITLEMENT) // looks like this is not touched by reconciliation
                 .assertIntent(SchemaConstants.INTENT_UNKNOWN);
-        assertShadow(findShadowByName(groupOcName, "EXT_TWO", ad, result), "after")
+        assertShadow(findShadowByName(groupOcName, "EXT_TWO", ad, result), List.of(), "after")
                 .assertKind(ShadowKindType.ENTITLEMENT) // looks like this is not touched by reconciliation
                 .assertIntent(SchemaConstants.INTENT_UNKNOWN);
-        assertShadow(findShadowByName(groupOcName, "EXT_THREE", ad, result), "after")
+        assertShadow(findShadowByName(groupOcName, "EXT_THREE", ad, result), List.of(), "after")
                 .assertKind(ShadowKindType.ENTITLEMENT) // looks like this is not touched by reconciliation
                 .assertIntent(INTENT_WRONG); // assuming this will not be fixed by reconciliation
     }
 
     @SuppressWarnings("SameParameterValue")
     private void setKindIntent(String shadowName, ShadowKindType kind, String intent, OperationResult result) throws CommonException {
-        QName groupOcName = RI_GROUP_OBJECT_CLASS;
         PrismObject<ResourceType> ad = getObject(ResourceType.class, RESOURCE_AD.oid);
-        PrismObject<ShadowType> shadow = findShadowByName(groupOcName, shadowName, ad, result);
-        repositoryService.modifyObject(ShadowType.class, shadow.getOid(),
+        var shadow = findShadowByName(RI_GROUP_OBJECT_CLASS, shadowName, ad, result);
+        repositoryService.modifyObject(
+                ShadowType.class, shadow.getOid(),
                 prismContext.deltaFor(ShadowType.class)
                         .item(ShadowType.F_KIND).replace(kind)
                         .item(ShadowType.F_INTENT).replace(intent)
@@ -215,13 +218,13 @@ public class TestEnergy extends AbstractStoryTest {
         QName groupOcName = RI_GROUP_OBJECT_CLASS;
         PrismObject<ResourceType> ad = getObject(ResourceType.class, RESOURCE_AD.oid);
 
-        PrismObject<ShadowType> mp_delta = findShadowByName(groupOcName, "MP_DELTA", ad, result);
-        PrismObject<ShadowType> ext_four = findShadowByName(groupOcName, "EXT_FOUR", ad, result);
+        var mp_delta = findShadowByName(groupOcName, "MP_DELTA", ad, result);
+        var ext_four = findShadowByName(groupOcName, "EXT_FOUR", ad, result);
 
-        assertShadow(mp_delta, "after");
+        assertShadow(mp_delta, List.of(), "after");
 //                .assertKind(ShadowKindType.ENTITLEMENT)
 //                .assertIntent("group");
-        assertShadow(ext_four, "after");
+        assertShadow(ext_four, List.of(), "after");
 //                .assertKind(ShadowKindType.UNKNOWN)
 //                .assertIntent(SchemaConstants.INTENT_UNKNOWN);
     }

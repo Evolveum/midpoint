@@ -102,9 +102,7 @@ public class PagePostAuthentication extends PageAbstractFlow {
                 PrismObject<UserType> user = WebModelServiceUtils.loadObject(UserType.class, principal.getOid(), PagePostAuthentication.this, task, task.getResult());
                 try {
                     PrismObjectDefinition<UserType> userDef = getModelInteractionService().getEditObjectDefinition(user, null, task, task.getResult());
-                    if (userDef != null) {
-                        user.applyDefinition(userDef, true);
-                    }
+                    user.applyDefinition(userDef, true);
                 } catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException
                         | CommunicationException | SecurityViolationException e) {
                     //TODO: nothing critical even by the error. for now just log it
@@ -181,7 +179,7 @@ public class PagePostAuthentication extends PageAbstractFlow {
             getPrismContext().adopt(userDelta);
             WebModelServiceUtils.save(userDelta, result, this);
             result.recordSuccessIfUnknown();
-        } catch (SchemaException e) {
+        } catch (CommonException e) {
             LoggingUtils.logException(LOGGER, "Error during saving user.", e);
             result.recordFatalError(getString("PagePostAuthentication.message.submitRegistration.fatalError"), e);
         }
@@ -206,6 +204,7 @@ public class PagePostAuthentication extends PageAbstractFlow {
         if (!result.isAcceptable()) {
             target.add(PagePostAuthentication.this);
         } else {
+            isSubmitted = true;
             MidPointPrincipal principal = AuthUtil.getPrincipalUser();
             try {
                 getModelInteractionService().refreshPrincipal(principal.getOid(), principal.getFocus().getClass());
@@ -221,7 +220,7 @@ public class PagePostAuthentication extends PageAbstractFlow {
 
     }
 
-    private ObjectDelta<UserType> getUserDelta() throws SchemaException {
+    private ObjectDelta<UserType> getUserDelta() throws CommonException {
         if (!isCustomFormDefined()) {
             return objectWrapper.getObjectDelta();
         }

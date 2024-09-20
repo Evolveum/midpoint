@@ -1,0 +1,66 @@
+= Task Template
+:page-wiki-name: Task template HOWTO
+:page-wiki-id: 24675717
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2017-10-24T12:19:40.968+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2017-10-26T14:30:43.173+02:00
+:page-upkeep-status: green
+
+MidPoint offers an easy way of starting a task that is similar to a pre-existing one.
+The pre-existing task is called a _template_, although it is technically an ordinary task: with an exception that it is not meant to be executed directly.
+
+== An example
+
+.Task that modifies a given user
+[%collapsible]
+====
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/templates/task-template-change-description.xml[Git]
+
+sampleRef::samples/tasks/templates/task-template-change-description.xml[]
+====
+
+Note that `executionState` of this task is set to `waiting`, so that the task template itself will not be executed.
+
+Finally, note the `cleanupAfterCompletion`: it says that tasks created from this template will be automatically deleted 10 minutes after their completion (i.e. switching into the `CLOSED` state).
+
+
+== Creation of a task from a template
+
+Creation of a templated task is facilitated by two methods among midPoint functions:
+
+[source]
+----
+midpoint.submitTaskFromTemplate(String templateTaskOid, ActivityCustomization customization)
+----
+
+The former method expects a list of prism items to be inserted into an extension of newly created task.
+The latter method is less general but easier to use: it expects a map of extension item name and its (real) value.
+
+So, in our case the usage would look like this:
+
+        var taskOid = modelInteractionService.submitTaskFromTemplate(
+                TASK_TEMPLATE_SCRIPTING_NO_PROFILE.oid,
+                ActivityCustomization.forOids(List.of(USER_JOE.oid)),
+                task, result);
+
+[source]
+----
+midpoint.submitTaskFromTemplate('79dacdf7-2bc9-4eef-9c63-08d53d2392c3', ActivityCustomization.forOids(List.of('3490c9ae-8839-40e5-8ba5-6ceb235d9af2')));
+----
+
+== Task Cleanup
+
+This method is likely to produce a lot of tasks that are relatively short-lived.
+There is a cleanup task in midPoint that deletes old closed tasks.
+However, the default setting may cause tasks to stay around for too long.
+
+Therefore, there is now a `cleanupAfterCompletion` task property that can be used for finer control over the cleanup.
+This property can be set explicitly to force task cleanup after a specific interval.
+
+
+== See Also
+
+* xref:/midpoint/reference/misc/bulk/variables/[Variables in actions]
+
+* xref:/midpoint/reference/tasks/task-manager/[Task Manager]

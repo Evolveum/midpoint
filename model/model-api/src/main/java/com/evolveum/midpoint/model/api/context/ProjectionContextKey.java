@@ -196,16 +196,16 @@ public abstract class ProjectionContextKey
         if (ShadowUtil.isClassified(shadow)) {
             return fromShadow(shadow, ResourceObjectTypeIdentification.createIfKnown(shadow));
         } else {
-            throw new IllegalStateException("Shadow " + shadow + " is not classified. Its kind is " + shadow.getKind() + " and"
-                    + " intent is " + shadow.getIntent());
+            throw new IllegalStateException(
+                    "Shadow %s is not classified. Its kind is %s and intent is %s".formatted(
+                            shadow, shadow.getKind(), shadow.getIntent()));
         }
     }
 
     public static ProjectionContextKey fromShadow(
             @NotNull ShadowType shadow, @Nullable ResourceObjectTypeIdentification typeIdentification) {
         return ProjectionContextKey.forKnownResource(
-                MiscUtil.argNonNull(
-                        ShadowUtil.getResourceOid(shadow), () -> "No resource OID in " + shadow),
+                ShadowUtil.getResourceOidRequired(shadow),
                 typeIdentification,
                 shadow.getTag(),
                 0,
@@ -436,7 +436,7 @@ public abstract class ProjectionContextKey
         }
 
         public @NotNull ResourceObjectTypeIdentification getTypeIdentification() {
-            return typeIdentification;
+            return Objects.requireNonNull(typeIdentification);
         }
     }
 

@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,26 +29,19 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+/**
+ * The `RoleAnalysisUtils` class provides utility methods for various operations related to role analysis.
+ */
 public class RoleAnalysisUtils {
 
     public static final Trace LOGGER = TraceManager.getTrace(RoleAnalysisUtils.class);
 
-    public static List<String> extractOid(List<PrismObject<UserType>> roleMembers) {
-        List<String> membersOids = new ArrayList<>();
-        for (PrismObject<UserType> roleMember : roleMembers) {
-            membersOids.add(roleMember.getOid());
-        }
-
-        return membersOids;
-
-    }
-
     public static AbstractAnalysisSessionOptionType getSessionOptionType(RoleAnalysisSessionType roleAnalysisSession) {
-        if (roleAnalysisSession == null || roleAnalysisSession.getProcessMode() == null) {
+        if (roleAnalysisSession == null || roleAnalysisSession.getAnalysisOption() == null) {
             return null;
         }
-
-        if (roleAnalysisSession.getProcessMode().equals(RoleAnalysisProcessModeType.ROLE)) {
+        RoleAnalysisOptionType analysisOption = roleAnalysisSession.getAnalysisOption();
+        if (analysisOption.getProcessMode().equals(RoleAnalysisProcessModeType.ROLE)) {
             return roleAnalysisSession.getRoleModeOptions();
         }
         return roleAnalysisSession.getUserModeOptions();
@@ -55,7 +49,6 @@ public class RoleAnalysisUtils {
 
     @NotNull
     public static DetectionOption loadDetectionOption(@NotNull RoleAnalysisDetectionOptionType detectionOptionType) {
-
         Double min = detectionOptionType.getFrequencyRange().getMin();
         Double max = detectionOptionType.getFrequencyRange().getMax();
         return new DetectionOption(
@@ -66,22 +59,42 @@ public class RoleAnalysisUtils {
         );
     }
 
-    public static List<String> getRolesOidAssignment(AssignmentHolderType object) {
-        List<String> oidList;
+    public static @NotNull List<String> getRolesOidAssignment(@NotNull AssignmentHolderType object) {
         List<AssignmentType> assignments = object.getAssignment();
 
-        oidList = assignments.stream()
+        return assignments.stream()
                 .map(AssignmentType::getTargetRef)
                 .filter(Objects::nonNull)
                 .filter(targetRef -> targetRef.getType().equals(RoleType.COMPLEX_TYPE))
                 .map(AbstractReferencable::getOid)
                 .sorted()
                 .collect(Collectors.toList());
-
-        return oidList;
     }
 
-    public static List<String> getRolesOidInducements(PrismObject<RoleType> object) {
+    public static @NotNull List<String> getRolesOidInducement(@NotNull RoleType object) {
+        List<AssignmentType> inducement = object.getInducement();
+
+        return inducement.stream()
+                .map(AssignmentType::getTargetRef)
+                .filter(Objects::nonNull)
+                .filter(targetRef -> targetRef.getType().equals(RoleType.COMPLEX_TYPE))
+                .map(AbstractReferencable::getOid)
+                .sorted()
+                .collect(Collectors.toList());
+    }
+
+    public static @NotNull List<String> getRoleMembershipRefAssignment(
+            @NotNull AssignmentHolderType object,
+            @NotNull QName complexType) {
+        List<ObjectReferenceType> refs = object.getRoleMembershipRef();
+        return refs.stream()
+                .filter(ref -> ref.getType().equals(complexType))
+                .map(AbstractReferencable::getOid)
+                .sorted()
+                .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    public static List<String> getRolesOidInducements(@NotNull PrismObject<RoleType> object) {
         return RoleManagementUtil.getInducedRolesOids(object.asObjectable()).stream()
                 .sorted() // do we need this?
                 .toList();
@@ -98,7 +111,7 @@ public class RoleAnalysisUtils {
         return datatypeFactory.newXMLGregorianCalendar(gregorianCalendar);
     }
 
-    public static String resolveDateAndTime(XMLGregorianCalendar xmlGregorianCalendar) {
+    public static @NotNull String resolveDateAndTime(@NotNull XMLGregorianCalendar xmlGregorianCalendar) {
 
         int year = xmlGregorianCalendar.getYear();
         int month = xmlGregorianCalendar.getMonth();
@@ -118,7 +131,33 @@ public class RoleAnalysisUtils {
         return dateString + ", " + timeString;
     }
 
-    public static List<RoleAnalysisDetectionPatternType> loadIntersections(List<DetectedPattern> possibleBusinessRole) {
+    public static @NotNull String resolveDateAndTime(@NotNull RoleType role) {
+
+        if (role.getMetadata() == null || role.getMetadata().getCreateTimestamp() == null) {
+            return "";
+        }
+
+        XMLGregorianCalendar createTimestamp = role.getMetadata().getCreateTimestamp();
+        int year = createTimestamp.getYear();
+        int month = createTimestamp.getMonth();
+        int day = createTimestamp.getDay();
+        int hours = createTimestamp.getHour();
+        int minutes = createTimestamp.getMinute();
+
+        String dateString = String.format("%04d:%02d:%02d", year, month, day);
+
+        String amPm = (hours < 12) ? "AM" : "PM";
+        hours = hours % 12;
+        if (hours == 0) {
+            hours = 12;
+        }
+        String timeString = String.format("%02d:%02d %s", hours, minutes, amPm);
+
+        return dateString + ", " + timeString;
+    }
+
+    public static @NotNull List<RoleAnalysisDetectionPatternType> loadIntersections(
+            @NotNull List<DetectedPattern> possibleBusinessRole) {
         List<RoleAnalysisDetectionPatternType> roleAnalysisClusterDetectionTypeList = new ArrayList<>();
 
         loadSimpleIntersection(possibleBusinessRole,
@@ -127,7 +166,7 @@ public class RoleAnalysisUtils {
         return roleAnalysisClusterDetectionTypeList;
     }
 
-    private static void loadSimpleIntersection(List<DetectedPattern> possibleBusinessRole,
+    private static void loadSimpleIntersection(@NotNull List<DetectedPattern> possibleBusinessRole,
             List<RoleAnalysisDetectionPatternType> roleAnalysisClusterDetectionTypeList) {
         RoleAnalysisDetectionPatternType roleAnalysisClusterDetectionType;
         for (DetectedPattern detectedPattern : possibleBusinessRole) {
@@ -136,29 +175,30 @@ public class RoleAnalysisUtils {
             Set<String> users = detectedPattern.getUsers();
             Set<String> roles = detectedPattern.getRoles();
 
-            ObjectReferenceType objectReferenceType;
-            for (String usersRef : users) {
-                objectReferenceType = new ObjectReferenceType();
-                objectReferenceType.setOid(usersRef);
-                objectReferenceType.setType(UserType.COMPLEX_TYPE);
-                roleAnalysisClusterDetectionType.getUserOccupancy().add(objectReferenceType);
+            mapPatternRefs(users, roleAnalysisClusterDetectionType, roles);
 
-            }
-
-            for (String rolesRef : roles) {
-                objectReferenceType = new ObjectReferenceType();
-                objectReferenceType.setOid(rolesRef);
-                objectReferenceType.setType(RoleType.COMPLEX_TYPE);
-                roleAnalysisClusterDetectionType.getRolesOccupancy().add(objectReferenceType);
-            }
-
-            roleAnalysisClusterDetectionType.setClusterMetric(detectedPattern.getClusterMetric());
+            roleAnalysisClusterDetectionType.setClusterMetric(detectedPattern.getMetric());
             roleAnalysisClusterDetectionTypeList.add(roleAnalysisClusterDetectionType);
         }
     }
 
-    public static AnalysisClusterStatisticType createClusterStatisticType(ClusterStatistic clusterStatistic,
-            RoleAnalysisProcessModeType processMode) {
+    public static void mapPatternRefs(@NotNull Set<String> users, RoleAnalysisDetectionPatternType roleAnalysisClusterDetectionType, Set<String> roles) {
+        for (String usersRef : users) {
+            roleAnalysisClusterDetectionType.getUserOccupancy().add(
+                    new ObjectReferenceType().oid(usersRef).type(UserType.COMPLEX_TYPE));
+
+        }
+
+        for (String rolesRef : roles) {
+            roleAnalysisClusterDetectionType.getRolesOccupancy().add(
+                    new ObjectReferenceType().oid(rolesRef).type(RoleType.COMPLEX_TYPE)
+            );
+        }
+    }
+
+    public static @NotNull AnalysisClusterStatisticType createClusterStatisticType(
+            @NotNull ClusterStatistic clusterStatistic,
+            @NotNull RoleAnalysisProcessModeType processMode) {
         AnalysisClusterStatisticType abstractAnalysisClusterStatistic = new AnalysisClusterStatisticType();
 
         if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {

@@ -17,16 +17,7 @@
     <name>ranges-direct</name>
     <connectorRef type="ConnectorType">
         <filter>
-            <q:and>
-                <q:equal>
-                    <q:path>connectorType</q:path>
-                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
-                </q:equal>
-                <q:equal>
-                    <q:path>connectorVersion</q:path>
-                    <q:value>2.0</q:value>
-                </q:equal>
-            </q:and>
+            <q:text>connectorType = "com.evolveum.icf.dummy.connector.DummyConnector" and connectorVersion = "2.0"</q:text>
         </filter>
     </connectorRef>
     <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
@@ -95,10 +86,7 @@
                     <expression>
                         <associationTargetSearch>
                             <filter>
-                                <q:equal>
-                                    <q:path>attributes/name</q:path>
-                                    <q:value>mp_users</q:value>
-                                </q:equal>
+                                 <q:text>attributes/name = "mp_users"</q:text>
                             </filter>
                             <searchStrategy>onResourceIfNeeded</searchStrategy>
                         </associationTargetSearch>
@@ -108,7 +96,7 @@
                             <condition>
                                 <script>
                                     <code>
-                                        name = input?.shadowRef?.targetName
+                                        name = midpoint.getObjectName(input)
                                         log.info('checking mapping range for {}: {}', name, input)
                                         println("checking mapping range for $name: $input")
                                         basic.stringify(name)?.startsWith('mp_')

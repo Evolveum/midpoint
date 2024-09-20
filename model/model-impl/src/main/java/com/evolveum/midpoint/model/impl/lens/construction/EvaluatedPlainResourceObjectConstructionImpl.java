@@ -13,20 +13,16 @@ import java.util.Objects;
 
 import com.evolveum.midpoint.schema.config.MappingConfigItem;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
-import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 
 /**
  * Evaluated resource object construction that is defined in the schemaHandling part of resource definition.
@@ -60,12 +56,12 @@ public class EvaluatedPlainResourceObjectConstructionImpl<AH extends AssignmentH
     }
 
     @Override
-    protected List<AttributeEvaluation<AH>> getAttributesToEvaluate(ConstructionEvaluation<AH, ?> constructionEvaluation) {
-        List<AttributeEvaluation<AH>> attributesToEvaluate = new ArrayList<>();
+    List<AttributeMapper<AH, ?, ?>> getAttributeMappers(ConstructionEvaluation<AH, ?> constructionEvaluation) {
+        var mappers = new ArrayList<AttributeMapper<AH, ?, ?>>();
 
         ResourceObjectDefinition objectDefinition = construction.getResourceObjectDefinitionRequired();
 
-        for (ResourceAttributeDefinition<?> attributeDef : objectDefinition.getAttributeDefinitions()) {
+        for (var attributeDef : objectDefinition.getAttributeDefinitions()) {
             MappingType outboundMappingBean = attributeDef.getOutboundMappingBean();
             if (outboundMappingBean == null) {
                 continue;
@@ -83,41 +79,36 @@ public class EvaluatedPlainResourceObjectConstructionImpl<AH extends AssignmentH
             // [EP:M:OM] DONE: the construction sits in the resource, so the origin is correct
             var origin = ConfigurationItemOrigin.inResourceOrAncestor(construction.getResource());
 
-            attributesToEvaluate.add(
-                    new AttributeEvaluation<>(
+            mappers.add(
+                    new AttributeMapper<>(
                             constructionEvaluation, attributeDef,
                             MappingConfigItem.of(outboundMappingBean, origin), // [EP:M:OM] DONE
                             OriginType.OUTBOUND, MappingKindType.OUTBOUND));
         }
 
-        return attributesToEvaluate;
+        return mappers;
     }
 
     @Override
-    protected List<AssociationEvaluation<AH>> getAssociationsToEvaluate(ConstructionEvaluation<AH, ?> constructionEvaluation) {
-        List<AssociationEvaluation<AH>> associationsToEvaluate = new ArrayList<>();
+    List<AssociationMapper<AH>> getAssociationMappers(ConstructionEvaluation<AH, ?> constructionEvaluation) {
+        List<AssociationMapper<AH>> mappers = new ArrayList<>();
 
         ResourceObjectDefinition objectDefinition = construction.getResourceObjectDefinitionRequired();
-        for (ResourceAssociationDefinition associationDefinition : objectDefinition.getAssociationDefinitions()) {
-            MappingType outboundMappingBean = associationDefinition.getOutboundMappingType();
-            if (outboundMappingBean == null) {
-                continue;
+        for (var associationDefinition : objectDefinition.getAssociationDefinitions()) {
+            for (var explicitOutboundMappingBean : associationDefinition.getExplicitOutboundMappingBeans()) {
+                if (associationDefinition.isVisible(constructionEvaluation.task)) {
+                    var origin = ConfigurationItemOrigin.inResourceOrAncestor(construction.getResource());
+                    mappers.add(
+                            new AssociationMapper<>(
+                                    constructionEvaluation, associationDefinition,
+                                    MappingConfigItem.of(explicitOutboundMappingBean, origin),
+                                    OriginType.OUTBOUND, MappingKindType.OUTBOUND));
+                } else {
+                    LOGGER.trace("Skipping processing outbound mapping for association {} because it is not visible in current "
+                            + "execution mode", associationDefinition);
+                }
             }
-            if (!associationDefinition.isVisible(constructionEvaluation.task.getExecutionMode())) {
-                LOGGER.trace("Skipping processing outbound mapping for association {} because it is not visible in current "
-                        + "execution mode", associationDefinition);
-                continue;
-            }
-
-            // [EM:M:OM] DONE: the construction sits in the resource, so the origin is correct
-            var origin = ConfigurationItemOrigin.inResourceOrAncestor(construction.getResource());
-
-            associationsToEvaluate.add(
-                    new AssociationEvaluation<>(
-                            constructionEvaluation, associationDefinition,
-                            MappingConfigItem.of(outboundMappingBean, origin), // [EM:M:OM] DONE
-                            OriginType.OUTBOUND, MappingKindType.OUTBOUND));
         }
-        return associationsToEvaluate;
+        return mappers;
     }
 }

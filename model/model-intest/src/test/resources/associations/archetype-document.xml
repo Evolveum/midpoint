@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<archetype
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="ce92f877-9f22-44cf-9ef1-f55675760eb0">
+    <name>document</name>
+    <inducement>
+        <documentation>
+            This induces the account on dms resource.
+            The associations will be provisioned thanks to the association type configuration in the resource definition.
+        </documentation>
+        <construction>
+            <resourceRef oid="d77da617-ee78-46f7-8a15-cde88193308d"/>
+            <kind>account</kind>
+            <intent>default</intent>
+        </construction>
+        <order>2</order>
+    </inducement>
+</archetype>

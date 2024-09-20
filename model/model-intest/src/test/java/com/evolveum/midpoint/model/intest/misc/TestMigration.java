@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.intest.misc;
 
 import java.io.File;
+import java.util.List;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -53,15 +54,12 @@ public class TestMigration extends AbstractMiscTest {
      */
     @Test
     public void test050SanityLost1() throws Exception {
-        // WHEN
         when();
-        PrismObject<ShadowType> shadowLost1Repo = getShadowRepo(SHADOW_ACCOUNT_DUMMY_LOST1_OID);
+        var shadowLost1Repo = getShadowRepo(SHADOW_ACCOUNT_DUMMY_LOST1_OID);
 
-        // THEN
         then();
-
-        assertShadow(shadowLost1Repo, "Repo shadow")
-            .assertPrimaryIdentifierValue(null);
+        assertShadow(shadowLost1Repo, List.of(), "Repo shadow")
+            .assertIndexedPrimaryIdentifierValue(null);
     }
 
     /**
@@ -72,17 +70,14 @@ public class TestMigration extends AbstractMiscTest {
     public void test100RefreshTaskDefault() throws Exception {
         addObject(TASK_SHADOW_REFRESH_FILE);
 
-        // WHEN
         when();
         waitForTaskStart(TASK_SHADOW_REFRESH_OID);
         waitForTaskFinish(TASK_SHADOW_REFRESH_OID);
 
-        // THEN
         then();
-
-        PrismObject<ShadowType> shadowLost1Repo = getShadowRepo(SHADOW_ACCOUNT_DUMMY_LOST1_OID);
-        assertShadow(shadowLost1Repo, "Repo shadow")
-            .assertPrimaryIdentifierValue(null);
+        var shadowLost1Repo = getShadowRepo(SHADOW_ACCOUNT_DUMMY_LOST1_OID);
+        assertShadow(shadowLost1Repo, List.of(), "Repo shadow")
+                .assertIndexedPrimaryIdentifierValue(null);
     }
 
     /**
@@ -94,17 +89,13 @@ public class TestMigration extends AbstractMiscTest {
     public void test110RefreshTaskExplicitDummy() throws Exception {
         addObject(TASK_SHADOW_REFRESH_EXPLICIT_DUMMY_FILE);
 
-        // WHEN
         when();
         waitForTaskStart(TASK_SHADOW_REFRESH_EXPLICIT_DUMMY_OID);
         waitForTaskFinish(TASK_SHADOW_REFRESH_EXPLICIT_DUMMY_OID);
 
-        // THEN
         then();
-
-        PrismObject<ShadowType> shadowLost1Repo = getShadowRepo(SHADOW_ACCOUNT_DUMMY_LOST1_OID);
-        assertShadow(shadowLost1Repo, "Repo shadow")
-            .assertPrimaryIdentifierValue(ACCOUNT_DUMMY_LOST1_NAME);
+        var shadowLost1Repo = getShadowRepo(SHADOW_ACCOUNT_DUMMY_LOST1_OID);
+        assertShadow(shadowLost1Repo, List.of(), "Repo shadow")
+                .assertIndexedPrimaryIdentifierValue(ACCOUNT_DUMMY_LOST1_NAME);
     }
-
 }

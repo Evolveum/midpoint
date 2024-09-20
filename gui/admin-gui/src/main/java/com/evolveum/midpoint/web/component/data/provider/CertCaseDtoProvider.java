@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.web.component.data.provider;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.data.provider.BaseSortableDataProvider;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.*;
@@ -15,12 +16,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -128,7 +124,7 @@ public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrWork
 
     private List<AccessCertificationCaseType> searchCases(String campaignOid, ObjectPaging paging,
             Collection<SelectorOptions<GetOperationOptions>> options, PrismContext prismContext,
-            Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, CommunicationException {
+            Task task, OperationResult result) throws CommonException {
         InOidFilter inOidFilter = prismContext.queryFactory().createOwnerHasOidIn(campaignOid);
         ObjectQuery query = createFinalQuery(inOidFilter, prismContext);
         query.setPaging(paging);
@@ -137,7 +133,7 @@ public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrWork
 
     private int countCases(String campaignOid, Collection<SelectorOptions<GetOperationOptions>> options,
             PrismContext prismContext, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, CommunicationException {
+            throws CommonException {
         InOidFilter inOidFilter = prismContext.queryFactory().createOwnerHasOidIn(campaignOid);
         ObjectQuery query = createFinalQuery(inOidFilter, prismContext);
         return getModelService().countContainers(AccessCertificationCaseType.class, query, options, task, result);

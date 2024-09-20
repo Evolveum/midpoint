@@ -50,7 +50,7 @@ import java.util.List;
  */
 @PanelType(name = "statistics")
 @PanelInstance(identifier = "statistics", applicableForType = TaskType.class, applicableForOperation = OperationTypeType.MODIFY,
-        display = @PanelDisplay(label = "pageTask.operationStats.title", icon = GuiStyleConstants.CLASS_TASK_STATISTICS_ICON, order = 50))
+        display = @PanelDisplay(label = "pageTask.operationStats.title", icon = GuiStyleConstants.CLASS_TASK_STATISTICS_ICON, order = 55))
 public class ActivitiesStatisticsPanel extends AbstractObjectMainPanel<TaskType, TaskDetailsModel> {
 
     private static final String ID_ITEM_PROCESSING = "itemProcessing";
@@ -67,7 +67,9 @@ public class ActivitiesStatisticsPanel extends AbstractObjectMainPanel<TaskType,
         super(id, model, config);
 
         statisticsModel = LoadableModel.create(
-                () -> ActivitiesStatisticsDto.fromTaskTree(getObjectDetailsModels().getObjectType()),
+                // changed to wrapper "old object" since this panel uses data that aren't modified by the user
+                // also "new object" contains a lot of new empty/null containers/properties
+                () -> ActivitiesStatisticsDto.fromTaskTree(getObjectDetailsModels().getObjectWrapper().getObjectOld().asObjectable()),
                 true);
     }
 

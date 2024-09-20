@@ -7,6 +7,11 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.component;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.impl.component.button.ActiveButtonWithDropDownPanel;
+
+import com.evolveum.midpoint.schema.TaskExecutionMode;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
@@ -20,11 +25,14 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+
+import org.apache.wicket.model.Model;
+
+import java.util.List;
 
 public class FocusOperationalButtonsPanel<F extends FocusType> extends AssignmentHolderOperationalButtonsPanel<F> {
 
@@ -70,18 +78,31 @@ public class FocusOperationalButtonsPanel<F extends FocusType> extends Assignmen
     }
 
     private void createPreviewButton(RepeatingView repeatingView) {
-        CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_ICON_PREVIEW, LayeredIconCssStyle.IN_ROW_STYLE);
-        AjaxCompositedIconSubmitButton preview = new AjaxCompositedIconSubmitButton(repeatingView.newChildId(), iconBuilder.build(),
-                getPageBase().createStringResource("pageAdminFocus.button.previewChanges")) {
-
+        ActiveButtonWithDropDownPanel<TaskExecutionMode> preview = new ActiveButtonWithDropDownPanel<>(
+                repeatingView.newChildId(),
+                Model.ofList(List.of(TaskExecutionMode.SIMULATED_DEVELOPMENT)),
+                getPageBase().createStringResource("pageAdminFocus.button.previewChanges")
+        ) {
             @Override
-            protected void onSubmit(AjaxRequestTarget target) {
+            protected void onClickMenuItem(TaskExecutionMode taskMode, AjaxRequestTarget target) {
+                executeOptionsModel.getObject().setTaskMode(taskMode);
                 previewPerformed(target);
             }
 
             @Override
-            protected void onError(AjaxRequestTarget target) {
-                target.add(getPageBase().getFeedbackPanel());
+            protected String getLinkLabel(TaskExecutionMode object) {
+                return LocalizationUtil.translate("FocusOperationalButtonsPanel.preview." + object.getName());
+            }
+
+            @Override
+            protected String getIcon() {
+                return GuiStyleConstants.CLASS_ICON_PREVIEW;
+            }
+
+            @Override
+            protected void onClickOnActionButton(AjaxRequestTarget target) {
+                executeOptionsModel.getObject().setTaskMode(null);
+                previewPerformed(target);
             }
         };
         preview.add(new VisibleEnableBehaviour() {
@@ -90,16 +111,11 @@ public class FocusOperationalButtonsPanel<F extends FocusType> extends Assignmen
             @Override
             public boolean isVisible() {
                 return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_PREVIEW_CHANGES_URL)
-                        && !getModelObject().isReadOnly();
-            }
-
-            @Override
-            public boolean isEnabled() {
-                return isSavePreviewButtonEnabled();
+                        && !getModelObject().isReadOnly()
+                        && isObjectStatusAndAuthorizationVerifiedForModification(); //todo cannot use here save button visibility because of forcedPreview configuration
+                                                                                    //which acts in opposite ways for save and preview buttons
             }
         });
-        preview.titleAsLabel(true);
-        preview.add(AttributeAppender.append("class", "btn btn-info btn-sm"));
         repeatingView.add(preview);
     }
 

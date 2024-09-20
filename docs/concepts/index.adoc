@@ -1,0 +1,20 @@
+= Basic MidPoint Concepts
+:page-nav-title: Concepts
+:page-wiki-name: Identity Administration
+:page-wiki-id: 9437193
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2013-05-13T14:40:27.023+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2013-05-13T14:40:28.023+02:00
+:page-display-order: 10
+:page-upkeep-status: green
+:page-liquid:
+
+Following pages describe basic midPoint concepts.
+The concepts are re-used at many numerous places in midPoint.
+
+++++
+{% children %}
+++++
+
+include::../_reference-disclaimer.adoc[]

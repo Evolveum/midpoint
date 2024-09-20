@@ -8,6 +8,13 @@ package com.evolveum.midpoint.repo.sqale.mapping;
 
 import java.util.*;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.shadow.QShadow;
+import com.evolveum.midpoint.repo.sqlbase.SqlBaseOperationTracker;
+
+import com.evolveum.midpoint.util.QNameUtil;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
 import com.querydsl.core.Tuple;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,11 +32,18 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 
 public abstract class ReferenceNameResolver {
 
-    protected abstract <S> S resolve(S object, JdbcSession session);
+    public abstract <S> S resolve(S object, JdbcSession session);
 
     public static ReferenceNameResolver from(Collection<SelectorOptions<GetOperationOptions>> options) {
         @NotNull
         List<? extends ItemPath> paths = getPathsToResolve(options);
+        if (paths.isEmpty()) {
+            return new Noop();
+        }
+        return new Impl(paths);
+    }
+
+    public static ReferenceNameResolver from(List<ItemPath> paths) {
         if (paths.isEmpty()) {
             return new Noop();
         }
@@ -54,7 +68,7 @@ public abstract class ReferenceNameResolver {
     private static final class Noop extends ReferenceNameResolver {
 
         @Override
-        protected <S> S resolve(S object, JdbcSession session) {
+        public  <S> S resolve(S object, JdbcSession session) {
             return object;
         }
     }
@@ -64,6 +78,8 @@ public abstract class ReferenceNameResolver {
         private final List<? extends ItemPath> paths;
         private final Map<UUID, PolyString> uuidToName = new HashMap<>();
         private final Set<UUID> oidsToResolve = new HashSet<>();
+        private final Set<UUID> shadowOidsToResolve = new HashSet<>();
+
 
         public Impl(List<? extends ItemPath> paths) {
             super();
@@ -71,34 +87,51 @@ public abstract class ReferenceNameResolver {
         }
 
         @Override
-        protected <S> S resolve(S object, JdbcSession session) {
-            if (!(object instanceof Containerable)) {
+        public  <S> S resolve(S object, JdbcSession session) {
+            PrismContainerValue<?> container = null;
+            if (object instanceof Containerable cont) {
+                container = cont.asPrismContainerValue();
+            } else if (object instanceof PrismContainerValue<?> pcv) {
+                container = pcv;
+            }
+            if (container == null) {
                 return object;
             }
-            PrismContainerValue<?> container = ((Containerable) object).asPrismContainerValue();
-            Visitor initialWalk = visitable -> {
-                if (visitable instanceof PrismReferenceValue) {
-                    initialVisit((PrismReferenceValue) visitable);
-                }
-            };
-            container.accept(initialWalk);
-            resolveNames(session);
-            Visitor updater = visitable -> {
-                if (visitable instanceof PrismReferenceValue) {
-                    updateReference((PrismReferenceValue) visitable);
-                }
-            };
-            container.accept(updater);
-            return object;
+
+            var result = SqlBaseOperationTracker.resolveNames();
+            try {
+                Visitor initialWalk = visitable -> {
+                    if (visitable instanceof PrismReferenceValue) {
+                        initialVisit((PrismReferenceValue) visitable);
+                    }
+                };
+                container.accept(initialWalk);
+                resolveNames(session);
+                Visitor updater = visitable -> {
+                    if (visitable instanceof PrismReferenceValue) {
+                        updateReference((PrismReferenceValue) visitable);
+                    }
+                };
+                container.accept(updater);
+                return object;
+            } finally {
+                result.close();
+            }
         }
 
         private void resolveNames(JdbcSession session) {
-            QObject<MObject> object = new QObject<>(MObject.class, "obj");
+
             // TODO: Add batch processing
+            var object = new QObject<>(MObject.class, "obj");
+            var shadow = new QShadow("s");
+            resolveNames(session, object, oidsToResolve);
+            resolveNames(session, shadow, shadowOidsToResolve);
+
+        }
+        private void resolveNames(JdbcSession session, QObject<?> object, Set<UUID> oidsToResolve) {
             if (oidsToResolve.isEmpty()) {
                 return;
             }
-
             List<Tuple> namesResult = session.newQuery()
                     .from(object)
                     .select(object.oid, object.nameOrig, object.nameNorm)
@@ -132,6 +165,8 @@ public abstract class ReferenceNameResolver {
             PolyString maybe = uuidToName.get(oid);
             if (maybe != null) {
                 value.setTargetName(maybe);
+            } else if (QNameUtil.match(ShadowType.COMPLEX_TYPE,value.getTargetType())) {
+                shadowOidsToResolve.add(oid);
             } else {
                 oidsToResolve.add(oid);
             }

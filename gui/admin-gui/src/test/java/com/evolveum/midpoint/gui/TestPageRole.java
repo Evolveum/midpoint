@@ -31,6 +31,8 @@ import com.evolveum.midpoint.web.AbstractInitializedGuiIntegrationTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * @author Hiroyuki Wada
  */
@@ -38,6 +40,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 @ActiveProfiles("test")
 @SpringBootTest(classes = TestMidPointSpringApplication.class)
 public class TestPageRole extends AbstractInitializedGuiIntegrationTest {
+
+    public static final int ARCHEYPE_CHOICE_ALL_ROLES = 2;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -56,6 +60,7 @@ public class TestPageRole extends AbstractInitializedGuiIntegrationTest {
     @Test
     public void test002testAddNewRole() throws Exception {
         renderPage(PageRole.class);
+        choiceArchetype(ARCHEYPE_CHOICE_ALL_ROLES);
 
         FormTester formTester = tester.newFormTester(MAIN_FORM, false);
         formTester.setValue(PATH_FORM_NAME, "newRole");
@@ -79,10 +84,11 @@ public class TestPageRole extends AbstractInitializedGuiIntegrationTest {
         Task task = createTask("assign");
         // Assign Role0001 with orgRef P0001
         assignParametricRole(USER_JACK_OID, role1Oid, ORG_SAVE_ELAINE_OID, null, task, task.getResult());
+        assignRole(USER_JACK_OID, role1Oid);
         assignRole(USER_ADMINISTRATOR_OID, role1Oid);
 
         String panel = "detailsView:mainForm:mainPanel";
-        String tableBox = panel + ":form:memberContainer:memberTable:items:itemsTable:box";
+        String tableBox = panel + ":form:memberContainer:memberTable:itemsTable";
         String memberTable = tableBox + ":tableContainer:table";
 
         // WHEN
@@ -93,11 +99,11 @@ public class TestPageRole extends AbstractInitializedGuiIntegrationTest {
 
         // THEN
         tester.assertComponent(panel, AbstractRoleMemberPanel.class);
-        tester.debugComponentTrees(":rows:.*:cells:3:cell:link:label");
+        tester.debugComponentTrees(":rows:.*:cells:3:cell:link:title");
         // It should show all members who are assigned Role0001
-        tester.assertLabel(memberTable + ":body:rows:1:cells:3:cell:link:label", USER_ADMINISTRATOR_USERNAME);
-        tester.assertLabel(memberTable + ":body:rows:2:cells:3:cell:link:label", USER_JACK_USERNAME);
-        tester.assertNotExists(memberTable + ":body:rows:3:cells:3:cell:link:label");
+        tester.assertLabel(memberTable + ":body:rows:1:cells:3:cell:link:title", USER_ADMINISTRATOR_USERNAME);
+        tester.assertLabel(memberTable + ":body:rows:2:cells:3:cell:link:title", USER_JACK_USERNAME);
+        tester.assertNotExists(memberTable + ":body:rows:3:cells:3:cell:link:title");
     }
 
 }

@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.gui.api.util;
 
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssociationSynchronizationExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeInboundMappingsDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 
 /**
@@ -16,6 +18,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDef
 public enum MappingDirection {
     INBOUND(ResourceAttributeDefinitionType.F_INBOUND),
     OUTBOUND(ResourceAttributeDefinitionType.F_OUTBOUND),
+    ATTRIBUTE(AttributeInboundMappingsDefinitionType.F_MAPPING),
+    OBJECTS(AttributeInboundMappingsDefinitionType.F_MAPPING),
     OVERRIDE(null);
 
     private ItemName containerName;

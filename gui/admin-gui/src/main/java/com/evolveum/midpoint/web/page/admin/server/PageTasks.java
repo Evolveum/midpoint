@@ -1,11 +1,12 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2024 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.server;
 
+import java.io.Serial;
 import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -53,15 +54,16 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
                         description = PageAdminTasks.AUTH_TASKS_ALL_DESCRIPTION),
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_TASKS_URL,
                         label = "PageTasks.auth.tasks.label",
-                        description = "PageTasks.auth.tasks.description") })
+                        description = "PageTasks.auth.tasks.description"),
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_TASKS_VIEW_URL,
+                        label = "PageTasks.auth.tasks.view.label",
+                        description = "PageTasks.auth.tasks.view.description") })
 @CollectionInstance(identifier = "allTasks", applicableForType = TaskType.class, applicableForOperation = OperationTypeType.MODIFY,
         display = @PanelDisplay(label = "PageAdmin.menu.top.tasks.list", singularLabel = "ObjectType.task", icon = GuiStyleConstants.CLASS_OBJECT_TASK_ICON))
 public class PageTasks extends PageAdmin {
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_TABLE = "table";
-
-    public static final String SELECTED_CATEGORY = "category";
 
     public static final long WAIT_FOR_TASK_STOP = 2000L;
 
@@ -112,7 +114,7 @@ public class PageTasks extends PageAdmin {
 
     private void addCustomColumns(List<IColumn<SelectableBean<TaskType>, String>> columns) {
         columns.add(2, new ObjectReferenceColumn<>(createStringResource("pageTasks.task.objectRef"), SelectableBeanImpl.F_VALUE + "." + TaskType.F_OBJECT_REF.getLocalPart()) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public IModel<List<ObjectReferenceType>> extractDataModel(IModel<SelectableBean<TaskType>> rowModel) {
@@ -126,28 +128,27 @@ public class PageTasks extends PageAdmin {
             }
         });
         columns.add(4, new AbstractExportableColumn<>(createStringResource("pageTasks.task.currentRunTime"), TaskType.F_COMPLETION_TIMESTAMP.getLocalPart()) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void populateItem(final Item<ICellPopulator<SelectableBean<TaskType>>> item, final String componentId,
                     final IModel<SelectableBean<TaskType>> rowModel) {
 
-                DateLabelComponent dateLabel = new DateLabelComponent(componentId, new IModel<>() {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public Date getObject() {
-                        Date date = getCurrentRuntime(rowModel);
-                        SelectableBean<TaskType> task = rowModel.getObject();
-                        if (task.getValue().getExecutionState() == TaskExecutionStateType.CLOSED && date != null) {
-                            ((DateLabelComponent) item.get(componentId)).setBefore(createStringResource("pageTasks.task.closedAt").getString() + " ");
-                        } else if (date != null) {
-                            ((DateLabelComponent) item.get(componentId))
-                                    .setBefore(WebComponentUtil.formatDurationWordsForLocal(date.getTime(), true, true, PageTasks.this));
-                        }
-                        return date;
+                DateLabelComponent dateLabel = new DateLabelComponent(
+                        componentId,
+                        () -> getCurrentRuntime(rowModel),
+                        WebComponentUtil.getShortDateTimeFormat(PageTasks.this));
+                dateLabel.customizeDateString((dateAsString, date) -> {
+                    SelectableBean<TaskType> task = rowModel.getObject();
+                    String prefix;
+                    if (task.getValue().getExecutionState() == TaskExecutionStateType.CLOSED) {
+                        prefix = getString("pageTasks.task.closedAt") + " ";
+                    } else {
+                        prefix = WebComponentUtil.formatDurationWordsForLocal(
+                                date.getTime(), true, true);
                     }
-                }, WebComponentUtil.getShortDateTimeFormat(PageTasks.this));
+                    return prefix + dateAsString;
+                });
                 item.add(dateLabel);
             }
 
@@ -162,14 +163,14 @@ public class PageTasks extends PageAdmin {
                                 createStringResource("pageTasks.task.closedAt").getString() +
                                         WebComponentUtil.getShortDateTimeFormattedValue(date, PageTasks.this);
                     } else {
-                        displayValue = WebComponentUtil.formatDurationWordsForLocal(date.getTime(), true, true, PageTasks.this);
+                        displayValue = WebComponentUtil.formatDurationWordsForLocal(date.getTime(), true, true);
                     }
                 }
                 return Model.of(displayValue);
             }
         });
         columns.add(5, new AbstractExportableColumn<>(createStringResource("pageTasks.task.scheduledToRunAgain")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> item, String componentId,

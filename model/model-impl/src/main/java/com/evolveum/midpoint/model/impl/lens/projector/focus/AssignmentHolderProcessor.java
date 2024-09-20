@@ -91,7 +91,7 @@ public class AssignmentHolderProcessor implements ProjectorProcessor {
         while (true) {
 
             ArchetypePolicyType archetypePolicy = focusContext.getArchetypePolicy();
-            LensUtil.applyObjectPolicyConstraints(focusContext, archetypePolicy, prismContext);
+            LensUtil.applyObjectPolicyConstraints(focusContext, archetypePolicy);
 
             iterationHelper.onIterationStart(task, result);
 
@@ -233,7 +233,6 @@ public class AssignmentHolderProcessor implements ProjectorProcessor {
 
         iterationHelper.createIterationTokenDeltas();
 
-        context.recomputeFocus();
         itemLimitationsChecker.checkItemsLimitations(focusContext);
 
         medic.partialExecute(
@@ -246,7 +245,7 @@ public class AssignmentHolderProcessor implements ProjectorProcessor {
         context.checkConsistenceIfNeeded();
 
         medic.traceContext(LOGGER, activityDescription, "focus processing", false, context, false);
-        LensUtil.checkContextSanity(context, "focus processing", result);
+        LensUtil.checkContextSanity(context, "focus processing");
     }
 
     ExpressionFactory getExpressionFactory() {

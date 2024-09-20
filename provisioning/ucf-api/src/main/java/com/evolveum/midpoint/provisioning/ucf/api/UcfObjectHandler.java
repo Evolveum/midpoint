@@ -7,6 +7,12 @@
 package com.evolveum.midpoint.provisioning.ucf.api;
 
 import com.evolveum.midpoint.schema.ObjectHandler;
+import com.evolveum.midpoint.schema.result.OperationResult;
+
+import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Handles UCF objects, typically coming from iterative search.
@@ -14,6 +20,21 @@ import com.evolveum.midpoint.schema.ObjectHandler;
  * @author Radovan Semancik
  */
 @FunctionalInterface
-public interface UcfObjectHandler extends ObjectHandler<UcfObjectFound> {
+public interface UcfObjectHandler extends ObjectHandler<UcfResourceObject> {
 
+    /** Collects all objects into a list. Useful mainly for tests, but sometimes maybe for the production as well. */
+    class Collecting implements UcfObjectHandler {
+
+        @NotNull private final List<UcfResourceObject> collectedObjects = new ArrayList<>();
+
+        @Override
+        public boolean handle(UcfResourceObject object, OperationResult result) {
+            collectedObjects.add(object);
+            return true;
+        }
+
+        public @NotNull List<UcfResourceObject> getCollectedObjects() {
+            return collectedObjects;
+        }
+    }
 }

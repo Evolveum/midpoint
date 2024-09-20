@@ -116,7 +116,7 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
             ConfigurationException, SecurityViolationException {
 
         ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(
-                new ModelExpressionEnvironment.ExpressionEnvironmentBuilder<F, PrismValue, ItemDefinition<?>>()
+                new ModelExpressionEnvironment.ExpressionEnvironmentBuilder<PrismValue, ItemDefinition<?>>()
                         .lensContext(lensContext)
                         .currentResult(result)
                         .currentTask(task)

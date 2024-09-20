@@ -11,6 +11,8 @@ import java.sql.SQLException;
 import javax.sql.DataSource;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.xnode.RootXNode;
+
 import com.querydsl.sql.*;
 import com.querydsl.sql.dml.SQLDeleteClause;
 import com.querydsl.sql.dml.SQLInsertClause;
@@ -156,10 +158,36 @@ public class SqlRepoContext {
             PrismContext prismContext = schemaService.prismContext();
             // "Postel mode": be tolerant what you read. We need this to tolerate (custom) schema changes
             ParsingContext parsingContext = prismContext.createParsingContextForCompatibilityMode();
-            T value = createStringParser(serializedForm)
-                    .context(parsingContext)
-                    .fastAddOperations()
-                    .parseRealValue(schemaType);
+            RootXNode xnodeValue;
+            T value;
+            try (var tracker = SqlBaseOperationTracker.parseJson2XNode(schemaType.getSimpleName())) {
+                 xnodeValue = createStringParser(serializedForm).context(parsingContext).parseToXNode();
+
+            }
+            try (var tracker = SqlBaseOperationTracker.parseXnode2Prism(schemaType.getSimpleName())) {
+                value = prismContext.parserFor(xnodeValue).context(parsingContext).fastAddOperations().parseRealValue(schemaType);
+            }
+            return new RepositoryObjectParseResult<>(parsingContext, value);
+        } catch (RuntimeException e) {
+            throw new SchemaException("Unexpected exception while parsing serialized form: " + e, e);
+        }
+    }
+
+    public <T> RepositoryObjectParseResult<T> parsePrismObject(
+            String serializedForm, ItemDefinition definition, Class<T> schemaType) throws SchemaException {
+        try {
+            PrismContext prismContext = schemaService.prismContext();
+            // "Postel mode": be tolerant what you read. We need this to tolerate (custom) schema changes
+            ParsingContext parsingContext = prismContext.createParsingContextForCompatibilityMode();
+            RootXNode xnodeValue;
+            T value;
+            try (var tracker = SqlBaseOperationTracker.parseJson2XNode(schemaType.getSimpleName())) {
+                xnodeValue = createStringParser(serializedForm).context(parsingContext).definition(definition).parseToXNode();
+
+            }
+            try (var tracker = SqlBaseOperationTracker.parseXnode2Prism(schemaType.getSimpleName())) {
+                value = prismContext.parserFor(xnodeValue).context(parsingContext).definition(definition).fastAddOperations().parseRealValue(schemaType);
+            }
             return new RepositoryObjectParseResult<>(parsingContext, value);
         } catch (RuntimeException e) {
             throw new SchemaException("Unexpected exception while parsing serialized form: " + e, e);

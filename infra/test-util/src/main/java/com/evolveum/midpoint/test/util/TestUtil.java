@@ -28,7 +28,12 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.processor.RawResourceAttributeDefinition;
+
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
+
+import com.evolveum.midpoint.schema.util.RawRepoShadow;
+
+import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jetbrains.annotations.NotNull;
@@ -39,7 +44,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectFactory;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -111,8 +116,8 @@ public class TestUtil {
     public static void setAttribute(PrismObject<ShadowType> account, QName attrName, QName typeName, String value)
             throws SchemaException {
         PrismContainer<Containerable> attributesContainer = account.findContainer(ShadowType.F_ATTRIBUTES);
-        RawResourceAttributeDefinition<String> attrDef = ObjectFactory.createResourceAttributeDefinition(attrName, typeName);
-        ResourceAttribute<String> attribute = attrDef.instantiate();
+        ShadowSimpleAttributeDefinition<String> attrDef = ObjectFactory.createSimpleAttributeDefinition(attrName, typeName);
+        ShadowSimpleAttribute<String> attribute = attrDef.instantiate();
         attribute.setRealValue(value);
         attributesContainer.add(attribute);
     }
@@ -539,26 +544,23 @@ public class TestUtil {
         assertEquals(message + "; expected " + expected + " but was " + actual, 0, expected.compare(actual));
     }
 
-    public static void assertCreateTimestamp(PrismObject<? extends ObjectType> object, XMLGregorianCalendar start,
-            XMLGregorianCalendar end) {
-        MetadataType metadata = object.asObjectable().getMetadata();
-        assertNotNull("No metadata in " + object, metadata);
-        assertBetween("createTimestamp in " + object, start, end, metadata.getCreateTimestamp());
+    public static void assertCreateTimestamp(
+            PrismObject<? extends ObjectType> object, XMLGregorianCalendar start, XMLGregorianCalendar end) {
+        assertBetween(
+                "createTimestamp in " + object, start, end,
+                ValueMetadataTypeUtil.getCreateTimestamp(object.asObjectable()));
+    }
+
+    public static void assertCreateTimestamp(
+            RawRepoShadow object, XMLGregorianCalendar start, XMLGregorianCalendar end) {
+        assertCreateTimestamp(object.getPrismObject(), start, end);
     }
 
     public static void assertModifyTimestamp(PrismObject<? extends ObjectType> object, XMLGregorianCalendar start,
             XMLGregorianCalendar end) {
-        assertModifyTimestamp(object, start, end, null);
-    }
-
-    public static void assertModifyTimestamp(PrismObject<? extends ObjectType> object, XMLGregorianCalendar start,
-            XMLGregorianCalendar end, String channel) {
-        MetadataType metadata = object.asObjectable().getMetadata();
-        assertNotNull("No metadata in " + object, metadata);
-        assertBetween("modifyTimestamp in " + object, start, end, metadata.getModifyTimestamp());
-        if (channel != null) {
-            assertEquals("Wrong channel", channel, metadata.getModifyChannel());
-        }
+        assertBetween(
+                "modifyTimestamp in " + object, start, end,
+                ValueMetadataTypeUtil.getModifyTimestamp(object.asObjectable()));
     }
 
     public static XMLGregorianCalendar currentTime() {
@@ -657,7 +659,7 @@ public class TestUtil {
     }
 
     public static ItemDefinition createPrimitivePropertyDefinition(PrismContext prismContext, String name, PrimitiveType pType) {
-        return prismContext.definitionFactory().createPropertyDefinition(new ItemName(SchemaConstants.NS_C, name), pType.getQname());
+        return prismContext.definitionFactory().newPropertyDefinition(new ItemName(SchemaConstants.NS_C, name), pType.getQname());
     }
 
     public static void waitForCompletion(List<Thread> threads, long timeout) throws InterruptedException {

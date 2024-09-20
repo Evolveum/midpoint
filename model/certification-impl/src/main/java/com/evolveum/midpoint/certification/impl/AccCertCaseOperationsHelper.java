@@ -118,7 +118,7 @@ public class AccCertCaseOperationsHelper {
     }
 
     // TODO temporary implementation - should be done somehow in batches in order to improve performance
-    void markCaseAsRemedied(@NotNull String campaignOid, long caseId, Task task, OperationResult parentResult)
+    public void markCaseAsRemedied(@NotNull String campaignOid, long caseId, Task task, OperationResult parentResult)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         PropertyDelta<XMLGregorianCalendar> remediedDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
                 ItemPath.create(F_CASE, caseId, AccessCertificationCaseType.F_REMEDIED_TIMESTAMP),
@@ -138,8 +138,8 @@ public class AccCertCaseOperationsHelper {
 
         MidPointPrincipal principal = securityContextManager.getPrincipal();
         result.addContext("user", toShortString(principal.getFocus()));
-        ObjectReferenceType initiator = ObjectTypeUtil.createObjectRef(principal.getFocus(), prismContext);
-        ObjectReferenceType attorney = ObjectTypeUtil.createObjectRef(principal.getAttorney(), prismContext);
+        ObjectReferenceType initiator = ObjectTypeUtil.createObjectRef(principal.getFocus());
+        ObjectReferenceType attorney = ObjectTypeUtil.createObjectRef(principal.getAttorney());
 
         XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
         List<ItemDelta<?, ?>> deltas = new ArrayList<>();
@@ -173,7 +173,7 @@ public class AccCertCaseOperationsHelper {
             CaseRelatedUtils.computeAssignees(newAssignees, delegatedTo, delegates, method, workItem.getAssigneeRef());
             //noinspection ConstantConditions
             WorkItemDelegationEventType event = ApprovalContextUtil
-                    .createDelegationEvent(null, assigneesBefore, delegatedTo, method, causeInformation, prismContext);
+                    .createDelegationEvent(null, assigneesBefore, delegatedTo, method, causeInformation);
             event.setTimestamp(now);
             event.setInitiatorRef(initiator);
             event.setAttorneyRef(attorney);
@@ -205,11 +205,11 @@ public class AccCertCaseOperationsHelper {
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException {
         MidPointPrincipal principal = securityContextManager.getPrincipal();
         result.addContext("user", toShortString(principal.getFocus()));
-        ObjectReferenceType initiator = ObjectTypeUtil.createObjectRef(principal.getFocus(), prismContext);
-        ObjectReferenceType attorney = ObjectTypeUtil.createObjectRef(principal.getAttorney(), prismContext);
+        ObjectReferenceType initiator = ObjectTypeUtil.createObjectRef(principal.getFocus());
+        ObjectReferenceType attorney = ObjectTypeUtil.createObjectRef(principal.getAttorney());
 
         List<AccessCertificationWorkItemType> workItems = queryHelper.searchOpenWorkItems(
-                CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaignOid, prismContext),
+                CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaignOid),
                 false,
                 result);
 
@@ -268,7 +268,7 @@ public class AccCertCaseOperationsHelper {
             List<ObjectReferenceType> delegatedTo = new ArrayList<>();
             CaseRelatedUtils.computeAssignees(newAssignees, delegatedTo, delegates, method, workItem.getAssigneeRef());
             WorkItemDelegationEventType event = ApprovalContextUtil
-                    .createDelegationEvent(newEscalationLevel, assigneesBefore, delegatedTo, method, causeInformation, prismContext);
+                    .createDelegationEvent(newEscalationLevel, assigneesBefore, delegatedTo, method, causeInformation);
             event.setTimestamp(now);
             event.setInitiatorRef(initiator);
             event.setAttorneyRef(attorney);

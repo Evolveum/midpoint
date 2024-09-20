@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.component.data.column;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 
@@ -37,6 +38,7 @@ public class CompositedIconWithLabelPanel extends CompositedIconPanel {
         if (StringUtils.isNotEmpty(getLabelColor())) {
             label.add(AttributeAppender.append("style", "color: " + getLabelColor()));
         }
+        label.add(AttributeAppender.append("class", getLabelCssClass()));
         label.setOutputMarkupId(true);
         add(label);
     }
@@ -48,6 +50,15 @@ public class CompositedIconWithLabelPanel extends CompositedIconPanel {
 
     private String getLabelColor() {
         return labelDisplayModel != null && labelDisplayModel.getObject() != null && labelDisplayModel.getObject().getColor() != null ?
-                labelDisplayModel.getObject().getColor() : "";
+                GuiDisplayTypeUtil.removeStringAfterSemicolon(labelDisplayModel.getObject().getColor()) : "";
+    }
+
+    private IModel<String> getLabelCssClass() {
+        return () -> {
+            if (labelDisplayModel != null && labelDisplayModel.getObject() != null) {
+                return labelDisplayModel.getObject().getCssClass();
+            }
+            return null;
+        };
     }
 }

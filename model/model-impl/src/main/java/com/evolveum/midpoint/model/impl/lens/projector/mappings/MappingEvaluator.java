@@ -6,16 +6,23 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector.mappings;
 
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
+
+import com.evolveum.midpoint.model.impl.lens.LensContext;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.model.api.context.Mapping;
 import com.evolveum.midpoint.model.api.util.ClockworkInspector;
+import com.evolveum.midpoint.model.api.util.MappingInspector;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
-import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment.ExpressionEnvironmentBuilder;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment.ExtraOptionsProvider;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.ProjectionMappingSetEvaluator;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -28,11 +35,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractMappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /**
  * Evaluates {@link Mapping} objects.
@@ -58,30 +60,12 @@ public class MappingEvaluator {
 
     private static final Trace LOGGER = TraceManager.getTrace(MappingEvaluator.class);
 
-    @Autowired private PrismContext prismContext;
-
-    public PrismContext getPrismContext() {
-        return prismContext;
-    }
-
-    public <V extends PrismValue, D extends ItemDefinition<?>, F extends ObjectType> void evaluateMapping(
-            @NotNull MappingImpl<V, D> mapping,
-            @Nullable LensContext<F> lensContext,
-            @NotNull Task task,
-            @NotNull OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
-
-        evaluateMapping(mapping, lensContext, null, task, result);
-    }
-
     /**
      * Evaluates parsed mapping in given lens and projection context (if available - they may be null).
      */
-    public <V extends PrismValue, D extends ItemDefinition<?>, F extends ObjectType> void evaluateMapping(
+    public <V extends PrismValue, D extends ItemDefinition<?>> void evaluateMapping(
             @NotNull MappingImpl<V, D> mapping,
-            @Nullable LensContext<F> lensContext,
-            @Nullable LensProjectionContext projContext,
+            @NotNull EvaluationContext<V, D> context,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
@@ -93,12 +77,11 @@ public class MappingEvaluator {
         }
 
         ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(
-                new ModelExpressionEnvironment.ExpressionEnvironmentBuilder<F, V, D>()
-                        .lensContext(lensContext)
-                        .projectionContext(projContext)
+                new ExpressionEnvironmentBuilder<V, D>()
                         .mapping(mapping)
                         .currentResult(result)
                         .currentTask(task)
+                        .provideExtraOptions(context.expressionEnvironmentExtraOptionsProvider)
                         .build());
 
         long start = System.currentTimeMillis();
@@ -122,7 +105,7 @@ public class MappingEvaluator {
         } finally {
             ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
             recordMappingOperation(mapping, task, start);
-            inspectMappingOperation(mapping, lensContext);
+            context.mappingInspector.afterMappingEvaluation(mapping);
         }
     }
 
@@ -147,10 +130,28 @@ public class MappingEvaluator {
         }
     }
 
-    private <V extends PrismValue, D extends ItemDefinition<?>, F extends ObjectType> void inspectMappingOperation(
-            @NotNull MappingImpl<V, D> mapping, @Nullable LensContext<F> lensContext) {
-        if (lensContext != null && lensContext.getInspector() != null) {
-            lensContext.getInspector().afterMappingEvaluation(lensContext, mapping);
+    public record EvaluationContext<V extends PrismValue, D extends ItemDefinition<?>> (
+            @NotNull ExtraOptionsProvider<V, D> expressionEnvironmentExtraOptionsProvider,
+            @NotNull MappingInspector mappingInspector) {
+
+        public static <V extends PrismValue, D extends ItemDefinition<?>> EvaluationContext<V, D> forProjectionContext(
+                @NotNull ModelProjectionContext projectionContext) {
+            return new EvaluationContext<>(
+                    ExtraOptionsProvider.forProjectionContext(projectionContext),
+                    ((LensContext<?>) projectionContext.getModelContext()).getMappingInspector());
+        }
+
+        public static <V extends PrismValue, D extends ItemDefinition<?>> EvaluationContext<V, D> forModelContext(
+                @NotNull ModelContext<?> modelContext) {
+            return new EvaluationContext<>(
+                    ExtraOptionsProvider.forModelContext(modelContext),
+                    ((LensContext<?>) modelContext).getMappingInspector());
+        }
+
+        public static <V extends PrismValue, D extends ItemDefinition<?>> EvaluationContext<V, D> empty() {
+            return new EvaluationContext<>(
+                    ExtraOptionsProvider.empty(),
+                    MappingInspector.empty());
         }
     }
 }

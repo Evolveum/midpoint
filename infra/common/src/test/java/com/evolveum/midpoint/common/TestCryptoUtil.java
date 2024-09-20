@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.common;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_PASSWORD;
 import static com.evolveum.midpoint.schema.util.task.work.SpecificWorkDefinitionUtil.*;
 
 import static java.util.Collections.singleton;
@@ -31,6 +32,7 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 import org.testng.Assert;
@@ -48,14 +50,10 @@ import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
-import javax.xml.namespace.QName;
 
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestCryptoUtil extends AbstractUnitTest {
@@ -77,7 +75,7 @@ public class TestCryptoUtil extends AbstractUnitTest {
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        SchemaDebugUtil.initializePrettyPrinter();
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
         protector = createProtector();
     }
@@ -150,7 +148,7 @@ public class TestCryptoUtil extends AbstractUnitTest {
     public void test127EncryptAddAccountTaskManuallyConstructedLegacy() throws Exception {
         given();
         PrismContext prismContext = getPrismContext();
-        PrismObject<TaskType> task = new TaskType(prismContext)
+        PrismObject<TaskType> task = new TaskType()
                 .name("test127")
                 .asPrismObject();
 
@@ -159,16 +157,15 @@ public class TestCryptoUtil extends AbstractUnitTest {
                 .findPropertyDefinition(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_DELTAS));
         PrismProperty<ObjectDeltaType> deltas = deltasDefinition.instantiate();
 
-        ShadowType shadow = new ShadowType(prismContext)
+        ShadowType shadow = new ShadowType()
                 .name("some-shadow");
         PrismContainerDefinition<Containerable> attributesDef = shadow.asPrismObject().getDefinition()
                 .findContainerDefinition(ShadowType.F_ATTRIBUTES);
         PrismContainer<?> attributes = attributesDef.instantiate();
         shadow.asPrismObject().add(attributes);
 
-        MutablePrismPropertyDefinition<ProtectedStringType> passwordDef = prismContext.definitionFactory()
-                .createPropertyDefinition(
-                        new QName(SchemaConstants.NS_ICF_SCHEMA, "password"), ProtectedStringType.COMPLEX_TYPE);
+        PrismPropertyDefinition<ProtectedStringType> passwordDef = prismContext.definitionFactory()
+                .newPropertyDefinition(ICFS_PASSWORD, ProtectedStringType.COMPLEX_TYPE);
         PrismProperty<ProtectedStringType> password = passwordDef.instantiate();
         ProtectedStringType passwordRealValue = new ProtectedStringType();
         passwordRealValue.setClearValue(PASSWORD_PLAINTEXT);
@@ -202,20 +199,19 @@ public class TestCryptoUtil extends AbstractUnitTest {
     public void test128EncryptAddAccountTaskManuallyConstructedNew() throws Exception {
         given();
         PrismContext prismContext = getPrismContext();
-        PrismObject<TaskType> task = new TaskType(prismContext)
+        PrismObject<TaskType> task = new TaskType()
                 .name("test128")
                 .asPrismObject();
 
-        ShadowType shadow = new ShadowType(prismContext)
+        ShadowType shadow = new ShadowType()
                 .name("some-shadow");
         PrismContainerDefinition<Containerable> attributesDef = shadow.asPrismObject().getDefinition()
                 .findContainerDefinition(ShadowType.F_ATTRIBUTES);
         PrismContainer<?> attributes = attributesDef.instantiate();
         shadow.asPrismObject().add(attributes);
 
-        MutablePrismPropertyDefinition<ProtectedStringType> passwordDef = prismContext.definitionFactory()
-                .createPropertyDefinition(
-                        new QName(SchemaConstants.NS_ICF_SCHEMA, "password"), ProtectedStringType.COMPLEX_TYPE);
+        PrismPropertyDefinition<ProtectedStringType> passwordDef = prismContext.definitionFactory()
+                .newPropertyDefinition(ICFS_PASSWORD, ProtectedStringType.COMPLEX_TYPE);
         PrismProperty<ProtectedStringType> password = passwordDef.instantiate();
         ProtectedStringType passwordRealValue = new ProtectedStringType();
         passwordRealValue.setClearValue(PASSWORD_PLAINTEXT);

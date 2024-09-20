@@ -7,10 +7,7 @@
 
 package com.evolveum.midpoint.schema.util;
 
-import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
@@ -51,12 +48,12 @@ public class ReportParameterTypeUtil {
 
         Object firstValue = realValues[0];
         QName typeName = PrismContext.get().getSchemaRegistry().determineTypeForClass(firstValue.getClass());
-        MutablePrismPropertyDefinition<Object> paramPropDef =
-                PrismContext.get().definitionFactory().createPropertyDefinition(
-                        new QName(SchemaConstants.NS_REPORT_EXTENSION, paramName), typeName);
-        paramPropDef.setDynamic(true);
-        paramPropDef.setRuntimeSchema(true);
-        paramPropDef.toMutable().setMaxOccurs(1);
+        PrismPropertyDefinition<Object> paramPropDef =
+                PrismContext.get().definitionFactory().newPropertyDefinition(
+                        new QName(SchemaConstants.NS_REPORT_PARAM_EXTENSION, paramName), typeName);
+        paramPropDef.mutator().setDynamic(true);
+        paramPropDef.mutator().setRuntimeSchema(true);
+        paramPropDef.mutator().setMaxOccurs(1);
 
         PrismProperty<Object> paramProperty = paramPropDef.instantiate();
         paramProperty.addRealValues(realValues);

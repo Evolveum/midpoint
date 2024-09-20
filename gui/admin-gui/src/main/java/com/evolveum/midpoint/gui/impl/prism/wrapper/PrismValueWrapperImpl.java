@@ -7,22 +7,30 @@
 package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.util.ExecutedDeltaPostProcessor;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.impl.binding.AbstractPlainStructured;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationAttemptDataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
+
+import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
+import java.util.Collection;
 
 /**
  * @author katka
@@ -55,9 +63,28 @@ public abstract class PrismValueWrapperImpl<T> implements PrismValueWrapper<T> {
     public <D extends ItemDelta<PrismValue, ? extends ItemDefinition>> void addToDelta(D delta) throws SchemaException {
         switch (status) {
             case ADDED:
-                if (newValue.isEmpty()) {
+                if (getNewValue().isEmpty()) {
                     break;
                 }
+                Object realValue = getNewValue().getRealValueIfExists();
+                if (realValue instanceof AbstractPlainStructured && !isChanged()) {
+                    // if empty AbstractPlainStructured value was used as placeholder, e.g. old and new values equal and
+                    // state is ADDED then we don't really want to add it
+                    // In MID-9564 case was that existing value was removed (marked as DELETED) and new value (with null real
+                    // value) was added (state ADDED) as placeholder. Panel then had to set real value placeholder,
+                    // e.g. ExpressionType object which changed state of wrapper to MODIFIED which is not correct since it's
+                    // not modification of existing value
+                    //
+                    // Really not sure whether this is correct solution, since real value placeholders are needed (for UI panels),
+                    // therefore having empty PPV with null real value is not possible.
+                    // Drawback of this solution is that empty AbstractPlainStructured value will not be added to delta - if
+                    // it's not done "manually" via PrismPropertyValueWrapper.setRealValue()
+                    //
+                    // Also see comment in ItemWrapperImpl.remove().
+
+                    break;
+                }
+
                 if (parent.isSingleValue()) {
                     delta.addValueToReplace(getNewValueWithMetadataApplied());
                 } else {
@@ -71,10 +98,10 @@ public abstract class PrismValueWrapperImpl<T> implements PrismValueWrapper<T> {
             case MODIFIED:
 
                 if (parent.isSingleValue()) {
-                    if (newValue.isEmpty())  {
+                    if (getNewValue().isEmpty())  {
                         // if old value is empty, nothing to do.
-                        if (!oldValue.isEmpty()) {
-                            delta.addValueToDelete(oldValue.clone());
+                        if (!getOldValue().isEmpty()) {
+                            delta.addValueToDelete(getOldValue().clone());
                         }
                     } else {
                         delta.addValueToReplace(getNewValueWithMetadataApplied());
@@ -82,16 +109,16 @@ public abstract class PrismValueWrapperImpl<T> implements PrismValueWrapper<T> {
                     break;
                 }
 
-                if (!newValue.isEmpty()) {
+                if (!getNewValue().isEmpty()) {
                     delta.addValueToAdd(getNewValueWithMetadataApplied());
                 }
-                if (!oldValue.isEmpty()) {
-                    delta.addValueToDelete(oldValue.clone());
+                if (!getOldValue().isEmpty()) {
+                    delta.addValueToDelete(getOldValue().clone());
                 }
                 break;
             case DELETED:
-                if (oldValue != null && !oldValue.isEmpty()) {
-                    delta.addValueToDelete(oldValue.clone());
+                if (getOldValue() != null && !getOldValue().isEmpty()) {
+                    delta.addValueToDelete(getOldValue().clone());
                 }
                 break;
             default:
@@ -121,7 +148,7 @@ public abstract class PrismValueWrapperImpl<T> implements PrismValueWrapper<T> {
         return (V) newValue;
     }
 
-    private <V extends PrismValue> V getNewValueWithMetadataApplied() throws SchemaException {
+    protected <V extends PrismValue> V getNewValueWithMetadataApplied() throws SchemaException {
         if (getParent() != null && getParent().isProcessProvenanceMetadata()) {
             PrismContainerValue<ValueMetadataType> newYieldValue = WebPrismUtil.getNewYieldValue();
 
@@ -129,10 +156,10 @@ public abstract class PrismValueWrapperImpl<T> implements PrismValueWrapper<T> {
             ValueMetadata newValueMetadata = app.getPrismContext().getValueMetadataFactory().createEmpty();
             newValueMetadata.addMetadataValue(newYieldValue);
 
-            newValue.setValueMetadata(newValueMetadata.clone());
+            newValue.setValueMetadata(newValueMetadata.clone()); //TODO possible NPE here
         }
 
-        return (V) newValue.clone();
+        return (V) getNewValue().clone();
     }
 
     @Override
@@ -203,5 +230,14 @@ public abstract class PrismValueWrapperImpl<T> implements PrismValueWrapper<T> {
             return (PrismContainerValueWrapper<C>) this;
         }
         return parent.getParentContainerValue(parentClass);
+    }
+
+    @Override
+    public Collection<ExecutedDeltaPostProcessor> getPreconditionDeltas(ModelServiceLocator serviceLocator, OperationResult result) throws CommonException {
+        return null;
+    }
+
+    protected final void setNewValue(PrismValue newValue) {
+        this.newValue = newValue;
     }
 }

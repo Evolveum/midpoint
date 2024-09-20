@@ -47,7 +47,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     private <O extends ObjectType> void testUpgradeValidator(String fileName, Consumer<UpgradeValidationResult> resultConsumer) throws Exception {
         PrismObject<O> object = parseObject(new File(RESOURCES, fileName));
 
-        ObjectUpgradeValidator validator = new ObjectUpgradeValidator(getPrismContext());
+        ObjectUpgradeValidator validator = new ObjectUpgradeValidator();
         validator.showAllWarnings();
 
         UpgradeValidationResult result = validator.validate(object);
@@ -92,7 +92,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
                             return;
                         }
 
-                        ItemPath path = item.getItem().getItemPath();
+                        ItemPath path = item.getItem().path();
                         try {
                             processor.process(updated, path);
                         } catch (Exception ex) {

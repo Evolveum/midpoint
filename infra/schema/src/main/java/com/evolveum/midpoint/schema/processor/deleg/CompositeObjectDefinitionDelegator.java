@@ -14,7 +14,7 @@ public interface CompositeObjectDefinitionDelegator extends ResourceObjectDefini
     CompositeObjectDefinition delegate();
 
     @Override
-    default Collection<QName> getConfiguredAuxiliaryObjectClassNames() {
+    default @NotNull Collection<QName> getConfiguredAuxiliaryObjectClassNames() {
         return delegate().getConfiguredAuxiliaryObjectClassNames();
     }
 
@@ -24,8 +24,7 @@ public interface CompositeObjectDefinitionDelegator extends ResourceObjectDefini
     }
 
     @Override
-    default @NotNull Collection<ResourceObjectDefinition> getAuxiliaryDefinitions() {
+    default @NotNull Collection<? extends ResourceObjectDefinition> getAuxiliaryDefinitions() {
         return delegate().getAuxiliaryDefinitions();
     }
-
 }

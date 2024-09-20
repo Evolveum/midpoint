@@ -1,0 +1,42 @@
+= Create Object
+:page-nav-title: Create Object
+:page-display-order: 400
+:page-toc: top
+:page-upkeep-status: green
+
+== Description
+Example of creating an midPoint object either representing some identity data in the
+form of a new User type object or the creation of a new midPoint resource object.
+
+For the purpose of the sample we are using the CURL tool as it is a well maintained, well
+tested, and it's widely accessible.
+
+The body of the request will contain data from an external configuration file,
+the data will be inserted into the request via native Curl commands.
+
+.Authentication methods used to work with the REST api
+xref:/midpoint/reference/interfaces/rest/concepts/authentication/#_basic_authentication[Authentication methods]
+
+
+[NOTE]
+====
+If you are using file as a source for the data in the REST call with *curl*, please, don't forget to use '*@*' before the path to your file.
+
+Sometimes the newlines are not correctly handled during the transfer.
+(See bug:MID-5229[].) If that occurs, please use `--data-binary`  instead of `-d`.
+====
+
+== Example
+
+include::../../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+include::../examples/raw/create-resource.adoc[]
+
+== See Also
+
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]

@@ -11,6 +11,9 @@ import java.util.List;
 
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 
+import com.evolveum.midpoint.repo.common.subscription.SubscriptionState;
+import com.evolveum.midpoint.web.security.MidPointApplication;
+
 import org.apache.wicket.markup.html.WebPage;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -58,13 +61,13 @@ public class MainMenuItem extends BaseMenuItem {
     }
 
     public void addMenuItem(MenuItem menuItem) {
-        if (SecurityUtils.isMenuAuthorized(menuItem)) {
+        if (menuItem != null && SecurityUtils.isMenuAuthorized(menuItem)) {
             getItems().add(menuItem);
         }
     }
 
     public void addMenuItemAtIndex(MenuItem menuItem, int position) {
-        if (SecurityUtils.isMenuAuthorized(menuItem)) {
+        if (menuItem != null && SecurityUtils.isMenuAuthorized(menuItem)) {
             if (getItems().size() >= position) {
                 getItems().add(position, menuItem);
             }else {
@@ -135,5 +138,9 @@ public class MainMenuItem extends BaseMenuItem {
             return items.get(0);
         }
         return null;
+    }
+
+    public boolean isVisible() {
+        return !MidPointApplication.get().getSubscriptionState().isGenericRepoWithoutSubscription();
     }
 }

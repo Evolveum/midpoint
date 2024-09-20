@@ -13,8 +13,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
-import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 
@@ -35,19 +34,14 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.request.resource.IResource;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.web.component.data.column.RoundedImagePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class MemberTilePanel<T extends Serializable> extends FocusTilePanel<T, TemplateTile<T>> {
+public class MemberTilePanel<T extends Serializable> extends ObjectTilePanel<T, TemplateTile<T>> {
 
     private static final long serialVersionUID = 1L;
 
@@ -133,14 +127,18 @@ public class MemberTilePanel<T extends Serializable> extends FocusTilePanel<T, T
                     tagContainer.add(AttributeAppender.append("style", tag.getCssStyle()));
                 }
                 if (StringUtils.isNotEmpty(tag.getColor())) {
-                    tagContainer.add(AttributeAppender.append("style", "color: " + tag.getColor()));
+                    tagContainer.add(AttributeAppender.append(
+                            "style",
+                            "color: " + GuiDisplayTypeUtil.removeStringAfterSemicolon(tag.getColor())));
                 }
                 if (StringUtils.isEmpty(tag.getCssClass())
                         && StringUtils.isEmpty(tag.getCssStyle())
                         && StringUtils.isEmpty(tag.getColor())
                         && tag.getIcon() != null
                         && StringUtils.isNotEmpty(tag.getIcon().getColor())) {
-                    tagContainer.add(AttributeAppender.append("style", "color: " + tag.getIcon().getColor()));
+                    tagContainer.add(AttributeAppender.append(
+                            "style",
+                            "color: " + GuiDisplayTypeUtil.removeStringAfterSemicolon(tag.getIcon().getColor())));
                 }
                 item.add(tagContainer);
 

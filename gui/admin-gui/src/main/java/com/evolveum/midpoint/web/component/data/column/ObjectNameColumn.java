@@ -7,17 +7,21 @@
 package com.evolveum.midpoint.web.component.data.column;
 
 import java.io.Serial;
+import java.util.List;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.TitleWithMarks;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectColumnType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -32,7 +36,7 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractNameColumn<S
     }
 
     public ObjectNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression, PageBase pageBase) {
-        super(displayModel, ObjectType.F_NAME.getLocalPart(),  customColumn, expression, pageBase);
+        super(displayModel, ObjectType.F_NAME.getLocalPart(), customColumn, expression, pageBase);
     }
 
     @Override
@@ -43,17 +47,37 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractNameColumn<S
 
     @Override
     protected Component createComponent(String componentId, IModel<String> labelModel, IModel<SelectableBean<O>> rowModel) {
-        return new LinkPanel(componentId, labelModel) {
-            @Serial private static final long serialVersionUID = 1L;
+        return new TitleWithMarks(componentId, labelModel, createRealMarksList(rowModel.getObject())) {
 
             @Override
-            public void onClick() {
+            protected void onTitleClicked() {
                 ObjectNameColumn.this.onClick(rowModel);
             }
 
             @Override
-            public boolean isEnabled() {
+            protected boolean isTitleLinkEnabled() {
                 return ObjectNameColumn.this.isClickable(rowModel);
+            }
+
+            @Override
+            protected IModel<String> createPrimaryMarksTitle() {
+                return createStringResource("ObjectNameColumn.objectMarks");
+            }
+        };
+    }
+
+    private IModel<String> createRealMarksList(SelectableBean<O> bean) {
+        return new LoadableDetachableModel<>() {
+
+            @Override
+            protected String load() {
+                O object = bean.getValue();
+                if (object == null) {
+                    return null;
+                }
+
+                List<ObjectReferenceType> refs = object.getEffectiveMarkRef();
+                return WebComponentUtil.createMarkList(refs, getPageBase());
             }
         };
     }

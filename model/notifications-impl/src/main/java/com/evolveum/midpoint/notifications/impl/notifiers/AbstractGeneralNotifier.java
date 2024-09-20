@@ -9,13 +9,16 @@ package com.evolveum.midpoint.notifications.impl.notifiers;
 import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_RECIPIENT;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 import com.evolveum.midpoint.notifications.api.EventProcessingContext;
 import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 
 import com.google.common.base.Strings;
+import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +39,7 @@ import com.evolveum.midpoint.notifications.impl.handlers.BaseHandler;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
-import com.evolveum.midpoint.repo.common.util.SubscriptionUtil;
+import com.evolveum.midpoint.repo.common.subscription.SubscriptionUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -151,19 +154,32 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
                 return 0;
             }
 
-            // TODO: Here we have string addresses already, this does not allow transport to have
-            //  its own strategy (e.g. a default one) to obtain the address from the focus type.
-            //  We should work here with recipient structure that can be either focus (for later
-            //  address resolution) or address (string, as is now).
-            //  Before this "recipientAddressExpression" in GeneralTransportConfigurationType makes
-            //  no sense (also see related TODO for that type in common-notifications-3.xsd).
-            //  Technically, recipientExpression could return either String (current state) or Focus,
-            //  code can handle either of that with focus being resolved later by the transport.
-
+            boolean sendSeparateMessageToEachRecipient = sendSeparateMessageToEachRecipient(notifierConfig);
             int sentMessages = 0;
-            for (RecipientExpressionResultType recipient : recipients) {
-                sentMessages +=
-                        prepareAndSendMessage(notifierConfig, variables, transport, transportName, recipient, ctx, result);
+
+            if (sendSeparateMessageToEachRecipient) {
+                // TODO: Here we have string addresses already, this does not allow transport to have
+                //  its own strategy (e.g. a default one) to obtain the address from the focus type.
+                //  We should work here with recipient structure that can be either focus (for later
+                //  address resolution) or address (string, as is now).
+                //  Before this "recipientAddressExpression" in GeneralTransportConfigurationType makes
+                //  no sense (also see related TODO for that type in common-notifications-3.xsd).
+                //  Technically, recipientExpression could return either String (current state) or Focus,
+                //  code can handle either of that with focus being resolved later by the transport.
+
+                for (RecipientExpressionResultType recipient : recipients) {
+                    Message message = prepareMessage(notifierConfig, variables, transport, transportName, recipient, ctx, result);
+                    String address = getRecipientAddress(transport, transportName, recipient, ctx, result);
+                    sentMessages +=
+                            sendMessage(message, transport, transportName, Collections.singletonList(address), ctx, result);
+                }
+            } else {
+                Message message = prepareMessage(notifierConfig, variables, transport, transportName, null, ctx, result);
+                List<String> recipientAddresses = collectRecipientAddresses(transport, transportName, recipients, ctx, result);
+                sentMessages = sendMessage(message, transport, transportName, recipientAddresses, ctx, result);
+                if (sentMessages > 0) {
+                    sentMessages = recipientAddresses.size();
+                }
             }
             return sentMessages;
         } catch (Throwable t) {
@@ -174,35 +190,27 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
         }
     }
 
-    private int prepareAndSendMessage(
+    private boolean sendSeparateMessageToEachRecipient(ConfigurationItem<? extends N> notifierConfig) {
+        NotificationSendingStrategyType sendingStrategy = notifierConfig.value().getNotificationSendingStrategy();
+        return sendingStrategy == null || NotificationSendingStrategyType.SEPARATE_NOTIFICATION_TO_EACH_RECIPIENT.equals(sendingStrategy);
+    }
+
+    private Message prepareMessage(
             ConfigurationItem<? extends N> notifierConfig, VariablesMap variables,
             @NotNull Transport<?> transport, @Deprecated String transportName,
-            RecipientExpressionResultType recipient,
+            @Nullable RecipientExpressionResultType recipient,
             EventProcessingContext<? extends E> ctx, OperationResult result)
             throws SchemaException {
-        // TODO this is what we want in 4.6, parameter must go
-        //  But this will also mean rewriting existing tests from legacy to new transport style.
-        // String transportName = transport.getName();
-
-        String address = getRecipientAddress(transport, recipient, ctx, result);
-        if (address == null) {
-            getLogger().debug("Skipping notification as no recipient address was provided or determined for transport '{}'.", transportName);
-            result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "No recipient address provided/determined for notifier or transport");
-            return 0;
-        }
-
         MessageTemplateContentType messageTemplateContent = findMessageContent(notifierConfig.value(), recipient, result);
 
         String body = getBody(notifierConfig, messageTemplateContent, variables, transportName, ctx, result);
         if (body == null) {
-            getLogger().debug("Skipping notification as null body was provided for transport '{}'.", transportName);
-            result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "No message body");
-            return 0;
+            return new Message();
         }
 
+        Locale locale = recipient != null ? LocalizationUtil.toLocale(focusLanguageOrLocale(recipient)) : null;
         String subscriptionFooter =
-                SubscriptionUtil.missingSubscriptionAppeal(systemObjectCache, localizationService,
-                        LocalizationUtil.toLocale(focusLanguageOrLocale(recipient)));
+                SubscriptionUtil.missingSubscriptionAppeal(localizationService, locale);
         if (subscriptionFooter != null) {
             body += '\n' + subscriptionFooter;
         }
@@ -275,11 +283,53 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
 
         // setting addressing information
         message.setFrom(getFromFromExpression(notifierConfig, variables, ctx, result));
-        message.setTo(List.of(address));
         message.setCc(getCcBccAddresses(notifierConfig.value().getCcExpression(),
                 variables, "notification cc-expression", ctx, result));
         message.setBcc(getCcBccAddresses(notifierConfig.value().getBccExpression(),
                 variables, "notification bcc-expression", ctx, result));
+        return message;
+    }
+
+    private String getRecipientAddress(@NotNull Transport<?> transport, @Deprecated String transportName,
+            RecipientExpressionResultType recipient, EventProcessingContext<? extends E> ctx, OperationResult result) {
+        List<String> address = collectRecipientAddresses(transport, transportName, Collections.singletonList(recipient), ctx,
+                result);
+        return CollectionUtils.isNotEmpty(address) ? address.get(0) : null;
+    }
+
+    private List<String> collectRecipientAddresses(@NotNull Transport<?> transport, @Deprecated String transportName,
+            List<RecipientExpressionResultType> recipients,
+            EventProcessingContext<? extends E> ctx, OperationResult result) {
+        List<String> recipientAddresses = new ArrayList<>();
+        recipients.forEach(r -> {
+                    String address = getRecipientAddress(transport, r, ctx, result);
+                    if (address == null) {
+                        getLogger().debug("Skipping notification as no recipient address was provided or determined for transport '{}'.", transportName);
+                        result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "No recipient address provided/determined for notifier or transport, recipient: ");
+                    }
+                    recipientAddresses.add(address);
+                }
+        );
+        return recipientAddresses;
+    }
+
+    private int sendMessage(
+            @NotNull Message message,
+            @NotNull Transport<?> transport, @Deprecated String transportName,
+            List<String> addresses,
+            EventProcessingContext<? extends E> ctx, OperationResult result) {
+        // TODO this is what we want in 4.6, parameter must go
+        //  But this will also mean rewriting existing tests from legacy to new transport style.
+        // String transportName = transport.getName();
+
+        String body = message.getBody();
+        if (body == null) {
+            getLogger().debug("Skipping notification as null body was provided for transport '{}'.", transportName);
+            result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "No message body");
+            return 0;
+        }
+
+        message.setTo(addresses);
 
         getLogger().trace("Sending notification via transport {}:\n{}", transportName, message);
         transport.send(
@@ -350,7 +400,7 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
 
     @Nullable
     private MessageTemplateContentType findMessageContent(
-            N notifierConfigBean, RecipientExpressionResultType recipient, OperationResult result) {
+            N notifierConfigBean, @Nullable RecipientExpressionResultType recipient, OperationResult result) {
         ObjectReferenceType messageTemplateRef = notifierConfigBean.getMessageTemplateRef();
         if (messageTemplateRef != null) {
             MessageTemplateType messageTemplate =
@@ -360,12 +410,14 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
                         + " from the notifier: {}", messageTemplateRef.getOid(), notifierConfigBean);
             } else {
                 MessageTemplateContentType content = messageTemplate.getDefaultContent();
-                ObjectReferenceType recipientRef = recipient.getRecipientRef();
-                if (recipientRef != null) {
-                    MessageTemplateContentType localizedContent = findLocalizedContent(messageTemplate, recipientRef);
-                    if (localizedContent != null) {
-                        inheritAttachmentSetupFromDefaultContent(localizedContent, content);
-                        content = localizedContent; // otherwise it's default content
+                if (recipient != null) {
+                    ObjectReferenceType recipientRef = recipient.getRecipientRef();
+                    if (recipientRef != null) {
+                        MessageTemplateContentType localizedContent = findLocalizedContent(messageTemplate, recipientRef);
+                        if (localizedContent != null) {
+                            inheritAttachmentSetupFromDefaultContent(localizedContent, content);
+                            content = localizedContent; // otherwise it's default content
+                        }
                     }
                 }
                 return content;

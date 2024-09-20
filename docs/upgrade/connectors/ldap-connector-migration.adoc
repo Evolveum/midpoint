@@ -1,0 +1,365 @@
+= LDAP Connector Migration
+:page-wiki-name: LDAP Connector Migration
+:page-wiki-id: 19922968
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2015-08-05T10:20:10.438+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2015-08-05T13:52:10.707+02:00
+:page-obsolete: true
+:page-toc: top
+
+== Motivation
+
+In 2014 the "state of the art" for connectors in open source provisioning was the legacy of Identity Connector Framework (ICF) created by Sun Microsystems.
+This is still perhaps the best option for supporting identity connectors that is available to the open world.
+However, the Sun ICF framework is xref:/connectors/connid/1.x/icf-issues/[flawed]. It was poorly designed and the framework issues are also reflected to the connectors.
+Projects such as xref:/midpoint/reference/resources/connid/[ConnId] are working towards the improvement of the Sun ICF.
+And there is a reasonable success.
+However one thing is the improvement of the framework and a slightly different thing is improvement of the connectors.
+The connectors often significantly lack behind the framework capabilities.
+
+
+=== Old LDAP Connector
+
+Legacy+JNDI+LDAP+Connector[Original Sun LDAP connector] is one of the connectors that is falling behind.There have been efforts from Evolveum and also from the OpenICF project to improve this connector - and some were quite successful.
+But now it is clear that the original Sun LDAP connector is a development dead end.
+It can be maintained, but there is very little potential of future development.
+The *old LDAP connector* has many fundamental problems:
+
+* The connector is based on Java Naming and Directory Interface (JNDI).
+JNDI is a generic API for all directory-like systems.
+It is generic which makes it a poor API for LDAP servers.
+LDAP-specific functions are difficult to use.
+And there are some things that JNDI cannot do by design (e.g. search that returns partial results).
+JNDI was a poor choice and it makes no sense to continue development of JNDI-based connector.
+
+* We have no practical influence over the evolution of JNDI.
+JNDI will most likely remain a major obstacle in any foreseeable future.
+
+* There is no practical option to support standard LDAP replication protocol (link:https://tools.ietf.org/html/rfc4533[RFC4533]). This makes synchronization support for modern LDAP servers (OpenLDAP, ApacheDS) quite problematic.
+
+* The connector code is old.
+The code is obviously based on the adapter code for Sun Identity Manager which dates back to early 2000s.
+There are abstractions on top of abstractions that are obviously inherited from the legacy adapter structure.
+The code would require a lot of effort to refactor it.
+There are also many special cases to support AD and legacy LDAP servers that have accumulated over time.
+This makes the code difficult to maintain and evolve.
+
+* Connector source code is maintained as part of the OpenICF project by ForgeRock.
+It is maintained in Subversion and it includes a very cumbersome contribution process, making the cooperation very inefficient.
+
+* The connector is CDDL-licensed.
+CDDL license was created by Sun Microsystem and it is not widely used by the open source community.
+It is a copyleft license which is problematic for commercial projects.
+CDDL is not compatible with GPL which is problematic for some open source projects.
+Overall, CDDL is not ideal.
+It makes no sense to make a significant investment into CDDL-licensed code.
+
+
+=== New LDAP Connector
+
+Therefore the Evolveum team has decided to write a completely new connector from scratch.
+The *new LDAP connector* is inherently better:
+
+* It is based on link:https://directory.apache.org/api/[Apache Directory API]. This is a modern LDAP API developed in an open fashion in the Apache Software Foundation.
+This is a full featured LDAP API with support for most of the features that we need.
+And we can easily add support for the missing features as the Apache Directory API is an well-governed open source project.
+In fact, this has already happened.
+We have contributed VLV support to the Apache Directory API project.
+
+* The new connector is designed and built to natively support new features of xref:/midpoint/reference/resources/connid/[ConnId]. Therefore the connector has natural support for paging, partial searches, auxiliary object classes, native attribute names, etc.
+This is a significant improvement over original Sun ICF.
+
+* The new connector is completely open.
+It is licensed under the terms of Apache License 2.0. The source code is maintained on link:https://github.com/Evolveum/connector-ldap[GitHub]. The development is coordinated with the development of xref:/midpoint/reference/resources/connid/[ConnId] framework.
+
+* One of the major advantage of the new connector is support for native attribute names.
+Therefore the schema will not be polluted by the unfortunate ICF concepts of xref:/connectors/connid/1.x/openicf/['__ACCOUNT__, __NAME__ and __UID__'].
+The connector will present real attribute names such as "entryUUID" and "dn" and real object class names such as "inetOrgPerson".
+
+
+== LDAP Connectors in midPoint
+
+All midPoint versions up to xref:/midpoint/release/3.1.1/[Release 3.1.1] used the Legacy+JNDI+LDAP+Connector[legacy SunICF/OpenICF LDAP connector]. This connector was bundled inside midPoint.
+
+All midPoint versions starting from xref:/midpoint/release/3.2/[Release 3.2] are using the new xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP Connector]. This connector is bundled inside midPoint.
+
+Starting from xref:/midpoint/release/3.2/[Release 3.2] the legacy connector is no longer included inside midPoint.
+But it still can be used if the connector JAR file is downloaded and deployed.
+See Legacy+JNDI+LDAP+Connector[Legacy LDAP Connector] page for supported versions and download locations.
+The legacy LDAP connector will not be extended or developed any more.
+But it will be maintained in a working state during a reasonable migration period.
+
+Therefore the change from xref:/midpoint/release/3.1.1/[Release 3.1.1] (or earlier) to xref:/midpoint/release/3.2/[Release 3.2] (or later) is an incompatible change when it comes to an LDAP connector.
+The migration steps are described below.
+
+
+== Migration: New LDAP Connector
+
+The new LDAP connector is *not* backwards compatible with the old connector.
+It is a completely new connector in code, behavior and also in philosophy.
+There are three major differences:
+
+* connector name and bundle
+
+* connector configuration
+
+* object class and attribute names
+
+
+=== Connector Name and Bundle
+
+The new LDAP connector is using bundle and connector name from com.evolveum.polygon namespace.
+The configuration XML namespace also reflects that:
+
+[%autowidth,cols="h,1"]
+|===
+| Bundle name (connectorBundle) | com.evolveum.polygon.connector-ldap
+
+| Connector name (connectorType)
+| com.evolveum.polygon.connector.ldap.LdapConnector
+
+
+| Configuration namespace
+| link:http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector[http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector]
+
+
+|===
+
+
+=== Connector Configuration
+
+LDAP Connector has a completely new configuration schema.
+The new connector is using similar configuration properties than the old connector when that was appropriate.
+But due to the major changes in connector philosophy it was almost not possible at all.
+The new configuration properties are summarized below:
+
+[%autowidth]
+|===
+| Property name | Label | Description
+
+| host
+| Host
+| The name or IP address of the LDAP server host.
+
+
+| port
+| Port number
+| LDAP server port number.
+
+
+| connectionSecurity
+| Connection security
+| Method to use to secure connection to the LDAP server.
+Values: "ssl", "starttls"
+
+
+| authenticationType
+| Authentication type
+| The authentication mechanism to use.
+Values: "simple", "SASL-GSSAPI"
+
+
+| bindDn
+| Bind DN
+| The DN to use when binding to the LDAP server
+
+
+| bindPassword
+| Bind password
+| Password to use when binding to the LDAP server
+
+
+| connectTimeout
+| Connect timeout
+| Timeout for LDAP server connection (in milliseconds)
+
+
+| baseContext
+| Base context
+| The base DN used when no explicit base DN is specified
+
+
+| referralStrategy
+| Referral strategy
+| Strategy of referral resolution.
+Values: "follow", "ignore", "throw"
+
+
+| passwordAttribute
+| Password attribute
+| Name of the LDAP attribute that is used to store account password
+
+
+| passwordHashAlgorithm
+| Password hash algorithm
+| Hash the passwords with a specified algorithm before they are sent to the server.
+
+
+| pagingStrategy
+| Paging strategy
+| Strategy used to send search requests that require paging.
+Usually specified preference over mechanisms such as VLV or simple paged results.
+Values: "none", "auto", "spr", "vlv"
+
+
+| pagingBlockSize
+| Paging block size
+| Number of entries in one paging block.
+Used as a default value when page size is not explicitly specified in the request.
+
+
+| vlvSortAttribute
+| VLV sort attribute
+| Name of LDAP attribute used to sort the results if VLV is used for paging and no explicit sorting attribute is specified in the request.
+
+
+| vlvSortOrderingRule
+| VLV ordering rule
+| LDAP ordering rule to use in VLV requests.
+Some LDAP servers require explicit specification of ordering rule.
+
+
+| uidAttribute
+| Primary identifier attribute
+| Name of LDAP attribute to use as a primary identifier.
+This will be used as ConnId `pass:[__UID__]` attribute.
+The default is entryUUID which is the best choice for modern LDAP servers.
+Value of "dn" can be used here to use entry DN as a primary identifier.
+
+
+| operationalAttributes
+| Operational attributes
+| Names of significant LDAP operational attributes.
+Connector will try to return these attributes in each entry.
+
+
+| readSchema
+| Read schema
+| If set to true (which is the default) then the connector will try to read LDAP schema.
+
+
+| schemaQuirksMode
+| Schema quirks mode
+| Some LDAP servers use strange or non-standard variations of schema definition.
+The quirks mode is used to tolerate these variations and use as much of the schema definition as possible.
+
+
+| synchronizationStrategy
+| Synchronization strategy
+| Strategy to use for almost-real-time synchronization.
+Values: "none", "auto", "sunChangeLog", "modifyTimestamp"
+
+
+| changeLogBlockSize
+| Changelog block size
+| Number of change log entries to fetch in a single request.
+
+
+| changeNumberAttribute
+| Change number attribute
+| "Change number" attribute - unique indentifier of the change in the change log.
+
+
+|===
+
+Configuration samples for all LDAP resources were updated to the new LDAP connector.
+The xref:/midpoint/reference/samples/[Configuration Samples] are located at the usual places.
+
+
+=== Shadows
+
+The xref:/midpoint/reference/resources/shadow/[shadows] in the old connector looked like this:
+
+.Shadow: Legacy LDAP connector
+[source]
+----
+<shadow>
+  <objectClass>AccountObjectClass</objectClass>
+  ...
+  <attributes>
+    <icfs:name>uid=foo,ou=people,dc=example,dc=com</icfs:name>
+    <icfs:uid>b41da37e-3b58-11e5-ad73-001e8c717e5b</icfs:uid>
+    <ri:uid>foo</ri:uid>
+    <ri:cn>Foo Bar</ri:cn>
+    ...
+  </attributes>
+</shadow>
+----
+
+Shadow for new connector looks like this:
+
+.Shadow: New LDAP connector
+[source]
+----
+<shadow>
+  <objectClass>inetOrgPerson</objectClass>
+  ...
+  <attributes>
+    <ri:dn>uid=foo,ou=people,dc=example,dc=com</ri:dn>
+    <ri:entryUUID>b41da37e-3b58-11e5-ad73-001e8c717e5b</ri:entryUUID>
+    <ri:uid>foo</ri:uid>
+    <ri:cn>Foo Bar</ri:cn>
+    ...
+  </attributes>
+</shadow>
+----
+
+The new LDAP connector is using native names of attributes and object classes and therefore it has obviously cleaner and better data structure.
+But this data structure is different and currently there is no way how to automatically transform the shadows.
+
+
+=== Migration steps
+
+We recommend the following migration procedure:
+
+. Add resource that will use the new LDAP connector.
+Configure it as a completely new resource using the same hostname/port/credentials as the old one.
+
+. Change assignment enforcement level to a permissive value (none or positive).
+
+. Set up a correlation expression to correlate users with the LDAP accounts.
+Reconcile the new LDAP resource.
+The result should be that the LDAP accounts on the new resource are linked.
+
+. Modify definitions of role and/or direct assignments to point to the new LDAP resource instead of the old one.
+Resource reference (resourceRef) needs to be changed, but also any mappings for identifier attributes (link:http://icfsname[icfs:name] and link:http://icfsuid[icfs:uid] in the old connector).
+
+. Delete old LDAP resource and all shadows that belong to that resource (there is now an option to do this efficiently in the Repository Objects GUI page).
+
+. Recompute the users.
+This should remove the orphaned linkRefs in user objects.
+
+. Double-ckeck that every thing is switched to the new resource (roles, assignments, shadows exist and are linked to users).
+
+. Change assignment enforcement level to the original.
+
+
+== Migration: Legacy LDAP Connector
+
+The legacy LDAP connector is still available and it still can be used.
+This avoids the need for data (shadow) migration.
+There is only a change in legacy LDAP connector bundle name (from com.evolveum.polygon.connector-ldap to com.evolveum.polygon.connector-ldap-legacy).
+
+To use the legacy LDAP connector in midPoint 3.2 or later please follow these steps:
+
+. Download JAR of the legacy LDAP connector and deploy it into midPoint
+
+. In all the resource definitions change connectorRef to point to the newly discovered legacy LDAP connector.
+
+. In all the resource definitions change connector configuration namespace from http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/org.identityconnectors.ldap.LdapConnector to http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap-legacy/org.identityconnectors.ldap.LdapConnector.
+
+. No change in configuration, shadows or roles is needed.
+
+The legacy LDAP connector will be maintained for a reasonable migration period which mostly depends on the requirements of midPoint subscribers.
+After that period the legacy connector will no longer be supported.
+Therefore please plan the migration to the new connector accordingly.
+
+
+== See Also
+
+* xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP Connector]
+
+* Legacy+JNDI+LDAP+Connector[Legacy LDAP Connector]
+
+* xref:/connectors/connid/1.x/icf-issues/[ICF Issues]

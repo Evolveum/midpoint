@@ -1,0 +1,56 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Show* data source example for *"Search for all"* | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/query-all.json[GitHub]
+[%collapsible]
+====
+[source, json]
+----
+{
+  "query" : ""
+}
+----
+====
+
+The response is an HTTP 200 code in case of success with a response body containing the queried items.
+
+.Example Output is a list of objects.
+[%collapsible]
+====
+[source, json]
+----
+{
+  "@ns" : "http://prism.evolveum.com/xml/ns/public/types-3",
+  "object" : {
+    "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/api-types-3#ObjectListType",
+    "object" : [ {
+      "@type" : "",
+      "oid" : "",
+      "version" : "",
+      "name" : "",
+      "metadata" : {},
+      "operationExecution": {},
+      "indestructible": ,
+      "iteration" : ,
+      "iterationToken" : "",
+      "archetypeRef": {},
+      "roleMembershipRef": {},
+      "activation": {}
+    }, {
+      "@type" : "",
+      "oid" : "",
+      "version" : "",
+      "name" : "",
+      "metadata" : {},
+      "operationExecution": {},
+      "indestructible": ,
+      "iteration" : ,
+      "iterationToken" : "",
+      "archetypeRef": {},
+      "roleMembershipRef": {},
+      "activation": {}
+    } ]
+  }
+}
+----
+====

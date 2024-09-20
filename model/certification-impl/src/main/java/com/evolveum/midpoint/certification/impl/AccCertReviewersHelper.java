@@ -51,12 +51,12 @@ public class AccCertReviewersHelper {
     @Autowired private AccCertExpressionHelper expressionHelper;
     @Autowired private RelationRegistry relationRegistry;
 
-    AccessCertificationReviewerSpecificationType findReviewersSpecification(AccessCertificationCampaignType campaign, int stage) {
+    public AccessCertificationReviewerSpecificationType findReviewersSpecification(AccessCertificationCampaignType campaign, int stage) {
         return CertCampaignTypeUtil.findStageDefinition(campaign, stage)
                 .getReviewerSpecification();
     }
 
-    List<ObjectReferenceType> getReviewersForCase(
+    public List<ObjectReferenceType> getReviewersForCase(
             AccessCertificationCaseType _case,
             AccessCertificationCampaignType campaign,
             AccessCertificationReviewerSpecificationType reviewerSpec,
@@ -182,7 +182,7 @@ public class AccCertReviewersHelper {
             }
             List<ObjectReferenceType> retval = new ArrayList<>(managers.size());
             for (UserType manager : managers) {
-                retval.add(ObjectTypeUtil.createObjectRef(manager, prismContext));
+                retval.add(ObjectTypeUtil.createObjectRef(manager));
             }
             return retval;
         } catch (SecurityViolationException e) {

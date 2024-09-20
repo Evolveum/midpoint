@@ -19,11 +19,14 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
@@ -32,15 +35,12 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
@@ -72,13 +72,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
 
     @Override
     protected ISelectableDataProvider<PrismContainerValueWrapper<C>> createProvider() {
-        return new MultivalueContainerListDataProvider<>(MultivalueContainerListPanel.this, getSearchModel(), new PropertyModel<>(getContainerModel(), "values")) {
-
-            @Override
-            protected PageStorage getPageStorage() {
-                return MultivalueContainerListPanel.this.getPageStorage();
-            }
-        };
+        return new MultivalueContainerListDataProvider<>(MultivalueContainerListPanel.this, getSearchModel(), new PropertyModel<>(getContainerModel(), "values"));
     }
 
     @Override
@@ -109,7 +103,19 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         return "MainObjectListPanel.newObject";
     }
 
-    protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc) {
+    /**
+     * Basic method for creating new value for multivalue container.
+     */
+    protected final void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc) {
+        newItemPerformed(null, target, relationSepc, false);
+    }
+
+    /**
+     * This method create new value wrapper for multivalue container wrapper,
+     * but in new wrapper use prism value in parameter 'value'.
+     * This method is usefully for duplication.
+     */
+    protected void newItemPerformed(PrismContainerValue<C> value, AjaxRequestTarget target, AssignmentObjectRelation relationSpec, boolean isDuplicate) {
 
     }
 
@@ -144,21 +150,13 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
 
     public List<InlineMenuItem> getDefaultMenuActions() {
         List<InlineMenuItem> menuItems = new ArrayList<>();
-        menuItems.add(new ButtonInlineMenuItem(createStringResource("pageAdminFocus.button.delete")) {
-            private static final long serialVersionUID = 1L;
+        menuItems.add(createDeleteInlineMenu());
+        menuItems.add(createEditInlineMenu());
+        return menuItems;
+    }
 
-            @Override
-            public CompositedIconBuilder getIconCompositedBuilder(){
-                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_DELETE_MENU_ITEM);
-            }
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return createDeleteColumnAction();
-            }
-        });
-
-        menuItems.add(new ButtonInlineMenuItem(createStringResource("PageBase.button.edit")) {
+    protected ButtonInlineMenuItem createEditInlineMenu() {
+        return new ButtonInlineMenuItem(createStringResource("PageBase.button.edit")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -170,10 +168,33 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
             public InlineMenuItemAction initAction() {
                 return createEditColumnAction();
             }
-        });
-        return menuItems;
+
+            @Override
+            public boolean isHeaderMenuItem() {
+                return allowEditMultipleValuesAtOnce();
+            }
+        };
     }
 
+    protected ButtonInlineMenuItem createDeleteInlineMenu() {
+        return new ButtonInlineMenuItem(createStringResource("pageAdminFocus.button.delete")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder(){
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_DELETE_MENU_ITEM);
+            }
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return createDeleteColumnAction();
+            }
+        };
+    }
+
+    protected boolean allowEditMultipleValuesAtOnce() {
+        return true;
+    }
 
     public <AH extends AssignmentHolderType> PrismObject<AH> getFocusObject(){
         PageBase pageBase = getPageBase();
@@ -266,5 +287,28 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
     @Override
     public List<C> getSelectedRealObjects() {
         return getSelectedObjects().stream().map(o -> o.getRealValue()).collect(Collectors.toList());
+    }
+
+    @Override
+    protected void addBasicActions(List<InlineMenuItem> menuItems) {
+        if (!isDuplicationSupported()) {
+            return;
+        }
+        DuplicationProcessHelper.addDuplicationActionForContainer(
+                menuItems,
+                (value, target) -> newItemPerformed((PrismContainerValue<C>) value, target, null, true),
+                getPageBase());
+    }
+
+    /**
+     * Define whether duplication action for item of table will be added to item menu.
+     */
+    protected boolean isDuplicationSupported() {
+        return isCreateNewObjectVisible();
+    }
+
+    @Override
+    protected boolean isFulltextEnabled() {
+        return false;
     }
 }

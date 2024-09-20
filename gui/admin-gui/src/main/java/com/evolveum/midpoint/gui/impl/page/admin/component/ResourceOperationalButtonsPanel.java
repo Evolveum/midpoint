@@ -10,15 +10,28 @@ package com.evolveum.midpoint.gui.impl.page.admin.component;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 
 import com.evolveum.midpoint.gui.impl.component.input.LifecycleStatePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceObjectsPanel;
 import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaHandlingType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
 
@@ -33,11 +46,14 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.SchemaCapabi
 
 public abstract class ResourceOperationalButtonsPanel extends AssignmentHolderOperationalButtonsPanel<ResourceType> {
 
+    private static final Trace LOGGER = TraceManager.getTrace(ResourceOperationalButtonsPanel.class);
+
     private static final String DOT_CLASS = ResourceOperationalButtonsPanel.class.getName() + ".";
     private static final String OPERATION_REFRESH_SCHEMA = DOT_CLASS + "refreshSchema";
     private static final String OPERATION_SET_MAINTENANCE = DOT_CLASS + "setMaintenance";
     private static final String OPERATION_SET_LIFECYCLE_STATE = DOT_CLASS + "setLifecycleState";
 
+    private static final String ID_RESOURCE_OPERATIONS_CONTAINER="resourceOperationsContainer";
     private static final String ID_RESOURCE_BUTTONS = "resourceButtons";
     private static final String ID_LIFECYCLE_STATE_PANEL = "lifecycleStatePanel";
 
@@ -52,9 +68,19 @@ public abstract class ResourceOperationalButtonsPanel extends AssignmentHolderOp
     }
 
     private void initLayout() {
+        WebMarkupContainer resourceOperationsContainer = new WebMarkupContainer(ID_RESOURCE_OPERATIONS_CONTAINER){
+            @Override
+            public boolean isVisible() {
+                return !WebComponentUtil.isTemplateCategory(getPrismObject().asObjectable());
+            }
+        };
+        resourceOperationsContainer.setOutputMarkupId(true);
+        add(resourceOperationsContainer);
+
         RepeatingView resourceButtons = new RepeatingView(ID_RESOURCE_BUTTONS);
-        add(resourceButtons);
         initResourceButtons(resourceButtons);
+        resourceOperationsContainer.add(resourceButtons);
+
         initLifecycleStatePanel(ID_LIFECYCLE_STATE_PANEL);
     }
 
@@ -67,11 +93,6 @@ public abstract class ResourceOperationalButtonsPanel extends AssignmentHolderOp
             @Override
             public void onClick(AjaxRequestTarget target) {
                 testConnectionPerformed(target);
-            }
-
-            @Override
-            public boolean isVisible() {
-                return !WebComponentUtil.isTemplateCategory(getPrismObject().asObjectable());
             }
         };
         test.showTitleAsLabel(true);
@@ -123,9 +144,32 @@ public abstract class ResourceOperationalButtonsPanel extends AssignmentHolderOp
                 getBaseFormComponent().add(new OnChangeAjaxBehavior() {
                     @Override
                     protected void onUpdate(AjaxRequestTarget target) {
-                        WebComponentUtil.saveObjectLifeCycle(
-                                getPrismObject(), OPERATION_SET_LIFECYCLE_STATE, target, getPageBase());
-                        refreshStatus(target);
+
+                        ConfirmationPanel confirm = new ConfirmationPanel(
+                                getPageBase().getMainPopupBodyId(),
+                                getPageBase().createStringResource("ResourceOperationalButtonsPanel.confirm.lifecycleState")) {
+                            @Override
+                            public void yesPerformed(AjaxRequestTarget target) {
+                                WebComponentUtil.saveObjectLifeCycle(
+                                        getPrismObject(), OPERATION_SET_LIFECYCLE_STATE, target, getPageBase());
+                                refreshStatus(target);
+                            }
+
+                            @Override
+                            public void noPerformed(AjaxRequestTarget target) {
+                                super.noPerformed(target);
+                                try {
+                                    String realValue = model.getObject().getValue().getOldValue().getRealValue();
+                                    model.getObject().getValue().setStatus(ValueStatus.NOT_CHANGED);
+                                    model.getObject().getValue().getNewValue().setValue(realValue);
+                                    target.add(ResourceOperationalButtonsPanel.this.get(ID_LIFECYCLE_STATE_PANEL));
+                                    target.add(ResourceOperationalButtonsPanel.this.get(ID_LIFECYCLE_STATE_PANEL).getParent());
+                                } catch (SchemaException e) {
+                                    LOGGER.error("Couldn't get value of " + model.getObject());
+                                }
+                            }
+                        };
+                        getPageBase().showMainPopup(confirm, target);
                     }
                 });
             }

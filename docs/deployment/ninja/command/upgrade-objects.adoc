@@ -1,0 +1,25 @@
+= Upgrade objects
+
+Command `upgrade-objects` can be used to _upgrade_ objects to get rid of deprecated or obsolete data and configuration.
+This operation should be used with CSV output file from `verify` command.
+For more information about verification, see xref:./verify.adoc[].
+
+Verification report should be reviewed before running upgrade command.
+It is important to understand what will be changed and how can it affect the system.
+
+Only verification items with _type = seamless_ will be updated.
+Scope of upgrade-objects command can be set in several ways:
+
+* by oid (`--oid`)
+* by type (`-t, --type`) and filter (`-f, --filter`)
+
+This way it is possible to upgrade only specific objects.
+Verification items can be skipped also using last column in CSV file.
+Any of `true`, `t`, `yes`, `y` will tell ninja to skip the item.
+
+.Example of command that upgrades objects, also with
+[source,bash]
+----
+./bin/ninja.sh upgrade-objects \
+  --verification-file verify-output.csv
+----

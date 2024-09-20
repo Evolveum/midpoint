@@ -287,7 +287,7 @@ public class RepositoryCache implements RepositoryService, Cache {
     }
 
     @Override
-    public RepositoryDiag getRepositoryDiag() {
+    public @NotNull RepositoryDiag getRepositoryDiag() {
         Long startTime = repoOpStart();
         try {
             return repositoryService.getRepositoryDiag();
@@ -449,6 +449,16 @@ public class RepositoryCache implements RepositoryService, Cache {
 
     public void setModifyRandomDelayRange(Integer modifyRandomDelayRange) {
         modificationOpHandler.setModifyRandomDelayRange(modifyRandomDelayRange);
+    }
+
+    @Override
+    public void createPartitionsForExistingData(OperationResult parentResult) throws SchemaException {
+        repositoryService.createPartitionsForExistingData(parentResult);
+    }
+
+    @Override
+    public void applyRepositoryConfiguration(RepositoryConfigurationType repositoryConfig) {
+        repositoryService.applyRepositoryConfiguration(repositoryConfig);
     }
 
     //endregion

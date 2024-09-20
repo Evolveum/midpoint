@@ -7,9 +7,8 @@
 <role oid="10000000-0000-0000-0000-000000001601"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-        xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <name>Swashbuckler</name>
     <description>Scurvy Swashbuckler</description>
     <inducement>
@@ -39,8 +38,10 @@
                 <outbound>
                     <strength>strong</strength>
                     <expression>
-                        <value>
-                            <shadowRef oid="20000000-0000-0000-3333-000000000001" type="ShadowType"/>
+                        <value xsi:type="ShadowAssociationValueType">
+                            <objects>
+                                <ri:group oid="20000000-0000-0000-3333-000000000001"/>
+                            </objects>
                         </value>
                     </expression>
                 </outbound>

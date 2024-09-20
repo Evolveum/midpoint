@@ -9,10 +9,13 @@ package com.evolveum.midpoint.repo.sql.helpers.delta;
 import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
-import jakarta.persistence.metamodel.ManagedType;
 
+import jakarta.persistence.EntityManager;
+
+import com.evolveum.midpoint.schema.util.cid.ContainerValueIdGenerator;
+
+import jakarta.persistence.metamodel.ManagedType;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -67,7 +70,7 @@ public class ObjectDeltaUpdater {
      */
     public <T extends ObjectType> RObject modifyObject(Class<T> type, String oid,
             Collection<? extends ItemDelta<?, ?>> modifications,
-            PrismObject<T> prismObject, RepoModifyOptions modifyOptions, Session session,
+            PrismObject<T> prismObject, RepoModifyOptions modifyOptions, EntityManager em,
             ObjectUpdater.AttemptContext attemptContext) throws SchemaException {
 
         LOGGER.trace("Starting to build entity changes for {}, {}, \n{}", type, oid, DebugUtil.debugDumpLazily(modifications));
@@ -87,11 +90,12 @@ public class ObjectDeltaUpdater {
 
         // validate metadata/*, assignment/metadata/*, assignment/construction/resourceRef changes
 
-        PrismIdentifierGenerator idGenerator =
-                new PrismIdentifierGenerator(PrismIdentifierGenerator.Operation.MODIFY);
-        idGenerator.collectUsedIds(prismObject);
+        ContainerValueIdGenerator idGenerator = new ContainerValueIdGenerator(prismObject);
+        idGenerator.generateForNewObject();
 
-        UpdateContext ctx = new UpdateContext(this, modifyOptions, idGenerator, session, attemptContext);
+
+
+        UpdateContext ctx = new UpdateContext(this, modifyOptions, idGenerator, em, attemptContext);
 
         // Preprocess modifications: We want to process only real modifications.
         //
@@ -102,16 +106,16 @@ public class ObjectDeltaUpdater {
         //
         // Category-2 changes are to be treated very carefully: we should avoid phantom add+delete in tables.
         // Category-3 changes are (hopefully) not narrowed out. [See assumeMissingItems / MID-5280.]
-        Collection<? extends ItemDelta<?, ?>> narrowedModifications = prismObject.narrowModifications(modifications,
-                EquivalenceStrategy.DATA, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS, true);
-        LOGGER.trace("Narrowed modifications:\n{}", DebugUtil.debugDumpLazily(narrowedModifications));
+
+        // Modifications were narrowed in caller in order to propagate value to result.
+        Collection<? extends ItemDelta<?, ?>> narrowedModifications = modifications;
 
         // Here we can still have some ADD or REPLACE operations that are significant from the point of full object application
         // but irrelevant as far as "index" tables are concerned. I.e. category-2 changes. For example, ADD values with
         // different operational data or value metadata.
 
         Class<? extends RObject> objectClass = RObjectType.getByJaxbType(type).getClazz();
-        RObject object = session.byId(objectClass).getReference(oid);
+        RObject object = em.getReference(objectClass, oid);
 
         // Is this correct? should we get type from rObject?
         //ManagedType<T> mainEntityType = entityRegistry.getJaxbMapping(type);
@@ -135,7 +139,7 @@ public class ObjectDeltaUpdater {
     }
 
     private <T extends ObjectType> void handleObjectCommonAttributes(Class<T> type, Collection<? extends ItemDelta<?, ?>> modifications,
-            PrismObject<T> prismObject, RObject object, PrismIdentifierGenerator idGenerator) throws SchemaException {
+            PrismObject<T> prismObject, RObject object, ContainerValueIdGenerator idGenerator) throws SchemaException {
 
         // update version
         String strVersion = prismObject.getVersion();
@@ -153,6 +157,7 @@ public class ObjectDeltaUpdater {
 
         // apply modifications, ids' for new containers already filled in delta values
         for (ItemDelta<?, ?> modification : modifications) {
+            idGenerator.processModification(modification);
             if (modification.getDefinition() == null || !modification.getDefinition().isIndexOnly()) {
                 modification.applyTo(prismObject);
             } else {
@@ -164,7 +169,7 @@ public class ObjectDeltaUpdater {
         handleObjectTextInfoChanges(type, modifications, prismObject, object);
 
         // generate ids for containers that weren't handled in previous step (not processed by repository)
-        idGenerator.generate(prismObject);
+        //idGenerator.generate(prismObject);
 
         // normalize all relations
         ObjectTypeUtil.normalizeAllRelations(prismObject, relationRegistry);

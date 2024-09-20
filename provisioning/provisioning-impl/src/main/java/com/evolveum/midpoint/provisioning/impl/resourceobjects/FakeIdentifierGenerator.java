@@ -7,11 +7,14 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
-import static com.evolveum.midpoint.provisioning.util.ProvisioningUtil.selectPrimaryIdentifiers;
-
 import java.util.Collection;
+import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.processor.*;
+
+import com.evolveum.midpoint.util.QNameUtil;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -27,7 +30,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 @Component
 class FakeIdentifierGenerator {
 
-    void addFakePrimaryIdentifierIfNeeded(Collection<ResourceAttribute<?>> identifiers, Object primaryIdentifierRealValue,
+    void addFakePrimaryIdentifierIfNeeded(Collection<ShadowSimpleAttribute<?>> identifiers, Object primaryIdentifierRealValue,
             ResourceObjectDefinition definition) throws SchemaException {
         if (primaryIdentifierRealValue != null && definition != null &&
                 selectPrimaryIdentifiers(identifiers, definition).isEmpty()) {
@@ -35,26 +38,40 @@ class FakeIdentifierGenerator {
         }
     }
 
-    void addFakePrimaryIdentifierIfNeeded(ResourceAttributeContainer attrContainer, Object primaryIdentifierRealValue,
+    void addFakePrimaryIdentifierIfNeeded(
+            ShadowAttributesContainer attrContainer, Object primaryIdentifierRealValue,
             @NotNull ResourceObjectDefinition objectClassDef) throws SchemaException {
         // TODO or should we use simply attrContainer.getPrimaryIdentifiers() ?
         //  It refers to the definition attached to the attrContainer.
         //  Let us be consistent with the Change-based version and use definition from the caller provisioning context.
         if (primaryIdentifierRealValue != null
                 && selectPrimaryIdentifiers(attrContainer.getAllIdentifiers(), objectClassDef).isEmpty()) {
-            attrContainer.add(createFakePrimaryIdentifier(primaryIdentifierRealValue, objectClassDef));
+            attrContainer.addAttribute(
+                    createFakePrimaryIdentifier(primaryIdentifierRealValue, objectClassDef));
         }
     }
 
-    private ResourceAttribute<?> createFakePrimaryIdentifier(Object primaryIdentifierRealValue,
+    private static Collection<ShadowSimpleAttribute<?>> selectPrimaryIdentifiers(
+            Collection<ShadowSimpleAttribute<?>> identifiers, ResourceObjectDefinition def) {
+
+        Collection<ItemName> primaryIdentifiers = def.getPrimaryIdentifiers().stream()
+                .map(ItemDefinition::getItemName)
+                .collect(Collectors.toSet());
+
+        return identifiers.stream()
+                .filter(attr -> QNameUtil.matchAny(attr.getElementName(), primaryIdentifiers))
+                .collect(Collectors.toList());
+    }
+
+    private ShadowSimpleAttribute<?> createFakePrimaryIdentifier(Object primaryIdentifierRealValue,
             ResourceObjectDefinition definition) throws SchemaException {
-        Collection<? extends ResourceAttributeDefinition<?>> primaryIdDefs = definition.getPrimaryIdentifiers();
-        ResourceAttributeDefinition<?> primaryIdDef = MiscUtil.extractSingletonRequired(primaryIdDefs,
+        Collection<? extends ShadowSimpleAttributeDefinition<?>> primaryIdDefs = definition.getPrimaryIdentifiers();
+        ShadowSimpleAttributeDefinition<?> primaryIdDef = MiscUtil.extractSingletonRequired(primaryIdDefs,
                 () -> new SchemaException("Multiple primary identifier definitions in " + definition),
                 () -> new SchemaException("No primary identifier definition in " + definition));
-        ResourceAttribute<?> primaryId = primaryIdDef.instantiate();
+        ShadowSimpleAttribute<?> primaryId = primaryIdDef.instantiate();
         //noinspection unchecked
-        ((ResourceAttribute<Object>) primaryId).setRealValue(primaryIdentifierRealValue);
+        ((ShadowSimpleAttribute<Object>) primaryId).setRealValue(primaryIdentifierRealValue);
         return primaryId;
     }
 }

@@ -8,15 +8,32 @@ package com.evolveum.midpoint.repo.sqale.qmodel.assignment;
 
 import static com.evolveum.midpoint.util.MiscUtil.asXMLGregorianCalendar;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_EFFECTIVE_MARK_REF;
 
+import java.util.Collection;
 import java.util.Objects;
+import java.util.UUID;
 
+import com.evolveum.axiom.concepts.CheckedFunction;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.path.InfraItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.schema.SchemaRegistryState;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerWithFullObjectMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.Predicate;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
-import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
@@ -26,10 +43,8 @@ import com.evolveum.midpoint.repo.sqale.qmodel.resource.QResourceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+
+import org.jetbrains.annotations.VisibleForTesting;
 
 /**
  * Mapping between {@link QAssignment} and {@link AssignmentType}.
@@ -41,7 +56,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
  * @param <OR> type of the owner row
  */
 public class QAssignmentMapping<OR extends MObject>
-        extends QContainerMapping<AssignmentType, QAssignment<OR>, MAssignment, OR> {
+        extends QContainerWithFullObjectMapping<AssignmentType, QAssignment<OR>, MAssignment, OR> {
 
     public static final String DEFAULT_ALIAS_NAME = "a";
 
@@ -50,6 +65,12 @@ public class QAssignmentMapping<OR extends MObject>
 
     /** Inducement mapping instance, this must be used for inserting inducements. */
     private static QAssignmentMapping<?> instanceInducement;
+    private final SchemaRegistryState.DerivationKey<ItemDefinition<?>> derivationKey;
+
+    private final CheckedFunction<SchemaRegistryState, ItemDefinition<?>, SystemException> derivationMapping;
+
+    private boolean storeFullObject = true;
+
 
     // Explanation in class Javadoc for SqaleTableMapping
     public static <OR extends MObject> QAssignmentMapping<OR>
@@ -84,6 +105,7 @@ public class QAssignmentMapping<OR extends MObject>
     }
 
     private final MContainerType containerType;
+    private final ItemPath path;
 
     // We can't declare Class<QAssignment<OR>>.class, so we cheat a bit.
     @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -93,6 +115,18 @@ public class QAssignmentMapping<OR extends MObject>
         super(QAssignment.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 AssignmentType.class, (Class) QAssignment.class, repositoryContext);
         this.containerType = containerType;
+        this.derivationKey = SchemaRegistryState.derivationKeyFrom(getClass(), containerType.toString());
+        this.derivationMapping = (registry) -> {
+            if (MContainerType.INDUCEMENT.equals(containerType)) {
+                var roleDef = registry.findObjectDefinitionByCompileTimeClass(AbstractRoleType.class);
+                return roleDef.findItemDefinition(AbstractRoleType.F_INDUCEMENT);
+            }
+
+            return registry.findObjectDefinitionByCompileTimeClass(AssignmentHolderType.class)
+                    .findItemDefinition(AssignmentHolderType.F_ASSIGNMENT);
+
+        };
+        this.path = MContainerType.INDUCEMENT == containerType ? AbstractRoleType.F_INDUCEMENT : AbstractRoleType.F_ASSIGNMENT;
 
         addRelationResolver(PrismConstants.T_PARENT,
                 // mapping supplier is used to avoid cycles in the initialization code
@@ -121,6 +155,10 @@ public class QAssignmentMapping<OR extends MObject>
                 q -> q.tenantRefRelationId,
                 QOrgMapping::getOrgMapping);
         addItemMapping(F_POLICY_SITUATION, multiUriMapper(q -> q.policySituations));
+
+        addRefMapping(F_EFFECTIVE_MARK_REF,
+                QAssignmentMarkReferenceMapping.initForEffectiveMark(repositoryContext));
+
         addItemMapping(F_SUBTYPE, multiStringMapper(q -> q.subtypes));
 
         addExtensionMapping(F_EXTENSION, MExtItemHolderType.EXTENSION, q -> q.ext);
@@ -176,10 +214,35 @@ public class QAssignmentMapping<OR extends MObject>
                 .addRefMapping(MetadataType.F_MODIFY_APPROVER_REF,
                         QAssignmentReferenceMapping.initForAssignmentModifyApprover(
                                 repositoryContext));
+        addContainerTableMapping(InfraItemName.METADATA,
+                QAssignmentMetadataMapping.init(repositoryContext),
+                joinOn((o, m) ->
+                        o.ownerOid.eq(m.ownerOid).and(o.cid.eq(m.assignmentCid))
+                ));
     }
 
     @Override
-    public AssignmentType toSchemaObject(MAssignment row) {
+    protected QAssignment<OR> newAliasInstance(String alias) {
+        return new QAssignment<>(alias);
+    }
+
+    @Override
+    public MAssignment newRowObject() {
+        MAssignment row = new MAssignment();
+        row.containerType = this.containerType;
+        return row;
+    }
+
+    @Override
+    public MAssignment newRowObject(OR ownerRow) {
+        MAssignment row = newRowObject();
+        row.ownerOid = ownerRow.oid;
+        row.ownerType = ownerRow.objectType;
+        return row;
+    }
+
+    @Override
+    public AssignmentType toSchemaObjectLegacy(MAssignment row) {
         // TODO is there any place we can put row.ownerOid reasonably?
         //  repositoryContext().prismContext().itemFactory().createObject(... definition?)
         //  assignment.asPrismContainerValue().setParent(new ObjectType().oid(own)); abstract not possible
@@ -244,34 +307,15 @@ public class QAssignmentMapping<OR extends MObject>
             assignment.metadata(metadata);
         }
 
+
         return assignment;
     }
-
-    @Override
-    protected QAssignment<OR> newAliasInstance(String alias) {
-        return new QAssignment<>(alias);
-    }
-
-    @Override
-    public MAssignment newRowObject() {
-        MAssignment row = new MAssignment();
-        row.containerType = this.containerType;
-        return row;
-    }
-
-    @Override
-    public MAssignment newRowObject(OR ownerRow) {
-        MAssignment row = newRowObject();
-        row.ownerOid = ownerRow.oid;
-        row.ownerType = ownerRow.objectType;
-        return row;
-    }
-
     // about duplication see the comment in QObjectMapping.toRowObjectWithoutFullObject
     @SuppressWarnings("DuplicatedCode")
     @Override
-    public MAssignment insert(AssignmentType assignment, OR ownerRow, JdbcSession jdbcSession) {
-        MAssignment row = initRowObject(assignment, ownerRow);
+    public MAssignment insert(AssignmentType assignment, OR ownerRow, JdbcSession jdbcSession) throws SchemaException {
+        assignment = assignment.clone(); // initRowObejctWithFullObject normalizes relations, this modifies delta
+        MAssignment row = storeFullObject ? initRowObjectWithFullObject(assignment, ownerRow) : initRowObject(assignment, ownerRow);
 
         row.lifecycleState = assignment.getLifecycleState();
         row.orderValue = assignment.getOrder();
@@ -341,6 +385,47 @@ public class QAssignmentMapping<OR extends MObject>
                     QAssignmentReferenceMapping.getForAssignmentModifyApprover(), jdbcSession);
         }
 
+        for(var obj :  assignment.asPrismContainerValue().getValueMetadataAsContainer().getRealValues()) {
+            if (obj instanceof ValueMetadataType valueMetadata) {
+                QAssignmentMetadataMapping.get().insert(valueMetadata, row, jdbcSession);
+            }
+        }
+
+        storeRefs(row, assignment.getEffectiveMarkRef(),
+                QAssignmentMarkReferenceMapping.getForEffectiveMark(), jdbcSession);
+
         return row;
+    }
+
+    @Override
+    public ItemPath getItemPath() {
+        return path;
+    }
+
+    @Override
+    public Predicate allOwnedBy(QAssignment<OR> orqAssignment, Collection<UUID> oidList) {
+        return orqAssignment.containerType.eq(this.containerType).and(super.allOwnedBy(orqAssignment, oidList));
+    }
+
+    @Override
+    public OrderSpecifier<?> orderSpecifier(QAssignment<OR> orqAssignment) {
+        return new OrderSpecifier<>(Order.ASC, orqAssignment.cid);
+    }
+
+
+    @VisibleForTesting
+    public void setStoreFullObject(boolean value) {
+        storeFullObject = value;
+    }
+
+    @Override
+    protected SchemaRegistryState.DerivationKey<ItemDefinition<?>> definitionDerivationKey() {
+        return derivationKey;
+    }
+
+
+    @Override
+    protected CheckedFunction<SchemaRegistryState, ItemDefinition<?>, SystemException> definitionDerivation() {
+        return derivationMapping;
     }
 }

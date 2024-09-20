@@ -16,6 +16,8 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 
@@ -117,6 +119,7 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
             getAvailableData().addAll(createDataObjectWrappers(getType(), query, optionsBuilder.build(), task, result));
 
         } catch (Exception ex) {
+            setupUserFriendlyMessage(result, ex);
             result.recordFatalError(getPageBase().createStringResource("ObjectDataProvider.message.listObjects.fatalError").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't list objects", ex);
             return handleNotSuccessOrHandledErrorInIterator(result);
@@ -132,7 +135,7 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
         return optionsBuilder;
     }
 
-    private List<SelectableBean<T>> createDataObjectWrappers(Class<T> type, ObjectQuery query,
+    protected List<SelectableBean<T>> createDataObjectWrappers(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
             throws CommonException {
         List<T> list = searchObjects(type, query, options, task, result);
@@ -162,6 +165,7 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
             ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options,
             Task task, OperationResult result) throws CommonException;
+
     public SelectableBean<T> createDataObjectWrapper(T obj) {
         SelectableBean<T> selectable = new SelectableBeanImpl<>(Model.of(obj));
 
@@ -203,13 +207,15 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
         Collection<SelectorOptions<GetOperationOptions>> options = getOptions();
 
         if (options == null) {
-            if (ResourceType.class.equals(getType())) {
+            if (ResourceType.class.equals(getType()) || ShadowType.class.equals(getType())) {
                 options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
             }
         } else {
-            if (ResourceType.class.equals(getType())) {
+            if (ResourceType.class.equals(getType()) || ShadowType.class.equals(getType())) {
                 GetOperationOptions root = SelectorOptions.findRootOptions(options);
-                root.setNoFetch(Boolean.TRUE);
+                if (root != null) {
+                    root.setNoFetch(Boolean.TRUE);
+                }
             }
         }
         return options;
@@ -234,6 +240,7 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
             Integer counted = countObjects(getType(), getQuery(), currentOptions, task, result);
             count = defaultIfNull(counted, defaultCountIfNull);
         } catch (Exception ex) {
+            setupUserFriendlyMessage(result, ex);
             result.recordFatalError(getPageBase().createStringResource("ObjectDataProvider.message.countObjects.fatalError").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count objects", ex);
         } finally {

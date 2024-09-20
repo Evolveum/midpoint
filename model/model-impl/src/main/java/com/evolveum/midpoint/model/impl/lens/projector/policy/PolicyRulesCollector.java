@@ -49,6 +49,7 @@ import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule.TargetType.DIRECT_ASSIGNMENT_TARGET;
 import static com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule.TargetType.INDIRECT_ASSIGNMENT_TARGET;
+import static com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator.EvaluationContext.forModelContext;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
@@ -256,7 +257,7 @@ class PolicyRulesCollector<O extends ObjectType> {
         checkInitialized();
         Collection<GlobalPolicyRuleType> allGlobalRules = rulesWithIds.stream()
                 .map(GlobalRuleWithId::ruleCI)
-                .map(GlobalPolicyRuleConfigItem::value)
+                .map(ci -> ci.value())
                 .collect(Collectors.toList());
         PolicyRuleTypeUtil.resolveConstraintReferences(rules, allGlobalRules);
     }
@@ -284,10 +285,10 @@ class PolicyRulesCollector<O extends ObjectType> {
                 new ObjectDeltaObject<>(focus, null, focus, focus.getDefinition()) : null;
         PrismObject<?> target = evaluatedAssignment != null ? evaluatedAssignment.getTarget() : null;
 
-        builder = builder.mappingBean(condition.value(), condition.origin()) // [EP:M:PRC] DONE^
+        builder = builder.mapping(condition) // [EP:M:PRC] DONE^
                 .mappingKind(MappingKindType.POLICY_RULE_CONDITION)
                 .contextDescription("condition in global policy rule " + ruleCI.getName())
-                .sourceContext(focusOdo)
+                .defaultSourceContextIdi(focusOdo)
                 .defaultTargetDefinition(LensUtil.createConditionDefinition())
                 .addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo)
                 .addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo)
@@ -299,11 +300,11 @@ class PolicyRulesCollector<O extends ObjectType> {
                         ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, evaluatedAssignment, EvaluatedAssignment.class)
                 .addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT,
                         evaluatedAssignment != null ? evaluatedAssignment.getAssignment() : null, AssignmentType.class)
-                .rootNode(focusOdo);
+                .addRootVariableDefinition(focusOdo);
 
         MappingImpl<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> mapping = builder.build();
 
-        ModelBeans.get().mappingEvaluator.evaluateMapping(mapping, context, task, result);
+        ModelBeans.get().mappingEvaluator.evaluateMapping(mapping, forModelContext(context), task, result);
 
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> conditionTriple = mapping.getOutputTriple();
         return conditionTriple != null

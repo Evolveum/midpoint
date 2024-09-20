@@ -333,6 +333,7 @@ public class PolicyRuleTypeUtil {
                 && visit(pc.getAssignment(), F_ASSIGNMENT, visitor)
                 && visit(pc.getHasAssignment(), F_HAS_ASSIGNMENT, visitor)
                 && visit(pc.getHasNoAssignment(), F_HAS_NO_ASSIGNMENT, visitor)
+                && visit(pc.getRequirement(), F_REQUIREMENT, visitor)
                 && visit(pc.getModification(), F_MODIFICATION, visitor)
                 && visit(pc.getObjectTimeValidity(), F_OBJECT_TIME_VALIDITY, visitor)
                 && visit(pc.getAssignmentTimeValidity(), F_ASSIGNMENT_TIME_VALIDITY, visitor)

@@ -219,7 +219,7 @@ public class PageEmailNonce extends PageAbstractAuthenticationModule<CredentialM
     }
 
     @Override
-    protected IModel<String> getLoginPanelTitleModel() {
+    protected IModel<String> getDefaultLoginPanelTitleModel() {
         return new LoadableModel<>() {
             @Serial private static final long serialVersionUID = 1L;
 
@@ -231,7 +231,7 @@ public class PageEmailNonce extends PageAbstractAuthenticationModule<CredentialM
     }
 
     @Override
-    protected IModel<String> getLoginPanelDescriptionModel() {
+    protected IModel<String> getDefaultLoginPanelDescriptionModel() {
         return new LoadableModel<>() {
             @Serial private static final long serialVersionUID = 1L;
 

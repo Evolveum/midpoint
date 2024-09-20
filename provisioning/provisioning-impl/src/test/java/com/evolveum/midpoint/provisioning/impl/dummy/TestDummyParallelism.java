@@ -17,6 +17,10 @@ import java.util.Random;
 import java.util.concurrent.Callable;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.RawRepoShadow;
+
+import com.evolveum.midpoint.test.asserter.RepoShadowAsserter;
+
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -36,7 +40,7 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -44,7 +48,6 @@ import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.util.Counter;
 import com.evolveum.midpoint.test.util.ParallelTestThread;
 import com.evolveum.midpoint.util.exception.*;
@@ -111,8 +114,8 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 
     // test000-test106 in the superclasses
 
-    protected void assertWillRepoShadowAfterCreate(PrismObject<ShadowType> repoShadow) {
-        ShadowAsserter.forShadow(repoShadow, "repo")
+    protected void assertWillRepoShadowAfterCreate(RawRepoShadow repoShadow) throws SchemaException, ConfigurationException {
+        assertRepoShadowNew(repoShadow)
                 .assertActiveLifecycleState()
                 .pendingOperations()
                 .singleOperation()
@@ -142,7 +145,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
         assertSuccess(result);
 
         //noinspection unchecked
-        assertDummyAccount(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid)
+        assertDummyAccount(getWillNameOnResource(), willIcfUid)
                 .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Pirate Will Turner");
 
         assertRepoShadow(ACCOUNT_WILL_OID)
@@ -174,7 +177,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
         assertSuccess(result);
         syncServiceMock.assertSingleNotifySuccessOnly();
 
-        assertNoDummyAccount(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
+        assertNoDummyAccount(getWillNameOnResource(), willIcfUid);
 
         assertRepoShadow(ACCOUNT_WILL_OID)
                 .assertDead()
@@ -243,7 +246,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 
         successCounter.assertCount("Wrong number of successful operations", 1);
 
-        PrismObject<ShadowType> shadowAfter = provisioningService.getObject(ShadowType.class, accountMorganOid, null, task, result);
+        var shadowAfter = provisioningService.getShadow(accountMorganOid, null, task, result);
         display("Shadow after", shadowAfter);
 
         assertDummyResourceWriteOperationCountIncrement(null, 1);
@@ -679,7 +682,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
         dummyResource.setSyncSearchHandlerStart(false);
         successCounter.assertCount("Wrong number of successful operations", 10);
 
-        PrismObject<ShadowType> shadowAfter = provisioningService.getObject(ShadowType.class, groupScumOid, null, task, result);
+        var shadowAfter = provisioningService.getShadow(groupScumOid, null, task, result);
         display("Shadow after", shadowAfter);
 
         checkUniqueness(shadowAfter);
@@ -693,10 +696,10 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
                 RESOURCE_DUMMY_OID,
                 new QName(MidPointConstants.NS_RI, OBJECTCLASS_GROUP_LOCAL_NAME));
 
-        ResourceAttributeDefinition<?> attrDef =
-                ResourceSchemaFactory.getRawSchemaRequired(resource.asObjectable())
+        ShadowSimpleAttributeDefinition<?> attrDef =
+                ResourceSchemaFactory.getCompleteSchemaRequired(resource.asObjectable())
                         .findObjectClassDefinitionRequired(RI_GROUP_OBJECT_CLASS)
-                        .findAttributeDefinitionRequired(SchemaConstants.ICFS_NAME);
+                        .findSimpleAttributeDefinitionRequired(SchemaConstants.ICFS_NAME);
         ObjectFilter nameFilter = prismContext.queryFor(ShadowType.class)
                 .itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getItemName()).eq(groupName)
                 .buildFilter();
@@ -842,11 +845,10 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
             provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, task, result);
             return list;
 
-        } else if (op == 2) {
+        } else {
             ObjectQuery query = ObjectQueryUtil.createResourceAndKind(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT);
             return provisioningService.searchObjects(ShadowType.class, query, null, task, result);
         }
-        return null;
     }
 
     private void messResource(int threadIndex, int i)

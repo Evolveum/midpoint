@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.api;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -97,7 +98,7 @@ public interface ModelInteractionService {
      * add of a user or change of a shadow. The resulting context will sort that out to "focus" and "projection" as needed.
      * The supplied delta will be used as a primary change. The resulting context will reflect both this primary change and
      * any resulting secondary changes.
-     * <p>
+     *
      * The changes are only computed, NOT EXECUTED. It also does not change any state of any repository object or task. Therefore,
      * this method is safe to use anytime. However, it is reading the data from the repository and possibly also from the resources
      * therefore there is still potential for communication (and other) errors and invocation of this method may not be cheap.
@@ -105,16 +106,48 @@ public interface ModelInteractionService {
      * by the resource are not taken into account while recomputing the values. This may also cause errors if some expressions depend
      * on the generated values.
      *
-     * @param task Task is expected to have execution mode != {@link com.evolveum.midpoint.schema.TaskExecutionMode#PRODUCTION} otherwise exception is thrown
+     * This method uses the simulations feature that is more precise than the original (pre-4.9) implementation.
+     *
+     * Some of the differences may not be wanted, though. Please consider using
+     *
+     * - {@link ModelExecuteOptions#firstClickOnly()} to avoid iteration through projection/simulated-execution cycles,
+     * influencing the evaluated assignments' structures
+     * - {@link ModelExecuteOptions#previewPolicyRulesEnforcement()} to return policy enforcement results in the form
+     * of informational messages, instead of throwing {@link PolicyViolationException}s
      */
-    <F extends ObjectType> ModelContext<F> previewChanges(
-            Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult result)
+    default <F extends ObjectType> ModelContext<F> previewChanges(
+            Collection<ObjectDelta<? extends ObjectType>> deltas,
+            ModelExecuteOptions options,
+            Task task,
+            OperationResult result)
+            throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
+            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+        return previewChanges(deltas, options, task, Collections.emptyList(), result);
+    }
+
+    /** This method uses the simulations feature that is more precise than the original (pre-4.9) implementation. */
+    <F extends ObjectType> @NotNull ModelContext<F> previewChanges(
+            Collection<ObjectDelta<? extends ObjectType>> deltas,
+            ModelExecuteOptions options,
+            Task task,
+            Collection<ProgressListener> listeners,
+            OperationResult result)
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
             ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException;
 
-    <F extends ObjectType> ModelContext<F> previewChanges(
-            Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, Collection<ProgressListener> listeners, OperationResult result)
-            throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException;
+    /**
+     * The legacy implementation that uses specialized code for previewing changes.
+     *
+     * TODO Remove before 4.9 release.
+     */
+    <F extends ObjectType> ModelContext<F> previewChangesLegacy(
+            Collection<ObjectDelta<? extends ObjectType>> deltas,
+            ModelExecuteOptions options,
+            Task task,
+            Collection<ProgressListener> listeners,
+            OperationResult result)
+            throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
+            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException;
 
     <F extends ObjectType> ModelContext<F> unwrapModelContext(LensContextType wrappedContext, Task task, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException,
@@ -144,7 +177,7 @@ public interface ModelInteractionService {
      * @param object object to edit
      * @return schema with correctly set constraint parts or null
      */
-    <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(
+    <O extends ObjectType> @NotNull PrismObjectDefinition<O> getEditObjectDefinition(
             PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, SecurityViolationException;
@@ -521,6 +554,9 @@ public interface ModelInteractionService {
      */
     <O extends AbstractRoleType> AssignmentCandidatesSpecification determineAssignmentHolderSpecification(PrismObject<O> assignmentTarget, OperationResult result) throws SchemaException, ConfigurationException;
 
+    @NotNull List<ArchetypeType> determineArchetypes(@Nullable ObjectType object, OperationResult result)
+            throws SchemaException;
+
     /**
      * Returns all policy rules that apply to the collection.
      * Later, the policy rules are compiled from all the applicable sources (target, meta-roles, etc.).
@@ -724,4 +760,13 @@ public interface ModelInteractionService {
      */
     void applyDefinitions(ShadowType shadow, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectNotFoundException;
+
+    /**
+     * Determines if the object is of the specified archetype considering also archetypes hierarchy.
+     * In other works, looks recursively at superArchetypeRef is there is a match with specified archetype
+     * Later, this should be the functionality directly supported in DB (and midPoint query language)
+     */
+    boolean isOfArchetype(AssignmentHolderType assignmentHolderType, String archetypeOid, OperationResult result) throws SchemaException, ConfigurationException;
+
+    boolean isSubarchetypeOrArchetype(String archetypeOid, String parentArchetype, OperationResult result);
 }

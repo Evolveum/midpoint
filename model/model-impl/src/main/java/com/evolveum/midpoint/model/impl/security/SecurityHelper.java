@@ -61,7 +61,6 @@ public class SecurityHelper implements ModelAuditRecorder {
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private ArchetypeManager archetypeManager;
 
-
     @Override
     public void auditLoginSuccess(@NotNull ObjectType object, @NotNull ConnectionEnvironment connEnv) {
         FocusType focus = null;
@@ -202,10 +201,19 @@ public class SecurityHelper implements ModelAuditRecorder {
         return null;
     }
 
-    private <F extends FocusType> SecurityPolicyType locateFocusSecurityPolicyFromOrgs(PrismObject<F> focus, Task task,
-            OperationResult result) throws SchemaException {
-        PrismObject<SecurityPolicyType> orgSecurityPolicy = objectResolver.searchOrgTreeWidthFirstReference(focus,
-                o -> o.asObjectable().getSecurityPolicyRef(), "security policy", task, result);
+    private <F extends FocusType> SecurityPolicyType locateFocusSecurityPolicyFromOrgs(
+            PrismObject<F> focus, Task task, OperationResult result) throws SchemaException {
+        PrismObject<SecurityPolicyType> orgSecurityPolicy = objectResolver.searchOrgTreeWidthFirstReference(
+                focus,
+                org -> {
+                    // For create-on-demand feature used in "safe" preview mode (the default), the org returned here may be null.
+                    // (It is unlike real simulations that go a step further, and provide in-memory object here.)
+                    // If the org is null, we have nothing to do; we simply return null policy reference.
+                    return org != null ? org.asObjectable().getSecurityPolicyRef() : null;
+                },
+                "security policy",
+                task,
+                result);
         LOGGER.trace("Found organization security policy: {}", orgSecurityPolicy);
         if (orgSecurityPolicy != null) {
             SecurityPolicyType orgSecurityPolicyType = orgSecurityPolicy.asObjectable();

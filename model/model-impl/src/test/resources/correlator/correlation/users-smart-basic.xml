@@ -17,7 +17,7 @@
         <identities>
             <identity>
                 <source>
-                    <originRef oid="431e2149-c8d7-47a3-a983-a32dd708275f" type="ServiceType"/> <!-- random1 -->
+                    <resourceRef oid="431e2149-c8d7-47a3-a983-a32dd708275f"/> <!-- random1 -->
                 </source>
                 <data xsi:type="UserType">
                     <givenName>John</givenName> <!-- an alternative -->
@@ -25,14 +25,14 @@
             </identity>
             <identity>
                 <source>
-                    <originRef oid="547bad7a-dbfc-4b73-b7fb-27d4ba195fc9" type="ServiceType"/> <!-- random2 -->
+                    <resourceRef oid="547bad7a-dbfc-4b73-b7fb-27d4ba195fc9"/> <!-- random2 -->
                 </source>
                 <data xsi:type="UserType">
                     <givenName>Ian</givenName> <!-- an alternative -->
                 </data>
             </identity>
             <defaultAuthoritativeSource>
-                <originRef oid="431e2149-c8d7-47a3-a983-a32dd708275f" type="ServiceType"/> <!-- random1 -->
+                <resourceRef oid="431e2149-c8d7-47a3-a983-a32dd708275f"/> <!-- random1 -->
             </defaultAuthoritativeSource>
         </identities>
         <givenName>John</givenName>

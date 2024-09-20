@@ -13,6 +13,8 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -29,6 +31,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author katka
@@ -101,8 +105,23 @@ public class PrismContainerWrapperImpl<C extends Containerable>
     }
 
     @Override
-    public PrismContainerDefinition<C> cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition) {
-        return getItemDefinition().cloneWithReplacedDefinition(itemName, newDefinition);
+    public PrismContainerDefinition<C> cloneWithNewDefinition(QName newItemName, ItemDefinition newDefinition) {
+        return getItemDefinition().cloneWithNewDefinition(newItemName, newDefinition);
+    }
+
+    @Override
+    public @NotNull ItemDefinition<PrismContainer<C>> cloneWithNewName(@NotNull ItemName itemName) {
+        throw new UnsupportedOperationException("Implement if needed");
+    }
+
+    @Override
+    public @NotNull PrismContainerDefinition<?> cloneWithNewType(@NotNull QName newTypeName, @NotNull ComplexTypeDefinition newCtd) {
+        throw new UnsupportedOperationException("Implement if needed");
+    }
+
+    @Override
+    public Boolean isIndexed() {
+        return getItemDefinition().isIndexed();
     }
 
     @Override
@@ -121,8 +140,8 @@ public class PrismContainerWrapperImpl<C extends Containerable>
     }
 
     @Override
-    public MutablePrismContainerDefinition<C> toMutable() {
-        return getItemDefinition().toMutable();
+    public PrismContainerDefinitionMutator<C> mutator() {
+        return getItemDefinition().mutator();
     }
 
     //TODO : unify with PrismContainerImpl findContainer();
@@ -142,7 +161,7 @@ public class PrismContainerWrapperImpl<C extends Containerable>
         return null;
     }
 
-    private PrismContainerValueWrapper<C> findValue(Long id) {
+    PrismContainerValueWrapper<C> findValue(Long id) {
         if (isSingleValue()) {
             List<PrismContainerValueWrapper<C>> values = getValues();
             if (values != null && !values.isEmpty()) {
@@ -240,7 +259,10 @@ public class PrismContainerWrapperImpl<C extends Containerable>
         if (isOperational()) {
             return null;
         }
+        return computeDeltasInternal();
+    }
 
+    protected <D extends ItemDelta<? extends PrismValue, ? extends ItemDefinition>> Collection<D> computeDeltasInternal() throws SchemaException {
         Collection<D> deltas = new ArrayList<>();
         for (PrismContainerValueWrapper<C> pVal : getValues()) {
             LOGGER.trace("Processing delta for value:\n {}", pVal);
@@ -386,6 +408,11 @@ public class PrismContainerWrapperImpl<C extends Containerable>
     public Class<C> getTypeClass() {
         //noinspection unchecked
         return (Class<C>) super.getTypeClass();
+    }
+
+    @Override
+    public @Nullable SchemaContextDefinition getSchemaContextDefinition() {
+        return null;
     }
 
     @Override

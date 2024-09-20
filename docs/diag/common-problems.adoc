@@ -1,0 +1,61 @@
+= Common Problems
+:page-wiki-name: Common Problems
+:page-wiki-id: 2654289
+:page-wiki-metadata-create-user: mamut
+:page-wiki-metadata-create-date: 2011-06-23T09:44:17.480+02:00
+:page-wiki-metadata-modify-user: ifarinic
+:page-wiki-metadata-modify-date: 2017-01-20T16:20:07.424+01:00
+:page-upkeep-status: orange
+
+This pages describes common problems encountered during deployment and operation of the system.
+These are *not bugs* of the midPoint product, but rather a customization/administration issues.
+This pages also describes a usual cause of the problems.
+
+
+== Action: Import object
+
+* ERROR: Object with oid 'null' is not valid, reason: XML Parse error: Content is not allowed in prolog.
+(line 1 col 1).
+
+** Most likely caused by an illegal character before <xml ...
+
+
+
+* ERROR: Object with oid 'null' is not valid, reason: XML Parse error: The processing instruction target matching "[xX][mM][lL]" is not allowed.
+(line 1 col 7).
+
+** Most likely caused by an illegal character before <xml ...
+
+
+
+
+== TLS Setup
+
+* `java.security.InvalidAlgorithmParameterException: the trustAnchors parameter must be non-empty`
+
+** This strange message usually indicates a missing keystore or a missing trusted root CA certificate in the keystore.
+See xref:/midpoint/reference/security/crypto/keystore-configuration/[Keystore Configuration].
+
+
+
+
+== Active Directory
+
+* `java.lang.RuntimeException: The authentication mechanism is unknown.`
+
+** This strange message indicates a problem with resource configuration.
+Please check that `LDAPHostName` attribute does *not* contain a port.
+
+
+
+* `java.lang.RuntimeException: The server is unwilling to process the request. (Exception from HRESULT: 0x80072035)`
+
+** This error may indicate that the password set by midPoint is not complex enough to be allowed by Active Directory.
+For example you are using value of some user attributes in the password.
+
+
+
+* Security violation: org.identityconnectors.framework.common.exceptions.PermissionDeniedException(Error modifying LDAP entry ...) unwillingToPerform: 0000052D: SvcErr: DSID-031A12D2, problem 5003 (WILL_NOT_PERFORM), data 0?? (53)).
+
+** User is trying to use his/her name/surname/loginname as part of the password.
+bug:MID-1657[]

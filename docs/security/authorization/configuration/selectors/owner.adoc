@@ -1,0 +1,55 @@
+= Owner Clause
+
+Selects objects that have an owner which is specified by inner object selector.
+
+.Listing 1. Generic use of the `owner` clause in authorizations
+[source,xml]
+----
+<authorization>
+    <action>...</action>
+    <object>
+        <owner>
+            ... inner object selector goes here ...
+        </owner>
+    </object>
+</authorization>
+----
+
+More specific example:
+
+.Listing 2. Authorization applicable to objects that have owner who is a full-time employee, represented by having specified archetype
+[source,xml]
+----
+<authorization>
+    <action>...</action>
+    <object>
+        <owner>
+            <archetypeRef oid="164319fb-7c23-4346-8a58-6e128b4861d5"/> <!-- Full-time employee -->
+        </owner>
+    </object>
+</authorization>
+----
+
+== Limitations
+
+In midPoint 4.8, the owner clause is supported for the following object types:
+
+.Object types supported by `owner` clause
+[%autowidth]
+|===
+| Type | Comment
+
+| `ShadowType`
+| The owner of a shadow is the focal object (e.g., user) that has a resource object (e.g., account) with a given shadow as its projection.
+
+| `UserType`
+| The owner of a persona user is another user that has a link to given persona (`user.personaRef`).
+
+| `TaskType`
+| The owner of a task is the focal object defined in `task.ownerRef`.
+|===
+
+The support for other types (e.g. roles) may be added in the future.
+
+However, for search pre-processing (`search` authorization action) this clause is supported in even more limited way:
+only the task ownership is checked.

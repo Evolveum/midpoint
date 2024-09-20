@@ -29,6 +29,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import java.io.Serializable;
+import java.util.List;
 
 public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
 
@@ -38,6 +39,8 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
     private static final String ID_CODE_LABEL = "codeLabel";
     private static final String ID_LANGUAGE_INPUT = "languageInput";
     private static final String ID_LANGUAGE_LABEL = "languageLabel";
+    private static final String C_DATA_PREFIX = "<![CDATA[";
+    private static final String C_DATA_SUFFIX = "]]>";
 
     public ScriptExpressionPanel(String id, IModel<ExpressionType> model) {
         super(id, model);
@@ -49,48 +52,73 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
     }
 
     protected void initLayout(MarkupContainer parent) {
+        IModel<ExpressionUtil.Language> languageModel =createLanguageModel();
+
+        SimpleAceEditorPanel codePanel = createCodeInputPanel(languageModel);
+
         parent.add(new Label(ID_LANGUAGE_LABEL, createStringResource("ScriptExpressionEvaluatorType.language")));
 
-        parent.add(createLanguageInputPanel());
+        parent.add(createLanguageInputPanel(languageModel, codePanel));
 
         parent.add(new Label(ID_CODE_LABEL, createStringResource("ScriptExpressionEvaluatorType.code")));
 
-        parent.add(createCodeInputPanel());
+        parent.add(codePanel);
     }
 
-    private Component createLanguageInputPanel() {
+    private IModel<ExpressionUtil.Language> createLanguageModel() {
         ExpressionUtil.Language defaultLanguage = getEvaluatorValue().language;
         if (defaultLanguage == null) {
             defaultLanguage = ExpressionUtil.Language.GROOVY;
         }
 
+        return Model.of(defaultLanguage);
+    }
+
+    private Component createLanguageInputPanel(IModel<ExpressionUtil.Language> languageModel, SimpleAceEditorPanel codePanel) {
         DropDownChoicePanel<ExpressionUtil.Language> languagePanel =
                 WebComponentUtil.createEnumPanel(
                         ID_LANGUAGE_INPUT,
                         WebComponentUtil.createReadonlyModelFromEnum(ExpressionUtil.Language.class),
-                        Model.of(defaultLanguage),
+                        languageModel,
                         ScriptExpressionPanel.this,
                         false);
         languagePanel.setOutputMarkupId(true);
 
         languagePanel.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("blur") {
+
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 ExpressionUtil.Language languageValue = languagePanel.getBaseFormComponent().getConvertedInput();
                 updateEvaluatorValue(languageValue);
                 target.add(getFeedback());
+
+                codePanel.getEditor().updateMode(target, AceEditor.Mode.forLanguage(languageValue.getLanguage()));
             }
         });
 
         return languagePanel;
     }
 
-    private WebMarkupContainer createCodeInputPanel() {
+    private SimpleAceEditorPanel createCodeInputPanel(IModel<ExpressionUtil.Language> languageModel) {
 
         IModel<String> model = new IModel<>() {
             @Override
             public String getObject() {
-                return getEvaluatorValue().code;
+
+                ScriptExpressionWrapper evaluatorWrapper = getEvaluatorValue();
+
+                String ret = evaluatorWrapper.code;
+
+                if (ExpressionUtil.Language.VELOCITY.equals(evaluatorWrapper.language)) {
+                    if (ret.startsWith(C_DATA_PREFIX)) {
+                        ret = ret.substring(C_DATA_PREFIX.length());
+                    }
+
+                    if (ret.endsWith(C_DATA_SUFFIX)) {
+                        ret = ret.substring(0, ret.length() - C_DATA_SUFFIX.length());
+                    }
+                }
+                return ret;
             }
 
             @Override
@@ -104,12 +132,19 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
         };
 
         SimpleAceEditorPanel editorPanel = new SimpleAceEditorPanel(ID_CODE_INPUT, model, 200) {
+
             protected AceEditor createEditor(String id, IModel<String> model, int minSize) {
                 AceEditor editor = new AceEditor(id, model);
                 editor.setReadonly(false);
                 editor.setMinHeight(minSize);
                 editor.setResizeToMaxHeight(false);
-                editor.setMode("ace/mode/groovy");
+
+                ExpressionUtil.Language lang = languageModel.getObject();
+                if (lang != null) {
+                    editor.setModeForDataLanguage(lang.getLanguage());
+                } else {
+                    editor.setMode(AceEditor.Mode.GROOVY);
+                }
                 add(editor);
                 return editor;
             }
@@ -146,12 +181,14 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
     private void updateEvaluatorValue(String code) {
         ExpressionType expressionType = getModelObject();
         try {
-            ScriptExpressionEvaluatorType evaluator = getEvaluatorValue().code(code).toEvaluator();
+            ScriptExpressionWrapper evaluatorWrapper = getEvaluatorValue();
+
+            ScriptExpressionEvaluatorType evaluator = evaluatorWrapper.code(code).toEvaluator();
             expressionType = ExpressionUtil.updateScriptExpressionValue(expressionType, evaluator);
             getModel().setObject(expressionType);
         } catch (SchemaException ex) {
-            LOGGER.error("Couldn't update generate expression values: {}", ex.getLocalizedMessage());
-            getPageBase().error("Couldn't update generate expression values: " + ex.getLocalizedMessage());
+            LOGGER.error("Couldn't update script expression values: {}", ex.getLocalizedMessage());
+            getPageBase().error("Couldn't update script expression values: " + ex.getLocalizedMessage());
         }
     }
 

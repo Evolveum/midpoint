@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.*;
 
 import com.evolveum.midpoint.test.TestObject;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -149,13 +150,22 @@ public class TestRbac extends AbstractRbacTest {
         assertSuccess(result);
 
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
-        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User jack after", userAfter);
-        assertModifyMetadata(userAfter, startTs, endTs);
+        // @formatter:off
+        var userAfter = assertUserAfter(USER_JACK_OID)
+                .assertModifyMetadataComplex(startTs, endTs)
+                .assignments()
+                    .by().roleOid(ROLE_PIRATE_OID).find()
+                        .activation()
+                            .assertEffectiveStatus(ActivationStatusType.ENABLED)
+                        .end()
+                        .valueMetadataSingle()
+                            .assertCreateMetadataComplex(startTs, endTs)
+                        .end()
+                    .end()
+                .end()
+                .getObject();
+        // @formatter:on
 
-        AssignmentType assignmentType = assertAssignedRole(userAfter, ROLE_PIRATE_OID);
-        assertCreateMetadata(assignmentType, startTs, endTs);
-        assertEffectiveActivation(assignmentType, ActivationStatusType.ENABLED);
         assertRoleMembershipRef(userAfter, ROLE_PIRATE_OID);
         assertDelegatedRef(userAfter);
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
@@ -171,8 +181,8 @@ public class TestRbac extends AbstractRbacTest {
                 "Jack Sparrow is the best pirate Caribbean has ever seen");
     }
 
-    protected ModelExecuteOptions getDefaultOptions() {
-        return null;
+    protected @NotNull ModelExecuteOptions getDefaultOptions() {
+        return ModelExecuteOptions.create();
     }
 
     /**
@@ -538,7 +548,11 @@ public class TestRbac extends AbstractRbacTest {
         ObjectDelta<UserType> delta = user.createModifyDelta();
 
         // WHEN
-        ModelContext<ObjectType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta), getDefaultOptions(), task, result);
+        // The following options provide the pre-4.9-like behavior of previewChanges()
+        var options = getDefaultOptions()
+                .firstClickOnly()
+                .previewPolicyRulesEnforcement();
+        ModelContext<ObjectType> modelContext = modelInteractionService.previewChanges(List.of(delta), options, task, result);
 
         // THEN
         result.computeStatus();
@@ -1521,8 +1535,9 @@ public class TestRbac extends AbstractRbacTest {
 
         // WHEN
         when();
-        modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, getDefaultOptions(), task, result,
-                PrismTestUtil.createPolyString("PhD."));
+        modifyUserReplace(
+                USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, getDefaultOptions(), task, result,
+                PolyString.fromOrig("PhD."));
 
         // THEN
         then();
@@ -1551,8 +1566,9 @@ public class TestRbac extends AbstractRbacTest {
 
         // WHEN
         when();
-        modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, getDefaultOptions(), task, result,
-                PrismTestUtil.createPolyString("captain"));
+        modifyUserReplace(
+                USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, getDefaultOptions(), task, result,
+                PolyString.fromOrig("captain"));
 
         // THEN
         then();
@@ -1639,7 +1655,7 @@ public class TestRbac extends AbstractRbacTest {
 
         try {
             // WHEN
-            traced( () -> assignRole(USER_JACK_OID, ROLE_PIRATE_OID, getDefaultOptions(), task, result) );
+            assignRole(USER_JACK_OID, ROLE_PIRATE_OID, getDefaultOptions(), task, result);
 
             AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
@@ -2781,7 +2797,12 @@ public class TestRbac extends AbstractRbacTest {
 
         // WHEN
         when();
-        ModelContext<ObjectType> context = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+        // The following options provide the pre-4.9-like behavior of previewChanges()
+        // (for unknown reason we don't use default options here)
+        var options = ModelExecuteOptions.create()
+                .firstClickOnly()
+                .previewPolicyRulesEnforcement();
+        ModelContext<ObjectType> context = modelInteractionService.previewChanges(List.of(delta), options, task, result);
 
         // THEN
         then();

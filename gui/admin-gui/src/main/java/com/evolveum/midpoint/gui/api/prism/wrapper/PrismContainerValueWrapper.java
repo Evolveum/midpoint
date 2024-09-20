@@ -50,6 +50,7 @@ public interface PrismContainerValueWrapper<C extends Containerable> extends Pri
 
     <T extends Containerable> PrismContainerWrapper<T> findContainer(ItemPath path) throws SchemaException;
     <T extends Containerable> PrismContainerWrapper<T> findContainer(String identifier);
+    <T extends Containerable> PrismContainerValueWrapper<T> findContainerValue(ItemPath path) throws SchemaException;
     <X> PrismPropertyWrapper<X> findProperty(ItemPath propertyPath) throws SchemaException;
     <R extends Referencable> PrismReferenceWrapper<R> findReference(ItemPath path) throws SchemaException;
     <IW extends ItemWrapper> IW findItem(ItemPath path, Class<IW> type) throws SchemaException;
@@ -100,6 +101,8 @@ public interface PrismContainerValueWrapper<C extends Containerable> extends Pri
 
     PrismContainerValue<C> getContainerValueApplyDelta() throws SchemaException;
 
-    Collection<ItemDelta> getDeltas() throws SchemaException;
+    Collection<ItemDelta<?, ?>> getDeltas() throws SchemaException;
+
+    void replaceContainerItemValue(PrismContainerValue<C> newValue);
 }
 

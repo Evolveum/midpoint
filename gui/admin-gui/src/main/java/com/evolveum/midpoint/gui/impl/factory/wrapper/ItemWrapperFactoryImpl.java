@@ -72,7 +72,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
         return createWrapper(parent, childItem, status, context);
     }
 
-    ItemStatus getStatus(I childItem) {
+    protected ItemStatus getStatus(Item childItem) {
         if (childItem == null) {
             return ItemStatus.ADDED;
         }
@@ -95,7 +95,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 
         IW itemWrapper = createWrapperInternal(parent, (I) childItem, status, context);
         itemWrapper.setMetadata(context.isMetadata());
-        itemWrapper.setProcessProvenanceMetadata(context.isProcessMetadataFor(itemWrapper.getPath()));
+        itemWrapper.setProcessProvenanceMetadata(context.isProcessMetadataFor(itemWrapper));
 
         registerWrapperPanel(itemWrapper);
 
@@ -115,7 +115,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 
     }
 
-    boolean skipCreateWrapper(ItemDefinition<?> def, ItemStatus status, WrapperContext context, boolean isEmptyValue) {
+    public boolean skipCreateWrapper(ItemDefinition<?> def, ItemStatus status, WrapperContext context, boolean isEmptyValue) {
         if (def == null) {
             return true;
         }
@@ -136,7 +136,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
             }
         }
 
-        if (ItemStatus.ADDED == status && def.isDeprecated()) {
+        if (ItemStatus.ADDED == status && def.isDeprecated() && !context.isDeprecatedItemAllowed()) {
             LOGGER.trace("Skipping creating wrapper for {}, because item is deprecated and doesn't contain any value.", def);
             return true;
         }
@@ -168,6 +168,12 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
     }
 
     protected boolean canCreateWrapper(ItemDefinition<?> def, ItemStatus status, WrapperContext context, boolean isEmptyValue) {
+        DisplayHint hint = def.getDisplayHint();
+        if (hint == DisplayHint.REGULAR) {
+            return true;
+        } else if (hint == DisplayHint.HIDDEN) {
+            return false;
+        }
         if (def.isOperational() && !context.isCreateOperational()) {
             LOGGER.trace("Skipping creating wrapper for {}, because it is operational.", def.getItemName());
             return false;
@@ -324,7 +330,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
         return item.getValues();
     }
 
-    private boolean determineReadOnly(IW itemWrapper, WrapperContext context) {
+    protected boolean determineReadOnly(IW itemWrapper, WrapperContext context) {
 
         Boolean readOnly = context.getReadOnly();
         if (readOnly != null) {

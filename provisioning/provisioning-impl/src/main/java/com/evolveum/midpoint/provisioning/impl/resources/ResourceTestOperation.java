@@ -15,25 +15,20 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityS
 import java.util.List;
 import java.util.function.Supplier;
 
-import com.evolveum.midpoint.provisioning.api.ResourceTestOptions;
-import com.evolveum.midpoint.provisioning.api.ResourceTestOptions.ResourceCompletionMode;
-import com.evolveum.midpoint.provisioning.api.ResourceTestOptions.TestMode;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorConfigurationOptions;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.provisioning.api.ResourceTestOptions;
+import com.evolveum.midpoint.provisioning.api.ResourceTestOptions.ResourceCompletionMode;
+import com.evolveum.midpoint.provisioning.api.ResourceTestOptions.TestMode;
 import com.evolveum.midpoint.provisioning.impl.CommonBeans;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.schema.constants.TestResourceOpNames;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
-import com.evolveum.midpoint.schema.processor.RefinedResourceSchemaParser;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.NativeResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -41,6 +36,10 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
 /**
@@ -83,7 +82,7 @@ class ResourceTestOperation {
     /**
      * Resource schema that is fetched during the operation. Should not be modified afterwards. (TODO what about adjusting?)
      */
-    private ResourceSchema rawResourceSchema;
+    private NativeResourceSchema nativeResourceSchema;
 
     private boolean resourceSchemaWasFetched;
 
@@ -293,23 +292,21 @@ class ResourceTestOperation {
     }
 
     private void testResourceSchema(OperationResult parentResult) throws TestFailedException {
-        OperationResult result =
-                parentResult.createSubresult(TestResourceOpNames.RESOURCE_SCHEMA.getOperation());
+        OperationResult result = parentResult.createSubresult(TestResourceOpNames.RESOURCE_SCHEMA.getOperation());
         try {
             fetchSchema(result);
 
-            if (!PrismSchema.isNullOrEmpty(rawResourceSchema)) {
+            if (!NativeResourceSchema.isNullOrEmpty(nativeResourceSchema)) {
                 resourceSchemaWasFetched = true;
             } else {
                 // Resource does not support schema. If there is a static schema in resource definition this may still be OK.
                 readStoredSchema(result);
             }
 
-            adjustAndCheckSchema(result);
+            checkSchemaAndUpdateConnectorInstances(result);
 
         } catch (Throwable t) {
-            // Not expected.
-            result.recordFatalError(t);
+            result.recordException(t);
             throw t;
         } finally {
             result.close();
@@ -320,8 +317,8 @@ class ResourceTestOperation {
 
     private void fetchSchema(OperationResult result) throws TestFailedException {
         try {
-            rawResourceSchema = beans.resourceManager.schemaFetcher.fetchResourceSchema(
-                    resource, nativeConnectorsCapabilities, result);
+            nativeResourceSchema = beans.resourceManager.schemaFetcher.fetchResourceSchema(
+                    resource, nativeConnectorsCapabilities, true, result);
         } catch (CommunicationException e) {
             onSchemaFetchProblem(e, "Communication error", DOWN, result);
         } catch (Throwable e) {
@@ -339,7 +336,7 @@ class ResourceTestOperation {
 
     private void readStoredSchema(OperationResult result) throws TestFailedException {
         try {
-            rawResourceSchema = ResourceSchemaFactory.getRawSchema(resource);
+            nativeResourceSchema = ResourceSchemaFactory.getNativeSchema(resource);
         } catch (Exception e) {
             throw TestFailedException.record(
                     "Couldn't read stored schema",
@@ -347,7 +344,7 @@ class ResourceTestOperation {
                     BROKEN, e, result);
         }
 
-        if (PrismSchema.isNullOrEmpty(rawResourceSchema)) {
+        if (NativeResourceSchema.isNullOrEmpty(nativeResourceSchema)) {
             throw TestFailedException.record(
                     "Connector does not support schema and no static schema is available",
                     operationDesc + " failed: Connector does not support schema and no static schema is available",
@@ -356,17 +353,11 @@ class ResourceTestOperation {
     }
 
     /** Currently we simply check the schema by parsing it. Later we can extend this to more elaborate checks. */
-    private void adjustAndCheckSchema(OperationResult result) throws TestFailedException {
-        assert !PrismSchema.isNullOrEmpty(rawResourceSchema);
+    private void checkSchemaAndUpdateConnectorInstances(OperationResult result) throws TestFailedException {
+        assert !NativeResourceSchema.isNullOrEmpty(nativeResourceSchema);
         try {
-            rawResourceSchema =
-                    new ResourceSchemaAdjuster(resource, rawResourceSchema)
-                            .adjustSchema();
-            if (rawResourceSchema != null) {
-                new RefinedResourceSchemaParser(resource, rawResourceSchema)
-                        .parse();
-            }
-            schemaHelper.updateSchemaToConnectors(resource, rawResourceSchema, result);
+            ResourceSchemaFactory.parseCompleteSchema(resource, nativeResourceSchema);
+            schemaHelper.updateSchemaInConnectorInstances(resource, nativeResourceSchema, result);
         } catch (Exception e) {
             throw TestFailedException.record(
                     "Couldn't process resource schema refinements",
@@ -397,8 +388,8 @@ class ResourceTestOperation {
         }
 
         if (resourceSchemaWasFetched) {
-            updater.updateSchema(rawResourceSchema);
-        } else if (areSchemaCachingMetadataMissing() && PrismSchema.isNotEmpty(rawResourceSchema)) {
+            updater.updateSchema(nativeResourceSchema);
+        } else if (areSchemaCachingMetadataMissing() && NativeResourceSchema.isNotEmpty(nativeResourceSchema)) {
             updater.updateSchemaCachingMetadata();
         }
 
@@ -426,7 +417,7 @@ class ResourceTestOperation {
             this.desc = "testing connection using " + connectorSpec;
         }
 
-        public void execute(OperationResult result) throws TestFailedException {
+        void execute(OperationResult result) throws TestFailedException {
             instantiateConnector(result);
             initializeConnector(result);
             testConnector(result);
@@ -439,12 +430,10 @@ class ResourceTestOperation {
         }
 
         private void instantiateConnector(OperationResult parentResult) throws TestFailedException {
-            OperationResult result = parentResult
-                    .createSubresult(TestResourceOpNames.CONNECTOR_INSTANTIATION.getOperation());
+            OperationResult result = parentResult.createSubresult(TestResourceOpNames.CONNECTOR_INSTANTIATION.getOperation());
 
             try {
-                // TODO The original comment here was "Make sure we are getting non-configured instance."
-                //  How do we know that? We can get the instance from the cache. So, it may be configured. Or not?
+                // The returned entry is either configured one (from the cache) or unconfigured one (created anew on cache miss).
                 connectorCacheEntry = beans.connectorManager.getOrCreateConnectorInstanceCacheEntry(connectorSpec, result);
                 connector = connectorCacheEntry.getConnectorInstance();
             } catch (ObjectNotFoundException e) {
@@ -476,10 +465,9 @@ class ResourceTestOperation {
                     BROKEN, t, result);
         }
 
-        /** Configures and initializes the connector. */
+        /** Configures and initializes the connector. (The latter applies only in the full mode!) */
         private void initializeConnector(OperationResult parentResult) throws TestFailedException {
-            OperationResult result = parentResult
-                    .createSubresult(TestResourceOpNames.CONNECTOR_INITIALIZATION.getOperation());
+            OperationResult result = parentResult.createSubresult(TestResourceOpNames.CONNECTOR_INITIALIZATION.getOperation());
 
             try {
                 PrismObjectDefinition<ResourceType> resourceDefinition = resource.asPrismObject().getDefinition();
@@ -491,41 +479,9 @@ class ResourceTestOperation {
                 }
                 schemaHelper.applyConnectorSchemaToResource(connectorSpec, connectorSpec, newResourceDefinition, result);
                 schemaHelper.evaluateExpressionsInConfigurationProperties(connectorSpec, resource, task, result);
-                PrismContainer<ConnectorConfigurationType> configurationContainer = connectorSpec.getConnectorConfiguration();
-                PrismContainerValue<ConnectorConfigurationType> configuration =
-                        configurationContainer != null ?
-                                configurationContainer.getValue() :
-                                PrismContext.get().itemFactory().createContainerValue(); // TODO or should UCF accept null config?
 
-                InternalMonitor.recordCount(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT);
-                connector.configure(
-                        configuration,
-                        new ConnectorConfigurationOptions()
-                                .generateObjectClasses(ResourceTypeUtil.getSchemaGenerationConstraints(resource))
-                                .doNotCache(!options.isFullMode()),
-                        result);
-
-                if (options.isFullMode()) {
-                    // We need to explicitly initialize the instance, e.g. in case that the schema and capabilities
-                    // cannot be detected by the connector and therefore are provided in the resource
-                    //
-                    // NOTE: the capabilities and schema that are used here are NOT necessarily those that are detected by the resource.
-                    //       The detected schema will come later. The schema here is the one that is stored in the resource
-                    //       definition (ResourceType). This may be schema that was detected previously. But it may also be a schema
-                    //       that was manually defined. This is needed to be passed to the connector in case that the connector
-                    //       cannot detect the schema and needs schema/capabilities definition to establish a connection.
-                    //       Most connectors will just ignore the schema and capabilities that are provided here.
-                    //       But some connectors may need it (e.g. CSV connector working with CSV file without a header).
-                    //
-                    ResourceSchema previousResourceSchema = ResourceSchemaFactory.getRawSchema(resource);
-                    CapabilityCollectionType previousCapabilities =
-                            ResourceTypeUtil.getNativeCapabilitiesCollection(resource);
-                    connector.initialize(
-                            previousResourceSchema,
-                            previousCapabilities,
-                            ResourceTypeUtil.isCaseIgnoreAttributeNames(resource),
-                            result);
-                }
+                CommonBeans.get().connectorManager
+                        .configureAndInitializeConnectorInstance(connector, connectorSpec, options.isFullMode(), result);
 
             } catch (CommunicationException e) {
                 onConfigurationProblem(e, "Communication error", DOWN, result);
@@ -588,8 +544,7 @@ class ResourceTestOperation {
         }
 
         private void fetchConnectorCapabilities(OperationResult parentResult) throws TestFailedException {
-            OperationResult result = parentResult
-                    .createSubresult(TestResourceOpNames.CONNECTOR_CAPABILITIES.getOperation());
+            OperationResult result = parentResult.createSubresult(TestResourceOpNames.CONNECTOR_CAPABILITIES.getOperation());
             try {
                 InternalMonitor.recordCount(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT);
                 CapabilityCollectionType retrievedCapabilities = connector.fetchCapabilities(result);
@@ -627,12 +582,12 @@ class ResourceTestOperation {
         }
 
         /**
-         * Connector instance is fully configured at this point. But the connector cache entry may not be set up
+         * Connector instance is fully configured and initialized at this point. But the connector cache entry may not be set up
          * properly and it is not yet placed into the cache. Therefore make sure the caching bit is completed.
          * Place the connector to cache even if it was configured at the beginning. The connector is reconfigured now.
          */
         private void cacheConfiguredConnector() {
-            beans.connectorManager.cacheConfiguredConnector(connectorCacheEntry, connectorSpec);
+            beans.connectorManager.cacheConfiguredAndInitializedConnectorInstance(connectorCacheEntry, connectorSpec);
         }
     }
 

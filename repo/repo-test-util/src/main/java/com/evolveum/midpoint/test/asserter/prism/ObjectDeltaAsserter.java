@@ -106,12 +106,13 @@ public class ObjectDeltaAsserter<O extends ObjectType,RA> extends AbstractAssert
         return this;
     }
 
-    /** Asserts that (something) in every specified path is modified. Supports prefixes. */
+    /** Asserts that (something) in every specified path is modified. Supports prefixes. Paths are "names only". */
     @SuppressWarnings({ "UnusedReturnValue", "WeakerAccess" })
     public ObjectDeltaAsserter<O,RA> assertModified(ItemPath... pathsThatMustBeModified) {
         assertModify();
         PathSet modifiedPaths = delta.getModifications().stream()
                 .map(ItemDelta::getPath)
+                .map(p -> p.namedSegmentsOnly())
                 .collect(Collectors.toCollection(() -> new PathSet()));
         for (ItemPath pathThatMustBeModified : pathsThatMustBeModified) {
             if (!ItemPathCollectionsUtil.containsSuperpathOrEquivalent(modifiedPaths, pathThatMustBeModified)) {

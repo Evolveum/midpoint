@@ -1,0 +1,157 @@
+= Usage of HTTP Methods
+:page-nav-title: Usage of HTTP Methods
+:page-display-order: 400
+:page-upkeep-status: green
+
+== Use of HTTP Verbs
+
+MidPoint REST API tries to adhere to the usual HTTP verbs and tries to maintain their original meaning:
+
+[%autowidth]
+|===
+| Verb | Meaning and usage
+
+| GET
+| Information retrieval.
+Returns the state of the web resource.
+Also used to execute searches.
+
+| PUT
+| Create new web resource.
+This usually means creation of a new object.
+However, the client has to provide a complete object, including the identifier (URI).
+Which is not entirely practical, as this means that the client needs to know how to properly construct the URI.
+Therefore this operation is seldom used.
+
+| POST
+a| POST is used for several purposes:
+
+* Create new web resources without the need to know the URI.
+POST to a collection web resource will result that a new sub-resource is created.
+
+* As an equivalent for PATCH operation (see below).
+Some HTTP clients have problems when using non-standard verbs.
+Therefore we provide POST as an alternative way to modify objects.
+
+* To pass data to an RPC-like operation.
+
+| PATCH
+| Modification of existing web resource.
+Usually modification of existing midPoint object.
+This is non-standard HTTP verb.
+The usage of PATCH is preferred because its meaning is much more clear than the desperately overloaded meaning of POST.
+However, POST is provided as an equivalent to PATCH for HTTP clients that have problems with non-standard verbs.
+
+| DELETE
+| Delete existing resource.
+This is used mostly to delete objects.
+
+|===
+
+
+
+== Creation of New Resources
+
+According to REST architectural style the web resources should be created by PUT operation.
+However, this assumes that the client knows the URI and therefore it is not very practical.
+E.g. URI of most midPoint objects contains xref:/midpoint/devel/prism/concepts/object-identifier/[Object ID], which may or may not be provided by the client.
+In case that the OID is server-generated the PUT operation is out of question.
+But even if the OID is client-generated this would expect that the client knows how to construct a URI, which is not very RESTful.
+Therefore the PUT operation is not very practical.
+
+The usual way how to create a new object in midPoint REST API is to use POST operation to a collection resource.
+E.g. new user is created by posting the user object to "users" collection (`.../ws/rest/users`).
+MidPoint will react by creating a new user object and publishing that as a new web resource (with new URI).
+MidPoint REST API will respond with and redirection HTTP status (3xx) pointing client to the new URI.
+
+== Synchronous and Asynchronous Operations
+
+Most midPoint operations are currently implemented in a synchronous fashion.
+When talking about REST API this means that they will not return HTTP response until they are finished.
+When the operation is finished, midPoint will respond with success (2xx) or error (4xx, 5xx).
+If new resource is created, redirect status (3xx) is indicated.
+Retrieving that resource should result in success (2xx).
+
+There are also some operations that are executed asynchronously.
+In that case midPoint returns HTTP response as soon as the operation is initiated.
+The status in the response will indicate redirection (3xx).
+The redirection target is a xref:/midpoint/architecture/concepts/task/[task] that can be used to track operation progress.
+
+
+== Return Values
+
+GET operations are supposed to return data.
+GET invoked on REST-like resources returns what anyone would probably expect: either individual midPoint object or a collection of midPoint objects.
+All such resources are supposed to behave in the same way, regardless of their type.
+PUT/POST/PATCH/DELETE for those resources also works in the same way.
+It returns HTTP status code or indicates an error or asynchronous operation (see below).
+
+However, the situation is very different for the RPC-like resources.
+The indication of error and asynchronous processing is the same here.
+But all the rest is different.
+Those operations usually take data using the body of a POST request.
+And the data format may be completely different for each operation.
+The output also differs a lot.
+Success/failure is always indicated by the HTTP error code.
+But the data returned on success vary according to the definition of the specific web resource that is used.
+This is quite expected as those are essentially procedure calls.
+
+Operation success and errors are always indicated by the HTTP error code.
+MidPoint REST API maintains the original HTTP meaning of the error code classes:
+
+[%autowidth]
+|===
+| Error code | Meaning
+
+| 1xx
+| Information.
+Stay tuned, operation is in progress.
+
+| 2xx
+a| Success.
+Operation finished successfully.
+There are two custom codes:
+
+* 250 for partial error which means that during processing some error occurred but some changes was executed.
+
+* 240 for handled error which means that there was originally error, but midPoint was able to fix this using its xref:/midpoint/reference/synchronization/consistency/[consistency mechanism.]
+
+In this two cases, midPoint returns the xref:/midpoint/architecture/concepts/operation-result/[OperationResult] where there details of executed operations can be found.
+
+| 3xx
+a| Redirection or "in progress".
+This is returned mostly to indicate two cases:
+
+* Operation has finished, but the results are not in this resource.
+Redirection is issues to point the client to the results.
+Typical example is creation of an object with POST to a collection web resource.
+In this case a new object is created, new URI is assigned and the client is redirected to this URI.
+Retrieving that URI provides created object and 200 status code, indicating that the operation is finished.
+
+* Operation is in progress (asynchronous operation).
+In this case midPoint API redirects the client to a task object that can be used to track progress of the operation.
+
+| 4xx
+| Client errors.
+The client has sent request that cannot be processed.
+This indicates usual situation that are well handled by the midPoint code.
+Maybe the client request to create conflicting object, delete non-existent object, modification that violates the schema and so on.
+The xref:/midpoint/architecture/concepts/operation-result/[OperationResult] structure is usually provided in the response to provide more details about the situation.
+
+
+| 5xx
+| Server errors.
+Situations that the server cannot handle and where the cause is unknown.
+This usually means bugs in the code, insufficient resources such as RAM or disk space, unforeseen failures in the infrastructure and so on.
+The xref:/midpoint/architecture/concepts/operation-result/[OperationResult] structure might or might not be provided in this case.
+Some errors are so severe that the structured error information might not be available.
+
+
+|===
+
+Status codes and the indication of errors and asynchronous processing applies uniformly to all midPoint web resources (both RESTful and RPC).
+
+// TODO refactoring this to specific example chapters
+
+
+

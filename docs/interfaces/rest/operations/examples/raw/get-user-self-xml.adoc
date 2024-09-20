@@ -1,0 +1,11 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Get User Self XML*
+[source,bash]
+----
+curl --user administrator:5ecr3t \
+-H "Accept: application/xml" \
+-X GET http://localhost:8080/midpoint/ws/rest/self?options=raw \
+-v
+----

@@ -16,9 +16,13 @@ import com.evolveum.midpoint.gui.impl.page.admin.messagetemplate.PageMessageTemp
 import com.evolveum.midpoint.gui.impl.page.admin.objectcollection.PageObjectCollection;
 import com.evolveum.midpoint.gui.impl.page.admin.objecttemplate.PageObjectTemplate;
 import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrg;
+import com.evolveum.midpoint.gui.impl.page.admin.policy.PagePolicies;
+import com.evolveum.midpoint.gui.impl.page.admin.policy.PagePolicy;
 import com.evolveum.midpoint.gui.impl.page.admin.report.PageReport;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
+import com.evolveum.midpoint.gui.impl.page.admin.schema.PageSchema;
+import com.evolveum.midpoint.gui.impl.page.admin.schema.PageSchemas;
 import com.evolveum.midpoint.gui.impl.page.admin.service.PageService;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResult;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResults;
@@ -29,6 +33,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.page.admin.archetype.PageArchetypes;
 import com.evolveum.midpoint.web.page.admin.cases.PageCases;
+import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
 import com.evolveum.midpoint.web.page.admin.objectCollection.PageObjectCollections;
 import com.evolveum.midpoint.web.page.admin.objectTemplate.PageObjectTemplates;
 import com.evolveum.midpoint.web.page.admin.orgs.PageOrgs;
@@ -46,6 +51,7 @@ public enum PageTypes {
     USER("users", GuiStyleConstants.CLASS_OBJECT_USER_ICON, PageUsers.class, PageUser.class, UserType.COMPLEX_TYPE),
     ROLE("roles", GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, PageRoles.class, PageRole.class, RoleType.COMPLEX_TYPE),
     SERVICE("services", GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON, PageServices.class, PageService.class, ServiceType.COMPLEX_TYPE),
+    POLICY("policies", GuiStyleConstants.CLASS_OBJECT_POLICY_ICON, PagePolicies.class, PagePolicy.class, PolicyType.COMPLEX_TYPE),
     ORG("orgs", GuiStyleConstants.CLASS_OBJECT_ORG_ICON, PageOrgs.class, PageOrg.class, OrgType.COMPLEX_TYPE),
     TASK("tasks", GuiStyleConstants.CLASS_OBJECT_TASK_ICON, PageTasks.class, PageTask.class, TaskType.COMPLEX_TYPE),
     RESOURCE("resources", GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON, PageResources.class, PageResource.class, ResourceType.COMPLEX_TYPE),
@@ -56,7 +62,9 @@ public enum PageTypes {
     OBJECT_TEMPLATE("objectTemplates", GuiStyleConstants.CLASS_OBJECT_TEMPLATE_ICON, PageObjectTemplates.class, PageObjectTemplate.class, ObjectTemplateType.COMPLEX_TYPE),
     REPORT("reports", GuiStyleConstants.CLASS_REPORT_ICON, PageReports.class, PageReport.class, ReportType.COMPLEX_TYPE),
     SIMULATION_RESULT("simulationResults", GuiStyleConstants.CLASS_SIMULATION_RESULT, PageSimulationResults.class, PageSimulationResult.class, SimulationResultType.COMPLEX_TYPE),
-    MARK("marks", GuiStyleConstants.CLASS_MARK, PageMarks.class, PageMark.class, MarkType.COMPLEX_TYPE);
+    MARK("marks", GuiStyleConstants.CLASS_MARK, PageMarks.class, PageMark.class, MarkType.COMPLEX_TYPE),
+    SCHEMA("schemas", GuiStyleConstants.CLASS_ICON_RESOURCE_SCHEMA, PageSchemas.class, PageSchema.class, SchemaType.COMPLEX_TYPE),
+    ACCESS_CERT_ITEM_TYPE("certItems", GuiStyleConstants.CLASS_OBJECT_CERT_CAMPAIGN_ICON, PageCertDecisions.class, null, AccessCertificationWorkItemType.COMPLEX_TYPE);
 
     private String identifier;
     private String icon;

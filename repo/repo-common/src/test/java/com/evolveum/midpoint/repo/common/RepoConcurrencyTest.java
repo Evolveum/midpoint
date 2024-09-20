@@ -15,10 +15,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityState
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStateType.F_BUCKETING;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
@@ -517,8 +514,6 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
 
     @Test
     public void test100AddOperationExecution() throws Exception {
-        skipTestIf(repositoryConfiguration.getDatabaseType() == SupportedDatabase.H2, "because of H2 database");
-
         int THREADS = 8;
         long DURATION = 30_000L;
 
@@ -569,7 +564,6 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
         //    at org.hibernate.resource.transaction.backend.jdbc.internal.JdbcResourceLocalTransactionCoordinatorImpl.access$100(JdbcResourceLocalTransactionCoordinatorImpl.java:38)
         //    at org.hibernate.resource.transaction.backend.jdbc.internal.JdbcResourceLocalTransactionCoordinatorImpl$TransactionDriverControlImpl.commit(JdbcResourceLocalTransactionCoordinatorImpl.java:231)
         //    at org.hibernate.engine.transaction.internal.TransactionImpl.commit(TransactionImpl.java:68)
-        skipTestIf(repositoryConfiguration.getDatabaseType() == SupportedDatabase.H2, "because of H2 database");
 
         int THREADS = 8;
         long DURATION = 30_000L;
@@ -770,9 +764,12 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
 
         logger.info("Starting worker threads");
 
+        Map<Integer, String> threadOids = new HashMap<>();
+
         List<WorkerThread> threads = new ArrayList<>();
         for (int i = 0; i < THREADS; i++) {
             final int threadIndex = i;
+            threadOids.put(threadIndex, UUID.randomUUID().toString());
 
             WorkerThread thread = new WorkerThread(i) {
                 @Override
@@ -791,7 +788,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
                     return new WorkBucketType()
                             .sequentialNumber(lastBucketNumber + 1)
                             .state(WorkBucketStateType.DELEGATED)
-                            .workerRef(String.valueOf(threadIndex), TaskType.COMPLEX_TYPE);
+                            .workerRef(threadOids.get(threadIndex), TaskType.COMPLEX_TYPE);
                 }
 
                 private int getLastBucketNumber(List<WorkBucketType> buckets) {
@@ -802,7 +799,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
 
                 @Override
                 String description() {
-                    return "Bucket computer thread #" + threadIndex;
+                    return "Bucket computer thread #" + threadIndex + ", with oid " + threadOids.get(threadIndex);
                 }
             };
             thread.start();
@@ -858,9 +855,13 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
 
         logger.info("Starting worker threads");
 
+        Map<Integer, String> threadOids = new HashMap<>();
+
         List<WorkerThread> threads = new ArrayList<>();
         for (int i = 0; i < THREADS; i++) {
             final int threadIndex = i;
+
+            threadOids.put(threadIndex, UUID.randomUUID().toString());
 
             WorkerThread thread = new WorkerThread(i) {
                 @Override
@@ -884,7 +885,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
                     return new WorkBucketType()
                             .sequentialNumber(getLastBucketNumber(currentBuckets) + 1)
                             .state(WorkBucketStateType.DELEGATED)
-                            .workerRef(String.valueOf(threadIndex), TaskType.COMPLEX_TYPE);
+                            .workerRef(threadOids.get(threadIndex), TaskType.COMPLEX_TYPE);
                 }
 
                 private List<WorkBucketType> getCurrentBuckets(TaskType task) {
@@ -899,7 +900,7 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
 
                 @Override
                 String description() {
-                    return "Bucket computer thread #" + threadIndex;
+                    return "Bucket computer thread #" + threadIndex + ", with oid " + threadOids.get(threadIndex);
                 }
             };
             thread.start();

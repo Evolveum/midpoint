@@ -12,14 +12,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.ConnectException;
 import java.sql.SQLException;
 import java.sql.SQLSyntaxErrorException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.Map.Entry;
-
 import javax.naming.NameAlreadyBoundException;
 import javax.naming.NoPermissionException;
 import javax.naming.ServiceUnavailableException;
@@ -29,13 +23,8 @@ import javax.naming.directory.SchemaViolationException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
 import org.identityconnectors.common.security.GuardedString;
+import org.identityconnectors.framework.common.exceptions.ConfigurationException;
 import org.identityconnectors.framework.common.exceptions.*;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.OperationOptions;
@@ -44,6 +33,8 @@ import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.AttributeFilter;
 import org.identityconnectors.framework.common.objects.filter.CompositeFilter;
 import org.identityconnectors.framework.common.objects.filter.Filter;
+import org.identityconnectors.framework.impl.api.remote.RemoteWrappedException;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -52,21 +43,16 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
-import org.identityconnectors.framework.impl.api.remote.RemoteWrappedException;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Set of utility methods that work around some of the ConnId and connector problems.
@@ -82,7 +68,7 @@ public class ConnIdUtil {
     private static final String DOT_NET_ARGUMENT_EXCEPTION = "System.ArgumentException";
 
     private static final String CONNECTIONS_EXCEPTION_CLASS_NAME = "CommunicationsException";
-    public static final String POLYSTRING_ORIG_KEY = "";
+    static final String POLYSTRING_ORIG_KEY = "";
 
     static Throwable processConnIdException(Throwable connIdException, ConnectorInstanceConnIdImpl conn,
             OperationResult icfResult) {
@@ -139,9 +125,8 @@ public class ConnIdUtil {
                 LOGGER, "Got ConnId exception (might be handled by upper layers later) {} in {}: {}",
                 connIdException, connIdException.getClass().getName(), desc, connIdException.getMessage());
 
-        if (connIdException instanceof RemoteWrappedException) {
+        if (connIdException instanceof RemoteWrappedException remoteWrappedException) {
             // brutal hack, for now
-            RemoteWrappedException remoteWrappedException = (RemoteWrappedException) connIdException;
             String className = remoteWrappedException.getExceptionClass();
             if (className == null) {
                 LOGGER.error("Remote ConnId exception without inner exception class name. Continuing with original one", connIdException);
@@ -164,7 +149,9 @@ public class ConnIdUtil {
         if (connIdException instanceof NullPointerException && connIdException.getMessage() != null) {
             // NPE with a message text is in fact not a NPE but an application exception
             // this usually means that some parameter is missing
-            Exception newEx = new SchemaException(createMessageFromAllExceptions("Required attribute is missing",connIdException));
+            // TODO This is no longer true for modern Java VMs and condition checking methods
+            Exception newEx = new SchemaException(
+                    createMessageFromAllExceptions("Required attribute is missing", connIdException));
             connIdResult.recordFatalError("Required attribute is missing: "+connIdException.getMessage(),newEx);
             return newEx;
         } else if (connIdException instanceof IllegalArgumentException) {
@@ -175,11 +162,10 @@ public class ConnIdUtil {
             return newEx;
         }
 
-        if (connIdException instanceof InvalidAttributeValueException) {
+        if (connIdException instanceof InvalidAttributeValueException iave) {
             // This is quite a special and flexible exception (one of the newer exceptions in ConnId).
             // Therefore it desires a special handling.
             Exception newEx;
-            InvalidAttributeValueException iave = (InvalidAttributeValueException)connIdException;
             if (iave.getAffectedAttributeNames() == null || iave.getAffectedAttributeNames().isEmpty()) {
                 newEx = new SchemaException(iave.getMessage());
             } else {
@@ -193,10 +179,10 @@ public class ConnIdUtil {
             return newEx;
         }
 
-        //fix of MiD-2645
+        //fix of MID-2645
         //exception brought by the connector is java.lang.RuntimeException with cause=CommunicationsException
         //this exception is to be analyzed here before the following if clause
-        if (connIdException.getCause() != null){
+        if (connIdException.getCause() != null) {
             String exCauseClassName = connIdException.getCause().getClass().getSimpleName();
             if (exCauseClassName.equals(CONNECTIONS_EXCEPTION_CLASS_NAME) ){
                 Exception newEx = new CommunicationException(createMessageFromAllExceptions("Connect error", connIdException));
@@ -217,10 +203,10 @@ public class ConnIdUtil {
         }
 
         Exception knownCause;
-        if (connIdException instanceof ConnectorException && !connIdException.getClass().equals(ConnectorException.class)) {
+        if (connIdException instanceof ConnectorException connectorException
+                && !connIdException.getClass().equals(ConnectorException.class)) {
             // we have non generic connector exception
-            knownCause = processConnectorException((ConnectorException) connIdException, connIdResult);
-//            LOGGER.error("LOOK FOR CONN ID EXCEPTION: {} -> {}", connIdException.getClass().getName(), knownCause.getClass().getName());
+            knownCause = processConnectorException(connectorException, connIdResult);
             if (knownCause != null) {
                 return knownCause;
             }
@@ -548,8 +534,8 @@ public class ConnIdUtil {
         }
     }
 
-    public static ResourceAttributeDefinition<?> getUidDefinition(ResourceObjectDefinition def) {
-        Collection<? extends ResourceAttributeDefinition<?>> primaryIdentifiers = def.getPrimaryIdentifiers();
+    static ShadowSimpleAttributeDefinition<?> getUidDefinition(ResourceObjectDefinition def) {
+        Collection<? extends ShadowSimpleAttributeDefinition<?>> primaryIdentifiers = def.getPrimaryIdentifiers();
         if (primaryIdentifiers.size() > 1) {
             throw new UnsupportedOperationException("Multiple primary identifiers are not supported");
         }
@@ -557,13 +543,13 @@ public class ConnIdUtil {
             return primaryIdentifiers.iterator().next();
         } else {
             // fallback, compatibility
-            return def.findAttributeDefinition(SchemaConstants.ICFS_UID);
+            return def.findSimpleAttributeDefinition(SchemaConstants.ICFS_UID);
         }
     }
 
     // TODO what if there are multiple secondary identifiers? It can be! (Somewhere we have code that deals with this.)
-    public static ResourceAttributeDefinition<?> getNameDefinition(ResourceObjectDefinition def) {
-        Collection<? extends ResourceAttributeDefinition<?>> secondaryIdentifiers = def.getSecondaryIdentifiers();
+    public static ShadowSimpleAttributeDefinition<?> getNameDefinition(ResourceObjectDefinition def) {
+        Collection<? extends ShadowSimpleAttributeDefinition<?>> secondaryIdentifiers = def.getSecondaryIdentifiers();
         if (secondaryIdentifiers.size() > 1) {
             throw new UnsupportedOperationException("Multiple secondary identifiers are not supported");
         }
@@ -571,34 +557,33 @@ public class ConnIdUtil {
             return secondaryIdentifiers.iterator().next();
         } else {
             // fallback, compatibility
-            return def.findAttributeDefinition(SchemaConstants.ICFS_NAME);
+            return def.findSimpleAttributeDefinition(SchemaConstants.ICFS_NAME);
         }
     }
 
-    @NotNull public static Collection<ResourceAttribute<?>> convertToIdentifiers(Uid uid,
-            ResourceObjectDefinition ocDef, ResourceSchema resourceSchema) throws SchemaException {
-        ResourceObjectDefinition concreteObjectDefinition =
-                getConcreteObjectClassDefinition(ocDef, resourceSchema);
+    @NotNull static Collection<ShadowSimpleAttribute<?>> convertToIdentifiers(
+            Uid uid, ResourceObjectDefinition ocDef, ResourceSchema resourceSchema) throws SchemaException {
+        ResourceObjectDefinition concreteObjectDefinition = getConcreteObjectClassDefinition(ocDef, resourceSchema);
         if (concreteObjectDefinition == null) {
-            throw new SchemaException("Concrete object definition for "+uid+" cannot be found");
+            throw new SchemaException("Concrete object definition for " + uid + " cannot be found");
         }
-        ResourceAttributeDefinition<?> uidDefinition = getUidDefinition(concreteObjectDefinition);
+        ShadowSimpleAttributeDefinition<?> uidDefinition = getUidDefinition(concreteObjectDefinition);
         if (uidDefinition == null) {
             throw new SchemaException("No definition for ConnId UID attribute found in definition " + ocDef);
         }
-        Collection<ResourceAttribute<?>> identifiers = new ArrayList<>(2);
+        Collection<ShadowSimpleAttribute<?>> identifiers = new ArrayList<>(2);
         //noinspection unchecked
-        ResourceAttribute<String> uidRoa = (ResourceAttribute<String>) uidDefinition.instantiate();
+        ShadowSimpleAttribute<String> uidRoa = (ShadowSimpleAttribute<String>) uidDefinition.instantiate();
         uidRoa.setRealValue(uid.getUidValue());
         identifiers.add(uidRoa);
         if (uid.getNameHint() != null) {
             //noinspection unchecked
-            ResourceAttributeDefinition<String> nameDefinition =
-                    (ResourceAttributeDefinition<String>) getNameDefinition(concreteObjectDefinition);
+            ShadowSimpleAttributeDefinition<String> nameDefinition =
+                    (ShadowSimpleAttributeDefinition<String>) getNameDefinition(concreteObjectDefinition);
             if (nameDefinition == null) {
                 throw new SchemaException("No definition for ConnId NAME attribute found in definition " + ocDef);
             }
-            ResourceAttribute<String> nameRoa = nameDefinition.instantiate();
+            ShadowSimpleAttribute<String> nameRoa = nameDefinition.instantiate();
             nameRoa.setRealValue(uid.getNameHintValue());
             identifiers.add(nameRoa);
         }
@@ -609,7 +594,7 @@ public class ConnIdUtil {
         if (ps == null || ps.isHashed()) {
             return null;
         }
-        if (!ps.isEncrypted()) {
+        if (!ps.isEncrypted() && !ps.isExternal()) {
             if (ps.getClearValue() == null) {
                 return null;
             }
@@ -630,36 +615,35 @@ public class ConnIdUtil {
         }
     }
 
-    public static Object convertValueToConnId(Object value, Protector protector, QName propName) throws SchemaException {
+    public static Object convertValueToConnId(Object value, Protector protector, QName propName) {
         if (value == null) {
             return null;
         }
 
-        if (value instanceof PrismPropertyValue) {
-            return convertValueToConnId(((PrismPropertyValue) value).getValue(), protector, propName);
+        if (value instanceof PrismPropertyValue<?> ppv) {
+            return convertValueToConnId(ppv.getValue(), protector, propName);
         }
 
-        if (value instanceof XMLGregorianCalendar) {
-            return XmlTypeConverter.toZonedDateTime((XMLGregorianCalendar) value);
+        if (value instanceof XMLGregorianCalendar calendar) {
+            return XmlTypeConverter.toZonedDateTime(calendar);
         }
 
-        if (value instanceof ProtectedStringType) {
-            ProtectedStringType ps = (ProtectedStringType) value;
+        if (value instanceof ProtectedStringType ps) {
             return toGuardedString(ps, protector, propName.toString());
         }
 
-        if (value instanceof PolyString) {
-            return polyStringToMap((PolyString)value);
+        if (value instanceof PolyString polyString) {
+            return polyStringToMap(polyString);
         }
 
         return value;
     }
 
-    public static GuardedString toGuardedString(ProtectedStringType ps, Protector protector, String propertyName) {
+    private static GuardedString toGuardedString(ProtectedStringType ps, Protector protector, String propertyName) {
         if (ps == null) {
             return null;
         }
-        if (!ps.isEncrypted()) {
+        if (!ps.isEncrypted() && !ps.isExternal()) {
             if (ps.getClearValue() == null) {
                 return null;
             }
@@ -706,6 +690,4 @@ public class ConnIdUtil {
         sb.append(")");
         return sb.toString();
     }
-
-
 }

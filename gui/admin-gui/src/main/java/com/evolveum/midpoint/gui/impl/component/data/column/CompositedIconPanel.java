@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.component.data.column;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebComponent;
@@ -87,7 +89,9 @@ public class CompositedIconPanel extends BasePanel<CompositedIcon> {
                 WebComponent icon = new WebComponent(ID_LAYER_ICON);
                 icon.add(AttributeAppender.append("class", iconType.getCssClass()));
                 if (StringUtils.isNotEmpty(iconType.getColor())) {
-                    icon.add(AttributeAppender.append("style", "color: " + iconType.getColor()));
+                    icon.add(AttributeAppender.append(
+                            "style",
+                            "color: " + GuiDisplayTypeUtil.removeStringAfterSemicolon(iconType.getColor())));
                 }
                 item.add(icon);
             }

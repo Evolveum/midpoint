@@ -11,6 +11,9 @@ import static com.evolveum.midpoint.schema.util.TraceUtil.isAtLeastMinimal;
 
 import static com.evolveum.midpoint.schema.util.TraceUtil.isAtLeastNormal;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
+
 import static org.apache.commons.lang3.BooleanUtils.isNotFalse;
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
@@ -24,7 +27,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.schema.config.ConfigurationItem;
+import com.evolveum.midpoint.prism.util.AbstractItemDeltaItem;
+import com.evolveum.midpoint.schema.config.AbstractMappingConfigItem;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -35,7 +39,6 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.*;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
@@ -58,6 +61,7 @@ import com.evolveum.prism.xml.ns._public.types_3.DeltaSetTripleType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.annotations.VisibleForTesting;
 
 /**
@@ -79,7 +83,6 @@ import org.jetbrains.annotations.VisibleForTesting;
  * @param <MBT> mapping bean type: MappingType or MetadataMappingType
  * @author Radovan Semancik
  */
-@SuppressWarnings("JavadocReference")
 public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDefinition<?>, MBT extends AbstractMappingType>
         implements Mapping<V, D>, DebugDumpable, PrismValueDeltaSetTripleProducer<V, D> {
 
@@ -94,9 +97,9 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     //region Configuration properties (almost unmodifiable)
 
     /** "Rich" definition of the mapping. */
-    @NotNull final ConfigurationItem<MBT> mappingConfigItem;
+    @NotNull final AbstractMappingConfigItem<MBT> mappingConfigItem;
 
-    /** "Pure" definition of the mapping. Just for convenience. */
+    /** "Pure" definition of the mapping. Just for convenience. Derived from {@link #mappingConfigItem}. */
     @NotNull final MBT mappingBean;
 
     /** Classification of the mapping (for reporting and diagnostic purposes). */
@@ -111,15 +114,19 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     transient final VariablesMap variables;
 
     /**
-     * Default source object. Used for resolution of paths that have no variable specification.
-     * For example, when using shortened path "name" instead of e.g. "$focus/name".
+     * The object-delta-object or item-delta-item for the default source context object/item.
+     *
+     * Default source context is the object/item that is used for resolution of paths that have no variable specification.
+     * For example, traditional outbound and object template mappings have a default context of `$focus`.
+     *
+     * NOTE: This is different from {@link #defaultSource}. That one is the specific source (sub)item in the source context.
      */
-    private final ObjectDeltaObject<?> sourceContext;
+    private final AbstractItemDeltaItem<?> defaultSourceContextIdi;
 
     /**
-     * Typified version of {@link #sourceContext}. Lazily evaluated.
+     * Typified version of {@link #defaultSourceContextIdi}. Lazily evaluated.
      */
-    transient private TypedValue<ObjectDeltaObject<?>> typedSourceContext;
+    transient private TypedValue<AbstractItemDeltaItem<?>> typedDefaultSourceContextIdi;
 
     /**
      * One of the sources can be denoted as default.
@@ -141,31 +148,41 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     private final ItemPath implicitSourcePath;
 
     /**
-     * Default target object. Used for resolution of paths that have no variable specification.
+     * Definition of the target object or item. Used for resolution of paths that have no variable specification.
+     *
+     * @see #defaultSourceContextIdi
      */
-    final PrismContainerDefinition<?> targetContext;
+    final PrismContainerDefinition<?> targetContextDefinition;
 
     /**
      * Information about the implicit target for a mapping. It is provided here for reporting and diagnostic purposes only.
-     * An example: $shadow/activation for activation mapping.
-     * Useful when defaultTargetPath is not specified.
+     * An example: `$shadow/activation` for activation mapping.
+     * Useful when {@link #defaultTargetPath} is not specified.
      */
     private final ItemPath implicitTargetPath;
 
     /**
-     * Redirects the target to another item, for example `identities/identity[x]/personalNumber` instead
-     * of `extension/personalNumber` when multi-inbounds are enabled.
+     * Overrides the target path from the mapping bean. Used e.g. for associated objects mappings;
+     * e.g. the bean says `targetRef` but the actual path will be `assignment/[123]/targetRef`.
      */
-    final ItemPath targetPathOverride;
+    @Nullable final ItemPath targetPathOverride;
 
     /**
-     * Default target path if "target" or "target/path" is missing.
+     * Redirects the target to another item, for example `identities/identity[x]/personalNumber` instead
+     * of `extension/personalNumber` when multi-source properties are enabled.
+     *
+     * This redirection takes place when the mapping is executed. So, e.g., the definition is still taken from the original path.
+     */
+    @Nullable final ItemPath targetPathExecutionOverride;
+
+    /**
+     * Default target path if "target" or "target/path" in the mapping bean is missing.
      * Used e.g. for outbound mappings.
      */
     final ItemPath defaultTargetPath;
 
     /**
-     * Value for {@link #outputDefinition} to be used when there's no target path specified.
+     * Value for {@link #getOutputDefinition()} to be used when there's no target path specified.
      * (For some cases it perhaps could be derived using {@link #defaultTargetPath} but we currently
      * do not use this option.)
      */
@@ -200,7 +217,8 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
      * Information on the object where the mapping is defined (e.g. role, resource, and so on).
      * Used for diagnostic and reporting purposes.
      *
-     * Probably will be replaced by the origin in {@link #mappingConfigItem}.
+     * Probably will be replaced by the origin in {@link #mappingConfigItem}, although - for resources - this currently points
+     * to the actual (expanded) resource, not necessarily to the super-resource, where the mapping may be defined.
      */
     private final ObjectType originObject;
 
@@ -261,14 +279,18 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
 
     /**
      * This is sometimes used to identify the element that mapping produces
-     * if it is different from itemName. E.g. this happens with associations.
+     * if it is different from the one returned by {@link #getItemName()}.
+     * Originally, this happened with associations.
      *
-     * TODO clarify, maybe rename
+     * TODO reconsider if it's still necessary
      */
-    private final QName mappingQName;
+    private final QName targetItemName;
 
     /**
-     * Mapping specification: name, containing object OID, assignment path.
+     * Mapping specification: name, containing object OID, object type (for resource), and assignment path.
+     *
+     * Provided either explicitly via builder or created by {@link #createDefaultSpecification()};
+     * MUST be provided explicitly for inbound mappings (we need object type information there).
      */
     @NotNull private final MappingSpecificationType mappingSpecification;
 
@@ -384,6 +406,8 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
      * Value metadata computer to be used when expression is evaluated.
      */
     transient private TransformationValueMetadataComputer valueMetadataComputer;
+
+    private List<MappingSpecificationType> mappingAliasSpecifications;
     //endregion
 
     //region Constructors and (relatively) simple getters
@@ -395,14 +419,15 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         implicitSourcePath = builder.getImplicitSourcePath();
         implicitTargetPath = builder.getImplicitTargetPath();
         targetPathOverride = builder.getTargetPathOverride();
-        defaultSource = builder.getDefaultSource();
+        targetPathExecutionOverride = builder.getTargetPathExecutionOverride();
+        defaultSource = builder.defaultSource;
         defaultTargetDefinition = builder.getDefaultTargetDefinition();
         explicitExpressionProfile = builder.getExplicitExpressionProfile();
         expressionProfileReference = new FreezableReference<>();
         defaultTargetPath = builder.getDefaultTargetPath();
         originalTargetValues = builder.getOriginalTargetValues();
-        sourceContext = builder.getSourceContext();
-        targetContext = builder.getTargetContext();
+        defaultSourceContextIdi = builder.defaultSourceContextIdi;
+        targetContextDefinition = builder.targetContextDefinition;
         originType = builder.getOriginType();
         originObject = builder.getOriginObject();
         valuePolicySupplier = builder.getValuePolicySupplier();
@@ -412,9 +437,15 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         conditionMaskNew = builder.isConditionMaskNew();
         profiling = builder.isProfiling();
         contextDescription = builder.getContextDescription();
-        mappingQName = builder.getMappingQName();
-        mappingSpecification = builder.getMappingSpecification() != null ?
-                builder.getMappingSpecification() : createDefaultSpecification();
+        targetItemName = builder.targetItemName;
+        if (builder.getMappingSpecification() != null) {
+            mappingSpecification = builder.getMappingSpecification();
+        } else {
+            stateCheck(mappingKind != MappingKindType.INBOUND,
+                    "Inbound mappings must have an explicit mapping specification; in %s", originObject);
+            mappingSpecification = createDefaultSpecification();
+        }
+        mappingAliasSpecifications = createMappingAliasSpecifications(mappingSpecification,mappingBean.getMappingAlias());
         now = builder.getNow();
         sources.addAll(builder.getAdditionalSources());
         parser = new MappingParser<>(this);
@@ -424,9 +455,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     private MappingSpecificationType createDefaultSpecification() {
         MappingSpecificationType specification = new MappingSpecificationType();
         specification.setMappingName(mappingBean.getName());
-        if (originObject != null) {
-            specification.setDefinitionObjectRef(ObjectTypeUtil.createObjectRef(originObject));
-        }
+        specification.setDefinitionObjectRef(ObjectTypeUtil.createObjectRef(originObject));
         return specification;
     }
 
@@ -438,14 +467,15 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         this.implicitSourcePath = prototype.implicitSourcePath;
         this.implicitTargetPath = prototype.implicitTargetPath;
         this.targetPathOverride = prototype.targetPathOverride;
+        this.targetPathExecutionOverride = prototype.targetPathExecutionOverride;
         this.sources.addAll(prototype.sources);
         this.variables = prototype.variables;
 
-        this.sourceContext = prototype.sourceContext;
+        this.defaultSourceContextIdi = prototype.defaultSourceContextIdi;
         // typedSourceContext as well?
         this.defaultSource = prototype.defaultSource;
 
-        this.targetContext = prototype.targetContext;
+        this.targetContextDefinition = prototype.targetContextDefinition;
         this.defaultTargetPath = prototype.defaultTargetPath;
         this.defaultTargetDefinition = prototype.defaultTargetDefinition;
         this.originalTargetValues = prototype.originalTargetValues;
@@ -459,7 +489,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         this.conditionMaskOld = prototype.conditionMaskOld;
         this.conditionMaskNew = prototype.conditionMaskNew;
 
-        this.mappingQName = prototype.mappingQName;
+        this.targetItemName = prototype.targetItemName;
         this.mappingSpecification = prototype.mappingSpecification;
 
         this.now = prototype.now;
@@ -495,22 +525,23 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         return defaultSource;
     }
 
-    public ObjectDeltaObject<?> getSourceContext() {
-        return sourceContext;
+    @TestOnly
+    AbstractItemDeltaItem<?> getDefaultSourceContextIdi() {
+        return defaultSourceContextIdi;
     }
 
     public String getContextDescription() {
         return contextDescription;
     }
 
-    TypedValue<ObjectDeltaObject<?>> getTypedSourceContext() {
-        if (sourceContext == null) {
+    TypedValue<AbstractItemDeltaItem<?>> getTypedDefaultSourceContextIdi() {
+        if (defaultSourceContextIdi == null) {
             return null;
         }
-        if (typedSourceContext == null) {
-            typedSourceContext = new TypedValue<>(sourceContext, sourceContext.getDefinition());
+        if (typedDefaultSourceContextIdi == null) {
+            typedDefaultSourceContextIdi = new TypedValue<>(defaultSourceContextIdi, defaultSourceContextIdi.getDefinition());
         }
-        return typedSourceContext;
+        return typedDefaultSourceContextIdi;
     }
 
     public String getMappingContextDescription() {
@@ -533,7 +564,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
 
     /** Should be called on prepared mapping. */
     public @NotNull ExpressionProfile getExpressionProfile() {
-        return MiscUtil.stateNonNull(
+        return stateNonNull(
                 expressionProfileReference.getValue(),
                 "no expression profile; state = %s", state);
     }
@@ -544,7 +575,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     }
 
     @Override
-    public MappingStrengthType getStrength() {
+    public @NotNull MappingStrengthType getStrength() {
         return getStrength(mappingBean);
     }
 
@@ -599,7 +630,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     }
 
     public boolean isEnabled() {
-        return isNotFalse(mappingBean.isEnabled());
+        return mappingConfigItem.isEnabled();
     }
 
     public Long getEtime() {
@@ -610,8 +641,8 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     }
 
     @Override
-    public QName getMappingQName() {
-        return mappingQName;
+    public QName getTargetItemName() {
+        return targetItemName;
     }
 
     @Override
@@ -691,7 +722,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
                     .mappingKind(mappingKind)
                     .implicitSourcePath(implicitSourcePath != null ? new ItemPathType(implicitSourcePath) : null)
                     .implicitTargetPath(implicitTargetPath != null ? new ItemPathType(implicitTargetPath) : null)
-                    .targetPathOverride(targetPathOverride != null ? new ItemPathType(targetPathOverride) : null)
+                    .targetPathOverride(targetPathExecutionOverride != null ? new ItemPathType(targetPathExecutionOverride) : null)
                     .containingObjectRef(ObjectTypeUtil.createObjectRef(originObject));
             result.addTrace(trace);
         } else {
@@ -907,12 +938,8 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
      * </ol>
      */
     private void checkExistingTargetValues(OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-        VariableBindingDefinitionType target = mappingBean.getTarget();
-        if (target == null) {
-            return;
-        }
-
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         if (valueMetadataComputer != null && valueMetadataComputer.supportsProvenance()) {
             restrictNegativeValuesToOwnYield();
             // Must come after the above method because this method creates some values in minus set.
@@ -920,10 +947,18 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
             deleteOwnYieldFromNonNegativeValues();
         }
 
-        if (target.getSet() == null) {
+        VariableBindingDefinitionType target = mappingBean.getTarget();
+        ValueSetDefinitionType explicitRangeSetDefBean = target != null ? target.getSet() : null;
+        ValueSetDefinitionType effectiveRangeSetDefBean;
+        // As of 4.9: Multivalues have by default provenance set mapping.
+        if (explicitRangeSetDefBean == null && shouldUseMatchingProvenance()) {
+            effectiveRangeSetDefBean = new ValueSetDefinitionType().predefined(ValueSetDefinitionPredefinedType.MATCHING_PROVENANCE);
+        } else {
+            effectiveRangeSetDefBean = explicitRangeSetDefBean;
+        }
+        if (effectiveRangeSetDefBean == null) {
             return;
         }
-
         String name;
         if (getOutputPath() != null) {
             name = getOutputPath().lastName().getLocalPart();
@@ -932,27 +967,36 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         }
 
         if (originalTargetValues == null) {
-            throw new IllegalStateException(
-                    "Couldn't check range for mapping in " + contextDescription + ", as original target values are not known.");
+            if (explicitRangeSetDefBean != null) {
+                throw new IllegalStateException(
+                        "Couldn't check range for mapping in " + contextDescription + ", as original target values are not known.");
+            } else {
+                // This is mainly to cover corner cases like those in low-level tests
+                // (TestMappingDomain, TestMappingDynamicSimple)
+                return;
+            }
         }
 
-        ValueSetDefinitionType rangeSetDefBean = target.getSet();
         ValueSetDefinition<V, D> rangeSetDef = new ValueSetDefinition<>(
-                rangeSetDefBean,
+                effectiveRangeSetDefBean,
+                ValueSetDefinition.ExtraSetSpecification.fromBean(target),
                 getOutputDefinition(),
                 valueMetadataDefinition,
                 getExpressionProfile(),
                 ModelCommonBeans.get().expressionFactory,
                 name,
                 mappingSpecification,
+                mappingAliasSpecifications,
                 "range",
                 "range of " + name + " in " + getMappingContextDescription(),
                 task, result);
         rangeSetDef.init();
         rangeSetDef.setAdditionalVariables(variables);
         for (V originalValue : originalTargetValues) {
+            // FIXME: Migrate legacy to new?
+
             if (rangeSetDef.contains(originalValue)) {
-                addToMinusIfNecessary(originalValue, rangeSetDef);
+                addToMinusIfNecessary(originalValue, rangeSetDef, result);
             }
         }
     }
@@ -1018,7 +1062,12 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         for (V negativeValue : outputTriple.getMinusSet()) {
             LOGGER.trace("restrictNegativeValuesToOwnYield processing negative value of {}", negativeValue);
             if (negativeValue != null) {
-                assert !negativeValue.hasValueMetadata();
+                if (!negativeValue.hasValueMetadata()) {
+                    // Negative value does not have metadata - should be removed?
+                    negativeValue.hasValueMetadata();
+                    //assert !negativeValue.hasValueMetadata();
+
+                }
                 List<V> matchingOriginalValues = originalTargetValues.stream()
                         .filter(originalValue ->
                                 negativeValue.equals(originalValue, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS))
@@ -1070,8 +1119,16 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     }
 
     @SuppressWarnings("unchecked")
-    private void addToMinusIfNecessary(V originalValue, ValueSetDefinition<V, D> rangeSetDef) {
-        if (outputTriple != null && (outputTriple.presentInPlusSet(originalValue) || outputTriple.presentInZeroSet(originalValue))) {
+    private void addToMinusIfNecessary(
+            @NotNull V originalValue,
+            @NotNull ValueSetDefinition<V, D> rangeSetDef,
+            @NotNull OperationResult result) {
+        if (outputTriple != null
+                && (outputTriple.presentInPlusSet(originalValue) || outputTriple.presentInZeroSet(originalValue))) {
+            return;
+        }
+        if (expression != null && expression.doesVetoTargetValueRemoval(originalValue, result)) {
+            LOGGER.trace("Expression vetoed removal of value: {}", originalValue);
             return;
         }
         // remove it!
@@ -1083,7 +1140,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         if (rangeSetDef.isYieldSpecific()) {
             LOGGER.trace("A yield of original value is in the mapping range (while not in mapping result), adding it to minus set: {}", originalValue);
             valueToDelete.<ValueMetadataType>getValueMetadataAsContainer()
-                    .removeIf(md -> !hasMappingSpecification(md.asContainerable(), mappingSpecification));
+                    .removeIf(md -> !rangeSetDef.hasMappingSpecification(md.asContainerable()));
             // TODO we could check if the minus set already contains the value we are going to remove
         } else {
             LOGGER.trace("Original value is in the mapping range (while not in mapping result), adding it to minus set: {}", originalValue);
@@ -1210,10 +1267,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         sb.append(" in ");
         sb.append(contextDescription);
         sb.append("]---------------------------");
-        MappingStrengthType strength = getStrength();
-        if (strength != null) {
-            sb.append("\nStrength: ").append(strength);
-        }
+        sb.append("\nStrength: ").append(getStrength());
         if (!isAuthoritative()) {
             sb.append("\nNot authoritative");
         }
@@ -1223,7 +1277,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         }
         sb.append("\nTarget: ").append(MiscUtil.toString(getOutputDefinition()));
         sb.append("\nTarget path: ").append(getOutputPath());
-        if (targetPathOverride != null) {
+        if (targetPathExecutionOverride != null) {
             sb.append(" (specified as: ").append(parser.getOriginalOutputPath()).append(")");
         }
 
@@ -1354,7 +1408,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
             context.setValuePolicySupplier(valuePolicySupplier);
             context.setExpressionFactory(ModelCommonBeans.get().expressionFactory);
             context.setDefaultSource(defaultSource);
-            context.setMappingQName(mappingQName);
+            context.setMappingQName(targetItemName);
             context.setVariableProducer(variableProducer);
             context.setLocalContextDescription("condition");
             conditionOutputTriple = expression.evaluate(context, result);
@@ -1378,7 +1432,8 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         context.setSkipEvaluationPlus(!conditionResultNew);
         context.setValuePolicySupplier(valuePolicySupplier);
         context.setExpressionFactory(ModelCommonBeans.get().expressionFactory);
-        context.setMappingQName(mappingQName);
+        context.setMappingQName(targetItemName);
+        context.setTargetDefinitionBean(mappingBean.getTarget());
         context.setVariableProducer(variableProducer);
         context.setValueMetadataComputer(valueMetadataComputer);
         context.setLocalContextDescription("expression");
@@ -1449,7 +1504,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
             return null;
         }
         //noinspection unchecked
-        Item<V, D> output = getOutputDefinition().instantiate();
+        Item<V, D> output = (Item<V, D>) getOutputDefinition().instantiate();
         output.addAll(PrismValueCollectionsUtil.cloneCollection(outputTriple.getNonNegativeValues()));
         return output;
     }
@@ -1483,9 +1538,9 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         result = prime * result + ((originType == null) ? 0 : originType.hashCode());
         result = prime * result + ((outputTriple == null) ? 0 : outputTriple.hashCode());
         result = prime * result + ((contextDescription == null) ? 0 : contextDescription.hashCode());
-        result = prime * result + ((sourceContext == null) ? 0 : sourceContext.hashCode());
+        result = prime * result + ((defaultSourceContextIdi == null) ? 0 : defaultSourceContextIdi.hashCode());
         result = prime * result + sources.hashCode();
-        result = prime * result + ((targetContext == null) ? 0 : targetContext.hashCode());
+        result = prime * result + ((targetContextDefinition == null) ? 0 : targetContextDefinition.hashCode());
         result = prime * result + ((variables == null) ? 0 : variables.hashCode());
         return result;
     }
@@ -1520,13 +1575,13 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         if (contextDescription == null) {
             if (other.contextDescription != null) { return false; }
         } else if (!contextDescription.equals(other.contextDescription)) { return false; }
-        if (sourceContext == null) {
-            if (other.sourceContext != null) { return false; }
-        } else if (!sourceContext.equals(other.sourceContext)) { return false; }
+        if (defaultSourceContextIdi == null) {
+            if (other.defaultSourceContextIdi != null) { return false; }
+        } else if (!defaultSourceContextIdi.equals(other.defaultSourceContextIdi)) { return false; }
         if (!sources.equals(other.sources)) { return false; }
-        if (targetContext == null) {
-            if (other.targetContext != null) { return false; }
-        } else if (!targetContext.equals(other.targetContext)) { return false; }
+        if (targetContextDefinition == null) {
+            if (other.targetContextDefinition != null) { return false; }
+        } else if (!targetContextDefinition.equals(other.targetContextDefinition)) { return false; }
         if (variables == null) {
             if (other.variables != null) { return false; }
         } else if (!variables.equals(other.variables)) { return false; }
@@ -1544,21 +1599,21 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     @Override
     public String toString() {
         if (mappingBean.getName() != null) {
-            return "M(" + mappingBean.getName() + ": " + getMappingDisplayName() + " = " + outputTriple + toStringStrength() + ")";
+            return "M(" + mappingBean.getName() + ": " + getTargetItemPrettyName() + " = " + outputTriple + toStringStrength() + ")";
         } else {
-            return "M(" + getMappingDisplayName() + " = " + outputTriple + toStringStrength() + ")";
+            return "M(" + getTargetItemPrettyName() + " = " + outputTriple + toStringStrength() + ")";
         }
     }
 
-    private String getMappingDisplayName() {
-        if (mappingQName != null) {
-            return SchemaDebugUtil.prettyPrint(mappingQName);
+    private String getTargetItemPrettyName() {
+        if (targetItemName != null) {
+            return SchemaDebugUtil.prettyPrint(targetItemName);
         }
         D outputDefinition = getOutputDefinition();
-        if (outputDefinition == null) {
-            return null;
+        if (outputDefinition != null) {
+            return SchemaDebugUtil.prettyPrint(outputDefinition.getItemName());
         }
-        return SchemaDebugUtil.prettyPrint(outputDefinition.getItemName());
+        return null;
     }
 
     private String toStringStrength() {
@@ -1581,7 +1636,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         if (mappingBean.getName() != null) {
             sb.append("'").append(mappingBean.getName()).append("'");
         } else {
-            sb.append(getMappingDisplayName());
+            sb.append(getTargetItemPrettyName());
         }
         if (originObject != null) {
             sb.append(" in ");
@@ -1625,5 +1680,27 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     @Override
     public boolean isPushChanges() {
         return pushChanges;
+    }
+
+    boolean shouldUseMatchingProvenance() {
+        return getOutputDefinition() != null && getOutputDefinition().isMultiValue() && mappingBean.getName() != null;
+    }
+
+    private static MappingSpecificationType createMappingAliasSpecification(MappingSpecificationType spec, String alias) {
+        if (spec == null || alias == null || alias.isEmpty()) {
+            return null;
+        }
+        return new MappingSpecificationType()
+                .definitionObjectRef(CloneUtil.cloneCloneable(spec.getDefinitionObjectRef()))
+                .objectType(CloneUtil.cloneCloneable(spec.getObjectType()))
+                .mappingName(alias);
+    }
+
+    private static List<MappingSpecificationType> createMappingAliasSpecifications(MappingSpecificationType spec, List<String> alias) {
+        if (spec == null || alias == null || alias.isEmpty()) {
+            return null;
+        }
+
+        return alias.stream().map(s -> createMappingAliasSpecification(spec, s)).toList();
     }
 }

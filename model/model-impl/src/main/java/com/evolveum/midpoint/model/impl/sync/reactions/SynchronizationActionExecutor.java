@@ -18,6 +18,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadL
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+import com.evolveum.midpoint.schema.processor.SynchronizationReactionDefinition.ObjectSynchronizationReactionDefinition;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -27,9 +28,7 @@ import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.schema.processor.SynchronizationActionDefinition;
 import com.evolveum.midpoint.schema.processor.SynchronizationPolicy;
-import com.evolveum.midpoint.schema.processor.SynchronizationReactionDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -74,7 +73,7 @@ public class SynchronizationActionExecutor<F extends FocusType> {
                 return false;
             }
 
-            SynchronizationReactionDefinition reaction = getReaction(result);
+            ObjectSynchronizationReactionDefinition reaction = getReaction(result);
             if (reaction != null) {
                 executeReaction(reaction, result);
             } else {
@@ -92,7 +91,7 @@ public class SynchronizationActionExecutor<F extends FocusType> {
         return result.getStatus() == FATAL_ERROR;
     }
 
-    private SynchronizationReactionDefinition getReaction(OperationResult result)
+    private ObjectSynchronizationReactionDefinition getReaction(OperationResult result)
             throws ConfigurationException, SchemaException, ObjectNotFoundException, CommunicationException,
             SecurityViolationException, ExpressionEvaluationException {
 
@@ -103,8 +102,8 @@ public class SynchronizationActionExecutor<F extends FocusType> {
         }
         String currentChannel = syncCtx.getChannel();
 
-        SynchronizationReactionDefinition defaultReaction = null;
-        for (SynchronizationReactionDefinition reactionToConsider : policy.getReactions()) {
+        ObjectSynchronizationReactionDefinition defaultReaction = null;
+        for (ObjectSynchronizationReactionDefinition reactionToConsider : policy.getReactions()) {
             TaskExecutionMode executionMode = syncCtx.getTask().getExecutionMode();
             if (!reactionToConsider.isVisible(executionMode)) {
                 LOGGER.trace("Skipping {} because it is not visible for current task execution mode: {}",
@@ -133,7 +132,7 @@ public class SynchronizationActionExecutor<F extends FocusType> {
         return defaultReaction;
     }
 
-    private boolean conditionMatches(@NotNull SynchronizationReactionDefinition reaction, OperationResult result)
+    private boolean conditionMatches(@NotNull ObjectSynchronizationReactionDefinition reaction, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         ExpressionType condition = reaction.getCondition();
@@ -151,7 +150,7 @@ public class SynchronizationActionExecutor<F extends FocusType> {
                     variables,
                     condition,
                     syncCtx.getExpressionProfile(),
-                    syncCtx.getBeans().expressionFactory,
+                    ModelBeans.get().expressionFactory,
                     desc,
                     task,
                     result);
@@ -164,7 +163,7 @@ public class SynchronizationActionExecutor<F extends FocusType> {
         }
     }
 
-    private void executeReaction(@NotNull SynchronizationReactionDefinition reactionDefinition, OperationResult result) {
+    private void executeReaction(@NotNull ObjectSynchronizationReactionDefinition reactionDefinition, OperationResult result) {
 
         // This implements a pre-4.6 behavior. All actions were clockwork-related at that time.
         if (reactionDefinition.isLegacySynchronizeOff()) {
@@ -174,8 +173,8 @@ public class SynchronizationActionExecutor<F extends FocusType> {
         }
 
         try {
-            for (SynchronizationActionDefinition actionDefinition : reactionDefinition.getActions()) {
-                syncCtx.getBeans().synchronizationActionFactory
+            for (var actionDefinition : reactionDefinition.getActions()) {
+                ModelBeans.get().synchronizationActionFactory
                         .getActionInstance(
                                 new ActionInstantiationContext<>(
                                         syncCtx,

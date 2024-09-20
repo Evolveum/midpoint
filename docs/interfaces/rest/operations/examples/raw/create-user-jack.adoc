@@ -1,0 +1,38 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Create a new User object in MidPoint with file data source*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Content-Type: application/json" \
+-X POST http://localhost:8080/midpoint/ws/rest/users \
+-v \
+--data-binary @./samples/rest/user-jack.json
+----
+
+.*Show* data source example for *"Create a new User object in MidPoint"* | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/user-jack.json[GitHub]
+[%collapsible]
+====
+[source, json]
+----
+{
+  "user": {
+    "name": "jack",
+    "fullName": "Jack Sparrow",
+    "givenName": "Jack",
+    "familyName": "Sparrow"
+  }
+}
+----
+====
+
+The response is an HTTP 201 code in case of success *without* a response body.
+Also, the response contains a *Location Header* pointing to the location of the created
+user.
+
+.Example location header
+[source, bash]
+----
+ # Location: http://localhost:8080/midpoint/ws/rest/users/e4b0c81e-7fc7-462d-a92c-b3e0b10b8b49
+----

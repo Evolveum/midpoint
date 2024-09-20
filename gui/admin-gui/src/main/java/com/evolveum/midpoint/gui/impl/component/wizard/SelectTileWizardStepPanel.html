@@ -12,14 +12,19 @@
         <div wicket:id="feedback" class="messagePanel"/>
     </div>
 
-    <div class="col-12 p-0 card">
-        <div class="card-header py-2">
+    <div wicket:id="body" class="col-12"/>
+    <wicket:child/>
+
+    <wicket:fragment wicket:id="bodyFragment">
+        <div class="col-12 p-0 card">
+            <div class="card-header py-2">
             <span>
                 <i wicket:id="icon"/>
                 <span wicket:id="title"/>
             </span>
+            </div>
+            <div wicket:id="table" class="col-12 p-0 "/>
         </div>
-        <div wicket:id="table" class="col-12 p-0 "/>
-    </div>
+    </wicket:fragment>
 </wicket:extend>
 </html>

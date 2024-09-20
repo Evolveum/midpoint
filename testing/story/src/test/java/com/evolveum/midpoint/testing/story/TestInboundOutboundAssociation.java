@@ -172,7 +172,7 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
                 .addMember(USER_JACK_USERNAME);
 
         // "fake" modification of jack's account. Just to "motivate" it to be synchronized
-        getDummyResourceDir().getAccountByUsername(USER_JACK_USERNAME)
+        getDummyResourceDir().getAccountByName(USER_JACK_USERNAME)
                 .replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum");
 
         when();
@@ -383,24 +383,22 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
                 .projectionContexts()
                 .single()
                 .assertNoPrimaryDelta()
-                .secondaryDelta()
+                .summarySecondaryDelta()
                 .display()
                 .assertModify()
-                .container(ShadowType.F_ASSOCIATION)
+                .container(ShadowType.F_ASSOCIATIONS.append(ASSOCIATION_GROUP_QNAME))
                 .assertNoValuesToAdd()
                 .assertNoValuesToReplace()
                 .valuesToDelete()
                 .single()
-                .assertPropertyEquals(ShadowAssociationType.F_NAME, ASSOCIATION_GROUP_QNAME)
-                .assertRefEquals(ShadowAssociationType.F_SHADOW_REF, shadowGroupPiratesOid)
+                .assertRefEquals(ShadowAssociationValueType.F_OBJECTS.append(ASSOCIATION_GROUP_QNAME), shadowGroupPiratesOid)
                 .end()
                 .end()
                 .end()
                 .end()
                 .objectNew()
                 .display()
-                .assertNoItem(ShadowType.F_ASSOCIATION);
-
+                .assertNoItem(ShadowType.F_ASSOCIATIONS.append(ASSOCIATION_GROUP_QNAME));
     }
 
     /**

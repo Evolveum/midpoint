@@ -6,41 +6,59 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemEditabilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.task.TaskDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOptionsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.RoleAnalysisRoleSessionOptions;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.RoleAnalysisUserSessionOptions;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
-import com.evolveum.midpoint.web.page.admin.server.RefreshableTabPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.wicket.Component;
-import org.apache.wicket.model.IModel;
-
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 @PanelType(name = "miningBasic", defaultContainerPath = "empty")
+
 @PanelInstance(identifier = "sessionBasic",
         applicableForType = RoleAnalysisSessionType.class,
-        defaultPanel = true,
-        display = @PanelDisplay(label = "pageAdminFocus.basic", order = 10))
+        childOf = RoleAnalysisUserSessionOptions.class,
+        display = @PanelDisplay(
+                label = "RoleAnalysis.basic.panel",
+                icon = GuiStyleConstants.CLASS_INFO_CIRCLE,
+                order = 10))
+
+@PanelInstance(identifier = "sessionBasic",
+        applicableForType = RoleAnalysisSessionType.class,
+        childOf = RoleAnalysisRoleSessionOptions.class,
+        display = @PanelDisplay(
+                label = "RoleAnalysis.basic.panel",
+                icon = GuiStyleConstants.CLASS_INFO_CIRCLE,
+                order = 10))
 
 @PanelInstance(identifier = "clusterBasic",
         applicableForType = RoleAnalysisClusterType.class,
-        defaultPanel = true,
-        display = @PanelDisplay(label = "pageAdminFocus.basic", order = 10))
+        childOf = RoleAnalysisClusterOptionsPanel.class,
+        display = @PanelDisplay(
+                label = "RoleAnalysis.basic.panel",
+                icon = GuiStyleConstants.CLASS_INFO_CIRCLE,
+                order = 10))
+
+@PanelInstance(identifier = "outlierBasic",
+        applicableForType = RoleAnalysisOutlierType.class,
+        display = @PanelDisplay(
+                label = "RoleAnalysis.basic.panel",
+                icon = GuiStyleConstants.CLASS_INFO_CIRCLE,
+                order = 10))
+
 public class RoleAnalysisBasicPanel<AH extends AssignmentHolderType> extends AbstractObjectMainPanel<AH, ObjectDetailsModels<AH>> {
 
     private static final String ID_MAIN_PANEL = "main";
@@ -49,16 +67,18 @@ public class RoleAnalysisBasicPanel<AH extends AssignmentHolderType> extends Abs
         super(id, model, config);
     }
 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     protected void initLayout() {
         SingleContainerPanel mainPanel = new SingleContainerPanel(ID_MAIN_PANEL, getObjectWrapperModel(), getPanelConfiguration()) {
 
             @Override
-            protected ItemVisibility getVisibility(ItemWrapper itemWrapper) {
+            protected ItemVisibility getVisibility(@NotNull ItemWrapper itemWrapper) {
                 return getBasicTabVisibility(itemWrapper.getPath());
             }
 
+            @Contract(pure = true)
             @Override
-            protected ItemEditabilityHandler getEditabilityHandler() {
+            protected @NotNull ItemEditabilityHandler getEditabilityHandler() {
                 return wrapper -> true;
             }
 
@@ -76,6 +96,10 @@ public class RoleAnalysisBasicPanel<AH extends AssignmentHolderType> extends Abs
         }
 
         if (RoleAnalysisSessionType.F_DESCRIPTION.equivalent(path)) {
+            return ItemVisibility.AUTO;
+        }
+
+        if (RoleAnalysisOutlierType.F_TARGET_OBJECT_REF.equivalent(path)) {
             return ItemVisibility.AUTO;
         }
 

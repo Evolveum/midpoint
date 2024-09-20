@@ -2,12 +2,11 @@ package com.evolveum.midpoint.provisioning.impl.resources;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.provisioning.impl.CommonBeans;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.NativeResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -121,23 +120,23 @@ class ResourceUpdater {
         }
     }
 
-    void updateSchema(ResourceSchema rawResourceSchema) throws SchemaException {
+    void updateSchema(NativeResourceSchema schema) throws SchemaException {
         if (updateRepository) {
             modifications.add(
                     PrismContext.get().deltaFor(ResourceType.class)
                             .item(ResourceType.F_SCHEMA)
-                            .replace(createSchemaUpdateValue(rawResourceSchema))
+                            .replace(createSchemaUpdateValue(schema))
                             .asItemDelta());
         }
         if (updateInMemory) {
-            resource.schema(createSchemaUpdateValue(rawResourceSchema));
+            resource.schema(createSchemaUpdateValue(schema));
         }
     }
 
-    private XmlSchemaType createSchemaUpdateValue(ResourceSchema rawResourceSchema) throws SchemaException {
+    private XmlSchemaType createSchemaUpdateValue(NativeResourceSchema nativeResourceSchema) throws SchemaException {
         SchemaDefinitionType schemaDefinition = new SchemaDefinitionType();
         schemaDefinition.setSchema(
-                getSchemaRootElement(rawResourceSchema));
+                getSchemaRootElement(nativeResourceSchema));
 
         return new XmlSchemaType()
                 .cachingMetadata(MiscSchemaUtil.generateCachingMetadata())
@@ -146,10 +145,10 @@ class ResourceUpdater {
     }
 
     @NotNull
-    private Element getSchemaRootElement(ResourceSchema rawResourceSchema) throws SchemaException {
+    private Element getSchemaRootElement(NativeResourceSchema nativeResourceSchema) throws SchemaException {
         Document xsdDoc;
         try {
-            xsdDoc = rawResourceSchema.serializeToXsd();
+            xsdDoc = nativeResourceSchema.serializeToXsd();
             LOGGER.trace("Serialized XSD resource schema for {}:\n{}",
                     resource, lazy(() -> DOMUtil.serializeDOMToString(xsdDoc)));
         } catch (SchemaException e) {
@@ -207,7 +206,7 @@ class ResourceUpdater {
         try {
             LOGGER.trace("Applying modifications to {}:\n{}",
                     resource, DebugUtil.debugDumpLazily(modifications, 1));
-            beans.cacheRepositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, result);
+            beans.repositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, result);
             InternalMonitor.recordCount(InternalCounters.RESOURCE_REPOSITORY_MODIFY_COUNT);
         } catch (ObjectAlreadyExistsException ex) {
             throw SystemException.unexpected(ex, "when updating resource during completion");

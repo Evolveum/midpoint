@@ -127,6 +127,8 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
                 ajaxRequestTarget.add(getPageBase().getFeedbackPanel());
             }
         };
+        cancelButton.add(new VisibleBehaviour(this::isCancelButtonVisible));
+
         buttonsContainer.add(cancelButton);
     }
 
@@ -144,6 +146,10 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
     }
 
     protected boolean isButtonPanelVisible() {
+        return true;
+    }
+
+    protected boolean isCancelButtonVisible() {
         return true;
     }
 
@@ -183,10 +189,13 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
     }
 
     @Override
-    protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc) {
+    protected void newItemPerformed(PrismContainerValue<C> value, AjaxRequestTarget target, AssignmentObjectRelation relationSpec, boolean isDuplicate) {
         PrismContainerWrapper<C> container = getContainerModel().getObject();
-        PrismContainerValue<C> newObjectPolicy = container.getItem().createNewValue();
-        PrismContainerValueWrapper<C> newObjectPolicyWrapper = createNewItemContainerValueWrapper(newObjectPolicy, container, target);
+        PrismContainerValue<C> newValue = value;
+        if (newValue == null) {
+            newValue = container.getItem().createNewValue();
+        }
+        PrismContainerValueWrapper<C> newObjectPolicyWrapper = createNewItemContainerValueWrapper(newValue, container, target);
         itemDetailsPerformed(target, Arrays.asList(newObjectPolicyWrapper));
     }
 }

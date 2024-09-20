@@ -1,0 +1,57 @@
+= Verify
+
+Verification is a process that reads objects from midPoint repository and checks whether they are compatible with new version of midPoint.
+Verification checks for deprecated, removed elements or other issues that can cause problems during or after upgrade.
+
+Different categories for verification can be set turned on via switch `--verification-category`.
+Allowed values are  `DEPRECATED`, `REMOVED`, `PLANNED_REMOVAL`, `INCORRECT_OIDS`, `MULTI_VALUE_REF_WITHOUT_OID`, `MISSING_NATURAL_KEY`, `MULTIVALUE_BYTE_ARRAY`, `PROTECTED_DATA_NOT_EXTERNAL`.
+By default, all categories are checked.
+
+By default, ninja displays warnings about objects to `SYSOUT`.
+Output can be redirected to file using `-o`, `--output`.
+
+Verification can run while midPoint is running.
+The whole verification can be split into multiple parts, each part verifying a subset of similar objects using `-f, --filter` and `-t, --type` options.
+This way verification reports can be simpler to read and easier to understand, since they should contain smaller set of issues.
+
+Verification results can be reported in two styles plain and CSV.
+The switch for report style is `--report-style [plain|csv]`.
+Plain style is set as default option, while CSV is better for further processing and review.
+CSV report style creates two files - CSV and XML.
+XML will contain list of deltas for each object, describing what ninja wants to change on object to _upgrade_ it.
+
+The CSV report contain three sets of columns:
+
+* Object identification (oid, name, type)
+* Verification item information (status, path, message)
+* Upgrade information (multiple columns see <<Upgrade information>>)
+
+== Upgrade information
+
+Upgrade information consists of following columns:
+
+* *Identifier* - unique identifier of verification/upgrade item which can be used to group similar items together when processing reports.
+* *Phase* - upgrade phase in which item should be updated (before or after midPoint is upgraded).
+* *Priority*
+** *Critical* - midPoint may fail to start or work properly if such verification item is not fixed (updated).
+Critical item would also halt upgrade procedure in next phase, unless this check is explicitly skipped using `--skip-verification` option.
+** *Necessary* - verification item should be fixed, midPoint should not fail to start, but some features might not work properly.
+** *Optional* - this item doesn't have to be necessarily fixed, but it's recommended to do so.
+E.g. deprecated configuration which might be removed in version after next one.
+* *Type*
+** *Seamless* - such item can be handled by ninja automatically without any user interaction.
+E.g. there's clear migration path without any change in functionality.
+** *Preview* - ninja can provide new configuration for such item, but it's recommended to review it before applying.
+** *Manual* - ninja can't provide any configuration for such item, user has to fix it manually.
+Reason can be that there's currently no migration path (removed feature) or there are multiple possible solutions that doesn't map configuration 1:1.
+* *Description* - contains more information, mainly on how to upgrade/update such item.
+* *Skip* - last column in CSV report, can be used to mark items that should be skipped during object upgrade.
+
+Such CSV report has to be used as input for upgrade objects command with option `--verification-file`.
+See xref:./upgrade-objects.adoc[] for more information.
+
+.Example which verifies all objects in repository, checks only planned removal of items
+[source,bash]
+----
+./bin/ninja.sh verify --verification-category planned_removal
+----

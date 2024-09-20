@@ -1,0 +1,112 @@
+= Role Type REST Endpoint
+:page-nav-title: Role
+:page-display-order: 300
+:page-toc: top
+:page-keywords: [ 'rest', 'role', 'endpoint' ]
+:page-upkeep-status: green
+
+== Role Type REST Endpoint
+
+Here we are describing the Role object type in relation to midPoints REST API. The
+Role objects are a part of the REST API web resources.
+
+.Endpoint
+[source, http]
+----
+roles/
+----
+
+== Operations And Examples
+
+The Role web resource is a part of the Create-Read-Update-Delete (CRUD) web resources
+present in midPoint. This is apparent in the operations which are available for this type of object.
+
+include::../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+
+=== Create Role Objects
+
+include::../operations/examples/raw/create-role-employee.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]
+
+=== Get Role Objects
+
+Get operation for fetching a single specific object.
+
+.Get Role object with REST
+
+include::../operations/examples/raw/get-role-end-user.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/get-op-rest/[Get Operation]
+
+=== Search for Role Objects
+
+Search operation usable for fetching the full list of objects or a list based on filter.
+
+include::../operations/examples/raw/search-name-roles.adoc[]
+
+include::../operations/examples/raw/search-gen-name.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[Search Operation]
+
+=== Modify Role Objects
+
+include::../operations/examples/raw/modify-attr-role-employee.adoc[]
+
+include::../operations/examples/raw/modify-attr.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/modify-op-rest/[Modify Operation]
+
+=== Delete Role Objects
+
+include::../operations/examples/raw/delete-role.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/delete-op-rest/[Delete Operation]
+
+=== Generate and Validate Operations for Role Objects
+
+Operations to generate or validate values, here we have an example of a simple identifier generate use-case.
+
+include::../operations/examples/raw/role-id-generate.adoc[]
+
+include::../operations/examples/raw/modify-id-generate.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]
+
+== Common Use-case Examples
+
+== JSON Example
+
+Example output of information regarding a specific object. Some data vas omitted to simplify the example.
+
+.Show JSON Example
+[%collapsible]
+====
+[source, json]
+----
+{
+  "role" : {
+    "oid" : "00000000-0000-0000-0000-000000000008",
+    "version" : "1",
+    "name" : "End user",
+    "description" : "Role authorizing end users to log in, change their passwords and review assigned accounts. Note: This role definition is just an example. It should be tailored for each specific deployment.",
+    "metadata" : {},
+    "operationExecution" : {},
+    "iteration" : 0,
+    "iterationToken" : "",
+    "activation" : {},
+    "authorization" : [ {}, {} ],
+    "adminGuiConfiguration" : {}
+  }
+}
+----
+====
+
+== See Also
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]

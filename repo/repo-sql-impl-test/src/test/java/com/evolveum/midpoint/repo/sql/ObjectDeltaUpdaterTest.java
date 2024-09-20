@@ -13,7 +13,7 @@ import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import java.io.File;
 import java.util.*;
 
-import org.hibernate.Session;
+import jakarta.persistence.EntityManager;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.Assert;
@@ -101,12 +101,8 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          - update m_user set additionalName_norm=?, additionalName_orig=?, employeeNumber=?, familyName_norm=?, familyName_orig=?, fullName_norm=?, fullName_orig=?, givenName_norm=?, givenName_orig=?, honorificPrefix_norm=?, honorificPrefix_orig=?, honorificSuffix_norm=?, honorificSuffix_orig=?, name_norm=?, name_orig=?, nickName_norm=?, nickName_orig=?, title_norm=?, title_orig=? where oid=?
          */
 
-        if (isUsingH2()) {
-            AssertJUnit.assertEquals(5, TestStatementInspector.getQueryCount());
-        }
-
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             AssertJUnit.assertEquals(new RPolyString("ášdf", "asdf"), u.getName());
             AssertJUnit.assertEquals(new RPolyString("ášdf", "asdf"), u.getNameCopy());
             AssertJUnit.assertEquals(new RPolyString("ášdf", "asdf"), u.getGivenName());
@@ -135,12 +131,8 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          - update m_focus set administrativeStatus=?, archiveTimestamp=?, disableReason=?, disableTimestamp=?, effectiveStatus=?, enableTimestamp=?, validFrom=?, validTo=?, validityChangeTimestamp=?, validityStatus=?, costCenter=?, emailAddress=?, hasPhoto=?, locale=?, locality_norm=?, locality_orig=?, preferredLanguage=?, telephoneNumber=?, timezone=? where oid=?
          */
 
-        if (isUsingH2()) {
-            AssertJUnit.assertEquals(4, TestStatementInspector.getQueryCount());
-        }
-
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             AssertJUnit.assertNull(u.getActivation());
         }
     }
@@ -164,12 +156,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
          - update m_focus set administrativeStatus=?, archiveTimestamp=?, disableReason=?, disableTimestamp=?, effectiveStatus=?, enableTimestamp=?, validFrom=?, validTo=?, validityChangeTimestamp=?, validityStatus=?, costCenter=?, emailAddress=?, hasPhoto=?, locale=?, locality_norm=?, locality_orig=?, preferredLanguage=?, telephoneNumber=?, timezone=? where oid=?
          */
-        if (isUsingH2()) {
-            AssertJUnit.assertEquals(4, TestStatementInspector.getQueryCount());
-        }
 
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             AssertJUnit.assertEquals(RActivationStatus.ARCHIVED, u.getActivation().getAdministrativeStatus());
         }
     }
@@ -210,12 +199,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         // todo this should be only 8 queries, these two aren't expected ... that's because hibernate handles collections too eagerly
         // select createappr0_.owner_id as owner_id1_14_0_, createappr0_.owner_owner_oid as owner_ow2_14_0_, createappr0_.reference_type as referenc3_14_0_, createappr0_.relation as relation4_14_0_, createappr0_.targetOid as targetOi5_14_0_, createappr0_.owner_id as owner_id1_14_1_, createappr0_.owner_owner_oid as owner_ow2_14_1_, createappr0_.reference_type as referenc3_14_1_, createappr0_.relation as relation4_14_1_, createappr0_.targetOid as targetOi5_14_1_, createappr0_.targetType as targetTy6_14_1_ from m_assignment_reference createappr0_ where ( createappr0_.reference_type= 0) and createappr0_.owner_id=? and createappr0_.owner_owner_oid=?
         // select modifyappr0_.owner_id as owner_id1_14_0_, modifyappr0_.owner_owner_oid as owner_ow2_14_0_, modifyappr0_.reference_type as referenc3_14_0_, modifyappr0_.relation as relation4_14_0_, modifyappr0_.targetOid as targetOi5_14_0_, modifyappr0_.owner_id as owner_id1_14_1_, modifyappr0_.owner_owner_oid as owner_ow2_14_1_, modifyappr0_.reference_type as referenc3_14_1_, modifyappr0_.relation as relation4_14_1_, modifyappr0_.targetOid as targetOi5_14_1_, modifyappr0_.targetType as targetTy6_14_1_ from m_assignment_reference modifyappr0_ where ( modifyappr0_.reference_type= 1) and modifyappr0_.owner_id=? and modifyappr0_.owner_owner_oid=?
-        if (isUsingH2()) {
-            AssertJUnit.assertEquals(10, TestStatementInspector.getQueryCount());
-        }
 
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
 
             Set<RAssignment> assignments = u.getAssignments();
             AssertJUnit.assertEquals(1, assignments.size());
@@ -223,7 +209,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
             RAssignment a = assignments.iterator().next();
             AssertJUnit.assertEquals("zzz", a.getCreateChannel());
 
-            ObjectReferenceType targetRef = a.getTargetRef().toJAXB(prismContext);
+            ObjectReferenceType targetRef = a.getTargetRef().toJAXB();
             AssertJUnit.assertEquals(createRef(OrgType.COMPLEX_TYPE, "444", SchemaConstants.ORG_DEFAULT), targetRef);
 
             //noinspection unchecked
@@ -254,12 +240,8 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          - update m_assignment set administrativeStatus=?, archiveTimestamp=?, disableReason=?, disableTimestamp=?, effectiveStatus=?, enableTimestamp=?, validFrom=?, validTo=?, validityChangeTimestamp=?, validityStatus=?, assignmentOwner=?, createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, extId=?, extOid=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, orderValue=?, orgRef_relation=?, orgRef_targetOid=?, orgRef_type=?, resourceRef_relation=?, resourceRef_targetOid=?, resourceRef_type=?, targetRef_relation=?, targetRef_targetOid=?, targetRef_type=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=? where id=? and owner_oid=?
          */
 
-        if (isUsingH2()) {
-            AssertJUnit.assertEquals(5, TestStatementInspector.getQueryCount());
-        }
-
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
 
             Set<RAssignment> assignments = u.getAssignments();
             AssertJUnit.assertEquals(1, assignments.size());
@@ -292,12 +274,8 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          - update m_assignment set administrativeStatus=?, archiveTimestamp=?, disableReason=?, disableTimestamp=?, effectiveStatus=?, enableTimestamp=?, validFrom=?, validTo=?, validityChangeTimestamp=?, validityStatus=?, assignmentOwner=?, createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, extId=?, extOid=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, orderValue=?, orgRef_relation=?, orgRef_targetOid=?, orgRef_type=?, resourceRef_relation=?, resourceRef_targetOid=?, resourceRef_type=?, targetRef_relation=?, targetRef_targetOid=?, targetRef_type=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=? where id=? and owner_oid=?
          */
 
-        if (isUsingH2()) {
-            AssertJUnit.assertEquals(5, TestStatementInspector.getQueryCount());
-        }
-
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             Set<RAssignment> assignments = u.getAssignments();
             AssertJUnit.assertEquals(1, assignments.size());
             AssertJUnit.assertNull(assignments.iterator().next().getActivation());
@@ -325,12 +303,8 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          - update m_assignment set administrativeStatus=?, archiveTimestamp=?, disableReason=?, disableTimestamp=?, effectiveStatus=?, enableTimestamp=?, validFrom=?, validTo=?, validityChangeTimestamp=?, validityStatus=?, assignmentOwner=?, createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, extId=?, extOid=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, orderValue=?, orgRef_relation=?, orgRef_targetOid=?, orgRef_type=?, resourceRef_relation=?, resourceRef_targetOid=?, resourceRef_type=?, targetRef_relation=?, targetRef_targetOid=?, targetRef_type=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=? where id=? and owner_oid=?
          */
 
-        if (isUsingH2()) {
-            AssertJUnit.assertEquals(5, TestStatementInspector.getQueryCount());
-        }
-
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             Set<RAssignment> assignments = u.getAssignments();
             AssertJUnit.assertEquals(1, assignments.size());
             RActivation act = assignments.iterator().next().getActivation();
@@ -360,12 +334,8 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          - update m_assignment set administrativeStatus=?, archiveTimestamp=?, disableReason=?, disableTimestamp=?, effectiveStatus=?, enableTimestamp=?, validFrom=?, validTo=?, validityChangeTimestamp=?, validityStatus=?, assignmentOwner=?, createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, extId=?, extOid=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, orderValue=?, orgRef_relation=?, orgRef_targetOid=?, orgRef_type=?, resourceRef_relation=?, resourceRef_targetOid=?, resourceRef_type=?, targetRef_relation=?, targetRef_targetOid=?, targetRef_type=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=? where id=? and owner_oid=?
          */
 
-        if (isUsingH2()) {
-            AssertJUnit.assertEquals(5, TestStatementInspector.getQueryCount());
-        }
-
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             Set<RAssignment> assignments = u.getAssignments();
             AssertJUnit.assertEquals(1, assignments.size());
             AssertJUnit.assertNull(assignments.iterator().next().getActivation());
@@ -394,12 +364,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
          - delete from m_reference where owner_oid=? and reference_type=? and relation=? and targetOid=?
          */
-        if (isUsingH2()) {
-            AssertJUnit.assertEquals(6, TestStatementInspector.getQueryCount());
-        }
 
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
 
             //noinspection unchecked
             assertReferences((Collection) u.getLinkRef(),
@@ -432,12 +399,8 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          - delete from m_reference where owner_oid=? and reference_type=? and relation=? and targetOid=?
          */
 
-        if (isUsingH2()) {
-            AssertJUnit.assertEquals(6, TestStatementInspector.getQueryCount());
-        }
-
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
 
             //noinspection unchecked
             assertReferences((Collection) u.getParentOrgRef(),
@@ -469,12 +432,8 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          - insert into m_user_subtype (user_oid, subtype) values (?, ?)
          */
 
-        if (isUsingH2()) {
-            AssertJUnit.assertEquals(5, TestStatementInspector.getQueryCount());
-        }
-
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             AssertJUnit.assertEquals("asdf", u.getCreateChannel());
             AssertJUnit.assertEquals(u.getSubtype(), new HashSet<>(Arrays.asList("one", "two")));
         }
@@ -503,12 +462,8 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
          */
 
-        if (isUsingH2()) {
-            AssertJUnit.assertEquals(5, TestStatementInspector.getQueryCount());
-        }
-
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             AssertJUnit.assertEquals("zxcv", u.getCreateChannel());
             AssertJUnit.assertEquals(1, u.getCreateApproverRef().size());
 
@@ -539,12 +494,8 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
          */
 
-        if (isUsingH2()) {
-            AssertJUnit.assertEquals(5, TestStatementInspector.getQueryCount());
-        }
-
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             AssertJUnit.assertEquals(1, u.getModifyApproverRef().size());
 
             //noinspection unchecked
@@ -574,12 +525,8 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          - delete from m_reference where owner_oid=? and reference_type=? and relation=? and targetOid=?
          */
 
-        if (isUsingH2()) {
-            AssertJUnit.assertEquals(5, TestStatementInspector.getQueryCount());
-        }
-
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             AssertJUnit.assertEquals(0, u.getModifyApproverRef().size());
         }
     }
@@ -618,12 +565,8 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          - delete from m_reference where owner_oid=? and reference_type=? and relation=? and targetOid=?
          */
 
-        if (isUsingH2()) {
-            AssertJUnit.assertEquals(11, TestStatementInspector.getQueryCount());
-        }
-
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             AssertJUnit.assertEquals("ch1", u.getCreateChannel());
             AssertJUnit.assertEquals(2, u.getModifyApproverRef().size());
             AssertJUnit.assertEquals(2, u.getCreateApproverRef().size());
@@ -670,12 +613,8 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          - delete from m_reference where owner_oid=? and reference_type=? and relation=? and targetOid=?
          */
 
-        if (isUsingH2()) {
-            AssertJUnit.assertEquals(6, TestStatementInspector.getQueryCount());
-        }
-
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             AssertJUnit.assertNull(u.getCreateChannel());
             AssertJUnit.assertNull(u.getModifierRef());
             AssertJUnit.assertEquals(0, u.getModifyApproverRef().size());
@@ -716,12 +655,8 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
          */
 
-        if (isUsingH2()) {
-            AssertJUnit.assertEquals(10, TestStatementInspector.getQueryCount());
-        }
-
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             AssertJUnit.assertEquals("ch1", u.getCreateChannel());
             AssertJUnit.assertEquals(2, u.getModifyApproverRef().size());
             AssertJUnit.assertEquals(2, u.getCreateApproverRef().size());
@@ -760,12 +695,8 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          - update m_assignment set administrativeStatus=?, archiveTimestamp=?, disableReason=?, disableTimestamp=?, effectiveStatus=?, enableTimestamp=?, validFrom=?, validTo=?, validityChangeTimestamp=?, validityStatus=?, assignmentOwner=?, createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, extId=?, extOid=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, orderValue=?, orgRef_relation=?, orgRef_targetOid=?, orgRef_type=?, resourceRef_relation=?, resourceRef_targetOid=?, resourceRef_type=?, targetRef_relation=?, targetRef_targetOid=?, targetRef_type=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=? where id=? and owner_oid=?
          */
 
-        if (isUsingH2()) {
-            AssertJUnit.assertEquals(5, TestStatementInspector.getQueryCount());
-        }
-
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             AssertJUnit.assertEquals("asdf2", u.getAssignments().iterator().next().getCreateChannel());
         }
     }
@@ -794,12 +725,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
          - update m_assignment set administrativeStatus=?, archiveTimestamp=?, disableReason=?, disableTimestamp=?, effectiveStatus=?, enableTimestamp=?, validFrom=?, validTo=?, validityChangeTimestamp=?, validityStatus=?, assignmentOwner=?, createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, extId=?, extOid=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, orderValue=?, orgRef_relation=?, orgRef_targetOid=?, orgRef_type=?, resourceRef_relation=?, resourceRef_targetOid=?, resourceRef_type=?, targetRef_relation=?, targetRef_targetOid=?, targetRef_type=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=? where id=? and owner_oid=?
          */
-        if (isUsingH2()) {
-            AssertJUnit.assertEquals(7, TestStatementInspector.getQueryCount());
-        }
 
-        try (Session session = factory.openSession()) {
-            RAssignment a = session.get(RUser.class, userOid).getAssignments().iterator().next();
+        try (EntityManager em = factory.createEntityManager()) {
+            RAssignment a = em.find(RUser.class, userOid).getAssignments().iterator().next();
             AssertJUnit.assertEquals("zxcv2", a.getCreateChannel());
             AssertJUnit.assertEquals(1, a.getCreateApproverRef().size());
 
@@ -830,12 +758,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          - insert into m_assignment_reference (targetType, owner_id, owner_owner_oid, reference_type, relation, targetOid) values (?, ?, ?, ?, ?, ?)
          - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
          */
-        if (isUsingH2()) {
-            AssertJUnit.assertEquals(6, TestStatementInspector.getQueryCount());
-        }
 
-        try (Session session = factory.openSession()) {
-            RAssignment a = session.get(RUser.class, userOid).getAssignments().iterator().next();
+        try (EntityManager em = factory.createEntityManager()) {
+            RAssignment a = em.find(RUser.class, userOid).getAssignments().iterator().next();
             AssertJUnit.assertEquals(2, a.getModifyApproverRef().size());
 
             //noinspection unchecked
@@ -866,12 +791,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
          - delete from m_assignment_reference where owner_id=? and owner_owner_oid=? and reference_type=? and relation=? and targetOid=?
          */
-        if (isUsingH2()) {
-            AssertJUnit.assertEquals(6, TestStatementInspector.getQueryCount());
-        }
 
-        try (Session session = factory.openSession()) {
-            RAssignment a = session.get(RUser.class, userOid).getAssignments().iterator().next();
+        try (EntityManager em = factory.createEntityManager()) {
+            RAssignment a = em.find(RUser.class, userOid).getAssignments().iterator().next();
             AssertJUnit.assertEquals(1, a.getModifyApproverRef().size());
 
             //noinspection unchecked
@@ -916,12 +838,8 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          - delete from m_assignment_reference where owner_id=? and owner_owner_oid=? and reference_type=? and relation=? and targetOid=?
          */
 
-        if (isUsingH2()) {
-            AssertJUnit.assertEquals(13, TestStatementInspector.getQueryCount());
-        }
-
-        try (Session session = factory.openSession()) {
-            RAssignment u = session.get(RUser.class, userOid).getAssignments().iterator().next();
+        try (EntityManager em = factory.createEntityManager()) {
+            RAssignment u = em.find(RUser.class, userOid).getAssignments().iterator().next();
             AssertJUnit.assertEquals("ch1.2", u.getCreateChannel());
             AssertJUnit.assertEquals(2, u.getModifyApproverRef().size());
             AssertJUnit.assertEquals(2, u.getCreateApproverRef().size());
@@ -970,12 +888,8 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          - delete from m_assignment_reference where owner_id=? and owner_owner_oid=? and reference_type=? and relation=? and targetOid=?
          */
 
-        if (isUsingH2()) {
-            AssertJUnit.assertEquals(8, TestStatementInspector.getQueryCount());
-        }
-
-        try (Session session = factory.openSession()) {
-            RAssignment a = session.get(RUser.class, userOid).getAssignments().iterator().next();
+        try (EntityManager em = factory.createEntityManager()) {
+            RAssignment a = em.find(RUser.class, userOid).getAssignments().iterator().next();
             AssertJUnit.assertNull(a.getCreateChannel());
             AssertJUnit.assertNull(a.getModifierRef());
             AssertJUnit.assertEquals(0, a.getModifyApproverRef().size());
@@ -1017,12 +931,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
          - update m_assignment set administrativeStatus=?, archiveTimestamp=?, disableReason=?, disableTimestamp=?, effectiveStatus=?, enableTimestamp=?, validFrom=?, validTo=?, validityChangeTimestamp=?, validityStatus=?, assignmentOwner=?, createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, extId=?, extOid=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, orderValue=?, orgRef_relation=?, orgRef_targetOid=?, orgRef_type=?, resourceRef_relation=?, resourceRef_targetOid=?, resourceRef_type=?, targetRef_relation=?, targetRef_targetOid=?, targetRef_type=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=? where id=? and owner_oid=?
          */
-        if (isUsingH2()) {
-            AssertJUnit.assertEquals(12, TestStatementInspector.getQueryCount());
-        }
 
-        try (Session session = factory.openSession()) {
-            RAssignment a = session.get(RUser.class, userOid).getAssignments().iterator().next();
+        try (EntityManager em = factory.createEntityManager()) {
+            RAssignment a = em.find(RUser.class, userOid).getAssignments().iterator().next();
             AssertJUnit.assertEquals("ch1.3", a.getCreateChannel());
             AssertJUnit.assertEquals(2, a.getModifyApproverRef().size());
             AssertJUnit.assertEquals(2, a.getCreateApproverRef().size());
@@ -1039,20 +950,6 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
                     createRepoRef(UserType.COMPLEX_TYPE, "66.3"));
         }
     }
-
-//    @Test
-//    public void test250ModifyShadow() throws Exception {
-//        // todo implement
-//        //account-delta.xml
-//        [
-//        attributes/ship
-//            REPLACE: Flying Dutchman
-//        attributes/title
-//            DELETE: Very Nice Pirate
-//        cachingMetadata
-//            REPLACE: CachingMetadataType(retrievalTimestamp:2018-02-09T18:30:10.423+01:00)
-//        ]
-//    }
 
     @Test
     public void test270ModifyOperationExecution() throws Exception {
@@ -1097,8 +994,8 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 
     private void assertOperationExecutionSize(String oid, int expectedSize) {
 
-        try (Session session = open()) {
-            RUser rUser = (RUser) session.createQuery("from RUser where oid = :o")
+        try (EntityManager em = open()) {
+            RUser rUser = (RUser) em.createQuery("from RUser where oid = :o")
                     .setParameter("o", oid)
                     .getSingleResult();
 
@@ -1119,13 +1016,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
         TestStatementInspector.dump();
 
-        if (isUsingH2()) {
-            AssertJUnit.assertEquals(6, TestStatementInspector.getQueryCount());
-        }
-
         logger.info("test280AddPhoto check");
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
 
             Set<RFocusPhoto> p = u.getJpegPhoto();
             AssertJUnit.assertEquals(1, p.size());
@@ -1146,13 +1039,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
         TestStatementInspector.dump();
 
-        if (isUsingH2()) {
-            AssertJUnit.assertEquals(6, TestStatementInspector.getQueryCount());
-        }
-
         logger.info("test290ReplacePhoto check");
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
 
             Set<RFocusPhoto> p = u.getJpegPhoto();
             AssertJUnit.assertEquals(1, p.size());
@@ -1173,13 +1062,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
         TestStatementInspector.dump();
 
-        if (isUsingH2()) {
-            AssertJUnit.assertEquals(5, TestStatementInspector.getQueryCount());
-        }
-
         logger.info("test300DeletePhoto check");
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
 
             Set<RFocusPhoto> p = u.getJpegPhoto();
             AssertJUnit.assertEquals(0, p.size());
@@ -1197,8 +1082,8 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), null, result);
 
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             assertExtension(u, itemVisibleSingle, "v1");
         }
 
@@ -1217,8 +1102,8 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), null, result);
 
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             assertExtension(u, itemVisibleSingle);
         }
 

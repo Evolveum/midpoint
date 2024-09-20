@@ -15,7 +15,7 @@ import java.io.File;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -78,7 +78,7 @@ public class TestCsvGuid extends AbstractCsvTest {
 
         assertEquals("Unexpected number of definitions", 5, accountDef.getDefinitions().size());
 
-        ResourceAttributeDefinition<?> guidDef = accountDef.findAttributeDefinition(ATTR_GUID);
+        ShadowSimpleAttributeDefinition<?> guidDef = accountDef.findSimpleAttributeDefinition(ATTR_GUID);
         assertNotNull("No definition for guid", guidDef);
         assertEquals(1, guidDef.getMaxOccurs());
         assertEquals(1, guidDef.getMinOccurs());
@@ -86,7 +86,7 @@ public class TestCsvGuid extends AbstractCsvTest {
         assertTrue("No guid update", guidDef.canModify());
         assertTrue("No guid read", guidDef.canRead());
 
-        ResourceAttributeDefinition<?> unameDef = accountDef.findAttributeDefinition(ATTR_UNAME);
+        ShadowSimpleAttributeDefinition<?> unameDef = accountDef.findSimpleAttributeDefinition(ATTR_UNAME);
         assertNotNull("No definition for uname", unameDef);
         assertEquals(1, unameDef.getMaxOccurs());
         assertEquals(0, unameDef.getMinOccurs()); // TODO: should be 1

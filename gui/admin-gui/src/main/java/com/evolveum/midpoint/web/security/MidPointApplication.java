@@ -6,14 +6,23 @@
  */
 package com.evolveum.midpoint.web.security;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import jakarta.servlet.ServletContext;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import javax.xml.datatype.Duration;
+import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.converter.*;
+
+import jakarta.servlet.ServletContext;
 import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.io.FileUtils;
 import org.apache.wicket.*;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -29,7 +38,6 @@ import org.apache.wicket.core.util.objects.checker.ObjectSerializationChecker;
 import org.apache.wicket.core.util.resource.locator.IResourceStreamLocator;
 import org.apache.wicket.core.util.resource.locator.caching.CachingResourceStreamLocator;
 import org.apache.wicket.csp.CSPDirective;
-import org.apache.wicket.csp.CSPDirectiveSrcValue;
 import org.apache.wicket.devutils.inspector.InspectorPage;
 import org.apache.wicket.devutils.inspector.LiveSessionsPage;
 import org.apache.wicket.devutils.pagestore.PageStorePage;
@@ -40,6 +48,8 @@ import org.apache.wicket.markup.head.PriorityFirstComparator;
 import org.apache.wicket.markup.html.SecurePackageResourceGuard;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.pageStore.IPageStore;
+import org.apache.wicket.pageStore.disk.NestedFolders;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.mapper.parameter.PageParametersEncoder;
 import org.apache.wicket.request.resource.PackageResourceReference;
@@ -58,8 +68,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.env.Environment;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.security.web.csrf.CsrfToken;
@@ -68,6 +76,7 @@ import org.springframework.web.servlet.resource.ResourceUrlProvider;
 import com.evolveum.midpoint.authentication.api.authorization.DescriptorLoader;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.cases.api.CaseManager;
+import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
@@ -75,13 +84,10 @@ import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.util.MidPointApplicationConfiguration;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.converter.CleanupPoliciesTypeConverter;
-import com.evolveum.midpoint.gui.impl.converter.DurationConverter;
-import com.evolveum.midpoint.gui.impl.converter.PolyStringConverter;
-import com.evolveum.midpoint.gui.impl.converter.QueryTypeConverter;
 import com.evolveum.midpoint.gui.impl.page.login.module.PageLogin;
 import com.evolveum.midpoint.gui.impl.page.self.dashboard.PageSelfDashboard;
 import com.evolveum.midpoint.model.api.*;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -90,7 +96,8 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.util.SubscriptionUtil;
+import com.evolveum.midpoint.repo.common.subscription.SubscriptionState;
+import com.evolveum.midpoint.repo.common.subscription.SubscriptionStateCache;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -125,48 +132,10 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
  */
 public class MidPointApplication extends AuthenticatedWebApplication implements ApplicationContextAware {
 
-    public static final List<LocaleDescriptor> AVAILABLE_LOCALES;
-
-    private static final String LOCALIZATION_DESCRIPTOR = "localization/locale.properties";
-
-    private static final String PROP_NAME = ".name";
-    private static final String PROP_FLAG = ".flag";
-    private static final String PROP_DEFAULT = ".default";
-
     private static final Trace LOGGER = TraceManager.getTrace(MidPointApplication.class);
 
     static {
         SchemaDebugUtil.initialize();
-    }
-
-    static {
-        String midpointHome = System.getProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY);
-        File file = new File(midpointHome, LOCALIZATION_DESCRIPTOR);
-
-        Resource[] localeDescriptorResources = new Resource[] {
-                new FileSystemResource(file),
-                new ClassPathResource(LOCALIZATION_DESCRIPTOR)
-        };
-
-        List<LocaleDescriptor> locales = new ArrayList<>();
-        for (Resource resource : localeDescriptorResources) {
-            if (!resource.isReadable()) {
-                continue;
-            }
-
-            try {
-                LOGGER.debug("Found localization descriptor {}.", resource.getURL());
-                locales = loadLocaleDescriptors(resource);
-
-                break;
-            } catch (Exception ex) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load localization", ex);
-            }
-        }
-
-        Collections.sort(locales);
-
-        AVAILABLE_LOCALES = Collections.unmodifiableList(locales);
     }
 
     @Autowired private ResourceUrlProvider resourceUrlProvider;
@@ -181,6 +150,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     @Autowired private ModelAuditService auditService;
     @Autowired private SqlPerformanceMonitorsCollection performanceMonitorsCollection; // temporary
     @Autowired private RepositoryService repositoryService; // temporary
+    @Autowired private RoleAnalysisService roleAnalysisService;
     @Autowired private CacheRegistry cacheRegistry;
     @Autowired private CaseService caseService;
     @Autowired private CaseManager caseManager;
@@ -196,15 +166,20 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
     @Autowired private Clock clock;
     @Autowired private AccessCertificationService certificationService;
+    @Autowired private ActivationComputer activationComputer;
+    @Autowired private SubscriptionStateCache subscriptionStateCache;
     @Autowired(required = false) private List<WicketConfigurator> wicketConfigurators = new ArrayList<>();
     @Autowired @Qualifier("descriptorLoader") private DescriptorLoader descriptorLoader;
     @Value("${midpoint.additionalPackagesToScan:}") private String additionalPackagesToScan;
     @Value("${wicket.request-cycle.timeout:60s}") private java.time.Duration requestCycleTimeout;
+    /**
+     * If set to false, we will not clean up disk page store files during application initialization.
+     */
+    @Value("${wicket.disk-page-store.cleanupOnStart:true}") private boolean diskPageStoreCleanupOnStart;
 
     private WebApplicationConfiguration webApplicationConfiguration;
 
     private DeploymentInformationType deploymentInfo;
-    private SubscriptionUtil.SubscriptionType subscriptionType;
 
     public static final String MOUNT_INTERNAL_SERVER_ERROR = "/error";
     public static final String MOUNT_UNAUTHORIZED_ERROR = "/error/401";
@@ -356,16 +331,51 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         settings.setIncludeJavascriptFull(false);
         settings.setIncludeJavascript(false);
         settings.setIncludeCss(false);
+
+        cleanupWicketFileStore();
+    }
+
+    /**
+     * Currently default wicket {@link org.apache.wicket.pageStore.DiskPageStore} doesn't clear unused/old files created
+     * from sessions created in previous server runs.
+     *
+     * Also, if page store index wasn't created during previous shutdown, all existing files in this page store will never
+     * be removed.
+     *
+     * See MID-9430
+     */
+    private void cleanupWicketFileStore() {
+        if (!diskPageStoreCleanupOnStart) {
+            return;
+        }
+
+        setPageManagerProvider(new DefaultPageManagerProvider(this) {
+
+            @Override
+            protected IPageStore newPersistentStore() {
+                File fileStoreFolder = application.getStoreSettings().getFileStoreFolder();
+
+                NestedFolders folders = new NestedFolders(new File(fileStoreFolder, application.getName() + "-filestore"));
+                File wicketStoreBase = folders.getBase();
+                if (wicketStoreBase.exists() && wicketStoreBase.isDirectory()) {
+                    try {
+                        FileUtils.cleanDirectory(folders.getBase());
+                    } catch (IOException ex) {
+                        LOGGER.warn("Couldn't cleanup wicket store directory {}", wicketStoreBase, ex);
+                    }
+                }
+
+                return super.newPersistentStore();
+            }
+        });
     }
 
     public DeploymentInformationType getDeploymentInfo() {
         return deploymentInfo;
     }
 
-    @NotNull
-    public SubscriptionUtil.SubscriptionType getSubscriptionType() {
-        // should not be null, unless called before initialization, in which case we provide default NONE
-        return Objects.requireNonNullElse(subscriptionType, SubscriptionUtil.SubscriptionType.NONE);
+    public @NotNull SubscriptionState getSubscriptionState() {
+        return subscriptionStateCache.getSubscriptionState();
     }
 
     private void initializeSchrodinger() {
@@ -402,48 +412,6 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         return AjaxRequestAttributes.Method.POST.equals(attributes.getMethod());
     }
 
-    private static List<LocaleDescriptor> loadLocaleDescriptors(Resource resource) throws IOException {
-        List<LocaleDescriptor> locales = new ArrayList<>();
-
-        Properties properties = new Properties();
-        try (Reader reader = new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8)) {
-            properties.load(reader);
-
-            Map<String, Map<String, String>> localeMap = new HashMap<>();
-            //noinspection unchecked,rawtypes
-            Set<String> keys = (Set) properties.keySet();
-            for (String key : keys) {
-                String[] array = key.split("\\.");
-                if (array.length != 2) {
-                    continue;
-                }
-
-                String locale = array[0];
-                Map<String, String> map = localeMap.computeIfAbsent(locale, k -> new HashMap<>());
-
-                map.put(key, properties.getProperty(key));
-            }
-
-            for (String key : localeMap.keySet()) {
-                Map<String, String> localeDefinition = localeMap.get(key);
-                if (!localeDefinition.containsKey(key + PROP_NAME)
-                        || !localeDefinition.containsKey(key + PROP_FLAG)) {
-                    continue;
-                }
-
-                LocaleDescriptor descriptor = new LocaleDescriptor(
-                        localeDefinition.get(key + PROP_NAME),
-                        localeDefinition.get(key + PROP_FLAG),
-                        localeDefinition.get(key + PROP_DEFAULT),
-                        WebComponentUtil.getLocaleFromString(key)
-                );
-                locales.add(descriptor);
-            }
-        }
-
-        return locales;
-    }
-
     @Override
     protected IConverterLocator newConverterLocator() {
         ConverterLocator locator = new ConverterLocator();
@@ -452,6 +420,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         locator.set(Duration.class, new DurationConverter());
         locator.set(QueryType.class, new QueryTypeConverter(prismContext));
         locator.set(CleanupPoliciesType.class, new CleanupPoliciesTypeConverter(prismContext));
+        locator.set(QName.class, new QNameConverter());
         return locator;
     }
 
@@ -551,6 +520,10 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         return protector;
     }
 
+    public RoleAnalysisService getRoleAnalysisService() {
+        return roleAnalysisService;
+    }
+
     @Override
     protected Class<? extends WebPage> getSignInPageClass() {
         return PageLogin.class;
@@ -581,28 +554,8 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         return certificationService;
     }
 
-    public static boolean containsLocale(Locale locale) {
-        if (locale == null) {
-            return false;
-        }
-
-        for (LocaleDescriptor descriptor : AVAILABLE_LOCALES) {
-            if (locale.equals(descriptor.getLocale())) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public static Locale getDefaultLocale() {
-        for (LocaleDescriptor descriptor : AVAILABLE_LOCALES) {
-            if (descriptor.isDefault()) {
-                return descriptor.getLocale();
-            }
-        }
-
-        return new Locale("en", "US");
+    public ActivationComputer getActivationComputer() {
+        return activationComputer;
     }
 
     public MatchingRuleRegistry getMatchingRuleRegistry() {
@@ -663,8 +616,6 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
 
     private void updateDeploymentInfo(@Nullable SystemConfigurationType value) {
         deploymentInfo = value != null ? value.getDeploymentInformation() : null;
-        String subscriptionId = deploymentInfo != null ? deploymentInfo.getSubscriptionIdentifier() : null;
-        subscriptionType = SubscriptionUtil.getSubscriptionType(subscriptionId);
     }
 
     /* (non-Javadoc)

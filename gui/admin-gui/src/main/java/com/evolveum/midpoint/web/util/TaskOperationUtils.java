@@ -46,6 +46,10 @@ public class TaskOperationUtils {
             SystemObjectsType.ARCHETYPE_REPORT_IMPORT_CLASSIC_TASK.value(),
             SystemObjectsType.ARCHETYPE_REPORT_EXPORT_DISTRIBUTED_TASK.value());
 
+    private static final List<String> CERTIFICATION_ARCHETYPES = Arrays.asList(
+            SystemObjectsType.ARCHETYPE_CERTIFICATION_OPEN_NEXT_STAGE_TASK.value(),
+            SystemObjectsType.ARCHETYPE_CERTIFICATION_REMEDIATION_TASK.value());
+
     private static final List<String> UTILITY_ARCHETYPES = Arrays.asList(
             SystemObjectsType.ARCHETYPE_SHADOW_INTEGRITY_CHECK_TASK.value(),
             SystemObjectsType.ARCHETYPE_SHADOWS_REFRESH_TASK.value(),
@@ -197,6 +201,10 @@ public class TaskOperationUtils {
 
     public static List<String> getReportArchetypesList() {
         return REPORT_ARCHETYPES;
+    }
+
+    public static List<String> getCertificationArchetypesList() {
+        return CERTIFICATION_ARCHETYPES;
     }
 
     public static List<String> getUtilityArchetypesList() {

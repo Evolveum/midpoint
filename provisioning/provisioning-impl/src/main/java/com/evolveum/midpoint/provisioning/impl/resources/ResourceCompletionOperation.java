@@ -7,12 +7,12 @@
 
 package com.evolveum.midpoint.provisioning.impl.resources;
 
-import static com.evolveum.midpoint.prism.schema.PrismSchema.isNotEmpty;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.processor.NativeResourceSchema;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
 import org.jetbrains.annotations.NotNull;
@@ -61,7 +61,7 @@ class ResourceCompletionOperation {
     @Nullable private final GetOperationOptions options;
 
     /** Resource schema. May be provided by the client. Updated by the operation. */
-    private ResourceSchema rawResourceSchema;
+    private NativeResourceSchema nativeResourceSchema;
 
     @NotNull private final Task task;
 
@@ -222,7 +222,7 @@ class ResourceCompletionOperation {
         try {
             // Make sure the schema is parseable. We are going to cache the resource, so we want to cache it
             // with the parsed schemas.
-            ResourceSchemaFactory.getRawSchema(completed);
+            ResourceSchemaFactory.getNativeSchema(completed);
             ResourceSchema completeSchema = ResourceSchemaFactory.getCompleteSchema(completed);
             LOGGER.trace("Complete schema:\n{}", DebugUtil.debugDumpLazily(completeSchema, 1));
         } catch (Throwable e) {
@@ -330,8 +330,8 @@ class ResourceCompletionOperation {
                 SchemaException {
 
             // Try to get existing schema. We do not want to override this if it exists
-            rawResourceSchema = ResourceSchemaFactory.getRawSchema(resource);
-            if (isNotEmpty(rawResourceSchema)) {
+            nativeResourceSchema = ResourceSchemaFactory.getNativeSchema(resource);
+            if (NativeResourceSchema.isNotEmpty(nativeResourceSchema)) {
                 useExistingSchema();
             } else {
                 fetchAndStoreSchema();
@@ -342,9 +342,8 @@ class ResourceCompletionOperation {
                 throws CommunicationException, GenericFrameworkException, ConfigurationException, ObjectNotFoundException,
                 SchemaException {
             fetchSchema();
-            if (isNotEmpty(rawResourceSchema)) {
-                adjustSchema();
-                resourceUpdater.updateSchema(rawResourceSchema);
+            if (NativeResourceSchema.isNotEmpty(nativeResourceSchema)) {
+                resourceUpdater.updateSchema(nativeResourceSchema);
                 resourceUpdater.markResourceUp();
             }
         }
@@ -365,21 +364,15 @@ class ResourceCompletionOperation {
                 throws CommunicationException, GenericFrameworkException, ConfigurationException, ObjectNotFoundException,
                 SchemaException {
             LOGGER.trace("Fetching resource schema for {}", resource);
-            rawResourceSchema = schemaFetcher.fetchResourceSchema(resource, nativeConnectorsCapabilities, result);
-            if (rawResourceSchema == null) {
+            nativeResourceSchema =
+                    schemaFetcher.fetchResourceSchema(resource, nativeConnectorsCapabilities, true, result);
+            if (nativeResourceSchema == null) {
                 LOGGER.warn("No resource schema fetched from {}", resource);
-            } else if (rawResourceSchema.isEmpty()) {
+            } else if (nativeResourceSchema.isEmpty()) {
                 LOGGER.warn("Empty resource schema fetched from {}", resource);
             } else {
-                LOGGER.debug("Fetched resource schema for {}: {} definitions",
-                        resource, rawResourceSchema.getDefinitions().size());
+                LOGGER.debug("Fetched resource schema for {}: {} definitions", resource, nativeResourceSchema.size());
             }
-        }
-
-        private void adjustSchema() {
-            rawResourceSchema =
-                    new ResourceSchemaAdjuster(resource, rawResourceSchema)
-                            .adjustSchema();
         }
     }
 

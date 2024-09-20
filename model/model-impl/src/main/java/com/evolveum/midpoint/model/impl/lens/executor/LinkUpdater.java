@@ -241,7 +241,8 @@ class LinkUpdater<F extends FocusType> {
         } finally {
             result.close();
             if (delta != null) {
-                focusContext.addToExecutedDeltas(LensUtil.createObjectDeltaOperation(delta, result, focusContext, projCtx));
+                focusContext.addToExecutedDeltas(
+                        LensUtil.createObjectDeltaOperation(delta, result, focusContext, projCtx.getResource()));
             }
         }
     }

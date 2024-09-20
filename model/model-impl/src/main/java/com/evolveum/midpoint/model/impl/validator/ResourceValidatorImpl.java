@@ -102,7 +102,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 
         ResourceSchema resourceSchema = null;
         try {
-            resourceSchema = ResourceSchemaFactory.getRawSchema(resourceObject);
+            resourceSchema = ResourceSchemaFactory.getBareSchema(resourceObject);
         } catch (Throwable t) {
             vr.add(Issue.Severity.WARNING, CAT_SCHEMA, C_NO_SCHEMA,
                     getString(CLASS_DOT + C_NO_SCHEMA, t.getMessage()),
@@ -282,25 +282,25 @@ public class ResourceValidatorImpl implements ResourceValidator {
             ResourceObjectTypeDefinitionType objectType, ResourceAttributeDefinitionType attributeDef) {
         QName ref = itemRefToName(attributeDef.getRef());
         checkSchemaHandlingItem(ctx, path, objectType, attributeDef);
-        ResourceAttributeDefinition<?> rad = null;
+        ShadowAttributeDefinition<?, ?, ?, ?> attrDef = null;
         // TODO rewrite using CompositeObjectDefinition
         if (ref != null) {
             boolean caseIgnoreAttributeNames = ResourceTypeUtil.isCaseIgnoreAttributeNames(ctx.resourceObject.asObjectable());
             if (ocdef != null) {
-                rad = ocdef.findAttributeDefinition(ref, caseIgnoreAttributeNames);
+                attrDef = ocdef.findAttributeDefinition(ref, caseIgnoreAttributeNames);
             }
-            if (rad == null) {
+            if (attrDef == null) {
                 for (QName auxOcName : getAuxiliaryObjectClassNames(objectType)) {
                     ResourceObjectDefinition auxOcDef = ctx.resourceSchema.findObjectClassDefinition(auxOcName);
                     if (auxOcDef != null) {
-                        rad = auxOcDef.findAttributeDefinition(ref, caseIgnoreAttributeNames);
-                        if (rad != null) {
+                        attrDef = auxOcDef.findAttributeDefinition(ref, caseIgnoreAttributeNames);
+                        if (attrDef != null) {
                             break;
                         }
                     }
                 }
             }
-            if (rad == null) {
+            if (attrDef == null) {
                 ctx.validationResult.add(Issue.Severity.ERROR,
                         CAT_SCHEMA_HANDLING, C_UNKNOWN_ATTRIBUTE_NAME,
                         getString(CLASS_DOT + C_UNKNOWN_ATTRIBUTE_NAME, getName(objectType), ref, getObjectClassName(objectType)),
@@ -308,7 +308,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
             }
         }
         checkItemRef(ctx, path, objectType, attributeDef, C_NO_ATTRIBUTE_REF);
-        checkMatchingRule(ctx, path, objectType, attributeDef, ref, rad);
+        checkMatchingRule(ctx, path, objectType, attributeDef, ref, attrDef);
     }
 
     private void checkMapping(ResourceValidationContext ctx, ItemPath path, ResourceObjectTypeDefinitionType objectType,
@@ -405,7 +405,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
     }
 
     private void checkMatchingRule(ResourceValidationContext ctx, ItemPath path,
-            ResourceObjectTypeDefinitionType objectType, ResourceAttributeDefinitionType attributeDef, QName ref, ResourceAttributeDefinition<?> rad) {
+            ResourceObjectTypeDefinitionType objectType, ResourceAttributeDefinitionType attributeDef, QName ref, ShadowAttributeDefinition<?, ?, ?, ?> rad) {
         QName matchingRule = attributeDef.getMatchingRule();
         if (matchingRule == null) {
             return;

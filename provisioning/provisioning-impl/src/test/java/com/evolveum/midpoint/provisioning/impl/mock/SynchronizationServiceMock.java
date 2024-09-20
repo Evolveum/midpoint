@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.provisioning.impl.mock;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import jakarta.annotation.PostConstruct;
@@ -79,51 +80,63 @@ public class SynchronizationServiceMock
         assertNotNull("No resource", change.getResource());
         assertNotNull("No parent result", parentResult);
 
+        var changeObject = change.getShadowedResourceObject();
+        var changeObjectable = changeObject.asObjectable();
+
         if (TaskUtil.isDryRun(task)
-                || Boolean.TRUE.equals(change.getShadowedResourceObject().asObjectable().isProtectedObject())) {
+                || Boolean.TRUE.equals(changeObjectable.isProtectedObject())) {
             return;
         }
 
-        ShadowType currentShadowType = change.getShadowedResourceObject().asObjectable();
         // not a useful check..the current shadow could be null
-        assertNotNull("Current shadow does not have an OID", change.getShadowedResourceObject().getOid());
-        assertNotNull("Current shadow does not have resourceRef", currentShadowType.getResourceRef());
-        assertNotNull("Current shadow has null attributes", currentShadowType.getAttributes());
+        assertNotNull("Current shadow does not have an OID", changeObjectable.getOid());
+        assertNotNull("Current shadow does not have resourceRef", changeObjectable.getResourceRef());
+        assertNotNull("Current shadow has null attributes", changeObjectable.getAttributes());
         assertFalse("Current shadow has empty attributes", ShadowUtil
-                .getAttributesContainer(currentShadowType).isEmpty());
+                .getAttributesContainer(changeObjectable).isEmpty());
 
         if (!change.isDelete()) {
             // Check if the shadow is already present in repo
             try {
-                repositoryService.getObject(currentShadowType.getClass(), currentShadowType.getOid(), null, new OperationResult("mockSyncService.notifyChange"));
+                repositoryService.getObject(
+                        changeObjectable.getClass(),
+                        changeObjectable.getOid(),
+                        null,
+                        new OperationResult("mockSyncService.notifyChange"));
             } catch (Exception e) {
-                AssertJUnit.fail("Got exception while trying to read current shadow " + currentShadowType +
+                AssertJUnit.fail("Got exception while trying to read current shadow " + changeObjectable +
                         ": " + e.getCause() + ": " + e.getMessage());
             }
         }
 
         // Check resource
-        String resourceOid = ShadowUtil.getResourceOid(currentShadowType);
-        assertFalse("No resource OID in current shadow "+currentShadowType, StringUtils.isBlank(resourceOid));
+        String resourceOid = ShadowUtil.getResourceOid(changeObjectable);
+        assertFalse("No resource OID in current shadow "+ changeObjectable, StringUtils.isBlank(resourceOid));
         try {
             repositoryService.getObject(ResourceType.class, resourceOid, null, new OperationResult("mockSyncService.notifyChange"));
         } catch (Exception e) {
-            AssertJUnit.fail("Got exception while trying to read resource "+resourceOid+" as specified in current shadow "+currentShadowType+
+            AssertJUnit.fail("Got exception while trying to read resource "+resourceOid+" as specified in current shadow "+ changeObjectable +
                     ": "+e.getCause()+": "+e.getMessage());
         }
 
-        if (change.getShadowedResourceObject().asObjectable().getKind() == ShadowKindType.ACCOUNT) {
-            ShadowType account = change.getShadowedResourceObject().asObjectable();
-            if (ShadowUtil.isExists(account)) {
+        if (changeObjectable.getKind() == ShadowKindType.ACCOUNT) {
+            if (ShadowUtil.isExists(changeObjectable)) {
                 if (supportActivation) {
-                    assertNotNull("Current shadow does not have activation", account.getActivation());
-                    assertNotNull("Current shadow activation status is null", account.getActivation()
+                    assertNotNull("Current shadow does not have activation", changeObjectable.getActivation());
+                    assertNotNull("Current shadow activation status is null", changeObjectable.getActivation()
                             .getAdministrativeStatus());
                 } else {
-                    assertNull("Activation sneaked into current shadow", account.getActivation());
+                    assertNull("Activation sneaked into current shadow", changeObjectable.getActivation());
                 }
             }
         }
+
+        assertThat(changeObjectable.getShadowLifecycleState())
+                .as("lifecycle state in %s", changeObjectable)
+                .isNotNull();
+        assertThat(changeObjectable.getEffectiveOperationPolicy())
+                .as("effective operation policy in %s", changeObjectable)
+                .isNotNull();
 
         // remember ...
         callCountNotifyChange++;
@@ -181,8 +194,10 @@ public class SynchronizationServiceMock
                 try {
                     repositoryService.getObject(currentShadowType.getClass(), currentShadowType.getOid(), null, new OperationResult("mockSyncService." + notificationDesc));
                 } catch (Exception e) {
-                    AssertJUnit.fail("Got exception while trying to read current shadow " + currentShadowType +
-                            ": " + e.getCause() + ": " + e.getMessage());
+                    throw new AssertionError(
+                            "Got exception while trying to read current shadow " + currentShadowType + ": "
+                                    + e.getCause() + ": " + e.getMessage(),
+                            e);
                 }
             }
             // Check resource
@@ -191,8 +206,11 @@ public class SynchronizationServiceMock
             try {
                 repositoryService.getObject(ResourceType.class, resourceOid, null, new OperationResult("mockSyncService." + notificationDesc));
             } catch (Exception e) {
-                AssertJUnit.fail("Got exception while trying to read resource " + resourceOid + " as specified in current shadow " + currentShadowType +
-                        ": " + e.getCause() + ": " + e.getMessage());
+                throw new AssertionError(
+                        "Got exception while trying to read resource " + resourceOid
+                                + " as specified in current shadow " + currentShadowType + ": "
+                                + e.getCause() + ": " + e.getMessage(),
+                        e);
             }
         }
         if (opDescription.getObjectDelta() != null && !failure) {

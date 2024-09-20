@@ -1761,6 +1761,7 @@ public class TestActivities extends AbstractRepoCommonTest {
         when("run 1");
 
         waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, 10000);
+        stabilize();
 
         then("run 1");
 
@@ -1879,6 +1880,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         taskManager.resumeTask(oidOfSubtask1, result);
         waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, 10000);
+        stabilize();
 
         then("run 2");
 
@@ -1986,6 +1988,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         taskManager.resumeTask(oidOfSubtask1, result);
         waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, 10000);
+        stabilize();
 
         then("run 3");
 
@@ -2155,6 +2158,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         taskManager.resumeTask(oidOfSubtask22, result);
         waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, 10000);
+        stabilize();
 
         then("run 4");
 
@@ -2183,6 +2187,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         taskManager.resumeTask(oidOfSubtask3, result);
         waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, 10000);
+        stabilize();
 
         then("run 5");
 

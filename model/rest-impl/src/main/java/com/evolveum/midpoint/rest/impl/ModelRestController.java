@@ -8,16 +8,14 @@ package com.evolveum.midpoint.rest.impl;
 
 import static org.springframework.http.ResponseEntity.status;
 
+import static com.evolveum.midpoint.security.api.RestAuthorizationAction.*;
+
 import java.net.URI;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
-import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
-
-import jakarta.ws.rs.core.Response;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -41,10 +39,14 @@ import com.evolveum.midpoint.schema.DefinitionProcessingOption;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.WorkItemId;
+import com.evolveum.midpoint.security.api.RestHandlerMethod;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -70,7 +72,9 @@ public class ModelRestController extends AbstractRestController {
     @Autowired private ModelService modelService;
     @Autowired private BulkActionsService bulkActionsService;
     @Autowired private TaskService taskService;
+    @Autowired private CaseService caseService;
 
+    @RestHandlerMethod(authorization = GENERATE_VALUE)
     @PostMapping("/{type}/{oid}/generate")
     public ResponseEntity<?> generateValue(
             @PathVariable("type") String type,
@@ -94,6 +98,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = RPC_GENERATE_VALUE)
     @PostMapping("/rpc/generate")
     public ResponseEntity<?> generateValueRpc(
             @RequestBody PolicyItemsDefinitionType policyItemsDefinition) {
@@ -131,6 +136,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = VALIDATE_VALUE)
     @PostMapping("/{type}/{oid}/validate")
     public ResponseEntity<?> validateValue(
             @PathVariable("type") String type,
@@ -154,6 +160,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = RPC_VALIDATE_VALUE)
     @PostMapping("/rpc/validate")
     public ResponseEntity<?> validateValue(
             @RequestBody PolicyItemsDefinitionType policyItemsDefinition) {
@@ -206,6 +213,7 @@ public class ModelRestController extends AbstractRestController {
         return status(HttpStatus.BAD_REQUEST).body(parentResult);
     }
 
+    @RestHandlerMethod(authorization = GET_VALUE_POLICY)
     @GetMapping("/users/{id}/policy")
     public ResponseEntity<?> getValuePolicyForUser(
             @PathVariable("id") String oid) {
@@ -234,6 +242,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = GET_OBJECT)
     @GetMapping(GET_OBJECT_PATH)
     public ResponseEntity<?> getObject(
             @PathVariable("type") String type,
@@ -289,11 +298,13 @@ public class ModelRestController extends AbstractRestController {
         }
     }
 
+    @RestHandlerMethod(authorization = GET_SELF)
     @GetMapping("/self/")
     public ResponseEntity<?> getSelfAlt() {
         return getSelf();
     }
 
+    @RestHandlerMethod(authorization = GET_SELF)
     @GetMapping("/self")
     public ResponseEntity<?> getSelf() {
         logger.debug("model rest service for get operation start");
@@ -306,8 +317,7 @@ public class ModelRestController extends AbstractRestController {
             PrismObject<UserType> user = model.getObject(UserType.class, loggedInUserOid, null, task, result);
             response = createResponse(HttpStatus.OK, user, result, true);
             result.recordSuccessIfUnknown();
-        } catch (SecurityViolationException | ObjectNotFoundException | SchemaException |
-                CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
+        } catch (CommonException e) {
             LoggingUtils.logUnexpectedException(logger, e);
             response = status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
@@ -316,6 +326,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = ADD_OBJECT)
     @PostMapping("/{type}/")
     public <T extends ObjectType> ResponseEntity<?> addObjectAlt(
             @PathVariable("type") String type,
@@ -324,6 +335,7 @@ public class ModelRestController extends AbstractRestController {
         return addObject(type, options, object);
     }
 
+    @RestHandlerMethod(authorization = ADD_OBJECT)
     @PostMapping("/{type}")
     public <T extends ObjectType> ResponseEntity<?> addObject(
             @PathVariable("type") String type,
@@ -368,13 +380,13 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
-    @NotNull
-    public URI uriGetObject(@PathVariable("type") String type, String oid) {
+    public @NotNull URI uriGetObject(@PathVariable("type") String type, String oid) {
         return ServletUriComponentsBuilder.fromCurrentContextPath()
                 .path(controllerBasePath() + GET_OBJECT_PATH)
                 .build(type, oid);
     }
 
+    @RestHandlerMethod(authorization = GET_OBJECTS)
     @GetMapping("/{type}")
     public <T extends ObjectType> ResponseEntity<?> searchObjectsByType(
             @PathVariable("type") String type,
@@ -409,6 +421,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = ADD_OBJECT)
     @PutMapping("/{type}/{id}")
     public <T extends ObjectType> ResponseEntity<?> addObject(
             @PathVariable("type") String type,
@@ -457,6 +470,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = DELETE_OBJECT)
     @DeleteMapping("/{type}/{id}")
     public ResponseEntity<?> deleteObject(
             @PathVariable("type") String type,
@@ -471,7 +485,7 @@ public class ModelRestController extends AbstractRestController {
         ResponseEntity<?> response;
         Class<? extends ObjectType> clazz = ObjectTypes.getClassFromRestType(type);
         if (ObjectType.class.equals(clazz)) {
-            result.recordFatalError("Type object ( path /objects/) does not supported deletion, use concrete type.");
+            result.recordFatalError("Type object (path /objects/) does not support deletion, use concrete type.");
             response = createResponse(HttpStatus.METHOD_NOT_ALLOWED, result);
         } else {
             try {
@@ -499,6 +513,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = MODIFY_OBJECT)
     @PostMapping("/{type}/{oid}")
     public ResponseEntity<?> modifyObjectPost(
             @PathVariable("type") String type,
@@ -508,6 +523,7 @@ public class ModelRestController extends AbstractRestController {
         return modifyObjectPatch(type, oid, options, modificationType);
     }
 
+    @RestHandlerMethod(authorization = MODIFY_OBJECT)
     @PatchMapping("/{type}/{oid}")
     public ResponseEntity<?> modifyObjectPatch(
             @PathVariable("type") String type,
@@ -523,12 +539,12 @@ public class ModelRestController extends AbstractRestController {
         OperationResult result = task.getResult().createSubresult("modifyObjectPatch");
         ResponseEntity<?> response;
         if (ObjectType.class.equals(clazz)) {
-            result.recordFatalError("Type 'object' (path /objects/) does not supported modifications, use concrete type.");
+            result.recordFatalError("Type 'object' (path /objects/) does not support modifications, use concrete type.");
             response = createResponse(HttpStatus.METHOD_NOT_ALLOWED, result);
         } else {
             try {
                 ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options);
-                Collection<? extends ItemDelta<?, ?>> modifications = DeltaConvertor.toModifications(modificationType, clazz, prismContext);
+                Collection<? extends ItemDelta<?, ?>> modifications = DeltaConvertor.toModifications(modificationType, clazz);
                 model.modifyObject(clazz, oid, modifications, modelExecuteOptions, task, result);
                 response = createResponse(HttpStatus.NO_CONTENT, result);
             } catch (Exception ex) {
@@ -541,6 +557,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = NOTIFY_CHANGE)
     @PostMapping("/notifyChange")
     public ResponseEntity<?> notifyChange(
             @RequestBody ResourceObjectShadowChangeDescriptionType changeDescription) {
@@ -563,6 +580,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = FIND_SHADOW_OWNER)
     @GetMapping("/shadows/{oid}/owner")
     public ResponseEntity<?> findShadowOwner(
             @PathVariable("oid") String shadowOid) {
@@ -583,6 +601,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = IMPORT_SHADOW)
     @PostMapping("/shadows/{oid}/import")
     public ResponseEntity<?> importShadow(
             @PathVariable("oid") String shadowOid) {
@@ -605,6 +624,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = SEARCH_OBJECTS)
     @PostMapping("/{type}/search")
     public ResponseEntity<?> searchObjects(
             @PathVariable("type") String type,
@@ -648,6 +668,7 @@ public class ModelRestController extends AbstractRestController {
                 ItemPathCollectionsUtil.pathListFromStrings(exclude, prismContext));
     }
 
+    @RestHandlerMethod(authorization = IMPORT_FROM_RESOURCE)
     @PostMapping("/resources/{resourceOid}/import/{objectClass}")
     public ResponseEntity<?> importFromResource(
             @PathVariable("resourceOid") String resourceOid,
@@ -674,6 +695,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = TEST_RESOURCE)
     @PostMapping("/resources/{resourceOid}/test")
     public ResponseEntity<?> testResource(
             @PathVariable("resourceOid") String resourceOid) {
@@ -699,6 +721,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = SUSPEND_TASK)
     @PostMapping("/tasks/{oid}/suspend")
     public ResponseEntity<?> suspendTask(
             @PathVariable("oid") String taskOid) {
@@ -719,6 +742,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = RESUME_TASK)
     @PostMapping("/tasks/{oid}/resume")
     public ResponseEntity<?> resumeTask(
             @PathVariable("oid") String taskOid) {
@@ -739,6 +763,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = RUN_TASK)
     @PostMapping("tasks/{oid}/run")
     public ResponseEntity<?> scheduleTaskNow(
             @PathVariable("oid") String taskOid) {
@@ -758,6 +783,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = EXECUTE_SCRIPT)
     @PostMapping("/rpc/executeScript")
     public ResponseEntity<?> executeScript(
             @RequestParam(value = "asynchronous", required = false) Boolean asynchronous,
@@ -797,8 +823,8 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = COMPARE_OBJECT)
     @PostMapping("/rpc/compare")
-//    @Consumes({ "application/xml" }) TODO do we need to limit it to XML?
     public <T extends ObjectType> ResponseEntity<?> compare(
             @RequestParam(value = "readOptions", required = false) List<String> restReadOptions,
             @RequestParam(value = "compareOptions", required = false) List<String> restCompareOptions,
@@ -827,6 +853,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = GET_LOG_SIZE)
     @GetMapping(value = "/log/size",
             produces = { MediaType.TEXT_PLAIN_VALUE, MimeTypeUtils.ALL_VALUE })
     public ResponseEntity<?> getLogFileSize() {
@@ -847,6 +874,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = GET_LOG)
     @GetMapping(value = "/log",
             produces = { MediaType.TEXT_PLAIN_VALUE, MimeTypeUtils.ALL_VALUE })
     public ResponseEntity<?> getLog(
@@ -875,6 +903,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = RESET_CREDENTIAL)
     @PostMapping("/users/{oid}/credential")
     public ResponseEntity<?> executeCredentialReset(
             @PathVariable("oid") String oid,
@@ -898,6 +927,7 @@ public class ModelRestController extends AbstractRestController {
 
     }
 
+    @RestHandlerMethod(authorization = GET_THREADS)
     @GetMapping(value = "/threads",
             produces = { MediaType.TEXT_PLAIN_VALUE, MimeTypeUtils.ALL_VALUE })
     public ResponseEntity<?> getThreadsDump() {
@@ -917,6 +947,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = GET_TASKS_THREADS)
     @GetMapping(value = "/tasks/threads",
             produces = { MediaType.TEXT_PLAIN_VALUE, MimeTypeUtils.ALL_VALUE })
     public ResponseEntity<?> getRunningTasksThreadsDump() {
@@ -937,6 +968,7 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = GET_TASK_THREADS)
     @GetMapping(value = "/tasks/{oid}/threads",
             produces = { MediaType.TEXT_PLAIN_VALUE, MimeTypeUtils.ALL_VALUE })
     public ResponseEntity<?> getTaskThreadsDump(
@@ -953,6 +985,126 @@ public class ModelRestController extends AbstractRestController {
             response = handleExceptionNoLog(result, ex);
         }
         result.computeStatus();
+        finishRequest(task, result);
+        return response;
+    }
+
+    @RestHandlerMethod(authorization = COMPLETE_WORK_ITEM)
+    @PostMapping("/cases/{oid}/workItems/{id}/complete")
+    public ResponseEntity<?> completeWorkItem(
+            @PathVariable("oid") String caseOid,
+            @PathVariable("id") Long workItemId,
+            @RequestBody AbstractWorkItemOutputType output
+    ) {
+        Task task = initRequest();
+        OperationResult result = task.getResult().createSubresult("completeWorkItem");
+
+        ResponseEntity<?> response;
+        try {
+            WorkItemId id = WorkItemId.of(caseOid, workItemId);
+            caseService.completeWorkItem(id, output, task, result);
+
+            result.computeStatus();
+            response = createResponse(HttpStatus.NO_CONTENT, task, result);
+        } catch (Exception ex) {
+            response = handleException(result, ex);
+        }
+
+        finishRequest(task, result);
+        return response;
+    }
+
+    @RestHandlerMethod(authorization = DELEGATE_WORK_ITEM)
+    @PostMapping("/cases/{oid}/workItems/{id}/delegate")
+    public ResponseEntity<?> delegateWorkItem(
+            @PathVariable("oid") String caseOid,
+            @PathVariable("id") Long workItemId,
+            @RequestBody WorkItemDelegationRequestType delegationRequest
+    ) {
+        Task task = initRequest();
+        OperationResult result = task.getResult().createSubresult("delegateWorkItem");
+
+        ResponseEntity<?> response;
+        try {
+            WorkItemId id = WorkItemId.of(caseOid, workItemId);
+            caseService.delegateWorkItem(id, delegationRequest, task, result);
+
+            result.computeStatus();
+            response = createResponse(HttpStatus.NO_CONTENT, task, result);
+        } catch (Exception ex) {
+            response = handleException(result, ex);
+        }
+
+        finishRequest(task, result);
+        return response;
+    }
+
+    @RestHandlerMethod(authorization = CLAIM_WORK_ITEM)
+    @PostMapping("/cases/{oid}/workItems/{id}/claim")
+    public ResponseEntity<?> claimWorkItem(
+            @PathVariable("oid") String caseOid,
+            @PathVariable("id") Long workItemId
+    ) {
+        Task task = initRequest();
+        OperationResult result = task.getResult().createSubresult("claimWorkItem");
+
+        ResponseEntity<?> response;
+        try {
+            WorkItemId id = WorkItemId.of(caseOid, workItemId);
+            caseService.claimWorkItem(id, task, result);
+
+            result.computeStatus();
+            response = createResponse(HttpStatus.NO_CONTENT, task, result);
+        } catch (Exception ex) {
+            response = handleException(result, ex);
+        }
+
+        finishRequest(task, result);
+        return response;
+    }
+
+    @RestHandlerMethod(authorization = RELEASE_WORK_ITEM)
+    @PostMapping("/cases/{oid}/workItems/{id}/release")
+    public ResponseEntity<?> releaseWorkItem(
+            @PathVariable("oid") String caseOid,
+            @PathVariable("id") Long workItemId
+    ) {
+        Task task = initRequest();
+        OperationResult result = task.getResult().createSubresult("releaseWorkItem");
+
+        ResponseEntity<?> response;
+        try {
+            WorkItemId id = WorkItemId.of(caseOid, workItemId);
+            caseService.releaseWorkItem(id, task, result);
+
+            result.computeStatus();
+            response = createResponse(HttpStatus.NO_CONTENT, task, result);
+        } catch (Exception ex) {
+            response = handleException(result, ex);
+        }
+
+        finishRequest(task, result);
+        return response;
+    }
+
+    @RestHandlerMethod(authorization = CANCEL_CASE)
+    @PostMapping("/cases/{oid}/cancel")
+    public ResponseEntity<?> cancelCase(
+            @PathVariable("oid") String caseOid
+    ) {
+        Task task = initRequest();
+        OperationResult result = task.getResult().createSubresult("cancelCase");
+
+        ResponseEntity<?> response;
+        try {
+            caseService.cancelCase(caseOid, task, result);
+
+            result.computeStatus();
+            response = createResponse(HttpStatus.NO_CONTENT, task, result);
+        } catch (Exception ex) {
+            response = handleException(result, ex);
+        }
+
         finishRequest(task, result);
         return response;
     }

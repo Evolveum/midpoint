@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.common.expression.functions;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -35,6 +36,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.crypto.SecretsResolver;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -46,6 +48,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -55,7 +58,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -66,6 +69,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
+import static com.evolveum.midpoint.util.DebugUtil.lazy;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
@@ -79,6 +84,7 @@ import static java.util.Collections.emptySet;
  *
  * @author Radovan Semancik
  */
+@SuppressWarnings({ "unused", "WeakerAccess" })
 public class BasicExpressionFunctions {
 
     public static final String NAME_SEPARATOR = " ";
@@ -333,8 +339,7 @@ public class BasicExpressionFunctions {
             return ((PolyStringType) whatever).getOrig();
         }
 
-        if (whatever instanceof Collection) {
-            Collection collection = (Collection) whatever;
+        if (whatever instanceof Collection<?> collection) {
             if (collection.isEmpty()) {
                 return "";
             }
@@ -344,7 +349,7 @@ public class BasicExpressionFunctions {
             whatever = collection.iterator().next();
         }
 
-        Class<? extends Object> whateverClass = whatever.getClass();
+        Class<?> whateverClass = whatever.getClass();
         if (whateverClass.isArray()) {
             Object[] array = (Object[]) whatever;
             if (array.length == 0) {
@@ -372,9 +377,9 @@ public class BasicExpressionFunctions {
             return ((PolyStringType) whatever).getOrig();
         }
 
-        if (whatever instanceof Element) {
-            Element element = (Element) whatever;
+        if (whatever instanceof Element element) {
             Element origElement = DOMUtil.getChildElement(element, PolyString.F_ORIG);
+            //noinspection ReplaceNullCheck
             if (origElement != null) {
                 // This is most likely a PolyStringType
                 return origElement.getTextContent();
@@ -425,11 +430,11 @@ public class BasicExpressionFunctions {
         if (whatever == null) {
             return true;
         }
-        if (whatever instanceof String) {
-            return ((String) whatever).isEmpty();
+        if (whatever instanceof String string) {
+            return string.isEmpty();
         }
-        if (whatever instanceof Collection) {
-            return ((Collection) whatever).isEmpty();
+        if (whatever instanceof Collection<?> collection) {
+            return collection.isEmpty();
         }
         String whateverString = stringify(whatever);
         if (whateverString == null) {
@@ -442,58 +447,111 @@ public class BasicExpressionFunctions {
         return prismContext;
     }
 
-    public <T> Collection<T> getExtensionPropertyValues(Containerable containerable, String namespace, String localPart) {
+    //region Working with the extension
+    /**
+     * Returns real values of an extension property (of an object, assignment, or similar structure).
+     * Do not modify the returned collection.
+     */
+    public <T> @NotNull Collection<T> getExtensionPropertyValues(
+            Containerable containerable, String namespace, @NotNull String localPart) {
         checkColon(localPart);
         return getExtensionPropertyValues(containerable, new javax.xml.namespace.QName(namespace, localPart));
     }
 
-    public <T> Collection<T> getExtensionPropertyValues(Containerable object, groovy.namespace.QName propertyQname) {
+    /** @see #getExtensionPropertyValue(Containerable, String, String)  */
+    public <T> @NotNull Collection<T> getExtensionPropertyValues(
+            Containerable object, @NotNull groovy.namespace.QName propertyQname) {
         return getExtensionPropertyValues(object, propertyQname.getNamespaceURI(), propertyQname.getLocalPart());
     }
 
-    public <T> Collection<T> getExtensionPropertyValues(Containerable object, javax.xml.namespace.QName propertyQname) {
+    /** @see #getExtensionPropertyValue(Containerable, String, String)  */
+    public <T> @NotNull Collection<T> getExtensionPropertyValues(
+            Containerable object, @NotNull javax.xml.namespace.QName propertyQname) {
         return ObjectTypeUtil.getExtensionPropertyValuesNotNull(object, propertyQname);
     }
 
-    public <T> T getExtensionPropertyValue(Containerable containerable, String localPart) throws SchemaException {
+    /**
+     * Returns the real value of an extension property (of an object, assignment, or similar structure), or {@code null}
+     * if no value exists. Throws a {@link SchemaException} if the property has multiple values.
+     */
+    public <T> @Nullable T getExtensionPropertyValue(
+            Containerable containerable, @NotNull javax.xml.namespace.QName propertyQname)
+            throws SchemaException {
+        return toSingle(
+                ObjectTypeUtil.getExtensionPropertyValues(containerable, propertyQname),
+                lazy(() -> "a multi-valued extension property " + propertyQname));
+    }
+
+    /** @see #getExtensionPropertyValue(Containerable, QName)  */
+    public <T> @Nullable T getExtensionPropertyValue(
+            Containerable containerable, @NotNull String localPart) throws SchemaException {
         checkColon(localPart);
         return getExtensionPropertyValue(containerable, new javax.xml.namespace.QName(null, localPart));
     }
 
-    public <T> T getExtensionPropertyValue(Containerable containerable, String namespace, String localPart) throws SchemaException {
+    /** @see #getExtensionPropertyValue(Containerable, QName)  */
+    public <T> @Nullable T getExtensionPropertyValue(
+            Containerable containerable, String namespace, @NotNull String localPart) throws SchemaException {
         checkColon(localPart);
         return getExtensionPropertyValue(containerable, new javax.xml.namespace.QName(namespace, localPart));
     }
 
-    public Referencable getExtensionReferenceValue(ObjectType object, String namespace, String localPart) throws SchemaException {
-        checkColon(localPart);
-        return getExtensionReferenceValue(object, new javax.xml.namespace.QName(namespace, localPart));
+    /** @see #getExtensionPropertyValue(Containerable, QName)  */
+    public <T> @Nullable T getExtensionPropertyValue(
+            Containerable containerable, @NotNull groovy.namespace.QName propertyQname) throws SchemaException {
+        return getExtensionPropertyValue(containerable, propertyQname.getNamespaceURI(), propertyQname.getLocalPart());
     }
+
+    /**
+     * Returns the value of an extension reference item (of an object, assignment, or similar structure), or {@code null}
+     * if no value exists. Throws a {@link SchemaException} if the item has multiple values.
+     */
+    public @Nullable Referencable getExtensionReferenceValue(
+            Containerable containerable, @NotNull javax.xml.namespace.QName itemQName)
+            throws SchemaException {
+        return toSingle(
+                ObjectTypeUtil.getExtensionReferenceValues(containerable, itemQName),
+                lazy(() -> "a multi-valued extension property " + itemQName));
+    }
+
+    /** @see #getExtensionReferenceValue(Containerable, QName) */
+    public @Nullable Referencable getExtensionReferenceValue(
+            Containerable containerable, String namespace, @NotNull String localPart) throws SchemaException {
+        checkColon(localPart);
+        return getExtensionReferenceValue(containerable, new javax.xml.namespace.QName(namespace, localPart));
+    }
+
+    /**
+     * Sets the real values of a given extension property (of an object, assignment, or similar structure).
+     * Removes any existing values.
+     */
+    public void setExtensionPropertyValues(
+            @NotNull Containerable parent, @NotNull QName propertyName, Object... values) throws SchemaException {
+        ObjectTypeUtil.setExtensionPropertyRealValues(parent.asPrismContainerValue(), ItemName.fromQName(propertyName), values);
+    }
+
+    /** @see #setExtensionPropertyValues(Containerable, QName, Object...) */
+    public void setExtensionPropertyValues(
+            @NotNull Containerable parent, @NotNull String propertyName, Object... values) throws SchemaException {
+        ObjectTypeUtil.setExtensionPropertyRealValues(parent.asPrismContainerValue(), new ItemName(propertyName), values);
+    }
+
+    @Deprecated
+    public void setExtensionRealValues(PrismContainerValue<?> containerValue, Map<String, Object> map) throws SchemaException {
+        PrismContainer<Containerable> ext = containerValue.findOrCreateContainer(ObjectType.F_EXTENSION);
+        Map<QName, Object> qnameKeyedMap = new HashMap<>();
+        map.forEach((uri, value) -> qnameKeyedMap.put(QNameUtil.uriToQName(uri, true), value));
+        List<Item<?, ?>> items = ObjectTypeUtil.mapToExtensionItems(qnameKeyedMap, ext.getDefinition(), prismContext);
+        for (Item<?, ?> item : items) {
+            ext.getValue().addReplaceExisting(item);
+        }
+    }
+    //endregion
 
     private void checkColon(String localPart) {
         if (localPart != null && localPart.contains(":")) {
             LOGGER.warn("Colon in QName local part: '{}' -- are you sure?", localPart);
         }
-    }
-
-    public <T> T getExtensionPropertyValue(Containerable containerable, groovy.namespace.QName propertyQname) throws SchemaException {
-        return getExtensionPropertyValue(containerable, propertyQname.getNamespaceURI(), propertyQname.getLocalPart());
-    }
-
-    public <T> T getExtensionPropertyValue(Containerable containerable, javax.xml.namespace.QName propertyQname) throws SchemaException {
-        if (containerable == null) {
-            return null;
-        }
-        Collection<T> values = ObjectTypeUtil.getExtensionPropertyValues(containerable, propertyQname);
-        return toSingle(values, "a multi-valued extension property " + propertyQname);
-    }
-
-    public Referencable getExtensionReferenceValue(ObjectType object, javax.xml.namespace.QName propertyQname) throws SchemaException {
-        if (object == null) {
-            return null;
-        }
-        Collection<Referencable> values = ObjectTypeUtil.getExtensionReferenceValues(object, propertyQname);
-        return toSingle(values, "a multi-valued extension property " + propertyQname);
     }
 
     public <T> T getPropertyValue(Containerable c, String path) throws SchemaException {
@@ -531,12 +589,11 @@ public class BasicExpressionFunctions {
         }
         Item<?, ?> item = pcv.findItem(path.getItemPath());
         if (item == null) {
-            return new ArrayList<>(0);      // TODO or emptyList?
+            return new ArrayList<>(0); // TODO or emptyList?
         }
         //noinspection unchecked
         return (Collection<T>) item.getRealValues();
     }
-
 
     public <T> Collection<T> getAttributeValues(ShadowType shadow, String attributeNamespace, String attributeLocalPart) {
         checkColon(attributeLocalPart);
@@ -624,21 +681,11 @@ public class BasicExpressionFunctions {
         return getMetadataValues(value, ValueMetadataType.F_EXTENSION, itemLocalPart);
     }
 
-    public void setExtensionRealValues(PrismContainerValue<?> containerValue, Map<String, Object> map) throws SchemaException {
-        PrismContainer<Containerable> ext = containerValue.findOrCreateContainer(ObjectType.F_EXTENSION);
-        Map<QName, Object> qnameKeyedMap = new HashMap<>();
-        map.forEach((uri, value) -> qnameKeyedMap.put(QNameUtil.uriToQName(uri, true), value));
-        List<Item<?, ?>> items = ObjectTypeUtil.mapToExtensionItems(qnameKeyedMap, ext.getDefinition(), prismContext);
-        for (Item<?, ?> item : items) {
-            ext.getValue().addReplaceExisting(item);
-        }
-    }
-
     public <T> T getIdentifierValue(ShadowType shadow) throws SchemaException {
         if (shadow == null) {
             return null;
         }
-        ResourceAttribute<?> primaryIdentifier =
+        ShadowSimpleAttribute<?> primaryIdentifier =
                 MiscUtil.extractSingleton(
                         ShadowUtil.getPrimaryIdentifiers(shadow),
                         () -> new SchemaException("More than one identifier in " + shadow));
@@ -651,19 +698,21 @@ public class BasicExpressionFunctions {
                 () -> new SchemaException("More than one identifier value in " + shadow));
     }
 
+    /** Beware, the shadow may legally have more than one secondary identifier. */
     public <T> T getSecondaryIdentifierValue(ShadowType shadow) throws SchemaException {
         if (shadow == null) {
             return null;
         }
-        Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getSecondaryIdentifiers(shadow);
-        if (identifiers.size() == 0) {
+        Collection<ShadowSimpleAttribute<?>> identifiers = ShadowUtil.getSecondaryIdentifiers(shadow);
+        if (identifiers.isEmpty()) {
             return null;
         }
         if (identifiers.size() > 1) {
-            throw new SchemaException("More than one secondary idenfier in " + shadow);
+            throw new SchemaException("More than one secondary identifier in " + shadow);
         }
+        //noinspection unchecked
         Collection<T> realValues = (Collection<T>) identifiers.iterator().next().getRealValues();
-        if (realValues.size() == 0) {
+        if (realValues.isEmpty()) {
             return null;
         }
         if (realValues.size() > 1) {
@@ -672,11 +721,13 @@ public class BasicExpressionFunctions {
         return realValues.iterator().next();
     }
 
+    @SuppressWarnings("rawtypes")
     public String determineLdapSingleAttributeValue(Collection<String> dns, String attributeName, PrismProperty attribute) throws NamingException {
+        //noinspection unchecked
         return determineLdapSingleAttributeValue(dns, attributeName, attribute.getRealValues());
     }
 
-    public <T> T getResourceIcfConfigurationPropertyValue(ResourceType resource, javax.xml.namespace.QName propertyQname) throws SchemaException {
+    public <T> T getResourceIcfConfigurationPropertyValue(ResourceType resource, javax.xml.namespace.QName propertyQname) {
         if (propertyQname == null) {
             return null;
         }
@@ -691,7 +742,7 @@ public class BasicExpressionFunctions {
         return property.getRealValue();
     }
 
-    public <T> T getResourceIcfConfigurationPropertyValue(ResourceType resource, String propertyLocalPart) throws SchemaException {
+    public <T> T getResourceIcfConfigurationPropertyValue(ResourceType resource, String propertyLocalPart) {
         checkColon(propertyLocalPart);
         if (propertyLocalPart == null) {
             return null;
@@ -718,7 +769,7 @@ public class BasicExpressionFunctions {
         if (connectorConfiguration == null) {
             return null;
         }
-        return connectorConfiguration.findContainer(SchemaConstants.ICF_CONFIGURATION_PROPERTIES);
+        return connectorConfiguration.findContainer(SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME);
     }
 
     public String determineLdapSingleAttributeValue(Collection<String> dns, String attributeName, Collection<String> values) throws NamingException {
@@ -742,11 +793,12 @@ public class BasicExpressionFunctions {
             return null;
         }
 
-        Collection<String> stringValues = null;
+        Collection<String> stringValues;
         // Determine item type, try to convert to strings
         Object firstElement = values.iterator().next();
         if (firstElement instanceof String) {
-            stringValues = (Collection) values;
+            //noinspection unchecked
+            stringValues = (Collection<String>) values;
         } else if (firstElement instanceof Element) {
             stringValues = new ArrayList<>(values.size());
             for (Object value : values) {
@@ -776,6 +828,7 @@ public class BasicExpressionFunctions {
                 if (attributeName.equals(attribute.getID())) {
                     for (int j = 0; j < attribute.size(); j++) {
                         Object value = attribute.get(j);
+                        //noinspection SuspiciousMethodCalls
                         if (stringValues.contains(value)) {
                             return (String) value;
                         }
@@ -798,7 +851,7 @@ public class BasicExpressionFunctions {
         }
     }
 
-    private <T> T toSingle(Collection<T> values, String contextDesc) throws SchemaException {
+    private <T> T toSingle(Collection<T> values, Object contextDesc) throws SchemaException {
         if (values == null || values.isEmpty()) {
             return null;
         } else if (values.size() > 1) {
@@ -809,7 +862,7 @@ public class BasicExpressionFunctions {
     }
 
     public static String readFile(String filename) throws IOException {
-        return FileUtils.readFileToString(new File(filename));
+        return FileUtils.readFileToString(new File(filename), Charset.defaultCharset());
     }
 
     public String formatDateTime(String format, XMLGregorianCalendar xmlCal) {
@@ -835,9 +888,6 @@ public class BasicExpressionFunctions {
         }
         String[] formats = new String[]{format};
         Date date = DateUtils.parseDate(stringDate, formats);
-        if (date == null) {
-            return null;
-        }
         return XmlTypeConverter.createXMLGregorianCalendar(date);
     }
 
@@ -923,7 +973,7 @@ public class BasicExpressionFunctions {
             honorificPrefixBuilder.append(" ");
             i++;
         }
-        if (honorificPrefixBuilder.length() > 0) {
+        if (!honorificPrefixBuilder.isEmpty()) {
             honorificPrefixBuilder.setLength(honorificPrefixBuilder.length() - 1);
             p.setHonorificPrefix(honorificPrefixBuilder.toString());
         }
@@ -945,9 +995,6 @@ public class BasicExpressionFunctions {
             }
         }
 
-//        LOGGER.trace("(4) i={}, words={}", i, Arrays.toString(words));
-//        LOGGER.trace("(4) rootNameWords={}", rootNameWords);
-
         if (rootNameWords.size() > 1) {
             p.setFamilyName(rootNameWords.get(rootNameWords.size() - 1));
             rootNameWords.remove(rootNameWords.size() - 1);
@@ -964,7 +1011,7 @@ public class BasicExpressionFunctions {
             honorificSuffixBuilder.append(" ");
             i++;
         }
-        if (honorificSuffixBuilder.length() > 0) {
+        if (!honorificSuffixBuilder.isEmpty()) {
             honorificSuffixBuilder.setLength(honorificSuffixBuilder.length() - 1);
             p.setHonorificSuffix(honorificSuffixBuilder.toString());
         }
@@ -1044,6 +1091,30 @@ public class BasicExpressionFunctions {
         }
     }
 
+    public String resolveSecretString(@NotNull String provider, @NotNull String key) {
+        if (!(protector instanceof SecretsResolver sr)) {
+            throw new SystemException("Current protector instance can't resolve secrets");
+        }
+
+        try {
+            return sr.resolveSecretString(provider, key);
+        } catch (EncryptionException e) {
+            throw new SystemException(e.getMessage(), e);
+        }
+    }
+
+    public ByteBuffer resolveSecretBinary(@NotNull String provider, @NotNull String key) {
+        if (!(protector instanceof SecretsResolver sr)) {
+            throw new SystemException("Current protector instance can't resolve secrets");
+        }
+
+        try {
+            return sr.resolveSecretBinary(provider, key);
+        } catch (EncryptionException e) {
+            throw new SystemException(e.getMessage(), e);
+        }
+    }
+
     /**
      * Creates a valid LDAP distinguished name from the wide range of components. The method
      * can be invoked in many ways, e.g.:
@@ -1088,7 +1159,7 @@ public class BasicExpressionFunctions {
                 if (attrName == null) {
                     attrName = (String) component;
                 } else {
-                    rdns.addFirst(new Rdn(attrName, (String) component));
+                    rdns.addFirst(new Rdn(attrName, component));
                     attrName = null;
                 }
             }
@@ -1132,7 +1203,7 @@ public class BasicExpressionFunctions {
                     return (new LdapName((String) (components[0]))).toString();
                 }
             } else if ((components[0] instanceof LdapName)) {
-                return ((LdapName) (components[0])).toString();
+                return components[0].toString();
             } else {
                 throw new InvalidNameException("Invalid input to composeDn() function: expected suffix (last element) to be String or LdapName, but it was " + components[0].getClass());
             }
@@ -1211,13 +1282,7 @@ public class BasicExpressionFunctions {
         System.arraycopy(hash, 0, hashAndSalt, 0, hash.length);
         System.arraycopy(salt, 0, hashAndSalt, hash.length, salt.length);
 
-        StringBuilder resSb = new StringBuilder(alg.length() + hashAndSalt.length);
-        resSb.append('{');
-        resSb.append(alg);
-        resSb.append('}');
-        resSb.append(Base64.getEncoder().encodeToString(hashAndSalt));
-
-        return resSb.toString();
+        return '{' + alg + '}' + Base64.getEncoder().encodeToString(hashAndSalt);
     }
 
     public static String debugDump(Object o) {

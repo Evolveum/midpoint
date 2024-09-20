@@ -1,0 +1,127 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Search all Access Certification Campaign Type*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Accept: application/json" \
+-H "Content-Type: application/json" \
+-X POST http://localhost:8080/midpoint/ws/rest/accessCertificationCampaigns/search?options=resolveNames \
+-v \
+--data-binary @./samples/rest/query-all.json
+----
+
+.*Show* data source example for *"Search for all"* | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/query-all.json[GitHub]
+[%collapsible]
+====
+[source, json]
+----
+{
+  "query" : ""
+}
+----
+====
+
+The response is an HTTP 200 code in case of success with a response body containing the queried items.
+
+.Example Output is a list of objects.
+[%collapsible]
+====
+The example is simplified, some parts were removed for the purpose of this example.
+
+[source, json]
+----
+{
+	"@ns": "http://prism.evolveum.com/xml/ns/public/types-3",
+	"object": {
+		"@type": "http://midpoint.evolveum.com/xml/ns/public/common/api-types-3#ObjectListType",
+		"object": [
+			{
+				"@type": "c:AccessCertificationCampaignType",
+				"oid": "3a0fb4a2-ffbd-4e72-bbff-47327df054c4",
+				"version": "0",
+				"name": "User's assignemnts according to the manager 1",
+				"description": "Certifies all users' assignments. Everything is certified by the administrator.",
+				"iteration": 1,
+				"definitionRef": {
+					"oid": "8f37ee15-9945-4872-8b90-8cb75f304b41",
+					"relation": "org:default",
+					"type": "c:AccessCertificationDefinitionType",
+					"targetName": "User's assignemnts according to the manager"
+				},
+				"ownerRef": {
+					"oid": "00000000-0000-0000-0000-000000000002",
+					"relation": "org:default",
+					"type": "c:UserType",
+					"targetName": "administrator"
+				},
+				"handlerUri": "http://midpoint.evolveum.com/xml/ns/public/certification/handlers-3#direct-assignment",
+				"scopeDefinition": {
+					"@type": "c:AccessCertificationAssignmentReviewScopeType",
+					"objectType": "#UserType",
+					"searchFilter": {
+						"org": {
+							"@ns": "http://prism.evolveum.com/xml/ns/public/query-3",
+							"path": "parentOrgRef",
+							"orgRef": {
+								"oid": "7d1e7065-455c-48d5-a469-1734fd255739",
+								"scope": "SUBTREE"
+							}
+						}
+					},
+					"itemSelectionExpression": {
+						"script": []
+					},
+					"includeRoles": true,
+					"includeOrgs": true,
+					"includeResources": false
+				},
+				"remediationDefinition": {
+					"style": "automated"
+				},
+				"stageDefinition": {
+					"@id": 1,
+					"number": 1,
+					"name": "Manager's review",
+					"description": "In this stage, the manager has to review all the assignments of users belonging to his org unit.",
+					"duration": "P14D",
+					"notifyBeforeDeadline": [
+						"PT48H",
+						"PT12H"
+					],
+					"notifyOnlyWhenNoDecision": true,
+					"reviewerSpecification": {
+						"useObjectManager": {
+							"allowSelf": false
+						}
+					},
+					"timedActions": {
+						"@id": 2,
+						"time": {
+							"value": [
+								"P7D"
+							]
+						},
+						"actions": {
+							"escalate": {
+								"approverRef": {
+									"oid": "00000000-0000-0000-0000-000000000002",
+									"relation": "org:default",
+									"type": "c:UserType",
+									"targetName": "administrator"
+								},
+								"delegationMethod": "addAssignees",
+								"escalationLevelName": "Level1"
+							}
+						}
+					}
+				},
+				"state": "created",
+				"stageNumber": 0
+			}
+		]
+	}
+}
+----
+====

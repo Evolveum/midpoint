@@ -1,0 +1,46 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Get Shadow owner*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Accept: application/json" \
+-X GET http://localhost:8080/midpoint/ws/rest/shadows/062ac29f-f296-4824-aeab-9a0feb9e8bd3/owner \
+-v
+----
+
+The response is an HTTP 200 code in case of success with a response body containing the queried item.
+
+.Example Output of *"Get Shadow owner"* example
+[%collapsible]
+====
+The example is *simplified*, some properties were removed to keep the example output "short". This example *does
+not* contain all possible properties of this object type.
+[source, json]
+----
+{
+  "user" : {
+    "oid" : "a9885c61-c442-42d8-af34-8182a8653e3c",
+    "version" : "",
+    "name" : "Jack",
+    "metadata" : {},
+    "operationExecution" : [ {}, {} ],
+    "assignment" : [ {}, {} ],
+    "iteration" : 0,
+    "iterationToken" : "",
+    "roleMembershipRef" : [ {}, {} ],
+    "linkRef" : {
+      "oid" : "062ac29f-f296-4824-aeab-9a0feb9e8bd3",
+      "relation" : "org:default",
+      "type" : "c:ShadowType"
+    },
+    "activation" : {},
+    "emailAddress" : "jack@evolveum.com",
+    "credentials" : {},
+    "givenName" : "Jack",
+    "familyName" : "Sparrow"
+  }
+}
+----
+====

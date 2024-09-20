@@ -9,16 +9,15 @@ package com.evolveum.midpoint.model.impl.lens.projector.focus;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.ClockworkInboundsProcessing;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
-import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.FullInboundsProcessing;
+import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -44,7 +43,6 @@ public class InboundProcessor implements ProjectorProcessor {
 
     @Autowired private ContextLoader contextLoader;
     @Autowired private ClockworkMedic medic;
-    @Autowired private ModelBeans beans;
 
     @ProcessorMethod
     <F extends FocusType> void processInbounds(
@@ -52,13 +50,12 @@ public class InboundProcessor implements ProjectorProcessor {
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException,
             CommunicationException, SecurityViolationException, PolicyViolationException {
 
-        MappingEvaluationEnvironment env = new MappingEvaluationEnvironment(activityDescription, now, task);
+        var env = new MappingEvaluationEnvironment(activityDescription, now, task);
 
-        ClockworkInboundsProcessing<F> processing = new ClockworkInboundsProcessing<>(context, beans, env, result);
-        processing.collectAndEvaluateMappings();
+        new FullInboundsProcessing<>(context, env)
+                .executeToDeltas(result);
 
         context.checkConsistenceIfNeeded();
-        context.recomputeFocus();
         medic.traceContext(LOGGER, activityDescription, "inbound", false, context, false);
 
         // It's actually a bit questionable if such cross-components interactions should be treated like this

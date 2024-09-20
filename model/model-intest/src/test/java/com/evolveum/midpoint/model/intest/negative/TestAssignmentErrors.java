@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.intest.negative;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_PASSWORD;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
@@ -14,7 +16,8 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.assertNoRepoThread
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
@@ -33,7 +36,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
@@ -95,12 +98,12 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         assertFalse("Empty secondary identifiers in account", accountDef.getSecondaryIdentifiers().isEmpty());
         assertNotNull("No naming attribute in account", accountDef.getNamingAttribute());
         assertFalse("No nativeObjectClass in account",
-                StringUtils.isEmpty(accountDef.getObjectClassDefinition().getNativeObjectClass()));
+                StringUtils.isEmpty(accountDef.getObjectClassDefinition().getNativeObjectClassName()));
 
         assertFalse("Account definition is deprecated", accountDef.isDeprecated());
         assertFalse("Account definition in auxiliary", accountDef.getObjectClassDefinition().isAuxiliary());
 
-        ResourceAttributeDefinition<?> uidDef = accountDef.findAttributeDefinition(SchemaConstants.ICFS_UID);
+        ShadowSimpleAttributeDefinition<?> uidDef = accountDef.findSimpleAttributeDefinition(SchemaConstants.ICFS_UID);
         assertNotNull(uidDef);
         assertEquals(1, uidDef.getMaxOccurs());
         assertEquals(0, uidDef.getMinOccurs());
@@ -110,7 +113,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         assertTrue("No UID read", uidDef.canRead());
         assertTrue("UID definition not in identifiers", accountDef.getPrimaryIdentifiers().contains(uidDef));
 
-        ResourceAttributeDefinition<?> nameDef = accountDef.findAttributeDefinition(SchemaConstants.ICFS_NAME);
+        ShadowSimpleAttributeDefinition<?> nameDef = accountDef.findSimpleAttributeDefinition(SchemaConstants.ICFS_NAME);
         assertNotNull(nameDef);
         assertEquals(1, nameDef.getMaxOccurs());
         assertEquals(1, nameDef.getMinOccurs());
@@ -120,7 +123,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         assertTrue("No NAME read", nameDef.canRead());
         assertTrue("NAME definition not in identifiers", accountDef.getSecondaryIdentifiers().contains(nameDef));
 
-        ResourceAttributeDefinition<?> fullnameDef = accountDef.findAttributeDefinition("fullname");
+        ShadowSimpleAttributeDefinition<?> fullnameDef = accountDef.findSimpleAttributeDefinition("fullname");
         assertNotNull("No definition for fullname", fullnameDef);
         assertEquals(1, fullnameDef.getMaxOccurs());
         assertEquals(1, fullnameDef.getMinOccurs());
@@ -129,7 +132,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         assertTrue("No fullname read", fullnameDef.canRead());
 
         assertNull("The _PASSWORD_ attribute sneaked into schema",
-                accountDef.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+                accountDef.findSimpleAttributeDefinition(ICFS_PASSWORD));
     }
 
     /**
@@ -405,9 +408,13 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         try {
             testUserSharptoothChangePasswordError(
                     BreakMode.GENERIC, USER_SHARPTOOTH_PASSWORD_1_CLEAR, USER_SHARPTOOTH_PASSWORD_3_CLEAR,
-                    OperationResultStatus.FATAL_ERROR);
+                    InternalsConfig.isShadowCachingOnByDefault() ?
+                            OperationResultStatus.IN_PROGRESS : // when caching is on, there is no ConnId read op to fail
+                            OperationResultStatus.FATAL_ERROR);
 
-            assertNotReached();
+            if (!InternalsConfig.isShadowCachingOnByDefault()) {
+                assertNotReached();
+            }
         } catch (GenericConnectorException e) {
             // expected
         }

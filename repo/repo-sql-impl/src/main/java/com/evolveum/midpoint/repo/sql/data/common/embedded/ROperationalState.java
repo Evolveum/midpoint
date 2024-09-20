@@ -8,13 +8,12 @@
 package com.evolveum.midpoint.repo.sql.data.common.embedded;
 
 import java.util.Objects;
+
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.Enumerated;
-
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RAvailabilityStatus;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
@@ -22,11 +21,15 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalStateType;
 
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
+
 @Embeddable
 public class ROperationalState {
 
     RAvailabilityStatus lastAvailabilityStatus;
 
+    @JdbcType(IntegerJdbcType.class)
     @Enumerated
     public RAvailabilityStatus getLastAvailabilityStatus() {
         return lastAvailabilityStatus;
@@ -38,8 +41,8 @@ public class ROperationalState {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (o == null || getClass() != o.getClass()) { return false; }
+        if (this == o) {return true;}
+        if (o == null || getClass() != o.getClass()) {return false;}
 
         ROperationalState that = (ROperationalState) o;
         return Objects.equals(lastAvailabilityStatus, that.lastAvailabilityStatus);
@@ -55,8 +58,7 @@ public class ROperationalState {
         return ReflectionToStringBuilder.toString(this, ToStringStyle.MULTI_LINE_STYLE);
     }
 
-    public static void copyToJAXB(ROperationalState repo, OperationalStateType jaxb, ObjectType parent, ItemPath path,
-            PrismContext prismContext) throws DtoTranslationException {
+    public static void copyToJAXB(ROperationalState repo, OperationalStateType jaxb, ObjectType parent, ItemPath path) throws DtoTranslationException {
         Objects.requireNonNull(repo, "Repo object must not be null.");
         Objects.requireNonNull(jaxb, "JAXB object must not be null.");
 
@@ -84,10 +86,9 @@ public class ROperationalState {
         }
     }
 
-    public OperationalStateType toJAXB(ObjectType parent, ItemPath path, PrismContext prismContext) throws
-            DtoTranslationException {
+    public OperationalStateType toJAXB(ObjectType parent, ItemPath path) throws DtoTranslationException {
         OperationalStateType operationalState = new OperationalStateType();
-        ROperationalState.copyToJAXB(this, operationalState, parent, path, prismContext);
+        ROperationalState.copyToJAXB(this, operationalState, parent, path);
         return operationalState;
     }
 }

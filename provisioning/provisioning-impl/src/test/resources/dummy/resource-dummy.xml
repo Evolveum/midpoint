@@ -8,9 +8,7 @@
 
 <resource oid="ef2bc95b-76e0-59e2-86d6-9999dddddddd"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
         xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
@@ -22,7 +20,7 @@
                    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
         <icfc:configurationProperties>
-            <icfi:instanceId></icfi:instanceId> <!-- Default instance -->
+            <icfi:instanceId/> <!-- Default instance -->
             <icfi:uselessString>Shiver me timbers!</icfi:uselessString>
             <icfi:uselessGuardedString>       <!-- Add some whitespace -->
                 <clearValue>Dead men tell no tales</clearValue>
@@ -107,22 +105,6 @@
                     </access>
                 </limitations>
             </attribute>
-            <association>
-                <ref>ri:group</ref>
-                <kind>entitlement</kind>
-                <intent>group</intent>
-                <direction>objectToSubject</direction>
-                <associationAttribute>ri:members</associationAttribute>
-                <valueAttribute>icfs:name</valueAttribute>
-            </association>
-            <association>
-                <ref>ri:priv</ref>
-                <kind>entitlement</kind>
-                <intent>privilege</intent>
-                <direction>subjectToObject</direction>
-                <associationAttribute>ri:privileges</associationAttribute>
-                <valueAttribute>icfs:name</valueAttribute>
-            </association>
             <protected>
                 <filter>
                     <q:equal>
@@ -191,12 +173,84 @@
             <default>false</default>
             <objectClass>ri:CustomprivilegeObjectClass</objectClass>
         </objectType>
+        <associationType>
+            <name>ri:groupMembership</name>
+            <subject>
+                <objectType>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                </objectType>
+                <association>
+                    <ref>ri:group</ref>
+                </association>
+            </subject>
+            <object>
+                <objectType>
+                    <kind>entitlement</kind>
+                    <intent>group</intent>
+                </objectType>
+            </object>
+        </associationType>
+        <associationType>
+            <name>ri:accountPrivilege</name>
+            <subject>
+                <objectType>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                </objectType>
+                <association>
+                    <ref>ri:priv</ref>
+                </association>
+            </subject>
+            <object>
+                <objectType>
+                    <kind>entitlement</kind>
+                    <intent>privilege</intent>
+                </objectType>
+            </object>
+        </associationType>
     </schemaHandling>
     <capabilities>
         <configured>
             <cap:countObjects>
                 <cap:simulate>pagedSearchEstimate</cap:simulate>
             </cap:countObjects>
+            <cap:references>
+                <cap:type>
+                    <cap:name>ri:groupMembership</cap:name>
+                    <cap:subject>
+                        <cap:delineation> <!-- Later, we may derive this information from the association type. -->
+                            <cap:objectClass>ri:AccountObjectClass</cap:objectClass>
+                        </cap:delineation>
+                        <cap:primaryBindingAttributeRef>icfs:name</cap:primaryBindingAttributeRef>
+                        <cap:localItemName>ri:group</cap:localItemName>
+                    </cap:subject>
+                    <cap:object>
+                        <cap:delineation> <!-- Later, we may derive this information from the association type. -->
+                            <cap:objectClass>ri:GroupObjectClass</cap:objectClass>
+                        </cap:delineation>
+                        <cap:primaryBindingAttributeRef>ri:members</cap:primaryBindingAttributeRef>
+                    </cap:object>
+                    <cap:direction>objectToSubject</cap:direction>
+                </cap:type>
+                <cap:type>
+                    <cap:name>ri:accountPrivilege</cap:name>
+                    <cap:subject>
+                        <cap:delineation> <!-- Later, we may derive this information from the association type. -->
+                            <cap:objectClass>ri:AccountObjectClass</cap:objectClass>
+                        </cap:delineation>
+                        <cap:primaryBindingAttributeRef>ri:privileges</cap:primaryBindingAttributeRef>
+                        <cap:localItemName>ri:priv</cap:localItemName>
+                    </cap:subject>
+                    <cap:object>
+                        <cap:delineation> <!-- Later, we may derive this information from the association type. -->
+                            <cap:objectClass>ri:CustomprivilegeObjectClass</cap:objectClass>
+                        </cap:delineation>
+                        <cap:primaryBindingAttributeRef>icfs:name</cap:primaryBindingAttributeRef>
+                    </cap:object>
+                    <cap:direction>subjectToObject</cap:direction>
+                </cap:type>
+            </cap:references>
         </configured>
     </capabilities>
 </resource>

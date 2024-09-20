@@ -24,9 +24,9 @@ public abstract class CorrelationExplanation implements Serializable, DebugDumpa
     @NotNull final CorrelatorConfiguration correlatorConfiguration;
 
     /** The resulting confidence computed by the correlator. */
-    protected final double confidence;
+    @NotNull protected final Confidence confidence;
 
-    CorrelationExplanation(@NotNull CorrelatorConfiguration correlatorConfiguration, double confidence) {
+    CorrelationExplanation(@NotNull CorrelatorConfiguration correlatorConfiguration, @NotNull Confidence confidence) {
         this.correlatorConfiguration = correlatorConfiguration;
         this.confidence = confidence;
     }
@@ -37,7 +37,7 @@ public abstract class CorrelationExplanation implements Serializable, DebugDumpa
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
         DebugUtil.debugDumpWithLabelLn(sb, "configuration", correlatorConfiguration.identify(), indent + 1);
-        DebugUtil.debugDumpWithLabel(sb, "confidence", confidence, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "confidence", DebugUtil.shortDump(confidence), indent + 1);
         doSpecificDebugDump(sb, indent);
         return sb.toString();
     }
@@ -51,13 +51,17 @@ public abstract class CorrelationExplanation implements Serializable, DebugDumpa
         return correlatorConfiguration.getDisplayableName();
     }
 
-    int getConfidenceScaledTo100() {
-        return (int) Math.round(confidence * 100);
+    String getConfidenceAsPercent() {
+        return getConfidenceScaledTo100() + "%";
+    }
+
+    private int getConfidenceScaledTo100() {
+        return (int) Math.round(confidence.getValue() * 100);
     }
 
     abstract void doSpecificDebugDump(StringBuilder sb, int indent);
 
-    public double getConfidence() {
+    public @NotNull Confidence getConfidence() {
         return confidence;
     }
 
@@ -67,14 +71,15 @@ public abstract class CorrelationExplanation implements Serializable, DebugDumpa
      */
     public static class GenericCorrelationExplanation extends CorrelationExplanation {
 
-        public GenericCorrelationExplanation(@NotNull CorrelatorConfiguration correlatorConfiguration, double confidence) {
+        public GenericCorrelationExplanation(
+                @NotNull CorrelatorConfiguration correlatorConfiguration, @NotNull Confidence confidence) {
             super(correlatorConfiguration, confidence);
         }
 
         @Override
         public @NotNull LocalizableMessage toLocalizableMessage() {
             return new LocalizableMessageBuilder()
-                    .fallbackMessage(getDisplayableName() + ": " + getConfidenceScaledTo100())
+                    .fallbackMessage(getDisplayableName() + ": " + getConfidenceAsPercent())
                     .build();
         }
 
@@ -90,7 +95,7 @@ public abstract class CorrelationExplanation implements Serializable, DebugDumpa
     public static class UnsupportedCorrelationExplanation extends CorrelationExplanation {
 
         public UnsupportedCorrelationExplanation(@NotNull CorrelatorConfiguration correlatorConfiguration) {
-            super(correlatorConfiguration, 0);
+            super(correlatorConfiguration, Confidence.zero());
         }
 
         @Override

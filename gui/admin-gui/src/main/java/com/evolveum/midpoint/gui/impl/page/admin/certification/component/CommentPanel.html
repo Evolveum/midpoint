@@ -1,0 +1,27 @@
+<!--
+  ~ Copyright (c) 2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html lang="en" xmlns:wicket="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+<body>
+<wicket:panel>
+    <div wicket:id="feedbackPanel" />
+    <h5>
+        <div class="d-flex justify-content-center" wicket:id="informationLabel"/>
+    </h5>
+    <div class="flex flex-wrap">
+        <div class="text-bold" wicket:id="commentLabel"/>
+        <span wicket:id="required" style="color: #f00; font-weight: bold;" wicket:message="title:prismPropertyPanel.required">*</span>
+    </div>
+    <textarea wicket:id="comment" class="form-control" rows="5"/>
+    <div class="d-flex flex-wrap main-button-bar mt-2">
+        <a wicket:id="cancelButton" class="btn btn-group btn-sm btn-default justify-content-start"/>
+        <a wicket:id="confirmButton" class="btn btn-group btn-sm btn-default justify-content-end"/>
+    </div>
+</wicket:panel>
+</body>
+</html>

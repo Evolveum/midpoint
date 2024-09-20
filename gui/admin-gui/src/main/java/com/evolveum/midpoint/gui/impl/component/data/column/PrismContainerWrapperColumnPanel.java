@@ -6,17 +6,21 @@
  */
 package com.evolveum.midpoint.gui.impl.component.data.column;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
+import com.evolveum.midpoint.prism.Referencable;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
@@ -34,7 +38,7 @@ public class PrismContainerWrapperColumnPanel<C extends Containerable> extends A
     private static final long serialVersionUID = 1L;
     private static final Trace LOGGER = TraceManager.getTrace(PrismContainerWrapperColumn.class);
 
-    PrismContainerWrapperColumnPanel(String id, IModel<PrismContainerWrapper<C>> model, ColumnType columnType) {
+    public PrismContainerWrapperColumnPanel(String id, IModel<PrismContainerWrapper<C>> model, ColumnType columnType) {
         super(id, model, columnType);
     }
 

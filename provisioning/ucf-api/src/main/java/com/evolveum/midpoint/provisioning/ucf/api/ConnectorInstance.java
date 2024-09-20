@@ -6,16 +6,12 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.api;
 
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.ucf.api.async.UcfAsyncUpdateChangeListener;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.util.exception.*;
@@ -26,35 +22,22 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.function.Supplier;
-
-import javax.xml.namespace.QName;
 
 /**
  * Connector instance configured for a specific resource.
  *
- * This is kind of connector facade. It is an API provided by
- * the "Unified Connector Framework" to the midPoint provisioning
- * component. There is no associated SPI yet. That may come in the
- * future when this interface stabilizes a bit.
+ * This is kind of connector facade. It is an API provided by the "Unified Connector Framework" to the midPoint provisioning
+ * component. There is no associated SPI yet. That may come in the future when this interface stabilizes a bit.
  *
- * This interface provides an unified facade to a connector capabilities
- * in the Unified Connector Framework interface. The connector is configured
- * to a specific resource instance and therefore can execute operations on
- * resource.
+ * This interface provides an unified facade to a connector capabilities in the Unified Connector Framework interface.
+ * The connector is configured to a specific resource instance and therefore can execute operations on resource.
  *
- * Calls to this interface always try to reach the resource and get the
- * actual state on resource. The connectors are not supposed to cache any
- * information. Therefore the methods do not follow get/set java convention
- * as the data are not regular javabean properties.
+ * Calls to this interface always try to reach the resource and get the actual state on resource. The connectors are
+ * not supposed to cache any information. Therefore the methods do not follow get/set java convention as the data
+ * are not regular javabean properties.
  *
- * TODO Reconsider if object class definitions passed to the methods here should be class/type scoped,
- *  or strictly class scoped. It seems to be more logical to keep them class-only, but the current implementation
- *  puts those definitions to objects returned e.g. from the search operation. And later we could have problems,
- *  if there are ROCD instead of ROTD. So let's keep this "universal" i.e. "class or type".
- *  We also need the "refined" definition e.g. because of determining attributes-to-get.
- *  We also need to know "refined" identifiers.
+ * This instance must know the most current version of the resource schema, even with the refinements.
  *
  * @see ConnectorFactory
  *
@@ -90,25 +73,22 @@ public interface ConnectorInstance {
      * The connector instance must be operational at all times, even during re-configuration.
      * Operations cannot be interrupted or refused due to missing configuration.
      *
+     * Returns the same instance (`this`) to allow chained calls.
+     *
      * @param configuration new connector configuration (prism container value)
      */
-    void configure(
-            @NotNull PrismContainerValue<?> configuration,
-            @Nullable ConnectorConfigurationOptions options,
-            @NotNull OperationResult parentResult)
+    ConnectorInstance configure(
+            @NotNull ConnectorConfiguration configuration,
+            @NotNull ConnectorConfigurationOptions options,
+            @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException;
 
-    default void configure(
-            @NotNull PrismContainerValue<?> configuration,
-            @Nullable List<QName> generateObjectClasses,
-            @NotNull OperationResult parentResult)
-            throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException {
-        configure(
-                configuration,
-                new ConnectorConfigurationOptions()
-                        .generateObjectClasses(generateObjectClasses),
-                parentResult);
-    }
+    /**
+     * Returns the current configuration (if the instance is configured), or {@code null} otherwise.
+     * The object returned must be equivalent to the one passed to the {@link #configure(ConnectorConfiguration,
+     * ConnectorConfigurationOptions, OperationResult)} method.
+     */
+    @Nullable ConnectorConfiguration getCurrentConfiguration();
 
     ConnectorOperationalStatus getOperationalStatus() throws ObjectNotFoundException;
 
@@ -123,6 +103,8 @@ public interface ConnectorInstance {
      * If resource schema and capabilities are already cached by midPoint they may be passed to the connector instance.
      * Otherwise the instance may need to fetch them from the resource which may be less efficient.
      *
+     * Returns `this`.
+     *
      * NOTE: the capabilities and schema that are used here are NOT necessarily those that are detected by the resource.
      *       The detected schema will come later. The schema here is the one that is stored in the resource
      *       definition (ResourceType). This may be schema that was detected previously. But it may also be a schema
@@ -130,17 +112,17 @@ public interface ConnectorInstance {
      *       cannot detect the schema and needs schema/capabilities definition to establish a connection.
      *       Most connectors will just ignore the schema and capabilities that are provided here.
      *       But some connectors may need it (e.g. CSV connector working with CSV file without a header).
-     *
-     * TODO: caseIgnoreAttributeNames is probably not correct here. It should be provided in schema or capabilities?
      */
-    void initialize(ResourceSchema previousResourceSchema, CapabilityCollectionType previousCapabilities,
-            boolean caseIgnoreAttributeNames, OperationResult parentResult)
+    @NotNull ConnectorInstance initialize(
+            @Nullable NativeResourceSchema lastKnownResourceSchema,
+            @Nullable CapabilityCollectionType lastKnownNativeCapabilities,
+            @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ConfigurationException, SchemaException;
 
     /**
-     * Updates stored resource schema and capabilities.
+     * Updates stored resource schema.
      */
-    void updateSchema(ResourceSchema resourceSchema);
+    void updateSchema(NativeResourceSchema resourceSchema);
 
     /**
      * Retrieves native connector capabilities.
@@ -154,8 +136,24 @@ public interface ConnectorInstance {
      * - The `null` return value means the capabilities cannot be determined.
      * - Empty {@link CapabilityCollectionType} return value means there are no native capabilities.
      */
-    @Nullable CapabilityCollectionType fetchCapabilities(OperationResult parentResult)
+    @Nullable CapabilityCollectionType fetchCapabilities(OperationResult result)
             throws CommunicationException, GenericFrameworkException, ConfigurationException, SchemaException;
+
+    /**
+     * Returns capabilities natively supported by the connector.
+     * Works also on unconfigured and uninitialized connectors.
+     *
+     * Limitations:
+     *
+     * - ignores the configuration even if present;
+     * - does not take schema-derived capabilities (like activation, password, or paging) into account
+     *
+     * Can be seen as a simplified version of {@link #fetchCapabilities(OperationResult)}.
+     *
+     * @return Return supported operations for connector.
+     */
+    @NotNull CapabilityCollectionType getNativeCapabilities(OperationResult result)
+            throws CommunicationException, GenericFrameworkException, ConfigurationException;
 
     /**
      * Retrieves the schema from the resource.
@@ -166,16 +164,13 @@ public interface ConnectorInstance {
      *
      * It may return null. Such case means that the schema cannot be determined.
      *
-     * The method may return a schema that was fetched previously, e.g. if the fetch operation was executed
-     * during connector initialization.
-     *
-     * @see PrismSchema
+     * The method may return a schema that was fetched previously, e.g., if the fetch operation was executed
+     * during connector initialization or when fetching native capabilities.
      *
      * @return Up-to-date resource schema. Only raw information should be there, no refinements. May be immutable.
-     * @throws CommunicationException error in communication to the resource
-     *                - nothing was fetched.
+     * @throws CommunicationException error in communication to the resource - nothing was fetched.
      */
-    ResourceSchema fetchResourceSchema(OperationResult parentResult)
+    NativeResourceSchema fetchResourceSchema(@NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ConfigurationException, SchemaException;
 
     /**
@@ -189,20 +184,18 @@ public interface ConnectorInstance {
      * to one of the object classes in the schema. The object class must match
      * the object. If it does not, the behavior of this operation is undefined.
      *
-     * The returned ResourceObject is "disconnected" from schema. It means that
-     * any call to the getDefinition() method of the returned object will
-     * return null.
-     *
      * TODO: object not found error
      *
-     * @param resourceObjectIdentification objectClass+identifiers of the object to fetch
+     * @param resourceObjectIdentification objectClass+primary identifiers of the object to fetch
      * @return object fetched from the resource (no schema)
-     * @throws CommunicationException error in communication to the resource
-     *                - nothing was fetched.
+     * @throws CommunicationException error in communication to the resource - nothing was fetched.
      * @throws SchemaException error converting object from native (connector) format
      */
-    PrismObject<ShadowType> fetchObject(ResourceObjectIdentification resourceObjectIdentification,
-            AttributesToReturn attributesToReturn, UcfExecutionContext ctx, OperationResult parentResult)
+    UcfResourceObject fetchObject(
+            @NotNull ResourceObjectIdentification.WithPrimary resourceObjectIdentification,
+            @Nullable ShadowItemsToReturn shadowItemsToReturn,
+            @NotNull SchemaAwareUcfExecutionContext ctx,
+            @NotNull OperationResult result)
         throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
         SecurityViolationException, ConfigurationException;
 
@@ -227,7 +220,7 @@ public interface ConnectorInstance {
      * @param objectDefinition Definition of the object class of the objects being searched for. May be class or type scoped.
      * @param query Object query to be used.
      * @param handler Handler that is called for each object found.
-     * @param attributesToReturn Attributes that are to be returned; TODO describe exact semantics
+     * @param shadowItemsToReturn Attributes that are to be returned; TODO describe exact semantics
      * @param pagedSearchConfiguration Configuration (capability) describing how paged searches are to be done.
      * @param searchHierarchyConstraints Specifies in what parts of hierarchy the search should be executed.
      * @param errorReportingMethod How should errors during processing individual objects be reported.
@@ -242,14 +235,14 @@ public interface ConnectorInstance {
             @NotNull ResourceObjectDefinition objectDefinition,
             @Nullable ObjectQuery query,
             @NotNull UcfObjectHandler handler,
-            @Nullable AttributesToReturn attributesToReturn,
+            @Nullable ShadowItemsToReturn shadowItemsToReturn,
             @Nullable PagedSearchCapabilityType pagedSearchConfiguration,
             @Nullable SearchHierarchyConstraints searchHierarchyConstraints,
             @Nullable UcfFetchErrorReportingMethod errorReportingMethod,
-            @NotNull UcfExecutionContext ctx,
-            @NotNull OperationResult parentResult)
+            @NotNull SchemaAwareUcfExecutionContext ctx,
+            @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, SchemaException, SecurityViolationException,
-                    ObjectNotFoundException;
+            ObjectNotFoundException;
 
     /**
      * Counts objects on resource.
@@ -260,7 +253,7 @@ public interface ConnectorInstance {
      * If paging is not available, it throws an exception.
      */
     int count(ResourceObjectDefinition objectDefinition, ObjectQuery query,
-            PagedSearchCapabilityType pagedSearchConfigurationType, UcfExecutionContext ctx, OperationResult parentResult)
+            PagedSearchCapabilityType pagedSearchConfigurationType, UcfExecutionContext ctx, OperationResult result)
             throws CommunicationException, GenericFrameworkException, SchemaException, UnsupportedOperationException;
 
     /**
@@ -280,16 +273,20 @@ public interface ConnectorInstance {
      * returning of new object state and the caller should explicitly invoke fetchObject() in case that the
      * information is needed.
      *
-     * @throws SchemaException resource schema violation
      * @return created object attributes. May be null.
+     * @throws SchemaException resource schema violation
      * @throws ObjectAlreadyExistsException object already exists on the resource
      */
-    AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> addObject(
-            PrismObject<? extends ShadowType> object, UcfExecutionContext ctx, OperationResult parentResult)
+    UcfAddReturnValue addObject(
+            @NotNull PrismObject<? extends ShadowType> object,
+            @NotNull SchemaAwareUcfExecutionContext ctx,
+            @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, SchemaException, ObjectAlreadyExistsException,
             ConfigurationException, SecurityViolationException, PolicyViolationException;
 
     /**
+     * TODO the meaning of the `shadow` parameter ... it seems to be required e.g. by manual connectors
+     *
      * TODO: This should return indication how the operation went, e.g. what changes were applied, what were not
      *  and what results are we not sure about.
      *
@@ -298,7 +295,7 @@ public interface ConnectorInstance {
      *
      * 1. Modifications that were requested and executed.
      * 2. Any other modifications that resulted from the operation, i.e. side effects. An example is UID change
-     *    stemming from object rename. Or DN change stemming from CN change.
+     * stemming from object rename. Or DN change stemming from CN change.
      *
      * The exact content of the returned set depends on the actual connector used. Some connectors return requested
      * and executed operations, some do not. Also some connectors return side effects, some only part of them,
@@ -310,22 +307,33 @@ public interface ConnectorInstance {
      *
      * @throws ObjectAlreadyExistsException in case that the modified object conflicts with another existing object (e.g. while renaming an object)
      */
-    AsynchronousOperationReturnValue<Collection<PropertyModificationOperation<?>>> modifyObject(
-            ResourceObjectIdentification identification,
+    @Nullable UcfModifyReturnValue modifyObject(
+            @NotNull ResourceObjectIdentification.WithPrimary identification,
             PrismObject<ShadowType> shadow,
             @NotNull Collection<Operation> changes,
             ConnectorOperationOptions options,
-            UcfExecutionContext ctx, OperationResult parentResult)
+            @NotNull SchemaAwareUcfExecutionContext ctx,
+            @NotNull OperationResult result)
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
             SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ConfigurationException;
 
-    AsynchronousOperationResult deleteObject(ResourceObjectDefinition objectDefinition, PrismObject<ShadowType> shadow,
-            Collection<? extends ResourceAttribute<?>> identifiers, UcfExecutionContext ctx, OperationResult parentResult)
+    /**
+     * Deletes the specified object.
+     *
+     * Currently, some implementations may accept secondary-only identification. Some (e.g. ConnId) may not.
+     */
+    UcfDeleteReturnValue deleteObject(
+            @NotNull ResourceObjectIdentification<?> identification,
+            @Nullable PrismObject<ShadowType> shadow,
+            @NotNull UcfExecutionContext ctx,
+            @NotNull OperationResult result)
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
             ConfigurationException, SecurityViolationException, PolicyViolationException;
 
-    Object executeScript(ExecuteProvisioningScriptOperation scriptOperation, UcfExecutionContext ctx,
-            OperationResult parentResult)
+    Object executeScript(
+            ExecuteProvisioningScriptOperation scriptOperation,
+            UcfExecutionContext ctx,
+            OperationResult result)
             throws CommunicationException, GenericFrameworkException;
 
     /**
@@ -336,8 +344,8 @@ public interface ConnectorInstance {
      */
     default UcfSyncToken fetchCurrentToken(
             ResourceObjectDefinition objectDefinition,
-            UcfExecutionContext ctx,
-            OperationResult parentResult)
+            @NotNull UcfExecutionContext ctx,
+            @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException {
         return null;
     }
@@ -345,15 +353,16 @@ public interface ConnectorInstance {
     /**
      * Token may be null. That means "from the beginning of history".
      */
-    UcfFetchChangesResult fetchChanges(ResourceObjectDefinition objectDefinition, UcfSyncToken lastToken,
-            AttributesToReturn attrsToReturn, Integer maxChanges, UcfExecutionContext ctx,
-            @NotNull UcfLiveSyncChangeListener changeHandler, OperationResult parentResult)
+    UcfFetchChangesResult fetchChanges(
+            @Nullable ResourceObjectDefinition objectDefinition,
+            @Nullable UcfSyncToken lastToken,
+            @Nullable ShadowItemsToReturn attrsToReturn,
+            @Nullable Integer maxChanges,
+            @NotNull SchemaAwareUcfExecutionContext ctx,
+            @NotNull UcfLiveSyncChangeListener changeHandler,
+            @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException,
             ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException;
-
-    //public ValidationResult validateConfiguration(ResourceConfiguration newConfiguration);
-
-    //public void applyConfiguration(ResourceConfiguration newConfiguration) throws MisconfigurationException;
 
     /**
      * This method is not expected to throw any exceptions. It should record any issues to provided operation result
@@ -361,7 +370,7 @@ public interface ConnectorInstance {
      *
      * Maybe this should be moved to ConnectorManager? In that way it can also test connector instantiation.
      */
-    void test(OperationResult parentResult);
+    void test(OperationResult result);
 
     /**
      * Test the very minimal configuration set, which is usually just a set of mandatory configuration properties.
@@ -371,7 +380,7 @@ public interface ConnectorInstance {
      * This method is not expected to throw any exceptions. It should record any issues to provided operation result
      * instead.
      */
-    void testPartialConfiguration(OperationResult parentResult);
+    void testPartialConfiguration(OperationResult result);
 
     /**
      * Discovers additional configuration properties.
@@ -381,7 +390,7 @@ public interface ConnectorInstance {
      *
      * @return suggested attributes as prism properties
      */
-    @NotNull Collection<PrismProperty<?>> discoverConfiguration(OperationResult parentResult);
+    @NotNull Collection<PrismProperty<?>> discoverConfiguration(OperationResult result);
 
     /**
      * Dispose of the connector instance. Dispose is a brutal operation. Once the instance is disposed of, it cannot execute
@@ -404,24 +413,16 @@ public interface ConnectorInstance {
      *
      * @param changeListener Listener to invoke when a change arrives
      * @param canRunSupplier Supplier of "canRun" information. If it returns false we should stop listening.
-     * @param parentResult Operation result to use for listening for changes.
+     * @param result Operation result to use for listening for changes.
      *
      * @throws IllegalStateException If another listener is already present (or was successfully started in parallel).
      */
     default void listenForChanges(
             @NotNull UcfAsyncUpdateChangeListener changeListener,
             @NotNull Supplier<Boolean> canRunSupplier,
-            @NotNull OperationResult parentResult) throws SchemaException {
+            @NotNull OperationResult result) throws SchemaException {
         throw new UnsupportedOperationException();
     }
-
-    /**
-     * Method create collection of capabilities which connector support.
-     *
-     * @return Return supported operations for connector.
-     */
-    @NotNull CapabilityCollectionType getNativeCapabilities(OperationResult result)
-            throws CommunicationException, GenericFrameworkException, ConfigurationException;
 
     /** Get description usable e.g. in exception messages. */
     default String getHumanReadableDescription() {

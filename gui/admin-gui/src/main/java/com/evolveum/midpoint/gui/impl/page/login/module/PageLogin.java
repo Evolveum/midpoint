@@ -88,12 +88,12 @@ public class PageLogin extends PageAbstractAuthenticationModule<ModuleAuthentica
 
 
     @Override
-    protected IModel<String> getLoginPanelTitleModel() {
+    protected IModel<String> getDefaultLoginPanelTitleModel() {
         return createStringResource("PageLogin.loginToYourAccount");
     }
 
     @Override
-    protected IModel<String> getLoginPanelDescriptionModel() {
+    protected IModel<String> getDefaultLoginPanelDescriptionModel() {
         return severalLoginFormModulesExist() ?
                 createStringResource("PageLogin.panelDescriptionWithModuleName", getProcessingModuleName())
                 : createStringResource("PageLogin.enterAccountDetails");

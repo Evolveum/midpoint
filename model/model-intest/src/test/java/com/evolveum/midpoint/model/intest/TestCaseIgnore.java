@@ -6,23 +6,41 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static com.evolveum.midpoint.test.IntegrationTestTools.toRepoPolyLegacy;
+
+import static org.testng.AssertJUnit.assertEquals;
+
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
+import static com.evolveum.midpoint.test.IntegrationTestTools.toRepoPoly;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import com.evolveum.midpoint.prism.polystring.PolyString;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalOperationClasses;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.ShadowAssociationsCollection;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -31,22 +49,6 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
-
-import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * Test various case ignore and case transformation scenarios.
@@ -87,7 +89,8 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
     public void initSystem(Task initTask, OperationResult initResult)
             throws Exception {
         super.initSystem(initTask, initResult);
-        caseIgnoreMatchingRule = matchingRuleRegistry.getMatchingRule(PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME, DOMUtil.XSD_STRING);
+        caseIgnoreMatchingRule =
+                matchingRuleRegistry.getMatchingRule(PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME, DOMUtil.XSD_STRING);
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
         repoAddObjectFromFile(ROLE_X_FILE, initResult);
@@ -135,11 +138,11 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 
         // Check shadow
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        var accountShadow = getShadowRepo(accountOid);
         display("Repo shadow", accountShadow);
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         assertAccountShadowRepo(accountShadow, accountOid, "jack", resourceDummyUpcaseType, caseIgnoreMatchingRule);
-        assertEnableTimestampShadow(accountShadow, startTime, endTime);
+        assertEnableTimestampShadow(accountShadow.getPrismObject(), startTime, endTime);
 
         // Check account
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
@@ -163,13 +166,11 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(
-                RESOURCE_DUMMY_UPCASE_OID,
-                new QName(MidPointConstants.NS_RI, SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME));
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_UPCASE_OID, RI_ACCOUNT_OBJECT_CLASS);
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
-       when();
+        when();
         SearchResultList<PrismObject<ShadowType>> foundShadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
 
         // THEN
@@ -189,14 +190,16 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         accountOid = getSingleLinkOid(userJack);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        display("Repo shadow", accountShadow);
-        assertAccountShadowRepo(accountShadow, accountOid, ACCOUNT_JACK_DUMMY_UPCASE_NAME, resourceDummyUpcaseType, caseIgnoreMatchingRule);
+        var repoShadow = getShadowRepo(accountOid);
+        display("Repo shadow", repoShadow);
+        assertAccountShadowRepo(repoShadow, accountOid, ACCOUNT_JACK_DUMMY_UPCASE_NAME,
+                resourceDummyUpcaseType, caseIgnoreMatchingRule);
 
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         display("Model shadow", accountModel);
-        assertAccountShadowModel(accountModel, accountOid, ACCOUNT_JACK_DUMMY_UPCASE_NAME, resourceDummyUpcaseType, caseIgnoreMatchingRule);
+        assertAccountShadowModel(accountModel, accountOid, ACCOUNT_JACK_DUMMY_UPCASE_NAME,
+                resourceDummyUpcaseType, caseIgnoreMatchingRule);
 
         // Check account in dummy resource
         assertDummyAccount(RESOURCE_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_UPCASE_NAME, "Jack Sparrow", true);
@@ -271,7 +274,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 
         // Check shadow
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        var accountShadow = getShadowRepo(accountOid);
         display("Repo shadow", accountShadow);
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         assertAccountShadowRepo(accountShadow, accountOid, "X-jack", resourceDummyUpcaseType, caseIgnoreMatchingRule);
@@ -310,7 +313,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 
         // Check shadow
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        var accountShadow = getShadowRepo(accountOid);
         display("Repo shadow", accountShadow);
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         assertAccountShadowRepo(accountShadow, accountOid, "X-JACK", resourceDummyUpcaseType, caseIgnoreMatchingRule);
@@ -384,7 +387,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 
         // Check shadow
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        var accountShadow = getShadowRepo(accountOid);
         display("Repo shadow", accountShadow);
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         assertAccountShadowRepo(accountShadow, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyUpcaseType, caseIgnoreMatchingRule);
@@ -412,13 +415,12 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         display("User jack before", userBefore);
 
         // WHEN
-       when();
+        when();
         assignRole(USER_JACK_OID, ROLE_JOKER_OID, task, result);
 
         // THEN
-       then();
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        then();
+        assertSuccess(result);
 
         // Make sure this is repository so we do not destroy the "evidence" yet.
         PrismObject<UserType> userJack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
@@ -431,7 +433,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 
         // Check shadow
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
-        PrismObject<ShadowType> accountRepoShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        var accountRepoShadow = getShadowRepo(accountOid);
         display("Repo shadow", accountRepoShadow);
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         assertAccountShadowRepo(accountRepoShadow, accountOid, ACCOUNT_JACK_DUMMY_UPCASE_NAME, resourceDummyUpcaseType, caseIgnoreMatchingRule);
@@ -447,7 +449,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountAttribute(RESOURCE_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_UPCASE_NAME, "title", "JoKeR");
         assertDummyGroupMember(RESOURCE_DUMMY_UPCASE_NAME, GROUP_JOKER_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_UPCASE_NAME);
 
-        IntegrationTestTools.assertAssociation(accountModelShadow, RESOURCE_DUMMY_UPCASE_ASSOCIATION_GROUP_QNAME,
+        IntegrationTestTools.assertAssociationObjectRef(accountModelShadow, RESOURCE_DUMMY_UPCASE_ASSOCIATION_GROUP_QNAME,
                 GROUP_SHADOW_JOKER_DUMMY_UPCASE_OID);
 
         assertShadows(6);
@@ -480,7 +482,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 
         // Check shadow
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        var accountShadow = getShadowRepo(accountOid);
         display("Repo shadow", accountShadow);
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         assertAccountShadowRepo(accountShadow, accountOid, ACCOUNT_JACK_DUMMY_UPCASE_NAME, resourceDummyUpcaseType, caseIgnoreMatchingRule);
@@ -557,7 +559,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 
         // Check shadow
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        var accountShadow = getShadowRepo(accountOid);
         display("Repo shadow", accountShadow);
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
@@ -661,7 +663,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 
         // Check shadow
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        var accountShadow = getShadowRepo(accountOid);
         display("Repo shadow", accountShadow);
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
@@ -685,19 +687,21 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountAttribute(RESOURCE_DUMMY_UPCASE_NAME, ACCOUNT_GUYBRUSH_DUMMY_UPCASE_NAME, "title", "FOOL!");
         assertDummyGroupMember(RESOURCE_DUMMY_UPCASE_NAME, GROUP_DUMMY_FOOLS_NAME, ACCOUNT_GUYBRUSH_DUMMY_UPCASE_NAME);
 
-        assertEquals(1, accountModel.asObjectable().getAssociation().size());
-        ObjectReferenceType shadowRef = accountModel.asObjectable().getAssociation().get(0).getShadowRef();
+        var associationValues = ShadowAssociationsCollection.ofShadow(accountModel.asObjectable()).getAllIterableValues();
+        assertEquals(1, associationValues.size());
+        ObjectReferenceType shadowRef = associationValues.iterator().next().associationValue().getSingleObjectRefRequired();
         PrismObject<ShadowType> groupFoolsRepoShadow = repositoryService.getObject(ShadowType.class, shadowRef.getOid(), null, result);
         display("group fools repo shadow", groupFoolsRepoShadow);
 
-        PrismAsserts.assertPropertyValue(groupFoolsRepoShadow, ICFS_NAME_PATH, GROUP_DUMMY_FOOLS_NAME.toLowerCase());
-        PrismAsserts.assertPropertyValue(groupFoolsRepoShadow, ICFS_UID_PATH, GROUP_DUMMY_FOOLS_NAME.toLowerCase());
+        PolyString repoNameValue = isNativeRepository() ? toRepoPoly(GROUP_DUMMY_FOOLS_NAME) : toRepoPolyLegacy(GROUP_DUMMY_FOOLS_NAME);
+        PrismAsserts.assertPropertyValue(groupFoolsRepoShadow, ICFS_NAME_PATH, repoNameValue);
+        PrismAsserts.assertPropertyValue(groupFoolsRepoShadow, ICFS_UID_PATH, repoNameValue);
         assertShadowKindIntent(groupFoolsRepoShadow, ShadowKindType.ENTITLEMENT, INTENT_DUMMY_GROUP);
 
         assertShadows(6);
-
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void preTestCleanup(AssignmentPolicyEnforcementType enforcementPolicy) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         assumeAssignmentPolicy(enforcementPolicy);
         dummyAuditService.clear();

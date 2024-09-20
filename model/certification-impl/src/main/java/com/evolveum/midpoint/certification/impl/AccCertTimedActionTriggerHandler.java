@@ -122,7 +122,7 @@ public class AccCertTimedActionTriggerHandler implements SingleTriggerHandler {
             Task task, OperationResult result)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         List<AccessCertificationWorkItemType> workItems = queryHelper.searchOpenWorkItems(
-                CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaign.getOid(), prismContext),
+                CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaign.getOid()),
                 true,
                 result);
         for (AccessCertificationWorkItemType workItem : workItems) {
@@ -144,7 +144,7 @@ public class AccCertTimedActionTriggerHandler implements SingleTriggerHandler {
             throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
             ObjectAlreadyExistsException, ConfigurationException, CommunicationException {
         List<AccessCertificationWorkItemType> workItems = queryHelper.searchOpenWorkItems(
-                CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaign.getOid(), prismContext),
+                CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaign.getOid()),
                 true,
                 result);
         certManager.delegateWorkItems(campaign.getOid(), workItems, delegateAction, task, result);

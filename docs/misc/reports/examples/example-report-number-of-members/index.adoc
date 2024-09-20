@@ -1,0 +1,53 @@
+= Example of Dashboard report: Number of Members
+:page-nav-title: Example: Number of Members
+:page-wiki-name: Example of Dashboard Report: Number of Members
+:page-wiki-id: 52002832
+:page-wiki-metadata-create-user: lskublik
+:page-wiki-metadata-create-date: 2020-05-04T12:41:02.412+02:00
+:page-wiki-metadata-modify-user: lskublik
+:page-wiki-metadata-modify-date: 2020-07-27T09:14:49.594+02:00
+:page-upkeep-status: yellow
+:page-upkeep-note: check TODO's after sampleRef is fully in prod remove links
+
+Please see xref:/midpoint/reference/admin-gui/dashboards/configuration/[Dashboard configuration] for basic information about configuration variables.
+
+
+== Example Use-case
+
+Administrator needs to display all roles with the number of their members.
+
+== Configuration
+
+As the first step we need to configure an object collection for all roles.
+
+//TODO check after sampleRef is fully in prod
+.*Example Object Collection*
+[%collapsible]
+====
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/objectCollection/all-roles.xml[Git]
+
+sampleRef::samples/objectCollection/all-roles.xml[]
+====
+
+We want a report with table of roles for this we configure the report definition.
+
+//TODO check after sampleRef is fully in prod
+.*Example Report Configuration*
+[%collapsible]
+====
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/reports/roles-and-members.xml[Git]
+
+sampleRef::samples/reports/roles-and-members.xml[]
+====
+
+Now we can run the report in the report menu, and download the report.
+
+== See Also
+
+- xref:/midpoint/reference/misc/reports/examples/[Report Examples]
+- xref:/midpoint/reference/misc/reports/configuration/[Report Configuration]
+- xref:/midpoint/reference/misc/reports/configuration/collection-report.adoc[Collection Based Reports]
+- xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[Dashboard Based Reports]
+- xref:/midpoint/reference/concepts/query/#reference-query[Reference Query]
+
+

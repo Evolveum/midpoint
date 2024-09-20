@@ -7,11 +7,26 @@
 
 package com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.update;
 
-import com.evolveum.midpoint.prism.*;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.CHANNEL_ASYNC_UPDATE_URI;
+
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.security.core.Authentication;
+
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfAsyncUpdateChange;
-import com.evolveum.midpoint.provisioning.ucf.api.UcfErrorState;
+import com.evolveum.midpoint.provisioning.ucf.api.UcfResourceObject;
 import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncUpdateMessageListener;
 import com.evolveum.midpoint.provisioning.ucf.api.async.UcfAsyncUpdateChangeListener;
 import com.evolveum.midpoint.schema.AcknowledgementSink;
@@ -34,27 +49,14 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.springframework.security.core.Authentication;
-
-import javax.xml.namespace.QName;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.CHANNEL_ASYNC_UPDATE_URI;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
-
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
- * Transforms AsyncUpdateMessageType objects to Change ones (via UcfChangeType intermediary).
+ * Transforms {@link AsyncUpdateMessageType} objects to {@link UcfAsyncUpdateChange} ones
+ * (via {@link UcfChangeType} intermediary).
  *
  * Also prepares appropriately authenticated security context. (In the future we might factor this out to a separate class.)
  */
-public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMessageListener {
+class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMessageListener {
 
     private static final Trace LOGGER = TraceManager.getTrace(TransformationalAsyncUpdateMessageListener.class);
 
@@ -66,6 +68,7 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
     @NotNull private final UcfAsyncUpdateChangeListener changeListener;
     @Nullable private final Authentication authentication;
     @NotNull private final AsyncUpdateConnectorInstance connectorInstance;
+    private CompleteResourceSchema resourceSchema;
 
     private final AtomicInteger messagesSeen = new AtomicInteger(0);
     private final AtomicInteger changesProduced = new AtomicInteger(0);
@@ -91,8 +94,8 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
 
             Task task = connectorInstance.getTaskManager().createTaskInstance(OP_ON_MESSAGE_PREPARATION);
             task.setChannel(CHANNEL_ASYNC_UPDATE_URI);
-            if (authentication != null && authentication.getPrincipal() instanceof MidPointPrincipal) {
-                task.setOwner(((MidPointPrincipal) authentication.getPrincipal()).getFocus().asPrismObject().clone());
+            if (authentication != null && authentication.getPrincipal() instanceof MidPointPrincipal midPointPrincipal) {
+                task.setOwner(midPointPrincipal.getFocus().asPrismObject().clone());
             }
             Tracer tracer = connectorInstance.getTracer();
 
@@ -158,11 +161,7 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
             } catch (Exception e) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Got exception while processing asynchronous message in {}", e, task);
                 result.recordFatalError(e.getMessage(), e);
-
-                int changeSequentialNumber = changesProduced.incrementAndGet();
-                UcfAsyncUpdateChange change = new UcfAsyncUpdateChange(changeSequentialNumber, UcfErrorState.error(e),
-                        acknowledgementSink);
-                changeListener.onChange(change, task, result);
+                // There is no primary identifier value to be produced here. So, no change event can be sent out.
             } finally {
                 result.computeStatusIfUnknown();
                 // Note that tracing really works only if the processing is synchronous.
@@ -190,10 +189,10 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
      */
     private List<UcfChangeType> unwrapMessage(AsyncUpdateMessageType message) throws SchemaException {
         Object data;
-        if (message instanceof AnyDataAsyncUpdateMessageType) {
-            data = ((AnyDataAsyncUpdateMessageType) message).getData();
-        } else if (message instanceof Amqp091MessageType) {
-            String text = new String(((Amqp091MessageType) message).getBody(), StandardCharsets.UTF_8);
+        if (message instanceof AnyDataAsyncUpdateMessageType anyDataAsyncUpdateMessageType) {
+            data = anyDataAsyncUpdateMessageType.getData();
+        } else if (message instanceof Amqp091MessageType amqp091MessageType) {
+            String text = new String(amqp091MessageType.getBody(), StandardCharsets.UTF_8);
             data = text.isEmpty() ? null :
                     getPrismContext().parserFor(text).xml().parseRealValue();
         } else {
@@ -203,26 +202,28 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
         }
         if (data == null) {
             return Collections.emptyList();
-        } else if (data instanceof UcfChangeType) {
-            return Collections.singletonList((UcfChangeType) data);
+        } else if (data instanceof UcfChangeType ucfChange) {
+            return Collections.singletonList(ucfChange);
         } else {
-            throw new SchemaException("Cannot apply trivial message transformation: message does not contain "
-                    + "UcfChangeType object (it is " + data.getClass().getName() + " instead). Please specify transformExpression parameter");
+            throw new SchemaException(
+                    "Cannot apply trivial message transformation: message does not contain UcfChangeType object (it is " +
+                            data.getClass().getName() + " instead). Please specify transformExpression parameter");
         }
     }
 
     @NotNull
-    private UcfAsyncUpdateChange createChange(UcfChangeType changeBean, OperationResult result, int changeSequentialNumber,
-            AcknowledgementSink acknowledgeSink) throws SchemaException {
+    private UcfAsyncUpdateChange createChange(
+            UcfChangeType changeBean,
+            OperationResult result,
+            int changeSequentialNumber,
+            AcknowledgementSink acknowledgeSink) throws SchemaException, ConfigurationException {
         QName objectClassName = changeBean.getObjectClass();
         if (objectClassName == null) {
             throw new SchemaException("Object class name is null in " + changeBean);
         }
-        ResourceSchema resourceSchema = getResourceSchema(result);
-        ResourceObjectDefinition objectClassDef = resourceSchema.findDefinitionForObjectClass(objectClassName);
-        if (objectClassDef == null) {
-            throw new SchemaException("Object class " + objectClassName + " not found in " + resourceSchema);
-        }
+        CompleteResourceSchema resourceSchema = getResourceSchema(result);
+        ResourceObjectDefinition resourceObjectDef = resourceSchema.findDefinitionForObjectClassRequired(objectClassName);
+        ShadowDefinitionApplicator definitionApplicator = ShadowDefinitionApplicator.strict(resourceObjectDef);
         ObjectDelta<ShadowType> delta;
         ObjectDeltaType deltaBean = changeBean.getObjectDelta();
         if (deltaBean != null) {
@@ -231,24 +232,37 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
                 deltaBean.setObjectType(ShadowType.COMPLEX_TYPE);
             }
             delta = DeltaConvertor.createObjectDelta(deltaBean, getPrismContext());
+            definitionApplicator.applyToDelta(delta);
         } else {
             delta = null;
         }
         setFromDefaults(changeBean.getObject(), objectClassName);
+
         Holder<Object> primaryIdentifierRealValueHolder = new Holder<>();
-        Collection<ResourceAttribute<?>> identifiers =
-                getIdentifiers(changeBean, objectClassDef, primaryIdentifierRealValueHolder);
+        Collection<ShadowSimpleAttribute<?>> identifiers =
+                getIdentifiers(changeBean, resourceObjectDef, primaryIdentifierRealValueHolder);
         if (identifiers.isEmpty()) {
             throw new SchemaException("No identifiers in async update change bean " + changeBean);
         }
+        Object primaryIdentifierRealValue = primaryIdentifierRealValueHolder.getValue();
+
         boolean notificationOnly = changeBean.getObject() == null && delta == null;
+        ShadowType resourceObjectBean = changeBean.getObject();
+        UcfResourceObject ucfResourceObject;
+        if (resourceObjectBean != null) {
+            definitionApplicator.applyToShadow(resourceObjectBean);
+            ucfResourceObject = UcfResourceObject.of(resourceObjectBean, primaryIdentifierRealValue);
+        } else {
+            ucfResourceObject = null;
+        }
+
         return new UcfAsyncUpdateChange(
                 changeSequentialNumber,
-                primaryIdentifierRealValueHolder.getValue(),
-                objectClassDef.getObjectClassDefinition(),
+                primaryIdentifierRealValue,
+                resourceObjectDef,
                 identifiers,
                 delta,
-                asPrismObject(changeBean.getObject()),
+                ucfResourceObject,
                 notificationOnly,
                 acknowledgeSink);
     }
@@ -261,10 +275,10 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
         }
     }
 
-    @NotNull
-    private Collection<ResourceAttribute<?>> getIdentifiers(UcfChangeType changeBean, ResourceObjectDefinition ocDef,
-            Holder<Object> primaryIdentifierRealValueHolder) throws SchemaException {
-        Collection<ResourceAttribute<?>> rv = new ArrayList<>();
+    private @NotNull Collection<ShadowSimpleAttribute<?>> getIdentifiers(
+            UcfChangeType changeBean, ResourceObjectDefinition objDef, Holder<Object> primaryIdentifierRealValueHolder)
+            throws SchemaException {
+        Collection<ShadowSimpleAttribute<?>> rv = new ArrayList<>();
         PrismContainerValue<ShadowAttributesType> attributesPcv;
         boolean mayContainNonIdentifiers;
         if (changeBean.getIdentifiers() != null) {
@@ -276,41 +290,37 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
             attributesPcv = changeBean.getObject().getAttributes().asPrismContainerValue();
             mayContainNonIdentifiers = true;
         } else if (changeBean.getObjectDelta() != null && changeBean.getObjectDelta().getChangeType() == ChangeTypeType.ADD &&
-                changeBean.getObjectDelta().getObjectToAdd() instanceof ShadowType) {
+                changeBean.getObjectDelta().getObjectToAdd() instanceof ShadowType shadow) {
             //noinspection unchecked
-            attributesPcv = ((ShadowType) changeBean.getObjectDelta().getObjectToAdd()).getAttributes().asPrismContainerValue();
+            attributesPcv = shadow.getAttributes().asPrismContainerValue();
             mayContainNonIdentifiers = true;
         } else {
             throw new SchemaException("Change does not contain identifiers");
         }
-        Set<ItemName> identifiers = ocDef.getAllIdentifiers().stream().map(ItemDefinition::getItemName).collect(Collectors.toSet());
-        Set<ItemName> primaryIdentifiers = ocDef.getPrimaryIdentifiers().stream().map(ItemDefinition::getItemName).collect(Collectors.toSet());
+        var identifierNames = objDef.getAllIdentifiersNames();
+        var primaryIdentifierNames = objDef.getPrimaryIdentifiersNames();
         Set<Object> primaryIdentifierRealValues = new HashSet<>();
         for (Item<?,?> attribute : attributesPcv.getItems()) {
-            if (QNameUtil.matchAny(attribute.getElementName(), identifiers)) {
-                ResourceAttribute<Object> resourceAttribute;
-                if (attribute instanceof ResourceAttribute) {
+            if (QNameUtil.matchAny(attribute.getElementName(), identifierNames)) {
+                ShadowSimpleAttribute<Object> simpleAttribute;
+                if (attribute instanceof ShadowSimpleAttribute) {
                     //noinspection unchecked
-                    resourceAttribute = ((ResourceAttribute) attribute).clone();
+                    simpleAttribute = ((ShadowSimpleAttribute<Object>) attribute).clone();
                 } else {
-                    //noinspection unchecked
-                    ResourceAttributeDefinition<Object> definition =
-                            (ResourceAttributeDefinition<Object>) ocDef.findAttributeDefinition(attribute.getElementName());
-                    if (definition == null) {
-                        throw new SchemaException("No definition of " + attribute.getElementName() + " in " + ocDef);
-                    }
-                    resourceAttribute = definition.instantiate();
+                    simpleAttribute = objDef
+                            .findSimpleAttributeDefinitionRequired(attribute.getElementName())
+                            .instantiate();
                     for (Object realValue : attribute.getRealValues()) {
-                        resourceAttribute.addRealValue(realValue);
+                        simpleAttribute.addRealValue(realValue);
                     }
                 }
-                rv.add(resourceAttribute);
-                if (QNameUtil.matchAny(attribute.getElementName(), primaryIdentifiers)) {
-                    primaryIdentifierRealValues.addAll(resourceAttribute.getRealValues());
+                rv.add(simpleAttribute);
+                if (QNameUtil.matchAny(attribute.getElementName(), primaryIdentifierNames)) {
+                    primaryIdentifierRealValues.addAll(simpleAttribute.getRealValues());
                 }
             } else {
                 if (!mayContainNonIdentifiers) {
-                    LOGGER.warn("Attribute {} is not an identifier in {} -- ignoring it", attribute, ocDef);
+                    LOGGER.warn("Attribute {} is not an identifier in {} -- ignoring it", attribute, objDef);
                 }
             }
         }
@@ -331,28 +341,28 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
         return connectorInstance.getPrismContext();
     }
 
-    private ResourceSchema getResourceSchema(OperationResult result) throws SchemaException {
-        ResourceSchema schemaInConnector = connectorInstance.getResourceSchema();
-        if (schemaInConnector != null) {
-            return schemaInConnector;
+    private synchronized @NotNull CompleteResourceSchema getResourceSchema(OperationResult result)
+            throws SchemaException, ConfigurationException {
+        if (resourceSchema != null) {
+            return resourceSchema;
         }
-        LOGGER.warn("No schema defined in connector: {}, will try to fetch one", connectorInstance);
         String resourceOid = connectorInstance.getResourceOid();
         if (resourceOid == null) {
-            throw new SchemaException("No resource schema in connector instance and resource OID is not known either. Have you executed the Test Resource operation?");
+            throw new SchemaException("No resource OID. Have you executed the Test Resource operation?");
         }
         PrismObject<ResourceType> resource;
         try {
             resource = connectorInstance.getRepositoryService().getObject(ResourceType.class, resourceOid, null, result);
         } catch (ObjectNotFoundException e) {
-            throw new SystemException("Resource with OID " + resourceOid + " could not be found in " + connectorInstance + ": "
-                    + e.getMessage(), e);
+            throw new SystemException(
+                    "Resource with OID " + resourceOid + " could not be found in " + connectorInstance + ": " + e.getMessage(), e);
         }
-        ResourceSchema repoResourceSchema = ResourceSchemaFactory.getRawSchema(resource);
-        if (repoResourceSchema != null) {
-            return repoResourceSchema;
+
+        resourceSchema = ResourceSchemaFactory.getCompleteSchema(resource);
+        if (resourceSchema != null) {
+            return resourceSchema;
         } else {
-            throw new SchemaException("No resource schema in connector instance nor in repository. Have you executed the Test Resource operation?");
+            throw new SchemaException("No resource schema in repository. Have you executed the Test Resource operation?");
         }
     }
 }

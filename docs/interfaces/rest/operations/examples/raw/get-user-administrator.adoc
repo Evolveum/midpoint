@@ -1,0 +1,80 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Get Object in JSON format with the Raw option set to true*
+
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Accept: application/json" \
+-X GET http://localhost:8080/midpoint/ws/rest/users/00000000-0000-0000-0000-000000000002?options=raw \
+-v
+----
+
+
+.Show JSON Example
+[%collapsible]
+====
+The example is *simplified*, some properties were removed to keep the example output "short". This example *does
+not* contain all possible properties of this object type.
+
+[source, json]
+----
+{
+  "user" : {
+    "oid" : "00000000-0000-0000-0000-000000000002",
+    "name" : "administrator",
+    "indestructible" : true,
+    "assignment" : [ {
+      "@id" : 1,
+      "identifier" : "superuserRole",
+      "targetRef" : {
+        "oid" : "00000000-0000-0000-0000-000000000004",
+        "relation" : "org:default",
+        "type" : "c:RoleType"
+      },
+      "activation" : {
+        "effectiveStatus" : "enabled"
+      }
+    }, {
+      "@id" : 2,
+      "identifier" : "archetype",
+      "targetRef" : {
+        "oid" : "00000000-0000-0000-0000-000000000300",
+        "relation" : "org:default",
+        "type" : "c:ArchetypeType"
+      },
+      "activation" : {
+        "effectiveStatus" : "enabled"
+      }
+    } ],
+    "iteration" : 0,
+    "iterationToken" : "",
+    "archetypeRef" : {
+      "oid" : "00000000-0000-0000-0000-000000000300",
+      "relation" : "org:default",
+      "type" : "c:ArchetypeType"
+    },
+    "roleMembershipRef" : [ {
+      "oid" : "00000000-0000-0000-0000-000000000300",
+      "relation" : "org:default",
+      "type" : "c:ArchetypeType"
+    }, {
+      "oid" : "00000000-0000-0000-0000-000000000004",
+      "relation" : "org:default",
+      "type" : "c:RoleType"
+    } ],
+    "credentials" : {
+      "password" : {
+        "value" : {
+          "clearValue" : "5ecr3t"
+      }
+    },
+    "fullName" : "midPoint Administrator",
+    "givenName" : "midPoint",
+    "familyName" : "Administrator"
+  }
+}
+}
+----
+====

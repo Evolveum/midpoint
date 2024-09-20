@@ -7,9 +7,17 @@
 
 package com.evolveum.midpoint.model.impl.lens.construction;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
+
+import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
+
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.NextRecompute;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
@@ -19,14 +27,14 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
+import java.util.Objects;
 
 /**
  * State of a construction evaluation. Consists of evaluations of individual attributes and associations.
  *
  * Intentionally not a public class.
  */
-public class ConstructionEvaluation<AH extends AssignmentHolderType, ROC extends ResourceObjectConstruction<AH, ?>> {
+class ConstructionEvaluation<AH extends AssignmentHolderType, ROC extends ResourceObjectConstruction<AH, ?>> {
 
     /**
      * Reference to the parent (evaluated construction).
@@ -110,41 +118,47 @@ public class ConstructionEvaluation<AH extends AssignmentHolderType, ROC extends
         evaluated = true;
     }
 
-    private void evaluateAttributes() throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
+    private void evaluateAttributes()
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, CommunicationException {
 
-        for (AttributeEvaluation<AH> attributeEvaluation : evaluatedConstruction.getAttributesToEvaluate(this)) {
-            attributeEvaluation.evaluate();
-            if (attributeEvaluation.hasEvaluatedMapping()) {
-                evaluatedConstruction.addAttributeMapping(attributeEvaluation.getEvaluatedMapping());
-                updateNextRecompute(attributeEvaluation);
+        for (var attributeMapper : evaluatedConstruction.getAttributeMappers(this)) {
+            if (attributeMapper.isEnabled()) {
+                evaluatedConstruction.addAttributeTripleProducer(
+                        attributeMapper.evaluate());
+                updateNextRecompute(attributeMapper);
             }
         }
     }
 
-    private void evaluateAssociations() throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
+    private void evaluateAssociations()
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, CommunicationException {
 
-        for (AssociationEvaluation<AH> associationEvaluation : evaluatedConstruction.getAssociationsToEvaluate(this)) {
-            associationEvaluation.evaluate();
-            if (associationEvaluation.hasEvaluatedMapping()) {
-                evaluatedConstruction.addAssociationMapping(associationEvaluation.getEvaluatedMapping());
-                updateNextRecompute(associationEvaluation);
+        for (var associationMapper : evaluatedConstruction.getAssociationMappers(this)) {
+            if (associationMapper.isEnabled()) {
+                //noinspection unchecked
+                evaluatedConstruction.addAssociationTripleProducer(
+                        (PrismValueDeltaSetTripleProducer<ShadowAssociationValue, ShadowAssociationDefinition>)
+                                associationMapper.evaluate());
+                updateNextRecompute(associationMapper);
             }
         }
     }
 
-    void loadFullShadowIfNeeded(ItemEvaluation<?, ?, ?, ?> itemEvaluation)
+    void loadFullShadowIfNeeded(ShadowItemMapper<?, ?, ?> itemMapper)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
-        String loadReason = evaluatedConstruction.getFullShadowLoadReason(itemEvaluation.getMappingBean());
+        String loadReason = evaluatedConstruction.getFullShadowLoadReason(itemMapper);
         if (loadReason != null) {
             projectionOdo = evaluatedConstruction.loadFullShadow(loadReason, task, result);
         }
     }
 
-    private void updateNextRecompute(ItemEvaluation<?, ?, ?, ?> itemEvaluation) {
-        nextRecompute = NextRecompute.update(itemEvaluation.getEvaluatedMapping(), nextRecompute);
+    private void updateNextRecompute(ShadowItemMapper<?, ?, ?> itemMapper) {
+        if (itemMapper.getTripleProducer() instanceof MappingImpl<?, ?> mapping) {
+            nextRecompute = NextRecompute.update(mapping, nextRecompute);
+        }
     }
 
     NextRecompute getNextRecompute() {
@@ -153,5 +167,9 @@ public class ConstructionEvaluation<AH extends AssignmentHolderType, ROC extends
 
     @Nullable ObjectDeltaObject<ShadowType> getProjectionOdo() {
         return projectionOdo;
+    }
+
+    @NotNull LensProjectionContext getProjectionContextRequired() {
+        return Objects.requireNonNull(projectionContext, "No projection context");
     }
 }

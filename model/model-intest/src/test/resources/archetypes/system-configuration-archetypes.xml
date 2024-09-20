@@ -198,4 +198,16 @@
         </objectCollectionViews>
     </adminGuiConfiguration>
 
+
+    <secretsProviders>
+        <environmentVariables>
+            <identifier>env-provider</identifier>
+            <allowKeyPrefix>MP_</allowKeyPrefix>
+        </environmentVariables>
+        <properties>
+            <identifier>properties-provider</identifier>
+            <cache>PT5S</cache>
+            <propertiesFile>./src/test/resources/common/secrets-provider.properties</propertiesFile>
+        </properties>
+    </secretsProviders>
 </systemConfiguration>

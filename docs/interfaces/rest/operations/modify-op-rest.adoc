@@ -1,0 +1,104 @@
+= Modify Operation
+:page-nav-title: Modify
+:page-display-order: 500
+:page-toc: top
+:page-keywords: [ 'rest', 'modify', 'operation' ]
+:page-upkeep-status: green
+
+== Description
+
+Modification of objects based on payload data in the body of the REST request.
+
+== Request
+
+Use either the HTTP POST or PATCH method with your request, both usages are equivalent,
+this is based on the possibility that not all clients are capable of using non-standard HTTP verbs.
+
+INFO:: The usage of HTTP PATCH is preferred, the meaning is clearer than the case of HTTP POST in the context of Modify.
+
+.Modify operation using HTTP POST
+[source, http]
+----
+POST http://localhost:8080/midpoint/ws/rest/{endpoint}/{oid}
+----
+
+.Modify operation using HTTP PATCH
+[source, http]
+----
+PATCH http://localhost:8080/midpoint/ws/rest/{endpoint}/
+----
+
+
+=== Headers
+
+Regarding authorization type, the "Basic" Authorization header should be used.
+
+.Authorization header example replace {Base64EncodedCredentials} with the encoded credentials
+[source, http]
+----
+Authorization: Basic {Base64EncodedCredentials}
+----
+
+To specify the provided content type, please use the "Content-Type" header
+payload in the body:
+
+.Content type header example, other media types are supported as well
+[source, http]
+----
+"Content-Type: application/json"
+----
+
+You might need to specify the accepted type of content in case
+you are interested in a format different from xml (default):
+
+.Accept type header example, other media types are supported as well
+[source, http]
+----
+"Accept: application/json"
+----
+
+.For supported media types please refer to the following section of the documentation
+xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+
+=== Body
+The body should contain a payload consisting of a ObjectModificationType type of object containing
+an object delta. Please have a look on the *examples* on this page for a sample of the object in the body.
+
+=== Options
+
+Options are supported for this kind of operation. The options are a special kind of
+parameters with which we enhance a request. The specific type of options which can be used
+with this operation is link:https://evolveum.com/downloads/midpoint/latest/midpoint-latest-schemadoc/http---midpoint-evolveum-com-xml-ns-public-common-common-3/type/ModelExecuteOptionsType.html[ModelExecuteOptionsType]
+
+include::../../rest/operations/raw/options-usage-meo.adoc[]
+
+include::../../rest/concepts/raw/outcome.adoc[]
+
+== Access Authorization
+
+include::../operations/raw/a-auth.adoc[]
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#modifyObject+`
+
+== Model Authorization
+
+include::../operations/raw/m-auth.adoc[]
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify+`
+
+== Examples
+
+include::../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+include::../../rest/operations/examples/raw/modify-attr-user.adoc[]
+include::../../rest/operations/examples/raw/modify-attr.adoc[]
+
+== See Also
+
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]
+- xref:/midpoint/reference/security/authorization/service/[]

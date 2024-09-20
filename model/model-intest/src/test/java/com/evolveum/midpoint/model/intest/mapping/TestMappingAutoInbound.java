@@ -10,8 +10,6 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
@@ -27,8 +25,6 @@ import org.testng.annotations.Test;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
-
-import javax.xml.namespace.QName;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 
@@ -76,12 +72,14 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
         accountHerman.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "matic");
         getDummyResource(RESOURCE_DUMMY_AUTOGREEN_NAME).addAccount(accountHerman);
 
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_AUTOGREEN_OID);
+
         // Preconditions
         assertUsers(getNumberOfUsers());
 
         // WHEN
         when();
-        modelService.importFromResource(RESOURCE_DUMMY_AUTOGREEN_OID, new QName(MidPointConstants.NS_RI, SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), task, result);
+        modelService.importFromResource(RESOURCE_DUMMY_AUTOGREEN_OID, RI_ACCOUNT_OBJECT_CLASS, task, result);
 
         // THEN
         then();
@@ -117,8 +115,10 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        DummyAccount accountHerman = getDummyResource(RESOURCE_DUMMY_AUTOGREEN_NAME).getAccountByUsername(USER_HERMAN_USERNAME);
+        DummyAccount accountHerman = getDummyResource(RESOURCE_DUMMY_AUTOGREEN_NAME).getAccountByName(USER_HERMAN_USERNAME);
         accountHerman.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "cratic");
+
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_AUTOGREEN_OID);
 
         // WHEN
         when();
@@ -143,8 +143,10 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        DummyAccount accountHerman = getDummyResource(RESOURCE_DUMMY_AUTOGREEN_NAME).getAccountByUsername(USER_HERMAN_USERNAME);
+        DummyAccount accountHerman = getDummyResource(RESOURCE_DUMMY_AUTOGREEN_NAME).getAccountByName(USER_HERMAN_USERNAME);
         accountHerman.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "didactic", "graphic");
+
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_AUTOGREEN_OID);
 
         // WHEN
         when();
@@ -181,6 +183,8 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
         getDummyResource(RESOURCE_DUMMY_AUTOGREEN_NAME).addGroup(dummyGroup);
 
         dummyGroup.addMember(USER_HERMAN_USERNAME);
+
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_AUTOGREEN_OID);
 
         // WHEN
         when();
@@ -249,7 +253,7 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
     }
 
     @Test
-    public void test301removeUserFromAutoGroup() throws Exception {
+    public void test301RemoveUserFromAutoGroup() throws Exception {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         // GIVEN
@@ -264,6 +268,7 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
 
         assertNoDummyGroupMember(RESOURCE_DUMMY_AUTOGREEN_NAME, GROUP_DUMMY_CRATIC_NAME, USER_HERMAN_USERNAME);
 
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_AUTOGREEN_OID);
 
         // WHEN
         when();
@@ -293,7 +298,7 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
 
 
     @Test
-    public void test402assignAutoGroupDirectly() throws Exception {
+    public void test402AssignAutoGroupDirectly() throws Exception {
         DummyGroup craticGroup = getDummyResource(RESOURCE_DUMMY_AUTOGREEN_NAME).getGroupByName(GROUP_DUMMY_CRATIC_NAME);
         craticGroup.removeMember(USER_HERMAN_USERNAME);
 
@@ -301,6 +306,8 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
         testersGroup.addMember(USER_HERMAN_USERNAME);
 
         assertDummyGroupMember(RESOURCE_DUMMY_AUTOGREEN_NAME, GROUP_DUMMY_TESTERS_NAME, USER_HERMAN_USERNAME);
+
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_AUTOGREEN_OID);
 
         // GIVEN
         Task task = getTestTask();
@@ -327,12 +334,15 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
     }
 
     @Test
-    public void test403removeAllAssignments() throws Exception {
+    public void test403RemoveAllAssignments() throws Exception {
         DummyGroup testersGroup = getDummyResource(RESOURCE_DUMMY_AUTOGREEN_NAME).getGroupByName(GROUP_DUMMY_TESTERS_NAME);
         testersGroup.removeMember(USER_HERMAN_USERNAME);
 
         DummyAccount hermanAccount = getDummyAccount(RESOURCE_DUMMY_AUTOGREEN_NAME, USER_HERMAN_USERNAME);
         hermanAccount.removeAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, Arrays.asList("graphic", "cratic"));
+
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_AUTOGREEN_OID);
+
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -353,7 +363,7 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
 
 
     @Test
-    public void test404importAssociationAutotesters() throws Exception {
+    public void test404ImportAssociationAutotesters() throws Exception {
         assumeResourceAssigmentPolicy(RESOURCE_DUMMY_AUTOGREEN_OID, AssignmentPolicyEnforcementType.FULL, true);
 
         DummyGroup craticGroup = getDummyResource(RESOURCE_DUMMY_AUTOGREEN_NAME).getGroupByName(GROUP_DUMMY_CRATIC_NAME);
@@ -361,6 +371,8 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
 
         DummyGroup testersGroup = getDummyResource(RESOURCE_DUMMY_AUTOGREEN_NAME).getGroupByName(GROUP_DUMMY_TESTERS_NAME);
         testersGroup.addMember(USER_HERMAN_USERNAME);
+
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_AUTOGREEN_OID);
 
         // GIVEN
         Task task = getTestTask();
@@ -388,7 +400,7 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
     }
 
     @Test
-    public void test405assignRoleAutocraticDirectly() throws Exception {
+    public void test405AssignRoleAutocraticDirectly() throws Exception {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         // GIVEN
         Task task = getTestTask();
@@ -413,7 +425,7 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
     }
 
     @Test
-    public void test406unassignRoleAutocraticDirectly() throws Exception {
+    public void test406UnassignRoleAutocraticDirectly() throws Exception {
         assumeResourceAssigmentPolicy(RESOURCE_DUMMY_AUTOGREEN_OID, AssignmentPolicyEnforcementType.FULL, true);
 
         // GIVEN
@@ -439,11 +451,13 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
     }
 
     @Test
-    public void test407addHermanToTestersReconcile() throws Exception {
+    public void test407AddHermanToTestersReconcile() throws Exception {
         assumeResourceAssigmentPolicy(RESOURCE_DUMMY_AUTOGREEN_OID, AssignmentPolicyEnforcementType.FULL, true);
 
         DummyGroup craticGroup = getDummyResource(RESOURCE_DUMMY_AUTOGREEN_NAME).getGroupByName(GROUP_DUMMY_CRATIC_NAME);
         craticGroup.addMember(USER_HERMAN_USERNAME);
+
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_AUTOGREEN_OID);
 
         // GIVEN
         Task task = getTestTask();
@@ -466,5 +480,4 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
         assertDummyGroupMember(RESOURCE_DUMMY_AUTOGREEN_NAME, GROUP_DUMMY_TESTERS_NAME, USER_HERMAN_USERNAME);
         assertDummyGroupMember(RESOURCE_DUMMY_AUTOGREEN_NAME, GROUP_DUMMY_CRATIC_NAME, USER_HERMAN_USERNAME);
     }
-
 }

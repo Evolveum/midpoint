@@ -24,6 +24,7 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
+import org.checkerframework.checker.index.qual.SameLen;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2MultiChoice;
@@ -39,6 +40,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -47,12 +49,12 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -67,6 +69,8 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
     private static final String DOT_CLASS = RelationPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_USERS = DOT_CLASS + "loadUsers";
+    private static final String OPERATION_COMPILE_TARGET_SELECTION_COLLECTION = DOT_CLASS + "compileTargetSelectionCollection";
+    private static final String OPERATION_EVALUATE_FILTER_EXPRESSION = DOT_CLASS + "evaluateFilterExpression";
 
     private static final int MULTISELECT_PAGE_SIZE = 10;
 
@@ -280,7 +284,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
     }
 
     private Tile<PersonOfInterest> getSelectedTile() {
-        return tiles.getObject().stream().filter(t -> t.isSelected()).findFirst().orElse(null);
+        return tiles.getObject().stream().filter(Tile::isSelected).findFirst().orElse(null);
     }
 
     private void initLayout() {
@@ -367,9 +371,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                Collection<ObjectReferenceType> refs = multiselect.getModel().getObject();
-                updateSelectedGroupOfUsers(refs);
-
+                // model of multiselect was already updated, just "refresh" next button
                 target.add(PersonOfInterestPanel.this.getNext());
             }
         });
@@ -396,6 +398,9 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
         return fragment;
     }
 
+    /**
+     * @param poiRefs this is always absolute state of autocomplete text field - all items that are currently in the field
+     */
     private void updateSelectedGroupOfUsers(Collection<ObjectReferenceType> poiRefs) {
         if (poiRefs == null) {
             selectedGroupOfUsers.setObject(createPoiMembershipMap(null));
@@ -511,32 +516,20 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
             return null;
         }
 
-        SearchFilterType search;
-        if (collection.getCollectionRef() != null) {
-            com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType collectionRef = collection.getCollectionRef();
-            PrismObject<?> obj = WebModelServiceUtils.loadObject(collectionRef, page);
-            if (obj == null) {
-                return null;
-            }
-
-            ObjectCollectionType objectCollection = (ObjectCollectionType) obj.asObjectable();
-            search = objectCollection.getFilter();
-        } else {
-            search = collection.getFilter();
-        }
-
-        if (search == null) {
+        Task task = getPageBase().createSimpleTask(OPERATION_COMPILE_TARGET_SELECTION_COLLECTION);
+        OperationResult result = task.getResult();
+        CompiledObjectCollectionView compiledObjectCollectionView;
+        try {
+            // now only UserType as a target is supported, so it is hardcoded here
+            compiledObjectCollectionView = getPageBase().getModelInteractionService().compileObjectCollectionView(collection, UserType.class, task, result);
+            result.recordSuccessIfUnknown();
+        } catch (Exception e) {
+            LoggingUtils.logException(LOGGER, "Couldn't compile object collection view {}", e);
+            result.recordFatalError("Couldn't compile object collection view", e);
             return null;
         }
 
-        try {
-            return page.getQueryConverter().createObjectFilter(UserType.class, search);
-        } catch (Exception ex) {
-            LOGGER.debug("Couldn't create search filter", ex);
-            page.error("Couldn't create search filter, reason: " + ex.getMessage());
-        }
-
-        return null;
+        return compiledObjectCollectionView.getFilter();
     }
 
     private void selectManuallyPerformed(AjaxRequestTarget target) {
@@ -545,7 +538,9 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
         Tile<PersonOfInterest> selected = getSelectedTile();
         if (selected != null) {
             String identifier = selected.getValue().groupIdentifier;
-            filter = createObjectFilterFromGroupSelection(identifier);
+            filter = WebComponentUtil.evaluateExpressionsInFilter(
+                    createObjectFilterFromGroupSelection(identifier),
+                    new OperationResult(OPERATION_EVALUATE_FILTER_EXPRESSION), page);
         }
 
         ObjectBrowserPanel<UserType> panel = new ObjectBrowserPanel<>(page.getMainPopupBodyId(), UserType.class,
@@ -592,10 +587,10 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
             ObjectReferenceType poi = new ObjectReferenceType()
                     .oid(user.getOid())
                     .type(UserType.COMPLEX_TYPE)
-                    .targetName(WebComponentUtil.getDisplayNameOrName(user.asPrismObject()));
+                    .targetName(getDefaultUserDisplayName(user.asPrismObject()));
 
             List<ObjectReferenceType> refs = user.getRoleMembershipRef().stream()
-                    .map(o -> cloneObjectReference(o))
+                    .map(this::cloneObjectReference)
                     .collect(Collectors.toList());
 
             userMemberships.put(poi, refs);
@@ -606,7 +601,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
     private void addUsersPerformed(AjaxRequestTarget target, List<UserType> users) {
         Map<ObjectReferenceType, List<ObjectReferenceType>> userMemberships = createPoiMembershipMap(users);
-        selectedGroupOfUsers.setObject(userMemberships);
+        selectedGroupOfUsers.getObject().putAll(userMemberships);
 
         page.hideMainPopup(target);
         target.add(getWizard().getPanel());
@@ -615,7 +610,11 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
     @Override
     public boolean onBackPerformed(AjaxRequestTarget target) {
         if (selectionState.getObject() == SelectionState.TILES) {
-            return super.onBackPerformed(target);
+            boolean executeDefaultBehaviour = super.onBackPerformed(target);
+            if (!executeDefaultBehaviour) {
+                getPageBase().redirectBack();
+            }
+            return executeDefaultBehaviour;
         }
 
         selectionState.setObject(SelectionState.TILES);
@@ -653,10 +652,10 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
                 ObjectReferenceType ref = new ObjectReferenceType()
                         .oid(principal.getOid())
                         .type(UserType.COMPLEX_TYPE)
-                        .targetName(principal.getName());
+                        .targetName(getDefaultUserDisplayName((PrismObject<UserType>) principal.getFocusPrismObject()));
 
                 List<ObjectReferenceType> memberships = principal.getFocus().getRoleMembershipRef()
-                        .stream().map(o -> cloneObjectReference(o)).collect(Collectors.toList());
+                        .stream().map(this::cloneObjectReference).collect(Collectors.toList());
 
                 access.addPersonOfInterest(ref, memberships);
                 access.setPoiMyself(true);
@@ -684,7 +683,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
     private ObjectFilter getAutocompleteFilter(String text) {
         return createAutocompleteFilter(
-                text, getAutocompleteConfiguration().getSearchFilterTemplate(), (t) -> createDefaultFilter(t), page);
+                text, getAutocompleteConfiguration().getSearchFilterTemplate(), this::createDefaultFilter, page);
     }
 
     private ObjectFilter createDefaultFilter(String text) {
@@ -714,7 +713,8 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
         @Override
         public void query(String text, int page, Response<ObjectReferenceType> response) {
-            ObjectFilter filter = null; // todo shouldn't we use this? probably load some collection filter from group or sometthing?
+            GroupSelectionType groupSelection = panel.getSelectedGroupSelection();
+            ObjectFilter filter = groupSelection != null ? panel.createObjectFilterFromGroupSelection(groupSelection.getIdentifier()) : null;
 
             ObjectFilter autocompleteFilter = panel.getAutocompleteFilter(text);
 

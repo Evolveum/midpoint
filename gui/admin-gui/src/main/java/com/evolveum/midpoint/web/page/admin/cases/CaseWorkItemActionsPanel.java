@@ -8,6 +8,10 @@ package com.evolveum.midpoint.web.page.admin.cases;
 
 import java.util.Collections;
 
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+
+import com.evolveum.midpoint.prism.PrismContainerValue;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -74,7 +78,9 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                 OperationResult completionResult = new OperationResult(OPERATION_COMPLETE_WORK_ITEM);
-                WebComponentUtil.workItemApproveActionPerformed(ajaxRequestTarget, getCaseWorkItemModelObject(),
+                PrismContainerValue<CaseWorkItemType> caseObj =
+                        WebPrismUtil.cleanupEmptyContainerValue(getCaseWorkItemModelObject().asPrismContainerValue());
+                WebComponentUtil.workItemApproveActionPerformed(ajaxRequestTarget, caseObj.asContainerable(),
                         getCustomForm(), getPowerDonor(), true, completionResult, getPageBase());
                 afterActionFinished(ajaxRequestTarget);
 
@@ -105,7 +111,9 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                 OperationResult completionResult = new OperationResult(OPERATION_COMPLETE_WORK_ITEM);
-                WebComponentUtil.workItemApproveActionPerformed(ajaxRequestTarget, getCaseWorkItemModelObject(),
+                PrismContainerValue<CaseWorkItemType> caseObj =
+                        WebPrismUtil.cleanupEmptyContainerValue(getCaseWorkItemModelObject().asPrismContainerValue());
+                WebComponentUtil.workItemApproveActionPerformed(ajaxRequestTarget, caseObj.asContainerable(),
                         getCustomForm(), getPowerDonor(), false, completionResult, getPageBase());
                 afterActionFinished(ajaxRequestTarget);
             }
@@ -150,7 +158,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
     protected WorkItemDelegationRequestType getDelegationRequest(UserType delegate) {
         PrismContext prismContext = getPrismContext();
         return new WorkItemDelegationRequestType()
-                .delegate(ObjectTypeUtil.createObjectRef(delegate, prismContext))
+                .delegate(ObjectTypeUtil.createObjectRef(delegate))
                 .method(WorkItemDelegationMethodType.REPLACE_ASSIGNEES);
     }
 

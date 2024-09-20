@@ -7,26 +7,21 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import static com.evolveum.midpoint.schema.util.CorrelatorsDefinitionUtil.addSingleItemCorrelator;
+import static com.evolveum.midpoint.schema.util.CorrelatorsDefinitionUtil.mergeCorrelationDefinition;
 import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.fillDefault;
-import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.DISPUTED;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.function.Supplier;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.midpoint.schema.processor.SynchronizationReactionDefinition.ObjectSynchronizationReactionDefinition;
+import com.evolveum.midpoint.util.MiscUtil;
 
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -108,29 +103,28 @@ public class SynchronizationPolicyFactory {
             throws ConfigurationException {
 
         ObjectSynchronizationType synchronizationBean =
-                first(
+                MiscUtil.first(
                         providedSynchronizationBean,
                         ObjectSynchronizationType::new);
 
         QName focusTypeName =
-                first(
+                MiscUtil.first(
                         typeDef.getFocusTypeName(),
                         synchronizationBean::getFocusType,
                         () -> UserType.COMPLEX_TYPE);
 
-        CorrelationDefinitionType correlationDefinitionBean =
-                mergeCorrelationDefinition(typeDef, synchronizationBean, resource);
+        var correlationDefinitionBean = mergeCorrelationDefinition(typeDef, synchronizationBean, resource);
 
         boolean synchronizationEnabled = isSynchronizationEnabled(providedSynchronizationBean, typeDef);
 
         boolean opportunistic =
-                first(
+                MiscUtil.first(
                         typeDef.isSynchronizationOpportunistic(),
                         () -> !Boolean.FALSE.equals(synchronizationBean.isOpportunistic()));
 
         ResourceObjectTypeDelineation delineation = getDelineation(synchronizationBean, typeDef, resource);
 
-        Collection<SynchronizationReactionDefinition> reactions =
+        var reactions =
                 typeDef.hasSynchronizationReactionsDefinition() ?
                         typeDef.getSynchronizationReactions() :
                         getSynchronizationReactions(synchronizationBean);
@@ -152,7 +146,7 @@ public class SynchronizationPolicyFactory {
             @Nullable ObjectSynchronizationType providedSynchronizationBean,
             @NotNull ResourceObjectTypeDefinition typeDef) {
         if (providedSynchronizationBean != null) {
-            return first(
+            return MiscUtil.first(
                     typeDef.isSynchronizationEnabled(),
                     () -> !Boolean.FALSE.equals(providedSynchronizationBean.isEnabled()));
         } else {
@@ -177,20 +171,6 @@ public class SynchronizationPolicyFactory {
         }
     }
 
-    @SafeVarargs
-    private static <T> @NotNull T first(T value, Supplier<T>... suppliers) {
-        if (value != null) {
-            return value;
-        }
-        for (Supplier<T> supplier : suppliers) {
-            T supplied = supplier.get();
-            if (supplied != null) {
-                return supplied;
-            }
-        }
-        throw new IllegalStateException("No value");
-    }
-
     /**
      * Converts legacy synchronization definition bean ({@link ObjectSynchronizationType}) into a list of parsed
      * {@link SynchronizationReactionDefinition} objects.
@@ -198,19 +178,19 @@ public class SynchronizationPolicyFactory {
      * Especially treats the existence of `correlationDefinition/cases` item. If such an item is present,
      * "create correlation cases" action is added to "disputed" reaction (or such reaction is created, if there's none).
      */
-    private static List<SynchronizationReactionDefinition> getSynchronizationReactions(
+    private static List<ObjectSynchronizationReactionDefinition> getSynchronizationReactions(
             @NotNull ObjectSynchronizationType synchronizationBean) throws ConfigurationException {
         ClockworkSettings defaultSettings = ClockworkSettings.of(synchronizationBean);
         boolean legacyCorrelationCasesEnabled = isLegacyCorrelationCasesSettingOn(synchronizationBean);
 
-        List<SynchronizationReactionDefinition> list = new ArrayList<>();
+        List<ObjectSynchronizationReactionDefinition> list = new ArrayList<>();
 
         boolean createCasesActionAdded = false;
         for (LegacySynchronizationReactionType synchronizationReactionBean : synchronizationBean.getReaction()) {
             boolean addCreateCasesActionHere =
                     legacyCorrelationCasesEnabled && synchronizationReactionBean.getSituation() == DISPUTED;
             list.add(
-                    SynchronizationReactionDefinition.of(
+                    SynchronizationReactionDefinition.legacy(
                             synchronizationReactionBean, addCreateCasesActionHere, defaultSettings));
             if (addCreateCasesActionHere) {
                 createCasesActionAdded = true;
@@ -218,7 +198,7 @@ public class SynchronizationPolicyFactory {
         }
 
         if (legacyCorrelationCasesEnabled && !createCasesActionAdded) {
-            list.add(SynchronizationReactionDefinition.of(
+            list.add(SynchronizationReactionDefinition.legacy(
                     new LegacySynchronizationReactionType().situation(DISPUTED),
                     true,
                     ClockworkSettings.empty()));
@@ -234,123 +214,5 @@ public class SynchronizationPolicyFactory {
 
     private static boolean isEnabled(CorrelationCasesDefinitionType cases) {
         return cases != null && !Boolean.FALSE.equals(cases.isEnabled());
-    }
-
-    /**
-     * "Compiles" the correlation definition from all available information:
-     *
-     * . attribute-level "correlation" configuration snippets
-     * . legacy correlation/confirmation expressions/filters
-     */
-    private static CorrelationDefinitionType mergeCorrelationDefinition(
-            @NotNull ResourceObjectTypeDefinition typeDef,
-            @NotNull ObjectSynchronizationType synchronizationBean,
-            @NotNull ResourceType resource) throws ConfigurationException {
-
-        return addCorrelationDefinitionsFromAttributes(
-                typeDef,
-                first(
-                        typeDef.getCorrelationDefinitionBean(),
-                        () -> getCorrelationDefinitionBean(synchronizationBean)),
-                resource);
-    }
-
-    private static CorrelationDefinitionType addCorrelationDefinitionsFromAttributes(
-            @NotNull ResourceObjectTypeDefinition typeDef,
-            @NotNull CorrelationDefinitionType explicitDefinition,
-            @NotNull ResourceType resource) throws ConfigurationException {
-        CorrelationDefinitionType cloned = null;
-        for (ResourceAttributeDefinition<?> attributeDefinition : typeDef.getAttributeDefinitions()) {
-            ItemCorrelatorDefinitionType correlatorDefBean = attributeDefinition.getCorrelatorDefinition();
-            if (correlatorDefBean != null) {
-                if (cloned == null) {
-                    cloned = explicitDefinition.clone();
-                }
-                addCorrelatorFromAttribute(cloned, attributeDefinition, correlatorDefBean, typeDef, resource);
-            }
-        }
-        return cloned != null ? cloned : explicitDefinition;
-    }
-
-    private static void addCorrelatorFromAttribute(
-            @NotNull CorrelationDefinitionType overallCorrelationDefBean,
-            @NotNull ResourceAttributeDefinition<?> attributeDefinition,
-            @NotNull ItemCorrelatorDefinitionType attributeCorrelatorDefBean,
-            @NotNull ResourceObjectTypeDefinition typeDef,
-            @NotNull ResourceType resource) throws ConfigurationException {
-        List<InboundMappingType> inboundMappingBeans = attributeDefinition.getInboundMappingBeans();
-        configCheck(!inboundMappingBeans.isEmpty(),
-                "Attribute-level correlation requires an inbound mapping; for %s in %s (%s)",
-                attributeDefinition, typeDef, resource);
-        ItemPath focusItemPath = determineFocusItemPath(attributeDefinition, attributeCorrelatorDefBean);
-        configCheck(focusItemPath != null,
-                "Item corresponding to correlation attribute %s couldn't be determined in %s (%s). You must specify"
-                        + " it either explicitly, or provide exactly one inbound mapping with a proper target",
-                attributeDefinition, typeDef, resource);
-        addSingleItemCorrelator(overallCorrelationDefBean, focusItemPath, attributeCorrelatorDefBean);
-    }
-
-    private static ItemPath determineFocusItemPath(
-            ResourceAttributeDefinition<?> attributeDefinition, @NotNull ItemCorrelatorDefinitionType attributeCorrelatorDefBean) {
-        ItemPathType explicitItemPath = attributeCorrelatorDefBean.getFocusItem();
-        if (explicitItemPath != null) {
-            return explicitItemPath.getItemPath();
-        } else {
-            return guessFocusItemPath(attributeDefinition);
-        }
-    }
-
-    /** Tries to determine correlation (focus) item path from the inbound mapping target. */
-    private static ItemPath guessFocusItemPath(ResourceAttributeDefinition<?> attributeDefinition) {
-        List<InboundMappingType> inboundMappingBeans = attributeDefinition.getInboundMappingBeans();
-        if (inboundMappingBeans.size() != 1) {
-            return null;
-        }
-        VariableBindingDefinitionType target = inboundMappingBeans.get(0).getTarget();
-        ItemPathType itemPathType = target != null ? target.getPath() : null;
-        if (itemPathType == null) {
-            return null;
-        }
-        ItemPath itemPath = itemPathType.getItemPath();
-        QName variableName = itemPath.firstToVariableNameOrNull();
-        if (variableName == null) {
-            return itemPath;
-        }
-        String localPart = variableName.getLocalPart();
-        if (ExpressionConstants.VAR_FOCUS.equals(localPart)
-                || ExpressionConstants.VAR_USER.equals(localPart)) {
-            return itemPath.rest();
-        } else {
-            LOGGER.warn("Mapping target variable name '{}' is not supported for determination of correlation item path in {}",
-                    variableName, attributeDefinition);
-            return null;
-        }
-    }
-
-    private static @NotNull CorrelationDefinitionType getCorrelationDefinitionBean(
-            @NotNull ObjectSynchronizationType synchronizationBean) {
-        if (synchronizationBean.getCorrelationDefinition() != null) {
-            return synchronizationBean.getCorrelationDefinition();
-        }
-        List<ConditionalSearchFilterType> correlationFilters = synchronizationBean.getCorrelation();
-        if (correlationFilters.isEmpty()) {
-            return new CorrelationDefinitionType();
-        } else {
-            return new CorrelationDefinitionType()
-                    .correlators(new CompositeCorrelatorType()
-                            .filter(
-                                    createFilterCorrelator(correlationFilters, synchronizationBean.getConfirmation())));
-        }
-    }
-
-    private static @NotNull FilterSubCorrelatorType createFilterCorrelator(
-            List<ConditionalSearchFilterType> correlationFilters, ExpressionType confirmation) {
-        FilterSubCorrelatorType filterCorrelator =
-                new FilterSubCorrelatorType()
-                        .confirmation(
-                                CloneUtil.clone(confirmation));
-        filterCorrelator.getOwnerFilter().addAll(
-                CloneUtil.cloneCollectionMembers(correlationFilters));
-        return filterCorrelator;
     }
 }

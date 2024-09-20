@@ -7,11 +7,11 @@
 
 package com.evolveum.midpoint.model.impl.schema.transform;
 
-import java.util.function.Consumer;
-
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+
+import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -19,7 +19,7 @@ import com.evolveum.midpoint.prism.deleg.ObjectDefinitionDelegator;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class TransformableObjectDefinition<O extends Objectable> extends TransformableContainerDefinition<O>
-    implements ObjectDefinitionDelegator<O>, MutablePrismObjectDefinition<O> {
+    implements ObjectDefinitionDelegator<O>, PrismObjectDefinition.PrismObjectDefinitionMutator<O> {
 
     public TransformableObjectDefinition(PrismObjectDefinition<O> delegate) {
         this(delegate, delegate.getComplexTypeDefinition());
@@ -53,7 +53,7 @@ public class TransformableObjectDefinition<O extends Objectable> extends Transfo
     }
 
     @Override
-    public MutablePrismObjectDefinition<O> toMutable() {
+    public PrismObjectDefinitionMutator<O> mutator() {
         return this;
     }
 
@@ -63,9 +63,9 @@ public class TransformableObjectDefinition<O extends Objectable> extends Transfo
     }
 
     @Override
-    public @NotNull PrismObjectDefinition<O> cloneWithReplacedDefinition(QName itemName, ItemDefinition<?> newDefinition) {
+    public @NotNull PrismObjectDefinition<O> cloneWithNewDefinition(QName newItemName, ItemDefinition<?> newDefinition) {
         TransformableComplexTypeDefinition typedef = complexTypeDefinition.copy();
-        typedef.replaceDefinition(itemName, newDefinition);
+        typedef.replaceDefinition(newItemName, newDefinition);
         return new TransformableObjectDefinition<>(this, typedef);
     }
 
@@ -93,5 +93,10 @@ public class TransformableObjectDefinition<O extends Objectable> extends Transfo
     @Override
     public PrismObjectValue<O> createValue() {
         return delegate().createValue();
+    }
+
+    @Override
+    public SchemaContextDefinition getSchemaContextDefinition() {
+        return delegate().getSchemaContextDefinition();
     }
 }

@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.input.DateTimePickerPanel;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import com.evolveum.midpoint.schema.processor.*;
@@ -25,7 +26,7 @@ import org.apache.wicket.markup.head.CssHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.TextArea;
+import com.evolveum.midpoint.gui.api.component.form.TextArea;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
@@ -57,7 +58,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.RelationDropDownChoicePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -461,7 +461,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         });
         activationBlock.add(validFromContainer);
 
-        DateInput validFrom = new DateInput(ID_VALID_FROM,
+        DateTimePickerPanel validFrom = DateTimePickerPanel.createByDateModel(ID_VALID_FROM,
                 AssignmentsUtil.createDateModel(new PropertyModel<>(getModel(),
                         AssignmentEditorDto.F_ACTIVATION + ".validFrom")));
         validFrom.add(new VisibleEnableBehaviour() {
@@ -487,7 +487,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         });
         activationBlock.add(validToContainer);
 
-        DateInput validTo = new DateInput(ID_VALID_TO,
+        DateTimePickerPanel validTo = DateTimePickerPanel.createByDateModel(ID_VALID_TO,
                 AssignmentsUtil.createDateModel(new PropertyModel<>(getModel(),
                         AssignmentEditorDto.F_ACTIVATION + ".validTo")));
         validTo.add(new VisibleEnableBehaviour() {
@@ -722,7 +722,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
             }
 
             PrismContainerDefinition definition = objectClassDefinition
-                    .toResourceAttributeContainerDefinition();
+                    .toShadowAttributesContainerDefinition();
 
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Refined definition for {}\n{}", construction, definition.debugDump());
@@ -730,12 +730,11 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
             Collection<ItemDefinition<?>> definitions = definition.getDefinitions();
             for (ItemDefinition<?> attrDef : definitions) {
-                if (!(attrDef instanceof PrismPropertyDefinition)) {
+                if (!(attrDef instanceof PrismPropertyDefinition<?> propertyDef)) {
                     // log skipping or something...
                     continue;
                 }
 
-                PrismPropertyDefinition<?> propertyDef = (PrismPropertyDefinition<?>) attrDef;
                 if (propertyDef.isOperational() || propertyDef.isIgnored()) {
                     continue;
                 }

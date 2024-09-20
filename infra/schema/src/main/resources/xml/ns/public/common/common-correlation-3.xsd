@@ -35,7 +35,7 @@
     <xsd:complexType name="CorrelationDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Definition of a correlation (e.g. for resource object type).
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.5</a:since>
@@ -57,7 +57,7 @@
             <xsd:element name="thresholds" type="tns:CorrelationConfidenceThresholdsDefinitionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        Boundary confidence values used to determine the correlation results.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.6</a:since>
@@ -103,7 +103,8 @@
     <xsd:complexType name="CorrelationCasesDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Legacy definition of whether to create correlation cases.
+                This is now handled by "createCorrelationCase" synchronization action.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.5</a:since>
@@ -144,11 +145,11 @@
                     <xsd:element name="scaling" type="tns:CompositeCorrelatorScalingDefinitionType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                TODO
+                                Scaling to be applied to the results of this correlator.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.6</a:since>
-                                <a:displayName>AbstractCorrelatorType.thresholds</a:displayName>
+                                <a:displayName>CompositeCorrelatorType.scaling</a:displayName>
                                 <a:displayOrder>70</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -200,7 +201,7 @@
                     <xsd:element name="composite" type="tns:CompositeSubCorrelatorType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                TODO
+                                Correlation using multiple correlators.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -209,11 +210,8 @@
                             <xsd:documentation>
                                 Determines when the correlation should be used. If not specified, synchronization is assumed.
 
-                                (TODO: maybe should be added to abstract correlator?)
-
                                 Note: For synchronization, only one correlator makes sense, but for username recovery, many
                                 correlators might be defined.
-
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -266,6 +264,7 @@
             <xsd:appinfo>
                 <a:since>4.5</a:since>
                 <a:container>true</a:container>
+                <a:naturalKey>tns:name</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -425,8 +424,6 @@
                         confidence boost of 0.5, and rule 2 states that matching familyName (without regarding any other item)
                         gives confidence boost of 0.3, then the rule 2 should be ignored if rule 1 matches; otherwise, any
                         candidate that matches both on givenName and familyName would get a boost of 0.5 + 0.3 = 0.8.
-
-                        TODO consider better name
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>AbstractCorrelatorType.ignoreIfMatchedBy</a:displayName>
@@ -460,7 +457,7 @@
     <xsd:complexType name="ItemsCorrelatorType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Correlator that compares individual items.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.5</a:since>
@@ -563,7 +560,6 @@
                                 The evaluation of the confirmation expression may be relatively inefficient, as it will only
                                 be run for candidate entries returned by correlation expression.
 
-                                TODO review this
                                 The expression variables should be set as follows:
                                 $user - the candidate user object (one of the results of correlation expression)
                                 $account - the changed account object
@@ -783,7 +779,7 @@
     <xsd:complexType name="ItemsSubCorrelatorType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Composition-enabled items correlator.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.6</a:since>
@@ -802,7 +798,7 @@
     <xsd:complexType name="FilterSubCorrelatorType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Composition-enabled filter correlator.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.6</a:since>
@@ -821,7 +817,7 @@
     <xsd:complexType name="ExpressionSubCorrelatorType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Composition-enabled expression correlator.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.6</a:since>
@@ -841,7 +837,7 @@
     <xsd:complexType name="IdMatchSubCorrelatorType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Composition-enabled ID Match correlator.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.6</a:since>
@@ -861,7 +857,7 @@
     <xsd:complexType name="CompositeSubCorrelatorType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Composition-enabled composite correlator.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.6</a:since>
@@ -927,7 +923,6 @@
                     <xsd:documentation>
                         Reference to the user(s) that performed the correlation - if known.
                         Currently, we include only performers that have provided the same outcome as was the final one.
-                        (TODO: is this ok?)
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
@@ -1148,12 +1143,10 @@
         <xsd:choice>
             <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0">
                 <xsd:annotation>
-                    <xsd:documentation>
+                    <xsd:documentation> <!-- TODO describe the inputs -->
                         Expression providing the confidence value for the correlator. It should output
                         a double precision value between 0 and 1, inclusive. If not specified, all candidate
                         owners provided by the correlator have a confidence of 1.
-
-                        TODO describe the inputs
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1195,7 +1188,7 @@
     <xsd:complexType name="CompositeCorrelatorScalingDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Definition of scaling for the composite correlator.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.6</a:since>
@@ -1234,6 +1227,9 @@
                         How to search for the item values? May be overridden in specific correlator
                         where this item is referenced.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ItemCorrelationDefinitionType.search</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -1259,7 +1255,7 @@
                         How to search for the item values?
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:experimental>true</a:experimental>
+                        <a:displayName>ItemCorrelatorDefinitionType.search</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1278,7 +1274,7 @@
     <xsd:complexType name="MultiSourceItemDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Definition of "multi-source" item.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.6</a:since>
@@ -1293,6 +1289,9 @@
                         Name of this identity item. By default, the last segment of the item path is considered
                         to be the item name.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>MultiSourceItemDefinitionType.name</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="selection" type="tns:ObjectTemplateMappingType" minOccurs="0">
@@ -1301,8 +1300,11 @@
                         A mapping that takes existing identity data and provides a value for the target item.
 
                         It has a default strength of `strong`, and a default sources of `identities/identity`
-                        and `identities/defaultAuthoritativeSource`. (TODO: ok?)
-                    </xsd:documentation>
+                        and `identities/defaultAuthoritativeSource`.
+                    </xsd:documentation> <!--  (TODO: ok?) -->
+                    <xsd:appinfo>
+                        <a:displayName>MultiSourceItemDefinitionType.selection</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -1312,7 +1314,7 @@
     <xsd:complexType name="MultiSourceDataHandlingType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO (better name?)
+                How should be a multi-source item handled.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.6</a:since>
@@ -1470,9 +1472,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         The shadow of the resource object that provides the identity. (If applicable.)
-
-                        TODO Is this really needed?
-                    </xsd:documentation>
+                    </xsd:documentation> <!-- TODO Is this really needed? -->
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:ShadowType</a:objectReferenceTargetType>
                     </xsd:appinfo>
@@ -1485,7 +1485,7 @@
     <xsd:complexType name="FocusNormalizedDataType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                A single (alternative) identity.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -1547,7 +1547,7 @@
     <xsd:complexType name="ItemIndexingDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Definition of a custom indexing for an item.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.6</a:since>
@@ -1578,7 +1578,7 @@
     <xsd:complexType name="IndexedItemNormalizationDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Definition of item normalization (for custom indexing).
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.6</a:since>
@@ -1625,7 +1625,7 @@
     <xsd:complexType name="NormalizationStepsType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Steps to be applied during item normalization (for custom indexing).
 
                 Default is "polystring".
             </xsd:documentation>
@@ -1671,7 +1671,7 @@
     <xsd:complexType name="AbstractNormalizationStepType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Common supertype for item normalization steps (for custom indexing).
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.6</a:since>
@@ -1704,7 +1704,7 @@
     <xsd:complexType name="NoOpNormalizationStepType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                "No-op" normalization step (for custom indexing).
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.6</a:since>
@@ -1720,7 +1720,7 @@
     <xsd:complexType name="PolyStringNormalizationStepType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Polystring->string normalization step (for custom indexing).
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.6</a:since>
@@ -1747,7 +1747,7 @@
     <xsd:complexType name="PrefixNormalizationStepType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                A normalization step taking only prefix into account (for custom indexing).
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.6</a:since>
@@ -1805,7 +1805,6 @@
             <xsd:appinfo>
                 <a:since>4.6</a:since>
                 <a:container>true</a:container>
-                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -1815,6 +1814,9 @@
                         What index to use when matching this item? If none is specified, then:
                         If the item is indexed, the default index is used. If it is not, the original value is used.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:choice>
@@ -1855,7 +1857,6 @@
             <xsd:appinfo>
                 <a:since>4.6</a:since>
                 <a:container>true</a:container>
-                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -1893,7 +1894,6 @@
             <xsd:appinfo>
                 <a:since>4.6</a:since>
                 <a:container>true</a:container>
-                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -1929,7 +1929,6 @@
             <xsd:appinfo>
                 <a:since>4.6</a:since>
                 <a:container>true</a:container>
-                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -1938,6 +1937,9 @@
                     <xsd:documentation>
                         Lower limit on the similarity to be matched.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>TrigramSimilaritySearchDefinitionType.threshold</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="inclusive" type="xsd:boolean" minOccurs="0" default="true">
@@ -1945,6 +1947,9 @@
                     <xsd:documentation>
                         Is the value of "threshold" meant to be inclusive?
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>TrigramSimilaritySearchDefinitionType.inclusive</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -1971,12 +1976,13 @@
                         e.g., Levenshtein edit distance (a non-negative integer) or trigram similarity value
                         (a decimal number between 0 and 1). Non-fuzzy methods provide the value of 1 there.
 
-                        TODO other inputs?
-
                         It should output a double precision value, usually between 0 and 1, inclusive.
                         Outputs of such expressions are multiplied together, yielding the final confidence
                         value for the whole match.
-                    </xsd:documentation>
+                    </xsd:documentation> <!-- TODO other inputs? -->
+                    <xsd:appinfo>
+                        <a:displayName>ItemSearchConfidenceDefinitionType.expression</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:choice>

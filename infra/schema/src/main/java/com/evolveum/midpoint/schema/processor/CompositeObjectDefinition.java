@@ -28,7 +28,7 @@ public interface CompositeObjectDefinition extends ResourceObjectDefinition, Lay
      * Returns auxiliary definitions. They enrich the structural definition e.g. by adding attribute
      * definitions. TODO specify better
      */
-    @NotNull Collection<ResourceObjectDefinition> getAuxiliaryDefinitions();
+    @NotNull Collection<? extends ResourceObjectDefinition> getAuxiliaryDefinitions();
 
     /**
      * Returns the names of auxiliary object classes that are "statically" defined for the structural object type.
@@ -37,7 +37,7 @@ public interface CompositeObjectDefinition extends ResourceObjectDefinition, Lay
      * @see ResourceObjectDefinition#getConfiguredAuxiliaryObjectClassNames()
      */
     @Override
-    default Collection<QName> getConfiguredAuxiliaryObjectClassNames() {
+    default @NotNull Collection<QName> getConfiguredAuxiliaryObjectClassNames() {
         return getStructuralDefinition()
                 .getConfiguredAuxiliaryObjectClassNames();
     }
@@ -48,9 +48,9 @@ public interface CompositeObjectDefinition extends ResourceObjectDefinition, Lay
      * FIXME sometimes, the `structuralDefinition` is itself a composite definition. We should avoid wrapping it
      *  into another composite definitions. Please fix this some day. See MID-9156.
      */
-    static CompositeObjectDefinitionImpl of(
+    static @NotNull CompositeObjectDefinitionImpl of(
             @NotNull ResourceObjectDefinition structuralDefinition,
-            @Nullable Collection<ResourceObjectDefinition> auxiliaryDefinitions) {
+            @Nullable Collection<? extends ResourceObjectDefinition> auxiliaryDefinitions) {
         return CompositeObjectDefinitionImpl.immutable(structuralDefinition, auxiliaryDefinitions);
     }
 }

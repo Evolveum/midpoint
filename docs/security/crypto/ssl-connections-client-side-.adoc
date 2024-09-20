@@ -1,0 +1,349 @@
+= TLS Connections (Client Side)
+:page-wiki-name: SSL Connections (Client Side)
+:page-wiki-id: 15859743
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2014-06-05T16:44:05.712+02:00
+:page-wiki-metadata-modify-user: vix
+:page-wiki-metadata-modify-date: 2019-07-11T15:38:24.423+02:00
+:page-keywords: [ 'SSL', 'TLS', 'openssl' ]
+:page-upkeep-status: green
+
+Connectors, notification plugins and other parts of midPoint connect to external systems.
+Some of the connections are secured using SSL/TLS.
+In SSL/TLS connections the server side provides a certificate that needs to be validated on the client side.
+This means that midPoint needs to have a way how to check validity of the certificate provided by SSL/TLS server.
+MidPoint is using standard Java libraries to validate the certificate.
+Java security modules are using a _truststore_ mechanism which is closely related to xref:/midpoint/reference/security/crypto/keystore-configuration/[keystore]. The truststore is a small database of trusted certificates.
+When a certificate needs to be validate Java libraries check if the certificates the authority in chain that issues are in the truststore.
+
+[IMPORTANT]
+====
+For real deployments with public or private certification authorities all root and intermediate certificates in chain must be imported into midPoint keystore.
+====
+
+The following procedure describes how to get server certificate and import it into the trustore which makes it a trusted certificate. Basic steps to do:
+
+. Getting server certificate
+. Import the certificate
+
+== Getting server certificate
+
+There are many tools to get a server certificate from SSL/TLS connection.
+We prefer to use opensource library OpenSSL (openssl library for windows can be downloaded link:https://code.google.com/p/openssl-for-windows/[here]) . It has a nice _s_client_ utility to do this.
+
+Example how to obtain all server certificates in chain:
+[source]
+----
+openssl s_client -showcerts -servername google.com -connect google.com:443
+Loading 'screen' into random state - done
+CONNECTED(00000260)
+depth=2 /C=US/O=Google Trust Services LLC/CN=GTS Root R1
+verify error:num=20:unable to get local issuer certificate
+verify return:0
+---
+Certificate chain
+ 0 s:/CN=*.google.com
+   i:/C=US/O=Google Trust Services LLC/CN=GTS CA 1C3
+-----BEGIN CERTIFICATE-----
+MIIPKDCCDhCgAwIBAgIQXZPVtDG27jgQT6mqCHHkAzANBgkqhkiG9w0BAQsFADBG
+MQswCQYDVQQGEwJVUzEiMCAGA1UEChMZR29vZ2xlIFRydXN0IFNlcnZpY2VzIExM
+QzETMBEGA1UEAxMKR1RTIENBIDFDMzAeFw0yNDAyMTkwODAzNTRaFw0yNDA1MTMw
+ODAzNTNaMBcxFTATBgNVBAMMDCouZ29vZ2xlLmNvbTCCASIwDQYJKoZIhvcNAQEB
+BQADggEPADCCAQoCggEBAM13e70d+ZprybekMI9Vh+kanYwTAUYy0ziIpayXrSgf
+fCQLYi6WdoiGpL76ATZ1Nah3xonRK2VLo7SIMdztsBUfa6Pv0PrsJa34qc2ipr95
+4K9NhUAI6dv1ka7qqAvYOIP4yQwIbFZs5b7YMr0LbvS29V3qnev7IT/Rpe1n2+nL
+R8DPXPYHuKtaIJTmBJ6zegf2v4x/G6MHlKQ+xMwkpoNCyqkKYRidy2f/ENxTZIFn
+Gq9nbebTzAozvTjYzwT/s2x1nRiGNhdcMp4pTeszmjQ9co/SBIyL2pGef39iw20p
+TfwYPGi1WG9kuFKkNUNzfhppQ9e5CNskKi0wM3BJE1sCAwEAAaOCDD8wggw7MA4G
+A1UdDwEB/wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDATAMBgNVHRMBAf8EAjAA
+MB0GA1UdDgQWBBSW6bOCv2Afuev4kI1nRbhRWOBz1DAfBgNVHSMEGDAWgBSKdH+v
+hc3ulc09nNDiRhTzcTUdJzBqBggrBgEFBQcBAQReMFwwJwYIKwYBBQUHMAGGG2h0
+dHA6Ly9vY3NwLnBraS5nb29nL2d0czFjMzAxBggrBgEFBQcwAoYlaHR0cDovL3Br
+aS5nb29nL3JlcG8vY2VydHMvZ3RzMWMzLmRlcjCCCe8GA1UdEQSCCeYwggniggwq
+Lmdvb2dsZS5jb22CFiouYXBwZW5naW5lLmdvb2dsZS5jb22CCSouYmRuLmRldoIV
+Ki5vcmlnaW4tdGVzdC5iZG4uZGV2ghIqLmNsb3VkLmdvb2dsZS5jb22CGCouY3Jv
+d2Rzb3VyY2UuZ29vZ2xlLmNvbYIYKi5kYXRhY29tcHV0ZS5nb29nbGUuY29tggsq
+Lmdvb2dsZS5jYYILKi5nb29nbGUuY2yCDiouZ29vZ2xlLmNvLmlugg4qLmdvb2ds
+ZS5jby5qcIIOKi5nb29nbGUuY28udWuCDyouZ29vZ2xlLmNvbS5hcoIPKi5nb29n
+bGUuY29tLmF1gg8qLmdvb2dsZS5jb20uYnKCDyouZ29vZ2xlLmNvbS5jb4IPKi5n
+b29nbGUuY29tLm14gg8qLmdvb2dsZS5jb20udHKCDyouZ29vZ2xlLmNvbS52boIL
+Ki5nb29nbGUuZGWCCyouZ29vZ2xlLmVzggsqLmdvb2dsZS5mcoILKi5nb29nbGUu
+aHWCCyouZ29vZ2xlLml0ggsqLmdvb2dsZS5ubIILKi5nb29nbGUucGyCCyouZ29v
+Z2xlLnB0gg8qLmdvb2dsZWFwaXMuY26CESouZ29vZ2xldmlkZW8uY29tggwqLmdz
+dGF0aWMuY26CECouZ3N0YXRpYy1jbi5jb22CD2dvb2dsZWNuYXBwcy5jboIRKi5n
+b29nbGVjbmFwcHMuY26CEWdvb2dsZWFwcHMtY24uY29tghMqLmdvb2dsZWFwcHMt
+Y24uY29tggxna2VjbmFwcHMuY26CDiouZ2tlY25hcHBzLmNughJnb29nbGVkb3du
+bG9hZHMuY26CFCouZ29vZ2xlZG93bmxvYWRzLmNughByZWNhcHRjaGEubmV0LmNu
+ghIqLnJlY2FwdGNoYS5uZXQuY26CEHJlY2FwdGNoYS1jbi5uZXSCEioucmVjYXB0
+Y2hhLWNuLm5ldIILd2lkZXZpbmUuY26CDSoud2lkZXZpbmUuY26CEWFtcHByb2pl
+Y3Qub3JnLmNughMqLmFtcHByb2plY3Qub3JnLmNughFhbXBwcm9qZWN0Lm5ldC5j
+boITKi5hbXBwcm9qZWN0Lm5ldC5jboIXZ29vZ2xlLWFuYWx5dGljcy1jbi5jb22C
+GSouZ29vZ2xlLWFuYWx5dGljcy1jbi5jb22CF2dvb2dsZWFkc2VydmljZXMtY24u
+Y29tghkqLmdvb2dsZWFkc2VydmljZXMtY24uY29tghFnb29nbGV2YWRzLWNuLmNv
+bYITKi5nb29nbGV2YWRzLWNuLmNvbYIRZ29vZ2xlYXBpcy1jbi5jb22CEyouZ29v
+Z2xlYXBpcy1jbi5jb22CFWdvb2dsZW9wdGltaXplLWNuLmNvbYIXKi5nb29nbGVv
+cHRpbWl6ZS1jbi5jb22CEmRvdWJsZWNsaWNrLWNuLm5ldIIUKi5kb3VibGVjbGlj
+ay1jbi5uZXSCGCouZmxzLmRvdWJsZWNsaWNrLWNuLm5ldIIWKi5nLmRvdWJsZWNs
+aWNrLWNuLm5ldIIOZG91YmxlY2xpY2suY26CECouZG91YmxlY2xpY2suY26CFCou
+ZmxzLmRvdWJsZWNsaWNrLmNughIqLmcuZG91YmxlY2xpY2suY26CEWRhcnRzZWFy
+Y2gtY24ubmV0ghMqLmRhcnRzZWFyY2gtY24ubmV0gh1nb29nbGV0cmF2ZWxhZHNl
+cnZpY2VzLWNuLmNvbYIfKi5nb29nbGV0cmF2ZWxhZHNlcnZpY2VzLWNuLmNvbYIY
+Z29vZ2xldGFnc2VydmljZXMtY24uY29tghoqLmdvb2dsZXRhZ3NlcnZpY2VzLWNu
+LmNvbYIXZ29vZ2xldGFnbWFuYWdlci1jbi5jb22CGSouZ29vZ2xldGFnbWFuYWdl
+ci1jbi5jb22CGGdvb2dsZXN5bmRpY2F0aW9uLWNuLmNvbYIaKi5nb29nbGVzeW5k
+aWNhdGlvbi1jbi5jb22CJCouc2FmZWZyYW1lLmdvb2dsZXN5bmRpY2F0aW9uLWNu
+LmNvbYIWYXBwLW1lYXN1cmVtZW50LWNuLmNvbYIYKi5hcHAtbWVhc3VyZW1lbnQt
+Y24uY29tggtndnQxLWNuLmNvbYINKi5ndnQxLWNuLmNvbYILZ3Z0Mi1jbi5jb22C
+DSouZ3Z0Mi1jbi5jb22CCzJtZG4tY24ubmV0gg0qLjJtZG4tY24ubmV0ghRnb29n
+bGVmbGlnaHRzLWNuLm5ldIIWKi5nb29nbGVmbGlnaHRzLWNuLm5ldIIMYWRtb2It
+Y24uY29tgg4qLmFkbW9iLWNuLmNvbYIUZ29vZ2xlc2FuZGJveC1jbi5jb22CFiou
+Z29vZ2xlc2FuZGJveC1jbi5jb22CHiouc2FmZW51cC5nb29nbGVzYW5kYm94LWNu
+LmNvbYINKi5nc3RhdGljLmNvbYIUKi5tZXRyaWMuZ3N0YXRpYy5jb22CCiouZ3Z0
+MS5jb22CESouZ2NwY2RuLmd2dDEuY29tggoqLmd2dDIuY29tgg4qLmdjcC5ndnQy
+LmNvbYIQKi51cmwuZ29vZ2xlLmNvbYIWKi55b3V0dWJlLW5vY29va2llLmNvbYIL
+Ki55dGltZy5jb22CC2FuZHJvaWQuY29tgg0qLmFuZHJvaWQuY29tghMqLmZsYXNo
+LmFuZHJvaWQuY29tggRnLmNuggYqLmcuY26CBGcuY2+CBiouZy5jb4IGZ29vLmds
+ggp3d3cuZ29vLmdsghRnb29nbGUtYW5hbHl0aWNzLmNvbYIWKi5nb29nbGUtYW5h
+bHl0aWNzLmNvbYIKZ29vZ2xlLmNvbYISZ29vZ2xlY29tbWVyY2UuY29tghQqLmdv
+b2dsZWNvbW1lcmNlLmNvbYIIZ2dwaHQuY26CCiouZ2dwaHQuY26CCnVyY2hpbi5j
+b22CDCoudXJjaGluLmNvbYIIeW91dHUuYmWCC3lvdXR1YmUuY29tgg0qLnlvdXR1
+YmUuY29tghR5b3V0dWJlZWR1Y2F0aW9uLmNvbYIWKi55b3V0dWJlZWR1Y2F0aW9u
+LmNvbYIPeW91dHViZWtpZHMuY29tghEqLnlvdXR1YmVraWRzLmNvbYIFeXQuYmWC
+ByoueXQuYmWCGmFuZHJvaWQuY2xpZW50cy5nb29nbGUuY29tghtkZXZlbG9wZXIu
+YW5kcm9pZC5nb29nbGUuY26CHGRldmVsb3BlcnMuYW5kcm9pZC5nb29nbGUuY26C
+GHNvdXJjZS5hbmRyb2lkLmdvb2dsZS5jboIaZGV2ZWxvcGVyLmNocm9tZS5nb29n
+bGUuY26CGHdlYi5kZXZlbG9wZXJzLmdvb2dsZS5jbjAhBgNVHSAEGjAYMAgGBmeB
+DAECATAMBgorBgEEAdZ5AgUDMDwGA1UdHwQ1MDMwMaAvoC2GK2h0dHA6Ly9jcmxz
+LnBraS5nb29nL2d0czFjMy9mVkp4YlYtS3Rtay5jcmwwggEEBgorBgEEAdZ5AgQC
+BIH1BIHyAPAAdgBIsONr2qZHNA/lagL6nTDrHFIBy1bdLIHZu7+rOdiEcwAAAY3A
+m5XyAAAEAwBHMEUCIHlRkebho8dI/RUCwPRapoKiOcIhvQddNeZP81myigtOAiEA
+5XNQPZzw0tjFVzTllWCJXqM6MjM0Sm0q6ZmII5nDcscAdgDuzdBk1dsazsVct520
+zROiModGfLzs3sNRSFlGcR+1mwAAAY3Am5XMAAAEAwBHMEUCIHs6XwsGtdpSkEYl
+lrO1q1mqi9ylrfpYWfGCyVJQ4f8uAiEAzujxJjpjIOr7Fs58+Oaij3A+sahNS9aa
+asn5gcHigRIwDQYJKoZIhvcNAQELBQADggEBAIHJiBhis3ZzX4/Wk/K/tdjCnNtv
+blcljLZZ86OeUoAYB1dnZmEEqT3zPm93FlUxe77ghE3fPw9xVSlUHSZ3UaELBS+w
+n/x8ZHB//nDH9Vdwv+oG9O9DT+O4sLpQHSHOJRgbQJCk7+K5BbVWzp+zdNkJzUzX
+M0twXORS0OnUSOBxm+JNgsjDrLlYhSDLO1kinRoeyX27A28CWWP7RTyXs2G4KZAW
+T/VI+eLUSjrDk+jTFP1bYKOTa0hRcrAGWjqT66KUpjHvun32QbItamtsLEpX9VAH
+mLyeS0SHUGaGBNgcPQk8ejUaHMUJkadjrDjf1mC02JdHzsqUl3NuGZ8avR4=
+-----END CERTIFICATE-----
+ 1 s:/C=US/O=Google Trust Services LLC/CN=GTS CA 1C3
+   i:/C=US/O=Google Trust Services LLC/CN=GTS Root R1
+-----BEGIN CERTIFICATE-----
+MIIFljCCA36gAwIBAgINAgO8U1lrNMcY9QFQZjANBgkqhkiG9w0BAQsFADBHMQsw
+CQYDVQQGEwJVUzEiMCAGA1UEChMZR29vZ2xlIFRydXN0IFNlcnZpY2VzIExMQzEU
+MBIGA1UEAxMLR1RTIFJvb3QgUjEwHhcNMjAwODEzMDAwMDQyWhcNMjcwOTMwMDAw
+MDQyWjBGMQswCQYDVQQGEwJVUzEiMCAGA1UEChMZR29vZ2xlIFRydXN0IFNlcnZp
+Y2VzIExMQzETMBEGA1UEAxMKR1RTIENBIDFDMzCCASIwDQYJKoZIhvcNAQEBBQAD
+ggEPADCCAQoCggEBAPWI3+dijB43+DdCkH9sh9D7ZYIl/ejLa6T/belaI+KZ9hzp
+kgOZE3wJCor6QtZeViSqejOEH9Hpabu5dOxXTGZok3c3VVP+ORBNtzS7XyV3NzsX
+lOo85Z3VvMO0Q+sup0fvsEQRY9i0QYXdQTBIkxu/t/bgRQIh4JZCF8/ZK2VWNAcm
+BA2o/X3KLu/qSHw3TT8An4Pf73WELnlXXPxXbhqW//yMmqaZviXZf5YsBvcRKgKA
+gOtjGDxQSYflispfGStZloEAoPtR28p3CwvJlk/vcEnHXG0g/Zm0tOLKLnf9LdwL
+tmsTDIwZKxeWmLnwi/agJ7u2441Rj72ux5uxiZ0CAwEAAaOCAYAwggF8MA4GA1Ud
+DwEB/wQEAwIBhjAdBgNVHSUEFjAUBggrBgEFBQcDAQYIKwYBBQUHAwIwEgYDVR0T
+AQH/BAgwBgEB/wIBADAdBgNVHQ4EFgQUinR/r4XN7pXNPZzQ4kYU83E1HScwHwYD
+VR0jBBgwFoAU5K8rJnEaK0gnhS9SZizv8IkTcT4waAYIKwYBBQUHAQEEXDBaMCYG
+CCsGAQUFBzABhhpodHRwOi8vb2NzcC5wa2kuZ29vZy9ndHNyMTAwBggrBgEFBQcw
+AoYkaHR0cDovL3BraS5nb29nL3JlcG8vY2VydHMvZ3RzcjEuZGVyMDQGA1UdHwQt
+MCswKaAnoCWGI2h0dHA6Ly9jcmwucGtpLmdvb2cvZ3RzcjEvZ3RzcjEuY3JsMFcG
+A1UdIARQME4wOAYKKwYBBAHWeQIFAzAqMCgGCCsGAQUFBwIBFhxodHRwczovL3Br
+aS5nb29nL3JlcG9zaXRvcnkvMAgGBmeBDAECATAIBgZngQwBAgIwDQYJKoZIhvcN
+AQELBQADggIBAIl9rCBcDDy+mqhXlRu0rvqrpXJxtDaV/d9AEQNMwkYUuxQkq/BQ
+cSLbrcRuf8/xam/IgxvYzolfh2yHuKkMo5uhYpSTld9brmYZCwKWnvy15xBpPnrL
+RklfRuFBsdeYTWU0AIAaP0+fbH9JAIFTQaSSIYKCGvGjRFsqUBITTcFTNvNCCK9U
++o53UxtkOCcXCb1YyRt8OS1b887U7ZfbFAO/CVMkH8IMBHmYJvJh8VNS/UKMG2Yr
+PxWhu//2m+OBmgEGcYk1KCTd4b3rGS3hSMs9WYNRtHTGnXzGsYZbr8w0xNPM1IER
+lQCh9BIiAfq0g3GvjLeMcySsN1PCAJA/Ef5c7TaUEDu9Ka7ixzpiO2xj2YC/WXGs
+Yye5TBeg2vZzFb8q3o/zpWwygTMD0IZRcZk0upONXbVRWPeyk+gB9lm+cZv9TSjO
+z23HFtz30dZGm6fKa+l3D/2gthsjgx0QGtkJAITgRNOidSOzNIb2ILCkXhAd4FJG
+AJ2xDx8hcFH1mt0G/FX0Kw4zd8NLQsLxdxP8c4CU6x+7Nz/OAipmsHMdMqUybDKw
+juDEI/9bfU1lcKwrmz3O2+BtjjKAvpafkmO8l7tdufThcV4q5O8DIrGKZTqPwJNl
+1IXNDw9bg1kWRxYtnCQ6yICmJhSFm/Y3m6xv+cXDBlHz4n/FsRC6UfTd
+-----END CERTIFICATE-----
+ 2 s:/C=US/O=Google Trust Services LLC/CN=GTS Root R1
+   i:/C=BE/O=GlobalSign nv-sa/OU=Root CA/CN=GlobalSign Root CA
+-----BEGIN CERTIFICATE-----
+MIIFYjCCBEqgAwIBAgIQd70NbNs2+RrqIQ/E8FjTDTANBgkqhkiG9w0BAQsFADBX
+MQswCQYDVQQGEwJCRTEZMBcGA1UEChMQR2xvYmFsU2lnbiBudi1zYTEQMA4GA1UE
+CxMHUm9vdCBDQTEbMBkGA1UEAxMSR2xvYmFsU2lnbiBSb290IENBMB4XDTIwMDYx
+OTAwMDA0MloXDTI4MDEyODAwMDA0MlowRzELMAkGA1UEBhMCVVMxIjAgBgNVBAoT
+GUdvb2dsZSBUcnVzdCBTZXJ2aWNlcyBMTEMxFDASBgNVBAMTC0dUUyBSb290IFIx
+MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAthECix7joXebO9y/lD63
+ladAPKH9gvl9MgaCcfb2jH/76Nu8ai6Xl6OMS/kr9rH5zoQdsfnFl97vufKj6bwS
+iV6nqlKr+CMny6SxnGPb15l+8Ape62im9MZaRw1NEDPjTrETo8gYbEvs/AmQ351k
+KSUjB6G00j0uYODP0gmHu81I8E3CwnqIiru6z1kZ1q+PsAewnjHxgsHA3y6mbWwZ
+DrXYfiYaRQM9sHmklCitD38m5agI/pboPGiUU+6DOogrFZYJsuB6jC511pzrp1Zk
+j5ZPaK49l8KEj8C8QMALXL32h7M1bKwYUH+E4EzNktMg6TO8UpmvMrUpsyUqtEj5
+cuHKZPfmghCN6J3Cioj6OGaK/GP5Afl4/Xtcd/p2h/rs37EOeZVXtL0m79YB0esW
+CruOC7XFxYpVq9Os6pFLKcwZpDIlTirxZUTQAs6qzkm06p98g7BAe+dDq6dso499
+iYH6TKX/1Y7DzkvgtdizjkXPdsDtQCv9Uw+wp9U7DbGKogPeMa3Md+pvez7W35Ei
+Eua++tgy/BBjFFFy3l3WFpO9KWgz7zpm7AeKJt8T11dleCfeXkkUAKIAf5qoIbap
+sZWwpbkNFhHax2xIPEDgfg1azVY80ZcFuctL7TlLnMQ/0lUTbiSw1nH69MG6zO0b
+9f6BQdgAmD06yK56mDcYBZUCAwEAAaOCATgwggE0MA4GA1UdDwEB/wQEAwIBhjAP
+BgNVHRMBAf8EBTADAQH/MB0GA1UdDgQWBBTkrysmcRorSCeFL1JmLO/wiRNxPjAf
+BgNVHSMEGDAWgBRge2YaRQ2XyolQL30EzTSo//z9SzBgBggrBgEFBQcBAQRUMFIw
+JQYIKwYBBQUHMAGGGWh0dHA6Ly9vY3NwLnBraS5nb29nL2dzcjEwKQYIKwYBBQUH
+MAKGHWh0dHA6Ly9wa2kuZ29vZy9nc3IxL2dzcjEuY3J0MDIGA1UdHwQrMCkwJ6Al
+oCOGIWh0dHA6Ly9jcmwucGtpLmdvb2cvZ3NyMS9nc3IxLmNybDA7BgNVHSAENDAy
+MAgGBmeBDAECATAIBgZngQwBAgIwDQYLKwYBBAHWeQIFAwIwDQYLKwYBBAHWeQIF
+AwMwDQYJKoZIhvcNAQELBQADggEBADSkHrEoo9C0dhemMXoh6dFSPsjbdBZBiLg9
+NR3t5P+T4Vxfq7vqfM/b5A3Ri1fyJm9bvhdGaJQ3b2t6yMAYN/olUazsaL+yyEn9
+WprKASOshIArAoyZl+tJaox118fessmXn1hIVw41oeQa1v1vg4Fv74zPl6/AhSrw
+9U5pCZEt4Wi4wStz6dTZ/CLANx8LZh1J7QJVj2fhMtfTJr9w4z30Z209fOU0iOMy
++qduBmpvvYuR7hZL6Dupszfnw0Skfths18dG9ZKb59UhvmaSGZRVbNQpsg3BZlvi
+d0lIKO2d1xozclOzgjXPYovJJIultzkMu34qQb9Sz/yilrbCgj8=
+-----END CERTIFICATE-----
+---
+Server certificate
+subject=/CN=*.google.com
+issuer=/C=US/O=Google Trust Services LLC/CN=GTS CA 1C3
+---
+No client certificate CA names sent
+---
+SSL handshake has read 7076 bytes and written 439 bytes
+---
+New, TLSv1/SSLv3, Cipher is AES128-SHA
+Server public key is 2048 bit
+Compression: NONE
+Expansion: NONE
+SSL-Session:
+    Protocol  : TLSv1
+    Cipher    : AES128-SHA
+    Session-ID:
+    Session-ID-ctx:
+    Master-Key: 4F24E1D13BF6CA43603CB185446DCB8AB1F57CBCC128B2A15C0F4186DFC517ECFF60FFBC472D0FCE6175584565790B31
+    Key-Arg   : None
+    TLS session ticket lifetime hint: 100800 (seconds)
+    TLS session ticket:
+    0000 - 02 4b 12 f2 f4 b7 98 7b-7d 30 dd 33 1f bd 28 ca   .K.....{}0.3..(.
+    0010 - a8 27 ef cf 8d 8f 73 5d-7f 78 fd 67 cb 97 a6 c6   .'....s].x.g....
+    0020 - dc 23 3c 29 f5 7c 6a b8-53 e6 30 6d 1a 14 61 22   .#<).|j.S.0m..a"
+    0030 - 14 01 45 2a e4 98 6b 0e-35 fd 46 17 d8 81 c2 d5   ..E*..k.5.F.....
+    0040 - d2 06 5f 1a 0a 32 1f 9e-64 b1 7e 9a af 50 09 bd   .._..2..d.~..P..
+    0050 - 89 26 62 08 84 6c 80 fa-d6 43 09 63 44 b4 9a 94   .&b..l...C.cD...
+    0060 - 2b d1 7e 33 73 73 6b 9e-a5 99 af 88 1e 70 7d 0c   +.~3ssk......p}.
+    0070 - 5b 72 51 0e 00 e4 6c ae-20 12 ff 4b 01 af 70 69   [rQ...l. ..K..pi
+    0080 - 81 4f 42 cd 95 9e fe 2c-7a 3f 45 a4 21 ad 23 60   .OB....,z?E.!.#`
+    0090 - f4 b3 37 84 69 55 95 9f-69 ec 21 6a 7a 5b da 74   ..7.iU..i.!jz[.t
+    00a0 - 66 9c 60 3f cc 5a fc 5c-b2 b6 aa db 50 06 31 22   f.`?.Z.\....P.1"
+    00b0 - 90 f4 39 73 05 cf 99 f8-3c 05 77 6e 93 a7 95 9b   ..9s....<.wn....
+    00c0 - 26 e8 59 84 f6 d1 21 ce-c0 b0 db 3e 15 b4 4b 33   &.Y...!....>..K3
+    00d0 - 46 52 41 e2 19 9e 45 2e-06 e2 6d                  FRA...E...m
+
+    Start Time: 1710417148
+    Timeout   : 300 (sec)
+    Verify return code: 20 (unable to get local issuer certificate)
+---
+----
+
+Example how to obtain server certificate:
+[source]
+----
+$ openssl s_client -connect deimos.lab.evolveum.com:3636
+CONNECTED(00000003)
+depth=1 OU = Organizational CA, O = EXAMPLE-TREE
+verify error:num=19:self signed certificate in certificate chain
+verify return:0
+---
+Certificate chain
+ 0 s:/O=EXAMPLE-TREE/CN=deimos
+   i:/OU=Organizational CA/O=EXAMPLE-TREE
+ 1 s:/OU=Organizational CA/O=EXAMPLE-TREE
+   i:/OU=Organizational CA/O=EXAMPLE-TREE
+---
+Server certificate
+-----BEGIN CERTIFICATE-----
+MIIFLTCCBBWgAwIBAgIkAhwR/6b9fHPRsgM0dS4h3nlIxIQoUQDjdnEzC8MrAgJC
+C3WvMA0GCSqGSIb3DQEBBQUAMDMxGjAYBgNVBAsTEU9yZ2FuaXphdGlvbmFsIENB
+MRUwEwYDVQQKEwxFWEFNUExFLVRSRUUwHhcNMTQwNjA1MTEyNjQ3WhcNMTYwNjA0
+MTEyNjQ3WjAoMRUwEwYDVQQKEwxFWEFNUExFLVRSRUUxDzANBgNVBAMTBmRlaW1v
+czCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAJO+X5vjQ/0WNWBOTvGw
++amQCQ22dVM9zfWXa5fhtBAuq5oYrnImmqnU0Xl2k0TfZjDgWcDrlh620ByNr/JV
+mEGUoAqIsZijbIYsb3/4C97Y9AKL8KWA5/HOxAZw7My65ydy2Wg0sgYb2wX2EHm3
+E4gkcNtw9Lf1eLxCwnRmbGjUrAjXlc2e8HbP9lfRjAysGVqfEsk/JRtXmLPOqW0Y
+THjSp+j87OTDbFPwWPlWh/atx2/3Q/xN+kJOLx4M1PMCAp/kDzdVA0bVWm1m/RZx
+lpRpF2lRtdJgwP897jFurJfpubSwE7IgqKUXdkSdESpnaL62xtFnFbtEKbcsv1iR
+Zb0CAwEAAaOCAjIwggIuMB0GA1UdDgQWBBR9W+sIkHjmchbjgIcED+3VPBshHzAf
+BgNVHSMEGDAWgBScoCWoSW3ygoqk23J+4DXdx6xWGTAPBgNVHREECDAGhwQKAgEP
+MAsGA1UdDwQEAwIFoDCCAcwGC2CGSAGG+DcBCQQBBIIBuzCCAbcEAgEAAQH/Ex1O
+b3ZlbGwgU2VjdXJpdHkgQXR0cmlidXRlKHRtKRZDaHR0cDovL2RldmVsb3Blci5u
+b3ZlbGwuY29tL3JlcG9zaXRvcnkvYXR0cmlidXRlcy9jZXJ0YXR0cnNfdjEwLmh0
+bTCCAUigGgEBADAIMAYCAQECAUYwCDAGAgEBAgEKAgFpoRoBAQAwCDAGAgEBAgEA
+MAgwBgIBAQIBAAIBAKIGAgEXAQH/o4IBBKBYAgECAgIA/wIBAAMNAIAAAAAAAAAA
+AAAAAAMJAIAAAAAAAAAAMBgwEAIBAAIIf/////////8BAQACBAbw30gwGDAQAgEA
+Agh//////////wEBAAIEBvDfSKFYAgECAgIA/wIBAAMNAEAAAAAAAAAAAAAAAAMJ
+AEAAAAAAAAAAMBgwEAIBAAIIf/////////8BAQACBBH/pv0wGDAQAgEAAgh/////
+/////wEBAAIEEf+m/aJOMEwCAQICAQACAgD/Aw0AgAAAAAAAAAAAAAAAAwkAgAAA
+AAAAAAAwEjAQAgEAAgh//////////wEBADASMBACAQACCH//////////AQEAMA0G
+CSqGSIb3DQEBBQUAA4IBAQAF/LlSJUz6I4UuzYivJyhcG8S4inWCB/4AkTP2rvOj
+iU7oZDKLUoLMZGP2mxgGYPp+nPNmN0NbFyuNoZiRmCBxvdVmABwKHHEZKCl8f+sn
+pw2wXPKrrZWY2PtbpJ2V815T8pAuraS1Ko08N/MZlIiZOZZpcyjq6EOTrELuaX+q
+tDFsCNZSfNKjqYMyrPEaYSSNIcBbWx2Ip170AA6rNqaOR5oo/N6Cw/f7GAhaon8V
+3j/pLivirDLbHBmsRLjzTcaSFtdhYzWR5Xr0hGh0oVA9OaL9EZF+wtKd4yMwL0Jn
+g9cH8n3kIjW+d4uFbCYY/K0YX1n7l8zMiSRuRzUz5a+w
+-----END CERTIFICATE-----
+subject=/O=EXAMPLE-TREE/CN=deimos
+issuer=/OU=Organizational CA/O=EXAMPLE-TREE
+---
+No client certificate CA names sent
+---
+SSL handshake has read 2831 bytes and written 551 bytes
+---
+New, TLSv1/SSLv3, Cipher is AES256-SHA
+Server public key is 2048 bit
+Secure Renegotiation IS NOT supported
+Compression: NONE
+Expansion: NONE
+SSL-Session:
+    Protocol  : TLSv1
+    Cipher    : AES256-SHA
+    Session-ID: 3D1D82E86E3F87CF4F5C61DF1A1C5061973B371C75EE089C1ED38FF5FAFC58F9
+    Session-ID-ctx:
+    Master-Key: A58639B7067B0169C626DB8B45BD50AAF12A50A2F09BA4FC5D0112CE40E74F5CA6BD941A0F86D744AA12AA1592F450A3
+    Key-Arg   : None
+    PSK identity: None
+    PSK identity hint: None
+    SRP username: None
+    Start Time: 1401979683
+    Timeout   : 300 (sec)
+    Verify return code: 19 (self signed certificate in certificate chain)
+---
+----
+
+
+The data between `-----BEGIN CERTIFICATE-----` and `-----END CERTIFICATE-----` is the server certificate.
+Copy&paste the data into a separate file (*including the boundary lines*) and save it e.g. as `servercert.pem`.
+
+
+== Import the certificate
+
+Import the server certificate to a truststore using keytool utility:
+
+[source,bash]
+----
+keytool -keystore /opt/midpoint/var/keystore.jceks -storetype jceks -storepass changeit -import -alias servercert -trustcacerts -file servercert.pem
+----
+
+Restart midPoint and that's it.
+
+
+== Notes
+
+* Make sure that the correct keystore/truststore is used.
+By default connectors use JVM keystore unless it is overriden by JVM options.
+See xref:/midpoint/reference/security/crypto/keystore-configuration/[Keystore Configuration] page for more details.
+
+* If an import of a .p7b formated certificate results in the following error: java.lang.Exception: Input not an X.509 certificate.
+You might try to convert the certificate to the .cer PEM format.
+This can be done using the following openssl command:
+
+[source,bash]
+----
+openssl pkcs7 -inform der -in mycert.p7b -out myconvertedcert.cer
+----
+
+
+== See Also
+
+* xref:/midpoint/reference/security/crypto/keystore-configuration/[Keystore Configuration]

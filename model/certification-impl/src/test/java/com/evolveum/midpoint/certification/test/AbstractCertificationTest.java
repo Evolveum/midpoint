@@ -8,7 +8,10 @@ package com.evolveum.midpoint.certification.test;
 
 import static com.evolveum.midpoint.model.test.CommonInitialObjects.*;
 
+import static com.evolveum.midpoint.util.MiscUtil.extractSingleton;
+
 import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
@@ -22,7 +25,12 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.certification.impl.task.startCampaign.AccessCertificationStartCampaignWorkDefinition;
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.AccessCertificationWorkItemId;
+
+import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -192,6 +200,8 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         logger.trace("initSystem");
         super.initSystem(initTask, initResult);
+
+        CommonInitialObjects.addCertificationTasks(this, initTask, initResult);
 
         // roles
         repoAddObjectFromFile(METAROLE_CXO_FILE, RoleType.class, initResult);
@@ -450,7 +460,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
             AccessCertificationDefinitionType certificationDefinition, String expectedOwnerOid) {
         assertRefEquals("Unexpected ownerRef", ObjectTypeUtil.createObjectRef(expectedOwnerOid, ObjectTypes.USER), campaign.getOwnerRef());
         assertRefEquals("Unexpected definitionRef",
-                ObjectTypeUtil.createObjectRef(certificationDefinition, prismContext),
+                ObjectTypeUtil.createObjectRef(certificationDefinition),
                 campaign.getDefinitionRef());
     }
 
@@ -530,10 +540,9 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
             AccessCertificationResponseType outcome) {
         boolean found = false;
         for (CaseEventType event : aCase.getEvent()) {
-            if (!(event instanceof StageCompletionEventType)) {
+            if (!(event instanceof StageCompletionEventType completionEvent)) {
                 continue;
             }
-            StageCompletionEventType completionEvent = (StageCompletionEventType) event;
             if (completionEvent.getStageNumber() == stageNumber && norm(completionEvent.getIteration()) == iteration) {   // TODO sure about iteration check?
                 assertEquals("Wrong outcome stored for stage #" + stageNumber + " in " + aCase, OutcomeUtils.toUri(outcome), completionEvent.getOutcome());
                 if (found) {
@@ -784,12 +793,20 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
         }
     }
 
-    protected void assertCertificationMetadata(MetadataType metadata, String expectedOutcome, Set<String> expectedCertifiers,
-            Set<String> expectedComments) {
-        assertNotNull("No metadata", metadata);
-        assertEquals("Wrong outcome", expectedOutcome, metadata.getCertificationOutcome());
-        PrismAsserts.assertReferenceOids("Wrong certifiers", expectedCertifiers, metadata.getCertifierRef());
-        assertEquals("Wrong certifier comments", expectedComments, new HashSet<>(metadata.getCertifierComment()));
+    protected void assertCertificationMetadata(
+            AssignmentType assignment, String expectedOutcome, Set<String> expectedCertifiers, Set<String> expectedComments) {
+        assertThat(ValueMetadataTypeUtil.getMetadataBeans(assignment))
+                .as("metadata for " + assignment)
+                .isNotEmpty();
+        assertEquals("Wrong outcome",
+                expectedOutcome,
+                extractSingleton(ValueMetadataTypeUtil.getCertificationOutcomes(assignment)));
+        PrismAsserts.assertReferenceOids("Wrong certifiers",
+                expectedCertifiers,
+                ValueMetadataTypeUtil.getCertifierRefs(assignment));
+        assertEquals("Wrong certifier comments",
+                expectedComments,
+                ValueMetadataTypeUtil.getCertifierComments(assignment));
     }
 
     @NotNull
@@ -802,4 +819,145 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
         return String.valueOf(
                 (Year.now().getValue() % 100));
     }
+
+    protected List<PrismObject<TaskType>> getRemediationTasks(String campaignOid, XMLGregorianCalendar startTime, OperationResult result) throws SchemaException {
+        if (isNativeRepository()) {
+            ObjectQuery query = getNewRepoTaskQuery(SystemObjectsType.ARCHETYPE_CERTIFICATION_REMEDIATION_TASK.value(), startTime, campaignOid);
+            return taskManager.searchObjects(TaskType.class, query, null, result);
+        }
+        ObjectQuery query = getOldRepoTaskQuery(SystemObjectsType.ARCHETYPE_CERTIFICATION_REMEDIATION_TASK.value(), startTime);
+        List<PrismObject<TaskType>> tasks = taskManager.searchObjects(TaskType.class, query, null, result);
+        return tasks.stream().filter(task ->
+                task.asObjectable().getActivity() != null
+                        && task.asObjectable().getActivity().getWork() != null
+                        && task.asObjectable().getActivity().getWork().getCertificationRemediation() != null
+                        && task.asObjectable().getActivity().getWork().getCertificationRemediation().getCertificationCampaignRef() != null
+                        && campaignOid.equals(task.asObjectable().getActivity().getWork().getCertificationRemediation().getCertificationCampaignRef().getOid())
+        ).toList();
+    }
+
+    protected List<PrismObject<TaskType>> getCloseStageTask(String campaignOid, XMLGregorianCalendar startTime, OperationResult result) throws SchemaException {
+        if (isNativeRepository()) {
+            ObjectQuery query = getNewRepoTaskQuery(SystemObjectsType.ARCHETYPE_CERTIFICATION_CLOSE_CURRENT_STAGE_TASK.value(), startTime, campaignOid);
+            return taskManager.searchObjects(TaskType.class, query, null, result);
+        }
+        ObjectQuery query = getOldRepoTaskQuery(SystemObjectsType.ARCHETYPE_CERTIFICATION_CLOSE_CURRENT_STAGE_TASK.value(), startTime);
+        List<PrismObject<TaskType>> tasks = taskManager.searchObjects(TaskType.class, query, null, result);
+        return tasks.stream().filter(task ->
+                task.asObjectable().getActivity() != null
+                        && task.asObjectable().getActivity().getWork() != null
+                        && task.asObjectable().getActivity().getWork().getCertificationCloseCurrentStage() != null
+                        && task.asObjectable().getActivity().getWork().getCertificationCloseCurrentStage().getCertificationCampaignRef() != null
+                        && campaignOid.equals(task.asObjectable().getActivity().getWork().getCertificationCloseCurrentStage().getCertificationCampaignRef().getOid())
+        ).toList();
+    }
+
+    private ObjectQuery getOldRepoTaskQuery(String archetypeOid, XMLGregorianCalendar startTime) {
+        return prismContext.queryFor(TaskType.class)
+                .item(TaskType.F_ARCHETYPE_REF)
+                .ref(archetypeOid)
+                .and()
+                .block()
+                .item(TaskType.F_LAST_RUN_START_TIMESTAMP)
+                .isNull()
+                .or()
+                .item(TaskType.F_LAST_RUN_START_TIMESTAMP)
+                .ge(startTime)
+                .endBlock()
+                .build();
+    }
+
+    protected List<PrismObject<TaskType>> getNextStageTasks(String campaignOid, XMLGregorianCalendar startTime, OperationResult result) throws SchemaException {
+        if (isNativeRepository()) {
+            ObjectQuery query = getNewRepoTaskQuery(SystemObjectsType.ARCHETYPE_CERTIFICATION_OPEN_NEXT_STAGE_TASK.value(), startTime, campaignOid);
+            return taskManager.searchObjects(TaskType.class, query, null, result);
+        }
+        ObjectQuery query = getOldRepoTaskQuery(SystemObjectsType.ARCHETYPE_CERTIFICATION_OPEN_NEXT_STAGE_TASK.value(), startTime);
+        List<PrismObject<TaskType>> tasks = taskManager.searchObjects(TaskType.class, query, null, result);
+        return tasks.stream().filter(task ->
+                task.asObjectable().getActivity() != null
+                        && task.asObjectable().getActivity().getWork() != null
+                        && task.asObjectable().getActivity().getWork().getCertificationOpenNextStage() != null
+                        && task.asObjectable().getActivity().getWork().getCertificationOpenNextStage().getCertificationCampaignRef() != null
+                        && campaignOid.equals(task.asObjectable().getActivity().getWork().getCertificationOpenNextStage().getCertificationCampaignRef().getOid())
+        ).toList();
+    }
+
+    protected List<PrismObject<TaskType>> getReiterationTasks(String campaignOid, XMLGregorianCalendar startTime, OperationResult result) throws SchemaException {
+        if (isNativeRepository()) {
+            ObjectQuery query = getNewRepoTaskQuery(SystemObjectsType.ARCHETYPE_CERTIFICATION_REITERATE_CAMPAIGN_TASK.value(), startTime, campaignOid);
+            return taskManager.searchObjects(TaskType.class, query, null, result);
+        }
+        ObjectQuery query = getOldRepoTaskQuery(SystemObjectsType.ARCHETYPE_CERTIFICATION_REITERATE_CAMPAIGN_TASK.value(), startTime);
+        List<PrismObject<TaskType>> tasks = taskManager.searchObjects(TaskType.class, query, null, result);
+        return tasks.stream().filter(task ->
+                task.asObjectable().getActivity() != null
+                        && task.asObjectable().getActivity().getWork() != null
+                        && task.asObjectable().getActivity().getWork().getCertificationReiterateCampaign() != null
+                        && task.asObjectable().getActivity().getWork().getCertificationReiterateCampaign().getCertificationCampaignRef() != null
+                        && campaignOid.equals(task.asObjectable().getActivity().getWork().getCertificationReiterateCampaign().getCertificationCampaignRef().getOid())
+        ).toList();
+    }
+
+    protected List<PrismObject<TaskType>> getFirstStageTasks(String campaignOid, XMLGregorianCalendar startTime, OperationResult result) throws SchemaException {
+        if (isNativeRepository()) {
+            ObjectQuery query = getNewRepoTaskQuery(SystemObjectsType.ARCHETYPE_CERTIFICATION_START_CAMPAIGN_TASK.value(), startTime, campaignOid);
+            return taskManager.searchObjects(TaskType.class, query, null, result);
+        }
+        ObjectQuery query = getOldRepoTaskQuery(SystemObjectsType.ARCHETYPE_CERTIFICATION_START_CAMPAIGN_TASK.value(), startTime);
+        List<PrismObject<TaskType>> tasks = taskManager.searchObjects(TaskType.class, query, null, result);
+        return tasks.stream().filter(task -> campaignOidMatch(task, campaignOid)).toList();
+    }
+
+    private boolean campaignOidMatch(PrismObject<TaskType> task, String campaignOid) {
+        ActivityDefinitionType activity = task.asObjectable().getActivity();
+        if (activity == null) {
+            return false;
+        }
+        WorkDefinitionsType work = activity.getWork();
+        if (work == null) {
+            return false;
+        }
+        CertificationStartCampaignWorkDefinitionType startCampaign = work.getCertificationStartCampaign();
+        if (startCampaign == null) {
+            return false;
+        }
+        ObjectReferenceType campaign = startCampaign.getCertificationCampaignRef();
+        if (campaign == null) {
+            return false;
+        }
+        return campaignOid.equals(campaign.getOid());
+    }
+
+    private ObjectQuery getNewRepoTaskQuery(String archetypeOid, XMLGregorianCalendar startTime, String campaignOid) {
+        return prismContext.queryFor(TaskType.class)
+                .item(TaskType.F_ARCHETYPE_REF)
+                .ref(archetypeOid)
+                .and()
+                .item(
+                        ItemPath.create(
+                                TaskType.F_AFFECTED_OBJECTS,
+                                TaskAffectedObjectsType.F_ACTIVITY,
+                                ActivityAffectedObjectsType.F_OBJECTS,
+                                BasicObjectSetType.F_OBJECT_REF))
+                .ref(campaignOid)
+                .and()
+                .item(
+                        ItemPath.create(
+                                TaskType.F_AFFECTED_OBJECTS,
+                                TaskAffectedObjectsType.F_ACTIVITY,
+                                ActivityAffectedObjectsType.F_OBJECTS,
+                                BasicObjectSetType.F_TYPE))
+                .eq(AccessCertificationCampaignType.COMPLEX_TYPE)
+                .and()
+                .block()
+                .item(TaskType.F_LAST_RUN_START_TIMESTAMP)
+                .isNull()
+                .or()
+                .item(TaskType.F_LAST_RUN_START_TIMESTAMP)
+                .ge(startTime)
+                .endBlock()
+                .build();
+    }
+
 }

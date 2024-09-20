@@ -15,8 +15,6 @@
             <minLength>4</minLength>
             <!-- Make sure this fits into int type otherwise tests may fail. -->
             <maxLength>9</maxLength>
-            <checkAgainstDictionary>false</checkAgainstDictionary>
-            <checkPattern />
             <limit>
                 <description>Numeric characters</description>
                 <characterClass>

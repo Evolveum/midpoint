@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -19,6 +21,8 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
+
+import org.w3c.dom.Attr;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -44,6 +48,7 @@ public class RoundedImagePanel extends BasePanel<DisplayType> {
     private void initLayout() {
         WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
         icon.add(new VisibleBehaviour(() -> isCssIconVisible()));
+        icon.add(AttributeAppender.append("class", getCssClassesIconContainer()));
         add(icon);
 
         Label cssIcon = new Label(ID_CSS_ICON);
@@ -54,6 +59,10 @@ public class RoundedImagePanel extends BasePanel<DisplayType> {
         NonCachingImage image = new NonCachingImage(ID_IMAGE, preferredImage);
         image.add(new VisibleBehaviour(() -> preferredImage.getObject() != null));
         add(image);
+    }
+
+    protected String getCssClassesIconContainer() {
+        return null;
     }
 
     private IconType getIcon() {
@@ -75,7 +84,7 @@ public class RoundedImagePanel extends BasePanel<DisplayType> {
         if(icon != null) {
             String color = icon.getColor();
             if (StringUtils.isNotEmpty(color)) {
-                return "color:" + color + ";";
+                return "color:" + GuiDisplayTypeUtil.removeStringAfterSemicolon(color) + ";";
             }
         }
         return null;

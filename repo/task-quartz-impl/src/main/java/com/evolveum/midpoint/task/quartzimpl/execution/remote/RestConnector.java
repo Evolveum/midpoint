@@ -36,7 +36,7 @@ public class RestConnector {
     @Autowired private PrismContext prismContext;
 
     public void addNodeStatus(ClusterStatusInformation info, NodeType nodeInfo, OperationResult result) throws SchemaException {
-        clusterExecutionHelper.execute(nodeInfo, (client, actualNode, result1) -> {
+        clusterExecutionHelper.execute(nodeInfo, (client, actualNode, lResult) -> {
             client.path(TaskConstants.GET_LOCAL_SCHEDULER_INFORMATION_REST_PATH);
             Response response = client.get();
             Response.StatusType statusInfo = response.getStatusInfo();
@@ -44,8 +44,8 @@ public class RestConnector {
                     statusInfo.getStatusCode(), statusInfo.getReasonPhrase());
             if (statusInfo.getFamily() == Response.Status.Family.SUCCESSFUL) {
                 try {
-                    SchedulerInformationType schedulerInfo = clusterExecutionHelper
-                            .extractResult(response, SchedulerInformationType.class);
+                    SchedulerInformationType schedulerInfo =
+                            clusterExecutionHelper.extractResult(response, SchedulerInformationType.class);
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug("Received from {}:\n{}", nodeInfo.getNodeIdentifier(),
                                 prismContext.xmlSerializer().serializeRealValue(schedulerInfo));

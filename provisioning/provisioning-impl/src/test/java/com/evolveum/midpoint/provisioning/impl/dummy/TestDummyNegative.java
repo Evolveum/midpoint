@@ -101,11 +101,25 @@ public class TestDummyNegative extends AbstractDummyTest {
 
     @Autowired RepositoryService repositoryService;
 
+    /** This is an account that can be processed without any issues. */
     private static final String GOOD_ACCOUNT = "good";
+
+    /** This one gets the "enable date" with the unparseable value of `WRONG`, hence ConnId->midPoint conversion will fail. */
     private static final String INCONVERTIBLE_ACCOUNT = "inconvertible";
+
+    /**
+     * This one gets the "number" with the unparseable value of `WRONG`, hence the processing will fail.
+     * (Repo manipulation before 4.9, and internal processing in 4.9 and later. The reason is that more strict checks
+     * were added in 4.9. The name of the account - "unstorable" - is thus no longer precise enough.)
+     */
     private static final String UNSTORABLE_ACCOUNT = "unstorable";
+
+    /**
+     * Shadow for this account cannot be stored in the generic repo, as the name is longer than 255 characters. The native
+     * repo (sqale) can store it, though.
+     */
     private static final String TOTALLY_UNSTORABLE_ACCOUNT =
-            "totally-unstorable" + StringUtils.repeat("-123456789", 30); // too large to be stored in DB
+            "totally-unstorable" + StringUtils.repeat("-123456789", 30);
 
     private static final String EXTERNAL_UID_PREFIX = "uid:";
     private static final String GOOD_ACCOUNT_UID = EXTERNAL_UID_PREFIX + GOOD_ACCOUNT;
@@ -495,8 +509,8 @@ public class TestDummyNegative extends AbstractDummyTest {
         String unstorableOid = selectAccountByName(accounts, UNSTORABLE_ACCOUNT).getOid();
 
         // break the accounts
-        resource.getAccountByUsername(INCONVERTIBLE_ACCOUNT).replaceAttributeValue(ENABLE_DATE_NAME, "WRONG");
-        resource.getAccountByUsername(UNSTORABLE_ACCOUNT).replaceAttributeValue(ATTR_NUMBER, "WRONG");
+        resource.getAccountByName(INCONVERTIBLE_ACCOUNT).replaceAttributeValue(ENABLE_DATE_NAME, "WRONG");
+        resource.getAccountByName(UNSTORABLE_ACCOUNT).replaceAttributeValue(ATTR_NUMBER, "WRONG");
 
         when(GOOD_ACCOUNT);
         PrismObject<ShadowType> goodReloaded =
@@ -552,9 +566,9 @@ public class TestDummyNegative extends AbstractDummyTest {
             objects.add(object);
             return true;
         };
-        Collection<SelectorOptions<GetOperationOptions>> options = createNoExceptionOptions();
-        provisioningService.searchObjectsIterative(ShadowType.class, getAllAccountsQuery(RESOURCE_DUMMY_BROKEN_ACCOUNTS),
-                options, handler, task, result);
+        provisioningService.searchObjectsIterative(
+                ShadowType.class, getAllAccountsQuery(RESOURCE_DUMMY_BROKEN_ACCOUNTS),
+                createNoExceptionOptions(), handler, task, result);
 
         then();
         display("objects", objects);
@@ -563,7 +577,7 @@ public class TestDummyNegative extends AbstractDummyTest {
         assertSelectedAccountByName(objects, GOOD_ACCOUNT)
                 .assertOid()
                 .assertKind(ShadowKindType.ACCOUNT)
-                .assertPrimaryIdentifierValue(GOOD_ACCOUNT)
+                .assertIndexedPrimaryIdentifierValue(GOOD_ACCOUNT)
                 .attributes()
                     .assertSize(3)
                     .end()
@@ -574,7 +588,7 @@ public class TestDummyNegative extends AbstractDummyTest {
                 .display()
                 .assertOid()
                 .assertKind(ShadowKindType.ACCOUNT)
-                .assertPrimaryIdentifierValue(GOOD_ACCOUNT)
+                .assertIndexedPrimaryIdentifierValue(GOOD_ACCOUNT)
                 .attributes()
                     .assertSize(3)
                     .end();
@@ -582,9 +596,9 @@ public class TestDummyNegative extends AbstractDummyTest {
         assertSelectedAccountByName(objects, INCONVERTIBLE_ACCOUNT)
                 .display()
                 .assertOid()
-                .assertPrimaryIdentifierValue(INCONVERTIBLE_ACCOUNT)
+                .assertIndexedPrimaryIdentifierValue(INCONVERTIBLE_ACCOUNT)
                 .attributes()
-                    .assertSize(2) // uid=inconvertible + number=2
+                    .assertSize(3) // uid=inconvertible + name=inconvertible + number=2
                     .end()
                 .assertFetchResult(OperationResultStatusType.FATAL_ERROR, "Couldn't convert resource object", INCONVERTIBLE_ACCOUNT);
                 // (maybe it's not necessary to provide account attributes in the message - reconsider)
@@ -594,18 +608,18 @@ public class TestDummyNegative extends AbstractDummyTest {
         assertShadow(inconvertibleAfter, INCONVERTIBLE_ACCOUNT)
                 .display()
                 .assertOid()
-                .assertPrimaryIdentifierValue(INCONVERTIBLE_ACCOUNT)
+                .assertIndexedPrimaryIdentifierValue(INCONVERTIBLE_ACCOUNT)
                 .attributes()
-                    .assertSize(2)
+                    .assertSize(3)
                     .end();
 
         assertSelectedAccountByName(objects, UNSTORABLE_ACCOUNT)
                 .assertOid()
-                .assertPrimaryIdentifierValue(UNSTORABLE_ACCOUNT)
+                .assertIndexedPrimaryIdentifierValue(UNSTORABLE_ACCOUNT)
                 .attributes()
-                    .assertSize(1) // uid=unstorable [name was probably removed when we attempted to save the object?]
+                    .assertSize(2) // uid=unstorable, name=unstorable
                     .end()
-                .assertFetchResult(OperationResultStatusType.FATAL_ERROR, "Exception when translating", "WRONG");
+                .assertFetchResult(OperationResultStatusType.FATAL_ERROR, "WRONG");
                 // (maybe it's not necessary to provide the unconvertible value in the message - reconsider)
 
         PrismObject<ShadowType> unstorableAfter =
@@ -613,19 +627,17 @@ public class TestDummyNegative extends AbstractDummyTest {
         assertShadow(unstorableAfter, UNSTORABLE_ACCOUNT)
                 .display()
                 .assertOid()
-                .assertPrimaryIdentifierValue(UNSTORABLE_ACCOUNT)
+                .assertIndexedPrimaryIdentifierValue(UNSTORABLE_ACCOUNT)
                 .attributes()
-                    .assertSize(1)
+                    .assertSize(2) // this is the result of the emergency shadow acquisition
                     .end();
 
-
         var asserter = assertSelectedAccountByName(objects, TOTALLY_UNSTORABLE_ACCOUNT);
-        // Disabled no oid, since sqale is able to store large items
         if (isSqaleRepository()) {
-            asserter.assertOid();
+            asserter.assertOid(); // The shadow is in repo, since sqale is able to store large items
         } else {
-            asserter.assertNoOid()
-                .assertFetchResult(OperationResultStatusType.FATAL_ERROR, "could not execute batch");
+            asserter.assertNoOid() // Generic repo cannot store names with more than 255 characters
+                .assertFetchResult(OperationResultStatusType.FATAL_ERROR, "Error while committing the transaction");
         }
         // Primary identifier value is not here, because it is set as part of object shadowization (which failed)
         asserter.attributes()
@@ -673,7 +685,7 @@ public class TestDummyNegative extends AbstractDummyTest {
         assertSelectedAccountByName(objects, GOOD_ACCOUNT)
                 .assertOid()
                 .assertKind(ShadowKindType.ACCOUNT)
-                .assertPrimaryIdentifierValue(GOOD_ACCOUNT_UID)
+                .assertIndexedPrimaryIdentifierValue(GOOD_ACCOUNT_UID)
                 .assertName(GOOD_ACCOUNT)
                 .attributes()
                     .assertSize(3)
@@ -686,51 +698,50 @@ public class TestDummyNegative extends AbstractDummyTest {
                 .display()
                 .assertOid()
                 .assertKind(ShadowKindType.ACCOUNT)
-                .assertPrimaryIdentifierValue(GOOD_ACCOUNT_UID)
+                .assertIndexedPrimaryIdentifierValue(GOOD_ACCOUNT_UID)
                 .attributes()
                     .assertSize(3)
                     .end();
 
-        assertSelectedAccountByName(objects, INCONVERTIBLE_ACCOUNT_UID)
+        assertSelectedAccountByName(objects, INCONVERTIBLE_ACCOUNT)
                 .assertOid()
-                .assertPrimaryIdentifierValue(INCONVERTIBLE_ACCOUNT_UID)
-                .assertName(INCONVERTIBLE_ACCOUNT_UID)
+                .assertIndexedPrimaryIdentifierValue(INCONVERTIBLE_ACCOUNT_UID)
+                .assertName(INCONVERTIBLE_ACCOUNT)
                 .attributes()
-                    .assertSize(2) // uid=uid:inconvertible + number=2
+                    .assertSize(3) // uid=uid:inconvertible + name=inconvertible + number=2
                     .end()
                 .assertFetchResult(OperationResultStatusType.FATAL_ERROR, "Couldn't convert resource object", INCONVERTIBLE_ACCOUNT);
                 // (maybe it's not necessary to provide account attributes in the message - reconsider)
 
-        // name is now derived from UID
         PrismObject<ShadowType> inconvertibleAfter =
-                findShadowByPrismName(INCONVERTIBLE_ACCOUNT_UID, RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.get(), result);
+                findShadowByPrismName(INCONVERTIBLE_ACCOUNT, RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.get(), result);
         assertShadow(inconvertibleAfter, INCONVERTIBLE_ACCOUNT)
                 .display()
                 .assertOid()
-                .assertPrimaryIdentifierValue(INCONVERTIBLE_ACCOUNT_UID)
+                .assertIndexedPrimaryIdentifierValue(INCONVERTIBLE_ACCOUNT_UID)
                 .attributes()
-                    .assertSize(2)
+                    .assertSize(3)
                     .end();
 
-        assertSelectedAccountByName(objects, UNSTORABLE_ACCOUNT_UID)
+        assertSelectedAccountByName(objects, UNSTORABLE_ACCOUNT)
                 .assertOid()
-                .assertPrimaryIdentifierValue(UNSTORABLE_ACCOUNT_UID)
-                .assertName(UNSTORABLE_ACCOUNT_UID)
+                .assertIndexedPrimaryIdentifierValue(UNSTORABLE_ACCOUNT_UID)
+                .assertName(UNSTORABLE_ACCOUNT)
                 .attributes()
-                    .assertSize(1) // uid=unstorable
+                    .assertSize(2) // uid=unstorable, name=unstorable
                     .end()
-                .assertFetchResult(OperationResultStatusType.FATAL_ERROR, "Exception when translating", "WRONG");
+                .assertFetchResult(OperationResultStatusType.FATAL_ERROR, "WRONG");
                 // (maybe it's not necessary to provide the unconvertible value in the message - reconsider)
 
-        // name is now derived from UID
+        // Unstorable account is stored without name: the emergency mode of shadowization uses primary ID-only shadows.
         PrismObject<ShadowType> unstorableAfter =
-                findShadowByPrismName(UNSTORABLE_ACCOUNT_UID, RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.get(), result);
+                findShadowByPrismName(UNSTORABLE_ACCOUNT, RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.get(), result);
         assertShadow(unstorableAfter, UNSTORABLE_ACCOUNT)
                 .display()
                 .assertOid()
-                .assertPrimaryIdentifierValue(UNSTORABLE_ACCOUNT_UID)
+                .assertIndexedPrimaryIdentifierValue(UNSTORABLE_ACCOUNT_UID)
                 .attributes()
-                    .assertSize(1)
+                    .assertSize(2)
                     .end();
         if (isSqaleRepository()) {
             // Totally unstorable account is storable
@@ -742,7 +753,7 @@ public class TestDummyNegative extends AbstractDummyTest {
                 .attributes()
                     .assertSize(3) // number, name, uid
                     .end()
-                .assertFetchResult(OperationResultStatusType.FATAL_ERROR, "could not execute batch");
+                .assertFetchResult(OperationResultStatusType.FATAL_ERROR, "Error while committing the transaction");
     }
 
     @Test
@@ -797,7 +808,7 @@ public class TestDummyNegative extends AbstractDummyTest {
         assertSelectedAccountByName(objects, GOOD_ACCOUNT)
                 .assertOid()
                 .assertKind(ShadowKindType.ACCOUNT)
-                .assertPrimaryIdentifierValue(GOOD_ACCOUNT_UID)
+                .assertIndexedPrimaryIdentifierValue(GOOD_ACCOUNT_UID)
                 .assertName(GOOD_ACCOUNT)
                 .attributes()
                     .assertSize(3)
@@ -810,47 +821,48 @@ public class TestDummyNegative extends AbstractDummyTest {
                 .display()
                 .assertOid()
                 .assertKind(ShadowKindType.ACCOUNT)
-                .assertPrimaryIdentifierValue(GOOD_ACCOUNT_UID)
+                .assertIndexedPrimaryIdentifierValue(GOOD_ACCOUNT_UID)
                 .attributes()
                     .assertSize(3)
                     .end();
 
-        assertSelectedAccountByName(objects, INCONVERTIBLE_ACCOUNT_UID)
+        // The resource object itself is intact, so its name is stored as "inconvertible" (i.e. not from UID)
+        assertSelectedAccountByName(objects, INCONVERTIBLE_ACCOUNT)
                 .assertOid()
-                .assertPrimaryIdentifierValue(INCONVERTIBLE_ACCOUNT_UID)
-                .assertName(INCONVERTIBLE_ACCOUNT_UID)
+                .assertIndexedPrimaryIdentifierValue(INCONVERTIBLE_ACCOUNT_UID)
+                .assertName(INCONVERTIBLE_ACCOUNT)
                 .attributes()
-                    .assertSize(1) // uid=uid:inconvertible (for some reason number=2 is not there)
+                    .assertSize(3)
                     .end();
 
-        // name is now derived from UID
         PrismObject<ShadowType> inconvertibleAfter =
-                findShadowByPrismName(INCONVERTIBLE_ACCOUNT_UID, RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.get(), result);
+                findShadowByPrismName(INCONVERTIBLE_ACCOUNT, RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.get(), result);
         assertShadow(inconvertibleAfter, INCONVERTIBLE_ACCOUNT)
                 .display()
                 .assertOid()
-                .assertPrimaryIdentifierValue(INCONVERTIBLE_ACCOUNT_UID)
+                .assertIndexedPrimaryIdentifierValue(INCONVERTIBLE_ACCOUNT_UID)
                 .attributes()
-                    .assertSize(1)
+                    .assertSize(3)
                     .end();
 
-        assertSelectedAccountByName(objects, UNSTORABLE_ACCOUNT_UID)
+        // However, here the problem is while acquiring the shadow; so, the repo will contain only the UID.
+        assertSelectedAccountByName(objects, UNSTORABLE_ACCOUNT)
                 .assertOid()
-                .assertPrimaryIdentifierValue(UNSTORABLE_ACCOUNT_UID)
-                .assertName(UNSTORABLE_ACCOUNT_UID)
+                .assertIndexedPrimaryIdentifierValue(UNSTORABLE_ACCOUNT_UID)
+                .assertName(UNSTORABLE_ACCOUNT)
                 .attributes()
-                    .assertSize(1) // uid=unstorable
+                    .assertSize(2) // uid=uid:unstorable, name=unstorable
                     .end();
 
-        // name is now derived from UID
         PrismObject<ShadowType> unstorableAfter =
-                findShadowByPrismName(UNSTORABLE_ACCOUNT_UID, RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.get(), result);
+                findShadowByPrismName(UNSTORABLE_ACCOUNT, RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.get(), result);
         assertShadow(unstorableAfter, UNSTORABLE_ACCOUNT)
                 .display()
                 .assertOid()
-                .assertPrimaryIdentifierValue(UNSTORABLE_ACCOUNT_UID)
+                .assertIndexedPrimaryIdentifierValue(UNSTORABLE_ACCOUNT_UID)
+                .assertName(UNSTORABLE_ACCOUNT)
                 .attributes()
-                    .assertSize(1)
+                    .assertSize(2)
                     .end();
 
         // The fetch result is not in the shadows. The exception is recorded in events.
@@ -895,8 +907,7 @@ public class TestDummyNegative extends AbstractDummyTest {
         displayDumpable("test result", testResult);
         assertThatOperationResult(testResult)
                 .isFatalError()
-                .hasMessageContaining("Couldn't process resource schema refinements")
-                .hasMessageContaining("Missing `ref` element in attribute definition in object type 'ACCOUNT/default' definition in resource:04e54cf7-87df-4b19-9548-fc256b7d585a(resource-dummy-broken-attribute-def)")
+                .hasMessageContaining("Missing 'ref' element in attribute definition in object type ACCOUNT/default definition in schema handling in resource:04e54cf7-87df-4b19-9548-fc256b7d585a(resource-dummy-broken-attribute-def)")
                 .hasMessageContaining("schemaHandling/objectType/123/attribute/456");
     }
 

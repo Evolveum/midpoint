@@ -21,6 +21,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.prism.path.ItemPath;
+
+import com.evolveum.midpoint.repo.api.RepoAddOptions;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
@@ -73,6 +79,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
     private static final TestObject<RoleType> ROLE_WEBMAIL = TestObject.file(TEST_DIR, "role-webmail.xml", "ba0d281a-b0e0-4d3a-ade0-513f53454c27");
 
     private static final TestObject<TaskType> TASK_HR_IMPORT = TestObject.file(TEST_DIR, "task-hr-import.xml", "b5ee6532-b779-4bee-b713-d394346170f7");
+    private static final TestObject<TaskType> SECURITY_POLICY_HASH_PASSWORD = TestObject.file(TEST_DIR, "security-policy-hash-password.xml", "00000000-0000-0000-0000-000000000120");
 
     private static final DummyTestResource RESOURCE_HR = new DummyTestResource(TEST_DIR, "resource-hr.xml", "bb9b9bca-5d47-446a-83ed-6c5411ac219f", "hr");
     private static final DummyTestResource RESOURCE_WEBMAIL = new DummyTestResource(TEST_DIR, "resource-webmail.xml", "657fce5e-9d7a-4bab-b475-157ca586f73a", "webmail");
@@ -91,6 +98,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         repoAdd(ROLE_DUMMY, initResult);
         repoAdd(ROLE_WEBMAIL, initResult);
         repoAdd(TASK_HR_IMPORT, initResult);
+        repoAdd(SECURITY_POLICY_HASH_PASSWORD, RepoAddOptions.createOverwrite(), initResult);
 
         initDummyResource(RESOURCE_HR, initTask, initResult);
         initDummyResource(RESOURCE_WEBMAIL, initTask, initResult);
@@ -181,7 +189,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         assertNull("Unexpected object in accountRefValue", accountRefValue.getObject());
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
+        var accountShadow = getShadowRepo(accountJackOid);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
         assertEnableTimestampShadow(accountShadow, startTime, endTime);
 
@@ -336,7 +344,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         accountJackOid = getSingleLinkOid(userJack);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
+        var accountShadow = getShadowRepo(accountJackOid);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
         assertEnableTimestampShadow(accountShadow, startTime, endTime);
 
@@ -387,7 +395,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
         when();
-        assignRole(USER_JACK_OID, ROLE_SUPERUSER_OID, task, result);
+        assignRole(USER_JACK_OID, ROLE_SUPERUSER.oid, task, result);
 
         then();
         result.computeStatus();
@@ -396,7 +404,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
         assertUserJack(userJack);
-        assertAssignedRole(userJack, ROLE_SUPERUSER_OID);
+        assertAssignedRole(userJack, ROLE_SUPERUSER.oid);
         assertAssignments(userJack, 2);
 
         // Check notifications
@@ -437,7 +445,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
         when();
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
-        AssignmentType assignment = findAssignmentByTargetRequired(jack, ROLE_SUPERUSER_OID);
+        AssignmentType assignment = findAssignmentByTargetRequired(jack, ROLE_SUPERUSER.oid);
         Long id = assignment.getId();
         executeChanges(
                 prismContext.deltaFor(UserType.class)
@@ -495,7 +503,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
         when();
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
-        AssignmentType assignment = findAssignmentByTargetRequired(jack, ROLE_SUPERUSER_OID);
+        AssignmentType assignment = findAssignmentByTargetRequired(jack, ROLE_SUPERUSER.oid);
         Long id = assignment.getId();
         executeChanges(
                 prismContext.deltaFor(UserType.class)
@@ -937,6 +945,55 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
                 + "The operation will be retried.\n";
         String actual = dummyTransport.getMessages("dummy:simpleAccountNotifier-IN-PROGRESS").get(0).getBody();
         assertTrue("Wrong message body:\n" + actual, actual.contains(expected));
+    }
+
+    /**
+     * Change user password, when store method is hash (MID-9504)
+     */
+    @Test
+    public void test600ModifyHashStoredPassword() throws Exception {
+        given();
+        Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + ".test600ModifyHashStoredPassword");
+        task.setChannel(SchemaConstants.CHANNEL_USER_URI);
+        OperationResult result = task.getResult();
+        preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
+
+        when();
+        ProtectedStringType passEncrypt = protector.encryptString("dummyPassword");
+        passEncrypt.setClearValue(null);
+        ObjectDelta<UserType> userDelta = createModifyUserAddDelta(
+                USER_BARBOSSA_OID,
+                ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE),
+                passEncrypt);
+        executeChanges(userDelta, new ModelExecuteOptions().reconcile(false), task, result);
+
+        then();
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        PrismObject<UserType> userBarbarosa = modelService.getObject(UserType.class, USER_BARBOSSA_OID, null, task, result);
+        UserType userBarbarosaType = userBarbarosa.asObjectable();
+        assertTrue("Password isn't save as hash", userBarbarosaType.getCredentials().getPassword().getValue().isHashed());
+
+        notificationManager.setDisabled(true);
+
+        // Check notifications
+        displayDumpable("Dummy transport messages", dummyTransport);
+
+        checkDummyTransportMessages("accountPasswordNotifier", 0);
+        checkDummyTransportMessages("userPasswordNotifier", 1);
+        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-IN-PROGRESS", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
+        checkDummyTransportMessages("simpleUserNotifier", 1);
+        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+
+        List<Message> pwdMessages = dummyTransport.getMessages("dummy:userPasswordNotifier");
+        Message pwdMessage = pwdMessages.get(0); // number of messages was already checked
+        assertEquals("Invalid list of recipients", singletonList("recipient@evolveum.com"), pwdMessage.getTo());
+        assertThat(pwdMessage.getBody()) // there can be subscription footer
+                .startsWith("Password: dummyPassword");
     }
 
     @SuppressWarnings("Duplicates")

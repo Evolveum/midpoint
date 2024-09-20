@@ -9,9 +9,9 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <div class="card-header p-0">
-        <div class="d-flex p-3" wicket:id="headerRow">
+        <div class="d-flex p-3" wicket:id="headerRow" tabindex="0">
             <div class="row check-table-header" style="margin-left: 2px;">
-                <input type="checkbox" wicket:id="selected"/>
+                <input type="checkbox" wicket:id="selected" wicket:message="aria-label:DelegationEditorPanel.select"/>
                 <div class="check-table-label">
                     <i class="check-table-header-icon" wicket:id="typeImage"></i>
                     <a class="check-table-header-name" wicket:id="name">
@@ -23,6 +23,7 @@
                     <a class="check-table-header-name" wicket:id="delegatedTo">
                         <span class="name" wicket:id="delegatedToLabel"/>
                     </a>
+                    <span class="summary-tag gap-1 border rounded bg-light px-2 m-1 text-body" wicket:id="activation"/>
                 </div>
             </div>
             <div class="card-tools ml-auto">
@@ -36,7 +37,7 @@
                 <span class="text-gray font-weight-bold text-center"><wicket:message key="AssignmentEditorPanel.description"/></span>
             </div>
             <div>
-                <textarea class="form-control form-control-sm" rows="2" wicket:id="delegationDescription"></textarea>
+                <textarea class="form-control form-control-sm" rows="2" wicket:id="delegationDescription" wicket:message="aria-label:AssignmentEditorPanel.description"></textarea>
             </div>
         </div>
         <div class="d-flex flex-column mb-3">
@@ -62,7 +63,7 @@
                 </div>
                 <div>
                     <div class="pull-left">
-                        <input type="checkbox" wicket:id="assignmentPrivilegesCheckbox"/>
+                        <input type="checkbox" wicket:id="assignmentPrivilegesCheckbox" wicket:message="aria-label:AssignmentEditorPanel.privileges"/>
                     </div>
                     <div>
                         <div wicket:id="assignmentPrivilegesLabelContainer">
@@ -82,7 +83,7 @@
                     <span class="text-gray font-weight-bold text-center"><wicket:message key="DelegationEditorPanel.assignmentLimitations"/></span>
                 </div>
                 <div>
-                    <input type="checkbox" wicket:id="allowTransitive"/>
+                    <input type="checkbox" wicket:id="allowTransitive" wicket:message="aria-label:DelegationEditorPanel.allowTransitive"/>
                     <wicket:message key="DelegationEditorPanel.allowTransitive"/>
                 </div>
             </div>
@@ -91,11 +92,11 @@
                     <span class="text-gray font-weight-bold text-center"><wicket:message key="DelegationEditorPanel.workflowApprovals"/></span>
                 </div>
                 <div>
-                    <input type="checkbox" wicket:id="approvalWorkItems"/>
+                    <input type="checkbox" wicket:id="approvalWorkItems" wicket:message="aria-label:DelegationEditorPanel.delegateCaseWorkItems"/>
                     <wicket:message key="DelegationEditorPanel.delegateCaseWorkItems"/>
                 </div>
                 <div>
-                    <input class="pull-left" type="checkbox" wicket:id="certificationWorkItems"/>
+                    <input class="pull-left" type="checkbox" wicket:id="certificationWorkItems" wicket:message="aria-label:DelegationEditorPanel.delegateCertificationWorkItems"/>
                     <wicket:message key="DelegationEditorPanel.delegateCertificationWorkItems"/>
                 </div>
                 <div>

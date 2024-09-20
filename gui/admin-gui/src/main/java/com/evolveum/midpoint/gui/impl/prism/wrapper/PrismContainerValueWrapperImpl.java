@@ -16,14 +16,19 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemWrapperComparator;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.gui.impl.util.ExecutedDeltaPostProcessor;
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
@@ -109,6 +114,11 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
     }
 
     @Override
+    public void replaceContainerItemValue(PrismContainerValue<C> newValue) {
+        setNewValue(newValue);
+    }
+
+    @Override
     public String getDisplayName() {
         if (isVirtual()) {
             return getContainerDefinition().getDisplayName();
@@ -157,26 +167,6 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
     @Override
     public List<ItemWrapper<?, ?>> getItems() {
         return items;
-    }
-
-    @Override
-    public void addItem(ItemWrapper<?, ?> newItem) {
-        items.add(newItem);
-        if (newItem instanceof PrismContainerWrapper) {
-
-            collectExtensionItems(newItem, false, nonContainers);
-
-            if (DetailsPageUtil.isNewDesignEnabled()) {
-                if (!((PrismContainerWrapper) newItem).isVirtual()) {
-                    containers.add((PrismContainerWrapper) newItem);
-                }
-            } else {
-                containers.add((PrismContainerWrapper<? extends Containerable>) newItem);
-            }
-
-        } else {
-            nonContainers.add(newItem);
-        }
     }
 
     @Override
@@ -338,6 +328,29 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
         PrismObjectWrapper objectWrapper = getParent().findObjectWrapper();
         if (objectWrapper == null) {
             LOGGER.trace("No object wrapper found. Skipping virtual items.");
+
+            //try container value virtual items
+            PrismContainerValueWrapper valueParent = getParent().getParent();
+            for (VirtualContainerItemSpecificationType virtualItem : getVirtualItems()) {
+                try {
+                    ItemPath virtualItemPath = getVirtualItemPath(virtualItem);
+                    ItemWrapper<?, ?> itemWrapper = valueParent.findItem(virtualItemPath.namedSegmentsOnly());
+                    if (itemWrapper == null) {
+                        LOGGER.debug("No wrapper found for {}", virtualItemPath);
+                        continue;
+                    }
+
+                    if (itemWrapper instanceof PrismContainerWrapper) {
+                        continue;
+                    }
+                    itemWrapper.setShowInVirtualContainer(true);
+
+                    nonContainers.add(itemWrapper);
+
+                } catch (SchemaException e) {
+                    LOGGER.error("Cannot find wrapper with path {}, error occurred {}", virtualItem, e.getMessage(), e);
+                }
+            }
             return;
         }
 
@@ -472,11 +485,43 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
         return null;
     }
 
-    private void addVirtualContainers(List<PrismContainerWrapper<?>> containers) {
-        if (this instanceof PrismObjectValueWrapper) {
-            addVirtualContainersFrom((PrismObjectValueWrapper) this, containers);
-            return;
+    @Override
+    public <T extends Containerable> PrismContainerValueWrapper<T> findContainerValue(ItemPath path) {
+        try {
+            Object last = path.last();
+            if (ItemPath.isId(last)) {
+                path = path.allExceptLast();
+            }
+            PrismContainerWrapper containerWrapper = findContainer(path);
+
+            if (!(containerWrapper instanceof PrismContainerWrapperImpl)) {
+                throw new UnsupportedOperationException("Cannot find container wrapper for " + path + ". Unsupported parent found: " + containerWrapper);
+            }
+
+            PrismContainerWrapperImpl containerWrapperImpl = (PrismContainerWrapperImpl) containerWrapper;
+            if (ItemPath.isId(last)) {
+                return containerWrapperImpl.findValue((Long) last);
+            } else {
+                if (containerWrapperImpl.isSingleValue()) {
+                    return containerWrapperImpl.findValue(null);
+                }
+                throw new UnsupportedOperationException("Cannot get value from multivalue container without specified container id.");
+            }
+
+        } catch (SchemaException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Unexpected exception while trying to find container value with path {}, parentContainer {}", e, path, this);
+            return null;
         }
+    }
+
+    private void addVirtualContainers(List<PrismContainerWrapper<?>> containers) {
+        if (this instanceof PrismContainerValueWrapper<?>) {
+            addVirtualContainersFrom(this, containers);
+            if (!containers.isEmpty() || this instanceof PrismObjectValueWrapper) {
+                return;
+            }
+        }
+
         if (getParent() == null) {
             return;
         }
@@ -488,7 +533,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
         addVirtualContainersFrom(objectValue, containers);
     }
 
-    private void addVirtualContainersFrom(PrismObjectValueWrapper<?> objectValue, List<PrismContainerWrapper<?>> containers) {
+    private void addVirtualContainersFrom(PrismContainerValueWrapper<?> objectValue, List<PrismContainerWrapper<?>> containers) {
         for (ItemWrapper<?, ?> itemWrapper : objectValue.getItems()) {
             if (itemWrapper instanceof PrismContainerWrapper
                     && ((PrismContainerWrapper) itemWrapper).isVirtual()
@@ -690,10 +735,28 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
     }
 
     @Override
+    public void addItem(ItemWrapper<?, ?> newItem) {
+        items.add(newItem);
+        if (newItem instanceof PrismContainerWrapper) {
+
+            collectExtensionItems(newItem, false, nonContainers);
+
+            if (DetailsPageUtil.isNewDesignEnabled()) {
+                if (!((PrismContainerWrapper) newItem).isVirtual()) {
+                    containers.add((PrismContainerWrapper) newItem);
+                }
+            } else {
+                containers.add((PrismContainerWrapper<? extends Containerable>) newItem);
+            }
+
+        } else {
+            nonContainers.add(newItem);
+        }
+    }
+
+    @Override
     public void addItems(Collection<ItemWrapper<?, ?>> newItems) {
-        items.addAll(newItems);
-        nonContainers.clear();
-        virtualContainers = null;
+        newItems.forEach(this::addItem);
     }
 
     @Override
@@ -716,10 +779,10 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
     public PrismContainerValue<C> getContainerValueApplyDelta() throws SchemaException {
         PrismContainerValue<C> oldValue = WebPrismUtil.cleanupEmptyContainerValue(getOldValue().clone());
 
-        Collection<ItemDelta> deltas = getDeltas();
+        Collection<ItemDelta<?, ?>> deltas = getDeltas();
 
-        for (ItemDelta delta : deltas) {
-            ItemDelta deltaForValue = delta.cloneWithChangedParentPath(
+        for (ItemDelta<?, ?> delta : deltas) {
+            ItemDelta<?, ?> deltaForValue = delta.cloneWithChangedParentPath(
                     delta.getParentPath().subPath(
                             getPath().size(),
                             delta.getParentPath().size()));
@@ -730,15 +793,29 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
     }
 
     @Override
-    public Collection<ItemDelta> getDeltas() throws SchemaException {
-        Collection<ItemDelta> deltas = new ArrayList<>();
+    public Collection<ItemDelta<?, ?>> getDeltas() throws SchemaException {
+        Collection<ItemDelta<?, ?>> deltas = new ArrayList<>();
         for (ItemWrapper<?, ?> itemWrapper : getItems()) {
-            Collection<ItemDelta> delta = itemWrapper.getDelta();
+            Collection<ItemDelta<?, ?>> delta = itemWrapper.getDelta();
             if (delta == null || delta.isEmpty()) {
                 continue;
             }
             deltas.addAll(delta);
         }
         return deltas;
+    }
+
+    @Override
+    public Collection<ExecutedDeltaPostProcessor> getPreconditionDeltas(
+            ModelServiceLocator serviceLocator, OperationResult result) throws CommonException {
+        Collection<ExecutedDeltaPostProcessor> processors = new ArrayList<>();
+        for (ItemWrapper<?, ?> itemWrapper : getItems()) {
+            Collection<ExecutedDeltaPostProcessor> processor = itemWrapper.getPreconditionDeltas(serviceLocator, result);
+            if (processor == null || processor.isEmpty()) {
+                continue;
+            }
+            processors.addAll(processor);
+        }
+        return processors;
     }
 }

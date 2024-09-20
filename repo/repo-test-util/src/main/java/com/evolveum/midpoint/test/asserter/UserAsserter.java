@@ -8,6 +8,7 @@ package com.evolveum.midpoint.test.asserter;
 
 import static org.testng.AssertJUnit.*;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -23,6 +24,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsStorageTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author semancik
@@ -284,6 +287,11 @@ public class UserAsserter<RA> extends FocusAsserter<UserType, RA> {
         return this;
     }
 
+    public UserAsserter<RA> assertHonorificPrefix(String expectedOrig) {
+        assertPolyStringProperty(UserType.F_HONORIFIC_PREFIX, expectedOrig);
+        return this;
+    }
+
     public UserAsserter<RA> assertEmployeeNumber(String expected) {
         assertEquals("Wrong employeeNumber in " + desc(), expected, getObject().asObjectable().getEmployeeNumber());
         return this;
@@ -309,6 +317,10 @@ public class UserAsserter<RA> extends FocusAsserter<UserType, RA> {
         assertTrue("Missing jpegPhoto in " + desc(), photoProperty != null &&
                 (photoProperty.isIncomplete() || photoProperty.size() == 1 && photoProperty.getRealValue() != null));
         return this;
+    }
+
+    public UserAsserter<RA> assertJpegPhoto(String expected) {
+        return assertJpegPhoto(expected != null ? expected.getBytes(StandardCharsets.UTF_8) : null);
     }
 
     public UserAsserter<RA> assertJpegPhoto(byte[] expected) {
@@ -490,5 +502,30 @@ public class UserAsserter<RA> extends FocusAsserter<UserType, RA> {
     @Override
     public UserAsserter<RA> withObjectResolver(SimpleObjectResolver objectResolver) {
         return (UserAsserter<RA>) super.withObjectResolver(objectResolver);
+    }
+
+    /** Convenience method. */
+    public UserAsserter<RA> assertCreateMetadataComplex(XMLGregorianCalendar startTime, XMLGregorianCalendar endTime)
+            throws SchemaException {
+        valueMetadata()
+                .singleValue()
+                .assertCreateMetadataComplex(startTime, endTime);
+        return this;
+    }
+
+    /** Convenience method. */
+    public UserAsserter<RA> assertModifyMetadataComplex(XMLGregorianCalendar startTime, XMLGregorianCalendar endTime)
+            throws SchemaException {
+        valueMetadataSingle()
+                .assertModifyMetadataComplex(startTime, endTime);
+        return this;
+    }
+
+    /** Convenience method. */
+    public UserAsserter<RA> assertLastProvisioningTimestamp(XMLGregorianCalendar startTime, XMLGregorianCalendar endTime)
+            throws SchemaException {
+        valueMetadataSingle()
+                .assertLastProvisioningTimestamp(startTime, endTime);
+        return this;
     }
 }

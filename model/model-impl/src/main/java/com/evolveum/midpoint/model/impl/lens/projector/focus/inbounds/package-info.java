@@ -10,10 +10,10 @@
  *
  * Main classes:
  *
- * 1. {@link com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.ClockworkInboundsProcessing}: provides complete
+ * 1. {@link com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.FullInboundsProcessing}: provides complete
  * processing during clockwork, i.e. collecting, evaluating, and consolidating inbound mappings.
  *
- * 2. {@link com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.PreInboundsProcessing}: provides processing before
+ * 2. {@link com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.SingleShadowInboundsProcessing}: provides processing before
  * the clockwork.
  *
  * Among helper classes, _mapping preparation_ is the most complex operation. It is carried out by classes in

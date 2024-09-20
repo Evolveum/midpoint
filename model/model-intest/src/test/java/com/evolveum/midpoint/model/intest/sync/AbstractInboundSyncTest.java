@@ -63,10 +63,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        if (areMarksSupported()) {
-            repoAdd(CommonInitialObjects.ARCHETYPE_OBJECT_MARK, initResult);
-            repoAdd(CommonInitialObjects.MARK_PROTECTED, initResult);
-        }
+        CommonInitialObjects.addMarks(this, initTask, initResult);
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
         getSyncTask().init(this, initTask, initResult);
@@ -141,7 +138,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         // Preconditions
         assertUsers(7);
 
-        DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        DummyAccount account = dummyResourceEmerald.getAccountByName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
         /// WHEN
         when();
@@ -191,7 +188,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         // Preconditions
         assertUsers(7);
 
-        DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        DummyAccount account = dummyResourceEmerald.getAccountByName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
         /// WHEN
         when();
@@ -241,7 +238,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         // Preconditions
         assertUsers(7);
 
-        DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        DummyAccount account = dummyResourceEmerald.getAccountByName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
         /// WHEN
         when();
@@ -291,7 +288,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         // Preconditions
         assertUsers(7);
 
-        DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        DummyAccount account = dummyResourceEmerald.getAccountByName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
         /// WHEN
         when();
@@ -342,7 +339,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         // Preconditions
         assertUsers(7);
 
-        DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        DummyAccount account = dummyResourceEmerald.getAccountByName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
         /// WHEN
         when();
@@ -393,7 +390,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         // Preconditions
         assertUsers(7);
 
-        DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        DummyAccount account = dummyResourceEmerald.getAccountByName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
         /// WHEN
         when();
@@ -505,7 +502,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         // Preconditions
         assertUsers(8);
 
-        DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_POSIXUSER_DUMMY_USERNAME);
+        DummyAccount account = dummyResourceEmerald.getAccountByName(ACCOUNT_POSIXUSER_DUMMY_USERNAME);
 
         /// WHEN
         when();

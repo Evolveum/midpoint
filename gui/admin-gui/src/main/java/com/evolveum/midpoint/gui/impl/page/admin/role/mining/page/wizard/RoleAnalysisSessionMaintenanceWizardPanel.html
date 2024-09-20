@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--
+  ~ Copyright (c) 2024 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
+
+    <wicket:extend>
+        <div wicket:id="feedbackContainer" class="col-8 feedbackContainer">
+            <div wicket:id="feedback" class="messagePanel"></div>
+        </div>
+
+        <div class="card col-6 mx-auto p-1">
+            <div class="card-header ">
+                <div class="" wicket:id="title-retention"></div>
+            </div>
+            <div class="card-body">
+                <span class="mt-4 text-center">
+                    <span style="text-decoration: none;">
+                        <div class="d-flex align-items-center" wicket:id="label-retention"></div>
+                    </span>
+                </span>
+                <div class="d-flex flex-column w-100">
+                    <input class="form-control form-control-sm" wicket:id="input-retention"/>
+                </div>
+            </div>
+        </div>
+
+        <div class="card col-6 mx-auto p-1">
+            <div class="card-header ">
+                <div class="" wicket:id="title-processing"></div>
+                <div class="" wicket:id="description-processing"></div>
+            </div>
+            <div class="card-body">
+                <div class="d-flex gap-2 flex-column w-100">
+                    <div wicket:id="delete-processing"></div>
+                    <div wicket:id="rebuild-processing"></div>
+                </div>
+            </div>
+        </div>
+
+    </wicket:extend>
+</wicket:panel>

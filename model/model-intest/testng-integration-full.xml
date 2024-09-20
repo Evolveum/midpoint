@@ -19,6 +19,7 @@
             <class name="com.evolveum.midpoint.model.intest.security.TestSecurityMultitenant"/>
             <class name="com.evolveum.midpoint.model.intest.security.TestSecurityItemValues"/>
             <class name="com.evolveum.midpoint.model.intest.security.TestSecurityGovernance"/>
+            <class name="com.evolveum.midpoint.model.intest.TestExpressionProfiles"/>
             <class name="com.evolveum.midpoint.model.intest.TestRunAs"/>
         </classes>
     </test>
@@ -61,6 +62,7 @@
             <class name="com.evolveum.midpoint.model.intest.TestTolerantAttributes"/>
             <class name="com.evolveum.midpoint.model.intest.TestScriptHooks"/>
             <class name="com.evolveum.midpoint.model.intest.TestEntitlements"/>
+            <class name="com.evolveum.midpoint.model.intest.associations.TestAssociations"/>
             <class name="com.evolveum.midpoint.model.intest.TestCaseIgnore"/>
             <class name="com.evolveum.midpoint.model.intest.TestIntent"/>
             <class name="com.evolveum.midpoint.model.intest.gensync.TestAssociationInbound"/>
@@ -74,6 +76,7 @@
             <class name="com.evolveum.midpoint.model.intest.TestAssignmentsProcessing"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestRbac"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestSegregationOfDuties"/>
+            <class name="com.evolveum.midpoint.model.intest.rbac.TestPolicyRules"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestRbacLightInitialProjection"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestRbacNoInbounds"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestAssignmentValidity"/>
@@ -98,6 +101,8 @@
             <class name="com.evolveum.midpoint.model.intest.TestIndexing"/>
             <class name="com.evolveum.midpoint.model.intest.TestIdentities"/>
             <class name="com.evolveum.midpoint.model.intest.TestInitialObjects"/>
+            <class name="com.evolveum.midpoint.model.intest.TestSecretProviders"/>
+            <class name="com.evolveum.midpoint.model.intest.TestShadowCaching"/>
         </classes>
     </test>
     <test name="Synchronization" preserve-order="true" parallel="none" verbose="10">
@@ -130,6 +135,7 @@
             <class name="com.evolveum.midpoint.model.intest.tasks.TestNoOpTask"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestThresholds"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestMiscTasks"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestShadowReclassification"/>
         </classes>
     </test>
     <test name="Async updates" preserve-order="true" parallel="none" verbose="10">
@@ -163,6 +169,7 @@
     </test>
     <test name="Metadata" parallel="none" verbose="10" enabled="true">
         <classes>
+            <class name="com.evolveum.midpoint.model.intest.TestBasicValueMetadata"/>
             <class name="com.evolveum.midpoint.model.intest.TestValueMetadata"/>
             <class name="com.evolveum.midpoint.model.intest.TestAccessesValueMetadata"/>
         </classes>

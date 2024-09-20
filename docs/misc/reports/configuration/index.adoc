@@ -1,0 +1,159 @@
+---
+midpoint-feature: reporting
+doc-type: config
+---
+= Report Configuration
+:page-toc: top
+:toclevels: 3
+:page-upkeep-status: green
+:page-keywords: [ 'report', 'reports', 'reporting' ]
+:search-alias: "report configuration"
+
+
+MidPoint reports can be configured based on the following midPoint concepts:
+
+- xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[Dashboards]
+- xref:/midpoint/reference/misc/reports/configuration/collection-report.adoc[Object Collections]
+
+Current implementation supports exporting reports to the formats mentioned in the following xref:/midpoint/reference/misc/reports/report-formats.adoc[article].
+
+== How to Configure Reports
+
+Every report object consists of the configuration of three basic parts:
+
+* `behavior` - represents the direction of the report.
+There are two possible types of `behavior`: _export_ and _import_.
++
+_Export_ behavior represents the basic reporting mechanism, where the file with reported objects is generated.
++
+_Import_ behavior can be used in situations, when the objects need to be imported midPoint from an external file.
+The supported format is CSV.
+Import behavior is experimental.
+* `engine` - defines the report generation base.
+There are two supported options, reports based on object collections and reports based on a dashboard.
+Only one can be defined at the same time.
+* `fileFormat` - represents format of the generated report file.
+Supported formats for now are CSV and HTML.
+Default format for the dashboard-based reports is HTML and for object collection based reports is CSV.
+
+.*All Configuration Attributes of a Report*
+[%collapsible]
+====
+
+[%autowidth]
+|===
+| Name | Type | Description
+
+
+| _fileFormat_
+| *FileFormatConfigurationType*
+| Define report output file format.
+
+
+| _dashboard_
+| *DashboardReportEngineConfigurationType*
+| Configuration for dashboard-based reports.
+When defined, dashboard engine is used to generate reports.
+
+
+| _objectCollection_
+| *ObjectCollectionReportEngineConfigurationType*
+| Configuration for object collection-based reports.
+When defined, object collection engine is used to generate report.
+
+
+| _defaultScriptConfiguration_
+| *ScriptExpressionEvaluatorConfigurationType*
+| Default configuration for the scripts executed inside the report.
+
+
+| _postReportScript_
+| *CommandLineScriptType*
+| Command-line script that will be executed after the report is complete and the output file is completely produced.
+Output filename will be passed to the script as the "file" argument.
+
+
+|===
+
+====
+
+== Export Behaviour
+
+include::../raw/file-format.adoc[]
+
+== Report Engine
+
+Report engine defines the source of data which is used in the report definition, either you use `objectCollection` or `dashboard` elements in report.
+
+In the case you want to use *Object Collections*, have a look at xref:../configuration/collection-report.adoc[this] article dedicated to the related configuration.
+
+In case of *Dashboards* checkout out xref:../configuration/dashboard-report.adoc[this] configuration article.
+
+== Report Creation
+
+You have multiple possibilities how to create a report.
+One is using the classical flow for creating a new object.
+In this case look for the Report menu item on left side of screen in the main vertical menu, and select *new Report*.
+Here you have two types of reports to choose from, the "Dashboard" reports and "Collection" reports.
+
+
+Alternatively you can click on the 'Create report' button under, most of the tables on object list pages (e.g. All users page).
+In this case, midPoint will automatically use the list as an implicit collection in the report.
+
+image::users.png[]
+
+After clicking the 'Create report' button, you will be redirected to the "new Report' page with predefined filters, based on the search panels from the object table.
+Also, the columns from the previous table will be used as columns for the new report.
+You can either use the generated values or you can customise the report definition further.
+
+Another possibility is the usage of one of the report definitions present in each midPoint distribution out of the box.
+These are pre-configured reports based on often used use-cases.
+Naturally you can use them as a basis for your custom reports.
+
+You can create and configure reports also with the use of the xref:/midpoint/reference/interfaces/rest/endpoints/reports.adoc[REST API].
+
+Examples on how to create a report can be found in our xref:/midpoint/reference/misc/reports/create-report-guide/[*Create a Report Guide*]
+
+For additional configuration details chose from the following articles based on the type of report:
+
+- xref:/midpoint/reference/misc/reports/configuration/collection-report.adoc[Collection Based Reports]
+- xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[Dashboard Based Reports]
+
+== How to Generate The Report
+
+The actual report (i.e. report file) has to be generated.
+This is done usually by clicking the "run" ("Save and run" or "Run original report") button from the report definition.
+This will execute a special task object which generated the actual report.
+After the "run" button is clicked you can access the task either directly through the "notification" prompt which will appear at the header of the page ("show task" button).
+Or you can access the report through the left vertical menu "Server tasks" > "Report tasks" button and find your task amongst the list of tasks.
+
+The actual report file can be downloaded when the task successfully finished, for this the task GUI contains the "Download report" button.
+
+There are multiple ways how tasks are build when executed from a report definition, for more information on this and also information how you can distribute the workload of the task to multiple nodes see xref:../configuration/report-task-definition.adoc[this] page
+
+== Import Behaviour 'Import From Report'
+
+As mentioned above, the report functionality is also capable of using exported reports or custom csv files to create or update objects.
+We call this "Import" or "Reverse" reports, for more information regarding them please see the following page:
+
+xref:../configuration/report-task-definition.adoc[Import From Report]
+
+== Reports With Large Datasets
+
+The way how a report is generated by default might need to be customized in case you are working with a large set of data.
+For this you need to specify the resources which midPoint can allocate for such process.
+For some more details please have a look at this xref:/midpoint/reference/misc/reports/configuration/report-task-definition#_multithreading_and_bucketing[article].
+
+== Report Security
+
+Reports quite often use midPoint expressions, which in some cases might cause security concerns if not used with caution.
+Please have a look at xref:../configuration/report-security.adoc[this] page for a more detailed description.
+
+== See Also
+
+- xref:/midpoint/reference/misc/reports/examples/[Report Examples]
+- xref:/midpoint/reference/expressions/expressions/profiles/[Expression Profiles]
+- xref:/midpoint/security/security-guide/[Security Guide]
+- xref:/midpoint/reference/misc/reports/configuration/collection-report.adoc[Collection Based Reports]
+- xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[Dashboard Based Reports]
+- xref:/midpoint/reference/misc/reports/configuration/import-report.adoc[Import From Report]

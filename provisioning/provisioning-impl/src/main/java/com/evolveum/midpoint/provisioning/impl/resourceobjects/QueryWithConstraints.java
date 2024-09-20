@@ -16,13 +16,6 @@ import com.evolveum.midpoint.schema.processor.SearchHierarchyConstraints;
  * Used as a return value of {@link DelineationProcessor} that waves object type delineation into client-specified
  * search parameters.
  */
-class QueryWithConstraints {
+record QueryWithConstraints(ObjectQuery query, SearchHierarchyConstraints constraints) {
 
-    final ObjectQuery query;
-    final SearchHierarchyConstraints constraints;
-
-    QueryWithConstraints(ObjectQuery query, SearchHierarchyConstraints constraints) {
-        this.query = query;
-        this.constraints = constraints;
-    }
 }

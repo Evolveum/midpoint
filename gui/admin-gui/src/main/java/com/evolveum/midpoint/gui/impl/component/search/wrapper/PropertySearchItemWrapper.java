@@ -21,7 +21,6 @@ import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
@@ -146,7 +145,7 @@ public class PropertySearchItemWrapper<T> extends FilterableSearchItemWrapper<T>
         SearchFilterType filter = null;
         ExpressionType filterExpression = getFilterExpression();
         if (filterExpression != null) {
-            ItemDefinition<?> outputDefinition = PrismContext.get().definitionFactory().createPropertyDefinition(
+            ItemDefinition<?> outputDefinition = PrismContext.get().definitionFactory().newPropertyDefinition(
                     ExpressionConstants.OUTPUT_ELEMENT_NAME, SearchFilterType.COMPLEX_TYPE);
             Task task = pageBase.createSimpleTask("evaluate filter expression");
             try {
@@ -188,7 +187,8 @@ public class PropertySearchItemWrapper<T> extends FilterableSearchItemWrapper<T>
             //noinspection unchecked
             return ctx.queryFor(type)
                     .item(path, itemDef).eq(parsedValue).buildFilter();
-        } else if (DOMUtil.XSD_STRING.equals(valueTypeName)) {
+        } else if (DOMUtil.XSD_STRING.equals(valueTypeName)
+                || DOMUtil.XSD_ANYURI.equals(valueTypeName)) {
             String text = (String) getValue().getValue();
             //noinspection unchecked
             return ctx.queryFor(type)

@@ -1,0 +1,56 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Generate a Password for User*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Accept: application/json" \
+-H "Content-Type: application/json" \
+-X POST http://localhost:8080/midpoint/ws/rest/users/e297a878-89da-43fa-b67a-d0316975388a/generate \
+-v \
+--data-binary @./samples/rest/policy-items-password-generate.json
+----
+
+.*Show* data source example for *"Generate a password for user"* | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/policy-items-password-generate.json[GitHub]
+[%collapsible]
+====
+[source, json]
+----
+{
+	"policyItemsDefinition": {
+		"policyItemDefinition": {
+			"target": {
+				"path": "credentials/password/value"
+			},
+			"execute": "true"
+		}
+	}
+}
+----
+====
+The response is an HTTP 200 code in case of success with a response body.
+
+.*Show* example output for *"Generate a password for user"*
+[%collapsible]
+====
+[source, json]
+----
+{
+  "@ns" : "http://prism.evolveum.com/xml/ns/public/types-3",
+  "object" : {
+    "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/api-types-3#PolicyItemsDefinitionType",
+    "policyItemDefinition" : [ {
+      "target" : {
+        "path" : "credentials/password/value"
+      },
+      "value" : {
+        "@type" : "xsd:string",
+        "@value" : "afruD"
+      },
+      "execute" : true
+    } ]
+  }
+}
+----
+====

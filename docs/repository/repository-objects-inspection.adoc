@@ -1,0 +1,250 @@
+= Repository Objects Inspection
+:page-wiki-name: Repository objects inspection HOWTO
+:page-wiki-id: 24674644
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2017-07-06T15:22:10.924+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2017-07-06T19:32:39.446+02:00
+:page-upkeep-status: orange
+:page-display-order: 98
+
+MidPoint performance can be sometimes lower than expected from quite unusual reason: objects in repository could grow too large.
+This can be the case e.g. because of big operation results (stored e.g. in tasks or shadows), because of model operation contexts stored in approval tasks, or because of evaluated triggers stored as part of assignments.
+
+In order to diagnose such situations we have created the "object integrity check" task.
+(As for the name: we expect many more uses of such task to come later.
+Displaying objects size is quite a minor functionality in this respect.)
+
+So, if you want to see how large are objects in your repository, import the following task:
+
+.Task for displaying repository objects size
+[source,xml]
+----
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Object size check</name>
+    <extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
+        <mext:objectQuery>
+            <!-- put object query here, if needed -->
+        </mext:objectQuery>
+    </extension>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionStatus>runnable</executionStatus>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/object-integrity-check/handler-3</handlerUri>
+    <recurrence>single</recurrence>
+</task>
+----
+
+You can restrict the objects to be included in the scope by using `objectQuery` extension item.
+
+The result will be shown in the log, like this (note that my midPoint is almost empty now, so there are not many objects there):
+
+[source]
+----
+2017-07-06 19:32:00,205 [] [midPointScheduler_Worker-1] INFO (com.evolveum.midpoint.model.impl.integrity.ObjectIntegrityCheckResultHandler):
+
+**************************************** Statistics for com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType ****************************************
+
+Count: 1
+Min: 6581 (SystemConfiguration(00000000-0000-0000-0000-000000000001))
+Max: 6581 (SystemConfiguration(00000000-0000-0000-0000-000000000001))
+Avg: 6581
+
+Histogram:
+
+     Interval :  Items :                                                                                  : Representative
+-------------------------------------------------------------------------------------------------------------------------------------
+     [0-6581] :      1 : ################################################################################ : SystemConfiguration(00000000-0000-0000-0000-000000000001) (6581)
+
+
+
+**************************************** Statistics for com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType ****************************************
+
+Count: 4
+Min: 1672 (Locales(00000000-0000-0000-0000-000000000210))
+Max: 2054 (Languages(00000000-0000-0000-0000-000000000200))
+Avg: 1773
+
+Histogram:
+
+     Interval :  Items :                                                                                  : Representative
+-------------------------------------------------------------------------------------------------------------------------------------
+     [0-2054] :      4 : ################################################################################ : Languages(00000000-0000-0000-0000-000000000200) (2054)
+
+
+
+**************************************** Statistics for com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType ****************************************
+
+Count: 1
+Min: 85387 (Employee(00000000-0000-0000-0000-0000EMPLOYEE))
+Max: 85387 (Employee(00000000-0000-0000-0000-0000EMPLOYEE))
+Avg: 85387
+
+Histogram:
+
+     Interval :  Items :                                                                                  : Representative
+-------------------------------------------------------------------------------------------------------------------------------------
+     [0-9999] :      0 :                                                                                  :
+[10000-19999] :      0 :                                                                                  :
+[20000-29999] :      0 :                                                                                  :
+[30000-39999] :      0 :                                                                                  :
+[40000-49999] :      0 :                                                                                  :
+[50000-59999] :      0 :                                                                                  :
+[60000-69999] :      0 :                                                                                  :
+[70000-79999] :      0 :                                                                                  :
+[80000-85387] :      1 : ################################################################################ : Employee(00000000-0000-0000-0000-0000EMPLOYEE) (85387)
+
+
+
+**************************************** Statistics for com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType ****************************************
+
+Count: 1
+Min: 2264 (Default Security Policy(00000000-0000-0000-0000-000000000120))
+Max: 2264 (Default Security Policy(00000000-0000-0000-0000-000000000120))
+Avg: 2264
+
+Histogram:
+
+     Interval :  Items :                                                                                  : Representative
+-------------------------------------------------------------------------------------------------------------------------------------
+     [0-2264] :      1 : ################################################################################ : Default Security Policy(00000000-0000-0000-0000-000000000120) (2264)
+
+
+
+**************************************** Statistics for com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType ****************************************
+
+Count: 7
+Min: 20992 (Certification definitions report(00000000-0000-0000-0000-000000000130))
+Max: 37838 (Audit logs report(00000000-0000-0000-0000-000000000009))
+Avg: 29866
+
+Histogram:
+
+     Interval :  Items :                                                                                  : Representative
+-------------------------------------------------------------------------------------------------------------------------------------
+     [0-9999] :      0 :                                                                                  :
+[10000-19999] :      0 :                                                                                  :
+[20000-29999] :      4 : ################################################################################ : Certification cases report(00000000-0000-0000-0000-000000000150) (28090)
+[30000-37838] :      3 : ############################################################                     : Audit logs report(00000000-0000-0000-0000-000000000009) (37838)
+
+
+
+**************************************** Statistics for com.evolveum.midpoint.xml.ns._public.common.common_3.UserType ****************************************
+
+Count: 2
+Min: 3913 (administrator(00000000-0000-0000-0000-000000000002))
+Max: 2673710 (helpdesk(00000000-0000-0000-0000-999999999999))
+Avg: 1338811
+
+Histogram:
+
+         Interval :  Items :                                                                                  : Representative
+-----------------------------------------------------------------------------------------------------------------------------------------
+         [0-9999] :      1 : ################################################################################ : administrator(00000000-0000-0000-0000-000000000002) (3913)
+    [10000-19999] :      0 :                                                                                  :
+    [20000-29999] :      0 :                                                                                  :
+    [30000-39999] :      0 :                                                                                  :
+    [40000-49999] :      0 :                                                                                  :
+    [50000-59999] :      0 :                                                                                  :
+ ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~ 256 lines skipped ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~
+[2620000-2629999] :      0 :                                                                                  :
+[2630000-2639999] :      0 :                                                                                  :
+[2640000-2649999] :      0 :                                                                                  :
+[2650000-2659999] :      0 :                                                                                  :
+[2660000-2669999] :      0 :                                                                                  :
+[2670000-2673710] :      1 : ################################################################################ : helpdesk(00000000-0000-0000-0000-999999999999) (2673710)
+
+
+
+**************************************** Statistics for com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType ****************************************
+
+Count: 11
+Min: 2338 (Built-in ManualConnector v1.0.0(7dbe9f19-79da-44bf-90b8-cfb1c5051e50))
+Max: 36759 (ConnId com.evolveum.polygon.connector.ldap.ad.AdLdapConnector v1.4.5-SNAPSHOT(c4a10f36-2495-4452-9eb3-3eea1096e3c1))
+Avg: 22898
+
+Histogram:
+
+     Interval :  Items :                                                                                  : Representative
+-------------------------------------------------------------------------------------------------------------------------------------
+     [0-9999] :      1 : ####################                                                             : Built-in ManualConnector v1.0.0(7dbe9f19-79da-44bf-90b8-cfb1c5051e50) (2338)
+[10000-19999] :      4 : ################################################################################ : ConnId org.identityconnectors.databasetable.DatabaseTableConnector v1.4.2.0(7406c4a9-a03a-4981-92aa-7d6238247249) (16754)
+[20000-29999] :      4 : ################################################################################ : ConnId com.evolveum.polygon.connector.ldap.edirectory.EDirectoryLdapConnector v1.4.5-SNAPSHOT(06a66772-d3d9-4a6d-a9b5-4378571c7c5c) (29894)
+[30000-36759] :      2 : ########################################                                         : ConnId com.evolveum.polygon.connector.ldap.ad.AdLdapConnector v1.4.5-SNAPSHOT(c4a10f36-2495-4452-9eb3-3eea1096e3c1) (36759)
+
+
+
+**************************************** Statistics for com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType ****************************************
+
+Count: 1
+Min: 2349 (Default Password Policy(00000000-0000-0000-0000-000000000003))
+Max: 2349 (Default Password Policy(00000000-0000-0000-0000-000000000003))
+Avg: 2349
+
+Histogram:
+
+     Interval :  Items :                                                                                  : Representative
+-------------------------------------------------------------------------------------------------------------------------------------
+     [0-2349] :      1 : ################################################################################ : Default Password Policy(00000000-0000-0000-0000-000000000003) (2349)
+
+
+
+**************************************** Statistics for com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType ****************************************
+
+Count: 8220
+Min: 2271 (Role 2373(00000000-0000-0000-0000-000000002373))
+Max: 190679 (Business role 13(00000000-0000-0000-0000-00000000BU13))
+Avg: 3304
+
+Histogram:
+
+       Interval :  Items :                                                                                  : Representative
+---------------------------------------------------------------------------------------------------------------------------------------
+       [0-9999] :   8174 : ################################################################################ : Approver(00000000-0000-0000-0000-00000000000a) (6771)
+  [10000-19999] :      1 : #                                                                                : End user(00000000-0000-0000-0000-000000000008) (10472)
+  [20000-29999] :      0 :                                                                                  :
+  [30000-39999] :      0 :                                                                                  :
+  [40000-49999] :      0 :                                                                                  :
+  [50000-59999] :      0 :                                                                                  :
+  [60000-69999] :      0 :                                                                                  :
+ ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~ 7 lines skipped ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~
+[140000-149999] :      0 :                                                                                  :
+[150000-159999] :      0 :                                                                                  :
+[160000-169999] :      0 :                                                                                  :
+[170000-179999] :      0 :                                                                                  :
+[180000-189999] :      0 :                                                                                  :
+[190000-190679] :     45 : #                                                                                : Business role 13(00000000-0000-0000-0000-00000000BU13) (190679)
+
+
+
+**************************************** Statistics for com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType ****************************************
+
+Count: 1
+Min: 1534 (DefaultNode(5bde2e9f-19a7-4a73-bf21-6a201818c817))
+Max: 1534 (DefaultNode(5bde2e9f-19a7-4a73-bf21-6a201818c817))
+Avg: 1534
+
+Histogram:
+
+     Interval :  Items :                                                                                  : Representative
+-------------------------------------------------------------------------------------------------------------------------------------
+     [0-1534] :      1 : ################################################################################ : DefaultNode(5bde2e9f-19a7-4a73-bf21-6a201818c817) (1534)
+
+
+
+**************************************** Statistics for com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType ****************************************
+
+Count: 5
+Min: 3242 (Object size check(5f8ea6d1-ba00-4367-9fc9-90282d3e11bd))
+Max: 15067 (recompute roles(a693e829-b76a-403c-8f5c-4d540c96728f))
+Avg: 6947
+
+Histogram:
+
+     Interval :  Items :                                                                                  : Representative
+-------------------------------------------------------------------------------------------------------------------------------------
+     [0-9999] :      4 : ################################################################################ : Validity Scanner(00000000-0000-0000-0000-000000000006) (6164)
+[10000-15067] :      1 : ####################                                                             : recompute roles(a693e829-b76a-403c-8f5c-4d540c96728f) (15067)
+
+
+2017-07-06 19:32:00,205 [] [midPointScheduler_Worker-1] INFO (com.evolveum.midpoint.model.impl.integrity.ObjectIntegrityCheckResultHandler): Objects processed with errors: 0
+----

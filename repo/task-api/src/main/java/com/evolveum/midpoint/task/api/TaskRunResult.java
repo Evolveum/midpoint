@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.task.api;
 
-import com.evolveum.midpoint.schema.result.OperationResult;
-
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 
 import org.jetbrains.annotations.NotNull;
@@ -16,6 +14,7 @@ import java.io.Serializable;
 import java.util.Objects;
 
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.FINISHED;
+import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.TEMPORARY_ERROR;
 
 /**
  * Single-purpose class to return task run results.
@@ -100,6 +99,30 @@ public class TaskRunResult implements Serializable {
      * (Including the fact that if it's null, it won't overwrite whatever is in the result.)
      */
     protected String message;
+
+    public TaskRunResult() {
+    }
+
+    public TaskRunResult(TaskRunResultStatus runResultStatus, OperationResultStatus operationResultStatus) {
+        this.runResultStatus = runResultStatus;
+        this.operationResultStatus = operationResultStatus;
+    }
+
+    public static TaskRunResult of(TaskRunResultStatus taskRunResultStatus, OperationResultStatus operationResultStatus) {
+        return new TaskRunResult(taskRunResultStatus, operationResultStatus);
+    }
+
+    public static TaskRunResult finished(OperationResultStatus operationResultStatus) {
+        return new TaskRunResult(FINISHED, operationResultStatus);
+    }
+
+    public static TaskRunResult temporaryError(OperationResultStatus operationResultStatus) {
+        return new TaskRunResult(TEMPORARY_ERROR, operationResultStatus);
+    }
+
+    public static TaskRunResult permanentFatalError() {
+        return new TaskRunResult(TaskRunResultStatus.PERMANENT_ERROR, OperationResultStatus.FATAL_ERROR);
+    }
 
     /**
      * @return the progress

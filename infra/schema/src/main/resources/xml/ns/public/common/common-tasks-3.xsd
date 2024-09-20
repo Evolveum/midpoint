@@ -194,6 +194,10 @@
                                 If the task is waiting (i.e. schedulingState = WAITING), what is this task waiting for?
                                 Must be null if the task is not waiting for anything.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:operational>true</a:operational>
+                                <a:displayHint>regular</a:displayHint>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="unpauseAction" type="tns:TaskUnpauseActionType" minOccurs="0">
@@ -216,6 +220,8 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>3.8</a:since>
+                                <a:operational>true</a:operational>
+                                <a:displayHint>regular</a:displayHint>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -227,6 +233,8 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.3</a:since>
+                                <a:operational>true</a:operational>
+                                <a:displayHint>regular</a:displayHint>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -236,6 +244,10 @@
                                 Identifier of the node that currently executes this task.
                                 (In case of node crash, the value here may be out-of-date.)
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:operational>true</a:operational>
+                                <a:displayHint>regular</a:displayHint>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="nodeAsObserved" type="xsd:string" minOccurs="0">
@@ -248,6 +260,8 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>TaskType.nodeAsObserved</a:displayName>
+                                <a:operational>true</a:operational>
+                                <a:displayHint>regular</a:displayHint>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -282,6 +296,10 @@
                             <xsd:documentation>
                                 OperationResult that is used to compile task results (parent result).
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:operational>true</a:operational>
+                                <a:displayHint>regular</a:displayHint>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="resultStatus" type="tns:OperationResultStatusType" minOccurs="0">
@@ -292,6 +310,8 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>TaskType.resultStatus</a:displayName>
+                                <a:operational>true</a:operational>
+                                <a:displayHint>regular</a:displayHint>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -312,6 +332,10 @@
                             <xsd:documentation>
                                 The time when the task run was last started.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:operational>true</a:operational>
+                                <a:displayHint>regular</a:displayHint>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="lastRunFinishTimestamp" type="xsd:dateTime" minOccurs="0">
@@ -320,6 +344,10 @@
                                 The time when the (last) task run was finished, successfully or unsuccessfully.
                                 (If node crashes, this attribute is not updated.)
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:operational>true</a:operational>
+                                <a:displayHint>regular</a:displayHint>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="completionTimestamp" type="xsd:dateTime" minOccurs="0">
@@ -329,6 +357,10 @@
                                 lastRunFinishTimestamp, e.g. when task waits for its children to finish
                                 and then closes automatically.)
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:operational>true</a:operational>
+                                <a:displayHint>regular</a:displayHint>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="cleanupAfterCompletion" type="xsd:duration" minOccurs="0">
@@ -352,6 +384,10 @@
                                 TRANSIENT. This value is not stored in the repo, it is queried dynamically.
                                 (It is currently not possible to use it for filtering or sorting.)
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:operational>true</a:operational>
+                                <a:displayHint>regular</a:displayHint>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="nextRetryTimestamp" type="xsd:dateTime" minOccurs="0">
@@ -365,6 +401,8 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>3.5</a:since>
+                                <a:operational>true</a:operational>
+                                <a:displayHint>regular</a:displayHint>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -377,6 +415,8 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>TaskType.progress</a:displayName>
+                                <a:operational>true</a:operational>
+                                <a:displayHint>regular</a:displayHint>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -385,6 +425,10 @@
                             <xsd:documentation>
                                 Task-level operation statistics.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:operational>true</a:operational>
+                                <a:displayHint>regular</a:displayHint>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="stalledSince" type="xsd:dateTime" minOccurs="0">
@@ -394,6 +438,10 @@
                                 TRANSIENT. This value is not stored in the repo, it is queried dynamically.
                                 (It is currently not possible to use it for filtering or sorting.)
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:operational>true</a:operational>
+                                <a:displayHint>regular</a:displayHint>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="expectedTotal" type="xsd:long" minOccurs="0">
@@ -412,6 +460,8 @@
                             <xsd:appinfo>
                                 <a:deprecated>true</a:deprecated>
                                 <a:deprecatedSince>4.4</a:deprecatedSince>
+                                <a:operational>true</a:operational>
+                                <a:displayHint>regular</a:displayHint>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -489,6 +539,8 @@
                                 <a:removed>true</a:removed>
                                 <a:deprecatedSince>4.4</a:deprecatedSince>
                                 <a:removedSince>4.8</a:removedSince>
+                                <a:operational>true</a:operational>
+                                <a:displayHint>regular</a:displayHint>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -578,6 +630,8 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>3.8</a:since>
+                                <a:operational>true</a:operational>
+                                <a:displayHint>regular</a:displayHint>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -596,6 +650,8 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.8</a:since>
+                                <a:operational>true</a:operational>
+                                <a:displayHint>regular</a:displayHint>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -1851,6 +1907,13 @@
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
+                <xsd:element name="shadowReclassification" type="tns:ShadowReclassificationWorkDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Shadow reclassification specified resource objects.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
                 <xsd:element name="reconciliation" type="tns:ReconciliationWorkDefinitionType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
@@ -1920,14 +1983,14 @@
                 <xsd:element name="iterativeScripting" type="tns:IterativeScriptingWorkDefinitionType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
-                            Executes a script (a.k.a. bulk action) over a set of objects.
+                            Executes a script (a.k.a. action) over a set of objects.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
                 <xsd:element name="nonIterativeScripting" type="tns:NonIterativeScriptingWorkDefinitionType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
-                            Executes a script (a.k.a. bulk action) on an empty or explicitly specified input.
+                            Executes a script (a.k.a. action) on an empty or explicitly specified input.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
@@ -1986,6 +2049,14 @@
                     <xsd:annotation>
                         <xsd:documentation>
                             Re-indexes specified repository objects.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="repartitioning" type="tns:RepartitioningWorkDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Re-parititions specified repository objects. Creates new table partiations
+                            for objects if they according to policy should be in separate partition.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
@@ -2066,6 +2137,61 @@
                         </xsd:documentation>
                         <xsd:appinfo>
                             <a:since>4.8</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="certificationRemediation" type="tns:CertificationRemediationWorkDefinitionType"
+                        minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Specified certification campaign for remediation.
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:since>4.9</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="certificationOpenNextStage" type="tns:CertificationOpenNextStageWorkDefinitionType"
+                        minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Specified certification campaign for next stage operation.
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:since>4.9</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="certificationStartCampaign" type="tns:CertificationStartCampaignWorkDefinitionType"
+                        minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Specified certification campaign for next stage operation.
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:since>4.9</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="certificationCloseCurrentStage" type="tns:CertificationCloseCurrentStageWorkDefinitionType"
+                        minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Specified certification campaign for next stage operation.
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:since>4.9</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="certificationReiterateCampaign" type="tns:CertificationReiterateCampaignWorkDefinitionType"
+                        minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Specified certification campaign for next stage operation.
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:since>4.9</a:since>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -6796,7 +6922,7 @@
     <xsd:complexType name="BasicObjectSetType">
         <xsd:annotation>
             <xsd:documentation>
-
+                Specifies the basic features of a repository-based object set.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.8</a:since>
@@ -6821,6 +6947,25 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="objectRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Explicit enumeration of objects belonging to this object set.
+                        Functionally equivalent to "inOid" filter in "query".
+
+                        Mutually exclusive with "query".
+
+                        Limitation:
+                        1. All uses except for in "roleMembershipManagementWorkDefinition" are considered
+                        experimental. (They should work but no guarantees there.)
+                        2. The list here is translated into "has OID" query, so it may not work adequately
+                        for large lists of objects (e.g. thousands).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:ObjectType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -6842,25 +6987,6 @@
                             <xsd:documentation>
                                 Query specifying objects to be processed.
                             </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="objectRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Explicit enumeration of objects belonging to this object set.
-                                Functionally equivalent to "inOid" filter in "query".
-
-                                Mutually exclusive with "query".
-
-                                Limitation:
-                                1. All uses except for in "roleMembershipManagementWorkDefinition" are considered
-                                   experimental. (They should work but no guarantees there.)
-                                2. The list here is translated into "has OID" query, so it may not work adequately
-                                   for large lists of objects (e.g. thousands).
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:objectReferenceTargetType>tns:ObjectType</a:objectReferenceTargetType>
-                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="searchOptions" type="c:SelectorQualifiedGetOptionsType" minOccurs="0">
@@ -7080,7 +7206,7 @@
     <xsd:complexType name="IterativeScriptingWorkDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                Executes a script (a.k.a. bulk action) over a set of objects.
+                Executes a script (a.k.a. action) over a set of objects.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -7100,7 +7226,7 @@
     <xsd:complexType name="NonIterativeScriptingWorkDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                Executes a script (a.k.a. bulk action) on an empty or explicitly specified input.
+                Executes a script (a.k.a. action) on an empty or explicitly specified input.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -7340,6 +7466,25 @@
     </xsd:complexType>
     <xsd:element name="reindexingWorkDefinition" type="tns:ReindexingWorkDefinitionType"/>
 
+    <xsd:complexType name="RepartitioningWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Re-indexes specified repository objects.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="repartitioningWorkDefinition" type="tns:RepartitioningWorkDefinitionType"/>
+
+
+
     <xsd:complexType name="ObjectSetBasedWorkDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
@@ -7398,11 +7543,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:AbstractWorkDefinitionType">
-                <xsd:sequence>
-                    <xsd:element name="resourceObjects" type="tns:ResourceObjectSetType" minOccurs="0"/>
-                </xsd:sequence>
-            </xsd:extension>
+            <xsd:extension base="tns:ResourceWorkDefinitionType"/>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="reconciliationWorkDefinition" type="tns:ReconciliationWorkDefinitionType"/>
@@ -7445,14 +7586,26 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:AbstractWorkDefinitionType">
-                <xsd:sequence>
-                    <xsd:element name="resourceObjects" type="tns:ResourceObjectSetType" minOccurs="0"/>
-                </xsd:sequence>
-            </xsd:extension>
+            <xsd:extension base="tns:ResourceWorkDefinitionType"/>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="importWorkDefinition" type="tns:ImportWorkDefinitionType"/>
+
+    <xsd:complexType name="ShadowReclassificationWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Definition for a shadow reclassification activity.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ResourceWorkDefinitionType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="shadowReclassificationWorkDefinition" type="tns:ShadowReclassificationWorkDefinitionType"/>
 
     <xsd:complexType name="LiveSyncWorkDefinitionType">
         <xsd:annotation>
@@ -7465,9 +7618,8 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:AbstractWorkDefinitionType">
+            <xsd:extension base="tns:ResourceWorkDefinitionType">
                 <xsd:sequence>
-                    <xsd:element name="resourceObjects" type="tns:ResourceObjectSetType" minOccurs="0"/>
                     <xsd:element name="batchSize" type="xsd:int" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -7669,6 +7821,26 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="abstractWorkDefinition" type="tns:AbstractWorkDefinitionType" />
+
+    <xsd:complexType name="ResourceWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Marker type for an activity work definition that use resourceObjects.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="resourceObjects" type="tns:ResourceObjectSetType" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="resourceWorkDefinition" type="tns:ResourceWorkDefinitionType" />
 
     <xsd:complexType name="PropagationWorkDefinitionType">
         <xsd:annotation>
@@ -9234,4 +9406,117 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="roleAnalysisPatternDetectionWorkDefinition" type="tns:RoleAnalysisPatternDetectionWorkDefinitionType"/>
+
+    <xsd:complexType name="AbstractCertificationWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specified certification campaign definition for certification related operations.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="certificationCampaignRef" type="tns:ObjectReferenceType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Specified certification campaign definition for operation.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:AccessCertificationCampaignType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="CertificationRemediationWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specified certification campaign for remediation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractCertificationWorkDefinitionType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="certificationRemediationWorkDefinition" type="tns:CertificationRemediationWorkDefinitionType"/>
+
+    <xsd:complexType name="CertificationOpenNextStageWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specified certification campaign for opening next stage.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractCertificationWorkDefinitionType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="certificationNextStageWorkDefinition" type="tns:CertificationOpenNextStageWorkDefinitionType"/>
+
+    <xsd:complexType name="CertificationStartCampaignWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specified certification campaign for opening next stage.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractCertificationWorkDefinitionType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="certificationStartCampaignWorkDefinition" type="tns:CertificationStartCampaignWorkDefinitionType"/>
+
+    <xsd:complexType name="CertificationCloseCurrentStageWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specified certification campaign for opening next stage.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractCertificationWorkDefinitionType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="certificationCloseCurrentStageWorkDefinition" type="tns:CertificationCloseCurrentStageWorkDefinitionType"/>
+
+    <xsd:complexType name="CertificationReiterateCampaignWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specified certification campaign for opening next stage.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractCertificationWorkDefinitionType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="certificationReiterateCampaignWorkDefinition" type="tns:CertificationReiterateCampaignWorkDefinitionType"/>
 </xsd:schema>

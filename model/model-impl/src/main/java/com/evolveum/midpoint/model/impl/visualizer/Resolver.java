@@ -16,12 +16,11 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -37,6 +36,7 @@ import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
 import java.util.List;
+import java.util.Objects;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchReadOnlyCollection;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
@@ -135,11 +135,11 @@ public class Resolver {
                 // If delta contains them, we need to preserve definitions from item delta.
                 boolean isLegacyDelta = DeltaConvertor.isLegacyDelta(itemDelta);
 
-                // If delta is legacy delta (type was removed), we want to keep "finctional" runtime definition, so nobody will try
+                // If delta is legacy delta (type was removed), we want to keep "functional" runtime definition, so nobody will try
                 // to convert it to any sensible value during visualisation, since we can not reason about it contents
                 if (objectDefinition != null && !managedByProvisioning && !isLegacyDelta) {
                     ItemDefinition<?> def = objectDefinition.findItemDefinition(itemDelta.getPath());
-                    if (def != null) {
+                    if (def != null && !Objects.equals(def, itemDelta.getDefinition())) {
                         itemDelta.applyDefinition(def);
                     }
                 }
@@ -200,7 +200,7 @@ public class Resolver {
 
         PrismObject<?> object = ref.asReferenceValue().getObject();
         if (object == null) {
-            object = getObject(ref, task, result);
+            object = resolveObject(ref, task, result);
 
             ref.asReferenceValue().setObject(object);
         }
@@ -210,7 +210,7 @@ public class Resolver {
         }
 
         if (ShadowType.class.equals(object.getCompileTimeClass())) {
-            ResourceAttribute<?> namingAttribute = ShadowUtil.getNamingAttribute((ShadowType) object.asObjectable());
+            ShadowSimpleAttribute<?> namingAttribute = ShadowUtil.getNamingAttribute((ShadowType) object.asObjectable());
             Object realName = namingAttribute != null ? namingAttribute.getRealValue() : null;
             if (realName != null) {
                 return realName.toString();
@@ -250,7 +250,7 @@ public class Resolver {
             return null;
         }
 
-        PrismObject<?> object = getObject(ref, task, result);
+        PrismObject<?> object = resolveObject(ref, task, result);
         if (object != null) {
             return object.getName().getOrig();
         }
@@ -258,11 +258,11 @@ public class Resolver {
         return returnOidIfReferenceUnknown ? ref.getOid() : null;
     }
 
-    private PrismObject<?> getObject(ObjectReferenceType ref, Task task, OperationResult result) {
+    public PrismObject<?> resolveObject(ObjectReferenceType ref, Task task, OperationResult result) {
         try {
             ObjectTypes type = getTypeFromReference(ref);
 
-            return modelService.getObject(type.getClassDefinition(), ref.getOid(), GetOperationOptions.createRawCollection(), task, result);
+            return modelService.getObject(type.getClassDefinition(), ref.getOid(), GetOperationOptions.createNoFetchCollection(), task, result);
         } catch (Exception ex) {
             return null;
         }

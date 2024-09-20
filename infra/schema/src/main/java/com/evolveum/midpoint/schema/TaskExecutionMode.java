@@ -14,6 +14,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PredefinedConfigurat
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import static com.evolveum.midpoint.schema.TaskExecutionMode.TaskPersistenceMode.*;
 
@@ -48,6 +49,10 @@ public class TaskExecutionMode implements Serializable {
         this.name = name;
         this.persistenceMode = persistenceMode;
         this.productionConfiguration = productionConfiguration;
+    }
+
+    public String getName() {
+        return name;
     }
 
     /** TODO */
@@ -93,6 +98,24 @@ public class TaskExecutionMode implements Serializable {
         return new ConfigurationSpecificationType()
                 .predefined(productionConfiguration ?
                         PredefinedConfigurationType.PRODUCTION : PredefinedConfigurationType.DEVELOPMENT);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof TaskExecutionMode that)) {
+            return false;
+        }
+        return productionConfiguration == that.productionConfiguration
+                && Objects.equals(name, that.name)
+                && persistenceMode == that.persistenceMode;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, persistenceMode, productionConfiguration);
     }
 
     enum TaskPersistenceMode {

@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.test.TestObject;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -31,8 +32,8 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowAttributesContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -102,7 +103,7 @@ public class TestMapleLeaf extends AbstractStoryTest {
         openDJController.setResource(resourceOpenDj);
 
         openDJController.addEntriesFromLdifFile(LDIF_GROUPS);
-
+        importObject(CommonInitialObjects.SERVICE_ORIGIN_INTERNAL, initTask, initResult);
         importObjectFromFile(ROLE_MAPLE_LEAF_FACULTY_LICENSE);
         importObjectFromFile(ROLE_MAPLE_LEAF_FACULTY);
         importObjectFromFile(ROLE_MAPLE_LEAF_GRADUATE_LICENSE);
@@ -160,8 +161,8 @@ public class TestMapleLeaf extends AbstractStoryTest {
 
         PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
         assertNotNull("Shadow not found", shadow);
-        ResourceAttributeContainer shadowContainer = ShadowUtil.getAttributesContainer(shadow);
-        ResourceAttribute<String> initials = shadowContainer.findAttribute(new QName(NS_RESOURCE, "initials"));
+        ShadowAttributesContainer shadowContainer = ShadowUtil.getAttributesContainer(shadow);
+        ShadowSimpleAttribute<String> initials = shadowContainer.findSimpleAttribute(new QName(NS_RESOURCE, "initials"));
         assertEquals(initials.size(), 3, "Expected 3 values in attribute, but found " + initials.size());
 
         Collection<String> values = initials.getRealValues();
@@ -189,8 +190,8 @@ public class TestMapleLeaf extends AbstractStoryTest {
 
         PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
         assertNotNull("Shadow not found", shadow);
-        ResourceAttributeContainer shadowContainer = ShadowUtil.getAttributesContainer(shadow);
-        ResourceAttribute<String> initials = shadowContainer.findAttribute(new QName(NS_RESOURCE, "initials"));
+        ShadowAttributesContainer shadowContainer = ShadowUtil.getAttributesContainer(shadow);
+        ShadowSimpleAttribute<String> initials = shadowContainer.findSimpleAttribute(new QName(NS_RESOURCE, "initials"));
         assertEquals(initials.size(), 3, "Expected 3 values in attribute, but found " + initials.size());
 
         Collection<String> values = initials.getRealValues();
@@ -218,8 +219,8 @@ public class TestMapleLeaf extends AbstractStoryTest {
 
         PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
         assertNotNull("Shadow not found", shadow);
-        ResourceAttributeContainer shadowContainer = ShadowUtil.getAttributesContainer(shadow);
-        ResourceAttribute<String> initials = shadowContainer.findAttribute(new QName(NS_RESOURCE, "initials"));
+        ShadowAttributesContainer shadowContainer = ShadowUtil.getAttributesContainer(shadow);
+        ShadowSimpleAttribute<String> initials = shadowContainer.findSimpleAttribute(new QName(NS_RESOURCE, "initials"));
         assertEquals(initials.size(), 3, "Expected 3 values in attribute, but found " + initials.size());
 
         Collection<String> values = initials.getRealValues();
@@ -245,12 +246,9 @@ public class TestMapleLeaf extends AbstractStoryTest {
         String shadowOid = ref.getOid();
         assertNotNull("Reference without oid? Something went wrong.", shadowOid);
 
-        PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
-        assertNotNull("Shadow not found", shadow);
-        ShadowType shadowType = shadow.asObjectable();
-        List<ShadowAssociationType> associations = shadowType.getAssociation();
-        assertFalse(associations.isEmpty(), "Expected 2 associations, but no one exists");
-        assertEquals(associations.size(), 2, "Unexpected number of associations");
+        assertShadowAfter(getShadowModel(shadowOid))
+                .associations()
+                .assertValuesCount(2);
 
         openDJController.assertUniqueMember("cn=mapleLeafFaculty,ou=groups,dc=example,dc=com", "uid=jack,ou=People,dc=example,dc=com");
         openDJController.assertUniqueMember("cn=mapleLeafFacultyLicense,ou=groups,dc=example,dc=com", "uid=jack,ou=People,dc=example,dc=com");
@@ -274,12 +272,9 @@ public class TestMapleLeaf extends AbstractStoryTest {
         String shadowOid = ref.getOid();
         assertNotNull("Reference without oid? Something went wrong.", shadowOid);
 
-        PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
-        assertNotNull("Shadow not found", shadow);
-        ShadowType shadowType = shadow.asObjectable();
-        List<ShadowAssociationType> associations = shadowType.getAssociation();
-        assertFalse(associations.isEmpty(), "Expected 4 associations, but no one exists");
-        assertEquals(associations.size(), 4, "Unexpected number of associations");
+        assertShadowAfter(getShadowModel(shadowOid))
+                .associations()
+                .assertValuesCount(4);
 
         openDJController.assertUniqueMember("cn=mapleLeafFaculty,ou=groups,dc=example,dc=com", "uid=jack,ou=People,dc=example,dc=com");
         openDJController.assertUniqueMember("cn=mapleLeafFacultyLicense,ou=groups,dc=example,dc=com", "uid=jack,ou=People,dc=example,dc=com");
@@ -304,12 +299,9 @@ public class TestMapleLeaf extends AbstractStoryTest {
         String shadowOid = ref.getOid();
         assertNotNull("Reference without oid? Something went wrong.", shadowOid);
 
-        PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
-        assertNotNull("Shadow not found", shadow);
-        ShadowType shadowType = shadow.asObjectable();
-        List<ShadowAssociationType> associations = shadowType.getAssociation();
-        assertFalse(associations.isEmpty(), "Expected 2 associations, but no one exists");
-        assertEquals(associations.size(), 2, "Unexpected number of associations");
+        assertShadowAfter(getShadowModel(shadowOid))
+                .associations()
+                .assertValuesCount(2);
 
         openDJController.assertUniqueMember("cn=mapleLeafGraduate,ou=groups,dc=example,dc=com", "uid=jack,ou=People,dc=example,dc=com");
         openDJController.assertUniqueMember("cn=mapleLeafGraduateLicense,ou=groups,dc=example,dc=com", "uid=jack,ou=People,dc=example,dc=com");

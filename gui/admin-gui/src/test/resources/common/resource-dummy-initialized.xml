@@ -195,7 +195,7 @@
                         </xsd:appinfo>
                      </xsd:annotation>
                   </xsd:element>
-                  <xsd:element minOccurs="0" name="internalId" type="xsd:string">
+                  <xsd:element minOccurs="0" name="internalId" type="xsd:int">
                      <xsd:annotation>
                         <xsd:appinfo>
                            <a:displayOrder>180</a:displayOrder>

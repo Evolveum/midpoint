@@ -18,33 +18,37 @@
             <select class="form-control" wicket:id="relation"/>
         </div>
     </div>
-    <div class="col-12">
-        <div class="form-group">
-            <label class="col-form-label">
-                <wicket:message key="ActivationType.administrativeStatus"/>
-                <span class="text-gray font-weight-light">- <wicket:message key="ShoppingCartEditPanel.optional"/></span>
-            </label>
-            <select class="form-control" wicket:id="administrativeStatus"/>
-        </div>
-    </div>
-    <div class="col-12">
-        <div class="form-group">
-            <label class="col-form-label">
-                <wicket:message key="ShoppingCartEditPanel.validity"/>
-                <span class="text-gray font-weight-light">- <wicket:message key="ShoppingCartEditPanel.optional"/></span>
-            </label>
-
-            <div wicket:id="customValidity"/>
-        </div>
-    </div>
-    <wicket:enclosure child="extension">
+    <wicket:enclosure child="administrativeStatus">
         <div class="col-12">
             <div class="form-group">
                 <label class="col-form-label">
-                    <wicket:message key="AssignmentType.extension"/>
+                    <wicket:message key="ActivationType.administrativeStatus"/>
                     <span class="text-gray font-weight-light">- <wicket:message key="ShoppingCartEditPanel.optional"/></span>
                 </label>
-                <div wicket:id="extension"/>
+                <select class="form-control" wicket:id="administrativeStatus"/>
+            </div>
+        </div>
+    </wicket:enclosure>
+    <wicket:enclosure child="customValidity">
+        <div class="col-12">
+            <div class="form-group">
+                <label class="col-form-label">
+                    <wicket:message key="ShoppingCartEditPanel.validity"/>
+                    <span class="text-gray font-weight-light">- <wicket:message key="ShoppingCartEditPanel.optional"/></span>
+                </label>
+
+                <div wicket:id="customValidity"/>
+            </div>
+        </div>
+    </wicket:enclosure>
+    <wicket:enclosure child="assignmentDetails">
+        <div class="col-12">
+            <div class="form-group">
+                <label class="col-form-label">
+                    <wicket:message key="RoleCatalogPanel.details"/>
+                    <span class="text-gray font-weight-light">- <wicket:message key="ShoppingCartEditPanel.optional"/></span>
+                </label>
+                <div wicket:id="assignmentDetails"/>
             </div>
         </div>
     </wicket:enclosure>

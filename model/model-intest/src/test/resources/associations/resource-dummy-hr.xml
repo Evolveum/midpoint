@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource oid="ded54130-8ce5-4c8d-ac30-c3bf4fc82337"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:hr="http://midpoint.evolveum.com/xml/ns/samples/hr">
+    <name>hr</name>
+    <connectorRef type="ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+        <icfc:configurationProperties>
+            <icfi:instanceId>hr</icfi:instanceId>
+            <icfi:useLegacySchema>false</icfi:useLegacySchema>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>person</intent>
+            <documentation>Just a standard account. Nothing special here.</documentation>
+            <delineation>
+                <objectClass>ri:person</objectClass>
+            </delineation>
+            <focus>
+                <type>UserType</type>
+                <archetypeRef oid="184a5aa5-3e28-46c7-b9ed-a1dabaacc11d"/>
+            </focus>
+            <attribute>
+                <ref>icfs:name</ref>
+                <correlator/>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <path>name</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <synchronization>
+                <reaction>
+                    <situation>unmatched</situation>
+                    <actions>
+                        <addFocus/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>unlinked</situation>
+                    <actions>
+                        <link/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>linked</situation>
+                    <actions>
+                        <synchronize/>
+                    </actions>
+                </reaction>
+            </synchronization>
+        </objectType>
+        <objectType>
+            <kind>generic</kind>
+            <intent>costCenter</intent>
+            <documentation>This is also a standard type of objects.</documentation>
+            <delineation>
+                <objectClass>ri:costCenter</objectClass>
+            </delineation>
+            <focus>
+                <type>OrgType</type>
+                <archetypeRef oid="eb49f576-5813-4988-9dd1-91e418c65be6"/>
+            </focus>
+            <attribute>
+                <ref>icfs:name</ref>
+                <correlator/>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <path>name</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <synchronization>
+                <reaction>
+                    <situation>unmatched</situation>
+                    <actions>
+                        <addFocus/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>unlinked</situation>
+                    <actions>
+                        <link/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>linked</situation>
+                    <actions>
+                        <synchronize/>
+                    </actions>
+                </reaction>
+            </synchronization>
+        </objectType>
+        <objectType>
+            <kind>association</kind>
+            <intent>contract</intent>
+            <delineation>
+                <objectClass>ri:contract</objectClass>
+            </delineation>
+        </objectType>
+        <associationType>
+            <name>contracts</name>
+            <subject>
+                <objectType>
+                    <kind>account</kind>
+                    <intent>person</intent>
+                </objectType>
+                <association>
+                    <ref>ri:contract</ref>
+                    <inbound>
+                        <name>contracts-inbound</name>
+                        <expression>
+                            <associationSynchronization>
+                                <attribute>
+                                    <ref>icfs:uid</ref>
+                                    <correlator/>
+                                    <mapping>
+                                        <strength>strong</strength>
+                                        <expression>
+                                            <script>
+                                                <code>"contract:$input"</code>
+                                            </script>
+                                        </expression>
+                                        <target>
+                                            <path>identifier</path>
+                                        </target>
+                                    </mapping>
+                                </attribute>
+                                <attribute>
+                                    <ref>ri:note</ref>
+                                    <mapping>
+                                        <strength>strong</strength>
+                                        <target>
+                                            <path>description</path>
+                                        </target>
+                                    </mapping>
+                                </attribute>
+                                <objectRef>
+                                    <ref>ri:org</ref>
+                                    <!--
+                                    This is the reference to the org unit. The whole shadow is not fetched by default. The mappings here
+                                    have only the cached shadow available. But that is enough to run some simple mappings:
+                                    for $focus/organization and for targetRef in the assignment.
+                                    -->
+                                    <!--<mapping>-->
+                                    <!--    <strength>strong</strength>-->
+                                    <!--    <documentation>-->
+                                    <!--        Puts the name of the org to the property of the user, i.e., not into the assignment.-->
+                                    <!--    </documentation>-->
+                                    <!--    <expression>-->
+                                    <!--        <path>$object/attributes/icfs:name</path>-->
+                                    <!--    </expression>-->
+                                    <!--    <target>-->
+                                    <!--        <path>$focus/organization</path>-->
+                                    <!--    </target>-->
+                                    <!--</mapping>-->
+                                    <mapping>
+                                        <strength>strong</strength>
+                                        <documentation>Provides targetRef for the assignment.</documentation>
+                                        <source>
+                                            <name>orgName</name>
+                                            <path>$object/attributes/icfs:name</path>
+                                        </source>
+                                        <expression>
+                                            <!-- Binding to the org object. Searching by name. CoD. -->
+                                            <!-- Note that this is _NOT_ assignmentTargetSearch. It is simple referenceSearch for targetRef.
+                                                 The assignment value itself is created automatically by midPoint. -->
+                                            <referenceSearch>
+                                                <targetType>OrgType</targetType>
+                                                <filter>
+                                                    <q:text>name = $orgName</q:text>
+                                                </filter>
+                                                <createOnDemand>true</createOnDemand>
+                                                <populateObject>
+                                                    <populateItem>
+                                                        <expression>
+                                                            <path>$orgName</path>
+                                                        </expression>
+                                                        <target>
+                                                            <path>name</path>
+                                                        </target>
+                                                    </populateItem>
+                                                </populateObject>
+                                            </referenceSearch>
+                                        </expression>
+                                        <target>
+                                            <path>targetRef</path>
+                                        </target>
+                                    </mapping>
+                                </objectRef>
+                                <objectRef>
+                                    <ref>ri:costCenter</ref>
+                                    <!-- Just another association, to show a different mapping style. -->
+                                    <mapping>
+                                        <strength>strong</strength>
+                                        <documentation>Just as mapping #1 for org.</documentation>
+                                        <expression>
+                                            <path>$object/attributes/icfs:name</path>
+                                        </expression>
+                                        <target>
+                                            <path>extension/hr:costCenter</path>
+                                        </target>
+                                    </mapping>
+                                    <mapping>
+                                        <strength>strong</strength>
+                                        <documentation>Creates assignment/orgRef based on the costCenter object. Uses shadowRef for this.</documentation>
+                                        <expression>
+                                            <shadowOwnerReferenceSearch/>
+                                        </expression>
+                                        <target>
+                                            <path>orgRef</path>
+                                        </target>
+                                    </mapping>
+                                </objectRef>
+                                <activation>
+                                    <validFrom>
+                                        <inbound/>
+                                    </validFrom>
+                                    <validTo>
+                                        <inbound/>
+                                    </validTo>
+                                </activation>
+                                <synchronization>
+                                    <reaction>
+                                        <situation>unmatched</situation>
+                                        <actions>
+                                            <!-- If the matching assignment does not exist, midPoint will create and synchronize it -->
+                                            <addFocusValue/>
+                                        </actions>
+                                    </reaction>
+                                    <reaction>
+                                        <situation>matched</situation>
+                                        <actions>
+                                            <!-- If the matching assignment exists, midPoint will synchronize it. -->
+                                            <synchronize/>
+                                        </actions>
+                                    </reaction>
+                                </synchronization>
+                            </associationSynchronization>
+                        </expression>
+                    </inbound>
+                </association>
+            </subject>
+        </associationType>
+    </schemaHandling>
+</resource>

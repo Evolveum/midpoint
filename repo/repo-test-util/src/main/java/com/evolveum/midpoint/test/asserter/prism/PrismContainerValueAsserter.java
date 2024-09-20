@@ -183,55 +183,55 @@ public class PrismContainerValueAsserter<C extends Containerable, RA> extends Pr
     public <T> PrismContainerValueAsserter<C, RA> assertPropertyValuesEqualRaw(ItemPath path, T... expectedValues) {
         PrismProperty<T> property = findProperty(path);
         assertNotNull("No attribute " + path + " in " + desc(), property);
-        RawType[] expectedRaw = rawize(path, getPrismContext(), expectedValues);
+        RawType[] expectedRaw = rawize(path, expectedValues);
         PrismAsserts.assertPropertyValueDesc(property, desc(), (T[]) expectedRaw);
         return this;
     }
 
-    private <T> RawType[] rawize(ItemPath path, PrismContext prismContext, T[] expectedValues) {
+    private <T> RawType[] rawize(ItemPath path, T[] expectedValues) {
         RawType[] raws = new RawType[expectedValues.length];
         for (int i = 0; i < expectedValues.length; i++) {
-            raws[i] = new RawType(prismContext.itemFactory().createPropertyValue(expectedValues[i]), path.lastName(), prismContext);
+            raws[i] = new RawType(PrismContext.get().itemFactory().createPropertyValue(expectedValues[i]), path.lastName());
         }
         return raws;
     }
 
-    public PrismContainerValueAsserter<C, RA> assertRefEquals(QName refName, String expectedOid) {
-        PrismReference ref = getPrismValue().findReference(refName);
+    public PrismContainerValueAsserter<C, RA> assertRefEquals(ItemPath refPath, String expectedOid) {
+        PrismReference ref = getPrismValue().findItem(refPath, PrismReference.class);
         if (ref == null && expectedOid == null) {
             return this;
         }
-        PrismReferenceValue refVal = assertRefEqualsCommon(refName, ref);
-        assertEquals("Wrong " + refName.getLocalPart() + " in " + desc(), expectedOid, refVal.getOid());
+        PrismReferenceValue refVal = assertRefEqualsCommon(refPath, ref);
+        assertEquals("Wrong " + refPath + " in " + desc(), expectedOid, refVal.getOid());
         return this;
     }
 
     @NotNull
-    private PrismReferenceValue assertRefEqualsCommon(QName refName, PrismReference ref) {
-        assertNotNull("No reference " + refName.getLocalPart() + " in " + desc(), ref);
+    private PrismReferenceValue assertRefEqualsCommon(ItemPath refPath, PrismReference ref) {
+        assertNotNull("No reference " + refPath + " in " + desc(), ref);
         List<PrismReferenceValue> refVals = ref.getValues();
         if (refVals.isEmpty()) {
-            fail("No values in reference " + refName.getLocalPart() + " in " + desc());
+            fail("No values in reference " + refPath + " in " + desc());
         }
         if (refVals.size() > 1) {
-            fail("Too many values in reference " + refName.getLocalPart() + " in " + desc());
+            fail("Too many values in reference " + refPath + " in " + desc());
         }
         PrismReferenceValue refVal = refVals.get(0);
-        assertNotNull("null value in " + refName.getLocalPart() + " in " + desc(), refVal);
+        assertNotNull("null value in " + refPath + " in " + desc(), refVal);
         return refVal;
     }
 
-    public PrismContainerValueAsserter<C, RA> assertRefEquals(QName refName, ObjectReferenceType expected) {
-        return assertRefEquals(refName, expected, EquivalenceStrategy.REAL_VALUE);
+    public PrismContainerValueAsserter<C, RA> assertRefEquals(ItemPath refPath, ObjectReferenceType expected) {
+        return assertRefEquals(refPath, expected, EquivalenceStrategy.REAL_VALUE);
     }
 
-    public PrismContainerValueAsserter<C, RA> assertRefEquals(QName refName, ObjectReferenceType expected, EquivalenceStrategy strategy) {
-        PrismReference ref = getPrismValue().findReference(refName);
+    public PrismContainerValueAsserter<C, RA> assertRefEquals(ItemPath refPath, ObjectReferenceType expected, EquivalenceStrategy strategy) {
+        PrismReference ref = getPrismValue().findItem(refPath, PrismReference.class);
         if (ref == null && expected == null) {
             return this;
         }
-        PrismReferenceValue refVal = assertRefEqualsCommon(refName, ref);
-        assertTrue("Wrong " + refName.getLocalPart() + " in " + desc() + ", expected: " + expected + ", real: " + refVal,
+        PrismReferenceValue refVal = assertRefEqualsCommon(refPath, ref);
+        assertTrue("Wrong " + refPath + " in " + desc() + ", expected: " + expected + ", real: " + refVal,
                 expected.asReferenceValue().equals(refVal, strategy));
         return this;
     }

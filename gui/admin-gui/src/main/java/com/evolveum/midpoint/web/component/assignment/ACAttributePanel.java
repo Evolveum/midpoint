@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.web.component.assignment;
 
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -80,8 +80,8 @@ public class ACAttributePanel extends BasePanel<ACAttributeDto> {
     private boolean hasOutbound() {
         ACAttributeDto dto = getModel().getObject();
         PrismPropertyDefinition<?> def = dto.getDefinition();
-        if (def instanceof ResourceAttributeDefinition) {
-            return ((ResourceAttributeDefinition<?>) def).hasOutboundMapping();
+        if (def instanceof ShadowSimpleAttributeDefinition) {
+            return ((ShadowSimpleAttributeDefinition<?>) def).hasOutboundMapping();
         } else {
             return false;
         }

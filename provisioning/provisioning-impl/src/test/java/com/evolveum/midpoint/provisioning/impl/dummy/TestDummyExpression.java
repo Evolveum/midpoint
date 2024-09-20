@@ -15,8 +15,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsSimulateType;
 
 /**
@@ -32,11 +30,6 @@ public class TestDummyExpression extends TestDummy {
 
     public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "dummy-expression");
     public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
-
-    @Override
-    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-        super.initSystem(initTask, initResult);
-    }
 
     @Override
     protected File getResourceDummyFile() {
@@ -76,7 +69,7 @@ public class TestDummyExpression extends TestDummy {
     @Override
     protected String[] getSortedUsernames18x() {
         // daemon, Will, morgan, carla, meathook
-        return new String[] { "daemon", transformNameFromResource("Will"), transformNameFromResource("morgan"), "carla", "meathook" };
+        return new String[] { "daemon", getWillNameOnResource(), transformNameToResource("morgan"), "carla", "meathook" };
     }
 
     // No paging

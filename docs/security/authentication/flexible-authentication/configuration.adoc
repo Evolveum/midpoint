@@ -1,0 +1,346 @@
+---
+midpoint-feature: flexible-authentication
+doc-type: config
+---
+= Flexible Authentication Configuration
+:page-nav-title: Configuration
+:page-wiki-name: Flexible Authentication Configuration
+:page-wiki-id: 41517151
+:page-toc: top
+:toclevels: 3
+
+
+Configuration of flexible authentication is complex. Please familiarize with xref:./concept.adoc[basic concepts] of flexible authentication prior configuration.
+
+.Test your configuration prior deploying.
+WARNING: In case of incorrect loginForm module configuration or in case of its absence, there will be no possibility to login via standard login form again. In that case the user should have another way to restore midPoint environment. +
+The emergency `urlSuffix` configuration can help in such case. See xref:#_example_of_sequence_for_administrator_login[example of sequence for administrator login].
+
+
+== Module configuration
+
+Individual authentication modules are defined in this configuration element. MidPoint supports multiple authentication modules - see xref:./concept[Concepts] page.
+
+Each module has its own specific configuration, but following elements are common for all modules:
+
+[%autowidth]
+|===
+| Name | Description | Required | Type | Default
+
+| `identifier`
+| Unique identifier of the authentication module.
+Short identifier.
+It is supposed to give some idea about nature of the module to system administrator.
+But it is not supposed to be used as a user-friendly label for the module.
+The name is also used in the url, so it should not contain special characters.
+| true
+| _String_
+|
+
+| `description`
+| Free form description of the module (administrator comment).
+| false
+| _String_
+|
+
+| `focusType`
+| Type of logged object that this authentication module applies to.
+E.g UserType, RoleType, OrgType, ...
+| false
+|
+| _UserType_
+|===
+
+
+== Authentication sequence
+
+Authentication sequence flow can be illustrated by following scenarios
+
+=== Scenario 1
+
+MidPoint receives an HTTP request with the URL `http://localhost:8080/midpoint/actuator/metrics`.
+
+It extracts the suffix 'actuator' from the URL and determines the channel.
+This channel is then used to search for the default authentication sequence associated with that channel.
+Once found, midPoint initializes the authentication sequence and, upon successful authentication, sends a request to the actuator service.
+
+=== Scenario 2
+
+In the second scenario, midPoint receives an HTTP request with the URL `http://localhost:8080/midpoint/auth/emergency/users`.
+
+Here, it extracts the 'auth' suffix from the URL, which signifies the use of a specific authentication sequence.
+MidPoint then proceeds to search for the appropriate authentication sequence based on the next part of the URL, which, in this case, is 'emergency'.
+After successfully authenticating, midPoint sends a request to the service defined in the sequence configuration.
+For example, if it is a GUI, the request would be redirected to the users page in the GUI.
+
+=== Sequence Configuration
+
+Sequence contains following attributes:
+
+[%autowidth]
+|===
+| Name | Description | Required | Type
+
+| `name`
+| Unique name of the authentication sequence.
+This name is fact a short identifier.
+It is supposed to give some idea about purpose of the sequence to system administrator.
+But it is not supposed to be used as a user-friendly label.
+Sequence name must be unique.
+
+*`name` attribute is DEPRECATED, use `identifier` instead.*
+| true
+| _String_
+
+| `identifier`
+| Unique identifier of the authentication sequence.
+Short identifier.
+It is supposed to give some idea about purpose of the sequence to system administrator.
+But it is not supposed to be used as a user-friendly label.
+Sequence name must be unique.
+| true
+| _String_
+
+| `description`
+| Free form description of the sequence (administrator comment).
+| false
+| _String_
+
+
+| `channel`
+| Specification of channel for authentication sequence.
+| false
+| _AuthenticationSequenceChannelType_
+
+
+| `requireAssignmentTarget`
+| Required assignment target.
+This authentication sequence is applicable only to users that have active assignment with this target (and relation).
+If the sequence is attempted on a user that does not have this assignment then the authentication will fail.
+| false
+| _ObjectReferenceType_
+
+
+| `nodeGroup`
+| Required node group.
+This authentication sequence is applicable only to node group that have active assignment with this archetype.
+| false
+| _ObjectReferenceType_
+
+
+| `module`
+| Specification of authentication module in the sequence.
+| true
+| _AuthenticationSequenceModuleType_
+
+
+| `focusBehaviorUpdate`
+| Option for updating focus authentication behaviour attributes.
+| false
+| _FocusBehaviorUpdateType_
+
+|===
+
+==== AuthenticationSequenceChannelType
+
+Channel specification for authentication sequence.
+It specifies whether this sequence is usable for a specific channel (user/GUI, REST, etc.) _AuthenticationSequenceChannelType_ contains following attributes:
+
+[%autowidth]
+|===
+| Name | Description | Required | Type
+
+| `channelId`
+| Name (URI) of the channel.
+| true
+| _String_
+
+| `description`
+| Free form description (administrator comment).
+| false
+| _String_
+
+| `default`
+| Specifies whether this sequence is the default sequence for a specified channel. +
+The default sequence will be chosen in case that specific sequence was not requested, e.g. by using URL suffix.
+If this element is not present and only a single sequence is defined for a channel, then such sequence is considered to be the default. +
+If more than one sequence is specified then none of them is considered to be default.
+In that case this element must be used explicitly.
+| false
+| _boolean_
+
+| `urlSuffix`
+| URL suffix that can be used to select this authentication sequence specifically.
+| true
+| _String_
+|===
+
+
+==== FocusBehaviorUpdateType
+
+We can enable/disable updating of focus authentication behavior (such as information about last login time) during every login, or we can use option for updating behaviour only when login failed and during success login after failed login. Default value is 'enabled'. Possible values are:
+
+[%autowidth]
+|===
+| Value | Description
+
+| `enabled`
+| Behaviour attributes will be updated every login.
+
+| `disabled`
+| Authentication behaviour attributes will not be updated during login.
+
+| `failureOnly`
+| Authentication behaviour attributes will be updated when login failed and when login will be success, but previous login was failed and midPoint needs to update attributes as is number of login fails and lockout state.
+
+|===
+
+
+==== AuthenticationSequenceModuleType
+
+Specification of authentication module in the sequence.
+The authentication modules are evaluated in sequence (or in parallel if possible).
+At least one authentication module must succeed for authentication to be successful.
+If there are required or requisite modules in the sequence then all of them must succeed for the sequence to be successful.
+
+NOTE: There is hard-coded behavior for modules which defines if the module itself is strong enough for authentication to succeed. FocusIdentification, Hint and AttributeVerification module are three specific modules, which are marked as not enough when exist on their own. Even when the sequence consist of other modules (sufficient) which were evaluated as failed and only those three (combination or one of them) succeed, the result of the authentication is failure.
+
+.Example of default sequence
+[source,xml]
+----
+<sequence>
+    <identifier>admin-gui-default</identifier>
+    <description>
+        Default GUI authentication sequence.
+        We want to try company SSO, federation and internal. In that order.
+        Just one of then need to be successful to let user in.
+    </description>
+    <channel>
+        <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</channelId>
+        <default>true</default>
+        <urlSuffix>default</urlSuffix>
+    </channel>
+    <nodeGroup oid="05b6933a-b7fc-4543-b8fa-fd8b278ff9ee" relation="org:default" type="c:ArchetypeType"/>
+    <module>
+        <identifier>mySamlSso</identifier>
+        <order>30</order>
+        <necessity>sufficient</necessity>
+    </module>
+    <module>
+        <identifier>internalLoginForm</identifier>
+        <order>20</order>
+        <necessity>sufficient</necessity>
+    </module>
+</sequence>
+----
+
+[#_example_of_sequence_for_administrator_login]
+.Example of sequence for administrator login
+This configuration allows *emergency backup access* via url /emergency. It accepts only users with role `superuser`.
+
+Example of URL: https://localhost/midpoint/auth/emergency .
+
+[source,xml]
+----
+<sequence>
+    <identifier>admin-gui-emergency</identifier>
+    <description>
+        Special GUI authentication sequence that is using just the internal user password.
+        It is used only in emergency. It allows to skip SAML authentication cycles, e.g. in case
+        that the SAML authentication is redirecting the browser incorrectly.
+    </description>
+    <channel>
+        <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</channelId>
+        <default>false</default>
+        <urlSuffix>emergency</urlSuffix>
+    </channel>
+    <requireAssignmentTarget oid="00000000-0000-0000-0000-000000000004" relation="org:default" type="c:RoleType">
+    <!-- Superuser -->
+    </requireAssignmentTarget>
+    <module>
+        <identifier>loginForm</identifier>
+        <order>1</order>
+        <necessity>sufficient</necessity>
+    </module>
+</sequence>
+----
+
+[#_example_of_sequence_with_configured_login_form]
+.Example of the default GUI sequence with configured login form
+This configuration allows to configure label, description and external link for login form.
+
+[source,xml]
+----
+        <sequence id="3">
+            <identifier>admin-gui-default</identifier>
+            <displayName>Default gui sequence</displayName>
+            <channel>
+                <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</channelId>
+                <default>true</default>
+                <urlSuffix>gui-default</urlSuffix>
+            </channel>
+            <module>
+                <identifier>loginForm</identifier>
+                <order>1</order>
+                <necessity>sufficient</necessity>
+                <display>
+                    <label>
+                        <orig>Login to your account</orig>
+                        <translation>
+                            <key>PageLogin.loginToYourAccount</key>
+                        </translation>
+                    </label>
+                    <help>
+                        <orig>Please enter account details to start the session</orig>
+                        <translation>
+                            <key>PageLogin.enterAccountDetails</key>
+                        </translation>
+                    </help>
+                </display>
+                <action>
+                    <display>
+                        <label>
+                            <orig>Live demo documentation</orig>
+                        </label>
+                    </display>
+                    <target>
+                        <targetUrl>https://docs.evolveum.com</targetUrl>
+                    </target>
+                </action>
+            </module>
+        </sequence>
+----
+
+=== Midpoint GUI authentication form
+In order to utilize the Midpoint GUI, it is necessary to configure an authentication sequence for the `loginForm` module.
+
+If no authentication is configured in the security policy or if there is no sequence defined in the configured authentication, midPoint will default to using the standard (built-in) login form for user GUI authentication.
+However, if there is at least one sequence configured that is not related to loginForm in the authentication configuration, it is imperative to explicitly specify a sequence for the loginForm module in the authentication configuration. This is essential to ensure the proper functioning of the Midpoint GUI.
+
+To view the default configuration for the loginForm sequence, please refer to the security policy found in the Midpoint initial objects (015-security-policy.xml).
+
+
+== Ignored path Configuration
+
+Tag <authentication> contains tag <ignoredLocalPath>, which defines path without authentication.
+For example:
+
+[source]
+----
+<authentication>
+    <ignoredLocalPath>/actuator</ignoredLocalPath>
+    <ignoredLocalPath>/actuator/health</ignoredLocalPath>
+    .
+    .
+    .
+</authentication>
+----
+
+== Complete Configuration Examples
+
+You can find example on link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/policy/security/security-policy-flexible-authentication.xml[security-policy-flexible-authentication].
+
+== See Also
+
+* xref:..[Flexible Authentication]
+* xref:/midpoint/reference/security/security-policy[Security Policy Configuration]

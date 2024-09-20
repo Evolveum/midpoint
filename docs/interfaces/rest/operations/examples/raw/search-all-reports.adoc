@@ -1,0 +1,57 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Search All Reports*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Accept: application/json" \
+-H "Content-Type: application/json" \
+-X POST http://localhost:8080/midpoint/ws/rest/reports/search?options=resolveNames \
+-v \
+--data-binary @./samples/rest/query-all.json -v
+----
+
+.*Show* data source example for *"Search for all"* | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/query-all.json[GitHub]
+[%collapsible]
+====
+[source, json]
+----
+{
+  "query" : ""
+}
+----
+====
+
+The response is an HTTP 200 code in case of success with a response body containing the queried items.
+
+.Example Output is a list of objects.
+[%collapsible]
+====
+[source, json]
+----
+{
+	"@ns": "http://prism.evolveum.com/xml/ns/public/types-3",
+	"object": {
+		"@type": "http://midpoint.evolveum.com/xml/ns/public/common/api-types-3#ObjectListType",
+		"object": [
+			{
+				"@type": "c:ReportType",
+				"oid": "00000000-0000-0000-0000-000000000080",
+				"version": "1",
+				"name": "All audit records report",
+				"description": "Report made from all audit records.",
+				"metadata": {},
+				"operationExecution": {},
+				"assignment": {},
+				"iteration": 0,
+				"iterationToken": "",
+				"archetypeRef": {},
+				"roleMembershipRef": {},
+				"objectCollection": {}
+			}
+		]
+	}
+}
+----
+====

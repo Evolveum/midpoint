@@ -14,6 +14,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 
+import com.evolveum.midpoint.schema.config.InboundMappingConfigItem;
 import com.evolveum.midpoint.schema.error.ConfigErrorReporter;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -63,14 +64,15 @@ class ApplicabilityEvaluator {
         this.correlationItemPaths = correlationItemPaths;
     }
 
-    List<InboundMappingType> filterApplicableMappingBeans(List<InboundMappingType> beans) throws ConfigurationException {
-        List<InboundMappingType> applicableBeans = new ArrayList<>();
-        for (InboundMappingType bean : beans) {
-            if (isApplicable(bean)) {
-                applicableBeans.add(bean);
+    List<InboundMappingConfigItem> filterApplicableMappings(List<InboundMappingConfigItem> mappings)
+            throws ConfigurationException {
+        List<InboundMappingConfigItem> applicableMappings = new ArrayList<>();
+        for (var mapping : mappings) {
+            if (isApplicable(mapping.value())) {
+                applicableMappings.add(mapping);
             }
         }
-        return applicableBeans;
+        return applicableMappings;
     }
 
     private boolean isApplicable(@NotNull InboundMappingType mappingBean) throws ConfigurationException {

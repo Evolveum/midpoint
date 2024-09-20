@@ -7,19 +7,25 @@
 
 package com.evolveum.midpoint.model.test.util;
 
-import static com.evolveum.midpoint.model.test.util.SynchronizationRequest.SynchronizationStyle.IMPORT;
-import static com.evolveum.midpoint.model.test.util.SynchronizationRequest.SynchronizationStyle.RECONCILIATION;
+import static com.evolveum.midpoint.model.test.util.SynchronizationRequest.SynchronizationStyle.*;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME;
 import static com.evolveum.midpoint.test.AbstractIntegrationTest.DEFAULT_SHORT_TASK_WAIT_TIMEOUT;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+
+import com.evolveum.midpoint.schema.util.GetOperationOptionsUtil;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -40,12 +46,13 @@ import com.evolveum.midpoint.schema.util.expression.ExpressionTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestSpringBeans;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Causes a single or multiple accounts be synchronized (imported or reconciled):
@@ -76,6 +83,9 @@ public class SynchronizationRequest {
     private final TracingProfileType tracingProfile;
     private final Collection<String> tracingAccounts;
     @NotNull private final TaskExecutionMode taskExecutionMode;
+    private final ShadowClassificationModeType classificationMode;
+    private final Consumer<TaskType> taskCustomizer; // only for background execution
+    private final boolean noFetchWhenSynchronizing; // limited support for now
 
     private SynchronizationRequest(
             @NotNull SynchronizationRequest.SynchronizationRequestBuilder builder) {
@@ -90,6 +100,9 @@ public class SynchronizationRequest {
         this.tracingProfile = builder.tracingProfile;
         this.tracingAccounts = builder.tracingAccounts;
         this.taskExecutionMode = Objects.requireNonNullElse(builder.taskExecutionMode, TaskExecutionMode.PRODUCTION);
+        this.classificationMode = builder.classificationMode;
+        this.taskCustomizer = builder.taskCustomizer;
+        this.noFetchWhenSynchronizing = builder.noFetchWhenSynchronizing;
     }
 
     public String execute(OperationResult result) throws CommonException, IOException {
@@ -101,10 +114,15 @@ public class SynchronizationRequest {
                 .intent(accountsScope.getIntent())
                 .objectclass(accountsScope.getObjectClassName())
                 .query(PrismContext.get().getQueryConverter().createQueryType(query))
-                .queryApplication(ResourceObjectSetQueryApplicationModeType.REPLACE);
+                .queryApplication(ResourceObjectSetQueryApplicationModeType.REPLACE)
+                .searchOptions(GetOperationOptionsUtil.optionsToOptionsBeanNullable(createGetOperationOptions()));
         if (synchronizationStyle == IMPORT) {
             work = new WorkDefinitionsType()
                     ._import(new ImportWorkDefinitionType()
+                            .resourceObjects(resourceObjectSet));
+        } else if (synchronizationStyle == SHADOW_RECLASSIFICATION) {
+            work = new WorkDefinitionsType()
+                    .shadowReclassification(new ShadowReclassificationWorkDefinitionType()
                             .resourceObjects(resourceObjectSet));
         } else {
             work = new WorkDefinitionsType()
@@ -141,6 +159,9 @@ public class SynchronizationRequest {
                 .name(synchronizationStyle.taskName)
                 .executionState(TaskExecutionStateType.RUNNABLE)
                 .activity(activityDefinition);
+        if (taskCustomizer != null) {
+            taskCustomizer.accept(syncTask);
+        }
         String taskOid = test.addObject(syncTask, task, result);
         test.waitForTaskCloseOrSuspend(taskOid, timeout);
 
@@ -150,6 +171,13 @@ public class SynchronizationRequest {
                     .assertSuccess();
         }
         return taskOid;
+    }
+
+    private Collection<SelectorOptions<GetOperationOptions>> createGetOperationOptions() {
+        return GetOperationOptionsBuilder.create()
+                .shadowClassificationMode(classificationMode)
+                .noFetch(noFetchWhenSynchronizing)
+                .build();
     }
 
     private @NotNull ExecutionModeType getBackgroundTaskExecutionMode() {
@@ -188,24 +216,21 @@ public class SynchronizationRequest {
                 getProvisioningService().searchObjects(
                         ShadowType.class,
                         createResourceObjectQuery(result),
-                        null,
+                        createGetOperationOptions(),
                         task,
                         result);
-        String shadowOid =
-                MiscUtil.extractSingletonRequired(
-                                shadows,
-                                () -> new AssertionError("Multiple matching shadows: " + shadows),
-                                () -> new AssertionError("No shadow" + accountsSpecification.describeQuery()))
-                        .getOid();
-
+        stateCheck(!shadows.isEmpty(), "No shadows: %s", accountsSpecification.describeQuery());
         TaskExecutionMode oldMode = task.setExecutionMode(taskExecutionMode);
         try {
-            if (tracingProfile != null) {
-                test.traced(
-                        tracingProfile,
-                        () -> executeImportOnForeground(result, shadowOid));
-            } else {
-                executeImportOnForeground(result, shadowOid);
+            for (var shadow : shadows) {
+                var shadowOid = shadow.getOid();
+                if (tracingProfile != null) {
+                    test.traced(
+                            tracingProfile,
+                            () -> executeImportOnForeground(result, shadowOid));
+                } else {
+                    executeImportOnForeground(result, shadowOid);
+                }
             }
         } finally {
             task.setExecutionMode(oldMode);
@@ -224,7 +249,7 @@ public class SynchronizationRequest {
 
     @SuppressWarnings("WeakerAccess")
     public TestSimulationResult executeOnForegroundSimulated(
-            SimulationDefinitionType simulationDefinition, Task task, OperationResult result) throws CommonException {
+            @Nullable SimulationDefinitionType simulationDefinition, Task task, OperationResult result) throws CommonException {
         return test.executeWithSimulationResult(
                 taskExecutionMode,
                 simulationDefinition,
@@ -346,6 +371,9 @@ public class SynchronizationRequest {
         private Collection<String> tracingAccounts;
         private Task task;
         private TaskExecutionMode taskExecutionMode;
+        private ShadowClassificationModeType classificationMode;
+        private Consumer<TaskType> taskCustomizer;
+        private boolean noFetchWhenSynchronizing;
 
         public SynchronizationRequestBuilder(@NotNull AbstractModelIntegrationTest test) {
             this.test = test;
@@ -393,6 +421,10 @@ public class SynchronizationRequest {
 
         public SynchronizationRequestBuilder withUsingReconciliation() {
             return withSynchronizationStyle(RECONCILIATION);
+        }
+
+        public SynchronizationRequestBuilder withUsingShadowReclassification() {
+            return withSynchronizationStyle(SHADOW_RECLASSIFICATION);
         }
 
         @SuppressWarnings("SameParameterValue")
@@ -458,20 +490,39 @@ public class SynchronizationRequest {
             return this;
         }
 
+        public SynchronizationRequestBuilder withClassificationMode(ShadowClassificationModeType classificationMode) {
+            this.classificationMode = classificationMode;
+            return this;
+        }
+
+        /** Only for background execution. */
+        public SynchronizationRequestBuilder withTaskCustomizer(Consumer<TaskType> taskCustomizer) {
+            this.taskCustomizer = taskCustomizer;
+            return this;
+        }
+
+        public SynchronizationRequestBuilder withNoFetchWhenSynchronizing() {
+            this.noFetchWhenSynchronizing = true;
+            return this;
+        }
+
         public SynchronizationRequest build() {
             return new SynchronizationRequest(this);
         }
 
+        /** Executes on background (in a task). */
         public String execute(OperationResult result) throws CommonException, IOException {
             return build().execute(result);
         }
 
+        /** Beware, ImportFromResourceLauncher that is used re-reads the shadow from the resource. */
         public void executeOnForeground(OperationResult result) throws CommonException, IOException {
             build().executeOnForeground(result);
         }
 
         public TestSimulationResult executeOnForegroundSimulated(
-                SimulationDefinitionType simulationDefinition, Task task, OperationResult result) throws CommonException {
+                @Nullable SimulationDefinitionType simulationDefinition, Task task, OperationResult result)
+                throws CommonException {
             return build().executeOnForegroundSimulated(simulationDefinition, task, result);
         }
 
@@ -489,7 +540,7 @@ public class SynchronizationRequest {
     }
 
     public enum SynchronizationStyle {
-        IMPORT("import"), RECONCILIATION("reconciliation");
+        IMPORT("import"), RECONCILIATION("reconciliation"), SHADOW_RECLASSIFICATION("shadowReclassification");
 
         private final String taskName;
 

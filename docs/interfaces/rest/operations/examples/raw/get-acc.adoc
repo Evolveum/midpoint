@@ -1,0 +1,108 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Get Access Certification Campaign Type object*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Accept: application/json" \
+-X GET http://localhost:8080/midpoint/ws/rest/accessCertificationCampaigns/3a0fb4a2-ffbd-4e72-bbff-47327df054c4?options=raw \
+-v
+----
+
+The response is an HTTP 200 code in case of success with a response body containing the queried item.
+
+.Example Output of *"Get Access Certification Campaign Type object"* example
+[%collapsible]
+====
+The example is *simplified*, some properties were removed to keep the example output "short". This example *does
+not* contain all possible properties of this object type.
+[source, json]
+----
+{
+	"accessCertificationCampaign": {
+		"oid": "3a0fb4a2-ffbd-4e72-bbff-47327df054c4",
+		"version": "0",
+		"name": "User's assignemnts according to the manager 1",
+		"description": "Certifies all users' assignments. Everything is certified by the administrator.",
+		"iteration": 1,
+		"definitionRef": {
+			"oid": "8f37ee15-9945-4872-8b90-8cb75f304b41",
+			"relation": "org:default",
+			"type": "c:AccessCertificationDefinitionType"
+		},
+		"ownerRef": {
+			"oid": "00000000-0000-0000-0000-000000000002",
+			"relation": "org:default",
+			"type": "c:UserType"
+		},
+		"handlerUri": "http://midpoint.evolveum.com/xml/ns/public/certification/handlers-3#direct-assignment",
+		"scopeDefinition": {
+			"@type": "c:AccessCertificationAssignmentReviewScopeType",
+			"objectType": "#UserType",
+			"searchFilter": {
+				"org": {
+					"@ns": "http://prism.evolveum.com/xml/ns/public/query-3",
+					"path": "parentOrgRef",
+					"orgRef": {
+						"oid": "7d1e7065-455c-48d5-a469-1734fd255739",
+						"scope": "SUBTREE"
+					}
+				}
+			},
+			"itemSelectionExpression": {
+				"script": [
+					{
+						"code": "\nimport com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType\nlog.info(\"####### assignment: \" + assignment)\nif (assignment.targetRef.type.localPart.equals('RoleType')) \n{log.info(\"#### not a OrgType: \" + assignment.targetRef.type.localPart)\nrole = midpoint.resolveReferenceIfExists(assignment.targetRef)\nlog.info(\"##### role: \" + role)\nlog.info(\"##### role type: \" + role.subtype)\nreturn role != null && role.requestable}\norg = midpoint.resolveReferenceIfExists(assignment.targetRef)\nlog.info(\"##### org: \" + org)\nlog.info(\"##### org type: \" + org.subtype)\nreturn org != null && org.subtype[0] == 'access'\n\n                "
+					}
+				]
+			},
+			"includeRoles": true,
+			"includeOrgs": true,
+			"includeResources": false
+		},
+		"remediationDefinition": {
+			"style": "automated"
+		},
+		"stageDefinition": {
+			"@id": 1,
+			"number": 1,
+			"name": "Manager's review",
+			"description": "In this stage, the manager has to review all the assignments of users belonging to his org unit.",
+			"duration": "P14D",
+			"notifyBeforeDeadline": [
+				"PT48H",
+				"PT12H"
+			],
+			"notifyOnlyWhenNoDecision": true,
+			"reviewerSpecification": {
+				"useObjectManager": {
+					"allowSelf": false
+				}
+			},
+			"timedActions": {
+				"@id": 2,
+				"time": {
+					"value": [
+						"P7D"
+					]
+				},
+				"actions": {
+					"escalate": {
+						"approverRef": {
+							"oid": "00000000-0000-0000-0000-000000000002",
+							"relation": "org:default",
+							"type": "c:UserType"
+						},
+						"delegationMethod": "addAssignees",
+						"escalationLevelName": "Level1"
+					}
+				}
+			}
+		},
+		"state": "created",
+		"stageNumber": 0
+	}
+}
+----
+====

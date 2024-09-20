@@ -17,6 +17,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.schema.config.MappingConfigItem;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -28,6 +29,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.jetbrains.annotations.NotNull;
+
+import static com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator.EvaluationContext.*;
 
 /**
  * Evaluates assignment/role conditions, resulting in "relativity mode" updates.
@@ -70,7 +73,7 @@ class ConditionEvaluator {
     }
 
     private PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> evaluateCondition(
-            MappingType condition,
+            @NotNull MappingType condition,
             ConfigurationItemOrigin mappingOrigin, // [EP:M:ARC] DONE 2/2
             ObjectType source,
             @NotNull AssignmentPathVariables assignmentPathVariables,
@@ -82,14 +85,14 @@ class ConditionEvaluator {
         MappingBuilder<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> builder =
                 ctx.ae.mappingFactory.createMappingBuilder();
         ObjectDeltaObject<?> focusOdo = absolute ? ctx.ae.focusOdoAbsolute : ctx.ae.focusOdoRelative;
-        builder = builder.mappingBean(condition, mappingOrigin) // [EP:M:ARC] DONE^
+        builder = builder.mapping(MappingConfigItem.of(condition, mappingOrigin)) // [EP:M:ARC] DONE^
                 .mappingKind(MappingKindType.ASSIGNMENT_CONDITION)
                 .contextDescription((absolute ? "(absolute) " : "(relative) ") + contextDescription)
-                .sourceContext(focusOdo)
+                .defaultSourceContextIdi(focusOdo)
                 .originType(OriginType.ASSIGNMENTS)
                 .defaultTargetDefinition(LensUtil.createConditionDefinition())
                 .addVariableDefinitions(ctx.ae.getAssignmentEvaluationVariables())
-                .rootNode(focusOdo)
+                .addRootVariableDefinition(focusOdo)
                 .addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo)
                 .addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo)
                 .addAliasRegistration(ExpressionConstants.VAR_USER, null)
@@ -100,7 +103,11 @@ class ConditionEvaluator {
 
         MappingImpl<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> mapping = builder.build();
 
-        ctx.ae.mappingEvaluator.evaluateMapping(mapping, ctx.ae.lensContext, ctx.task, result);
+        ctx.ae.mappingEvaluator.evaluateMapping(
+                mapping,
+                forModelContext(ctx.ae.lensContext),
+                ctx.task,
+                result);
 
         return mapping.getOutputTriple();
     }

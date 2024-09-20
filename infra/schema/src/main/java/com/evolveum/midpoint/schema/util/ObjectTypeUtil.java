@@ -9,6 +9,8 @@ package com.evolveum.midpoint.schema.util;
 
 import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
+
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
 import java.util.Objects;
@@ -68,7 +70,8 @@ public class ObjectTypeUtil {
     /**
      * Never returns null. Returns empty collection instead.
      */
-    public static <T> Collection<T> getExtensionPropertyValuesNotNull(Containerable containerable, QName propertyQname) {
+    public static <T> @NotNull Collection<T> getExtensionPropertyValuesNotNull(
+            Containerable containerable, @NotNull QName propertyQname) {
         Collection<T> values = getExtensionPropertyValues(containerable, propertyQname);
         if (values == null) {
             return new ArrayList<>(0);
@@ -78,12 +81,14 @@ public class ObjectTypeUtil {
     }
 
     public static <T> Collection<T> getExtensionPropertyValues(Containerable containerable, QName propertyQname) {
-        PrismContainerValue pcv = containerable.asPrismContainerValue();
-        //noinspection unchecked
-        PrismContainer<Containerable> extensionContainer = pcv.findContainer(ObjectType.F_EXTENSION);
+        if (containerable == null) {
+            return null;
+        }
+        var extensionContainer = containerable.asPrismContainerValue().findContainer(ObjectType.F_EXTENSION);
         if (extensionContainer == null) {
             return null;
         }
+        //noinspection unchecked
         PrismProperty<T> property = extensionContainer.findProperty(ItemName.fromQName(propertyQname));
         if (property == null) {
             return null;
@@ -91,9 +96,11 @@ public class ObjectTypeUtil {
         return property.getRealValues();
     }
 
-    public static Collection<Referencable> getExtensionReferenceValues(ObjectType objectType, QName propertyQname) {
-        PrismObject<? extends ObjectType> object = objectType.asPrismObject();
-        PrismContainer<Containerable> extensionContainer = object.findContainer(ObjectType.F_EXTENSION);
+    public static Collection<Referencable> getExtensionReferenceValues(Containerable containerable, QName propertyQname) {
+        if (containerable == null) {
+            return null;
+        }
+        var extensionContainer = containerable.asPrismContainerValue().findContainer(ObjectType.F_EXTENSION);
         if (extensionContainer == null) {
             return null;
         }
@@ -266,9 +273,9 @@ public class ObjectTypeUtil {
 
     @NotNull
     public static <T extends ObjectType> AssignmentType createAssignmentTo(@NotNull PrismObject<T> object, QName relation) {
-        AssignmentType assignment = new AssignmentType(object.getPrismContext());
+        AssignmentType assignment = new AssignmentType();
         if (object.asObjectable() instanceof ResourceType) {
-            ConstructionType construction = new ConstructionType(object.getPrismContext());
+            ConstructionType construction = new ConstructionType();
             construction.setResourceRef(createObjectRef(object, relation));
             assignment.setConstruction(construction);
         } else {
@@ -300,20 +307,22 @@ public class ObjectTypeUtil {
         return ort;
     }
 
-    @Deprecated
-    public static ObjectReferenceType createObjectRefWithFullObject(ObjectType object, PrismContext prismContext) {
-        return createObjectRefWithFullObject(object);
+    public static ObjectReferenceType createObjectRef(Referencable value) {
+        ObjectReferenceType ort = new ObjectReferenceType();
+        ort.setupReferenceValue(value.asReferenceValue());
+        return ort;
     }
 
     public static ObjectReferenceType createObjectRef(ObjectType object) {
-        return createObjectRef(object, PrismContext.get());
-    }
-
-    public static ObjectReferenceType createObjectRef(ObjectType object, PrismContext prismContext) {
         if (object == null) {
             return null;
         }
-        return createObjectRef(object, prismContext.getDefaultRelation());
+        return createObjectRef(object, PrismContext.get().getDefaultRelation());
+    }
+
+    @Deprecated // keeping this as it was quite popular before
+    public static ObjectReferenceType createObjectRef(ObjectType object, PrismContext ignored) {
+        return createObjectRef(object);
     }
 
     /**
@@ -462,6 +471,13 @@ public class ObjectTypeUtil {
         return createObjectRef(oid, null, type);
     }
 
+    public static ObjectReferenceType createObjectRef(
+            @NotNull String oid, @NotNull ObjectTypes type, @Nullable PrismObject<?> object) {
+        var ref = createObjectRef(oid, null, type);
+        ref.asReferenceValue().setObject(object);
+        return ref;
+    }
+
     @Contract("null, _ -> null; !null, _ -> !null")
     public static ObjectReferenceType createObjectRefNullSafe(@Nullable String oid, @NotNull ObjectTypes type) {
         return oid != null ?
@@ -596,7 +612,7 @@ public class ObjectTypeUtil {
     public static <O extends ObjectType> List<ObjectReferenceType> objectListToReferences(Collection<PrismObject<O>> objects) {
         List<ObjectReferenceType> rv = new ArrayList<>();
         for (PrismObject<? extends ObjectType> object : objects) {
-            rv.add(createObjectRef(object.asObjectable(), object.getPrismContext().getDefaultRelation()));
+            rv.add(createObjectRef(object.asObjectable(), PrismContext.get().getDefaultRelation()));
         }
         return rv;
     }
@@ -891,18 +907,7 @@ public class ObjectTypeUtil {
     }
 
     public static <O extends ObjectType> XMLGregorianCalendar getLastTouchTimestamp(PrismObject<O> object) {
-        if (object == null) {
-            return null;
-        }
-        MetadataType metadata = object.asObjectable().getMetadata();
-        if (metadata == null) {
-            return null;
-        }
-        XMLGregorianCalendar modifyTimestamp = metadata.getModifyTimestamp();
-        if (modifyTimestamp != null) {
-            return modifyTimestamp;
-        }
-        return metadata.getCreateTimestamp();
+        return object != null ? ValueMetadataTypeUtil.getLastChangeTimestamp(object.asObjectable()) : null;
     }
 
     @NotNull
@@ -943,21 +948,21 @@ public class ObjectTypeUtil {
     }
 
     @NotNull
-    public static ObjectQuery createManagerQuery(Class<? extends ObjectType> objectTypeClass, String orgOid,
-            RelationRegistry relationRegistry, PrismContext prismContext) {
+    public static ObjectQuery createManagerQuery(
+            Class<? extends ObjectType> objectTypeClass, String orgOid, RelationRegistry relationRegistry) {
         Collection<QName> managerRelations = relationRegistry.getAllRelationsFor(RelationKindType.MANAGER);
         if (managerRelations.isEmpty()) {
             LOGGER.warn("No manager relation is defined");
-            return prismContext.queryFor(objectTypeClass).none().build();
+            return PrismContext.get().queryFor(objectTypeClass).none().build();
         }
 
         List<PrismReferenceValue> referencesToFind = new ArrayList<>();
         for (QName managerRelation : managerRelations) {
-            PrismReferenceValue parentOrgRefVal = prismContext.itemFactory().createReferenceValue(orgOid, OrgType.COMPLEX_TYPE);
+            PrismReferenceValue parentOrgRefVal = PrismContext.get().itemFactory().createReferenceValue(orgOid, OrgType.COMPLEX_TYPE);
             parentOrgRefVal.setRelation(managerRelation);
             referencesToFind.add(parentOrgRefVal);
         }
-        return prismContext.queryFor(objectTypeClass)
+        return PrismContext.get().queryFor(objectTypeClass)
                 .item(ObjectType.F_PARENT_ORG_REF).ref(referencesToFind)
                 .build();
     }
@@ -1108,7 +1113,8 @@ public class ObjectTypeUtil {
      * Returns the type name for an object.
      * (This really belongs somewhere else, not here.)
      */
-    public static QName getObjectType(ObjectType object, PrismContext prismContext) {
+    @Contract("!null -> !null; null -> null")
+    public static QName getObjectTypeName(ObjectType object) {
         if (object == null) {
             return null;
         }
@@ -1118,14 +1124,21 @@ public class ObjectTypeUtil {
         }
         Class<? extends Objectable> clazz = object.asPrismObject().getCompileTimeClass();
         if (clazz == null) {
-            return null;
+            throw new IllegalStateException("No compile-time class for " + object);
         }
-        PrismObjectDefinition<?> defFromRegistry = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz);
+        PrismObjectDefinition<?> defFromRegistry =
+                PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz);
         if (defFromRegistry != null) {
             return defFromRegistry.getTypeName();
         } else {
             return ObjectType.COMPLEX_TYPE;
         }
+    }
+
+    /** A convenience variant of {@link #getObjectTypeName(ObjectType)}. */
+    @Contract("!null -> !null; null -> null")
+    public static QName getObjectTypeName(PrismObject<? extends ObjectType> object) {
+        return getObjectTypeName(asObjectable(object));
     }
 
     public static boolean isIndestructible(@NotNull ObjectType object) {
@@ -1138,10 +1151,16 @@ public class ObjectTypeUtil {
 
     // Currently ignoring reference definition (target type limitations)
     public static Class<? extends ObjectType> getTargetClassFromReference(@NotNull ObjectReferenceType ref) {
-        if (ref.getType() != null) {
-            return ObjectTypes.getObjectTypeClass(ref.getType());
+        return getTargetClassFromReference(ref, ObjectType.class);
+    }
+
+    public static Class<? extends ObjectType> getTargetClassFromReference(
+            @NotNull ObjectReferenceType ref, @NotNull Class<? extends ObjectType> defaultType) {
+        var type = ref.getType();
+        if (type != null) {
+            return ObjectTypes.getObjectTypeClass(type);
         } else {
-            return ObjectType.class;
+            return defaultType;
         }
     }
 
@@ -1329,8 +1348,8 @@ public class ObjectTypeUtil {
         throw new IllegalStateException("Cannot determine definition for " + propertyName + " in " + extension + " nor globally");
     }
 
-    public static void setExtensionContainerRealValues(PrismContext prismContext, PrismContainerValue<?> parent, ItemName containerName,
-            Object... values) throws SchemaException {
+    public static void setExtensionContainerRealValues(
+            PrismContext prismContext, PrismContainerValue<?> parent, ItemName containerName, Object... values) throws SchemaException {
         setExtensionItemRealValues(parent,
                 extension -> extension.removeContainer(containerName),
                 (extension, realValues) -> {
@@ -1421,5 +1440,51 @@ public class ObjectTypeUtil {
         return refs.stream()
                 .map(ref -> ref.getOid())
                 .collect(Collectors.toSet());
+    }
+
+    public static ObjectType getEmbeddedObjectBean(ObjectReferenceType ref) {
+        if (ref == null) {
+            return null;
+        } else {
+            return asObjectable(ref.getObject());
+        }
+    }
+
+    public static AssignmentType getAssignment(ObjectType object, long id) {
+        if (!(object instanceof AssignmentHolderType assignmentHolder)) {
+            return null;
+        }
+        return assignmentHolder.getAssignment().stream()
+                .filter(a -> a.getId() != null && a.getId() == id)
+                .findFirst()
+                .orElse(null);
+    }
+
+    public static @NotNull AssignmentType getAssignmentRequired(ObjectType object, long id) {
+        return stateNonNull(
+                getAssignment(object, id),
+                "No assignment with ID %d in %s", id, object);
+    }
+
+    /**
+     * This method selects only really effective `effectiveMarkRef` values.
+     *
+     * @see MarkTypeUtil#isEffective(ObjectReferenceType)
+     */
+    public static @NotNull List<ObjectReferenceType> getReallyEffectiveMarkRefs(@NotNull ObjectType object) {
+        return getReallyEffectiveMarkRefStream(object)
+                .toList();
+    }
+
+    /** @see MarkTypeUtil#isEffective(ObjectReferenceType) */
+    @SuppressWarnings("WeakerAccess")
+    public static @NotNull Stream<ObjectReferenceType> getReallyEffectiveMarkRefStream(@NotNull ObjectType object) {
+        return object.getEffectiveMarkRef().stream()
+                .filter(MarkTypeUtil::isEffective);
+    }
+
+    public static boolean hasEffectiveMarkRef(@NotNull ObjectType object, @NotNull String markOid) {
+        return getReallyEffectiveMarkRefStream(object)
+                .anyMatch(ref -> markOid.equals(ref.getOid()));
     }
 }

@@ -136,7 +136,7 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
                                 .name(createObjectName(tracingProfile, templateParameters))
                                 .archetypeRef(SystemObjectsType.ARCHETYPE_TRACE.value(), ArchetypeType.COMPLEX_TYPE)
                                 .filePath(file.getAbsolutePath())
-                                .nodeRef(ObjectTypeUtil.createObjectRef(taskManager.getLocalNode(), prismContext));
+                                .nodeRef(ObjectTypeUtil.createObjectRef(taskManager.getLocalNode()));
                         repositoryService.addObject(reportDataObject.asPrismObject(), null, thisOpResult);
                     }
                 } catch (IOException | SchemaException | ObjectAlreadyExistsException | RuntimeException e) {
@@ -280,7 +280,7 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
             throws SchemaException {
         List<TracingProfileType> matching = tracingConfiguration.getProfile().stream()
                 .filter(p -> name.equals(p.getName()))
-                .collect(Collectors.toList());
+                .toList();
         if (matching.isEmpty()) {
             throw new SchemaException("Tracing profile '" + name + "' is referenced but not defined. Known names: "
                     + tracingConfiguration.getProfile().stream().map(TracingProfileType::getName).collect(Collectors.joining(", ")));
@@ -311,7 +311,7 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
         } else {
             List<TracingProfileType> defaultProfiles = profiles.stream()
                     .filter(p -> Boolean.TRUE.equals(p.isDefault()))
-                    .collect(Collectors.toList());
+                    .toList();
             if (defaultProfiles.isEmpty()) {
                 return profiles.get(0);
             } else if (defaultProfiles.size() == 1) {
@@ -328,7 +328,7 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
             throws SchemaException {
         TracingProfileType resolvedProfile =
                 resolve(profile != null ? profile : getDefaultProfile(), result);
-        return CompiledTracingProfile.create(resolvedProfile, prismContext);
+        return CompiledTracingProfile.create(resolvedProfile);
     }
 
     @Nullable

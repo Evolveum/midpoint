@@ -8,6 +8,9 @@ package com.evolveum.midpoint.schema.util.cid;
 
 import java.util.*;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+
+import jakarta.xml.bind.JAXBElement;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.*;
@@ -28,10 +31,15 @@ public class ContainerValueIdGenerator {
     private static final Trace LOGGER = TraceManager.getTrace(ContainerValueIdGenerator.class);
 
     private final PrismObject<? extends ObjectType> object;
-    private final Set<Long> overwrittenIds = new HashSet<>(); // ids of PCV overwritten by ADD
+
+    /** IDs of PCVs overwritten by item ADD VALUE deltas. */
+    private final Set<Long> overwrittenIds = new HashSet<>();
+
+    /** PCVs without ID; to be generated in {@link #assignMissingContainerIds()}. */
     private final List<PrismContainerValue<?>> pcvsWithoutId = new ArrayList<>();
 
-    private long maxUsedId = 0; // tracks max CID
+    /** Tracks max CID: either existing or generated. */
+    private long maxUsedId = 0;
 
     private int generated;
 
@@ -44,7 +52,7 @@ public class ContainerValueIdGenerator {
      * This directly changes the object provided as a parameter, if necessary.
      */
     public long generateForNewObject() {
-        checkExistingContainers(object);
+        checkValueDeeply(object.getValue());
         LOGGER.trace("Generating {} missing container IDs for {}/{}",
                 pcvsWithoutId.size(), object.toDebugType(), object.getOid());
         assignMissingContainerIds();
@@ -56,14 +64,14 @@ public class ContainerValueIdGenerator {
      * This is a critical step before calling {@link #processModification}.
      */
     public ContainerValueIdGenerator forModifyObject(long containerIdSeq) {
-        checkExistingContainers(object);
+        checkValueDeeply(object.getValue());
         if (!pcvsWithoutId.isEmpty()) {
-            LOGGER.warn("Generating missing container IDs in previously persisted prism object {}/{} for container values: {}",
+            LOGGER.debug("Generating missing container IDs in previously persisted prism object {}/{} for container values: {}",
                     object.toDebugType(), object.getOid(), pcvsWithoutId);
             assignMissingContainerIds();
         }
         if (containerIdSeq <= maxUsedId) {
-            LOGGER.warn("Current CID sequence ({}) is not above max used CID ({}) for {}/{}. "
+            LOGGER.debug("Current CID sequence ({}) is not above max used CID ({}) for {}/{}. "
                     + "CID sequence will be fixed, but it's suspicious!",
                     containerIdSeq, maxUsedId, object.toDebugType(), object.getOid());
         } else {
@@ -83,34 +91,14 @@ public class ContainerValueIdGenerator {
      * is involved this may not be true, so preferably use this *before* applying the modification.
      */
     public void processModification(ItemDelta<?, ?> modification) {
-        if (modification.isReplace()) {
-            freeIdsFromReplacedContainer(modification);
-        }
         if (modification.isAdd()) {
             identifyReplacedContainers(modification);
         }
-        processModificationValues(modification.getValuesToAdd());
-        processModificationValues(modification.getValuesToReplace());
+        for (var prismValue : modification.getNewValues()) {
+            checkValueDeeply(prismValue);
+        }
         // values to delete are irrelevant
         assignMissingContainerIds();
-    }
-
-    /** Currently does nothing. Consider removing. */
-    private void freeIdsFromReplacedContainer(ItemDelta<?, ?> modification) {
-        ItemDefinition<?> definition = modification.getDefinition();
-        // we check all containers, even single-value container can contain multi-value ones
-        if (definition instanceof PrismContainerDefinition<?>) {
-            Visitable container = object.findContainer(modification.getPath());
-            if (container != null) {
-                container.accept(visitable -> {
-                    if (visitable instanceof PrismContainer
-                            && !(visitable instanceof PrismObject)
-                            && ((PrismContainer<?>) visitable).getDefinition().isMultiValue()) {
-                        freeContainerIds((PrismContainer<?>) visitable);
-                    }
-                });
-            }
-        }
     }
 
     private void identifyReplacedContainers(ItemDelta<?, ?> modification) {
@@ -134,50 +122,31 @@ public class ContainerValueIdGenerator {
         }
     }
 
-    private void freeContainerIds(PrismContainer<?> container) {
-    }
-
-    private void processModificationValues(Collection<? extends PrismValue> values) {
-        if (values != null) {
-            for (PrismValue prismValue : values) {
-                if (prismValue instanceof PrismContainerValue<?> pcv) {
-                    // the top level value is not covered by checkExistingContainers()
-                    // FIXME: How to process here?
-                    if (pcv.getDefinition().isMultiValue()) {
-                        processContainerValue(pcv, new HashSet<>());
+    /** Checks given {@link PrismValue} for missing PCV IDs (deeply). */
+    private void checkValueDeeply(PrismValue rootValue) {
+        rootValue.accept(visitable -> {
+            if (visitable instanceof PrismContainerValue<?> pcv) {
+                var def = pcv.getDefinition();
+                if (def != null && def.isMultiValue()) {
+                    checkPcvId(pcv); // prism objects are OK here, they are not multivalued
+                }
+            } else if (visitable instanceof PrismPropertyValue<?> ppv
+                && ppv.getRealValue() instanceof ExpressionType expression) {
+                for (JAXBElement<?> evaluatorElement : expression.getExpressionEvaluator()) {
+                    if (evaluatorElement.getValue() instanceof Containerable containerableEvaluator) {
+                        // Visitor does not go deeper into the evaluator, so we need to do it here manually
+                        checkValueDeeply(containerableEvaluator.asPrismContainerValue());
                     }
-
-                    checkExistingContainers(pcv);
                 }
             }
-        }
-    }
-
-    /**
-     * Checks the provided container (possibly the whole object) and finds values requiring CID.
-     * This does NOT cover top-level PCV if provided as parameter.
-     */
-    private void checkExistingContainers(Visitable object) {
-        object.accept(visitable -> {
-            if (visitable instanceof PrismContainer
-                    && !(visitable instanceof PrismObject)
-                    && ((PrismContainer<?>) visitable).getDefinition().isMultiValue()) {
-                processContainer((PrismContainer<?>) visitable);
-            }
+            // The value metadata will be visited automatically
         });
     }
 
-    private void processContainer(PrismContainer<?> container) {
-        Set<Long> usedIds = new HashSet<>();
-        for (PrismContainerValue<?> val : container.getValues()) {
-            processContainerValue(val, usedIds);
-        }
-    }
-
-    private void processContainerValue(PrismContainerValue<?> val, Set<Long> usedIds) {
+    /** Checks a PCV for missing IDs. */
+    private void checkPcvId(PrismContainerValue<?> val) {
         Long cid = val.getId();
         if (cid != null) {
-            usedIds.add(cid);
             maxUsedId = Math.max(maxUsedId, cid);
         } else {
             pcvsWithoutId.add(val);
@@ -193,7 +162,7 @@ public class ContainerValueIdGenerator {
         pcvsWithoutId.clear();
     }
 
-    private long nextId() {
+    public long nextId() {
         maxUsedId++;
         return maxUsedId;
     }

@@ -22,6 +22,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.TypedObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecification;
 import com.evolveum.midpoint.repo.common.activity.definition.RepositoryObjectSetSpecificationImpl;
@@ -242,5 +243,10 @@ public class SearchSpecification<C extends Containerable> implements DebugDumpab
     @Override
     public SearchSpecification<C> clone() {
         return new SearchSpecification<>(this);
+    }
+
+    public static <T extends ObjectType> SearchSpecification<T> fromTypedQuery(TypedObjectQuery<T> typedQuery) {
+        return new SearchSpecification<>(typedQuery.getObjectClass(), typedQuery.getObjectQuery(), null, false);
+
     }
 }

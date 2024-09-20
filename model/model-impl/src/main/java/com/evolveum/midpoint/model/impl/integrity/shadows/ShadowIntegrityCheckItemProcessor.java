@@ -18,7 +18,6 @@ import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -217,8 +216,9 @@ class ShadowIntegrityCheckItemProcessor {
                     ShadowUtil.isKnown(shadowIntent) ?
                             refinedSchema.findObjectDefinition(kind, shadowIntent) :
                             refinedSchema.findDefaultDefinitionForKind(kind); // TODO this is really strange, fix this!
-            if (objectDefinition instanceof ResourceObjectTypeDefinition) {
-                context.setObjectTypeDefinition((ResourceObjectTypeDefinition) objectDefinition);
+            var typeDefinition = objectDefinition != null ? objectDefinition.getTypeDefinition() : null;
+            if (typeDefinition != null) {
+                context.setObjectTypeDefinition(typeDefinition);
             } else {
                 // TODO or warning only?
                 checkResult.recordError(ShadowStatistics.NO_OBJECT_CLASS_REFINED_SCHEMA,
@@ -236,8 +236,8 @@ class ShadowIntegrityCheckItemProcessor {
             return;
         }
 
-        Set<ResourceAttributeDefinition<?>> identifiers = new HashSet<>();
-        Collection<? extends ResourceAttributeDefinition<?>> primaryIdentifiers = context.getObjectTypeDefinition().getPrimaryIdentifiers();
+        Set<ShadowSimpleAttributeDefinition<?>> identifiers = new HashSet<>();
+        Collection<? extends ShadowSimpleAttributeDefinition<?>> primaryIdentifiers = context.getObjectTypeDefinition().getPrimaryIdentifiers();
         identifiers.addAll(primaryIdentifiers);
         identifiers.addAll(context.getObjectTypeDefinition().getSecondaryIdentifiers());
 
@@ -248,7 +248,7 @@ class ShadowIntegrityCheckItemProcessor {
             return;
         }
 
-        for (ResourceAttributeDefinition<?> identifier : identifiers) {
+        for (ShadowSimpleAttributeDefinition<?> identifier : identifiers) {
             PrismProperty<String> property = attributesContainer.getValue().findProperty(identifier.getItemName());
             if (property == null || property.size() == 0) {
                 checkResult.recordWarning(ShadowStatistics.OTHER_FAILURE, "No value for identifier " + identifier.getItemName());
@@ -382,46 +382,47 @@ class ShadowIntegrityCheckItemProcessor {
         }
     }
 
-    private void doCheckNormalization(ShadowCheckResult checkResult, ResourceAttributeDefinition<?> identifier, String value) throws SchemaException {
-        QName matchingRuleQName = identifier.getMatchingRuleQName();
-        if (matchingRuleQName == null) {
-            return;
-        }
-
-        MatchingRule<Object> matchingRule;
-        try {
-            matchingRule = activityRun.getBeans().matchingRuleRegistry
-                    .getMatchingRule(matchingRuleQName, identifier.getTypeName());
-        } catch (SchemaException e) {
-            checkResult.recordError(
-                    ShadowStatistics.OTHER_FAILURE, new SchemaException("Couldn't retrieve matching rule for identifier " +
-                    identifier.getItemName() + " (rule name = " + matchingRuleQName + ")"));
-            return;
-        }
-
-        Object normalizedValue = matchingRule.normalize(value);
-        if (!(normalizedValue instanceof String)) {
-            checkResult.recordError(
-                    ShadowStatistics.OTHER_FAILURE, new SchemaException("Normalized value is not a string, it's " + normalizedValue.getClass() +
-                    " (identifier " + identifier.getItemName() + ", value " + value));
-            return;
-        }
-        if (value.equals(normalizedValue)) {
-            return;
-        }
-        String normalizedStringValue = (String) normalizedValue;
-
-        checkResult.recordError(ShadowStatistics.NON_NORMALIZED_IDENTIFIER_VALUE,
-                new SchemaException("Non-normalized value of identifier " + identifier.getItemName()
-                        + ": " + value + " (normalized form: " + normalizedValue + ")"));
-
-        if (getConfiguration().fixNormalization) {
-            //noinspection rawtypes
-            PropertyDelta delta = identifier.createEmptyDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, identifier.getItemName()));
-            //noinspection unchecked
-            delta.setRealValuesToReplace(normalizedStringValue);
-            checkResult.addFixDelta(delta, ShadowStatistics.NON_NORMALIZED_IDENTIFIER_VALUE);
-        }
+    private void doCheckNormalization(ShadowCheckResult checkResult, ShadowSimpleAttributeDefinition<?> identifier, String value) throws SchemaException {
+        // FIXME implement after resolving attribute normalization
+//        QName matchingRuleQName = identifier.getMatchingRuleQName();
+//        if (matchingRuleQName == null) {
+//            return;
+//        }
+//
+//        MatchingRule<Object> matchingRule;
+//        try {
+//            matchingRule = activityRun.getBeans().matchingRuleRegistry
+//                    .getMatchingRule(matchingRuleQName, identifier.getTypeName());
+//        } catch (SchemaException e) {
+//            checkResult.recordError(
+//                    ShadowStatistics.OTHER_FAILURE, new SchemaException("Couldn't retrieve matching rule for identifier " +
+//                    identifier.getItemName() + " (rule name = " + matchingRuleQName + ")"));
+//            return;
+//        }
+//
+//        Object normalizedValue = matchingRule.normalize(value);
+//        if (!(normalizedValue instanceof String)) {
+//            checkResult.recordError(
+//                    ShadowStatistics.OTHER_FAILURE, new SchemaException("Normalized value is not a string, it's " + normalizedValue.getClass() +
+//                    " (identifier " + identifier.getItemName() + ", value " + value));
+//            return;
+//        }
+//        if (value.equals(normalizedValue)) {
+//            return;
+//        }
+//        String normalizedStringValue = (String) normalizedValue;
+//
+//        checkResult.recordError(ShadowStatistics.NON_NORMALIZED_IDENTIFIER_VALUE,
+//                new SchemaException("Non-normalized value of identifier " + identifier.getItemName()
+//                        + ": " + value + " (normalized form: " + normalizedValue + ")"));
+//
+//        if (getConfiguration().fixNormalization) {
+//            //noinspection rawtypes
+//            PropertyDelta delta = identifier.createEmptyDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, identifier.getItemName()));
+//            //noinspection unchecked
+//            delta.setRealValuesToReplace(normalizedStringValue);
+//            checkResult.addFixDelta(delta, ShadowStatistics.NON_NORMALIZED_IDENTIFIER_VALUE);
+//        }
     }
 
     private void addIdentifierValue(ObjectTypeContext context, QName identifierName, String identifierValue, PrismObject<ShadowType> shadow) {

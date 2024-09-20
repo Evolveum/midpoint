@@ -11,24 +11,29 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.schema.processor.deleg.RefinedAttributeDefinitionDelegator;
+import com.evolveum.midpoint.schema.processor.deleg.ResourceAttributeDefinitionDelegator;
 import com.evolveum.midpoint.prism.deleg.PropertyDefinitionDelegator;
 import com.evolveum.midpoint.schema.processor.MutableRawResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.deleg.AttributeDefinitionDelegator;
 import com.evolveum.midpoint.util.exception.SchemaException;
+
+import org.jetbrains.annotations.Nullable;
+
+import java.io.Serial;
 
 public class TransformablePropertyDefinition<T> extends TransformableItemDefinition<PrismProperty<T>, PrismPropertyDefinition<T>>
     implements PropertyDefinitionDelegator<T>, PartiallyMutableItemDefinition.Property<T> {
 
+    @Serial private static final long serialVersionUID = 1L;
 
-    private static final long serialVersionUID = 1L;
-
-    public TransformablePropertyDefinition(PrismPropertyDefinition<T> delegate) {
+    TransformablePropertyDefinition(PrismPropertyDefinition<T> delegate) {
         super(delegate);
     }
 
@@ -36,7 +41,7 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
         if (originalItem instanceof TransformablePropertyDefinition) {
             return originalItem;
         }
-        if (originalItem instanceof ResourceAttributeDefinition) {
+        if (originalItem instanceof ShadowSimpleAttributeDefinition) {
             return new ResourceAttribute<>(originalItem);
         }
 
@@ -58,7 +63,7 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
     }
 
     @Override
-    public @NotNull PrismPropertyDefinition<T> clone() {
+    public @NotNull TransformablePropertyDefinition<T> clone() {
         throw new UnsupportedOperationException();
     }
 
@@ -68,7 +73,7 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
     }
 
     @Override
-    public MutablePrismPropertyDefinition<T> toMutable() {
+    public PrismPropertyDefinitionMutator<T> mutator() {
         return this;
     }
 
@@ -97,31 +102,40 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
     }
 
     @Override
+    public @Nullable SchemaContextDefinition getSchemaContextDefinition() {
+        return null;
+    }
+
+    @Override
     protected PrismPropertyDefinition<T> publicView() {
         return this;
     }
 
+    @Override
+    public void setSchemaContextDefinition(SchemaContextDefinition schemaContextDefinition) {
+    }
+
     public static class ResourceAttribute<T>
             extends TransformablePropertyDefinition<T>
-            implements AttributeDefinitionDelegator<T>, PartiallyMutableItemDefinition.Attribute<T> {
-        private static final long serialVersionUID = 1L;
+            implements ResourceAttributeDefinitionDelegator<T>, PartiallyMutableItemDefinition.Attribute<T> {
+        @Serial private static final long serialVersionUID = 1L;
 
         public ResourceAttribute(PrismPropertyDefinition<T> delegate) {
             super(delegate);
         }
 
         @Override
-        public ResourceAttributeDefinition<T> delegate() {
-            return (ResourceAttributeDefinition<T>) super.delegate();
+        public ShadowSimpleAttributeDefinition<T> delegate() {
+            return (ShadowSimpleAttributeDefinition<T>) super.delegate();
         }
 
         @Override
-        public @NotNull ResourceAttributeDefinition<T> clone() {
+        public @NotNull ResourceAttribute<T> clone() {
             return copy();
         }
 
         @Override
-        public ResourceAttributeDefinition<T> deepClone(@NotNull DeepCloneOperation operation) {
+        public ShadowSimpleAttributeDefinition<T> deepClone(@NotNull DeepCloneOperation operation) {
             return copy(); // FIXME
         }
 
@@ -131,7 +145,7 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
         }
 
         @Override
-        public @NotNull MutableRawResourceAttributeDefinition<T> toMutable() {
+        public @NotNull MutableRawResourceAttributeDefinition<T> mutator() {
             return this;
         }
 
@@ -151,31 +165,47 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
         }
 
         @Override
-        public @NotNull com.evolveum.midpoint.schema.processor.ResourceAttribute<T> instantiate() {
+        public @NotNull ShadowSimpleAttribute<T> instantiate() {
             return instantiate(getItemName());
         }
 
         @Override
-        public @NotNull com.evolveum.midpoint.schema.processor.ResourceAttribute<T> instantiate(QName name) {
+        public @NotNull ShadowSimpleAttribute<T> instantiate(QName name) {
             var deleg = delegate().instantiate(name);
             deleg.setDefinition(this);
             return deleg;
         }
+
+        @Override
+        public PrismPropertyValue<T> createPrismValueFromRealValue(@NotNull Object realValue) throws SchemaException {
+            return delegate().createPrismValueFromRealValue(realValue);
+        }
+
+        @Override
+        public @NotNull Class<T> getTypeClass() {
+            return super.getTypeClass();
+        }
+
+        @Override
+        public void shortDump(StringBuilder sb) {
+            delegate().shortDump(sb);
+        }
     }
 
-    public static class RefinedAttribute<T> extends ResourceAttribute<T> implements RefinedAttributeDefinitionDelegator<T> {
+    /** TODO is this used? */
+    public static class RefinedAttribute<T> extends ResourceAttribute<T> implements ResourceAttributeDefinitionDelegator<T> {
 
         public RefinedAttribute(PrismPropertyDefinition<T> delegate) {
             super(delegate);
         }
 
         @Override
-        public ResourceAttributeDefinition<T> delegate() {
-            return (ResourceAttributeDefinition<T>) super.delegate();
+        public ShadowSimpleAttributeDefinition<T> delegate() {
+            return (ShadowSimpleAttributeDefinition<T>) super.delegate();
         }
 
         @Override
-        public @NotNull ResourceAttributeDefinition<T> clone() {
+        public @NotNull RefinedAttribute<T> clone() {
             return copy();
         }
 
@@ -185,7 +215,7 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
         }
 
         @Override
-        public ResourceAttributeDefinition<T> deepClone(@NotNull DeepCloneOperation operation) {
+        public ShadowSimpleAttributeDefinition<T> deepClone(@NotNull DeepCloneOperation operation) {
             throw new UnsupportedOperationException();
         }
 
@@ -205,17 +235,25 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
         }
 
         @Override
-        public @NotNull com.evolveum.midpoint.schema.processor.ResourceAttribute<T> instantiate() {
+        public @NotNull ShadowSimpleAttribute<T> instantiate() {
             return instantiate(getItemName());
         }
 
         @Override
-        public @NotNull com.evolveum.midpoint.schema.processor.ResourceAttribute<T>  instantiate(QName name) {
+        public @NotNull ShadowSimpleAttribute<T> instantiate(QName name) {
             var deleg = delegate().instantiate(name);
             deleg.setDefinition(this);
             return deleg;
         }
+
+        @Override
+        public void shortDump(StringBuilder sb) {
+            delegate().shortDump(sb);
+        }
+
+        @Override
+        public @NotNull ItemDefinition<PrismProperty<T>> cloneWithNewName(@NotNull ItemName itemName) {
+            throw new UnsupportedOperationException();
+        }
     }
-
-
 }

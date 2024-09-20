@@ -10,6 +10,7 @@ package com.evolveum.midpoint.gui.impl.component.icon;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -124,8 +125,10 @@ public class CompositedIconBuilder {
         }
         String layerIconClass = sb.toString();
         sb.append(" ").append(style.getStrokeLayerCssClass());
-        appendLayerIcon(new LayerIcon(IconAndStylesUtil.createIconType(sb.toString(), icon.getColor())));
-        appendLayerIcon(new LayerIcon(IconAndStylesUtil.createIconType(layerIconClass, icon.getColor())));
+        appendLayerIcon(new LayerIcon(
+                IconAndStylesUtil.createIconType(sb.toString(), GuiDisplayTypeUtil.removeStringAfterSemicolon(icon.getColor()))));
+        appendLayerIcon(new LayerIcon(
+                IconAndStylesUtil.createIconType(layerIconClass, GuiDisplayTypeUtil.removeStringAfterSemicolon(icon.getColor()))));
         return this;
     }
 
@@ -140,8 +143,12 @@ public class CompositedIconBuilder {
         }
         String layerIconClass = sb.toString();
         sb.append(" ").append(style.getStrokeLayerCssClass());
-        appendLayerIcon(new LayerIcon(IconAndStylesUtil.createIconType(sb.toString(), icon.getColor()), labelModel));
-        appendLayerIcon(new LayerIcon(IconAndStylesUtil.createIconType(layerIconClass, icon.getColor()), labelModel));
+        appendLayerIcon(new LayerIcon(
+                IconAndStylesUtil.createIconType(
+                        sb.toString(), GuiDisplayTypeUtil.removeStringAfterSemicolon(icon.getColor())), labelModel));
+        appendLayerIcon(new LayerIcon(
+                IconAndStylesUtil.createIconType(
+                        layerIconClass, GuiDisplayTypeUtil.removeStringAfterSemicolon(icon.getColor())), labelModel));
         return this;
     }
 

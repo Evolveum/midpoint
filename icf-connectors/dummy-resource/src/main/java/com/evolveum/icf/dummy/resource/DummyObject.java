@@ -6,28 +6,41 @@
  */
 package com.evolveum.icf.dummy.resource;
 
+import static java.util.Collections.*;
+
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.evolveum.midpoint.util.MiscUtil;
+
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 
-import static java.util.Collections.*;
-
 /**
+ * Represents an object on this dummy resource.
+ *
  * TODO Treat null attribute values more consistently.
  *
  * @author Radovan Semancik
  */
+@SuppressWarnings("UnusedReturnValue") // Occurs quite often. Not everyone makes use of the fluent API.
 public abstract class DummyObject implements DebugDumpable {
 
+    /**
+     * Randomly generated or externally-supplied ID. This is the primary key for all objects on the resource,
+     * so it must be unique resource-wide.
+     *
+     * @see UidMode
+     */
     private String id;
-//    private int internalId = -1;
+
+    /** Client-supplied object name. */
     private String name;
 
     private final Map<String,Set<Object>> attributes = new ConcurrentHashMap<>();
@@ -35,7 +48,14 @@ public abstract class DummyObject implements DebugDumpable {
     private Date validFrom = null;
     private Date validTo = null;
     private String lastModifier;
+
+    /**
+     * Normally set up when adding this object to resource; but some utility methods require this value,
+     * so it can be provided at object construction time as well.
+     */
     protected DummyResource resource;
+
+    private boolean presentOnResource;
 
     /** Present only if hierarchy is supported. Set when object is added on the resource (we need to know the normalization). */
     private HierarchicalName normalizedHierarchicalName;
@@ -51,31 +71,47 @@ public abstract class DummyObject implements DebugDumpable {
         return id;
     }
 
-    public void setId(String id) {
+    public DummyObject setId(String id) {
         this.id = id;
+        return this;
     }
 
     public DummyObject(String name) {
         this.name = name;
     }
 
+    public DummyObject(String name, DummyResource dummyResource) {
+        this.name = name;
+        this.resource = dummyResource;
+    }
+
     public DummyResource getResource() {
         return resource;
     }
 
-    public void setResource(DummyResource resource) {
+    public DummyResource getResourceRequired() {
+        return MiscUtil.stateNonNull(resource, "No resource set for " + this);
+    }
+
+    void setPresentOnResource(DummyResource resource) {
         this.resource = resource;
+        presentOnResource = true;
+    }
+
+    void setNotPresentOnResource() {
+        presentOnResource = false;
     }
 
     public String getName() {
         return name;
     }
 
-    public void setName(String username) {
+    public DummyObject setName(String username) {
         this.name = username;
         if (resource != null) {
             resource.updateNormalizedHierarchicalName(this);
         }
+        return this;
     }
 
     /**
@@ -90,52 +126,57 @@ public abstract class DummyObject implements DebugDumpable {
         return enabled;
     }
 
-    public void setEnabled(Boolean enabled)
+    public DummyObject setEnabled(Boolean enabled)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         checkModifyBreak();
         delayOperation();
         this.enabled = enabled;
         recordModify("_ENABLED", null, null, singletonList(enabled));
+        return this;
     }
 
     public Date getValidFrom() {
         return validFrom;
     }
 
-    public void setValidFrom(Date validFrom)
+    public DummyObject setValidFrom(Date validFrom)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         checkModifyBreak();
         delayOperation();
         this.validFrom = validFrom;
         recordModify("_VALID_FROM", null, null, singletonList(validFrom));
+        return this;
     }
 
     public Date getValidTo() {
         return validTo;
     }
 
-    public void setValidTo(Date validTo)
+    public DummyObject setValidTo(Date validTo)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         checkModifyBreak();
         delayOperation();
         this.validTo = validTo;
         recordModify("_VALID_TO", null, null, singletonList(validTo));
+        return this;
     }
 
     public String getLastModifier() {
         return lastModifier;
     }
 
-    public void setLastModifier(String lastModifier) {
+    public DummyObject setLastModifier(String lastModifier) {
         this.lastModifier = lastModifier;
+        return this;
     }
 
     public BreakMode getModifyBreakMode() {
         return modifyBreakMode;
     }
 
-    public void setModifyBreakMode(BreakMode modifyBreakMode) {
+    public DummyObject setModifyBreakMode(BreakMode modifyBreakMode) {
         this.modifyBreakMode = modifyBreakMode;
+        return this;
     }
 
     public Set<String> getAttributeNames() {
@@ -162,16 +203,16 @@ public abstract class DummyObject implements DebugDumpable {
         return getAttributeValue(attrName,String.class);
     }
 
-    public void replaceAttributeValue(String name, Object value)
+    public DummyObject replaceAttributeValue(String name, Object value)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
-        replaceAttributeValues(name, createCollection(value));
+        return replaceAttributeValues(name, createCollection(value));
     }
 
     private Set<Object> createCollection(Object value) {
         return value != null ? singleton(value) : emptySet();
     }
 
-    public void replaceAttributeValues(String name, Collection<Object> values)
+    public DummyObject replaceAttributeValues(String name, Collection<Object> values)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         checkModifyBreak();
         delayOperation();
@@ -182,6 +223,7 @@ public abstract class DummyObject implements DebugDumpable {
         addNonNullValues(currentValues, values);
         checkSchema(name, values, "replace");
         recordModify(name, null, null, values);
+        return this;
     }
 
     private void addNonNullValues(Set<Object> currentValues, Collection<Object> values) {
@@ -196,7 +238,7 @@ public abstract class DummyObject implements DebugDumpable {
         return attributes.computeIfAbsent(name, k -> ConcurrentHashMap.newKeySet());
     }
 
-    public void replaceAttributeValues(String name, Object... values)
+    public DummyObject replaceAttributeValues(String name, Object... values)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         checkModifyBreak();
         delayOperation();
@@ -214,14 +256,15 @@ public abstract class DummyObject implements DebugDumpable {
             attributes.remove(name);
         }
         recordModify(name, null, null, valuesList);
+        return this;
     }
 
-    public void addAttributeValue(String name, Object value)
+    public DummyObject addAttributeValue(String name, Object value)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
-        addAttributeValues(name, createCollection(value));
+        return addAttributeValues(name, createCollection(value));
     }
 
-    public <T> void addAttributeValues(String name, Collection<T> valuesToAdd)
+    public <T> DummyObject addAttributeValues(String name, Collection<T> valuesToAdd)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         checkModifyBreak();
         delayOperation();
@@ -230,9 +273,10 @@ public abstract class DummyObject implements DebugDumpable {
             addAttributeValue(name, currentValues, valueToAdd);
         }
         recordModify(name, valuesToAdd, null, null);
+        return this;
     }
 
-    public void addAttributeValues(String name, String... valuesToAdd)
+    public DummyObject addAttributeValues(String name, String... valuesToAdd)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         checkModifyBreak();
         delayOperation();
@@ -241,15 +285,16 @@ public abstract class DummyObject implements DebugDumpable {
             addAttributeValue(name, currentValues, valueToAdd);
         }
         recordModify(name, Arrays.asList(valuesToAdd), null, null);
+        return this;
     }
 
-    private void addAttributeValue(String attrName, Set<Object> currentValues, Object valueToAdd)
+    private DummyObject addAttributeValue(String attrName, Set<Object> currentValues, Object valueToAdd)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         checkModifyBreak();
         delayOperation();
 
         if (valueToAdd == null) {
-            return; // Concurrent hash map does not allow null values.
+            return this; // Concurrent hash map does not allow null values.
         }
         if (resource != null && !resource.isTolerateDuplicateValues()) {
             for (Object currentValue: currentValues) {
@@ -280,14 +325,15 @@ public abstract class DummyObject implements DebugDumpable {
             checkSchema(attrName, valuesToCheck, "add");
         }
         currentValues.add(valueToAdd);
+        return this;
     }
 
-    public void removeAttributeValue(String name, Object value)
+    public DummyObject removeAttributeValue(String name, Object value)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
-        removeAttributeValues(name, createCollection(value));
+        return removeAttributeValues(name, createCollection(value));
     }
 
-    public <T> void removeAttributeValues(String name, Collection<T> values)
+    public <T> DummyObject removeAttributeValues(String name, Collection<T> values)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         checkModifyBreak();
         delayOperation();
@@ -300,7 +346,7 @@ public abstract class DummyObject implements DebugDumpable {
         Iterator<Object> iterator = currentValues.iterator();
         boolean foundMember = false;
 
-        if (name.equals(DummyGroup.ATTR_MEMBERS_NAME) && !resource.isTolerateDuplicateValues()) {
+        if (name.equals(DummyGroup.ATTR_MEMBERS_NAME) && !getResourceRequired().isTolerateDuplicateValues()) {
             checkIfExist(values, currentValues);
         }
 
@@ -308,7 +354,7 @@ public abstract class DummyObject implements DebugDumpable {
             Object currentValue = iterator.next();
             boolean found = false;
             for (Object value: values) {
-                if (resource.isCaseIgnoreValues() && currentValue instanceof String && value instanceof String) {
+                if (getResourceRequired().isCaseIgnoreValues() && currentValue instanceof String && value instanceof String) {
                     if (StringUtils.equalsIgnoreCase((String)currentValue, (String)value)) {
                         found = true;
                         break;
@@ -327,38 +373,45 @@ public abstract class DummyObject implements DebugDumpable {
         }
 
         recordModify(name, null, values, null);
+        return this;
     }
 
     public Set<String> getAuxiliaryObjectClassNames() {
         return auxiliaryObjectClassNames;
     }
 
-    public void addAuxiliaryObjectClassName(String name) {
+    public DummyObject addAuxiliaryObjectClassName(String name) {
         auxiliaryObjectClassNames.add(name);
+        return this;
     }
 
-    public void replaceAuxiliaryObjectClassNames(List<?> values) {
+    public DummyObject replaceAuxiliaryObjectClassNames(List<?> values) {
         auxiliaryObjectClassNames.clear();
         addAuxiliaryObjectClassNames(values);
+        return this;
     }
 
-    public void deleteAuxiliaryObjectClassNames(List<?> values) {
+    public DummyObject deleteAuxiliaryObjectClassNames(List<?> values) {
         for (Object value : values) {
             auxiliaryObjectClassNames.remove(String.valueOf(value));
         }
+        return this;
     }
 
-    public void addAuxiliaryObjectClassNames(List<?> values) {
+    public DummyObject addAuxiliaryObjectClassNames(List<?> values) {
         for (Object value : values) {
             auxiliaryObjectClassNames.add(String.valueOf(value));
         }
+        return this;
     }
 
     private <T> void checkIfExist(Collection<T> valuesToDelete, Set<Object> currentValues) throws SchemaViolationException{
         for (T valueToDelete : valuesToDelete) {
             boolean found = false;
             for (Object currentValue : currentValues) {
-                if (resource.isCaseIgnoreValues() && currentValue instanceof String && valueToDelete instanceof String) {
+                if (getResourceRequired().isCaseIgnoreValues()
+                        && currentValue instanceof String
+                        && valueToDelete instanceof String) {
                     if (StringUtils.equalsIgnoreCase((String)currentValue, (String)valueToDelete)) {
                         found = true;
                         break;
@@ -410,7 +463,7 @@ public abstract class DummyObject implements DebugDumpable {
     }
 
     private <T> void recordModify(String attributeName, Collection<T> valuesAdded, Collection<T> valuesDeleted, Collection<T> valuesReplaced) {
-        if (resource != null) {
+        if (resource != null && presentOnResource) {
             resource.recordModify(this, attributeName, valuesAdded, valuesDeleted, valuesReplaced);
         }
     }
@@ -422,18 +475,7 @@ public abstract class DummyObject implements DebugDumpable {
     }
 
     protected void checkSchema(String attrName, Collection<Object> values, String operationName) throws SchemaViolationException {
-        if (resource == null || !resource.isEnforceSchema()) {
-            return;
-        }
-        DummyObjectClass accountObjectClass;
-        try {
-            accountObjectClass = getObjectClass();
-        } catch (Exception e) {
-            // No not enforce schema if the schema is broken (simulated)
-            return;
-        }
-        if (accountObjectClass == null) {
-            // Nothing to check
+        if (resource == null || !resource.isEnforceSchema() || resource.isSchemaBroken()) {
             return;
         }
         DummyAttributeDefinition attributeDefinition = getAttributeDefinition(attrName);
@@ -448,13 +490,14 @@ public abstract class DummyObject implements DebugDumpable {
         }
     }
 
+    /** {@link #resource} must be set up! */
     public DummyAttributeDefinition getAttributeDefinition(String attrName) {
-        DummyAttributeDefinition def = getObjectClassNoExceptions().getAttributeDefinition(attrName);
+        DummyAttributeDefinition def = getStructuralObjectClass().getAttributeDefinition(attrName);
         if (def != null) {
             return def;
         }
         for (String auxClassName : getAuxiliaryObjectClassNames()) {
-            DummyObjectClass auxObjectClass = resource.getAuxiliaryObjectClassMap().get(auxClassName);
+            DummyObjectClass auxObjectClass = getResourceRequired().getAuxiliaryObjectClassMap().get(auxClassName);
             if (auxObjectClass == null) {
                 throw new IllegalStateException("Auxiliary object class " + auxClassName + " couldn't be found");
             }
@@ -466,9 +509,10 @@ public abstract class DummyObject implements DebugDumpable {
         return null;
     }
 
-    abstract protected DummyObjectClass getObjectClass() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException;
-
-    abstract protected DummyObjectClass getObjectClassNoExceptions();
+    /** {@link #resource} must be set up! */
+    public @NotNull DummyObjectClass getStructuralObjectClass() {
+        return getResourceRequired().getStructuralObjectClass(getObjectClassName());
+    }
 
     public abstract String getShortTypeName();
 
@@ -502,9 +546,26 @@ public abstract class DummyObject implements DebugDumpable {
             sb.append(" ").append(PrettyPrinter.prettyPrint(validFrom)).append(" - ").append(PrettyPrinter.prettyPrint(validTo));
         }
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "lastModifier", lastModifier, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "Last modifier", lastModifier, indent + 1);
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "Attributes", attributes, indent + 1);
+        if (resource != null) {
+            for (var linkDefinition : getStructuralObjectClass().getLinkDefinitions()) {
+                if (!linkDefinition.getParticipant().isVisible()) {
+                    continue;
+                }
+                var linkName = linkDefinition.getParticipant().getLinkNameRequired();
+                sb.append("\n");
+                var label = "Linked objects (" + linkName + ")";
+                var linkedObjects = getLinkedObjects(linkName);
+                if (linkDefinition.getParticipant().isExpandedByDefault()) {
+                    DebugUtil.debugDumpWithLabel(sb, label, linkedObjects, indent + 1);
+                } else {
+                    var names = linkedObjects.stream().map(obj -> obj.getName()).toList();
+                    DebugUtil.debugDumpWithLabel(sb, label, names, indent + 1);
+                }
+            }
+        }
         extendDebugDump(sb, indent);
         return sb.toString();
     }
@@ -526,5 +587,73 @@ public abstract class DummyObject implements DebugDumpable {
     /** Assumes hierarchical object support is on. */
     boolean containedByOrg(HierarchicalName normalizedOrgName) {
         return normalizedHierarchicalName != null && normalizedHierarchicalName.residesIn(normalizedOrgName);
+    }
+
+    /** {@link #resource} must be set up! */
+    public String getNormalizedName() {
+        return getResourceRequired().normalizeName(name);
+    }
+
+    @NotNull public abstract String getObjectClassName();
+
+    /** {@link #resource} must be set up! */
+    public Collection<DummyObject> getLinkedObjects(@NotNull String linkName) {
+        return getResourceRequired().getLinkedObjects(this, linkName);
+    }
+
+    /**
+     * Adds a link to given object. (It must already exist on the resource.)
+     *
+     * The {@link #resource} must be set up for the current object.
+     */
+    public void addLinkValue(@NotNull String linkName, @NotNull DummyObject linkedObject) {
+        var resource = getResourceRequired();
+        var linkDef = getStructuralObjectClass().getLinkDefinitionRequired(linkName);
+        if (linkDef.isFirst()) {
+            resource.addLinkValue(linkDef.getLinkClassName(), this, linkedObject);
+        } else {
+            resource.addLinkValue(linkDef.getLinkClassName(), linkedObject, this);
+        }
+    }
+
+    /**
+     * Deletes a link value. The linked object will be deleted if it's stored "by value".
+     *
+     * The {@link #resource} must be set up for the current object.
+     */
+    public void deleteLinkValue(@NotNull String linkName, @NotNull DummyObject linkedObject)
+            throws ConflictException, FileNotFoundException, SchemaViolationException,
+            InterruptedException, ConnectException {
+        var resource = getResourceRequired();
+        var linkDef = getStructuralObjectClass().getLinkDefinitionRequired(linkName);
+        if (linkDef.isFirst()) {
+            resource.deleteLinkValue(linkDef.getLinkClassName(), this, linkedObject);
+        } else {
+            resource.deleteLinkValue(linkDef.getLinkClassName(), linkedObject, this);
+        }
+        if (linkDef.getParticipant().isExpandedByDefault()) {
+            try {
+                resource.deleteObjectById(linkedObject.getObjectClassName(), linkedObject.getId());
+            } catch (ObjectDoesNotExistException e) {
+                throw new IllegalStateException("Linked object " + linkedObject + " does not exist", e);
+            }
+        }
+    }
+
+    /**
+     * Deletes all values of a given link, along with the linked objects if they are stored "by value".
+     *
+     * The {@link #resource} must be set up for the current object.
+     */
+    public void deleteAllLinkValues(@NotNull String linkName)
+            throws ConflictException, FileNotFoundException, SchemaViolationException, InterruptedException, ConnectException {
+        for (DummyObject linkedObject : getLinkedObjects(linkName)) {
+            deleteLinkValue(linkName, linkedObject);
+        }
+    }
+
+    /** {@link #resource} must be set up! */
+    public boolean isLink(String name) {
+        return getStructuralObjectClass().getLinkDefinition(name) != null;
     }
 }

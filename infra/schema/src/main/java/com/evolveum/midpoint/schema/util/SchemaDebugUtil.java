@@ -16,6 +16,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+
 import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
@@ -523,6 +526,11 @@ public class SchemaDebugUtil {
         sb.append(ref.getOid());
         sb.append(",");
         sb.append(prettyPrint(ref.getType()));
+        var targetName = ref.getTargetName();
+        if (targetName != null) {
+            sb.append(",");
+            sb.append(targetName.getOrig());
+        }
         sb.append(")");
         return sb.toString();
     }
@@ -598,11 +606,11 @@ public class SchemaDebugUtil {
         if (change == null) {
             return "null";
         }
-        StringBuilder sb = new StringBuilder("PropertyModification(");
+        StringBuilder sb = new StringBuilder("ItemDelta(");
         sb.append(change.getModificationType());
         sb.append(",");
         if (change.getPath() != null) {
-            sb.append(change.getPath().getItemPath());      // todo ... with declarations?
+            sb.append(change.getPath().getItemPath()); // todo ... with declarations?
         } else {
             sb.append("xpath=null");
         }
@@ -610,7 +618,7 @@ public class SchemaDebugUtil {
 
         List<RawType> values = change.getValue();
         for (RawType value : values) {
-            sb.append(prettyPrint(value.serializeToXNode()));       // todo implement correctly...
+            sb.append(prettyPrint(value.serializeToXNode())); // todo implement correctly...
             sb.append(",");
         }
 
@@ -1138,4 +1146,8 @@ public class SchemaDebugUtil {
         // nothing to do here, we just make sure static initialization will take place
     }
 
+    public static void initializePrettyPrinter() {
+        PrettyPrinter.addDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        PrettyPrinter.addDefaultNamespacePrefix(PrismConstants.NS_PREFIX);
+    }
 }

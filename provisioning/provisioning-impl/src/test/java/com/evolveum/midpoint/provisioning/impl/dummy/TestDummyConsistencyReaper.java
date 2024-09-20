@@ -45,9 +45,9 @@ public class TestDummyConsistencyReaper extends TestDummyConsistency {
 
         dummyResource.resetBreakMode();
 
-        DummyAccount dummyAccount = dummyResource.getAccountByUsername(transformNameFromResource(ACCOUNT_WILL_USERNAME));
+        DummyAccount dummyAccount = dummyResource.getAccountByName(getWillNameOnResource());
         assertNotNull("No dummy account", dummyAccount);
-        assertEquals("Username is wrong", transformNameFromResource(ACCOUNT_WILL_USERNAME), dummyAccount.getName());
+        assertEquals("Username is wrong", getWillNameOnResource(), dummyAccount.getName());
         assertEquals("Fullname is wrong", "Will Turner", dummyAccount.getAttributeValue("fullname"));
         assertTrue("The account is not enabled", dummyAccount.isEnabled());
         assertEquals("Wrong password", ACCOUNT_WILL_PASSWORD, dummyAccount.getPassword());

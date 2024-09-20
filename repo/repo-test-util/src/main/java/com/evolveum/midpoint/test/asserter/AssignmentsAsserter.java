@@ -162,8 +162,13 @@ public class AssignmentsAsserter<AH extends AssignmentHolderType, AHA extends As
         return this;
     }
 
-    public AssignmentsAsserter<AH, AHA, RA> assertAssignmentRelationHolder(QName hoderType) throws SchemaException, ObjectNotFoundException {
-        by().assignmentRelationHolder(hoderType).find();
+    public AssignmentsAsserter<AH, AHA, RA> assertAssignmentRelationHolder(QName holderType) throws SchemaException, ObjectNotFoundException {
+        by().assignmentRelationHolder(holderType).find();
+        return this;
+    }
+
+    public AssignmentsAsserter<AH, AHA, RA> assertAccount(String resourceOid) throws ObjectNotFoundException, SchemaException {
+        by().accountOn(resourceOid).find();
         return this;
     }
 }

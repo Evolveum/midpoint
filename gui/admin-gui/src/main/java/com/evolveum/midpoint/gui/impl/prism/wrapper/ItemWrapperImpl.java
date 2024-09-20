@@ -14,10 +14,17 @@ import java.util.Map;
 import java.util.Optional;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.util.ExecutedDeltaPostProcessor;
 import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
 
+import com.evolveum.midpoint.prism.delta.ItemMerger;
+import com.evolveum.midpoint.prism.impl.binding.AbstractPlainStructured;
+import com.evolveum.midpoint.prism.key.NaturalKeyDefinition;
+import com.evolveum.midpoint.schema.result.OperationResult;
+
+import com.evolveum.midpoint.util.exception.CommonException;
+
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,7 +41,6 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -44,7 +50,8 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author katka
  */
-public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapper> implements ItemWrapper<I, VW>, Serializable {
+public abstract class ItemWrapperImpl<I extends Item<?, ?>, VW extends PrismValueWrapper>
+        implements ItemWrapper<I, VW>, Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -99,7 +106,13 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
         if (isOperational()) {
             return null;
         }
+        return computeDeltaInternal();
+    }
 
+    //TODO this is not good. if getDetla is overriden, this is never called.
+    // however, this is needed for special cases, such as authentication behavior
+    // think about better solution
+    protected  <D extends ItemDelta<? extends PrismValue, ? extends ItemDefinition>> Collection<D> computeDeltaInternal() throws SchemaException {
         D delta;
         if (parent != null && ValueStatus.ADDED == parent.getStatus()) {
             delta = (D) createEmptyDelta(getItemName());
@@ -171,6 +184,11 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     @Override
     public boolean isDeprecated() {
         return getItemDefinition().isDeprecated();
+    }
+
+    @Override
+    public boolean isOptionalCleanup() {
+        return getItemDefinition().isOptionalCleanup();
     }
 
     @Override
@@ -285,6 +303,10 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
 
     @Override
     public <OW extends PrismObjectWrapper<O>, O extends ObjectType> OW findObjectWrapper() {
+        if (this instanceof PrismObjectWrapper) {
+            return (OW) this;
+        }
+
         if (parent == null) {
             return null;
         }
@@ -431,11 +453,6 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
         return getItemDefinition().isValidFor(elementQName, clazz, caseInsensitive);
     }
 
-    @Override
-    public void adoptElementDefinitionFrom(ItemDefinition otherDef) {
-        getItemDefinition().adoptElementDefinitionFrom(otherDef);
-    }
-
     @NotNull
     @Override
     public I instantiate() throws SchemaException {
@@ -480,18 +497,8 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     }
 
     @Override
-    public boolean canBeDefinitionOf(I item) {
-        return getItemDefinition().canBeDefinitionOf(item);
-    }
-
-    @Override
-    public boolean canBeDefinitionOf(PrismValue pvalue) {
-        return getItemDefinition().canBeDefinitionOf(pvalue);
-    }
-
-    @Override
-    public MutableItemDefinition<I> toMutable() {
-        return getItemDefinition().toMutable();
+    public ItemDefinitionMutator mutator() {
+        return getItemDefinition().mutator();
     }
 
     @Override
@@ -531,6 +538,36 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     }
 
     @Override
+    public DisplayHint getDisplayHint() {
+        return getItemDefinition().getDisplayHint();
+    }
+
+    @Override
+    public @Nullable List<QName> getNaturalKeyConstituents() {
+        return getItemDefinition().getNaturalKeyConstituents();
+    }
+
+    @Override
+    public @Nullable String getMergerIdentifier() {
+        return getItemDefinition().getMergerIdentifier();
+    }
+
+    @Override
+    public @Nullable NaturalKeyDefinition getNaturalKeyInstance() {
+        return getItemDefinition().getNaturalKeyInstance();
+    }
+
+    @Override
+    public @Nullable ItemMerger getMergerInstance(@NotNull MergeStrategy strategy, @Nullable OriginMarker originMarker) {
+        return getItemDefinition().getMergerInstance(strategy, originMarker);
+    }
+
+    @Override
+    public boolean isAlwaysUseForEquals() {
+        return getItemDefinition().isAlwaysUseForEquals();
+    }
+
+    @Override
     public boolean isEmphasized() {
         return getItemDefinition().isEmphasized();
     }
@@ -558,11 +595,6 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     }
 
     @Override
-    public PrismContext getPrismContext() {
-        return getItemDefinition().getPrismContext();
-    }
-
-    @Override
     public Class<?> getTypeClass() {
         return getItemDefinition().getTypeClass();
     }
@@ -570,11 +602,6 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     @Override
     public <A> A getAnnotation(QName qname) {
         return getItemDefinition().getAnnotation(qname);
-    }
-
-    @Override
-    public <A> void setAnnotation(QName qname, A value) {
-        getItemDefinition().setAnnotation(qname, value);
     }
 
     @Override
@@ -685,7 +712,21 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
         int count = countUsableValues(values);
 
         if (count == 0 && !hasEmptyPlaceholder(values)) {
-            add(createNewEmptyValue(locator), locator);
+            PrismValue emptyValue = createNewEmptyValue(locator);
+            Class<?> type = getTypeClass();
+            if (emptyValue instanceof PrismPropertyValue ppv && type != null && AbstractPlainStructured.class.isAssignableFrom(type)) {
+                // see MID-9564 and also PrismValueWrapperImpl.addToDelta
+                // we need to set real value to something in case of AbstractPlainStructured since placeholder is needed
+                // for most panels to work.
+                // When computing delta this has to be later taken into account.
+                try {
+                    Object realValue = type.getConstructor().newInstance();
+                    ppv.setValue(realValue);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            add(emptyValue, locator);
         }
     }
 
@@ -700,20 +741,22 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
         }
     }
 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     private void removeValue(VW valueWrapper) {
+        Item rawItem = getItem(); // using not parameterized version to make compiler happy
         switch (valueWrapper.getStatus()) {
             case ADDED:
             case MODIFIED:
                 values.remove(valueWrapper);
-                getItem().remove(valueWrapper.getOldValue());
-                getItem().remove(valueWrapper.getNewValue());
+                rawItem.remove(valueWrapper.getOldValue());
+                rawItem.remove(valueWrapper.getNewValue());
                 break;
             case NOT_CHANGED:
 //                if (isSingleValue()) {
 //                    valueWrapper.setRealValue(null);
 //                    valueWrapper.setStatus(ValueStatus.MODIFIED);
 //                } else {
-                    getItem().remove(valueWrapper.getNewValue());
+                    rawItem.remove(valueWrapper.getNewValue());
                     valueWrapper.setStatus(ValueStatus.DELETED);
 //                }
                 break;
@@ -724,7 +767,8 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
 
     @Override
     public <PV extends PrismValue> void add(PV newValue, ModelServiceLocator locator) throws SchemaException {
-        getItem().add(newValue);
+        //noinspection unchecked,rawtypes
+        ((Item) getItem()).add(newValue);
         VW newItemValue = WebPrismUtil.createNewValueWrapper(this, newValue, locator);
         values.add(newItemValue);
     }
@@ -805,5 +849,24 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     @Override
     public void setValidated(boolean validated) {
         this.validated = validated;
+    }
+
+    @Override
+    public Collection<ExecutedDeltaPostProcessor> getPreconditionDeltas(
+            ModelServiceLocator serviceLocator, OperationResult result) throws CommonException {
+        Collection<ExecutedDeltaPostProcessor> processors = new ArrayList<>();
+        for (VW value : getValues()) {
+            Collection<ExecutedDeltaPostProcessor> processor = value.getPreconditionDeltas(serviceLocator, result);
+            if (processor == null || processor.isEmpty()) {
+                continue;
+            }
+            processors.addAll(processor);
+        }
+        return processors;
+    }
+
+    @Override
+    public String toString() {
+        return "\"" + getItemName() + "\"->" + super.toString();
     }
 }

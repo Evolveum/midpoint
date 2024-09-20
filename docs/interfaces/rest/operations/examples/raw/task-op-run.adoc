@@ -1,0 +1,15 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Start a Task*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Accept: application/json" \
+-H "Content-Type: application/json" \
+-v \
+-X POST http://localhost:8080/midpoint/ws/rest/tasks/6d13632c-6b75-4a33-9744-ec9523375f6b/run
+----
+
+The response is an HTTP 204 code in case of success, without a response body.
+

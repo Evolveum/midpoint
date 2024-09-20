@@ -6,19 +6,8 @@
  */
 package com.evolveum.icf.dummy.connector;
 
-import com.evolveum.icf.dummy.resource.*;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-
-import org.apache.commons.lang3.StringUtils;
-import org.identityconnectors.common.logging.Log;
-import org.identityconnectors.common.security.GuardedString;
-import org.identityconnectors.common.security.GuardedString.Accessor;
-import org.identityconnectors.framework.common.exceptions.*;
-import org.identityconnectors.framework.common.objects.*;
-import org.identityconnectors.framework.common.objects.filter.*;
-import org.identityconnectors.framework.spi.PoolableConnector;
-import org.identityconnectors.framework.spi.SearchResultsHandler;
-import org.identityconnectors.framework.spi.operations.*;
+import static com.evolveum.icf.dummy.connector.Utils.notNull;
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
@@ -26,7 +15,21 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static com.evolveum.icf.dummy.connector.Utils.notNull;
+import org.apache.commons.lang3.StringUtils;
+import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.common.security.GuardedString;
+import org.identityconnectors.framework.common.exceptions.*;
+import org.identityconnectors.framework.common.objects.*;
+import org.identityconnectors.framework.common.objects.filter.*;
+import org.identityconnectors.framework.spi.PoolableConnector;
+import org.identityconnectors.framework.spi.SearchResultsHandler;
+import org.identityconnectors.framework.spi.operations.*;
+
+import com.evolveum.icf.dummy.resource.*;
+
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Connector for the Dummy Resource, abstract superclass.
@@ -42,20 +45,17 @@ import static com.evolveum.icf.dummy.connector.Utils.notNull;
  * @see DummyResource
  *
  */
-public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConnector implements PoolableConnector, AuthenticateOp, ResolveUsernameOp, CreateOp, DeleteOp, SchemaOp, SearchOp<Filter>, SyncOp, TestOp {
+public abstract class AbstractObjectDummyConnector
+        extends AbstractBaseDummyConnector
+        implements PoolableConnector, AuthenticateOp, ResolveUsernameOp, CreateOp, DeleteOp, SchemaOp, SearchOp<Filter>,
+        SyncOp, TestOp {
 
     // We want to see if the ICF framework logging works properly
     private static final Log LOG = Log.getLog(AbstractObjectDummyConnector.class);
 
-    protected static final String OBJECTCLASS_ACCOUNT_NAME = "account";
-    protected static final String OBJECTCLASS_GROUP_NAME = "group";
-    protected static final String OBJECTCLASS_PRIVILEGE_NAME = "privilege";
-    protected static final String OBJECTCLASS_ORG_NAME = "org";
-
     public AbstractObjectDummyConnector() {
         super();
     }
-
 
     /////////////////////
     // SPI Operations
@@ -68,49 +68,14 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
      * {@inheritDoc}
      */
     @Override
-    public Uid create(final ObjectClass objectClass, final Set<Attribute> createAttributes, final OperationOptions options) {
+    public Uid create(ObjectClass objectClass, Set<Attribute> createAttributes, OperationOptions options) {
         LOG.info("create::begin attributes {0}", createAttributes);
         validate(objectClass);
 
         DummyObject newObject;
         try {
 
-            if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
-                // Convert attributes to account
-                DummyAccount newAccount = convertToAccount(createAttributes);
-
-                LOG.ok("Adding dummy account:\n{0}", newAccount.debugDump());
-
-                resource.addAccount(newAccount);
-                newObject = newAccount;
-
-            } else if (ObjectClass.GROUP.is(objectClass.getObjectClassValue())) {
-                DummyGroup newGroup = convertToGroup(createAttributes);
-
-                LOG.ok("Adding dummy group:\n{0}", newGroup.debugDump());
-
-                resource.addGroup(newGroup);
-                newObject = newGroup;
-
-            } else if (objectClass.is(OBJECTCLASS_PRIVILEGE_NAME)) {
-                DummyPrivilege newPriv = convertToPriv(createAttributes);
-
-                LOG.ok("Adding dummy privilege:\n{0}", newPriv.debugDump());
-
-                resource.addPrivilege(newPriv);
-                newObject = newPriv;
-
-            } else if (objectClass.is(OBJECTCLASS_ORG_NAME)) {
-                DummyOrg newOrg = convertToOrg(createAttributes);
-
-                LOG.ok("Adding dummy org:\n{0}", newOrg.debugDump());
-
-                resource.addOrg(newOrg);
-                newObject = newOrg;
-
-            } else {
-                throw new ConnectorException("Unknown object class "+objectClass);
-            }
+            newObject = convertToDummyObjectAndAdd(objectClass, createAttributes);
 
         } catch (ObjectAlreadyExistsException e) {
             // Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
@@ -120,7 +85,7 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
             throw new InvalidAttributeValueException(e.getMessage(), e); // TODO explain
         } catch (ConnectException e) {
             throw new ConnectionFailedException(e.getMessage(), e);
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException|IllegalStateException e) {
             throw new ConnectorException(e.getMessage(), e);
         } catch (FileNotFoundException e) {
             throw new ConnectorIOException(e.getMessage(), e);
@@ -132,26 +97,112 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
             throw new OperationTimeoutException(e);
         }
 
+        LOG.info("create::end");
+        return createUid(newObject);
+    }
+
+    @NotNull Uid createUid(DummyObject newObject) {
         String id;
         if (configuration.isUidBoundToName()) {
             id = newObject.getName();
-        } else if (configuration.isUidSeparateFromName()) {
-            id = newObject.getId();
         } else {
-            throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+            id = newObject.getId();
         }
-        Uid uid = new Uid(id);
-
-        LOG.info("create::end");
-        return uid;
+        return new Uid(id);
     }
 
+    private DummyObject convertToDummyObjectAndAdd(ObjectClass objectClass, Set<Attribute> createAttributes)
+            throws ConflictException, FileNotFoundException, SchemaViolationException, InterruptedException, ConnectException,
+            ObjectDoesNotExistException, ObjectAlreadyExistsException {
+        var mainObject = convertToDummyObjectExceptLinks(objectClass, createAttributes);
+        LOG.ok("Adding dummy object:\n{0}", mainObject.debugDump());
+        resource.addObject(mainObject);
+
+        for (Attribute createAttribute : createAttributes) {
+            if (mainObject.isLink(createAttribute.getName())) {
+                convertReferenceAttribute(mainObject, createAttribute);
+            }
+        }
+        return mainObject;
+    }
+
+    private void convertReferenceAttribute(DummyObject mainObject, Attribute createAttribute)
+            throws SchemaViolationException, ConflictException, FileNotFoundException, InterruptedException, ConnectException {
+        for (Object value : emptyIfNull(createAttribute.getValue())) {
+            DummyObject referencedObject = convertReferenceAttributeValueWhenAdding(value);
+            mainObject.addLinkValue(createAttribute.getName(), referencedObject);
+        }
+    }
+
+    @NotNull DummyObject convertReferenceAttributeValueWhenAdding(Object referenceAttributeValue)
+            throws SchemaViolationException, ConflictException, FileNotFoundException, InterruptedException, ConnectException {
+        if (!(referenceAttributeValue instanceof ConnectorObjectReference reference)) {
+            throw new SchemaViolationException("Reference attribute with non-reference value: " + referenceAttributeValue);
+        }
+        var referenceValue = reference.getValue();
+        var referencedObjectClass = referenceValue.getObjectClass();
+        var referencedObjectClassNativeName = fromConnIdObjectClass(referencedObjectClass);
+        var referencedObjectClassDef = resource.getStructuralObjectClass(referencedObjectClassNativeName);
+        DummyObject referencedObject;
+        if (referencedObjectClassDef.isEmbeddedObject()) {
+            var attributes = referenceValue.getAttributes();
+            try {
+                referencedObject = convertToDummyObjectAndAdd(referencedObjectClass, attributes);
+            } catch (ObjectAlreadyExistsException | ObjectDoesNotExistException e) {
+                throw new IllegalStateException("Unexpected exception: " + e.getMessage(), e);
+            }
+        } else {
+            var uidAttr = (Uid) referenceValue.getAttributeByName(Uid.NAME);
+            var nameAttr = (Name) referenceValue.getAttributeByName(Name.NAME);
+            if (uidAttr != null) {
+                referencedObject = findObjectByUidRequired(referencedObjectClassNativeName, uidAttr, false);
+            } else if (nameAttr != null) {
+                referencedObject = resource.getObjectByName(referencedObjectClassNativeName, nameAttr.getNameValue(), false);
+                if (referencedObject == null) {
+                    throw new IllegalArgumentException( // todo reconsider ObjectNotFoundException here
+                            "Object of class " + referencedObjectClassNativeName + " named " + nameAttr + " does not exist");
+                }
+            } else {
+                throw new IllegalArgumentException("Neither UID nor NAME was provided in object reference: " + reference);
+            }
+        }
+        return referencedObject;
+    }
+
+    private DummyObject convertToDummyObjectExceptLinks(ObjectClass objectClass, Set<Attribute> createAttributes)
+            throws ConflictException, FileNotFoundException, SchemaViolationException, InterruptedException, ConnectException {
+        var objectClassName = fromConnIdObjectClass(objectClass);
+        if (objectClassName.equalsIgnoreCase(DummyAccount.OBJECT_CLASS_NAME)) {
+            return convertToAccount(createAttributes);
+        } else if (objectClassName.equalsIgnoreCase(DummyGroup.OBJECT_CLASS_NAME)) {
+            return convertToGroup(createAttributes);
+        } else if (objectClassName.equalsIgnoreCase(DummyPrivilege.OBJECT_CLASS_NAME)) {
+            return convertToOther(
+                    new DummyPrivilege(
+                            getIcfName(createAttributes),
+                            resource),
+                    createAttributes);
+        } else if (objectClassName.equalsIgnoreCase(DummyOrg.OBJECT_CLASS_NAME)) {
+            return convertToOther(
+                    new DummyOrg(
+                            getIcfName(createAttributes),
+                            resource),
+                    createAttributes);
+        } else {
+            return convertToOther(
+                    new DummyGenericObject(
+                            objectClassName,
+                            getIcfNameIfPresent(createAttributes),
+                            resource),
+                    createAttributes);
+        }
+    }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void delete(final ObjectClass objectClass, final Uid uid, final OperationOptions options) {
+    public void delete(ObjectClass objectClass, Uid uid, OperationOptions options) {
         LOG.info("delete::begin");
         validate(objectClass);
         validate(uid);
@@ -160,41 +211,11 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
 
         try {
 
-            if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
-                if (configuration.isUidBoundToName()) {
-                    resource.deleteAccountByName(id);
-                } else if (configuration.isUidSeparateFromName()) {
-                    resource.deleteAccountById(id);
-                } else {
-                    throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
-                }
-            } else if (ObjectClass.GROUP.is(objectClass.getObjectClassValue())) {
-                if (configuration.isUidBoundToName()) {
-                    resource.deleteGroupByName(id);
-                } else if (configuration.isUidSeparateFromName()) {
-                    resource.deleteGroupById(id);
-                } else {
-                    throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
-                }
-            } else if (objectClass.is(OBJECTCLASS_PRIVILEGE_NAME)) {
-                if (configuration.isUidBoundToName()) {
-                    resource.deletePrivilegeByName(id);
-                } else if (configuration.isUidSeparateFromName()) {
-                    resource.deletePrivilegeById(id);
-                } else {
-                    throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
-                }
-            } else if (objectClass.is(OBJECTCLASS_ORG_NAME)) {
-                if (configuration.isUidBoundToName()) {
-                    resource.deleteOrgByName(id);
-                } else if (configuration.isUidSeparateFromName()) {
-                    resource.deleteOrgById(id);
-                } else {
-                    throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
-                }
-
+            var nativeClassName = fromConnIdObjectClass(objectClass);
+            if (configuration.isUidBoundToName()) {
+                resource.deleteObjectByName(nativeClassName, id);
             } else {
-                throw new ConnectorException("Unknown object class "+objectClass);
+                resource.deleteObjectById(nativeClassName, id);
             }
 
         } catch (ObjectDoesNotExistException e) {
@@ -225,6 +246,26 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
         LOG.info("delete::end");
     }
 
+    String fromConnIdObjectClass(ObjectClass objectClass) {
+        if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
+            return DummyAccount.OBJECT_CLASS_NAME;
+        } else if (ObjectClass.GROUP.is(objectClass.getObjectClassValue())) {
+            return DummyGroup.OBJECT_CLASS_NAME;
+        } else {
+            return objectClass.getObjectClassValue();
+        }
+    }
+
+    private ObjectClass toConnIdObjectClass(String nativeClassName) {
+        if (nativeClassName.equals(DummyAccount.OBJECT_CLASS_NAME)) {
+            return new ObjectClass(getAccountObjectClassName());
+        } else if (nativeClassName.equals(DummyGroup.OBJECT_CLASS_NAME)) {
+            return new ObjectClass(getGroupObjectClassName());
+        } else {
+            return new ObjectClass(nativeClassName);
+        }
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -242,12 +283,13 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
 
         try {
 
-            builder.defineObjectClass(createAccountObjectClass(configuration.getSupportActivation()));
-            builder.defineObjectClass(createGroupObjectClass(configuration.getSupportActivation()));
-            builder.defineObjectClass(createPrivilegeObjectClass());
-            builder.defineObjectClass(createOrgObjectClass());
-            for (ObjectClassInfo auxObjectClass : createAuxiliaryObjectClasses()) {
-                builder.defineObjectClass(auxObjectClass);
+            applySchemaBreakMode();
+
+            for (DummyObjectClassInfo objectClassInfo : resource.getStructuralObjectClasses()) {
+                builder.defineObjectClass(createObjectClassDefinition(objectClassInfo, false));
+            }
+            for (DummyObjectClassInfo objectClassInfo : resource.getAuxiliaryObjectClasses()) {
+                builder.defineObjectClass(createObjectClassDefinition(objectClassInfo, true));
             }
 
         } catch (SchemaViolationException e) {
@@ -257,8 +299,8 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
         }
 
         if (configuration.isSupportReturnDefaultAttributes()) {
-            builder.defineOperationOption(OperationOptionInfoBuilder.buildReturnDefaultAttributes(),
-                    SearchOp.class, SyncOp.class);
+            builder.defineOperationOption(
+                    OperationOptionInfoBuilder.buildReturnDefaultAttributes(), SearchOp.class, SyncOp.class);
         }
 
         if (supportsPaging()) {
@@ -273,34 +315,47 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
         return builder.build();
     }
 
+    private ObjectClassInfo createObjectClassDefinition(DummyObjectClassInfo objectClassInfo, boolean aux) {
+        if (objectClassInfo.isAccount()) {
+            return createAccountObjectClass();
+        } else if (objectClassInfo.isGroup()) {
+            return createGroupObjectClass();
+        } else {
+            var builder =
+                    createCommonObjectClassBuilder(objectClassInfo.name(), objectClassInfo.definition(), false);
+            builder.setAuxiliary(aux);
+            return builder.build();
+        }
+    }
+
+    private void applySchemaBreakMode() throws ConflictException, SchemaViolationException {
+        try {
+            resource.applySchemaBreakMode();
+        } catch (ConnectException e) {
+            throw new ConnectionFailedException(e.getMessage(), e);
+        } catch (FileNotFoundException e) {
+            throw new ConnectorIOException(e.getMessage(), e);
+        } catch (IllegalArgumentException e) {
+            throw new ConnectorException(e.getMessage(), e);
+        } catch (InterruptedException e) {
+            throw new OperationTimeoutException(e);
+        } // DO NOT catch IllegalStateException, let it pass
+    }
+
     protected void extendSchema(SchemaBuilder builder) {
         // for subclasses
     }
 
-    private String getAccountObjectClassName() {
-        if (configuration.getUseLegacySchema()) {
-            return ObjectClass.ACCOUNT_NAME;
-        } else {
-            return OBJECTCLASS_ACCOUNT_NAME;
-        }
-    }
-
-    private String getGroupObjectClassName() {
-        if (configuration.getUseLegacySchema()) {
-            return ObjectClass.GROUP_NAME;
-        } else {
-            return OBJECTCLASS_GROUP_NAME;
-        }
-    }
-
-    private ObjectClassInfoBuilder createCommonObjectClassBuilder(String typeName,
-            DummyObjectClass dummyAccountObjectClass, boolean supportsActivation) {
+    private ObjectClassInfoBuilder createCommonObjectClassBuilder(
+            String typeName, DummyObjectClass dummyAccountObjectClass, boolean supportsActivation) {
         ObjectClassInfoBuilder objClassBuilder = new ObjectClassInfoBuilder();
         if (typeName != null) {
             objClassBuilder.setType(typeName);
         }
+        objClassBuilder.setEmbedded(dummyAccountObjectClass.isEmbeddedObject());
 
         buildAttributes(objClassBuilder, dummyAccountObjectClass);
+        buildLinks(objClassBuilder, dummyAccountObjectClass);
 
         if (supportsActivation) {
             // __ENABLE__ attribute
@@ -324,23 +379,11 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
         return objClassBuilder;
     }
 
-    private ObjectClassInfo createAccountObjectClass(boolean supportsActivation) throws SchemaViolationException, ConflictException {
-        // __ACCOUNT__ objectclass
+    private ObjectClassInfo createAccountObjectClass() {
 
-        DummyObjectClass dummyAccountObjectClass;
-        try {
-            dummyAccountObjectClass = resource.getAccountObjectClass();
-        } catch (ConnectException e) {
-            throw new ConnectionFailedException(e.getMessage(), e);
-        } catch (FileNotFoundException e) {
-            throw new ConnectorIOException(e.getMessage(), e);
-        } catch (IllegalArgumentException e) {
-            throw new ConnectorException(e.getMessage(), e);
-        } catch (InterruptedException e) {
-            throw new OperationTimeoutException(e);
-        } // DO NOT catch IllegalStateException, let it pass
-
-        ObjectClassInfoBuilder objClassBuilder = createCommonObjectClassBuilder(getAccountObjectClassName(), dummyAccountObjectClass, supportsActivation);
+        var objClassBuilder =
+                createCommonObjectClassBuilder(
+                        getAccountObjectClassName(), resource.getAccountObjectClass(), configuration.getSupportActivation());
 
         // __PASSWORD__ attribute
         AttributeInfo passwordAttrInfo;
@@ -364,37 +407,34 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
         return objClassBuilder.build();
     }
 
-    private ObjectClassInfo createGroupObjectClass(boolean supportsActivation) {
-        // __GROUP__ objectclass
-        ObjectClassInfoBuilder objClassBuilder = createCommonObjectClassBuilder(getGroupObjectClassName(),
-                resource.getGroupObjectClass(), supportsActivation);
-
-        return objClassBuilder.build();
-    }
-
-    private ObjectClassInfo createPrivilegeObjectClass() {
-        ObjectClassInfoBuilder objClassBuilder = createCommonObjectClassBuilder(OBJECTCLASS_PRIVILEGE_NAME,
-                resource.getPrivilegeObjectClass(), false);
-        return objClassBuilder.build();
-    }
-
-    private ObjectClassInfo createOrgObjectClass() {
-        ObjectClassInfoBuilder objClassBuilder =
-                createCommonObjectClassBuilder(OBJECTCLASS_ORG_NAME, resource.getOrgObjectClass(), false);
-        return objClassBuilder.build();
-    }
-
-    private List<ObjectClassInfo> createAuxiliaryObjectClasses() {
-        List<ObjectClassInfo> rv = new ArrayList<>();
-        for (Map.Entry<String, DummyObjectClass> entry : resource.getAuxiliaryObjectClassMap().entrySet()) {
-            ObjectClassInfoBuilder builder = createCommonObjectClassBuilder(entry.getKey(), entry.getValue(), false);
-            builder.setAuxiliary(true);
-            rv.add(builder.build());
+    @Contract("!null -> !null; null -> null")
+    private String nativeObjectClassNameToConnId(String nativeClassName) {
+        if (!configuration.getUseLegacySchema()) {
+            return nativeClassName;
+        } else if (DummyAccount.OBJECT_CLASS_NAME.equals(nativeClassName)) {
+            return ObjectClass.ACCOUNT_NAME;
+        } else if (DummyGroup.OBJECT_CLASS_NAME.equals(nativeClassName)) {
+            return ObjectClass.GROUP_NAME;
+        } else {
+            return nativeClassName;
         }
-        return rv;
     }
 
-    private void buildAttributes(ObjectClassInfoBuilder icfObjClassBuilder, DummyObjectClass dummyObjectClass) {
+    private String getAccountObjectClassName() {
+        return configuration.getUseLegacySchema() ? ObjectClass.ACCOUNT_NAME : DummyAccount.OBJECT_CLASS_NAME;
+    }
+
+    private String getGroupObjectClassName() {
+        return configuration.getUseLegacySchema() ? ObjectClass.GROUP_NAME : DummyGroup.OBJECT_CLASS_NAME;
+    }
+
+    private ObjectClassInfo createGroupObjectClass() {
+        return createCommonObjectClassBuilder(
+                getGroupObjectClassName(), resource.getGroupObjectClass(), configuration.getSupportActivation())
+                .build();
+    }
+
+    private void buildAttributes(ObjectClassInfoBuilder classBuilder, DummyObjectClass dummyObjectClass) {
         for (DummyAttributeDefinition dummyAttrDef : dummyObjectClass.getAttributeDefinitions()) {
             Class<?> attributeClass = dummyAttrDef.getAttributeType();
             if (dummyAttrDef.isSensitive()) {
@@ -404,7 +444,32 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
             attrBuilder.setMultiValued(dummyAttrDef.isMulti());
             attrBuilder.setRequired(dummyAttrDef.isRequired());
             attrBuilder.setReturnedByDefault(dummyAttrDef.isReturnedByDefault());
-            icfObjClassBuilder.addAttributeInfo(attrBuilder.build());
+            classBuilder.addAttributeInfo(attrBuilder.build());
+        }
+    }
+
+    private void buildLinks(ObjectClassInfoBuilder classBuilder, DummyObjectClass dummyObjectClass) {
+        for (var linkDefinition : dummyObjectClass.getLinkDefinitions()) {
+            var participant = linkDefinition.getParticipant();
+            if (!participant.isVisible()) {
+                continue;
+            }
+            var attrBuilder = new AttributeInfoBuilder(participant.getLinkNameRequired(), ConnectorObjectReference.class)
+                    // We provide null subtype for one-sided links to check that midPoint can cope with them.
+                    .setSubtype(
+                            linkDefinition.getOtherParticipant().isVisible() ?
+                                    linkDefinition.getLinkClassDefinition().getName() : null)
+                    .setMultiValued(participant.getMaxOccurs() < 0 || participant.getMaxOccurs() > 1)
+                    .setRequired(participant.getMinOccurs() > 0)
+                    .setReturnedByDefault(participant.isReturnedByDefault())
+                    .setReferencedObjectClassName(
+                            nativeObjectClassNameToConnId(
+                                    linkDefinition.getOtherParticipant().getSingleObjectClassNameIfApplicable()))
+                    .setRoleInReference(
+                            linkDefinition.getParticipantIndex() == LinkClassDefinition.ParticipantIndex.FIRST ?
+                                    AttributeInfo.RoleInReference.SUBJECT.toString() :
+                                    AttributeInfo.RoleInReference.OBJECT.toString());
+            classBuilder.addAttributeInfo(attrBuilder.build());
         }
     }
 
@@ -412,11 +477,10 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
      * {@inheritDoc}
      */
     @Override
-    public Uid authenticate(final ObjectClass objectClass, final String userName, final GuardedString password, final OperationOptions options) {
+    public Uid authenticate(ObjectClass objectClass, String userName, GuardedString password, OperationOptions options) {
         LOG.info("authenticate::begin");
-        Uid uid = null;
         LOG.info("authenticate::end");
-        return uid;
+        return null;
     }
 
     /**
@@ -425,9 +489,8 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
     @Override
     public Uid resolveUsername(final ObjectClass objectClass, final String userName, final OperationOptions options) {
         LOG.info("resolveUsername::begin");
-        Uid uid = null;
         LOG.info("resolveUsername::end");
-        return uid;
+        return null;
     }
 
     /**
@@ -454,48 +517,47 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
         validate(query);
         notNull(handler, "Results handled object can't be null.");
 
+        // Note that the name is external, i.e. it could be __ACCOUNT__ or __GROUP__.
+        // We take care not to pass these names to the resource.
+        String objectClassName = objectClass.getObjectClassValue();
+
         Collection<String> attributesToGet = getAttrsToGet(options);
         LOG.ok("attributesToGet={0}", attributesToGet);
 
-        if (configuration.getRequiredBaseContextOrgName() != null && shouldRequireBaseContext(objectClass, query, options)) {
+        if (configuration.getRequiredBaseContextOrgName() != null && shouldRequireBaseContext(objectClass, query)) {
             if (options == null || options.getContainer() == null) {
                 throw new ConnectorException("No container option while base context is required");
             }
             QualifiedUid container = options.getContainer();
             if (!configuration.getRequiredBaseContextOrgName().equals(container.getUid().getUidValue())) {
-                throw new ConnectorException("Base context of '"+configuration.getRequiredBaseContextOrgName()
-                    +"' is required, but got '"+container.getUid().getUidValue()+"'");
+                throw new ConnectorException("Base context of '%s' is required, but got '%s'".formatted(
+                        configuration.getRequiredBaseContextOrgName(), container.getUid().getUidValue()));
             }
         }
 
         try {
-            if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
+            if (ObjectClass.ACCOUNT.is(objectClassName)) {
 
-                search(objectClass, query, handler, options,
-                        resource::listAccounts, resource::getAccountByUsername, resource::getAccountById, this::convertToConnectorObject, null);
+                search(query, handler, options,
+                        resource::listAccounts, resource::getAccountByName, resource::getAccountById, this::convertAccountToConnectorObject, null);
 
-            } else if (ObjectClass.GROUP.is(objectClass.getObjectClassValue())) {
+            } else if (ObjectClass.GROUP.is(objectClassName)) {
 
-                search(objectClass, query, handler, options,
-                        resource::listGroups, resource::getGroupByName, resource::getGroupById, this::convertToConnectorObject,
+                search(query, handler, options,
+                        resource::listGroups, resource::getGroupByName, resource::getGroupById, this::convertGroupToConnectorObject,
                         object -> {
                             if (attributesToGetHasAttribute(attributesToGet, DummyGroup.ATTR_MEMBERS_NAME)) {
                                 resource.recordGroupMembersReadCount();
                             }
                         });
 
-            } else if (objectClass.is(OBJECTCLASS_PRIVILEGE_NAME)) {
-
-                search(objectClass, query, handler, options,
-                        resource::listPrivileges, resource::getPrivilegeByName, resource::getPrivilegeById, this::convertToConnectorObject, null);
-
-            } else if (objectClass.is(OBJECTCLASS_ORG_NAME)) {
-
-                search(objectClass, query, handler, options,
-                        resource::listOrgs, resource::getOrgByName, resource::getOrgById, this::convertToConnectorObject, null);
-
             } else {
-                throw new ConnectorException("Unknown object class "+objectClass);
+
+                Lister<DummyObject> lister = () -> resource.listObjects(objectClassName);
+                Getter<DummyObject> byNameGetter = name -> resource.getObjectByName(objectClassName, name);
+                Getter<DummyObject> byIdGetter = id -> resource.getObjectById(id);
+                Converter<DummyObject> converter = this::convertOtherToConnectorObject;
+                search(query, handler, options, lister, byNameGetter, byIdGetter, converter, null);
             }
 
         } catch (ConnectException e) {
@@ -521,8 +583,10 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
         LOG.info("executeQuery::end");
     }
 
-    private <T extends DummyObject> void search(ObjectClass objectClass, Filter query, ResultsHandler handler, OperationOptions options,
-            Lister<T> lister, Getter<T> nameGetter, Getter<T> idGetter, Converter<T> converter, Consumer<T> recorder) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+    private <T extends DummyObject> void search(
+            Filter query, ResultsHandler handler, OperationOptions options,
+            Lister<T> lister, Getter<T> nameGetter, Getter<T> idGetter, Converter<T> converter, Consumer<T> recorder)
+            throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         Collection<String> attributesToGet = getAttrsToGet(options);
         LOG.ok("attributesToGet={0}", attributesToGet);
 
@@ -542,10 +606,8 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
             T object;
             if (configuration.isUidBoundToName()) {
                 object = nameGetter.get(uid);
-            } else if (configuration.isUidSeparateFromName()) {
-                object = idGetter.get(uid);
             } else {
-                throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+                object = idGetter.get(uid);
             }
             if (object != null) {
                 handleObject(object, handler, options, attributesToGet, converter, recorder);
@@ -560,7 +622,7 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
             pageSize = options.getPageSize();
         }
 
-        Collection<T> allObjects = lister.list();
+        Collection<? extends T> allObjects = lister.list();
         allObjects = sortObjects(allObjects, options);
         int matchingObjects = 0;
         int returnedObjects = 0;
@@ -584,6 +646,7 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
                     continue;
                 }
                 returnedObjects++;
+                // TODO shouldn't we stop if the handler returns false?
                 handleConnectorObject(object, co, handler, options, attributesToGet, recorder);
             }
         }
@@ -645,7 +708,7 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
         }
     }
 
-    private int compareAscending(Object val1, Object val2) {
+    private <C extends Comparable<?>> int compareAscending(Object val1, Object val2) {
         if (val1 == null && val2 == null) {
             return 0;
         }
@@ -655,27 +718,33 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
         if (val2 == null) {
             return -1;
         }
-        Comparator<Comparable> comparator = Comparator.naturalOrder();
         if (!(val1 instanceof Comparable) || !(val2 instanceof Comparable)) {
             if (val1.equals(val2)) {
                 return 0;
             } else {
-                return comparator.compare(val1.toString(), val2.toString());
+                return Comparator.<String>naturalOrder().compare(val1.toString(), val2.toString());
             }
         }
-        return comparator.compare((Comparable)val1, (Comparable)val2);
+        //noinspection unchecked
+        Comparator<C> comparator = (Comparator<C>) Comparator.naturalOrder();
+        //noinspection unchecked
+        return comparator.compare((C)val1, (C)val2);
     }
 
     private boolean supportsPaging() {
         return !DummyConfiguration.PAGING_STRATEGY_NONE.equals(configuration.getPagingStrategy());
     }
 
-    private <T extends DummyObject> void handleObject(T object, ResultsHandler handler, OperationOptions options, Collection<String> attributesToGet, Converter<T> converter, Consumer<T> recorder) throws SchemaViolationException {
+    private <T extends DummyObject> void handleObject(
+            T object, ResultsHandler handler, OperationOptions options, Collection<String> attributesToGet,
+            Converter<T> converter, Consumer<T> recorder) throws SchemaViolationException {
         ConnectorObject co = converter.convert(object, attributesToGet);
         handleConnectorObject(object, co, handler, options, attributesToGet, recorder);
     }
 
-    private <T extends DummyObject> boolean handleConnectorObject(T object, ConnectorObject co, ResultsHandler handler, OperationOptions options, Collection<String> attributesToGet, Consumer<T> recorder) {
+    private <T extends DummyObject> boolean handleConnectorObject(
+            T object, ConnectorObject co, ResultsHandler handler, OperationOptions options, Collection<String> attributesToGet,
+            Consumer<T> recorder) {
         if (recorder != null) {
             recorder.accept(object);
         }
@@ -688,17 +757,19 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
     }
 
     private boolean isEqualsFilter(Filter icfFilter, String icfAttrname) {
-        return icfFilter != null && (icfFilter instanceof EqualsFilter) && icfAttrname.equals(((EqualsFilter)icfFilter).getName());
+        return (icfFilter instanceof EqualsFilter equalsFilter) && icfAttrname.equals(equalsFilter.getName());
     }
 
     @FunctionalInterface
     interface Lister<T> {
-        Collection<T> list() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException;
+        Collection<? extends T> list() throws ConnectException, FileNotFoundException, SchemaViolationException,
+                ConflictException, InterruptedException;
     }
 
     @FunctionalInterface
     interface Getter<T> {
-        T get(String id) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException;
+        T get(String id) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException,
+                InterruptedException;
     }
 
     @FunctionalInterface
@@ -706,9 +777,8 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
         ConnectorObject convert(T object, Collection<String> attributesToGet) throws SchemaViolationException;
     }
 
-    private boolean shouldRequireBaseContext(ObjectClass objectClass, Filter query,
-            OperationOptions options) {
-        if (objectClass.is(OBJECTCLASS_ORG_NAME)) {
+    private boolean shouldRequireBaseContext(ObjectClass objectClass, Filter query) {
+        if (objectClass.is(DummyOrg.OBJECT_CLASS_NAME)) {
             return false;
         }
         if (!(query instanceof EqualsFilter)) {
@@ -747,41 +817,29 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
     }
 
     private Filter normalize(Filter filter) {
-        if (filter instanceof ContainsFilter) {
-            AttributeFilter afilter = (AttributeFilter) filter;
+        if (filter instanceof ContainsFilter afilter) {
             return new ContainsFilter(normalize(afilter.getAttribute()));
-        } else if (filter instanceof EndsWithFilter) {
-            AttributeFilter afilter = (AttributeFilter) filter;
+        } else if (filter instanceof EndsWithFilter afilter) {
             return new EndsWithFilter(normalize(afilter.getAttribute()));
-        } else if (filter instanceof EqualsFilter) {
-            AttributeFilter afilter = (AttributeFilter) filter;
+        } else if (filter instanceof EqualsFilter afilter) {
             return new EqualsFilter(normalize(afilter.getAttribute()));
-        } else if (filter instanceof GreaterThanFilter) {
-            AttributeFilter afilter = (AttributeFilter) filter;
+        } else if (filter instanceof GreaterThanFilter afilter) {
             return new GreaterThanFilter(normalize(afilter.getAttribute()));
-        } else if (filter instanceof GreaterThanOrEqualFilter) {
-            AttributeFilter afilter = (AttributeFilter) filter;
+        } else if (filter instanceof GreaterThanOrEqualFilter afilter) {
             return new GreaterThanOrEqualFilter(normalize(afilter.getAttribute()));
-        } else if (filter instanceof LessThanFilter) {
-            AttributeFilter afilter = (AttributeFilter) filter;
+        } else if (filter instanceof LessThanFilter afilter) {
             return new LessThanFilter(normalize(afilter.getAttribute()));
-        } else if (filter instanceof LessThanOrEqualFilter) {
-            AttributeFilter afilter = (AttributeFilter) filter;
+        } else if (filter instanceof LessThanOrEqualFilter afilter) {
             return new LessThanOrEqualFilter(normalize(afilter.getAttribute()));
-        } else if (filter instanceof StartsWithFilter) {
-            AttributeFilter afilter = (AttributeFilter) filter;
+        } else if (filter instanceof StartsWithFilter afilter) {
             return new StartsWithFilter(normalize(afilter.getAttribute()));
-        } else if (filter instanceof ContainsAllValuesFilter) {
-            AttributeFilter afilter = (AttributeFilter) filter;
+        } else if (filter instanceof ContainsAllValuesFilter afilter) {
             return new ContainsAllValuesFilter(normalize(afilter.getAttribute()));
-        } else if (filter instanceof NotFilter) {
-            NotFilter notFilter = (NotFilter) filter;
+        } else if (filter instanceof NotFilter notFilter) {
             return new NotFilter(normalize(notFilter.getFilter()));
-        } else if (filter instanceof AndFilter) {
-            AndFilter andFilter = (AndFilter) filter;
+        } else if (filter instanceof AndFilter andFilter) {
             return new AndFilter(normalize(andFilter.getLeft()), normalize(andFilter.getRight()));
-        } else if (filter instanceof OrFilter) {
-            OrFilter orFilter = (OrFilter) filter;
+        } else if (filter instanceof OrFilter orFilter) {
             return new OrFilter(normalize(orFilter.getLeft()), normalize(orFilter.getRight()));
         } else {
             return filter;
@@ -820,7 +878,7 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
             if (containsAttribute(attributesToGet, attr.getName()) ||
                     Boolean.TRUE.equals(returnDefaultAttributes) &&
                             (attr.getName().startsWith("__") ||            // brutal hack
-                             dummyObject.isReturnedByDefault(attr.getName()))) {
+                                    dummyObject.isReturnedByDefault(attr.getName()))) {
                 cob.addAttribute(attr);
             }
         }
@@ -851,33 +909,24 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
             List<DummyDelta> deltas = resource.getDeltasSince(syncToken);
             for (DummyDelta delta: deltas) {
 
-                Class<? extends DummyObject> deltaObjectClass = delta.getObjectClass();
+                Class<? extends DummyObject> deltaObjectClass = delta.getObjectJavaClass();
                 if (objectClass.is(ObjectClass.ALL_NAME)) {
                     // take all changes
                 } else if (objectClass.is(ObjectClass.ACCOUNT_NAME)) {
-                    if (deltaObjectClass != DummyAccount.class) {
+                    if (!DummyAccount.class.equals(deltaObjectClass)) {
                         LOG.ok("Skipping delta {0} because of objectclass mismatch", delta);
                         continue;
                     }
                 } else if (objectClass.is(ObjectClass.GROUP_NAME)) {
-                    if (deltaObjectClass != DummyGroup.class) {
+                    if (!DummyGroup.class.equals(deltaObjectClass)) {
                         LOG.ok("Skipping delta {0} because of objectclass mismatch", delta);
                         continue;
                     }
                 }
 
-                SyncDeltaBuilder deltaBuilder =  new SyncDeltaBuilder();
-                if (deltaObjectClass == DummyAccount.class) {
-                    deltaBuilder.setObjectClass(ObjectClass.ACCOUNT);
-                } else if (deltaObjectClass == DummyGroup.class) {
-                    deltaBuilder.setObjectClass(ObjectClass.GROUP);
-                } else if (deltaObjectClass == DummyPrivilege.class) {
-                    deltaBuilder.setObjectClass(new ObjectClass(OBJECTCLASS_PRIVILEGE_NAME));
-                } else if (deltaObjectClass == DummyOrg.class) {
-                    deltaBuilder.setObjectClass(new ObjectClass(OBJECTCLASS_ORG_NAME));
-                } else {
-                    throw new IllegalArgumentException("Unknown delta objectClass "+deltaObjectClass);
-                }
+                SyncDeltaBuilder deltaBuilder = new SyncDeltaBuilder();
+                deltaBuilder.setObjectClass(
+                        toConnIdObjectClass(delta.getObjectClassName()));
 
                 SyncDeltaType deltaType;
                 if (delta.getType() == DummyDeltaType.ADD || delta.getType() == DummyDeltaType.MODIFY) {
@@ -890,37 +939,19 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
                             deltaType = SyncDeltaType.UPDATE;
                         }
                     }
-                    if (deltaObjectClass == DummyAccount.class) {
-                        DummyAccount account = resource.getAccountById(delta.getObjectId());
-                        if (account == null) {
-                            // We have delta for object that does not exist any more. It was probably deleted in the meantime.
-                            // Just skip the delta.
-                            LOG.warn("We have delta for account '"+delta.getObjectId()+"' but such account does not exist, skipping delta");
-                            continue;
-                        }
-                        ConnectorObject cobject = convertToConnectorObject(account, attributesToGet);
-                        deltaBuilder.setObject(cobject);
-                    } else if (deltaObjectClass == DummyGroup.class) {
-                        DummyGroup group = resource.getGroupById(delta.getObjectId());
-                        if (group == null) {
-                            throw new IllegalStateException("We have delta for group '"+delta.getObjectId()+"' but such group does not exist");
-                        }
-                        ConnectorObject cobject = convertToConnectorObject(group, attributesToGet);
-                        deltaBuilder.setObject(cobject);
-                    } else if (deltaObjectClass == DummyPrivilege.class) {
-                        DummyPrivilege privilege = resource.getPrivilegeById(delta.getObjectId());
-                        if (privilege == null) {
-                            throw new IllegalStateException("We have privilege for group '"+delta.getObjectId()+"' but such privilege does not exist");
-                        }
-                        ConnectorObject cobject = convertToConnectorObject(privilege, attributesToGet);
-                        deltaBuilder.setObject(cobject);
-                    } else {
-                        throw new IllegalArgumentException("Unknown delta objectClass "+deltaObjectClass);
+                    var object = resource.getObjectById(delta.getObjectId());
+                    if (object == null) {
+                        // We have delta for object that does not exist any more. It was probably deleted in the meantime.
+                        // Just skip the delta.
+                        LOG.warn("We have delta for object '"+delta.getObjectId()+"' but such object does not exist, skipping delta");
+                        continue;
                     }
+                    deltaBuilder.setObject(
+                            convertToConnectorObject(object, attributesToGet));
                 } else if (delta.getType() == DummyDeltaType.DELETE) {
                     deltaType = SyncDeltaType.DELETE;
                 } else {
-                    throw new IllegalStateException("Unknown delta type "+delta.getType());
+                    throw new IllegalStateException("Unknown delta type " + delta.getType());
                 }
                 deltaBuilder.setDeltaType(deltaType);
 
@@ -933,14 +964,10 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
                 Uid uid;
                 if (configuration.isUidBoundToName()) {
                     uid = new Uid(delta.getObjectName());
-                } else if (configuration.isUidSeparateFromName()) {
-                    if (nameHintChecksEnabled()) {
-                        uid = new Uid(delta.getObjectId(), new Name(delta.getObjectName()));
-                    } else {
-                        uid = new Uid(delta.getObjectId());
-                    }
+                } else if (nameHintChecksEnabled()) {
+                    uid = new Uid(delta.getObjectId(), new Name(delta.getObjectName()));
                 } else {
-                    throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+                    uid = new Uid(delta.getObjectId());
                 }
                 deltaBuilder.setUid(uid);
 
@@ -975,14 +1002,13 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
     }
 
     private Collection<String> getAttrsToGet(OperationOptions options) {
-        Collection<String> attributesToGet = null;
         if (options != null) {
             String[] attributesToGetArray = options.getAttributesToGet();
             if (attributesToGetArray != null && attributesToGetArray.length != 0) {
-                attributesToGet = Arrays.asList(attributesToGetArray);
+                return Arrays.asList(attributesToGetArray);
             }
         }
-        return attributesToGet;
+        return null;
     }
 
     /**
@@ -997,18 +1023,18 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
         return new SyncToken(latestSyncToken);
     }
 
+    private ConnectorObjectBuilder createConnectorObjectBuilderCommon(
+            DummyObject dummyObject, Collection<String> attributesToGet, boolean supportActivation) throws SchemaViolationException {
 
-   private ConnectorObjectBuilder createConnectorObjectBuilderCommon(DummyObject dummyObject,
-           DummyObjectClass objectClass, Collection<String> attributesToGet, boolean supportActivation) {
-       ConnectorObjectBuilder builder = new ConnectorObjectBuilder();
+        ConnectorObjectBuilder builder = new ConnectorObjectBuilder();
 
-       if (configuration.isUidBoundToName()) {
-           builder.setUid(dummyObject.getName());
-       } else if (configuration.isUidSeparateFromName()) {
-           builder.setUid(dummyObject.getId());
-       } else {
-           throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
-       }
+        builder.setObjectClass(toConnIdObjectClass(dummyObject.getObjectClassName()));
+
+        if (configuration.isUidBoundToName()) {
+            builder.setUid(dummyObject.getName());
+        } else {
+            builder.setUid(dummyObject.getId());
+        }
 
         builder.addAttribute(Name.NAME, dummyObject.getName());
 
@@ -1018,7 +1044,7 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
                 throw new InvalidAttributeValueException("Unknown account attribute '"+name+"'");
             }
             if (!attrDef.isReturnedByDefault()) {
-                if (attributesToGet != null && !attributesToGet.contains(name)) {
+                if (attributesToGet == null || !attributesToGet.contains(name)) {
                     continue;
                 }
             }
@@ -1064,21 +1090,25 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
             builder.addAttribute(DummyResource.ATTRIBUTE_CONNECTOR_CONFIGURATION_TO_STRING, configuration.toString());
         }
 
-       if (!dummyObject.getAuxiliaryObjectClassNames().isEmpty()) {
-           builder.addAttribute(PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME, dummyObject.getAuxiliaryObjectClassNames());
-       }
+        if (!dummyObject.getAuxiliaryObjectClassNames().isEmpty()) {
+            builder.addAttribute(PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME, dummyObject.getAuxiliaryObjectClassNames());
+        }
 
-       addAdditionalCommonAttributes(builder, dummyObject);
+        addLinks(builder, dummyObject, attributesToGet);
 
-       return builder;
-   }
+        addAdditionalCommonAttributes(builder, dummyObject);
+
+        return builder;
+    }
 
     private Set<Object> toConnIdAttributeValues(String name, DummyAttributeDefinition attrDef, Set<Object> dummyAttributeValues) {
         if (dummyAttributeValues == null || dummyAttributeValues.isEmpty()) {
             return dummyAttributeValues;
         }
         if (attrDef.isSensitive()) {
-            return dummyAttributeValues.stream().map(val -> new GuardedString(((String)val).toCharArray())).collect(Collectors.toSet());
+            return dummyAttributeValues.stream()
+                    .map(val -> new GuardedString(((String)val).toCharArray()))
+                    .collect(Collectors.toSet());
         } else {
             return dummyAttributeValues;
         }
@@ -1089,6 +1119,42 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
         if (connectorInstanceNumberAttribute != null) {
             LOG.info("Putting connector instance number into {0}: {1}", connectorInstanceNumberAttribute, getInstanceNumber());
             builder.addAttribute(connectorInstanceNumberAttribute, getInstanceNumber());
+        }
+    }
+
+    private void addLinks(ConnectorObjectBuilder builder, DummyObject dummyObject, Collection<String> attributesToGet)
+            throws SchemaViolationException {
+        for (LinkDefinition linkDefinition : dummyObject.getStructuralObjectClass().getLinkDefinitions()) {
+            if (!linkDefinition.isVisible()) {
+                continue;
+            }
+            LOG.info("Processing link definition: {0}", linkDefinition);
+            var participant = linkDefinition.getParticipant();
+            var linkName = participant.getLinkNameRequired();
+            if (!participant.isReturnedByDefault()) {
+                if (attributesToGet == null || !attributesToGet.contains(linkName)) {
+                    continue;
+                }
+            }
+            Set<Object> convertedLinkValues = new HashSet<>();
+
+            for (DummyObject linkedObject : dummyObject.getLinkedObjects(linkName)) {
+                var convertedLinkedObject = convertToConnectorObject(linkedObject, null);
+                BaseConnectorObject refValue;
+                // in the future, expanded-by-default will be overridable by "get options"
+                if (participant.isExpandedByDefault()) {
+                    refValue = convertedLinkedObject;
+                } else {
+                    var identification = convertedLinkedObject.getIdentification();
+                    if (participant.isProvidingUnclassifiedReferences()) {
+                        refValue = new ConnectorObjectIdentification(null, identification.getAttributes());
+                    } else {
+                        refValue = identification;
+                    }
+                }
+                convertedLinkValues.add(new ConnectorObjectReference(refValue));
+            }
+            builder.addAttribute(linkName, convertedLinkValues);
         }
     }
 
@@ -1113,11 +1179,22 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
         return date.getTime();
     }
 
-    private ConnectorObject convertToConnectorObject(DummyAccount account, Collection<String> attributesToGet) throws SchemaViolationException {
+    private ConnectorObject convertToConnectorObject(DummyObject object, Collection<String> attributesToGet)
+            throws SchemaViolationException {
+        if (object instanceof DummyAccount account) {
+            return convertAccountToConnectorObject(account, attributesToGet);
+        } else if (object instanceof DummyGroup group) {
+            return convertGroupToConnectorObject(group, attributesToGet);
+        } else {
+            return convertOtherToConnectorObject(object, attributesToGet);
+        }
+    }
 
-        DummyObjectClass objectClass;
+    private ConnectorObject convertAccountToConnectorObject(DummyAccount account, Collection<String> attributesToGet)
+            throws SchemaViolationException {
+
         try {
-            objectClass = resource.getAccountObjectClass();
+            resource.applySchemaBreakMode();
         } catch (ConnectException e) {
             LOG.error(e, e.getMessage());
             throw new ConnectionFailedException(e.getMessage(), e);
@@ -1135,8 +1212,7 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
             throw new OperationTimeoutException(e);
         }
 
-        ConnectorObjectBuilder builder = createConnectorObjectBuilderCommon(account, objectClass, attributesToGet, true);
-        builder.setObjectClass(ObjectClass.ACCOUNT);
+        ConnectorObjectBuilder builder = createConnectorObjectBuilderCommon(account, attributesToGet, true);
 
         // Password is not returned by default (hardcoded ICF specification)
         if (account.getPassword() != null && attributesToGet != null && attributesToGet.contains(OperationalAttributes.PASSWORD_NAME)) {
@@ -1156,39 +1232,31 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
             }
         }
 
-        if (account.isLockout() != null) {
-            builder.addAttribute(OperationalAttributes.LOCK_OUT_NAME, account.isLockout());
+        if (account.getLockoutStatus() != null) {
+            builder.addAttribute(OperationalAttributes.LOCK_OUT_NAME, account.getLockoutStatus());
         }
 
         return builder.build();
     }
 
-    private ConnectorObject convertToConnectorObject(DummyGroup group, Collection<String> attributesToGet) {
-        ConnectorObjectBuilder builder = createConnectorObjectBuilderCommon(group, resource.getGroupObjectClass(),
-                attributesToGet, true);
-        builder.setObjectClass(ObjectClass.GROUP);
-        return builder.build();
+    private ConnectorObject convertGroupToConnectorObject(DummyGroup group, Collection<String> attributesToGet)
+            throws SchemaViolationException {
+        return createConnectorObjectBuilderCommon(group, attributesToGet, true)
+                .build();
     }
 
-    private ConnectorObject convertToConnectorObject(DummyPrivilege priv, Collection<String> attributesToGet) {
-        ConnectorObjectBuilder builder = createConnectorObjectBuilderCommon(priv, resource.getPrivilegeObjectClass(),
-                attributesToGet, false);
-        builder.setObjectClass(new ObjectClass(OBJECTCLASS_PRIVILEGE_NAME));
-        return builder.build();
+    private ConnectorObject convertOtherToConnectorObject(DummyObject object, Collection<String> attributesToGet)
+            throws SchemaViolationException {
+        return createConnectorObjectBuilderCommon(object, attributesToGet, false)
+                .build();
     }
 
-    private ConnectorObject convertToConnectorObject(DummyOrg org, Collection<String> attributesToGet) {
-        ConnectorObjectBuilder builder =
-                createConnectorObjectBuilderCommon(org, resource.getOrgObjectClass(), attributesToGet, false);
-        builder.setObjectClass(new ObjectClass(OBJECTCLASS_ORG_NAME));
-        return builder.build();
-    }
-
-    private DummyAccount convertToAccount(Set<Attribute> createAttributes) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+    private DummyAccount convertToAccount(Set<Attribute> createAttributes)
+            throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         LOG.ok("Create attributes: {0}", createAttributes);
         String userName = getIcfName(createAttributes);
         LOG.ok("Username {0}", userName);
-        final DummyAccount newAccount = new DummyAccount(userName);
+        final DummyAccount newAccount = new DummyAccount(userName, resource);
 
         Boolean enabled = null;
         boolean hasPassword = false;
@@ -1222,18 +1290,11 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
                 }
 
             } else if (attr.is(OperationalAttributeInfos.LOCK_OUT.getName())) {
-                Boolean lockout = getBooleanMandatory(attr);
-                newAccount.setLockout(lockout);
+                newAccount.setLockoutStatus(
+                        getBooleanMandatory(attr));
 
             } else {
-                String name = attr.getName();
-                try {
-                    newAccount.replaceAttributeValues(name,attr.getValue());
-                } catch (SchemaViolationException e) {
-                    // Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
-                    // The framework should deal with it ... somehow
-                    throw new InvalidAttributeValueException(e.getMessage(),e);
-                }
+                addGenericAttribute(newAccount, attr);
             }
         }
 
@@ -1249,9 +1310,8 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
     }
 
     private DummyGroup convertToGroup(Set<Attribute> createAttributes) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
-        final DummyGroup newGroup = new DummyGroup(getIcfName(createAttributes));
+        final DummyGroup newGroup = new DummyGroup(getIcfName(createAttributes), resource);
 
-        Boolean enabled = null;
         for (Attribute attr : createAttributes) {
             if (attr.is(Uid.NAME)) {
                 throw new IllegalArgumentException("UID explicitly specified in the group attributes");
@@ -1263,8 +1323,8 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
                 throw new InvalidAttributeValueException("Password specified for a group");
 
             } else if (attr.is(OperationalAttributeInfos.ENABLE.getName())) {
-                enabled = getBooleanMandatory(attr);
-                newGroup.setEnabled(enabled);
+                newGroup.setEnabled(
+                        getBooleanMandatory(attr));
 
             } else if (attr.is(OperationalAttributeInfos.ENABLE_DATE.getName())) {
                 if (configuration.getSupportValidity()) {
@@ -1281,81 +1341,65 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
                 }
 
             } else {
-                String name = attr.getName();
-                try {
-                    newGroup.replaceAttributeValues(name,attr.getValue());
-                } catch (SchemaViolationException e) {
-                    throw new InvalidAttributeValueException(e.getMessage(),e);
-                }
+                addGenericAttribute(newGroup, attr);
             }
         }
 
         return newGroup;
     }
 
-    private DummyPrivilege convertToPriv(Set<Attribute> createAttributes) throws ConnectException, FileNotFoundException, ConflictException {
-        final DummyPrivilege newPriv = new DummyPrivilege(getIcfName(createAttributes));
-
-        for (Attribute attr : createAttributes) {
-            if (attr.is(Uid.NAME)) {
-                throw new IllegalArgumentException("UID explicitly specified in the group attributes");
-
-            } else if (attr.is(Name.NAME)) {
-                // Skip, already processed
-
-            } else if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
-                throw new InvalidAttributeValueException("Password specified for a privilege");
-
-            } else if (attr.is(OperationalAttributeInfos.ENABLE.getName())) {
-                throw new InvalidAttributeValueException("Unsupported ENABLE attribute in privilege");
-
-            } else {
-                String name = attr.getName();
-                try {
-                    newPriv.replaceAttributeValues(name,attr.getValue());
-                } catch (SchemaViolationException e) {
-                    throw new InvalidAttributeValueException(e.getMessage(),e);
-                } catch (InterruptedException e) {
-                    throw new OperationTimeoutException(e.getMessage(),e);
-                }
-            }
-        }
-
-        return newPriv;
-    }
-
-    private DummyOrg convertToOrg(Set<Attribute> createAttributes)
+    private DummyObject convertToOther(DummyObject newObject, Set<Attribute> createAttributes)
             throws ConnectException, FileNotFoundException, ConflictException {
-        DummyOrg newOrg = new DummyOrg(getIcfName(createAttributes));
         for (Attribute attr : createAttributes) {
             if (attr.is(Uid.NAME)) {
-                throw new IllegalArgumentException("UID explicitly specified in the org attributes");
+                throw new IllegalArgumentException("UID explicitly specified in object attributes");
 
             } else if (attr.is(Name.NAME)) {
                 // Skip, already processed
 
             } else if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
-                throw new IllegalArgumentException("Password specified for a org");
+                throw new InvalidAttributeValueException("Unsupported PASSWORD attribute");
 
             } else if (attr.is(OperationalAttributeInfos.ENABLE.getName())) {
-                throw new IllegalArgumentException("Unsupported ENABLE attribute in org");
+                throw new InvalidAttributeValueException("Unsupported ENABLE attribute");
 
             } else {
-                String name = attr.getName();
-                try {
-                    newOrg.replaceAttributeValues(name,attr.getValue());
-                } catch (SchemaViolationException e) {
-                    throw new IllegalArgumentException(e.getMessage(),e);
-                } catch (InterruptedException e) {
-                    throw new OperationTimeoutException(e.getMessage(),e);
-                }
+                addGenericAttribute(newObject, attr);
             }
         }
-        return newOrg;
+
+        return newObject;
     }
 
-    private String getIcfName(Set<Attribute> createAttributes) {
-        String icfName = Utils.getMandatoryStringAttribute(createAttributes, Name.NAME);
+    private static void addGenericAttribute(DummyObject newObject, Attribute attr)
+            throws ConnectException, FileNotFoundException, ConflictException {
+        String name = attr.getName();
+        try {
+            if (newObject.isLink(name)) {
+                // links are processed later
+            } else {
+                newObject.replaceAttributeValues(name, attr.getValue());
+            }
+        } catch (SchemaViolationException e) {
+            // Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
+            // The framework should deal with it ... somehow
+            throw new InvalidAttributeValueException(e.getMessage(), e);
+        } catch (InterruptedException e) {
+            throw new OperationTimeoutException(e.getMessage(), e);
+        }
+    }
+
+    private String getIcfName(Set<Attribute> attributes) {
+        return convertIcfName(
+                Utils.getMandatoryStringAttribute(attributes, Name.NAME));
+    }
+
+    private String getIcfNameIfPresent(Set<Attribute> attributes) {
+        return convertIcfName(
+                Utils.getAttributeSingleValue(attributes, Name.NAME, String.class));
+    }
+
+    @Nullable String convertIcfName(String icfName) {
         if (configuration.getUpCaseName()) {
             return StringUtils.upperCase(icfName);
         } else {
@@ -1363,15 +1407,15 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
         }
     }
 
-    protected Boolean getBoolean(Attribute attr) {
+    Boolean getBoolean(Attribute attr) {
         if (attr.getValue() == null || attr.getValue().isEmpty()) {
             return null;
         }
         Object object = attr.getValue().get(0);
-        if (!(object instanceof Boolean)) {
-            throw new IllegalArgumentException("Attribute "+attr.getName()+" was provided as "+object.getClass().getName()+" while expecting boolean");
+        if (!(object instanceof Boolean booleanValue)) {
+            throw new IllegalArgumentException("Attribute " + attr.getName() + " was provided as " + object.getClass().getName() + " while expecting boolean");
         }
-        return ((Boolean)object).booleanValue();
+        return booleanValue;
     }
 
     protected boolean getBooleanMandatory(Attribute attr) {
@@ -1379,10 +1423,10 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
             throw new IllegalArgumentException("Empty "+attr.getName()+" attribute was provided");
         }
         Object object = attr.getValue().get(0);
-        if (!(object instanceof Boolean)) {
+        if (!(object instanceof Boolean booleanValue)) {
             throw new IllegalArgumentException("Attribute "+attr.getName()+" was provided as "+object.getClass().getName()+" while expecting boolean");
         }
-        return ((Boolean)object).booleanValue();
+        return booleanValue;
     }
 
     protected Date getDate(Attribute attr) {
@@ -1398,7 +1442,7 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
         if (!(object instanceof Long)) {
             throw new IllegalArgumentException("Date attribute was provided as "+object.getClass().getName()+" while expecting long");
         }
-        return getDate(((Long)object).longValue());
+        return getDate((Long) object);
     }
 
     protected Date getDate(Long longValue) {
@@ -1427,13 +1471,10 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
             return null;
         }
         final String[] passwdArray = { null };
-        guardedString.access(new Accessor() {
-            @Override
-            public void access(char[] passwdChars) {
-                String password = new String(passwdChars);
-                checkPasswordPolicies(password);
-                passwdArray[0] = password;
-            }
+        guardedString.access(passwdChars -> {
+            String password = new String(passwdChars);
+            checkPasswordPolicies(password);
+            passwdArray[0] = password;
         });
         return passwdArray[0];
     }
@@ -1478,7 +1519,7 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
             if (!configuration.getSupportRunAs()) {
                 throw new UnsupportedOperationException("runAsUser option is not supported");
             }
-            DummyAccount runAsAccount = resource.getAccountByUsername(runAsUser);
+            DummyAccount runAsAccount = resource.getAccountByName(runAsUser);
             if (runAsAccount == null) {
                 throw new ConfigurationException("No runAsUser "+runAsUser);
             }
@@ -1630,5 +1671,27 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
         return configuration.isRequireNameHint() && !resource.isDisableNameHintChecks();
     }
 
+    static UnknownUidException getUnknownUidException(String objectClassName, Uid uid) {
+        return new UnknownUidException(
+                "Object of class '" + objectClassName + "' with UID " + uid + " does not exist on resource");
+    }
 
+    private DummyObject findObjectByUid(String objectClassName, Uid uid, boolean checkBreak)
+            throws ConflictException, FileNotFoundException, SchemaViolationException, InterruptedException, ConnectException {
+        if (configuration.isUidBoundToName()) {
+            return resource.getObjectByName(objectClassName, uid.getUidValue(), checkBreak);
+        } else  {
+            return resource.getObjectById(uid.getUidValue(), checkBreak);
+        }
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    @NotNull DummyObject findObjectByUidRequired(String objectClassName, Uid uid, boolean checkBreak)
+            throws ConflictException, FileNotFoundException, SchemaViolationException, InterruptedException, ConnectException {
+        var object = findObjectByUid(objectClassName, uid, checkBreak);
+        if (object == null) {
+            throw getUnknownUidException(objectClassName, uid);
+        }
+        return object;
+    }
 }

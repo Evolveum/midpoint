@@ -9,7 +9,6 @@ package com.evolveum.midpoint.provisioning.impl.shadows.sync;
 
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.schema.ResourceOperationCoordinates;
-import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +21,6 @@ import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowedAsyncChange;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectAsyncChangeListener;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -43,7 +41,6 @@ public class AsyncUpdater {
 
     @Autowired private ProvisioningContextFactory ctxFactory;
     @Autowired private ResourceObjectConverter resourceObjectConverter;
-    @Autowired private ChangeProcessingBeans changeProcessingBeans;
 
     public void processAsynchronousUpdates(ResourceOperationCoordinates coordinates, AsyncUpdateEventHandler handler,
             Task callerTask, OperationResult callerResult)
@@ -57,7 +54,7 @@ public class AsyncUpdater {
 
         ResourceObjectAsyncChangeListener listener = (resourceObjectChange, lTask, lResult) -> {
 
-            ShadowedAsyncChange change = new ShadowedAsyncChange(resourceObjectChange, changeProcessingBeans);
+            ShadowedAsyncChange change = new ShadowedAsyncChange(resourceObjectChange);
             change.initialize(lTask, lResult);
 
             AsyncUpdateEvent event = new AsyncUpdateEventImpl(change) {

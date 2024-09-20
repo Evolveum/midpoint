@@ -17,6 +17,9 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ConnectorSchema;
+import com.evolveum.midpoint.schema.processor.ConnectorSchemaFactory;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +43,6 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.schema.MutablePrismSchema;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -50,7 +52,6 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -240,14 +241,12 @@ public class ObjectImporter {
         }
 
         if (options == null || !isTrue(options.isKeepMetadata())) {
-            MetadataType metaData = new MetadataType();
-            String channel = SchemaConstants.CHANNEL_OBJECT_IMPORT_URI;
-            metaData.setCreateChannel(channel);
-            metaData.setCreateTimestamp(clock.currentTimeXMLGregorianCalendar());
+            var storage = ValueMetadataTypeUtil.getOrCreateStorageMetadata(object)
+                    .createChannel(SchemaConstants.CHANNEL_OBJECT_IMPORT_URI)
+                    .createTimestamp(clock.currentTimeXMLGregorianCalendar());
             if (task.getOwnerRef() != null) {
-                metaData.setCreatorRef(ObjectTypeUtil.createObjectRefCopy(task.getOwnerRef()));
+                storage.setCreatorRef(ObjectTypeUtil.createObjectRefCopy(task.getOwnerRef()));
             }
-            object.asObjectable().setMetadata(metaData);
         }
 
         objectResult.computeStatus();
@@ -499,29 +498,23 @@ public class ObjectImporter {
                 return;
             }
 
-            Element connectorSchemaElement = ConnectorTypeUtil.getConnectorXsdSchema(connector);
-            MutablePrismSchema connectorSchema;
+            Element connectorSchemaElement = ConnectorTypeUtil.getConnectorXsdSchemaElement(connector);
             if (connectorSchemaElement == null) {
                 // No schema to validate with
                 result.recordSuccessIfUnknown();
                 return;
             }
+            ConnectorSchema connectorSchema;
             try {
-                connectorSchema = prismContext.schemaFactory().createPrismSchema(DOMUtil.getSchemaTargetNamespace(connectorSchemaElement));
-                connectorSchema.parseThis(connectorSchemaElement, true, "schema for " + connector, prismContext);
+                connectorSchema = ConnectorSchemaFactory.parse(connectorSchemaElement, "schema for " + connector);
             } catch (SchemaException e) {
                 result.recordFatalError("Error parsing connector schema for " + connector + ": " + e.getMessage(), e);
                 return;
             }
-            QName configContainerQName = new QName(connectorType.getNamespace(), ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart());
-            PrismContainerDefinition<ConnectorConfigurationType> configContainerDef = connectorSchema.findContainerDefinitionByElementName(configContainerQName);
-            if (configContainerDef == null) {
-                result.recordFatalError("Definition of configuration container " + configContainerQName + " not found in the schema of of " + connector);
-                return;
-            }
 
             try {
-                configurationContainer.applyDefinition(configContainerDef);
+                configurationContainer.applyDefinition(
+                        connectorSchema.getConnectorConfigurationContainerDefinition());
             } catch (SchemaException e) {
                 result.recordFatalError("Configuration error in " + resource + ": " + e.getMessage(), e);
                 return;
@@ -529,7 +522,7 @@ public class ObjectImporter {
 
             // now we check for raw data - their presence means e.g. that there is a connector property that is unknown in connector schema (applyDefinition does not scream in such a case!)
             try {
-                configurationContainer.checkConsistence(true, true, ConsistencyCheckScope.THOROUGH);        // require definitions and prohibit raw
+                configurationContainer.checkConsistence(true, true, ConsistencyCheckScope.THOROUGH);
             } catch (IllegalStateException e) {
                 // TODO do this error checking and reporting in a cleaner and more user-friendly way
                 result.recordFatalError("Configuration error in " + resource + " (probably incorrect connector property, see the following error): " + e.getMessage(), e);
@@ -564,8 +557,7 @@ public class ObjectImporter {
         }
 
         try {
-            prismContext.schemaFactory().createPrismSchema(DOMUtil.getSchemaTargetNamespace(xsdElement))
-                    .parseThis(xsdElement, true, schemaName, prismContext);
+            ConnectorSchemaFactory.parse(xsdElement, schemaName);
         } catch (SchemaException e) {
             result.recordFatalError("Error during " + schemaName + " schema integrity check: " + e.getMessage(), e);
             return;

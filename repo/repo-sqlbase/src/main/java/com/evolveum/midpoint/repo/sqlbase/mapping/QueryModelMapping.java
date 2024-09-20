@@ -11,6 +11,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemNameUtil;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -128,8 +131,13 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
     public final @NotNull ItemSqlMapper<Q, R> itemMapper(QName itemName) throws QueryException {
         ItemSqlMapper<Q, R> itemMapping = getItemMapper(itemName);
         if (itemMapping == null) {
-            throw new QueryException("Missing item mapping for '" + itemName
-                    + "' in mapping " + getClass().getSimpleName());
+            String technicalMessage = "Missing item mapping for '" + itemName
+                    + "' in mapping " + getClass().getSimpleName();
+            SingleLocalizableMessage message = new SingleLocalizableMessage(
+                    "QueryModelMapping.item.not.searchable",
+                    new Object[]{itemName},
+                    technicalMessage);
+            throw new QueryException(message);
         }
         return itemMapping;
     }
@@ -138,7 +146,7 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
      * Returns {@link ItemSqlMapper} for provided {@link QName} or `null`.
      */
     public @Nullable ItemSqlMapper<Q, R> getItemMapper(QName itemName) {
-        return QNameUtil.getByQName(this.itemMappings, itemName);
+        return ItemNameUtil.getByQName(this.itemMappings, itemName);
     }
 
     /**
@@ -163,8 +171,13 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
                 : path.firstName();
         ItemRelationResolver<Q, R, TQ, TR> resolver = getRelationResolver(itemName);
         if (resolver == null) {
-            throw new QueryException("Missing relation resolver for '" + itemName
-                    + "' in mapping " + getClass().getSimpleName());
+            var technicalMessage = "Missing relation resolver for '" + itemName
+                    + "' in mapping " + getClass().getSimpleName();
+            SingleLocalizableMessage message = new SingleLocalizableMessage(
+                    "QueryModelMapping.item.not.searchable",
+                    new Object[]{itemName},
+                    technicalMessage);
+            throw new QueryException(message);
         }
         return resolver;
     }
@@ -175,11 +188,11 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
      * @param <TQ> type of target entity path
      * @param <TR> row type related to the target entity path {@link TQ}
      */
-    public final @Nullable <TQ extends FlexibleRelationalPathBase<TR>, TR>
+    public @Nullable <TQ extends FlexibleRelationalPathBase<TR>, TR>
     ItemRelationResolver<Q, R, TQ, TR> getRelationResolver(QName itemName) {
         //noinspection unchecked
         return (ItemRelationResolver<Q, R, TQ, TR>)
-                QNameUtil.getByQName(itemRelationResolvers, itemName);
+                ItemNameUtil.getByQName(itemRelationResolvers, itemName);
     }
 
     /** Returns copy of the map of the item mappings. */

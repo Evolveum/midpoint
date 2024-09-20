@@ -13,6 +13,8 @@ import java.util.stream.Collectors;
 import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
 
 import com.evolveum.midpoint.gui.impl.util.RelationUtil;
+import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismItemDefinitionType;
+
 import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
@@ -77,6 +79,16 @@ public class SearchBoxConfigurationBuilder {
         ));
         FIXED_SEARCH_ITEMS.put(SimulationResultProcessedObjectType.class, Arrays.asList(
                 SimulationResultProcessedObjectType.F_STATE
+        ));
+        FIXED_SEARCH_ITEMS.put(AccessCertificationWorkItemType.class, Arrays.asList(
+                ItemPath.create(AccessCertificationWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME)
+        ));
+        FIXED_SEARCH_ITEMS.put(AccessCertificationCaseType.class, List.of(
+                ItemPath.create(AccessCertificationCaseType.F_CURRENT_STAGE_OUTCOME)
+        ));
+        FIXED_SEARCH_ITEMS.put(PrismItemDefinitionType.class, List.of(
+                ItemPath.create(PrismItemDefinitionType.F_DISPLAY_NAME),
+                ItemPath.create(PrismItemDefinitionType.F_NAME)
         ));
     }
 
@@ -326,7 +338,7 @@ public class SearchBoxConfigurationBuilder {
     }
 
     private IndirectSearchItemConfigurationType createIndirectSearchItemConfigurationType() {
-        if (isGovernanceCards()) {
+        if (isGovernanceCards() || collectionPanelType == CollectionPanelType.ROLE_CATALOG) {
             return null;
         }
         IndirectSearchItemConfigurationType indirectItem = new IndirectSearchItemConfigurationType();
@@ -351,7 +363,8 @@ public class SearchBoxConfigurationBuilder {
     private boolean isOrgMemberPanel() {
         return collectionPanelType == CollectionPanelType.ORG_MEMBER_MEMBER
                 || collectionPanelType == CollectionPanelType.ORG_MEMBER_GOVERNANCE
-                || collectionPanelType == CollectionPanelType.MEMBER_ORGANIZATION;
+                || collectionPanelType == CollectionPanelType.MEMBER_ORGANIZATION
+                || collectionPanelType == CollectionPanelType.ROLE_CATALOG;
     }
 
     private boolean isRoleMemberPanel() {
@@ -375,6 +388,7 @@ public class SearchBoxConfigurationBuilder {
                 return RelationUtil.getCategoryRelationChoices(AreaCategoryType.ORGANIZATION, modelServiceLocator);
             case ROLE_MEMBER_GOVERNANCE:
             case SERVICE_MEMBER_GOVERNANCE:
+            case POLICY_MEMBER_GOVERNANCE:
             case ORG_MEMBER_GOVERNANCE:
             case CARDS_GOVERNANCE:
             case ARCHETYPE_MEMBER_GOVERNANCE:
@@ -383,8 +397,10 @@ public class SearchBoxConfigurationBuilder {
                 return Arrays.asList(SchemaConstants.ORG_DEFAULT);
             case ROLE_MEMBER_MEMBER:
             case SERVICE_MEMBER_MEMBER:
+            case POLICY_MEMBER_MEMBER:
             case ORG_MEMBER_MEMBER:
             case MEMBER_WIZARD:
+            case ROLE_CATALOG:
                 return getSupportedMembersTabRelations();
         }
         return null;
@@ -410,6 +426,8 @@ public class SearchBoxConfigurationBuilder {
             case ROLE_MEMBER_GOVERNANCE:
             case SERVICE_MEMBER_MEMBER:
             case SERVICE_MEMBER_GOVERNANCE:
+            case POLICY_MEMBER_MEMBER:
+            case POLICY_MEMBER_GOVERNANCE:
             case ORG_MEMBER_GOVERNANCE:
             case CARDS_GOVERNANCE:
             case ARCHETYPE_MEMBER_GOVERNANCE:
@@ -432,6 +450,12 @@ public class SearchBoxConfigurationBuilder {
                         ServiceType.COMPLEX_TYPE);
             case MEMBER_WIZARD:
                 return Arrays.asList(UserType.COMPLEX_TYPE);
+            case ROLE_CATALOG:
+                return List.of(
+                        AbstractRoleType.COMPLEX_TYPE,
+                        OrgType.COMPLEX_TYPE,
+                        RoleType.COMPLEX_TYPE,
+                        ServiceType.COMPLEX_TYPE);
         }
         return new ArrayList<>();
     }

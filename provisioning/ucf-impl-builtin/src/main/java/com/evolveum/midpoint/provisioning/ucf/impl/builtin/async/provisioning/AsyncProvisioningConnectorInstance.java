@@ -16,10 +16,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncProvisioningRequest;
 
+import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfExecutionContext;
 import com.evolveum.midpoint.task.api.Task;
@@ -41,8 +43,6 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
@@ -180,15 +180,17 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
     }
 
     @Override
-    public AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> addObject(PrismObject<? extends ShadowType> object,
-            UcfExecutionContext ctx, OperationResult parentResult) {
+    public UcfAddReturnValue addObject(
+            @NotNull PrismObject<? extends ShadowType> object,
+            @NotNull SchemaAwareUcfExecutionContext ctx,
+            @NotNull OperationResult parentResult) {
         UcfExecutionContext.checkExecutionFullyPersistent(ctx);
         InternalMonitor.recordConnectorOperation("addObject");
         OperationResult result = parentResult.createSubresult(OP_ADD_OBJECT);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, getClass());
         try {
-            OperationRequested operation = new OperationRequested.Add(object.asObjectable(), getPrismContext());
-            return createAndSendRequest(operation, ctx.getTask(), result);
+            OperationRequested operation = new OperationRequested.Add(object.asObjectable());
+            return createAndSendRequest((r) -> UcfAddReturnValue.of(r), operation, ctx.getTask(), result);
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
@@ -198,17 +200,21 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
     }
 
     @Override
-    public AsynchronousOperationReturnValue<Collection<PropertyModificationOperation<?>>> modifyObject(
-            ResourceObjectIdentification identification, PrismObject<ShadowType> shadow, @NotNull Collection<Operation> changes,
-            ConnectorOperationOptions options, UcfExecutionContext ctx, OperationResult parentResult) {
+    public @NotNull UcfModifyReturnValue modifyObject(
+            @NotNull ResourceObjectIdentification.WithPrimary identification,
+            PrismObject<ShadowType> shadow,
+            @NotNull Collection<Operation> changes,
+            ConnectorOperationOptions options,
+            @NotNull SchemaAwareUcfExecutionContext ctx,
+            @NotNull OperationResult parentResult) {
         UcfExecutionContext.checkExecutionFullyPersistent(ctx);
         InternalMonitor.recordConnectorOperation("modifyObject");
         OperationResult result = parentResult.createSubresult(OP_MODIFY_OBJECT);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, getClass());
         try {
             OperationRequested operation =
-                    new OperationRequested.Modify(identification, asObjectable(shadow), changes, options, getPrismContext());
-            return createAndSendRequest(operation, ctx.getTask(), result);
+                    new OperationRequested.Modify(identification, asObjectable(shadow), changes, options);
+            return createAndSendRequest((r) -> UcfModifyReturnValue.of(r), operation, ctx.getTask(), result);
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
@@ -218,40 +224,44 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
     }
 
     @Override
-    public AsynchronousOperationResult deleteObject(ResourceObjectDefinition objectDefinition,
-            PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers,
-            UcfExecutionContext ctx, OperationResult parentResult) throws SchemaException {
+    public UcfDeleteReturnValue deleteObject(
+            @NotNull ResourceObjectIdentification<?> identification,
+            PrismObject<ShadowType> shadow,
+            @NotNull UcfExecutionContext ctx,
+            @NotNull OperationResult parentResult) throws SchemaException {
         UcfExecutionContext.checkExecutionFullyPersistent(ctx);
         InternalMonitor.recordConnectorOperation("deleteObject");
         OperationResult result = parentResult.createSubresult(OP_DELETE_OBJECT);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, getClass());
         try {
             OperationRequested operation =
-                    new OperationRequested.Delete(objectDefinition, asObjectable(shadow), identifiers, getPrismContext());
-            return createAndSendRequest(operation, ctx.getTask(), result);
+                    new OperationRequested.Delete(identification, asObjectable(shadow));
+            return createAndSendRequest(r -> UcfDeleteReturnValue.of(r), operation, ctx.getTask(), result);
         } catch (Throwable t) {
-            result.recordFatalError(t);
+            result.recordException(t);
             throw t;
         } finally {
             result.computeStatusIfUnknown();
         }
     }
 
-    private <X> AsynchronousOperationReturnValue<X> createAndSendRequest(OperationRequested operation, Task task,
-            OperationResult result) {
+    private <X extends AsynchronousOperationResult> X createAndSendRequest(
+            Function<OperationResult, X> resultSupplier, OperationRequested operation, Task task, OperationResult result) {
         AsyncProvisioningRequest request = transformer.transformOperationRequested(operation, task, result);
         String asyncOperationReference = sendRequest(request, result);
 
-        AsynchronousOperationReturnValue<X> ret = new AsynchronousOperationReturnValue<>();
+        PendingOperationTypeType operationType;
         if (configuration.isOperationExecutionConfirmation()) {
-            ret.setOperationType(PendingOperationTypeType.ASYNCHRONOUS);
+            operationType = PendingOperationTypeType.ASYNCHRONOUS;
             result.setInProgress();
             result.setAsynchronousOperationReference(asyncOperationReference);
         } else {
+            operationType = null;
             result.setStatus(OperationResultStatus.SUCCESS);
         }
-        ret.setOperationResult(result);
-        return ret;
+        X rv = resultSupplier.apply(result);
+        rv.setOperationType(operationType);
+        return rv;
     }
 
     private String sendRequest(AsyncProvisioningRequest request, OperationResult result) {
@@ -353,25 +363,28 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
     }
 
     @Override
-    public ResourceSchema fetchResourceSchema(OperationResult parentResult) {
+    public NativeResourceSchema fetchResourceSchema(@NotNull OperationResult parentResult) {
         // Schema discovery is not supported. Schema must be defined manually. Or other connector has to provide it.
         InternalMonitor.recordConnectorOperation("schema");
         return null;
     }
 
     @Override
-    public PrismObject<ShadowType> fetchObject(ResourceObjectIdentification resourceObjectIdentification,
-            AttributesToReturn attributesToReturn, UcfExecutionContext ctx, OperationResult parentResult) {
+    public UcfResourceObject fetchObject(
+            @NotNull ResourceObjectIdentification.WithPrimary resourceObjectIdentification,
+            @Nullable ShadowItemsToReturn shadowItemsToReturn,
+            @NotNull SchemaAwareUcfExecutionContext ctx,
+            @NotNull OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("fetchObject");
         return null;
     }
 
     @Override
     public SearchResultMetadata search(@NotNull ResourceObjectDefinition objectDefinition, ObjectQuery query,
-            @NotNull UcfObjectHandler handler, @Nullable AttributesToReturn attributesToReturn,
+            @NotNull UcfObjectHandler handler, @Nullable ShadowItemsToReturn shadowItemsToReturn,
             @Nullable PagedSearchCapabilityType pagedSearchConfiguration, @Nullable SearchHierarchyConstraints searchHierarchyConstraints,
             @Nullable UcfFetchErrorReportingMethod ucfErrorReportingMethod,
-            @NotNull UcfExecutionContext ctx, @NotNull OperationResult parentResult) {
+            @NotNull SchemaAwareUcfExecutionContext ctx, @NotNull OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("search");
         return null;
     }
@@ -391,9 +404,14 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
     }
 
     @Override
-    public UcfFetchChangesResult fetchChanges(ResourceObjectDefinition objectDefinition, UcfSyncToken lastToken,
-            AttributesToReturn attrsToReturn, Integer maxChanges, UcfExecutionContext ctx,
-            @NotNull UcfLiveSyncChangeListener changeHandler, OperationResult parentResult) {
+    public UcfFetchChangesResult fetchChanges(
+            @Nullable ResourceObjectDefinition objectDefinition,
+            @Nullable UcfSyncToken lastToken,
+            @Nullable ShadowItemsToReturn attrsToReturn,
+            @Nullable Integer maxChanges,
+            @NotNull SchemaAwareUcfExecutionContext ctx,
+            @NotNull UcfLiveSyncChangeListener changeHandler,
+            @NotNull OperationResult parentResult) {
         return null;
     }
 

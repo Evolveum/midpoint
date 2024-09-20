@@ -1,0 +1,12 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Delete a User type object*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-v \
+-X DELETE http://localhost:8080/midpoint/ws/rest/users/e4b0c81e-7fc7-462d-a92c-b3e0b10b8b49
+----
+
+The response is an HTTP 204 code in case of success *without* a response body.

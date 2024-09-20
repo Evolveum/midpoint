@@ -34,14 +34,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessSpecificati
 public class ProcessSpecifications implements DebugDumpable {
 
     private final List<ProcessSpecification> specifications = new ArrayList<>();
-    private final PrismContext prismContext;
+    private final PrismContext prismContext = PrismContext.get();
 
     // use createFromRules instead
-    private ProcessSpecifications(PrismContext prismContext) {
-        this.prismContext = prismContext;
+    private ProcessSpecifications() {
     }
 
-    public class ProcessSpecification implements DebugDumpable {
+    public static class ProcessSpecification implements DebugDumpable {
         final WfProcessSpecificationType basicSpec;
         final List<ApprovalActionWithRule> actionsWithRules;
 
@@ -56,14 +55,14 @@ public class ProcessSpecifications implements DebugDumpable {
             DebugUtil.debugDumpLabelLn(sb, "process specification", indent);
             PrismPrettyPrinter.debugDumpValue(
                     sb, indent+1, basicSpec,
-                    prismContext, ApprovalPolicyActionType.F_PROCESS_SPECIFICATION, PrismContext.LANG_YAML);
+                    ApprovalPolicyActionType.F_PROCESS_SPECIFICATION, PrismContext.LANG_YAML);
             sb.append("\n");
             DebugUtil.debugDumpLabelLn(sb, "actions with rules", indent);
             for (ApprovalActionWithRule actionWithRule : actionsWithRules) {
                 DebugUtil.debugDumpLabelLn(sb, "action", indent+1);
                 PrismPrettyPrinter.debugDumpValue(
                         sb, indent+2, actionWithRule.approvalAction,
-                        prismContext, PolicyActionsType.F_APPROVAL, PrismContext.LANG_YAML);
+                        PolicyActionsType.F_APPROVAL, PrismContext.LANG_YAML);
                 sb.append("\n");
                 sb.append("\n").append(actionWithRule.policyRule.debugDump(indent + 2));
             }
@@ -71,7 +70,7 @@ public class ProcessSpecifications implements DebugDumpable {
         }
     }
 
-    static ProcessSpecifications createFromRules(List<AssociatedPolicyRule> rules, PrismContext prismContext)
+    static ProcessSpecifications createFromRules(List<AssociatedPolicyRule> rules)
             throws ConfigurationException {
         // Step 1: plain list of approval actions -> map: process-spec -> list of related actions/rules ("collected")
         LinkedHashMap<WfProcessSpecificationType, List<ApprovalActionWithRule>> collectedSpecifications = new LinkedHashMap<>();
@@ -131,7 +130,7 @@ public class ProcessSpecifications implements DebugDumpable {
         }
 
         // Step 4: sorts process specifications and wraps into ProcessSpecification objects
-        ProcessSpecifications rv = new ProcessSpecifications(prismContext);
+        ProcessSpecifications rv = new ProcessSpecifications();
         collectedSpecifications.entrySet().stream()
                 .sorted((ps1, ps2) -> {
                     WfProcessSpecificationType key1 = ps1.getKey();
@@ -144,7 +143,7 @@ public class ProcessSpecifications implements DebugDumpable {
                     int order1 = defaultIfNull(key1.getOrder(), Integer.MAX_VALUE);
                     int order2 = defaultIfNull(key2.getOrder(), Integer.MAX_VALUE);
                     return Integer.compare(order1, order2);
-                }).forEach(e -> rv.specifications.add(rv.new ProcessSpecification(e)));
+                }).forEach(e -> rv.specifications.add(new ProcessSpecification(e)));
         return rv;
     }
 

@@ -11,13 +11,17 @@ import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.*;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.ResourceObjectTypeTableWizardPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.ResourceObjectTypeWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.AssociationTypeTableWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.ResourceAssociationTypeWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.ResourceObjectTypeTableWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.ResourceObjectTypeWizardPanel;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTypeDefinitionType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -43,44 +47,48 @@ public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, Resou
             protected void onFinishBasicWizardPerformed(AjaxRequestTarget target) {
                 ResourceWizardPanel.this.onFinishBasicWizardPerformed(target);
             }
-
         };
         basicWizard.setOutputMarkupId(true);
         return basicWizard;
     }
 
-    protected ResourceObjectTypeWizardPanel createObjectTypeWizard(
+    private ResourceObjectTypeWizardPanel createObjectTypeWizard(
             IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
 
         WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> helper =
-                new WizardPanelHelper<>(getAssignmentHolderModel(), valueModel) {
+                new WizardPanelHelper<>(getAssignmentHolderModel()) {
 
-            @Override
-            public void onExitPerformed(AjaxRequestTarget target) {
-                showChoiceFragment(target, createTablePanel());
-            }
+                    @Override
+                    public void onExitPerformed(AjaxRequestTarget target) {
+                        showChoiceFragment(target, createObjectTypesTablePanel());
+                    }
 
-            @Override
-            public OperationResult onSaveObjectPerformed(AjaxRequestTarget target) {
-                return getHelper().onSaveObjectPerformed(target);
-            }
-        };
+                    @Override
+                    public OperationResult onSaveObjectPerformed(AjaxRequestTarget target) {
+                        return getHelper().onSaveObjectPerformed(target);
+                    }
+
+                    @Override
+                    public IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getDefaultValueModel() {
+                        return valueModel;
+                    }
+                };
         ResourceObjectTypeWizardPanel wizard = new ResourceObjectTypeWizardPanel(getIdOfChoicePanel(), helper);
         wizard.setOutputMarkupId(true);
         return wizard;
     }
 
-    protected ResourceObjectTypeTableWizardPanel createTablePanel() {
+    protected ResourceObjectTypeTableWizardPanel createObjectTypesTablePanel() {
         return new ResourceObjectTypeTableWizardPanel(getIdOfChoicePanel(), getAssignmentHolderModel()) {
             @Override
             protected void onEditValue(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel, AjaxRequestTarget target) {
                 ResourceObjectTypeWizardPanel wizard = createObjectTypeWizard(valueModel);
-                wizard.setShowObjectTypePreview(true);
+                wizard.setShowChoicePanel(true);
                 showChoiceFragment(target, wizard);
             }
 
             @Override
-            protected void onCreateValue(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> value, AjaxRequestTarget target) {
+            protected void onCreateValue(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> value, AjaxRequestTarget target, boolean isDuplicate) {
                 showChoiceFragment(target, createObjectTypeWizard(value));
             }
 
@@ -90,6 +98,55 @@ public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, Resou
                 exitToPreview(target);
             }
         };
+    }
+
+    protected AssociationTypeTableWizardPanel createAssociationTypesTablePanel() {
+        return new AssociationTypeTableWizardPanel(getIdOfChoicePanel(), getAssignmentHolderModel()) {
+            @Override
+            protected void onEditValue(IModel<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> valueModel, AjaxRequestTarget target) {
+                ResourceAssociationTypeWizardPanel wizard = createAssociationTypeWizard(valueModel, false);
+                wizard.setShowChoicePanel(true);
+                showChoiceFragment(target, wizard);
+            }
+
+            @Override
+            protected void onCreateValue(IModel<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> value, AjaxRequestTarget target, boolean isDuplicate) {
+                showChoiceFragment(target, createAssociationTypeWizard(value, isDuplicate));
+            }
+
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                super.onExitPerformed(target);
+                exitToPreview(target);
+            }
+        };
+    }
+
+    protected ResourceAssociationTypeWizardPanel createAssociationTypeWizard(
+            IModel<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> valueModel, boolean isDuplicate) {
+
+        WizardPanelHelper<ShadowAssociationTypeDefinitionType, ResourceDetailsModel> helper =
+                new WizardPanelHelper<>(getAssignmentHolderModel()) {
+
+                    @Override
+                    public void onExitPerformed(AjaxRequestTarget target) {
+                        showChoiceFragment(target, createAssociationTypesTablePanel());
+                    }
+
+                    @Override
+                    public OperationResult onSaveObjectPerformed(AjaxRequestTarget target) {
+                        return getHelper().onSaveObjectPerformed(target);
+                    }
+
+                    @Override
+                    public IModel<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> getDefaultValueModel() {
+                        return valueModel;
+                    }
+                };
+        ResourceAssociationTypeWizardPanel wizard = new ResourceAssociationTypeWizardPanel(getIdOfChoicePanel(), helper);
+        wizard.setPanelForDuplicate(isDuplicate);
+        wizard.setOutputMarkupId(true);
+        return wizard;
     }
 
     private void onFinishBasicWizardPerformed(AjaxRequestTarget target) {
@@ -110,16 +167,20 @@ public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, Resou
     }
 
     private void exitToPreview(AjaxRequestTarget target) {
-        ResourceWizardPreviewPanel preview = new ResourceWizardPreviewPanel(getIdOfChoicePanel(), getAssignmentHolderModel()) {
+        SchemaHandlingWizardChoicePanel preview = new SchemaHandlingWizardChoicePanel(getIdOfChoicePanel(), getAssignmentHolderModel()) {
             @Override
-            protected void onTileClickPerformed(ResourceWizardPreviewPanel.PreviewTileType value, AjaxRequestTarget target) {
+            protected void onTileClickPerformed(SchemaHandlingWizardChoicePanel.PreviewTileType value, AjaxRequestTarget target) {
                 switch (value) {
                     case PREVIEW_DATA:
                         showChoiceFragment(target, createPreviewResourceDataWizardPanel());
                         break;
                     case CONFIGURE_OBJECT_TYPES:
-                        showChoiceFragment(target, createTablePanel());
+                        showChoiceFragment(target, createObjectTypesTablePanel());
                         break;
+                    case CONFIGURE_ASSOCIATION_TYPES:
+                        showChoiceFragment(target, createAssociationTypesTablePanel());
+                        break;
+
                 }
             }
 

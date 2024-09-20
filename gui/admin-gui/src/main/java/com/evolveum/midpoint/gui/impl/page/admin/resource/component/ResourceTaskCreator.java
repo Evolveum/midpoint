@@ -50,6 +50,8 @@ public class ResourceTaskCreator {
     private PredefinedConfigurationType predefinedConfiguration;
     private SimulationDefinitionType simulationDefinition;
 
+    private SelectorQualifiedGetOptionsType searchOptions;
+
     /** Options provided by the caller. See {@link #submissionOptions()}. */
     private ActivitySubmissionOptions submissionOptions;
 
@@ -93,7 +95,7 @@ public class ResourceTaskCreator {
         return this;
     }
 
-    @SuppressWarnings("WeakerAccess")
+    @SuppressWarnings({"WeakerAccess"})
     public ResourceTaskCreator withCoordinates(QName objectClass) {
         this.objectClass = objectClass;
         return this;
@@ -117,6 +119,11 @@ public class ResourceTaskCreator {
 
     public ResourceTaskCreator withSimulationResultDefinition(SimulationDefinitionType simulationDefinition) {
         this.simulationDefinition = simulationDefinition;
+        return this;
+    }
+
+    public ResourceTaskCreator withSearchOptions(SelectorQualifiedGetOptionsType searchOptions) {
+        this.searchOptions = searchOptions;
         return this;
     }
 
@@ -154,6 +161,7 @@ public class ResourceTaskCreator {
     private ResourceObjectSetType objectSetBean() {
         var bean = new ResourceObjectSetType()
                 .resourceRef(ObjectTypeUtil.createObjectRef(resource));
+        bean.searchOptions(searchOptions);
         if (kind != null && intent != null) {
             // the most recommended case
             return bean
@@ -175,7 +183,7 @@ public class ResourceTaskCreator {
     private @NotNull ActivitySubmissionOptions submissionOptions() {
         var options = Objects.requireNonNullElseGet(
                 submissionOptions,
-                () -> ActivitySubmissionOptions.create());
+                ActivitySubmissionOptions::create);
         options = options.updateTaskTemplate(
                 t -> t.objectRef(ObjectTypeUtil.createObjectRef(resource)));
         if (owner != null) {

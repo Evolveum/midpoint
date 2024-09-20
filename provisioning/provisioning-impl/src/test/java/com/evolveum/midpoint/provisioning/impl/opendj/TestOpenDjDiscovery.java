@@ -7,10 +7,8 @@
 package com.evolveum.midpoint.provisioning.impl.opendj;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.testng.AssertJUnit.*;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -137,7 +135,7 @@ public class TestOpenDjDiscovery extends AbstractOpenDjTest {
         List<ItemDelta<?, ?>> modifications = new ArrayList<>();
         for (PrismProperty<?> discoveredProperty : discoveredProperties) {
             ItemPath propertyPath = ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION,
-                    SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME,
+                    SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME,
                     discoveredProperty.getElementName());
             PrismPropertyDefinition<?> def = discoveredProperty.getDefinition();
             Collection<? extends DisplayableValue<?>> suggestions = def.getAllowedValues() != null ? def.getAllowedValues() : def.getSuggestedValues();
@@ -158,9 +156,9 @@ public class TestOpenDjDiscovery extends AbstractOpenDjTest {
         display("Resource after", resourceAfter);
 
         PrismAsserts.assertPropertyValue(resourceAfter,
-                ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION,
-                        SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME,
-                        "baseContext"), openDJController.getSuffix());
+                ItemPath.create(
+                        ResourceType.F_CONNECTOR_CONFIGURATION, SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME, "baseContext"),
+                openDJController.getSuffix());
     }
 
     @Test

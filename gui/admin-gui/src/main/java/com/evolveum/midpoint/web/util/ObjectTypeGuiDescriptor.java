@@ -16,6 +16,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
  */
 public enum ObjectTypeGuiDescriptor {
 
+    ROLE_ANALYSIS_OUTLIER(ObjectTypes.ROLE_ANALYSIS_OUTLIER, "ObjectTypeGuiDescriptor.outlier", GuiStyleConstants.CLASS_ICON_OUTLIER, GuiStyleConstants.CLASS_ICON_OUTLIER),
 
     ROLE_ANALYSIS_CLUSTER(ObjectTypes.ROLE_ANALYSIS_CLUSTER, "ObjectTypeGuiDescriptor.cluster", GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED, GuiStyleConstants.CLASS_OBJECT_ROLE_ICON),
 
@@ -87,7 +88,11 @@ public enum ObjectTypeGuiDescriptor {
 
     ASSIGNMENT_HOLDER_TYPE(ObjectTypes.ASSIGNMENT_HOLDER_TYPE, "ObjectTypeGuiDescriptor.assignmentHolderType", "", ""), //TODO icons
 
-    SIMULATION_RESULT(ObjectTypes.SIMULATION_RESULT, "ObjectType.SimulationResultType", "", "");
+    SIMULATION_RESULT(ObjectTypes.SIMULATION_RESULT, "ObjectType.SimulationResultType", "", ""),
+
+    POLICY(ObjectTypes.POLICY, "ObjectType.PolicyType", "", ""),
+
+    SCHEMA(ObjectTypes.SCHEMA, "ObjectType.SchemaType", "", "");
 
     public static final String ERROR_ICON = "fa-solid fa-triangle-exclamation text-warning";
 

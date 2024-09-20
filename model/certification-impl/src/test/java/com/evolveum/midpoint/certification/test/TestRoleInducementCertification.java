@@ -22,6 +22,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -121,18 +122,24 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
     @Test
     public void test020OpenFirstStage() throws Exception {
         // GIVEN
+        clock.resetOverride();
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
         // WHEN
         when();
-        certificationManager.openNextStage(campaignOid, task, result);
+        certificationManager.createNextStageTask(campaignOid, task, result);
 
         // THEN
         then();
         result.computeStatus();
-        TestUtil.assertSuccess(result);
+        TestUtil.assertInProgressOrSuccess(result);
+
+        List<PrismObject<TaskType>> tasks = getFirstStageTasks(campaignOid, startTime, result);
+        assertEquals("unexpected number of related tasks", 1, tasks.size());
+        waitForTaskFinish(tasks.get(0).getOid());
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign in stage 1", campaign);
@@ -455,18 +462,24 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
     @Test
     public void test200OpenSecondStage() throws Exception {
         // GIVEN
+        clock.resetOverride();
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
         // WHEN
         when();
-        certificationManager.openNextStage(campaignOid, task, result);
+        certificationService.openNextStage(campaignOid, task, result);
 
         // THEN
         then();
         result.computeStatus();
-        TestUtil.assertSuccess(result);
+        TestUtil.assertInProgressOrSuccess(result);
+
+        List<PrismObject<TaskType>> tasks = getNextStageTasks(campaignOid, startTime, result);
+        assertEquals("unexpected number of related tasks", 1, tasks.size());
+        waitForTaskFinish(tasks.get(0).getOid());
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign in stage 2", campaign);
@@ -732,6 +745,8 @@ Superuser-Dummy:          - -> A                        jack:A,administrator:nul
     @Test
     public void test300StartRemediation() throws Exception {
         // GIVEN
+        clock.resetOverride();
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
@@ -749,10 +764,7 @@ Superuser-Dummy:          - -> A                        jack:A,administrator:nul
         display("campaign after remediation start", campaign);
         assertTrue("wrong campaign state: " + campaign.getState(), campaign.getState() == CLOSED || campaign.getState() == IN_REMEDIATION);
 
-        ObjectQuery query = prismContext.queryFor(TaskType.class)
-                .item(TaskType.F_OBJECT_REF).ref(campaign.getOid())
-                .build();
-        List<PrismObject<TaskType>> tasks = taskManager.searchObjects(TaskType.class, query, null, result);
+        List<PrismObject<TaskType>> tasks = getRemediationTasks(campaignOid, startTime, result);
         assertEquals("unexpected number of related tasks", 1, tasks.size());
         waitForTaskFinish(tasks.get(0).getOid());
 
@@ -841,7 +853,10 @@ Superuser-Dummy:          - -> A                        jack:A,administrator:nul
         // THEN
         roleCoo = getRole(ROLE_COO_OID).asObjectable();
         display("COO", roleCoo);
-        AssignmentType inducement = findInducementByTarget(ROLE_COO_OID, ROLE_SUPERUSER_OID);
-        assertCertificationMetadata(inducement.getMetadata(), SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT, singleton(USER_ADMINISTRATOR_OID), singleton("administrator: I'm so procrastinative..."));
+        assertCertificationMetadata(
+                findInducementByTarget(ROLE_COO_OID, ROLE_SUPERUSER_OID),
+                SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT,
+                singleton(USER_ADMINISTRATOR_OID),
+                singleton("administrator: I'm so procrastinative..."));
     }
 }

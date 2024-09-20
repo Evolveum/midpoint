@@ -1,0 +1,18 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+*Usage of Operation Options*
+
+To use a boolean based operation option with your request, append a question
+mark "?" to the original request URI, then type in the "option=" string
+after which you append the name of the option to be used.
+
+Options can be chained with the "&" character if you want to
+use multiple options in your request.
+
+*Example*:
+
+[source,bash]
+----
+?options=raw&options=force
+----

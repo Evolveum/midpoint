@@ -42,7 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.LiveSyncCapa
  * Implements Live synchronization functionality.
  *
  * Although this class exists outside of {@link ShadowsFacade}, the related functionality is embedded
- * in {@link ShadowedLiveSyncChange#initializeInternal(Task, OperationResult)} method.
+ * in the {@link ShadowedLiveSyncChange} initialization code.
  *
  * Responsibilities:
  *
@@ -57,7 +57,6 @@ public class LiveSynchronizer {
 
     @Autowired private ProvisioningContextFactory ctxFactory;
     @Autowired private ResourceObjectConverter resourceObjectConverter;
-    @Autowired private ChangeProcessingBeans beans;
 
     @NotNull
     public SynchronizationOperationResult synchronize(
@@ -87,7 +86,7 @@ public class LiveSynchronizer {
 
             int sequentialNumber = ctx.oldestTokenWatcher.changeArrived(resourceObjectChange.getToken());
 
-            ShadowedLiveSyncChange change = new ShadowedLiveSyncChange(resourceObjectChange, beans);
+            ShadowedLiveSyncChange change = new ShadowedLiveSyncChange(resourceObjectChange);
             change.initialize(task, lResult);
 
             LiveSyncEvent event = new LiveSyncEventImpl(change) {
@@ -114,8 +113,9 @@ public class LiveSynchronizer {
 
         UcfFetchChangesResult fetchChangesResult;
         try {
-            fetchChangesResult = resourceObjectConverter.fetchChanges(ctx.context, ctx.getInitialToken(), ctx.getBatchSize(),
-                    listener, gResult);
+            fetchChangesResult =
+                    resourceObjectConverter.fetchChanges(
+                            ctx.context, ctx.getInitialToken(), ctx.getBatchSize(), listener, gResult);
         } finally {
             handler.allEventsSubmitted(gResult);
         }

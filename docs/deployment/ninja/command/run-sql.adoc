@@ -1,0 +1,48 @@
+= Run SQL
+
+`run-sql` command can be used to execute SQL scripts on database.
+
+Database schema changes are implemented in SQL scripts that are bundled with distribution in folder `doc/config/sql/native/*.sql`.
+User can use `--mode [repository|audit]` switch together with `--upgrade` to run proper scripts automatically or use `--scripts` option to specify custom set of scripts.
+
+Run-sql command can be used also to create database schema from scratch using switch `--create`.
+
+Ninja by default uses repository/audit configuration from _midpoint-home/config.xml_ to connect to database.
+This behaviour can be changed via `--jdbc-url`, `--jdbc-username` and `--jdbc-password` options.
+With these options, ninja will switch to _raw_ mode, create custom JDBC connection and execute scripts on it.
+
+If `--result` switch is used, ninja will print results for each query in script to SYSOUT, otherwise results are ignored.
+
+.Example runs custom-upgrade-database.sql script on JDBC connection specified by url/username/password
+[source,bash]
+----
+./bin/ninja.sh run-sql \
+  --jdbc-url jdbc:postgresql://localhost:5432/postgres \
+  --jdbc-username postgres \
+  --jdbc-password postgres \
+  --scripts ./custom-upgrade-database.sql
+----
+
+.This example runs upgrade scripts for repository on database defined in midpoint-home/config.xml
+[source,bash]
+----
+./bin/ninja.sh run-sql \
+  --mode repository \
+  --upgrade
+----
+
+.Following example runs upgrade scripts for repository on database defined in midpoint-home/config.xml
+[source,bash]
+----
+./bin/ninja.sh run-sql \
+  --mode audit \
+  --upgrade
+----
+
+.This example runs custom defined scripts for audit on database defined in midpoint-home/config.xml
+[source,bash]
+----
+./bin/ninja.sh run-sql \
+  --mode repository \
+  --scripts ./upgrade/new-distribution/doc/config/sql/native/postgres-upgrade.sql
+----

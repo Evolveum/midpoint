@@ -22,20 +22,7 @@
                 <color>green</color>
             </icon>
         </display>
-        <!-- no configuration yet -->
-        <adminGuiConfiguration>
-            <objectDetails>
-                <type>TaskType</type>
-                <panel id="1">
-                    <identifier>activity</identifier>
-                    <visibility>hidden</visibility>
-                </panel>
-                <panel id="2">
-                    <identifier>taskBasic</identifier>
-                    <default>true</default>
-                </panel>
-            </objectDetails>
-        </adminGuiConfiguration>
+        <!-- no configuration, specific configuration in children -->
     </archetypePolicy>
     <assignment id="3">
         <identifier>holderType</identifier>
@@ -57,20 +44,6 @@
                 </expression>
                 <target>
                     <path>name</path>
-                </target>
-            </mapping>
-        </focusMappings>
-    </inducement>
-    <inducement id="7">
-        <identifier>handlerMapping</identifier>
-        <focusMappings>
-            <mapping id="8">
-                <strength>weak</strength>
-                <expression>
-                    <value>http://midpoint.evolveum.com/xml/ns/public/certification/task/campaign-creation/handler-3</value>
-                </expression>
-                <target>
-                    <c:path>handlerUri</c:path>
                 </target>
             </mapping>
         </focusMappings>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<systemConfiguration oid="00000000-0000-0000-0000-000000000001"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:dms="http://midpoint.evolveum.com/xml/ns/samples/dms">
+    <name>SystemConfiguration</name>
+    <defaultObjectPolicyConfiguration>
+        <type>UserType</type>
+        <objectTemplateRef oid="1b69e78f-0954-49cb-92a0-ed9b6476a807"/>
+    </defaultObjectPolicyConfiguration>
+    <roleManagement>
+        <relations>
+            <relation>
+                <ref>dms:read</ref>
+                <kind>member</kind>
+            </relation>
+            <relation>
+                <ref>dms:write</ref>
+                <kind>member</kind>
+            </relation>
+            <relation>
+                <ref>dms:admin</ref>
+                <kind>manager</kind>
+            </relation>
+        </relations>
+    </roleManagement>
+</systemConfiguration>

@@ -1,0 +1,164 @@
+= Access Request
+:page-nav-title: Access Request
+:page-display-order: 700
+:page-toc: top
+:page-upkeep-status: green
+
+== Description
+The example represents a use-case, where an authorized user requests for membership to a specific role from the role catalogue.
+The user is limited with a set of authorization permitting the access request and listing of only specific roles.
+
+Such request is then asynchronously processed in an approval workflow.
+The workflow is based on the default "approval" mechanism of midPoint where a specific user is assigned with the 'approver' relation to a role which assignment should be approved by him.
+
+.Authentication methods used to work with the REST api
+xref:/midpoint/reference/interfaces/rest/concepts/authentication/#_basic_authentication[Authentication methods]
+
+== Example
+
+[NOTE]
+====
+In this example we are using the user *Jack* and authenticating with the password *y0uR_P455woR*d* on a midPoint instance running on *localhost:8080*.
+This is due to the character of the example.
+====
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+1. You set the role which we would like to be requestable as "requestable=true" (in our case "96262f4f-053a-4b0b-8901-b3ec01e3509c").
+2. You assign the role as a member of our organizational unit which represents a role catalog (in our case "7878cf5d-9de2-486c-aeb7-41b438200a57").
+3. For a simple approval workflow, we can assign an approver to the role.
+4. The user which is going to request the role, in our case 'Jack', has to have an authorization assigned to him to do this.
+5. In this use case the authorization is "Rest Self Request" present in the example. It is simplified and configured for this specific example.
+6. The user is now capable of requesting the role through the REST api.
+7. The request will create an approval workflow case for the roles approvers.
+//TODO WP#9493, some kind of redirect info should be returned here so the user is capable of watching the progress of the case
+8. If you want information regarding the users case, you will have to query the open cases. A REST location header or redirect is currently missing, please see bug:MID-9493[].
+
+.*Show* example authorization for *"Entitlement self request"* | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/roles/role-authz-request-access.xml[GitHub]
+[%collapsible]
+====
+[source, xml]
+----
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        oid="c19f0234-fbd0-4b69-9ef4-7847a4ff39e2"
+        version="1">
+
+    <name>Rest Self Request</name>
+    <description></description>
+    <activation/>
+    <authorization>
+        <name>rest</name>
+        <description></description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#all</action>
+    </authorization>
+
+    <authorization>
+        <name>read-requestable-roles</name>
+        <description>Allow to read requestable roles. This allows to search for requestable roles in user interface.</description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>RoleType</type>
+            <filter>
+                <q:text>requestable = true AND parentOrgRef/@/name = "Role Catalog"</q:text>
+            </filter>
+        </object>
+    </authorization>
+
+    <authorization>
+        <name>assign-requestable-roles</name>
+        <description>Allow to assign requestable roles. This allows to request roles in a request-and-approve process.
+            The requestable roles will be displayed in the role request dialog by default.
+            Please note that the roles also need an approval definition to go through the approval process.
+            Otherwise, they will be assigned automatically without any approval.</description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
+        <phase>request</phase>
+        <object>
+            <special>self</special>
+        </object>
+        <target>
+            <type>RoleType</type>
+            <filter>
+                <q:text>requestable = true AND parentOrgRef/@/name = "Role Catalog"</q:text>
+            </filter>
+        </target>
+        <relation>org:default</relation>
+    </authorization>
+    <authorization>
+        <name>self-execution-modify</name>
+        <description>Authorization that allows to self-modification of some properties, but only in execution phase.
+            The real limitation of these operations is done in the request phase.
+            E.g. the modification of assignments is controlled in the request phase by using the #assign
+            authorization.</description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <phase>execution</phase>
+        <object>
+            <special>self</special>
+        </object>
+        <item>assignment</item>
+    </authorization>
+
+    <authorization>
+        <name>assignment-target-get</name>
+        <description>Authorization that allows to read all the object that are possible assignment targets.
+            Note that this authorization may be too broad for production use. Normally it should be limited to just
+            selected properties such as name and description.</description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#get</action>
+        <object>
+            <type>OrgType</type>
+        </object>
+        <object>
+            <type>RoleType</type>
+        </object>
+        <object>
+            <type>ArchetypeType</type>
+        </object>
+        <object>
+            <type>UserType</type>
+        </object>
+    </authorization>
+    <authorization>
+        <name>assignment-target-read-case</name>
+        <description>Authorization that allows to read approval status of cases. This is used to display requests
+            to the end users, especially in the "My Requests" box in user dashboard.</description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>CaseType</type>
+            <requester>
+                <special>self</special>
+            </requester>
+        </object>
+    </authorization>
+    <authorization>
+        <name>self-owned-task-read</name>
+        <description>Authorization that allows to see all tasks owned by a currently logged-in user.</description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>TaskType</type>
+            <owner>
+                <special>self</special>
+            </owner>
+        </object>
+    </authorization>
+</role>
+----
+====
+
+include::../examples/raw/search-requestable-from-role-catalog-cases.adoc[]
+
+include::../examples/raw/modify-attr-entitlement.adoc[]
+
+include::../examples/raw/search-case-open-user.adoc[]
+
+== See Also
+
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]

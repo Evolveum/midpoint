@@ -100,10 +100,26 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="requirement" type="tns:ExclusionPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Requirement constraint.
+                                Constraint that mandates that this object to be assigned together with other object.
+                                It can be used to require presence of clearances, job roles, require assignment is specific organization units, etc.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.9</a:since>
+                                <a:displayName>PolicyConstraintsType.requirement</a:displayName>
+                                <a:help>PolicyConstraintsType.requirement.help</a:help>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="exclusion" type="tns:ExclusionPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Exclusion constraint. Constraint that forbids this object to be assigned together with other object.
+                                Exclusion constraint.
+                                Constraint that forbids this object to be assigned together with other object.
+                                It is usually used to enforce segregation of duty (SoD) policies.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>PolicyConstraintsType.exclusion</a:displayName>
@@ -410,6 +426,7 @@
                     <a:version>4.0</a:version>
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
+                <a:naturalKey>tns:name</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -599,6 +616,11 @@
             <xsd:documentation>
                 Container that defines exclusion of entities (e.g. roles).
                 It is a part of Segregation of Duties (SoD) mechanism.
+
+                or
+
+                Container that defines requirement between entities (e.g. roles, clearances).
+                It is a part of classification/clearance mechanism.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -621,11 +643,13 @@
                                 Filter in the reference may be used to dynamically exclude broader
                                 range of roles - assuming that runtime resolution is used.
 
+                                or
+
                                 If script expression is used in the filter, following variables are available:
                                 - `policyRule`: currently evaluated policy rule (type EvaluatedPolicyRule)
                             </xsd:documentation>
                             <xsd:appinfo>
-                                 <a:objectReferenceTargetType>tns:AbstractRoleType</a:objectReferenceTargetType>
+                                <a:objectReferenceTargetType>tns:AbstractRoleType</a:objectReferenceTargetType>
                                 <a:displayName>ExclusionPolicyConstraintType.targetRef</a:displayName>
                                 <a:help>ExclusionPolicyConstraintType.targetRef.help</a:help>
                             </xsd:appinfo>
@@ -723,6 +747,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>3.5</a:since>
+                <a:merger>ModificationPolicyConstraintType</a:merger>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -1110,7 +1135,7 @@
                     <xsd:element name="executeScript" type="s:ExecuteScriptType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Scripting expression (bulk action) to be used to determine the state. Mutually exclusive with filter, expression and messageExpression.
+                                Scripting expression (action) to be used to determine the state. Mutually exclusive with filter, expression and messageExpression.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>StatePolicyConstraintType.executeScript</a:displayName>
@@ -1160,8 +1185,6 @@
             <xsd:documentation>
                 Custom ways of evaluating a policy constraint. Used typically for transitional constraints.
                 (State-based custom ones can always be evaluated using `objectState` constraint.)
-
-                TODO reconsider the name
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -1567,7 +1590,7 @@
             <xsd:element name="scriptExecution" type="tns:ScriptExecutionPolicyActionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Execute script (bulk action). The operation will proceed. Script(s) are executed at the end of the operation.
+                        Execute script (action). The operation will proceed. Script(s) are executed at the end of the operation.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>PolicyActionsType.scriptExecution</a:displayName>
@@ -3083,7 +3106,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Uses single-run scripting action. Input for this action contains
-                        references to objects that should serve as bulk action inputs.
+                        references to objects that should serve as action inputs.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="SINGLE_RUN"/>
@@ -3134,38 +3157,46 @@
     </xsd:simpleType>
 
     <xsd:complexType name="PolicyStatementType">
-      <xsd:annotation>
-          <xsd:documentation>
-              Statement specifying explicit include (marking) of object or exclude from specified policy.
-          </xsd:documentation>
-          <xsd:appinfo>
-              <a:container/>
-          </xsd:appinfo>
-      </xsd:annotation>
-      <xsd:sequence>
-         <xsd:element name="markRef" type="tns:ObjectReferenceType" minOccurs="0">
-            <xsd:annotation>
-                <xsd:documentation>
-                   Object mark representing policy, which is APPLIED or EXCLUDED
-                </xsd:documentation>
-                <xsd:appinfo>
-                    <a:objectReferenceTargetType>tns:MarkType</a:objectReferenceTargetType>
-                    <a:displayName>PolicyStatementType.markRef</a:displayName>
-                </xsd:appinfo>
-            </xsd:annotation>
-         </xsd:element>
-         <xsd:element name="type" type="tns:PolicyStatementTypeType">
-            <xsd:annotation>
-                <xsd:documentation>
-                   Type of policy statement.
-                   apply: mark is applied to object explicitly.
-                   exclude: mark is not applied to object even if it matches policy specific for mark.
-                </xsd:documentation>
-            </xsd:annotation>
-         </xsd:element>
-
-         <xsd:element name="metadata" type="tns:MetadataType" minOccurs="0"/>
-      </xsd:sequence>
+        <xsd:annotation>
+            <xsd:documentation>
+                Statement specifying explicit include (marking) of object or exclude from specified policy.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="markRef" type="tns:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Object mark representing policy, which is APPLIED or EXCLUDED
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:MarkType</a:objectReferenceTargetType>
+                        <a:displayName>PolicyStatementType.markRef</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="type" type="tns:PolicyStatementTypeType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Type of policy statement.
+                        apply: mark is applied to object explicitly.
+                        exclude: mark is not applied to object even if it matches policy specific for mark.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element ref="tns:lifecycleState" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>ObjectType.lifecycleState</a:displayName>
+                        <a:since>4.9</a:since>
+                        <a:valueEnumerationRef oid="00000000-0000-0000-0000-000000000230" type="tns:LookupTableType"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="metadata" type="tns:MetadataType" minOccurs="0"/>
+        </xsd:sequence>
     </xsd:complexType>
 
 </xsd:schema>

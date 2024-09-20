@@ -1,0 +1,53 @@
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+
+
+    <div class="card" wicket:id="firstGroupCard">
+        <div class="card-header">
+            <h5 class="mb-0">
+
+                <div class="btn btn-link">
+                    <span wicket:id="collapseTitleAttribute" style="font-size: 20px;"></span>
+                </div>
+
+                <div class="btn btn-link float-right">
+                    <div wicket:id="collapseIconAttribute"></div>
+                </div>
+
+            </h5>
+        </div>
+
+    </div>
+
+
+    <div style="margin-top: 50px;"></div>
+
+    <div class="card" wicket:id="secondGroupCard">
+        <div class="card-header">
+            <h5 class="mb-0">
+
+                <div class="btn btn-link">
+                    <span wicket:id="collapseTitleTable" style="font-size: 20px;"></span>
+                </div>
+
+                <div class="btn btn-link float-right">
+                    <div wicket:id="collapseIconTable"></div>
+                </div>
+
+            </h5>
+        </div>
+
+        <div wicket:id="objectTable"></div>
+
+    </div>
+
+</wicket:panel>
+</html>

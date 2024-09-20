@@ -90,6 +90,11 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
     }
 
     @Override
+    protected boolean isObjectDetailsEnabled(IModel<SelectableBean<SimulationResultType>> rowModel) {
+        return WebComponentUtil.isAuthorizedForPage(PageSimulationResult.class);
+    }
+
+    @Override
     protected List<Component> createToolbarButtonsList(String buttonId) {
         return new ArrayList<>();
     }
@@ -340,5 +345,10 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
             XMLGregorianCalendar start = row.getValue().getStartTimestamp();
             return start != null ? WebComponentUtil.getLongDateTimeFormattedValue(start, getPageBase()) : null;
         });
+    }
+
+    @Override
+    protected boolean isDuplicationSupported() {
+        return false;
     }
 }

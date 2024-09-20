@@ -36,12 +36,12 @@ public class PageDuoSelect extends AbstractPageRemoteAuthenticationSelect implem
     }
 
     @Override
-    protected IModel<String> getLoginPanelTitleModel() {
+    protected IModel<String> getDefaultLoginPanelTitleModel() {
         return createStringResource("PageDuoSelect.title");
     }
 
     @Override
-    protected IModel<String> getLoginPanelDescriptionModel() {
+    protected IModel<String> getDefaultLoginPanelDescriptionModel() {
         return createStringResource("PageDuoSelect.title.description");
     }
 

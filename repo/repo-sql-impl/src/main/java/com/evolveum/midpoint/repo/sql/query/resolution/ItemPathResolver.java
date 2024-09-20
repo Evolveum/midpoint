@@ -13,7 +13,6 @@ import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
@@ -68,7 +67,7 @@ public class ItemPathResolver {
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Current resolution state:\n{}", currentState.debugDumpNoParent());
             }
-            currentState = currentState.nextState(itemDefinition, singletonOnly, context.getPrismContext());
+            currentState = currentState.nextState(itemDefinition, singletonOnly);
         }
 
         LOGGER.trace("resolveItemPath({}) ending in resolution state of:\n{}", relativePath, currentState.debugDumpLazily());
@@ -114,13 +113,20 @@ public class ItemPathResolver {
         }
         joinedItemAlias = hibernateQuery.createAlias(joinedItemDefinition);
         Condition condition = createJoinCondition(joinedItemAlias, joinedItemDefinition, hibernateQuery);
-        hibernateQuery.getPrimaryEntity().addJoin(new JoinSpecification(joinedItemAlias, joinedItemFullPath, condition));
+        String explicitType = joinedItemDefinition.getExplicitJoinedType();
+        hibernateQuery.getPrimaryEntity().addJoin(
+                new JoinSpecification(explicitType, joinedItemAlias, joinedItemFullPath, condition));
         return joinedItemAlias;
     }
 
     private String findExistingAlias(HibernateQuery hibernateQuery,
             JpaLinkDefinition<?> joinedItemDefinition, String joinedItemFullPath) throws QueryException {
         for (JoinSpecification existingJoin : hibernateQuery.getPrimaryEntity().getJoinsFor(joinedItemFullPath)) {
+            // Are both joins compatible in this regard? In theory, we could combine them even if they are not,
+            // but that would be too complex to implement.
+            if (!Objects.equals(existingJoin.getExplicitJoinedType(), joinedItemDefinition.getExplicitJoinedType())) {
+                continue;
+            }
             // but let's check the condition as well
             String existingAlias = existingJoin.getAlias();
             // we have to create condition for existing alias, to be matched to existing condition
@@ -138,14 +144,14 @@ public class ItemPathResolver {
         String joinedItemJpaName = RObject.F_TEXT_INFO_ITEMS;
         String joinedItemFullPath = currentHqlPath + "." + joinedItemJpaName;
         String joinedItemAlias = hibernateQuery.createAlias(joinedItemJpaName, false);
-        hibernateQuery.getPrimaryEntity().addJoin(new JoinSpecification(joinedItemAlias, joinedItemFullPath, null));
+        hibernateQuery.getPrimaryEntity().addJoin(
+                new JoinSpecification(null, joinedItemAlias, joinedItemFullPath, null));
         return joinedItemAlias;
     }
 
     private Condition createJoinCondition(String joinedItemAlias, JpaLinkDefinition<?> joinedItemDefinition, HibernateQuery hibernateQuery) throws QueryException {
         Condition condition = null;
-        if (joinedItemDefinition instanceof JpaAnyItemLinkDefinition) {
-            JpaAnyItemLinkDefinition anyLinkDef = (JpaAnyItemLinkDefinition) joinedItemDefinition;
+        if (joinedItemDefinition instanceof JpaAnyItemLinkDefinition<?> anyLinkDef) {
             AndCondition conjunction = hibernateQuery.createAnd();
             if (anyLinkDef.getOwnerType() != null) {        // null for assignment extensions
                 conjunction.add(hibernateQuery.createEq(joinedItemAlias + ".ownerType", anyLinkDef.getOwnerType()));
@@ -160,8 +166,7 @@ public class ItemPathResolver {
                 conjunction.add(hibernateQuery.createFalse());
             }
             condition = conjunction;
-        } else if (joinedItemDefinition.getCollectionSpecification() instanceof VirtualCollectionSpecification) {
-            VirtualCollectionSpecification vcd = (VirtualCollectionSpecification) joinedItemDefinition.getCollectionSpecification();
+        } else if (joinedItemDefinition.getCollectionSpecification() instanceof VirtualCollectionSpecification vcd) {
             List<Condition> conditions = new ArrayList<>(vcd.getAdditionalParams().length);
             for (VirtualQueryParam vqp : vcd.getAdditionalParams()) {
                 // e.g. name = "assignmentOwner", type = RAssignmentOwner.class, value = "ABSTRACT_ROLE"
@@ -193,7 +198,7 @@ public class ItemPathResolver {
             }
 
             if (type.isEnum()) {
-                //noinspection unchecked
+                //noinspection unchecked,rawtypes
                 return Enum.valueOf((Class<Enum>) type, value);
             }
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | RuntimeException ex) {
@@ -215,25 +220,25 @@ public class ItemPathResolver {
      * @param clazz Kind of definition to be looked for
      * @return Entity type definition + item definition, or null if nothing was found
      */
-    public <T extends JpaDataNodeDefinition<T>>
-    ProperDataSearchResult<T> findProperDataDefinition(JpaEntityDefinition baseEntityDefinition,
-            ItemPath path, ItemDefinition<?> itemDefinition,
-            Class<T> clazz, PrismContext prismContext) throws QueryException {
+    public <D extends JpaDataNodeDefinition>
+    RootedDataSearchResult<D> findProperDataDefinition(
+            JpaEntityDefinition baseEntityDefinition, ItemPath path, ItemDefinition<?> itemDefinition, Class<D> clazz)
+            throws QueryException {
         QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
-        ProperDataSearchResult<T> candidateResult = null;
+        RootedDataSearchResult<D> candidateResult = null;
 
         for (JpaEntityDefinition entityDefinition : findPossibleBaseEntities(baseEntityDefinition, registry)) {
-            DataSearchResult<T> result = entityDefinition.findDataNodeDefinition(path, itemDefinition, clazz, prismContext);
+            DataSearchResult<D> result = entityDefinition.findDataNodeDefinition(path, itemDefinition, clazz);
             if (result != null) {
                 if (candidateResult == null) {
-                    candidateResult = new ProperDataSearchResult<>(entityDefinition, result);
+                    candidateResult = new RootedDataSearchResult<>(entityDefinition, result);
                 } else {
                     // Check for compatibility. As entities are presented from the more abstract to less abstract,
                     // there is no possibility of false alarm.
-                    if (!candidateResult.getEntityDefinition().isAssignableFrom(entityDefinition)) {
-                        throw new QueryException("Unable to determine root entity for " + path + ": found incompatible candidates: " +
-                                candidateResult.getEntityDefinition() + " and " +
-                                entityDefinition);
+                    if (!candidateResult.getRootEntityDefinition().isAssignableFrom(entityDefinition)) {
+                        throw new QueryException(
+                                "Unable to determine root entity for %s: found incompatible candidates: %s and %s".formatted(
+                                        path, candidateResult.getRootEntityDefinition(), entityDefinition));
                     }
                 }
             }

@@ -7,10 +7,10 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
+import java.io.Serializable;
+
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleCollectionViewType;
-
-import java.io.Serializable;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -18,8 +18,6 @@ import java.io.Serializable;
 public class RoleCatalogQueryItem implements Serializable {
 
     private ObjectReferenceType orgRef;
-
-    private boolean scopeOne;
 
     private RoleCollectionViewType collection;
 
@@ -40,15 +38,6 @@ public class RoleCatalogQueryItem implements Serializable {
 
     public RoleCatalogQueryItem orgRef(ObjectReferenceType orgRef) {
         this.orgRef = orgRef;
-        return this;
-    }
-
-    public boolean scopeOne() {
-        return scopeOne;
-    }
-
-    public RoleCatalogQueryItem scopeOne(boolean scopeOne) {
-        this.scopeOne = scopeOne;
         return this;
     }
 

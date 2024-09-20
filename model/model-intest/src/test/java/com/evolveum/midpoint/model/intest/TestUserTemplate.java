@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static com.evolveum.midpoint.schema.internals.InternalsConfig.isShadowCachingOnByDefault;
+
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
@@ -210,7 +212,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         UserType userJackType = userJack.asObjectable();
         assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
 
-        PrismAsserts.assertPropertyValue(userJack, UserType.F_ADDITIONAL_NAME, PrismTestUtil.createPolyString(USER_JACK_ADDITIONAL_NAME));
+        PrismAsserts.assertPropertyValue(userJack, UserType.F_ADDITIONAL_NAME, PolyString.fromOrig(USER_JACK_ADDITIONAL_NAME));
 
         // original value of 0 should be gone now, because the corresponding item in user template is marked as non-tolerant
         PrismAsserts.assertPropertyValue(userJack.findContainer(UserType.F_EXTENSION), PIRACY_BAD_LUCK, 123L, 456L);
@@ -243,30 +245,30 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
 
         PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-        display("User after", userJack);
+        // @formatter:off
+        assertUserAfter(userJack)
+                .assertDescription("Where's the rum?")
+                .assignments()
+                    .assertAssignments(2)
+                    .by().roleOid(ROLE_PIRATE_OID).find()
+                        .assertOriginMappingName("assignment-from-subtype")
+                    .end()
+                    .by().accountOn(RESOURCE_DUMMY_BLUE_OID).find().end()
+                .end()
+                .assertLiveLinks(2)
+                .assertCostCenter("G001");
+        // @formatter:on
 
-        PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
-        assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
-        AssignmentType pirateAssignment = assertAssignedRole(userJack, ROLE_PIRATE_OID);
-        assertEquals("Wrong originMappingName", "assignment-from-subtype", pirateAssignment.getMetadata().getOriginMappingName());
-        assertAssignments(userJack, 2);
-
-        UserType userJackType = userJack.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 2, userJackType.getLinkRef().size());
-
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
-
-        assertEquals("Wrong costCenter", "G001", userJackType.getCostCenter());
-
-        jackEmployeeNumber = userJackType.getEmployeeNumber();
-        assertEquals("Unexpected length  of employeeNumber, maybe it was not generated?",
+        UserType userJackBean = userJack.asObjectable();
+        jackEmployeeNumber = userJackBean.getEmployeeNumber();
+        assertEquals("Unexpected length of employeeNumber, maybe it was not generated?",
                 GenerateExpressionEvaluator.DEFAULT_LENGTH, jackEmployeeNumber.length());
     }
 
     /**
      * Switch employeeType from PIRATE to BUCCANEER. This makes one condition to go false and the other to go
-     * true. For the same role assignment value. So nothing should be changed.
+     * true. For the same role assignment value.
+     *
      */
     @Test
     public void test102ModifyUserEmployeeTypeBuccaneer() throws Exception {
@@ -287,23 +289,22 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
 
         PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-        display("User after", userJack);
+        // @formatter:off
+        assertUserAfter(userJack)
+                .assertDescription("Where's the rum?")
+                .assignments()
+                    .assertAssignments(2)
+                    .by().roleOid(ROLE_PIRATE_OID).find()
+                        // the value was already there; so the identifier should remain intact
+                        .assertOriginMappingName("assignment-from-subtype-buccaneer")
+                    .end()
+                    .by().accountOn(RESOURCE_DUMMY_BLUE_OID).find().end()
+                .end()
+                .assertLiveLinks(2)
+                .assertCostCenter("B666");
+        // @formatter:on
 
-        PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
-        assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
-        AssignmentType pirateAssignment = assertAssignedRole(userJack, ROLE_PIRATE_OID);
-        // the value was already there; so the identifier should remain intact
-        assertEquals("Wrong originMappingName", "assignment-from-subtype", pirateAssignment.getMetadata().getOriginMappingName());
-        assertAssignments(userJack, 2);
-
-        UserType userJackType = userJack.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 2, userJackType.getLinkRef().size());
-
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
-
-        assertEquals("Wrong costCenter", "B666", userJackType.getCostCenter());
-        assertEquals("Employee number has changed", jackEmployeeNumber, userJackType.getEmployeeNumber());
+        assertEquals("Employee number has changed", jackEmployeeNumber, userJack.asObjectable().getEmployeeNumber());
     }
 
     @Test
@@ -542,7 +543,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         OperationResult result = getTestOperationResult();
 
         // WHEN
-        modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, task, result, PrismTestUtil.createPolyString("Tortuga"));
+        modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, task, result, PolyString.fromOrig("Tortuga"));
 
         // THEN
         result.computeStatus();
@@ -641,30 +642,27 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         OperationResult result = getTestOperationResult();
 
         // WHEN
-        modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("F0004"));
+        modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PolyString.fromOrig("F0004"));
 
         // THEN
         PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-        display("User after", userJack);
-
-        PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
-        assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
-        assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
-        AssignmentType rumAssignment = assertAssignedOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
-        assertEquals("Wrong originMappingName", "Org mapping", rumAssignment.getMetadata().getOriginMappingName());
-        assertHasOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
-        assertAssignments(userJack, 2);
-
-        UserType userJackType = userJack.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
-
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
-
-        assertEquals("Wrong costCenter", "X000", userJackType.getCostCenter());
-        assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
-        assertEquals("Wrong telephone number", "1 222 3456789", userJackType.getTelephoneNumber());
-        assertNull("Unexpected title: " + userJackType.getTitle(), userJackType.getTitle());
+        // @formatter:off
+        assertUserAfter(userJack)
+                .assertDescription("Where's the rum?")
+                .assignments()
+                    .assertAssignments(2)
+                    .by().accountOn(RESOURCE_DUMMY_BLUE_OID).find().end()
+                    .by().orgOid(ORG_MINISTRY_OF_RUM_OID).find()
+                        .assertOriginMappingName("Org mapping")
+                    .end()
+                .end()
+                .assertLiveLinks(1)
+                .assertCostCenter("X000")
+                .assertTelephoneNumber("1 222 3456789")
+                .assertEmployeeNumber(jackEmployeeNumber)
+                .assertNoTitle()
+                .assertParentOrgRefs(ORG_MINISTRY_OF_RUM_OID);
+        // @formatter:on
     }
 
     @Test
@@ -674,30 +672,26 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         OperationResult result = getTestOperationResult();
 
         // WHEN
-        modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("F0003"));
+        modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PolyString.fromOrig("F0003"));
 
         // THEN
-        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-        display("User after", userJack);
-
-        PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
-        assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
-        assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
-        AssignmentType offenseAssignment = assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
-        assertEquals("Wrong originMappingName", "Org mapping", offenseAssignment.getMetadata().getOriginMappingName());
-        assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
-        assertAssignments(userJack, 2);
-
-        UserType userJackType = userJack.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
-
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
-
-        assertEquals("Wrong costCenter", "X000", userJackType.getCostCenter());
-        assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
-        assertEquals("Wrong telephone number", "1 222 3456789", userJackType.getTelephoneNumber());
-        assertNull("Unexpected title: " + userJackType.getTitle(), userJackType.getTitle());
+        // @formatter:off
+        assertUserAfter(USER_JACK_OID)
+                .assertDescription("Where's the rum?")
+                .assignments()
+                    .assertAssignments(2)
+                    .by().accountOn(RESOURCE_DUMMY_BLUE_OID).find().end()
+                    .by().orgOid(ORG_MINISTRY_OF_OFFENSE_OID).find()
+                        .assertOriginMappingName("Org mapping")
+                    .end()
+                .end()
+                .assertLiveLinks(1)
+                .assertCostCenter("X000")
+                .assertTelephoneNumber("1 222 3456789")
+                .assertEmployeeNumber(jackEmployeeNumber)
+                .assertNoTitle()
+                .assertParentOrgRefs(ORG_MINISTRY_OF_OFFENSE_OID);
+        // @formatter:on
     }
 
     @Test
@@ -707,33 +701,29 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         OperationResult result = getTestOperationResult();
 
         // WHEN
-        modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("F0004"));
+        modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PolyString.fromOrig("F0004"));
 
         // THEN
-        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-        display("User after", userJack);
-
-        PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
-        assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
-        assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
-        AssignmentType rumAssignment = assertAssignedOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
-        assertEquals("Wrong originMappingName", "Org mapping", rumAssignment.getMetadata().getOriginMappingName());
-        AssignmentType offenseAssignment = assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
-        assertEquals("Wrong originMappingName", "Org mapping", offenseAssignment.getMetadata().getOriginMappingName());
-        assertHasOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
-        assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
-        assertAssignments(userJack, 3);
-
-        UserType userJackType = userJack.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
-
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
-
-        assertEquals("Wrong costCenter", "X000", userJackType.getCostCenter());
-        assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
-        assertEquals("Wrong telephone number", "1 222 3456789", userJackType.getTelephoneNumber());
-        assertNull("Unexpected title: " + userJackType.getTitle(), userJackType.getTitle());
+        // @formatter:off
+        assertUserAfter(USER_JACK_OID)
+                .assertDescription("Where's the rum?")
+                .assignments()
+                    .assertAssignments(3)
+                    .by().accountOn(RESOURCE_DUMMY_BLUE_OID).find().end()
+                    .by().orgOid(ORG_MINISTRY_OF_RUM_OID).find()
+                        .assertOriginMappingName("Org mapping")
+                    .end()
+                    .by().orgOid(ORG_MINISTRY_OF_OFFENSE_OID).find()
+                        .assertOriginMappingName("Org mapping")
+                    .end()
+                .end()
+                .assertLiveLinks(1)
+                .assertCostCenter("X000")
+                .assertTelephoneNumber("1 222 3456789")
+                .assertEmployeeNumber(jackEmployeeNumber)
+                .assertNoTitle()
+                .assertParentOrgRefs(ORG_MINISTRY_OF_RUM_OID, ORG_MINISTRY_OF_OFFENSE_OID);
+        // @formatter:on
     }
 
     @Test
@@ -743,7 +733,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         OperationResult result = getTestOperationResult();
 
         // WHEN
-        modifyUserDelete(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("F0003"));
+        modifyUserDelete(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PolyString.fromOrig("F0003"));
 
         // THEN
         PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
@@ -778,7 +768,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         OperationResult result = getTestOperationResult();
 
         // WHEN
-        modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("FD001"));
+        modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PolyString.fromOrig("FD001"));
 
         // THEN
         PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
@@ -854,8 +844,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         OperationResult result = getTestOperationResult();
 
         // WHEN
-        modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result,
-                PrismTestUtil.createPolyString("FD002"), PrismTestUtil.createPolyString("FD003"));
+        modifyUserAdd(
+                USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result,
+                PolyString.fromOrig("FD002"), PolyString.fromOrig("FD003"));
 
         // THEN
         PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
@@ -893,8 +884,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         OperationResult result = getTestOperationResult();
 
         // WHEN
-        modifyUserDelete(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result,
-                PrismTestUtil.createPolyString("FD002"));
+        modifyUserDelete(
+                USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result,
+                PolyString.fromOrig("FD002"));
 
         // THEN
         PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
@@ -966,8 +958,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         List<? extends PrismValue> oldValues = (List<? extends PrismValue>) badLuckDelta.getEstimatedOldValues();
         assertNotNull("badLuck delta has null estimatedOldValues field", oldValues);
         ItemFactory factory = prismContext.itemFactory();
+
         PrismAsserts.assertEqualsCollectionUnordered("badLuck delta has wrong estimatedOldValues",
-                oldValues, factory.createPropertyValue(123L), factory.createPropertyValue(456L));
+                oldValues.stream().map(p -> p.getRealValue()).toList(), 123L, 456L);
     }
 
     @Test
@@ -1044,7 +1037,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         PrismObject<OrgType> org = findObjectByName(OrgType.class, orgName);
         assertNotNull("The org " + orgName + " is missing!", org);
         display("Org " + orgName, org);
-        PrismAsserts.assertPropertyValue(org, OrgType.F_NAME, PrismTestUtil.createPolyString(orgName));
+        PrismAsserts.assertPropertyValue(org, OrgType.F_NAME, PolyString.fromOrig(orgName));
         return org;
     }
 
@@ -1101,18 +1094,18 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, task, result,
-                PrismTestUtil.createPolyString("Thf."));
+        modifyUserReplace(
+                USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, task, result, PolyString.fromOrig("Thf."));
 
         // THEN
         then();
         assertSuccess(result);
 
-        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
-        display("User after", userAfter);
-
-        AssignmentType thiefAssignment = assertAssignedRole(userAfter, ROLE_THIEF_OID);
-        assertEquals("Wrong originMappingName", "assignment-from-subtype-thief", thiefAssignment.getMetadata().getOriginMappingName());
+        // THEN
+        assertUserAfter(USER_GUYBRUSH_OID)
+                .assignments()
+                .by().roleOid(ROLE_THIEF_OID).find()
+                .assertOriginMappingName("assignment-from-subtype-thief");
     }
 
     /**
@@ -1318,16 +1311,12 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
-        display("User after", userAfter);
-
-        PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION,
-                PolyString.fromOrig("Whateveric"),
-                PolyString.fromOrig("AUTO-matic"));
-
-        AssignmentType autoAssignment = assertAssignedRole(userAfter, ROLE_AUTOMATIC_OID);
-        assertEquals("Wrong originMappingName", "automappic", autoAssignment.getMetadata().getOriginMappingName());
-        assertAssignments(userAfter, 2);
+        assertUserAfter(USER_GUYBRUSH_OID)
+                .assertOrganizations("Whateveric", "AUTO-matic")
+                .assignments()
+                .assertAssignments(2)
+                .by().roleOid(ROLE_AUTOMATIC_OID).find()
+                .assertOriginMappingName("automappic");
 
         assertRoles(getNumberOfRoles());
     }
@@ -1845,7 +1834,8 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         //  doesn't have change for processed property.
         //
         // Either we fix this or recommend setting volatility=unpredictable for such situations.
-        PrismAsserts.assertPropertyValue(userAfter, UserType.F_DESCRIPTION, "Imported user");
+        PrismAsserts.assertPropertyValue(
+                userAfter, UserType.F_DESCRIPTION, isShadowCachingOnByDefault() ? "Came from null" : "Imported user");
         assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
         assertAssignedRole(userAfter, ROLE_PIRATE_OID);
         assertAssignments(userAfter, 2);
@@ -2107,8 +2097,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertNull("Wrong locale", userBefore.asObjectable().getLocale());
 
         // WHEN
-        modifyUserReplace(USER_RAPP_OID, UserType.F_LOCALITY,
-                task, result, PrismTestUtil.createPolyString("Scabb Island"));
+        modifyUserReplace(
+                USER_RAPP_OID, UserType.F_LOCALITY,
+                task, result, PolyString.fromOrig("Scabb Island"));
 
         // THEN
         result.computeStatus();
@@ -2190,8 +2181,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         display("User before", userBefore);
 
         // WHEN
-        modifyUserReplace(USER_RAPP_OID, UserType.F_LOCALITY,
-                task, result, PrismTestUtil.createPolyString("Coffin"));
+        modifyUserReplace(
+                USER_RAPP_OID, UserType.F_LOCALITY,
+                task, result, PolyString.fromOrig("Coffin"));
 
         // THEN
         result.computeStatus();
@@ -2233,8 +2225,8 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
                 UserType.class, USER_RAPP_OID, null, task, result);
         display("User before", userBefore);
 
-        ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_RAPP_OID,
-                UserType.F_LOCALITY, PrismTestUtil.createPolyString("Six feet under"));
+        ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(
+                USER_RAPP_OID, UserType.F_LOCALITY, PolyString.fromOrig("Six feet under"));
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
         ModelExecuteOptions options = executeOptions().reconcile();
 
@@ -2421,8 +2413,8 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         display("User after", userAfter);
         assertNotNull("No stan user", userAfter);
 
-        PrismAsserts.assertPropertyValue(userAfter, UserType.F_FULL_NAME, PrismTestUtil.createPolyString(ACCOUNT_STAN_FULLNAME));
-        PrismAsserts.assertPropertyValue(userAfter, UserType.F_LOCALITY, PrismTestUtil.createPolyString("Melee Island"));
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_FULL_NAME, PolyString.fromOrig(ACCOUNT_STAN_FULLNAME));
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_LOCALITY, PolyString.fromOrig("Melee Island"));
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_TIMEZONE, "High Seas/Melee Island");
     }
 
@@ -2439,7 +2431,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         OperationResult result = getTestOperationResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-        DummyAccount dummyAccountBefore = dummyResourceEmerald.getAccountByUsername(ACCOUNT_STAN_USERNAME);
+        DummyAccount dummyAccountBefore = dummyResourceEmerald.getAccountByName(ACCOUNT_STAN_USERNAME);
         dummyAccountBefore.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME,
                 "Booty Island");
 
@@ -2460,8 +2452,8 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         display("User after", userAfter);
         assertNotNull("No stan user", userAfter);
 
-        PrismAsserts.assertPropertyValue(userAfter, UserType.F_FULL_NAME, PrismTestUtil.createPolyString(ACCOUNT_STAN_FULLNAME));
-        PrismAsserts.assertPropertyValue(userAfter, UserType.F_LOCALITY, PrismTestUtil.createPolyString("Booty Island"));
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_FULL_NAME, PolyString.fromOrig(ACCOUNT_STAN_FULLNAME));
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_LOCALITY, PolyString.fromOrig("Booty Island"));
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_TIMEZONE, "High Seas/Booty Island");
     }
 
@@ -3468,14 +3460,14 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         OperationResult result = getTestOperationResult();
 
         // WHEN
-        modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("FD004"));
+        modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PolyString.fromOrig("FD004"));
 
         // THEN
         PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
         display("User after", userJack);
 
         PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
-        PrismAsserts.assertPropertyValue(userJack, UserType.F_ORGANIZATIONAL_UNIT, PrismTestUtil.createPolyString("FD004"));
+        PrismAsserts.assertPropertyValue(userJack, UserType.F_ORGANIZATIONAL_UNIT, PolyString.fromOrig("FD004"));
 
         assertAssignments(userJack, 0);
 
@@ -3537,11 +3529,10 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         then();
         assertSuccess(result);
 
-        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
-        display("User after", userAfter);
-
-        AssignmentType uselessAssignment = assertAssignedRole(userAfter, ROLE_USELESS_OID);
-        assertEquals("Wrong originMappingName", "assignment-for-useless-role", uselessAssignment.getMetadata().getOriginMappingName());
+        assertUserAfter(USER_GUYBRUSH_OID)
+                .assignments()
+                .by().roleOid(ROLE_USELESS_OID).find()
+                .assertOriginMappingName("assignment-for-useless-role");
     }
 
     /**

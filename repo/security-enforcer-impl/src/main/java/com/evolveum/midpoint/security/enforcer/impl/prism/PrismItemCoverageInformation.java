@@ -41,14 +41,14 @@ class PrismItemCoverageInformation implements PrismEntityCoverageInformation {
         return new PrismItemCoverageInformation(defaultCoverageInformation);
     }
 
-    static PrismItemCoverageInformation fullCoverage() {
+    static PrismItemCoverageInformation fullCoverage(boolean exceptMetadata) {
         return single(
-                PrismValueCoverageInformation.fullCoverage());
+                PrismValueCoverageInformation.fullCoverage(exceptMetadata));
     }
 
-    static PrismItemCoverageInformation noCoverage() {
+    static PrismItemCoverageInformation noCoverage(boolean exceptMetadata) {
         return single(
-                PrismValueCoverageInformation.noCoverage());
+                PrismValueCoverageInformation.noCoverage(exceptMetadata));
     }
 
     public @NotNull PrismEntityCoverage getCoverage() {
@@ -57,6 +57,11 @@ class PrismItemCoverageInformation implements PrismEntityCoverageInformation {
         } else {
             return otherValues.getCoverage();
         }
+    }
+
+    @Override
+    public boolean isExceptMetadata() {
+        return false;
     }
 
     @NotNull PrismValueCoverageInformation getValueCoverageInformation(@NotNull PrismValue value) {

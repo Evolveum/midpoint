@@ -6,7 +6,10 @@
  */
 package com.evolveum.midpoint.repo.common.expression;
 
+import java.util.List;
+
 import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.*;
@@ -27,12 +30,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition<?>> {
 
     private final ValueSetDefinitionType setDefinitionBean;
+    @NotNull private final ExtraSetSpecification extraSetSpecification;
     private final D itemDefinition;
     private final PrismContainerDefinition<ValueMetadataType> valueMetadataDefinition;
     private final ExpressionProfile expressionProfile;
     private final ExpressionFactory expressionFactory;
     private final String additionalVariableName;
     private final MappingSpecificationType mappingSpecification;
+
+    private final List<MappingSpecificationType> mappingAliasSpecification;
     private final String localContextDescription;
     private final String shortDesc;
     private final Task task;
@@ -42,13 +48,22 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition<
     private Expression<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> condition;
     private Expression<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> yieldCondition;
 
-    public ValueSetDefinition(ValueSetDefinitionType setDefinitionBean, D itemDefinition,
+    public ValueSetDefinition(
+            ValueSetDefinitionType setDefinitionBean,
+            @NotNull ExtraSetSpecification extraSetSpecification,
+            @NotNull D itemDefinition,
             PrismContainerDefinition<ValueMetadataType> valueMetadataDefinition,
-            ExpressionProfile expressionProfile, ExpressionFactory expressionFactory,
+            ExpressionProfile expressionProfile,
+            ExpressionFactory expressionFactory,
             String additionalVariableName,
             MappingSpecificationType mappingSpecification,
-            String localContextDescription, String shortDesc, Task task, OperationResult result) {
+            List<MappingSpecificationType> mappingAliasSpecification,
+            String localContextDescription,
+            String shortDesc,
+            Task task,
+            OperationResult result) {
         this.setDefinitionBean = setDefinitionBean;
+        this.extraSetSpecification = extraSetSpecification;
         Validate.notNull(itemDefinition, "No item definition for value set in %s", shortDesc);
         this.itemDefinition = itemDefinition;
         this.valueMetadataDefinition = valueMetadataDefinition;
@@ -56,6 +71,7 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition<
         this.expressionFactory = expressionFactory;
         this.additionalVariableName = additionalVariableName;
         this.mappingSpecification = mappingSpecification;
+        this.mappingAliasSpecification = mappingAliasSpecification;
         this.localContextDescription = localContextDescription;
         this.shortDesc = shortDesc;
         this.task = task;
@@ -64,6 +80,9 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition<
 
     public void init() throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException {
         predefinedRange = setDefinitionBean.getPredefined();
+        if (predefinedRange == null && !setDefinitionBean.getAdditionalMappingSpecification().isEmpty()) {
+            predefinedRange = ValueSetDefinitionPredefinedType.MATCHING_PROVENANCE;
+        }
         ExpressionType conditionBean = setDefinitionBean.getCondition();
         if (conditionBean != null) {
             condition = ExpressionUtil.createCondition(conditionBean, expressionProfile, expressionFactory, shortDesc, task, result);
@@ -78,7 +97,12 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition<
         this.additionalVariables = additionalVariables;
     }
 
-    public boolean contains(IV pval) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public boolean contains(IV pval)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        if (!extraSetSpecification.matches(pval)) {
+            return false;
+        }
         if (predefinedRange != null) {
             return switch (predefinedRange) {
                 case NONE -> false;
@@ -90,7 +114,7 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition<
         }
     }
 
-    public boolean containsYield(IV pval, ValueMetadataType metadata) throws SchemaException, ExpressionEvaluationException,
+    private boolean containsYield(IV pval, ValueMetadataType metadata) throws SchemaException, ExpressionEvaluationException,
             ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
         return yieldCondition == null || evalYieldCondition(pval, metadata);
     }
@@ -99,7 +123,29 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition<
         if (mappingSpecification == null) {
             throw new UnsupportedOperationException("Mapping-related provenance can be checked only on mapping targets. In: " + shortDesc);
         }
-        return ProvenanceMetadataUtil.valueHasMappingSpec(pval, mappingSpecification);
+        if (ProvenanceMetadataUtil.valueHasMappingSpec(pval, mappingSpecification)) {
+            return true;
+        }
+
+        if (mappingAliasSpecification != null) {
+            for (var aliasSpec : mappingAliasSpecification) {
+                if ( ProvenanceMetadataUtil.valueHasMappingSpec(pval,aliasSpec)) {
+                    // Value matches mappingAlias
+                    return true;
+                }
+
+            }
+        }
+
+        List<MappingSpecificationType> additional = setDefinitionBean.getAdditionalMappingSpecification();
+        if (additional != null) {
+            for (var mapping : additional) {
+                if (ProvenanceMetadataUtil.valueHasMappingSpec(pval, mapping)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
@@ -178,8 +224,7 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition<
     }
 
     private Object getInputValue(IV pval) {
-        if (pval instanceof PrismContainerValue) {
-            PrismContainerValue<?> pcv = (PrismContainerValue<?>) pval;
+        if (pval instanceof PrismContainerValue<?> pcv) {
             if (pcv.getCompileTimeClass() != null) {
                 return pcv.asContainerable();
             } else {
@@ -199,5 +244,51 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition<
     @Experimental
     public boolean isYieldSpecific() {
         return predefinedRange == ValueSetDefinitionPredefinedType.MATCHING_PROVENANCE;
+    }
+
+    public boolean hasMappingSpecification(@NotNull ValueMetadataType md) {
+        if (ProvenanceMetadataUtil.hasMappingSpecification(md, mappingSpecification)) {
+            return true;
+        }
+        if (mappingAliasSpecification != null) {
+            for (var aliasSpec : mappingAliasSpecification) {
+                if ( ProvenanceMetadataUtil.hasMappingSpecification(md,aliasSpec)) {
+                    // Value matches mappingAlias
+                    return true;
+                }
+            }
+        }
+        if (setDefinitionBean != null && setDefinitionBean.getAdditionalMappingSpecification() != null) {
+            for (var additionalMapping : setDefinitionBean.getAdditionalMappingSpecification()) {
+                if (ProvenanceMetadataUtil.hasMappingSpecification(md, additionalMapping)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Item-specific specifications, e.g., assignment subtype.
+     * Probably temporary solution.
+     */
+    public record ExtraSetSpecification(
+            @Nullable String assignmentSubtype) {
+
+        public static ExtraSetSpecification fromBean(@Nullable VariableBindingDefinitionType defBean) {
+            return new ExtraSetSpecification(
+                    defBean != null ? defBean.getAssignmentSubtype() : null);
+        }
+
+        public boolean matches(PrismValue value) {
+            if (assignmentSubtype == null) {
+                return true;
+            }
+            if (!(value instanceof PrismContainerValue<?> pcv) ||
+                    !(pcv.asContainerable() instanceof AssignmentType assignment)) {
+                return false;
+            }
+            return assignment.getSubtype().contains(assignmentSubtype);
+        }
     }
 }

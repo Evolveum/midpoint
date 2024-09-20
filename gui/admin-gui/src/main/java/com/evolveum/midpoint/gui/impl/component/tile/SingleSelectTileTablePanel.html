@@ -7,18 +7,20 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <wicket:enclosure child="tilesContainer">
-        <div class="d-flex flex-column flex-grow-1">
-            <div class="card-header" wicket:id="header"/>
-            <div class="row justify-content-center pt-3 card-footer mx-0" wicket:id="tilesContainer"/>
-            <div class="d-flex card-header" wicket:id="footerContainer">
-                <div class="d-flex">
-                    <div wicket:id="buttonToolbar"/>
+    <div wicket:id="tileView">
+        <wicket:enclosure child="tilesContainer">
+            <div class="d-flex flex-column flex-grow-1">
+                <div class="card-header" wicket:id="header"/>
+                <div class="d-flex flex-wrap justify-content-center pt-3 card-footer mx-0" wicket:id="tilesContainer"/>
+                <div class="d-flex card-header" wicket:id="footerContainer">
+                    <div class="d-flex">
+                        <div wicket:id="buttonToolbar"/>
+                    </div>
+                    <div class="ml-auto align-self-end" wicket:id="tilesPaging"/>
                 </div>
-                <div class="ml-auto align-self-end" wicket:id="tilesPaging"/>
             </div>
-        </div>
-    </wicket:enclosure>
+        </wicket:enclosure>
+    </div>
 
     <div wicket:id="table"/>
 </wicket:panel>

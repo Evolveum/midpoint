@@ -249,7 +249,7 @@ public class TestExpressionSpec extends AbstractModelImplementationIntegrationTe
     private <T> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluatePropertyExpression(
             ExpressionType expressionType, QName outputType, ExpressionEvaluationContext expressionContext, OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        PrismPropertyDefinition<T> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(
+        PrismPropertyDefinition<T> outputDefinition = prismContext.definitionFactory().newPropertyDefinition(
                 ExpressionConstants.OUTPUT_ELEMENT_NAME, outputType);
         return evaluateExpression(expressionType, outputDefinition, expressionContext, result);
     }
@@ -349,7 +349,7 @@ public class TestExpressionSpec extends AbstractModelImplementationIntegrationTe
     private PrismProperty<String> createProperty(String name, Collection<String> values)
             throws SchemaException {
         PrismPropertyDefinition<String> propDef = prismContext.definitionFactory()
-                .createPropertyDefinition(new QName(SchemaConstants.NS_C, name), PrimitiveType.STRING.getQname());
+                .newPropertyDefinition(new QName(SchemaConstants.NS_C, name), PrimitiveType.STRING.getQname());
         PrismProperty<String> property = prismContext.itemFactory().createProperty(propDef.getItemName(), propDef);
         for (String value : values) {
             property.add(prismContext.itemFactory().createPropertyValue(value));

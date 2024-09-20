@@ -490,7 +490,7 @@ public class TestOrgSync extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         given("the responsibility is removed from redskipp");
-        DummyAccount account = dummyResourceHr.getAccountByUsername(ACCOUNT_REDSKULL_USERNAME);
+        DummyAccount account = dummyResourceHr.getAccountByName(ACCOUNT_REDSKULL_USERNAME);
         account.removeAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_RESPONSIBILITIES, RESP_CANIBALISM);
 
         skipIfNotNativeRepository();
@@ -1202,8 +1202,7 @@ public class TestOrgSync extends AbstractStoryTest {
         Collection<String> membersAfterTest = openDJController.getGroupUniqueMembers(RESP_CANIBALISM_DN);
         System.out.println("group members after test = " + membersAfterTest);
         assertTrue(RESP_CANIBALISM_DN + " does not contain " + ACCOUNT_LEMONHEAD_DN,
-                // ...it seems to get lowercased during the reconciliation
-                membersAfterTest.contains(ACCOUNT_LEMONHEAD_DN.toLowerCase()));
+                membersAfterTest.contains(ACCOUNT_LEMONHEAD_DN));
     }
 
     private void assertUserGuybrush(PrismObject<UserType> user) {
@@ -1272,7 +1271,7 @@ public class TestOrgSync extends AbstractStoryTest {
         String accountDn = IntegrationTestTools.getSecondaryIdentifier(accountShadow);
         openDJController.assertUniqueMember(groupEntry, accountDn);
 
-        IntegrationTestTools.assertAssociation(accountShadow, OPENDJ_ASSOCIATION_GROUP_NAME, shadow.getOid());
+        IntegrationTestTools.assertAssociationObjectRef(accountShadow, OPENDJ_ASSOCIATION_GROUP_NAME, shadow.getOid());
 
         return respRole.getOid();
     }

@@ -19,6 +19,8 @@ import org.apache.catalina.core.StandardHost;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.catalina.valves.ErrorReportValve;
 import org.apache.catalina.webresources.ExtractingRoot;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.coyote.ajp.AbstractAjpProtocol;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.embedded.tomcat.TomcatWebServer;
@@ -47,6 +49,11 @@ public class MidPointTomcatServletWebServerFactory extends TomcatServletWebServe
 
     private String jvmRoute;
 
+    /**
+     * Logger, uses TomcatServletWebServerFactory for backwards compatibility
+     */
+    private static final Log LOG = LogFactory.getLog(TomcatServletWebServerFactory.class);
+
     public MidPointTomcatServletWebServerFactory(String contextPath, SystemObjectCache systemObjectCache) {
         this.contextPath = contextPath;
         this.systemObjectCache = systemObjectCache;
@@ -68,7 +75,7 @@ public class MidPointTomcatServletWebServerFactory extends TomcatServletWebServe
             String error = e.getMessage();
             if (error != null && error.contains("Child name [] is not unique")) {
                 // Safely ignored, this covers Boot config: server.servlet.context-path=/
-                logger.debug("Ignoring duplicate root, probably root context is explicitly configured");
+                LOG.debug("Ignoring duplicate root, probably root context is explicitly configured");
             } else {
                 throw e;
             }

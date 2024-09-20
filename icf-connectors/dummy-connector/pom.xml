@@ -13,7 +13,7 @@
     <parent>
         <artifactId>icf-connectors</artifactId>
         <groupId>com.evolveum.icf</groupId>
-        <version>4.8-SNAPSHOT</version>
+        <version>4.9-SNAPSHOT</version>
     </parent>
 
     <artifactId>dummy-connector</artifactId>
@@ -21,15 +21,28 @@
 
     <name>Dummy Connector</name>
 
+    <properties>
+        <!-- no tests here -->
+        <maven.test.skip>true</maven.test.skip>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>net.tirasa.connid</groupId>
             <artifactId>connector-framework</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.evolveum.commons</groupId>
+            <artifactId>util</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.evolveum.icf</groupId>
             <artifactId>dummy-resource</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -49,7 +62,7 @@
                             <SCM-Revision>${git.describe}</SCM-Revision>
                             <Organization>Evolveum</Organization>
                             <Organization-URL>https://www.evolveum.com</Organization-URL>
-                            <Bugtracking-System>https://jira.evolveum.com</Bugtracking-System>
+                            <Bugtracking-System>https://support.evolveum.com</Bugtracking-System>
                             <License>Apache License v2.0</License>
                             <License-URL>https://www.apache.org/licenses/LICENSE-2.0.txt</License-URL>
                             <Bundle-Name>Dummy Connector</Bundle-Name>

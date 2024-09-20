@@ -12,6 +12,7 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.model.impl.lens.LensContext.AuthorizationState;
 import com.evolveum.midpoint.model.impl.lens.projector.Components;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -92,7 +93,7 @@ public class ClockworkClick<F extends ObjectType> {
             ModelState state = context.getState();
             if (state == ModelState.INITIAL) {
                 beans.medic.clockworkStart(context);
-                beans.metadataManager.setRequestMetadataInContext(context, now, task);
+                context.initializeRequestMetadata(now, task);
                 context.getStats().setRequestTimestamp(now);
                 context.generateRequestIdentifierIfNeeded();
                 // We need to do this BEFORE projection. If we would do that after projection
@@ -106,8 +107,11 @@ public class ClockworkClick<F extends ObjectType> {
             }
 
             checkIndestructible(result);
-            if (!context.isRequestAuthorized()) {
-                ClockworkRequestAuthorizer.authorizeContextRequest(context, task, result);
+
+            // The preliminary authorization is done in the projector after loading the context.
+            // Here we finish it, as we have now the full information from the projector.
+            if (context.getAuthorizationState() != AuthorizationState.FULL) {
+                ClockworkRequestAuthorizer.authorizeContextRequest(context, true, task, result);
             }
 
             beans.medic.traceContext(LOGGER, "CLOCKWORK (" + state + ")", "before processing", true, context, false);
@@ -154,7 +158,7 @@ public class ClockworkClick<F extends ObjectType> {
             throws SchemaException, ConfigurationException, PolicyViolationException, ExpressionEvaluationException,
             ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, SecurityViolationException,
             ConflictDetectedException {
-        boolean recompute = false;
+        boolean recompute;
         if (!context.isFresh()) {
             LOGGER.trace("Context is not fresh -- forcing cleanup and recomputation");
             recompute = true;
@@ -164,6 +168,8 @@ public class ClockworkClick<F extends ObjectType> {
         } else if (context.isInPrimary() && ModelExecuteOptions.getInitialPartialProcessing(context.getOptions()) != null) {
             LOGGER.trace("Initial phase was run with initialPartialProcessing option -- forcing cleanup and recomputation");
             recompute = true;
+        } else {
+            recompute = false;
         }
 
         if (recompute) {
@@ -307,7 +313,7 @@ public class ClockworkClick<F extends ObjectType> {
      */
     private void reclaimSequencesIfPossible(OperationResult result) throws SchemaException {
         if (!context.wasAnythingExecuted()) {
-            LensUtil.reclaimSequences(context, beans.cacheRepositoryService, task, result);
+            LensUtil.reclaimSequences(context, beans.cacheRepositoryService, result);
         } else {
             LOGGER.trace("Something was executed, so we are not reclaiming sequence values");
         }

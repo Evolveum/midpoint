@@ -478,10 +478,15 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         This stage is silently skipped. This is useful for situations where we don't even want to start
-                        an approval process if there are no approvers in it.
+                        an approval process if there are no approvers in it. (Hence, if there is a process with all stages
+                        marked as "skip", it is skipped altogether.)
 
-                        Skipping whole approval process is currently supported only partly: when using approver relations.
-                        For approver expressions, these are always evaluated within context of a workflow process.
+                        If all approval processes are to be skipped, the whole approval processing is skipped, and the operation
+                        is carried out immediately.
+
+                        However, if only some of the approval processed are to be skipped, deltas associated with them are
+                        treated just like other deltas that go without approval: they are either executed immediately,
+                        or executed after all the other approvals are made.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="SKIP"/>
@@ -1307,10 +1312,17 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="association" type="tns:ShadowAssociationType">
+            <xsd:element name="name" type="xsd:QName">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Association to be added.
+                        Name of the association to be added.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="value" type="tns:ShadowAssociationValueType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Association value to be added.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

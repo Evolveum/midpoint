@@ -9,11 +9,12 @@ package com.evolveum.midpoint.repo.sql.data.common.embedded;
 import static com.evolveum.midpoint.repo.sql.util.RUtil.*;
 
 import java.util.Objects;
+
 import jakarta.persistence.*;
-
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
@@ -56,6 +57,7 @@ public class REmbeddedReference implements ObjectReference {
     }
 
     @Enumerated(EnumType.ORDINAL)
+    @JdbcType(IntegerJdbcType.class)
     @Override
     public RObjectType getTargetType() {
         return targetType;
@@ -106,8 +108,7 @@ public class REmbeddedReference implements ObjectReference {
                 + '}';
     }
 
-    public static void copyToJAXB(REmbeddedReference repo, ObjectReferenceType jaxb,
-            @SuppressWarnings("unused") PrismContext prismContext) {
+    public static void copyToJAXB(REmbeddedReference repo, ObjectReferenceType jaxb) {
         Objects.requireNonNull(repo, "Repo object must not be null.");
         Objects.requireNonNull(jaxb, "JAXB object must not be null.");
         jaxb.setType(ClassMapper.getQNameForHQLType(repo.getTargetType()));
@@ -127,9 +128,9 @@ public class REmbeddedReference implements ObjectReference {
         return repo;
     }
 
-    public ObjectReferenceType toJAXB(PrismContext prismContext) {
+    public ObjectReferenceType toJAXB() {
         ObjectReferenceType ref = new ObjectReferenceType();
-        copyToJAXB(this, ref, prismContext);
+        copyToJAXB(this, ref);
         return ref;
     }
 }

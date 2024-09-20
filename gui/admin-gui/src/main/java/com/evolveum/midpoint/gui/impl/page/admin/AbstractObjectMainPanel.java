@@ -16,7 +16,6 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -26,8 +25,6 @@ import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.MarkupContainer;
@@ -91,7 +88,7 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType, M extends Ob
     }
 
     public <C extends Containerable> Class<C> getTypeClass() {
-        return (Class<C>) WebComponentUtil.qnameToClass(getPrismContext(), getType());
+        return (Class<C>) WebComponentUtil.qnameToClass(getType());
     }
 
     public QName getType() {

@@ -39,21 +39,28 @@ $theme-colors: map-merge(
                 $theme-colors
 );
 
-$text-label-color: #3c8dbc;
-$text-dimmed-color: #808080;
+$text-label-color: #357DA7; //#3c8dbc
+$text-dimmed-color: #757575; //#808080
 $text-dark-dimmed-color: #595959;
 $table-divider-color:  #ddd;
 $table-stripe-bg-color: #f9f9f9;
 
-$object-user-color: #dd4b39;
-$object-role-color: #00a65a;
-$object-org-color: #F39C12;
-$object-service-color: #00C0EF;
-$object-resource-color: #605CA8;
+$object-user-color: $red;//#dd4b39;
+$object-role-color: $green;//#00a65a;
+$object-org-color: $yellow;//#F39C12;
+$object-service-color: #00C0EF;//$cyan <- this is new but not yet acceptable in new form;
+$object-policy-color: #6E7E12;
+$object-resource-color: $purple;//#605CA8;
 $object-task-color: #001f3f;
 $object-shadow-color: #001F3F;
 $object-disabled-color: #BEBEBE;
-$object-access-color: #00a65a;
-$object-failed-color: #dd4b39;
+$object-access-color: $green;//#00a65a;
+$object-failed-color: $red;//#dd4b39;
+$object-mining-color: #1f6e9d;
+$object-outlier-color: $red;
+$object-cluster-color: $gray-500;
 
 $legend-border-color: $gray-500;
+
+$text-color: #495057 !default;
+$text-toned-color: #5B656F !default;

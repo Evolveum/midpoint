@@ -18,8 +18,8 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import com.evolveum.midpoint.provisioning.ucf.api.UcfExecutionContext;
-import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
+import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.test.context.ContextConfiguration;
@@ -27,7 +27,6 @@ import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -35,17 +34,12 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfObjectHandler;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+
 import com.google.common.io.Files;
 
 /**
@@ -66,32 +60,34 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
         PrismSchema schemaIcfc = schemaRegistry.findSchemaByNamespace(SchemaConstants.NS_ICF_CONFIGURATION);
         assertNotNull("ICFC schema not found in the context (" + SchemaConstants.NS_ICF_CONFIGURATION + ")", schemaIcfc);
         PrismContainerDefinition<ConnectorConfigurationType> configurationPropertiesDef =
-                schemaIcfc.findContainerDefinitionByElementName(SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
+                schemaIcfc.findContainerDefinitionByElementName(SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME);
         assertNotNull("icfc:configurationProperties not found in icfc schema (" +
-                SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME + ")", configurationPropertiesDef);
+                SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME + ")", configurationPropertiesDef);
         PrismSchema schemaIcfs = schemaRegistry.findSchemaByNamespace(SchemaConstants.NS_ICF_SCHEMA);
         assertNotNull("ICFS schema not found in the context (" + SchemaConstants.NS_ICF_SCHEMA + ")", schemaIcfs);
     }
 
     @Test
     public void test020CreateConfiguredConnector() throws Exception {
-        cc = connectorFactory.createConnectorInstance(connectorType,
+        OperationResult result = createOperationResult();
+
+        cc = connectorFactory.createConnectorInstance(connectorBean,
                 "dummy",
                 "description of dummy test connector instance");
-        assertNotNull("Failed to instantiate connector", cc);
-        OperationResult result = createOperationResult();
-        PrismContainerValue<ConnectorConfigurationType> configContainer =
-                resourceType.getConnectorConfiguration().asPrismContainerValue();
-        displayDumpable("Configuration container", configContainer);
 
         // WHEN
-        cc.configure(configContainer, ResourceTypeUtil.getSchemaGenerationConstraints(resourceType), result);
+        configure(
+                resourceBean.getConnectorConfiguration(),
+                ResourceTypeUtil.getSchemaGenerationConstraints(resourceBean),
+                result);
 
         // THEN
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        resourceSchema = cc.fetchResourceSchema(result);
+        var nativeResourceSchema = cc.fetchResourceSchema(result);
+        resourceSchema = ResourceSchemaFactory.nativeToBare(nativeResourceSchema);
+        completeResourceSchema = ResourceSchemaFactory.parseCompleteSchema(resourceBean, nativeResourceSchema);
         assertNotNull("No resource schema", resourceSchema);
     }
 
@@ -109,15 +105,15 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
         shadowType.setResourceRef(resourceRef);
         shadowType.setObjectClass(defaultAccountDefinition.getTypeName());
         PrismObject<ShadowType> shadow = shadowType.asPrismObject();
-        ResourceAttributeContainer attributesContainer = ShadowUtil.getOrCreateAttributesContainer(shadow, defaultAccountDefinition);
-        ResourceAttribute<String> icfsNameProp = attributesContainer.findOrCreateAttribute(SchemaConstants.ICFS_NAME);
+        ShadowAttributesContainer attributesContainer = ShadowUtil.getOrCreateAttributesContainer(shadow, defaultAccountDefinition);
+        ShadowSimpleAttribute<String> icfsNameProp = attributesContainer.findOrCreateSimpleAttribute(SchemaConstants.ICFS_NAME);
         icfsNameProp.setRealValue(ACCOUNT_JACK_USERNAME);
 
         // WHEN
-        cc.addObject(shadow, null, result);
+        cc.addObject(shadow, createExecutionContext(), result);
 
         // THEN
-        DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_JACK_USERNAME);
+        DummyAccount dummyAccount = dummyResource.getAccountByName(ACCOUNT_JACK_USERNAME);
         assertNotNull("Account " + ACCOUNT_JACK_USERNAME + " was not created", dummyAccount);
         assertNotNull("Account " + ACCOUNT_JACK_USERNAME + " has no username", dummyAccount.getName());
 
@@ -127,7 +123,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
     public void test110SearchNonBlocking() throws Exception {
         // GIVEN
 
-        UcfExecutionContext ctx = createExecutionContext();
+        var ctx = createExecutionContext();
 
         final ResourceObjectClassDefinition accountDefinition =
                 resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
@@ -137,8 +133,8 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 
         UcfObjectHandler handler = (ucfObject, result) -> {
             displayDumpable("Search: found", ucfObject);
-            checkUcfShadow(ucfObject.getResourceObject(), accountDefinition);
-            searchResults.add(ucfObject.getResourceObject());
+            checkUcfShadow(ucfObject.getPrismObject(), accountDefinition);
+            searchResults.add(ucfObject.getPrismObject());
             return true;
         };
 
@@ -160,8 +156,8 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
     @Test
     public void test200BlockingSearch() throws Exception {
         // GIVEN
-        UcfExecutionContext ctx = createExecutionContext();
-        OperationResult result = createOperationResult();
+        var ctx = createExecutionContext();
+        var result = createOperationResult();
 
         final ResourceObjectClassDefinition accountDefinition =
                 resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
@@ -170,8 +166,8 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
         final List<PrismObject<ShadowType>> searchResults = new ArrayList<>();
 
         final UcfObjectHandler handler = (ucfObject, lResult) -> {
-            checkUcfShadow(ucfObject.getResourceObject(), accountDefinition);
-            searchResults.add(ucfObject.getResourceObject());
+            checkUcfShadow(ucfObject.getPrismObject(), accountDefinition);
+            searchResults.add(ucfObject.getPrismObject());
             return true;
         };
 
@@ -182,8 +178,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
             try {
                 cc.search(accountDefinition, null, handler, null, null,
                         null, null, ctx, result);
-            } catch (CommunicationException | GenericFrameworkException | SchemaException
-                    | SecurityViolationException | ObjectNotFoundException e) {
+            } catch (CommonException | GenericFrameworkException e) {
                 logger.error("Error in the search: {}", e.getMessage(), e);
             }
         });
@@ -221,7 +216,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
     @Test
     public void test210TwoBlockingSearches() throws Exception {
         // GIVEN
-        UcfExecutionContext ctx = createExecutionContext();
+        var ctx = createExecutionContext();
 
         final ResourceObjectClassDefinition accountDefinition =
                 resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
@@ -230,16 +225,16 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
         OperationResult result1 = createOperationResult();
         final List<PrismObject<ShadowType>> searchResults1 = new ArrayList<>();
         final UcfObjectHandler handler1 = (ucfObject, result) -> {
-            checkUcfShadow(ucfObject.getResourceObject(), accountDefinition);
-            searchResults1.add(ucfObject.getResourceObject());
+            checkUcfShadow(ucfObject.getPrismObject(), accountDefinition);
+            searchResults1.add(ucfObject.getPrismObject());
             return true;
         };
 
         OperationResult result2 = createOperationResult();
         final List<PrismObject<ShadowType>> searchResults2 = new ArrayList<>();
         final UcfObjectHandler handler2 = (ucfObject, result) -> {
-            checkUcfShadow(ucfObject.getResourceObject(), accountDefinition);
-            searchResults2.add(ucfObject.getResourceObject());
+            checkUcfShadow(ucfObject.getPrismObject(), accountDefinition);
+            searchResults2.add(ucfObject.getPrismObject());
             return true;
         };
 
@@ -249,8 +244,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
         Thread t1 = new Thread(() -> {
             try {
                 cc.search(accountDefinition, null, handler1, null, null, null, null, ctx, result1);
-            } catch (CommunicationException | GenericFrameworkException | SchemaException
-                    | SecurityViolationException | ObjectNotFoundException e) {
+            } catch (CommonException | GenericFrameworkException e) {
                 logger.error("Error in the search: {}", e.getMessage(), e);
             }
         });
@@ -271,8 +265,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
             try {
                 cc.search(accountDefinition, null, handler2, null, null,
                         null, null, ctx, result2);
-            } catch (CommunicationException | GenericFrameworkException | SchemaException
-                    | SecurityViolationException | ObjectNotFoundException e) {
+            } catch (CommonException | GenericFrameworkException e) {
                 logger.error("Error in the search: {}", e.getMessage(), e);
             }
         });
@@ -315,7 +308,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
     private void checkUcfShadow(PrismObject<ShadowType> shadow, ResourceObjectClassDefinition objectClassDefinition) {
         assertNotNull("No objectClass in shadow " + shadow, shadow.asObjectable().getObjectClass());
         assertEquals("Wrong objectClass in shadow " + shadow, objectClassDefinition.getTypeName(), shadow.asObjectable().getObjectClass());
-        Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
+        Collection<ShadowSimpleAttribute<?>> attributes = ShadowUtil.getSimpleAttributes(shadow);
         assertNotNull("No attributes in shadow " + shadow, attributes);
         assertFalse("Empty attributes in shadow " + shadow, attributes.isEmpty());
     }
@@ -342,7 +335,8 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
             assertTrue(connectorsAfter.size() > connectorsBefore.size());
 
         } finally {
-            targetFile.delete();
+            var deleted = targetFile.delete(); // may fail e.g. on Windows (as the file is open?)
+            System.out.println(targetFile + " deleted: " + deleted);
         }
     }
 

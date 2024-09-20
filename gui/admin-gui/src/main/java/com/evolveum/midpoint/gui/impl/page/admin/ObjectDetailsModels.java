@@ -14,9 +14,11 @@ import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.util.ExecutedDeltaPostProcessor;
 import com.evolveum.midpoint.schema.merger.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -26,6 +28,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.AuthorizationException;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -35,6 +38,7 @@ import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.model.IDetachable;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -54,6 +58,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
     private LoadableDetachableModel<O> summaryModel;
     private List<ObjectDelta<? extends ObjectType>> savedDeltas = new ArrayList<>();
 
+    private final Map<String, IModel<PrismContainerValueWrapper>> subMenuModels = new HashMap<>();
 
     public ObjectDetailsModels(LoadableDetachableModel<PrismObject<O>> prismObjectModel, ModelServiceLocator serviceLocator) {
         this.prismObjectModel = prismObjectModel;
@@ -63,7 +68,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
 
             @Override
             protected PrismObjectWrapper<O> load() {
-                PrismObject<O> prismObject = getPrismObject();//prismObjectModel.getObject();
+                PrismObject<O> prismObject = getPrismObject();
 
                 if (prismObject == null) {
                     return null;
@@ -77,7 +82,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
                     ctx.setReadOnly(isReadonly());
                 }
                 try {
-                    return factory.createObjectWrapper(prismObject, isEditObject(prismObject) ? ItemStatus.NOT_CHANGED : ItemStatus.ADDED, ctx);
+                    return factory.createObjectWrapper(prismObject, isEditObject() ? ItemStatus.NOT_CHANGED : ItemStatus.ADDED, ctx);
                 } catch (SchemaException e) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Cannot create wrapper for {} \nReason: {]", e, prismObject, e.getMessage());
                     result.recordFatalError("Cannot create wrapper for " + prismObject + ", because: " + e.getMessage(), e);
@@ -186,8 +191,8 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
         return summaryModel;
     }
 
-    public boolean isEditObject(PrismObject<O> prismObject) {
-        return prismObject.getOid() != null;
+    public boolean isEditObject() {
+        return getPrismObject().getOid() != null;
     }
 
     protected PrismContext getPrismContext() {
@@ -201,16 +206,14 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
         return delta;
     }
 
-    private Collection<ObjectDelta<? extends ObjectType>> collectDeltasFromObject(OperationResult result) throws SchemaException {
+    private Collection<ObjectDelta<? extends ObjectType>> collectDeltasFromObject(OperationResult result) throws CommonException {
         validationErrors = null;
-//        delta = null;
         PrismObjectWrapper<O> objectWrapper = getObjectWrapperModel().getObject();
         delta = objectWrapper.getObjectDelta();
         WebComponentUtil.encryptCredentials(delta, true, modelServiceLocator);
         switch (objectWrapper.getStatus()) {
             case ADDED:
                 PrismObject<O> objectToAdd = delta.getObjectToAdd();
-//                    WebComponentUtil.encryptCredentials(objectToAdd, true, modelServiceLocator);
                 prepareObjectForAdd(objectToAdd);
                 getPrismContext().adopt(objectToAdd, objectWrapper.getCompileTimeClass());
                 if (LOGGER.isTraceEnabled()) {
@@ -223,15 +226,10 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
                     final Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil.createCollection(delta);
                     validationErrors = performCustomValidation(objectToAdd, deltas);
                     return deltas;
-
-//                        if (checkValidationErrors(target, validationErrors)) {
-//                            return null;
-//                        }
                 }
                 break;
 
             case NOT_CHANGED:
-//                    WebComponentUtil.encryptCredentials(delta, true, modelServiceLocator);
                 prepareObjectDeltaForModify(delta); //preparing of deltas for projections (ADD, DELETE, UNLINK)
 
                 if (LOGGER.isTraceEnabled()) {
@@ -260,6 +258,16 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
         }
         LOGGER.trace("returning from saveOrPreviewPerformed");
         return new ArrayList<>();
+    }
+
+    /**
+     * Collect processor with deltas and consumer, that should be processed before basic deltas of showed object
+     */
+    public Collection<ExecutedDeltaPostProcessor> collectPreconditionDeltas(
+            ModelServiceLocator serviceLocator, OperationResult result) throws CommonException {
+        PrismObjectWrapper<O> objectWrapper = getObjectWrapperModel().getObject();
+        Collection<ExecutedDeltaPostProcessor> preconditionDeltas = objectWrapper.getPreconditionDeltas(serviceLocator, result);
+        return preconditionDeltas == null ? new ArrayList<>() : preconditionDeltas;
     }
 
     public Collection<SimpleValidationError> getValidationErrors() {
@@ -302,11 +310,11 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
         return modelServiceLocator.getFormValidatorRegistry().getValidators();
     }
 
-    protected void prepareObjectForAdd(PrismObject<O> objectToAdd) throws SchemaException {
+    protected void prepareObjectForAdd(PrismObject<O> objectToAdd) throws CommonException {
 
     }
 
-    protected void prepareObjectDeltaForModify(ObjectDelta<O> modifyDelta) throws SchemaException {
+    protected void prepareObjectDeltaForModify(ObjectDelta<O> modifyDelta) throws CommonException {
 
     }
 
@@ -410,7 +418,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
         summaryModel.detach();
     }
 
-    public Collection<ObjectDelta<? extends ObjectType>> collectDeltas(OperationResult result) throws SchemaException {
+    public Collection<ObjectDelta<? extends ObjectType>> collectDeltas(OperationResult result) throws CommonException {
         Collection<ObjectDelta<? extends ObjectType>> actualDeltas = collectDeltasFromObject(result);
         if (savedDeltas.isEmpty()) {
             return actualDeltas;
@@ -422,7 +430,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
         return localSavedDeltas;
     }
 
-    public Collection<ObjectDelta<? extends ObjectType>> collectDeltaWithoutSavedDeltas(OperationResult result) throws SchemaException {
+    public Collection<ObjectDelta<? extends ObjectType>> collectDeltaWithoutSavedDeltas(OperationResult result) throws CommonException {
         return collectDeltasFromObject(result);
     }
 
@@ -435,7 +443,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
             savedDeltas.clear();
             savedDeltas.addAll(newSavedDeltas);
 
-        } catch (SchemaException e) {
+        } catch (CommonException e) {
             LOGGER.error("Couldn't collect deltas from " + getObjectType());
         }
     }
@@ -473,4 +481,19 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
         retDeltas.addAll(actualDeltas);
     }
 
+    public void setSubPanelModel(String panelIdentifier, IModel<PrismContainerValueWrapper> valueModel) {
+        if (subMenuModels.containsKey(panelIdentifier)) {
+            subMenuModels.replace(panelIdentifier, valueModel);
+        } else {
+            subMenuModels.put(panelIdentifier, valueModel);
+        }
+    }
+
+    public boolean containsModelForSubmenu(String identifier) {
+        return subMenuModels.containsKey(identifier);
+    }
+
+    public IModel<PrismContainerValueWrapper> getModelForSubmenu(String identifier) {
+        return subMenuModels.get(identifier);
+    }
 }

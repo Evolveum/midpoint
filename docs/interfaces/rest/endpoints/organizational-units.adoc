@@ -1,0 +1,109 @@
+= Organizational Unit Type REST Endpoint
+:page-nav-title: Organizational Unit
+:page-display-order: 400
+:page-toc: top
+:page-keywords: [ 'rest', 'organizational', 'unit' , 'endpoint' ]
+:page-upkeep-status: green
+
+== Description
+
+Here we are describing the Organizational Unit object type in relation to midPoints REST API. The
+Organizational Unit objects are a part of the REST API web resources.
+
+.Endpoint
+[source, http]
+----
+orgs/
+----
+
+== Operations And Examples
+
+The Organizational Unit endpoint is a part of the Create-Read-Update-Delete (CRUD) web resources
+present in midPoint. This is apparent in the operations which are available for this type of object.
+
+include::../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+=== Create Organizational Unit Objects
+
+include::../operations/examples/raw/create-ou-projects.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]
+
+=== Get Organizational Unit Objects
+
+Get operation for fetching a single specific object.
+
+.Get Organizational unit object with REST
+
+include::../operations/examples/raw/get-ou-projects.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/get-op-rest/[Get Operation]
+
+=== Search for Organizational Unit Objects
+
+Search operation usable for fetching the full list of objects or a list based on filter.
+
+include::../operations/examples/raw/search-name-ou.adoc[]
+
+include::../operations/examples/raw/search-gen-name.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[Search Operation]
+
+=== Modify Organizational Unit Objects
+
+include::../operations/examples/raw/modify-attr-ou-projects.adoc[]
+
+include::../operations/examples/raw/modify-attr.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/modify-op-rest/[Modify Operation]
+
+=== Delete Organizational Unit Objects
+
+include::../operations/examples/raw/delete-ou.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/delete-op-rest/[Delete Operation]
+
+=== Generate and Validate Operations for Organizational Unit Objects
+
+Operations to generate or validate values, here we have an example of a simple identifier generate use-case.
+
+include::../operations/examples/raw/org-id-generate.adoc[]
+
+include::../operations/examples/raw/modify-id-generate.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]
+
+== Common Use-case Examples
+
+== JSON Example
+
+Example output of information regarding a specific object. Some data vas omitted to simplify the example.
+
+.Show JSON Example
+[%collapsible]
+====
+[source, json]
+----
+{
+  "org" : {
+    "oid" : "e5ae2f30-141c-4990-8387-4c8e7433132d",
+    "version" : "1",
+    "name" : "P0000",
+    "metadata" : {},
+    "operationExecution" : {},
+    "iteration" : 0,
+    "iterationToken" : "",
+    "activation" : {},
+    "displayName" : "Projects"
+  }
+}
+----
+====
+
+== See Also
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.component.menu;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -16,6 +17,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
@@ -37,6 +39,7 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
 
     private static final String ID_NAV = "menu";
     private static final String ID_NAV_ITEM = "navItem";
+    private static final String ID_NAV_ITEM_SR_CURRENT_MESSAGE = "navItemSrCurrentMessage";
     private static final String ID_NAV_ITEM_LINK = "navItemLink";
     private static final String ID_NAV_ITEM_ICON = "navItemIcon";
     private static final String ID_SUB_NAVIGATION = "subNavigation";
@@ -86,6 +89,19 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
 
     private WebMarkupContainer createNavigationItemParentPanel(ListItem<ContainerPanelConfigurationType> item) {
         WebMarkupContainer navigationDetails = new WebMarkupContainer(ID_NAVIGATION_DETAILS);
+        navigationDetails.add(AttributeAppender.append(
+                "aria-haspopup",
+                () -> isSubMenuVisible(item.getModelObject()) ? true : null));
+        navigationDetails.add(AttributeAppender.append(
+                "aria-expanded",
+                () -> {
+                    if (isSubMenuVisible(item.getModelObject())) {
+                        ContainerPanelConfigurationType storageConfig = getConfigurationFromStorage();
+                        ContainerPanelConfigurationType itemModelObject = item.getModelObject();
+                        return isMenuActive(storageConfig, itemModelObject) | hasActiveSubmenu(storageConfig, itemModelObject);
+                    }
+                    return null;
+                }));
         navigationDetails.add(AttributeAppender.append("class", createNavigationDetailsStyleModel(item)));
         return navigationDetails;
     }
@@ -141,12 +157,46 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
             }
         };
         link.add(AttributeAppender.append("title", createButtonLabel(item.getModel())));
+
+        link.add(AttributeModifier.append(
+                "aria-current",
+                () -> {
+                    ContainerPanelConfigurationType storageConfig = getConfigurationFromStorage();
+                    ContainerPanelConfigurationType itemModelObject = item.getModelObject();
+                    if (isMenuActive(storageConfig, itemModelObject)) {
+                        return "page";
+                    }
+                    return null;
+                }));
+
         addIcon(link, item);
+        addSrCurrentMessage(link, item);
         addLabel(link, item);
         addCount(link, item);
         addSubmenuLink(link, item);
 
         return link;
+    }
+
+    private void addSrCurrentMessage(AjaxSubmitLink link, ListItem<ContainerPanelConfigurationType> item) {
+        Label srCurrentMessage = new Label(ID_NAV_ITEM_SR_CURRENT_MESSAGE, () -> {
+            ContainerPanelConfigurationType storageConfig = getConfigurationFromStorage();
+            ContainerPanelConfigurationType itemModelObject = item.getModelObject();
+            String key = "";
+            if (isMenuActive(storageConfig, itemModelObject)) {
+                key = "DetailsNavigationPanel.srCurrentMessage";
+            }
+            if (hasActiveSubmenu(storageConfig, itemModelObject)) {
+                key = "DetailsNavigationPanel.srActiveSubItemMessage";
+            }
+            return getPageBase().createStringResource(key).getString();
+        });
+        srCurrentMessage.add(new VisibleBehaviour(() -> {
+            ContainerPanelConfigurationType storageConfig = getConfigurationFromStorage();
+            ContainerPanelConfigurationType itemModelObject = item.getModelObject();
+            return isMenuActive(storageConfig, itemModelObject) || hasActiveSubmenu(storageConfig, itemModelObject);
+        }));
+        link.add(srCurrentMessage);
     }
 
     private void addIcon(AjaxSubmitLink link, ListItem<ContainerPanelConfigurationType> item) {
@@ -169,16 +219,8 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
 
     private void addSubmenuLink(org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink link, ListItem<ContainerPanelConfigurationType> item) {
         WebMarkupContainer submenuLink = new WebMarkupContainer(ID_SUBMENU_LINK);
-        submenuLink.add(new VisibleBehaviour(() -> hasSubmenu(item.getModelObject())));
+        submenuLink.add(new VisibleBehaviour(() -> isSubMenuVisible(item.getModelObject())));
         link.add(submenuLink);
-    }
-
-    private boolean hasSubmenu(ContainerPanelConfigurationType config) {
-        if (config == null) {
-            return false;
-        }
-
-        return !config.getPanel().isEmpty();
     }
 
     private DetailsNavigationPanel<O> createDetailsSubNavigationPanel(ListItem<ContainerPanelConfigurationType> item) {
@@ -193,8 +235,29 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
                 DetailsNavigationPanel.this.onClickPerformed(config, target);
             }
         };
-        subPanel.add(new VisibleBehaviour(() -> !item.getModelObject().getPanel().isEmpty()));
+        subPanel.add(new VisibleBehaviour(() -> isSubMenuVisible(item.getModelObject())));
         return subPanel;
+    }
+
+    private boolean isSubMenuVisible(ContainerPanelConfigurationType panelConfig) {
+        if (panelConfig == null) {
+            return false;
+        }
+
+        if (panelConfig.getPanel().isEmpty()) {
+            return false;
+        }
+
+        Class<? extends Panel > panelClass = getPageBase().findObjectPanel(panelConfig.getIdentifier());
+        if (panelClass == null) {
+            return true;
+        }
+
+        if (MultivalueDetailsPanel.class.isAssignableFrom(panelClass)) {
+            return panelConfig.getPanel().stream()
+                    .anyMatch(subPanelConfig ->objectDetailsModel.containsModelForSubmenu(subPanelConfig.getIdentifier()));
+        }
+        return true;
     }
 
     private IModel<String> createCountModel(IModel<ContainerPanelConfigurationType> panelModel) {
@@ -219,7 +282,7 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
         return counter;
     }
 
-    private boolean isMenuItemVisible(ContainerPanelConfigurationType config) {
+    protected boolean isMenuItemVisible(ContainerPanelConfigurationType config) {
         if (config == null) {
             return true;
         }

@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * A definition that can be viewed at from different layer's point of view.
  *
- * See {@link ResourceAttributeDefinition#getLimitations(LayerType)} and similar layer-qualified methods.
+ * See {@link ShadowSimpleAttributeDefinition#getLimitations(LayerType)} and similar layer-qualified methods.
  */
 public interface LayeredDefinition {
 

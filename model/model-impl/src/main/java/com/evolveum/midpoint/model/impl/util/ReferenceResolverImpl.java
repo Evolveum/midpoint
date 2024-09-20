@@ -49,10 +49,14 @@ public class ReferenceResolverImpl implements ReferenceResolver {
     @Autowired private ModelService modelService;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
-    public List<PrismObject<? extends ObjectType>> resolve(@NotNull ObjectReferenceType reference,
-            Collection<SelectorOptions<GetOperationOptions>> options, @NotNull Source source,
-            FilterExpressionEvaluator filterExpressionEvaluator, Task task, OperationResult result) throws SchemaException,
-            ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+    public List<PrismObject<? extends ObjectType>> resolve(
+            @NotNull ObjectReferenceType reference,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull Source source,
+            FilterExpressionEvaluator filterExpressionEvaluator,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         String oid = reference.getOid();
 

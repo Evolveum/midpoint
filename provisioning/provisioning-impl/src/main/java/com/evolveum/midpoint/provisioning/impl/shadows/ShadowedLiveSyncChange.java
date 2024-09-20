@@ -15,15 +15,14 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectLiveSyncChange;
-import com.evolveum.midpoint.provisioning.impl.shadows.sync.ChangeProcessingBeans;
 
 /**
- * Adopted (shadowed) Live Sync change. The client should implement the {@link AcknowledgementSink} interface.
+ * Shadowed Live Sync change. The client should implement the {@link AcknowledgementSink} interface.
  */
 public class ShadowedLiveSyncChange extends ShadowedChange<ResourceObjectLiveSyncChange> {
 
-    public ShadowedLiveSyncChange(@NotNull ResourceObjectLiveSyncChange resourceObjectChange, ChangeProcessingBeans beans) {
-        super(resourceObjectChange, beans);
+    public ShadowedLiveSyncChange(@NotNull ResourceObjectLiveSyncChange resourceObjectChange) {
+        super(resourceObjectChange);
     }
 
     public LiveSyncToken getToken() {

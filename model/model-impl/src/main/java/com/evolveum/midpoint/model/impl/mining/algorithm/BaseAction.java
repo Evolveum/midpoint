@@ -16,7 +16,6 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Abstract (base) action class for clustering and pattern detection.
- *
  * Assumes the execution within an activity!
  */
 public abstract class BaseAction {
@@ -24,10 +23,18 @@ public abstract class BaseAction {
     /** This is the corresponding "activity run" object that gives us all the context. */
     @NotNull protected final AbstractActivityRun<?, ?, ?> activityRun;
 
+    /**
+     * Constructs a new `BaseAction` with the given activity run context.
+     *
+     * @param activityRun The abstract activity run within which the action is executed.
+     */
     protected BaseAction(@NotNull AbstractActivityRun<?, ?, ?> activityRun) {
         this.activityRun = activityRun;
     }
-
+    /**
+     * Increments the progress of the action and updates the outcome. This method is called during
+     * the execution of the action to track the progress.
+     */
     protected void incrementProgress() {
         activityRun.incrementProgress(
                 new QualifiedItemProcessingOutcomeType()

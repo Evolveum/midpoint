@@ -44,7 +44,7 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?>, IW extends Item
 
     private static final String DOT_CLASS = ItemPanel.class.getName() + "";
 
-    private static final String ID_VALUES_CONTAINER = "valuesContainer";
+    protected static final String ID_VALUES_CONTAINER = "valuesContainer";
     private static final String ID_VALUES = "values";
 
     private ItemPanelSettings itemPanelSettings;
@@ -85,7 +85,7 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?>, IW extends Item
         return getParent().findParent(AbstractItemWrapperColumnPanel.class) == null;
     }
 
-    protected abstract Component createHeaderPanel();
+    protected abstract ItemHeaderPanel createHeaderPanel();
 
     protected Component createValuesPanel() {
 
@@ -125,7 +125,7 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?>, IW extends Item
     protected void removeValue(VW valueToRemove, AjaxRequestTarget target) throws SchemaException {
         LOGGER.debug("Removing value of {}", valueToRemove);
 
-        getModelObject().remove(valueToRemove, getPageBase());
+        getModelObject().remove(valueToRemove, getParentPage());
         target.add(ItemPanel.this);
     }
 
@@ -165,5 +165,9 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?>, IW extends Item
     @Override
     public Collection<Component> getComponentsToUpdate() {
         return Collections.singleton(this);
+    }
+
+    protected final ListView<VW> getValuesContainer() {
+            return (ListView<VW>) get(createComponentPath(ID_VALUES_CONTAINER, ID_VALUES));
     }
 }

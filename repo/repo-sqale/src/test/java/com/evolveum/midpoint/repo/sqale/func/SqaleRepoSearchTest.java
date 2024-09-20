@@ -27,6 +27,12 @@ import java.util.UUID;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.InfraItemName;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+
 import org.jetbrains.annotations.Nullable;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -195,7 +201,10 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         shadow1Oid = repositoryService.addObject(shadow1.asPrismObject(), null, result);
         // another shadow just to check we don't select shadow1 accidentally/randomly
         repositoryService.addObject(
-                new ShadowType().name("shadow-2").asPrismObject(), null, result);
+                new ShadowType().name("shadow-2")
+                        .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE) // what relation is used for shadow->resource?
+                        .objectClass(RI_GROUP_OBJECT_CLASS)
+                        .asPrismObject(), null, result);
 
         // tasks
         task1Oid = repositoryService.addObject(
@@ -263,6 +272,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .lifecycleState("assignment1-1")
                         .orgRef(org1Oid, OrgType.COMPLEX_TYPE, relation1)
                         // similar target ref like for user3, but to different role
+                        .effectiveMarkRef(markProtectedOid, MarkType.COMPLEX_TYPE)
                         .targetRef(roleOtherOid, RoleType.COMPLEX_TYPE, relation2)
                         .activation(new ActivationType()
                                 .validFrom("2021-03-01T00:00:00Z")
@@ -366,10 +376,12 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 .assignment(new AssignmentType()
                         .lifecycleState("ls-user3-ass2")
                         .targetRef(roleAvIOid, RoleType.COMPLEX_TYPE, relation2)
+                        .effectiveMarkRef(markProtectedOid, MarkType.COMPLEX_TYPE)
                         .metadata(new MetadataType()
                                 .creatorRef(user1Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT))
                         .activation(new ActivationType()
                                 .validTo("2022-01-01T00:00:00Z")))
+
                 .operationExecution(new OperationExecutionType()
                         .taskRef(task1Oid, TaskType.COMPLEX_TYPE)
                         .status(OperationResultStatusType.WARNING)
@@ -382,7 +394,8 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         addExtensionValue(user3Extension, "dateTime", // 2021-10-02 ~19PM
                 asXMLGregorianCalendar(1633_200_000_000L));
         ExtensionType user3AssignmentExtension = new ExtensionType();
-        user3.assignment(new AssignmentType()
+
+        var user3assignment = new AssignmentType()
                 .lifecycleState("ls-user3-ass1")
                 .metadata(new MetadataType()
                         .creatorRef(user2Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT)
@@ -391,7 +404,13 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .validFrom("2021-01-01T00:00:00Z"))
                 .subtype("ass-subtype-1")
                 .subtype("ass-subtype-2")
-                .extension(user3AssignmentExtension));
+                .extension(user3AssignmentExtension);
+        user3assignment.asPrismContainerValue().setValueMetadata(new ValueMetadataType()
+                .storage(new StorageMetadataType().creatorRef(user2Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT))
+                .process(new ProcessMetadataType().createApproverRef(user1Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT))
+        );
+
+        user3.assignment(user3assignment);
         addExtensionValue(user3AssignmentExtension, "integer", BigInteger.valueOf(48));
         user3Oid = repositoryService.addObject(user3.asPrismObject(), null, result);
 
@@ -934,6 +953,14 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
+    public void test192SearchUsersByAssignmentEffectiveMarkRef() throws Exception {
+        searchUsersTest("having assignment with any of specified subtypes",
+                f -> f.item(UserType.F_ASSIGNMENT, AssignmentType.F_EFFECTIVE_MARK_REF)
+                        .ref(markProtectedOid),
+                user1Oid, user3Oid);
+    }
+
+    @Test
     public void test195SearchConnectorByConnectorHostReference() throws SchemaException {
         searchObjectTest("having specified connector host", ConnectorType.class,
                 f -> f.item(ConnectorType.F_CONNECTOR_HOST_REF).ref(connectorHostOid),
@@ -1277,6 +1304,13 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .item(ItemPath.create(MetadataType.F_CREATOR_REF, T_OBJECT_REFERENCE, F_NAME))
                         .eqPoly("creator"),
                 user1Oid);
+
+        searchUsersTest("matching the exists filter for metadata (embedded mapping)",
+                f -> f.exists(InfraItemName.METADATA, ValueMetadataType.F_STORAGE)
+                        .item(ItemPath.create(StorageMetadataType.F_CREATOR_REF, T_OBJECT_REFERENCE, F_NAME))
+                        .eqPoly("creator"),
+                user1Oid);
+
     }
 
     @Test
@@ -1434,6 +1468,12 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                                 MetadataType.F_CREATE_APPROVER_REF, T_OBJECT_REFERENCE, F_NAME)
                         .eq(new PolyString("user-1")),
                 user3Oid);
+
+        searchUsersTest("having assignment approved by user with specified name",
+                f -> f.item(UserType.F_ASSIGNMENT, InfraItemName.METADATA, ValueMetadataType.F_PROCESS,
+                                MetadataType.F_CREATE_APPROVER_REF, T_OBJECT_REFERENCE, F_NAME)
+                        .eq(new PolyString("user-1")),
+                user3Oid);
     }
 
     @Test
@@ -1443,6 +1483,16 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                                 T_OBJECT_REFERENCE, F_NAME)
                         .eq(new PolyString("creator")),
                 user1Oid);
+    }
+    @Test
+    public void test420ValueMetadataSearchObjectBySingleValueRefTargetItem() throws SchemaException {
+        searchUsersTest("via valueMetadata with object creator name",
+                f -> f.item(InfraItemName.METADATA, ValueMetadataType.F_STORAGE, MetadataType.F_CREATOR_REF,
+                                T_OBJECT_REFERENCE, F_NAME)
+                        .eq(new PolyString("creator")),
+                user1Oid);
+        assertThat(searchObjects(UserType.class, "@metadata/storage/creatorRef/@/name = 'creator'", createOperationResult())
+                .map(UserType::getOid)).contains(user1Oid);
     }
 
     @Test
@@ -2658,6 +2708,16 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
     // endregion
 
+    @Test
+    public void test770ExcludeAssignments() throws SchemaException, ObjectNotFoundException {
+        // Test only if objects are splitted
+        if (QUserMapping.getUserMapping().additionalSelectsByDefault() > 0) {
+            var options = GetOperationOptionsBuilder.create().item(F_ASSIGNMENT).dontRetrieve().build();
+            var user = repositoryService.getObject(UserType.class, user1Oid, options, createOperationResult());
+            assertThat(user.asObjectable().getAssignment()).isEmpty();
+        }
+    }
+
     // region reference search
     @Test
     public void test800SearchReference() throws SchemaException {
@@ -3043,7 +3103,10 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         assertThat(result).hasSize((int) count(QObject.CLASS));
     }
 
-    @Test
+    /**
+     * Disabled. Shadows are not part of m_object hierarchy anymore.
+     */
+    @Test(enabled = false)
     public void test921SearchAssignmentHolderTypeFindsAllObjectsExceptShadows()
             throws SchemaException {
         OperationResult operationResult = createOperationResult();
@@ -3320,6 +3383,16 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 f -> f.not().item(UserType.F_EXTENSION, new ItemName("string"))
                         .fuzzyString("string_value").levenshteinExclusive(2),
                 creatorOid, modifierOid, user2Oid, user3Oid, user4Oid);
+
+        searchUsersTest("with levenshtein filter with apostrophe",
+                f -> f.item(UserType.F_EMPLOYEE_NUMBER)
+                        .fuzzyString("user'1").levenshteinExclusive(2),
+                user1Oid);
+
+        searchUsersTest("with similarity filter with apostrophe",
+                f -> f.item(UserType.F_EMPLOYEE_NUMBER)
+                        .fuzzyString("user'1").similarityInclusive(0.3f),
+                user1Oid);
     }
 
     @Test

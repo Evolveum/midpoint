@@ -209,7 +209,7 @@ public class Statistics {
     }
 
     public void restartCollectingStatisticsFromZero(SqlPerformanceMonitorsCollection sqlPerformanceMonitors) {
-        OperationStatsType newInitialValues = new OperationStatsType(PrismContext.get());
+        OperationStatsType newInitialValues = new OperationStatsType();
         startOrRestartCollectingRegularStatistics(newInitialValues);
         startOrRestartCollectingThreadLocalStatistics(newInitialValues, sqlPerformanceMonitors);
     }
@@ -218,7 +218,7 @@ public class Statistics {
     private OperationStatsType getOrCreateInitialOperationStats(@NotNull RunningTask task, boolean fromZero) {
         OperationStatsType initialValue =
                 fromZero ? null : task.getStoredOperationStatsOrClone();
-        return initialValue != null ? initialValue : new OperationStatsType(PrismContext.get());
+        return initialValue != null ? initialValue : new OperationStatsType();
     }
 
     private void startOrRestartCollectingRegularStatistics(OperationStatsType initialOperationStats) {

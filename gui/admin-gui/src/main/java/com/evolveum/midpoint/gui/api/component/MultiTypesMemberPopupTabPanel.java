@@ -75,7 +75,7 @@ public abstract class MultiTypesMemberPopupTabPanel<O extends ObjectType> extend
 
     @Override
     protected ObjectDelta prepareDelta(){
-        Class classType = WebComponentUtil.qnameToClass(getPageBase().getPrismContext(), getObjectType().getTypeQName());
+        Class classType = WebComponentUtil.qnameToClass(getObjectType().getTypeQName());
         ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(getAbstractRoleTypeObject(), getRelationValue());
         return getPageBase().getPrismContext().deltaFactory().object().createModificationAddReference(classType, "fakeOid",
                 ObjectType.F_PARENT_ORG_REF,

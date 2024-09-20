@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
+import com.evolveum.midpoint.prism.Containerable;
+
 import jakarta.annotation.PostConstruct;
 
 import org.springframework.stereotype.Component;
@@ -23,17 +25,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
  *
  */
 @Component
-public class OperationalContainerWrapperFactory extends PrismContainerWrapperFactoryImpl<MetadataType>{
+public class OperationalContainerWrapperFactory<T extends Containerable> extends PrismContainerWrapperFactoryImpl<T>{
 
     @Override
     public boolean match(ItemDefinition<?> def) {
         return QNameUtil.match(TriggerType.COMPLEX_TYPE, def.getTypeName()); //QNameUtil.match(MetadataType.COMPLEX_TYPE, def.getTypeName()) ||
-    }
-
-    @PostConstruct
-    @Override
-    public void register() {
-        getRegistry().addToRegistry(this);
     }
 
     @Override
@@ -47,7 +43,7 @@ public class OperationalContainerWrapperFactory extends PrismContainerWrapperFac
     }
 
     @Override
-    protected boolean shouldCreateEmptyValue(PrismContainer<MetadataType> item, WrapperContext context) {
+    protected boolean shouldCreateEmptyValue(PrismContainer<T> item, WrapperContext context) {
         return false;
     }
 }

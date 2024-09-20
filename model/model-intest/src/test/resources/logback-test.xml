@@ -109,9 +109,13 @@
     <logger name="com.evolveum.midpoint.model.common.expression" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.controller.ObjectMerger" level="DEBUG" />
     <logger name="com.evolveum.midpoint.notifications" level="DEBUG" />
+
     <logger name="com.evolveum.midpoint.security" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.security.enforcer.impl.SecurityEnforcerImpl" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.security" level="DEBUG" />
+    <!-- for troubleshooting authorization tests -->
+    <!--<logger name="com.evolveum.midpoint.security" level="TRACE" />-->
+    <!--<logger name="com.evolveum.midpoint.model.impl.security" level="TRACE" />-->
+
     <!-- TODO set DEBUG for specific sync task handlers -->
     <logger name="com.evolveum.midpoint.model.impl.sync.SynchronizationServiceImpl" level="TRACE" />
     <!--<logger name="com.evolveum.midpoint.model.impl.tasks.RecomputeTaskHandler" level="DEBUG" />--><!-- FIXME -->

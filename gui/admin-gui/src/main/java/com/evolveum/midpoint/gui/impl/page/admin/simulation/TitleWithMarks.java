@@ -12,9 +12,12 @@ import com.evolveum.midpoint.gui.api.component.IconComponent;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.link.AbstractLink;
+import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.model.IModel;
 
 /**
@@ -28,28 +31,36 @@ public class TitleWithMarks extends BasePanel<String> {
     private static final String ID_TITLE = "title";
     private static final String ID_ICON_LINK = "iconLink";
     private static final String ID_ICON = "icon";
-    private static final String ID_REAL_MARKS = "realMarks";
-    private static final String ID_PROCESSED_MARKS = "processedMarks";
+    private static final String ID_PRIMARY_MARKS = "primaryMarks";
+    private static final String ID_SECONDARY_MARKS = "secondaryMarks";
 
-    private final IModel<String> realMarks;
+    private final IModel<String> primaryMarks;
 
-    public TitleWithMarks(String id, IModel<String> title, IModel<String> realMarks) {
+    public TitleWithMarks(String id, IModel<String> title, IModel<String> primaryMarks) {
         super(id, title);
 
-        this.realMarks = realMarks;
+        this.primaryMarks = primaryMarks;
 
         initLayout();
     }
 
-    private void initLayout() {
-        AjaxLink<Void> link = new AjaxLink<>(ID_LINK) {
+    protected AbstractLink createTitleLinkComponent(String id) {
+        return new Link<>(id) {
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
-                onTitleClicked(target);
+            public void onClick() {
+                onTitleClicked();
             }
         };
+    }
+
+    protected void customiseTitleLink(AbstractLink link) {
         link.add(new EnableBehaviour(this::isTitleLinkEnabled));
+    }
+
+    private void initLayout() {
+        AbstractLink link = createTitleLinkComponent(ID_LINK);
+        customiseTitleLink(link);
         add(link);
 
         Label title = new Label(ID_TITLE, getModel());
@@ -69,23 +80,32 @@ public class TitleWithMarks extends BasePanel<String> {
         IconComponent icon = new IconComponent(ID_ICON, iconCssModel, createIconTitleModel());
         iconLink.add(icon);
 
-        Label realMarks = new Label(ID_REAL_MARKS, this.realMarks);
-        realMarks.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(this.realMarks.getObject())));
-        add(realMarks);
+        Label primaryMarks = new Label(ID_PRIMARY_MARKS, this.primaryMarks);
+        primaryMarks.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(this.primaryMarks.getObject())));
+        primaryMarks.add(AttributeModifier.replace("title", createPrimaryMarksTitle()));
+        add(primaryMarks);
 
-        IModel<String> processedMarksModel = createProcessedMarksContainer();
+        IModel<String> secondaryMarksModel = createSecondaryMarksList();
 
-        Label processedMarks = new Label(ID_PROCESSED_MARKS, processedMarksModel);
-        processedMarks.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(processedMarksModel.getObject())));
-        add(processedMarks);
+        Label secondaryMarks = new Label(ID_SECONDARY_MARKS, secondaryMarksModel);
+        secondaryMarks.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(secondaryMarksModel.getObject())));
+        secondaryMarks.add(AttributeModifier.replace("title", createSecondaryMarksTitle()));
+        add(secondaryMarks);
+    }
 
+    protected IModel<String> createPrimaryMarksTitle() {
+        return createStringResource("TitleWithMarks.realMarks");
+    }
+
+    protected IModel<String> createSecondaryMarksTitle() {
+        return createStringResource("TitleWithMarks.processedMarks");
     }
 
     protected boolean isTitleLinkEnabled() {
         return true;
     }
 
-    protected void onTitleClicked(AjaxRequestTarget target) {
+    protected void onTitleClicked() {
 
     }
 
@@ -101,7 +121,7 @@ public class TitleWithMarks extends BasePanel<String> {
         return () -> null;
     }
 
-    protected IModel<String> createProcessedMarksContainer() {
+    protected IModel<String> createSecondaryMarksList() {
         return () -> null;
     }
 }

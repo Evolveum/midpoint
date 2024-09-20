@@ -101,7 +101,7 @@ public class VerificationReporter {
             initDeltaXmlFile();
         }
 
-        validator = new ObjectUpgradeValidator(prismContext);
+        validator = new ObjectUpgradeValidator();
 
         validator.setWarnPlannedRemovalVersion(options.getPlannedRemovalVersion());
 
@@ -109,24 +109,7 @@ public class VerificationReporter {
         if (categories.isEmpty()) {
             validator.showAllWarnings();
         } else {
-            for (VerifyOptions.VerificationCategory category : categories) {
-                switch (category) {
-                    case DEPRECATED:
-                        validator.setWarnDeprecated(true);
-                        break;
-                    case INCORRECT_OIDS:
-                        validator.setWarnIncorrectOids(true);
-                        break;
-                    case PLANNED_REMOVAL:
-                        validator.setWarnPlannedRemoval(true);
-                        break;
-                    case REMOVED:
-                        validator.setWarnRemoved(true);
-                        break;
-                    default:
-                        throw new IllegalArgumentException("Unknown category " + category);
-                }
-            }
+            categories.forEach(c -> validator.setTypeToCheck(c.validationItemType, true));
         }
     }
 
@@ -304,9 +287,9 @@ public class VerificationReporter {
         return Arrays.asList(object.getOid(),
                 object.getDefinition().getTypeName().getLocalPart(),
                 object.getBusinessDisplayName(),
-                Objects.toString(item.getItem().getStatus()),
-                Objects.toString(item.getItem().getItemPath()),
-                item.getItem().getMessage() != null ? item.getItem().getMessage().getFallbackMessage() : null,
+                Objects.toString(item.getItem().status()),
+                Objects.toString(item.getItem().path()),
+                item.getItem().message() != null ? item.getItem().message().getFallbackMessage() : null,
                 identifier,
                 phase != null ? phase.name() : null,
                 priority != null ? priority.name() : null,
@@ -321,10 +304,14 @@ public class VerificationReporter {
 
         List<Object> items = new ArrayList<>();
 
-        if (validationItem.getStatus() != null) {
-            items.add(validationItem.getStatus());
+        if (validationItem.status() != null) {
+            items.add(validationItem.status());
         } else {
             writer.append("INFO ");
+        }
+
+        if (item.getItem().type() != null) {
+            items.add(item.getItem().type());
         }
 
         UpgradePriority priority = item.getPriority();
@@ -334,11 +321,11 @@ public class VerificationReporter {
 
         items.add(getObjectDisplayName(object));
 
-        if (validationItem.getItemPath() != null) {
-            items.add(validationItem.getItemPath());
+        if (validationItem.path() != null) {
+            items.add(validationItem.path());
         }
 
-        String msg = writeMessage(validationItem.getMessage());
+        String msg = writeMessage(validationItem.message());
         if (msg != null) {
             items.add(msg);
         }

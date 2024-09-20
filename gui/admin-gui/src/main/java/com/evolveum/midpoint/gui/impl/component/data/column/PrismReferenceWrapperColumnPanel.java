@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.component.data.column;
 
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -31,7 +33,7 @@ public class PrismReferenceWrapperColumnPanel<R extends Referencable> extends Ab
     private static final long serialVersionUID = 1L;
     private static final Trace LOGGER = TraceManager.getTrace(PrismReferenceWrapperColumnPanel.class);
 
-    PrismReferenceWrapperColumnPanel(String id, IModel<PrismReferenceWrapper<R>> model, ColumnType columnType) {
+    public PrismReferenceWrapperColumnPanel(String id, IModel<PrismReferenceWrapper<R>> model, ColumnType columnType) {
         super(id, model, columnType);
     }
 
@@ -48,8 +50,8 @@ public class PrismReferenceWrapperColumnPanel<R extends Referencable> extends Ab
 
         Panel panel;
         try {
-            panel = getPageBase().initItemPanel(id, model.getObject().getTypeName(), model, createPanelSettings());
-        } catch (SchemaException e) {
+            panel = WebPrismUtil.createVerticalPropertyPanel(id, model, createPanelSettings());
+        } catch (Exception e) {
             LOGGER.error("Cannot create panel for {}", model.getObject());
             getSession().error("Cannot create panel for: " + model.getObject());
             return new ErrorPanel(id, createStringResource("PropertyPropertyWrapperColumnPanel.cannot.create.panel"));

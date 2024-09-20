@@ -14,7 +14,10 @@ import java.util.Collection;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.provisioning.impl.resources.ConnectorManager;
 import com.evolveum.midpoint.provisioning.impl.resources.ResourceManager;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaParser;
+import com.evolveum.midpoint.schema.processor.BareResourceSchema;
+import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.SimpleObjectResolver;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.*;
@@ -78,12 +81,14 @@ public abstract class AbstractProvisioningIntegrationTest
     private Long lastResourceVersion = null;
     private ConnectorInstance lastConfiguredConnectorInstance = null;
     private CachingMetadataType lastCachingMetadata;
-    private ResourceSchema lastResourceSchema = null;
-    private ResourceSchema lastRefinedResourceSchema;
+    private BareResourceSchema lastBareResourceSchema = null;
+    private CompleteResourceSchema lastCompleteResourceSchema;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        InternalsConfig.turnOnAllChecks();
         // We need to switch off the encryption checks. Some values cannot be encrypted as we do not have a definition.
+        InternalsConfig.readEncryptionChecks = false;
         InternalsConfig.encryptionChecks = false;
         repositoryService.postInit(initResult); // initialize caches here
         provisioningService.postInit(initResult);
@@ -123,7 +128,7 @@ public abstract class AbstractProvisioningIntegrationTest
         ResourceType resourceType = resource.asObjectable();
         XmlSchemaType xmlSchemaType = resourceType.getSchema();
         assertNotNull("No schema", xmlSchemaType);
-        Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resourceType);
+        Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchemaElement(resourceType);
         assertNotNull("No schema XSD element", resourceXsdSchemaElementAfter);
         return xmlSchemaType.getCachingMetadata();
     }
@@ -137,24 +142,42 @@ public abstract class AbstractProvisioningIntegrationTest
         assertEquals("Schema caching metadata changed", lastCachingMetadata, current);
     }
 
-    protected void rememberResourceSchema(ResourceSchema resourceSchema) {
-        lastResourceSchema = resourceSchema;
+    protected void rememberBareResourceSchema(BareResourceSchema resourceSchema) {
+        lastBareResourceSchema = resourceSchema;
     }
 
-    protected void assertResourceSchemaUnchanged(ResourceSchema currentResourceSchema) {
-        // We really want == there. We want to make sure that this is actually the same instance and that
-        // it was properly cached
-        assertSame("Resource schema has changed", lastResourceSchema, currentResourceSchema);
+    protected void rememberCompleteResourceSchema(CompleteResourceSchema resourceSchema) {
+        lastCompleteResourceSchema = resourceSchema;
     }
 
-    protected void rememberRefinedResourceSchema(ResourceSchema rResourceSchema) {
-        lastRefinedResourceSchema = rResourceSchema;
+    protected void assertNativeSchemaCached(BareResourceSchema currentResourceSchema) {
+        // We really want == there. We want to make sure that this is actually the same instance and that it was properly cached.
+        // But we do this for native schemas, as bare schema is just a wrapper that is not cached.
+        assertSame("Resource schema has changed",
+                lastBareResourceSchema.getNativeSchema(),
+                currentResourceSchema.getNativeSchema());
     }
 
-    protected void assertRefinedResourceSchemaUnchanged(ResourceSchema currentRefinedResourceSchema) {
+    protected void assertNativeSchemaCached(BareResourceSchema previousSchema, BareResourceSchema currentSchema) {
+        // Check whether it is reusing the existing schema and not parsing it all over again
+        // Not equals() but == ... we want to really know if exactly the same object instance is returned.
+        assertSame("Broken caching", previousSchema.getNativeSchema(), currentSchema.getNativeSchema());
+    }
+
+    protected void assertCompleteSchemaCached(CompleteResourceSchema previousSchema, CompleteResourceSchema currentSchema) {
+        // Check whether it is reusing the existing schema and not parsing it all over again
+        // Not equals() but == ... we want to really know if exactly the same object instance is returned.
+        assertSame("Broken caching", previousSchema, currentSchema);
+    }
+
+    protected void rememberRefinedResourceSchema(CompleteResourceSchema completeSchema) {
+        lastCompleteResourceSchema = completeSchema;
+    }
+
+    protected void assertRefinedResourceSchemaUnchanged(CompleteResourceSchema currentCompleteSchema) {
         // We really want == (identity test) here.
         // We want to make sure that this is actually the same instance and that it was properly cached.
-        assertSame("Refined resource schema has changed", lastRefinedResourceSchema, currentRefinedResourceSchema);
+        assertSame("Refined resource schema has changed", lastCompleteResourceSchema, currentCompleteSchema);
     }
 
     protected void assertHasSchema(PrismObject<ResourceType> resource, String desc) throws SchemaException {
@@ -163,7 +186,7 @@ public abstract class AbstractProvisioningIntegrationTest
 
         XmlSchemaType xmlSchemaTypeAfter = resourceType.getSchema();
         assertNotNull("No schema in " + desc, xmlSchemaTypeAfter);
-        Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resourceType);
+        Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchemaElement(resourceType);
         assertNotNull("No schema XSD element in " + desc, resourceXsdSchemaElementAfter);
 
         CachingMetadataType cachingMetadata = xmlSchemaTypeAfter.getCachingMetadata();
@@ -172,7 +195,7 @@ public abstract class AbstractProvisioningIntegrationTest
         assertNotNull("No serialNumber in " + desc, cachingMetadata.getSerialNumber());
 
         Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaTypeAfter);
-        ResourceSchema parsedSchema = ResourceSchemaParser.parse(xsdElement, resource.toString());
+        ResourceSchema parsedSchema = ResourceSchemaFactory.parseNativeSchemaAsBare(xsdElement);
         assertNotNull("No schema after parsing in " + desc, parsedSchema);
     }
 
@@ -361,5 +384,48 @@ public abstract class AbstractProvisioningIntegrationTest
     @Override
     public SimpleObjectResolver getResourceReloader() {
         return RepoSimpleObjectResolver.get();
+    }
+
+    protected void checkShadowConsistence(@NotNull PrismObject<ShadowType> shadow) {
+        shadow.checkConsistence(true, true);
+        ShadowUtil.checkConsistence(shadow, getTestNameShort());
+    }
+
+    protected ShadowAsserter<Void> assertProvisioningShadowNew(@NotNull String oid)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        var shadow = provisioningService
+                .getObject(ShadowType.class, oid, null, getTestTask(), getTestOperationResult())
+                .asObjectable();
+        return assertShadowNew(shadow);
+    }
+
+    protected void markShadow(String shadowOid, String markOid, Task task, OperationResult result) throws CommonException {
+        provisioningService.modifyObject(
+                ShadowType.class,
+                shadowOid,
+                deltaFor(ShadowType.class)
+                        .item(ShadowType.F_POLICY_STATEMENT)
+                        .add(markFor(markOid))
+                        .asItemDeltas(),
+                null, null, task, result);
+    }
+
+    /** Requires the mark to be set by {@link #markShadow(String, String, Task, OperationResult)} method. */
+    protected void unmarkShadow(String shadowOid, String markOid, Task task, OperationResult result) throws CommonException {
+        provisioningService.modifyObject(
+                ShadowType.class,
+                shadowOid,
+                deltaFor(ShadowType.class)
+                        .item(ShadowType.F_POLICY_STATEMENT)
+                        .delete(markFor(markOid))
+                        .asItemDeltas(),
+                null, null, task, result);
+    }
+
+    private static PolicyStatementType markFor(String markOid) {
+        return new PolicyStatementType()
+                .markRef(markOid, MarkType.COMPLEX_TYPE)
+                .type(PolicyStatementTypeType.APPLY);
     }
 }

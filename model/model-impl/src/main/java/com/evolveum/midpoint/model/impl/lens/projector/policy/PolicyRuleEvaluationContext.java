@@ -86,4 +86,6 @@ public abstract class PolicyRuleEvaluationContext<O extends ObjectType> {
     public LensFocusContext<?> getFocusContext() {
         return elementContext instanceof LensFocusContext<?> ? (LensFocusContext<?>) elementContext : null;
     }
+
+    @NotNull public Task getTask() { return task; }
 }

@@ -191,7 +191,7 @@ public class ApprovalContextUtil {
 
     public static void appendNumber(Integer stageNumber, Integer stageCount, StringBuilder sb) {
         if (stageNumber != null) {
-            boolean parentheses = sb.length() > 0;
+            boolean parentheses = !sb.isEmpty();
             if (parentheses) {
                 sb.append(" (");
             }
@@ -450,10 +450,11 @@ public class ApprovalContextUtil {
         return new WorkItemEscalationLevelType().name(escalationLevelName).displayName(escalationLevelDisplayName);
     }
 
-    public static WorkItemDelegationEventType createDelegationEvent(WorkItemEscalationLevelType newEscalation,
+    public static WorkItemDelegationEventType createDelegationEvent(
+            WorkItemEscalationLevelType newEscalation,
             List<ObjectReferenceType> assigneesBefore, List<ObjectReferenceType> delegatedTo,
             @NotNull WorkItemDelegationMethodType method,
-            WorkItemEventCauseInformationType causeInformation, PrismContext prismContext) {
+            WorkItemEventCauseInformationType causeInformation) {
         WorkItemDelegationEventType event;
         if (newEscalation != null) {
             WorkItemEscalationEventType escEvent = new WorkItemEscalationEventType();

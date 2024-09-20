@@ -93,7 +93,7 @@ public class DelegateWorkItemsAction extends RequestedAction<DelegateWorkItemsRe
         WorkItemEventCauseInformationType causeInformation = request.getCauseInformation();
         ObjectReferenceType initiator =
                 causeInformation == null || causeInformation.getType() == WorkItemEventCauseTypeType.USER_ACTION ?
-                        ObjectTypeUtil.createObjectRef(operation.getPrincipal().getFocus(), beans.prismContext) : null;
+                        ObjectTypeUtil.createObjectRef(operation.getPrincipal().getFocus()) : null;
 
         WorkItemOperationSourceInfo sourceInfo = new WorkItemOperationSourceInfo(initiator, causeInformation, null);
         notificationEvents.add(
@@ -130,8 +130,7 @@ public class DelegateWorkItemsAction extends RequestedAction<DelegateWorkItemsRe
                         assigneesBefore,
                         delegatedTo,
                         delegation.getMethod(),
-                        causeInformation,
-                        beans.prismContext);
+                        causeInformation);
         event.setComment(delegation.getComment());
         if (newEscalationInfo != null) {
             workItem.setEscalationLevel(newEscalationInfo);

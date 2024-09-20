@@ -137,7 +137,7 @@ public class PageResources extends PageAdmin {
 
             @Override
             protected ISelectableDataProvider<SelectableBean<ResourceType>> createProvider() {
-                if (isNativeRepo()) {
+                if (isNativeRepo() && getPageParameters().isEmpty()) {
                     SelectableBeanObjectDataProvider<ResourceType> provider = createSelectableBeanObjectDataProvider(() ->
                             getCustomizeContentQuery(), null, getQueryOptions());
                     provider.setEmptyListOnNullQuery(true);
@@ -145,7 +145,7 @@ public class PageResources extends PageAdmin {
                     provider.setDefaultCountIfNull(Integer.MAX_VALUE);
                     return provider;
                 } else {
-                    return super.createProvider();
+                    return createSelectableBeanObjectDataProvider(null, null, getQueryOptions());
                 }
             }
 

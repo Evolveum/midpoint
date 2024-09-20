@@ -1,0 +1,59 @@
+= Sequence
+:page-wiki-name: Sequence
+:page-wiki-id: 24086053
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2017-05-11T19:08:20.427+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2017-05-11T19:08:51.456+02:00
+:page-upkeep-status: yellow
+
+== Description
+
+Sequence of command expressions.
+They are executed one after another; input sent to the sequence as a whole is then sent individually to each expression.
+Output of the last expression is considered to be the output of the whole sequence.
+
+
+== Input
+
+Any value.
+It is sent to the first expression.
+
+
+== Output
+
+Output of the last expression.
+
+
+== Properties
+
+[%autowidth]
+|===
+| Property name | Meaning
+
+| (scripting expressions)
+| Expressions that present the content of the sequence
+
+
+|===
+
+
+== Examples
+
+.Disables and deletes all users
+[source,xml]
+----
+<pipeline>
+    <search>
+        <type>UserType</type>
+    </search>
+    <sequence>
+        <action>
+            <type>disable</type>
+        </action>
+        <action>
+            <type>delete</type>
+        </action>
+    </sequence>
+</pipeline>
+----

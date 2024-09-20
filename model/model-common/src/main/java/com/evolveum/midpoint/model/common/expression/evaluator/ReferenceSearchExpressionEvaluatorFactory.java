@@ -34,9 +34,9 @@ public class ReferenceSearchExpressionEvaluatorFactory extends AbstractObjectRes
 
     private static final QName ELEMENT_NAME = SchemaConstantsGenerated.C_REFERENCE_SEARCH;
 
-    private final Protector protector;
+    final Protector protector;
 
-    public ReferenceSearchExpressionEvaluatorFactory(ExpressionFactory expressionFactory, Protector protector) {
+    ReferenceSearchExpressionEvaluatorFactory(ExpressionFactory expressionFactory, Protector protector) {
         super(expressionFactory);
         this.protector = protector;
     }

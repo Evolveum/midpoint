@@ -11,12 +11,11 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
 
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-import com.querydsl.sql.types.Null;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -61,7 +60,7 @@ public class TestOpenDjDumber extends TestOpenDj {
     }
 
     @Override
-    protected void assertTimestampType(String attrName, ResourceAttributeDefinition<?> def) {
+    protected void assertTimestampType(String attrName, ShadowSimpleAttributeDefinition<?> def) {
         assertEquals("Wrong "+attrName+"type", DOMUtil.XSD_STRING, def.getTypeName());
     }
 
@@ -100,5 +99,10 @@ public class TestOpenDjDumber extends TestOpenDj {
         // THEN
         then();
         assertFailure(result);
+    }
+
+    @Override
+    protected boolean isActivationCapabilityClassSpecific() {
+        return false;
     }
 }

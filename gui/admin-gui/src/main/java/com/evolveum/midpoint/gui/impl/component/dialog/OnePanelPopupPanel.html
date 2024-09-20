@@ -7,9 +7,11 @@
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
     <div wicket:id="panel"/>
 
-    <div class="d-flex">
-        <a wicket:id="doneButton" class="ml-auto btn btn-primary">
-            <span><wicket:message key="OnePanelPopupPanel.button.done"/></span>
-        </a>
-    </div>
+    <wicket:fragment wicket:id="buttons">
+        <div class="d-flex">
+            <a wicket:id="doneButton" class="ml-auto btn btn-primary">
+                <span><wicket:message key="OnePanelPopupPanel.button.done"/></span>
+            </a>
+        </div>
+    </wicket:fragment>
 </wicket:panel>

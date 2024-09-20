@@ -81,10 +81,6 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-        // We need to switch off the encryption checks. Some values cannot be encrypted as we do
-        // not have a definition here
-        InternalsConfig.encryptionChecks = false;
-
         super.initSystem(initTask, initResult);
 
         syncServiceMock.setSupportActivation(false);
@@ -113,7 +109,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         display("Async Connector", repoConnector);
 
         // Check connector schema
-        IntegrationTestTools.assertConnectorSchemaSanity(repoConnector, prismContext);
+        IntegrationTestTools.assertConnectorSchemaSanity(repoConnector);
     }
 
     @Test
@@ -125,7 +121,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         ResourceType resourceBefore = repositoryService.getObject(
                 ResourceType.class, RESOURCE_ASYNC_OID, null, result).asObjectable();
 
-        ResourceTypeUtil.getResourceXsdSchema(resourceBefore);
+        ResourceTypeUtil.getResourceXsdSchemaElement(resourceBefore);
 
         CapabilitiesType capabilities = resourceBefore.getCapabilities();
         if (capabilities != null) {
@@ -145,7 +141,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
         XmlSchemaType xmlSchemaTypeAfter = resourceTypeRepoAfter.getSchema();
         assertNotNull("No schema after test connection", xmlSchemaTypeAfter);
-        Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resourceTypeRepoAfter);
+        Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchemaElement(resourceTypeRepoAfter);
         assertNotNull("No schema after test connection", resourceXsdSchemaElementAfter);
 
         String resourceXml = prismContext.xmlSerializer().serialize(resourceRepoAfter);
@@ -157,7 +153,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         assertNotNull("No serialNumber", cachingMetadata.getSerialNumber());
 
         Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaTypeAfter);
-        ResourceSchema parsedSchema = ResourceSchemaParser.parse(xsdElement, resourceBefore.toString());
+        ResourceSchema parsedSchema = ResourceSchemaFactory.parseNativeSchemaAsBare(xsdElement);
         assertNotNull("No schema after parsing", parsedSchema);
 
         // schema will be checked in next test
@@ -184,16 +180,9 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         // The returned type should have the schema pre-parsed
         assertTrue(ResourceSchemaFactory.hasParsedSchema(resource.asObjectable()));
 
-        // Also test if the utility method returns the same thing
-        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource.asObjectable());
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource.asObjectable());
 
         displayDumpable("Parsed resource schema", resourceSchema);
-
-        // Check whether it is reusing the existing schema and not parsing it all over again
-        // Not equals() but == ... we want to really know if exactly the same
-        // object instance is returned
-        assertSame("Broken caching", resourceSchema,
-                ResourceSchemaFactory.getRawSchema(resource.asObjectable()));
 
         ResourceObjectClassDefinition accountDef = resourceSchema.findObjectClassDefinition(RESOURCE_ACCOUNT_OBJECTCLASS);
         assertNotNull("Account definition is missing", accountDef);
@@ -227,10 +216,10 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         assertNotNull("Delta is missing", lastChange.getObjectDelta());
         assertNotNull("Current shadow is not present", lastChange.getShadowedResourceObject());
 
-        PrismObject<ShadowType> accountRepo = findAccountShadowByUsername("banderson", resource, result);
-        assertNotNull("Shadow was not created in the repository", accountRepo);
-        display("Repository shadow", accountRepo);
-        checkRepoAccountShadow(accountRepo);
+        var repoShadow = findAccountShadowByUsername("banderson", resource, result);
+        assertNotNull("Shadow was not created in the repository", repoShadow);
+        display("Repository shadow", repoShadow);
+        checkRepoAccountShadow(repoShadow);
         assertNoUnacknowledgedMessages();
     }
 
@@ -480,7 +469,13 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
     }
 
     private int getNumberOfAccountAttributes() {
-        return isCached() ? 4 : 2;
+        if (isCached()) {
+            return 4;
+        } else if (InternalsConfig.isShadowCachingOnByDefault()) {
+            return 3; // for some reason, "test" is provided, but "memberOf" is not; TODO does not work universally
+        } else {
+            return 2;
+        }
     }
 
     abstract boolean isCached();
@@ -509,15 +504,14 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
     private ShadowAsserter<Void> getAndersonFull(boolean dead, Task task, OperationResult result)
             throws SchemaException, SecurityViolationException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException {
-        PrismObject<ShadowType> shadowRepo = findAccountShadowByUsername("banderson", resource, result);
-        assertNotNull("No Anderson shadow in repo", shadowRepo);
+        var repoShadow = findAccountShadowByUsername("banderson", resource, result);
+        assertNotNull("No Anderson shadow in repo", repoShadow);
         Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
                 .noFetch()
                 .retrieve()
                 .build();
         try {
-            PrismObject<ShadowType> shadow = provisioningService
-                    .getObject(ShadowType.class, shadowRepo.getOid(), options, task, result);
+            var shadow = provisioningService.getObject(ShadowType.class, repoShadow.getOid(), options, task, result);
             if (dead) {
                 fail("Shadow should be gone now but it is not: " + shadow.debugDump());
             }

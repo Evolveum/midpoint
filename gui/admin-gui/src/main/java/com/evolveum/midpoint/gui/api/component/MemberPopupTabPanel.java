@@ -15,8 +15,6 @@ import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractRoleSearc
 import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import com.evolveum.midpoint.web.component.input.RelationDropDownChoice;
 
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.jetbrains.annotations.NotNull;
@@ -66,7 +64,7 @@ public abstract class MemberPopupTabPanel<O extends ObjectType> extends Abstract
         pageBase = getPageBase();
     }
 
-    private List<QName> getSupportedRelations() {
+    protected List<QName> getSupportedRelations() {
         AbstractRoleSearchItemWrapper memberSearchItem = getMemberSearchItem();
         return memberSearchItem != null ? memberSearchItem.getSupportedRelations() : new ArrayList<>();
 //        return search.getSupportedRelations();
@@ -111,7 +109,7 @@ public abstract class MemberPopupTabPanel<O extends ObjectType> extends Abstract
     protected ObjectDelta prepareDelta() {
         ObjectDelta delta = null;
         try {
-            Class classType = WebComponentUtil.qnameToClass(pageBase.getPrismContext(), getObjectType().getTypeQName());
+            Class classType = WebComponentUtil.qnameToClass(getObjectType().getTypeQName());
             delta = pageBase.getPrismContext().deltaFactory()
                     .object().createEmptyModifyDelta(classType, "fakeOid");
             AssignmentType newAssignment = new AssignmentType();

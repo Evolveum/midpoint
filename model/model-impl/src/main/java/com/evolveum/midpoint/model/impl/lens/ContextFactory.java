@@ -137,9 +137,7 @@ public class ContextFactory {
                     delta.getOid(),
                     () -> new IllegalArgumentException("Non-add delta " + delta + " does not have an OID"));
             try {
-                // We hope that the shadow is already in the cache, so this call will incur only a small overhead.
-                // But even if it's not cached yet: this case (adding shadow explicitly via delta) is fortunately
-                // quite a rare one, so it's not a big deal.
+                // TODO We should call the provisioning service here instead. Otherwise, obsolete data can be put into the context.
                 shadow = repositoryService
                         .getObject(
                                 ShadowType.class,

@@ -1,0 +1,91 @@
+= Connector Host Type REST Endpoint
+:page-nav-title: Connector Host
+:page-display-order: 1400
+:page-toc: top
+:page-keywords: [ 'rest', 'connector', 'host', 'endpoint' ]
+:page-upkeep-status: green
+
+== Description
+
+Here we are describing the Connector Host object type in relation to midPoints REST API. The
+Connector Host objects are a part of the REST API web resources.
+
+.Endpoint
+[source, http]
+----
+connectorHosts/
+----
+
+== Operations And Examples
+
+The Connector Host Type endpoint operations and examples.
+
+include::../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+
+=== Create Connector Host Type Object
+
+- xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]
+
+=== Get Connector Host Type Objects
+
+Get operation for fetching a single specific object.
+
+- xref:/midpoint/reference/interfaces/rest/operations/get-op-rest/[Get Operation]
+
+=== Search for Connector Host Type Objects
+
+Search operation usable for fetching the full list of objects or a list based on filter.
+
+include::../operations/examples/raw/search-all.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[Search Operation]
+
+=== Modify Connector Host Type Objects
+
+- xref:/midpoint/reference/interfaces/rest/operations/modify-op-rest/[Modify Operation]
+
+=== Delete Connector Host Type Objects
+
+- xref:/midpoint/reference/interfaces/rest/operations/delete-op-rest/[Delete Operation]
+
+=== Generate and Validate Operations for Connector Host Type Objects
+
+Operations to generate or validate values.
+
+- xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]
+
+== JSON Example
+
+Example output of information regarding a specific Connector Host object. Metadata is usually a part of
+the output, yet it was removed for the purpose of the example.
+
+.Show JSON Example
+[%collapsible]
+====
+[source, json]
+----
+{
+  "connectorHost" : {
+    "oid" : "d90c34e2-7d69-4ba8-ba54-cde37ae8d4ab",
+    "version" : "1",
+    "name" : "ICF Connector server on localhost:8759",
+    "metadata" : {},
+    "operationExecution" : {},
+    "iteration" : 0,
+    "iterationToken" : "",
+    "hostname" : "localhost",
+    "port" : "8759",
+    "sharedSecret" : {}
+  }
+}
+----
+====
+
+== See Also
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]

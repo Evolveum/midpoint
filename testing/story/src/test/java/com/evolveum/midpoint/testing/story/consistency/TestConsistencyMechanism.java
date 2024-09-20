@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.testing.story.consistency;
 
+import static com.evolveum.midpoint.test.IntegrationTestTools.toRiQName;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
@@ -337,7 +339,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         display("Initialized OpenDJ resource (repository)", resourceTypeOpenDjrepo);
         assertNotNull("Resource schema was not generated", resourceTypeOpenDjrepo.getSchema());
         Element resourceOpenDjXsdSchemaElement = ResourceTypeUtil
-                .getResourceXsdSchema(resourceTypeOpenDjrepo);
+                .getResourceXsdSchemaElement(resourceTypeOpenDjrepo);
         assertNotNull("Resource schema was not generated", resourceOpenDjXsdSchemaElement);
 
         PrismObject<ResourceType> openDjResourceProvisioning = provisioningService.getObject(
@@ -352,7 +354,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         System.out.println("------------------------------------------------------------------");
         displayValue("OpenDJ resource schema (repo XML)",
-                DOMUtil.serializeDOMToString(ResourceTypeUtil.getResourceXsdSchema(resourceTypeOpenDjrepo)));
+                DOMUtil.serializeDOMToString(ResourceTypeUtil.getResourceXsdSchemaElement(resourceTypeOpenDjrepo)));
         System.out.println("------------------------------------------------------------------");
 
         checkOpenDjResource(openDjResourceProvisioning.asObjectable(), "provisioning");
@@ -441,7 +443,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                     .assertValue(QNAME_GIVEN_NAME, "Jack")
                     .assertValue(QNAME_CN, "Jack Sparrow")
                     .assertValue(QNAME_SN, "Sparrow")
-                    .assertNoAttribute(QNAME_CAR_LICENSE)
+                    .assertNoSimpleAttribute(QNAME_CAR_LICENSE)
                 .end()
                 .assertResource(RESOURCE_OPENDJ_OID)
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED);
@@ -487,7 +489,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                     .assertValue(QNAME_GIVEN_NAME, "Jack")
                     .assertValue(QNAME_CN, "Jack Deniels")
                     .assertValue(QNAME_SN, "Deniels")
-                    .assertNoAttribute(QNAME_CAR_LICENSE)
+                    .assertNoSimpleAttribute(QNAME_CAR_LICENSE)
                 .end()
                 .assertResource(RESOURCE_OPENDJ_OID)
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED);
@@ -524,7 +526,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .link(ACCOUNT_JACKIE_OID);
         //check if the jackie account already exists on the resource
 
-        PrismObject<ShadowType> existingJackieAccount = getShadowRepo(ACCOUNT_JACKIE_OID);
+        PrismObject<ShadowType> existingJackieAccount = getShadowRepoLegacy(ACCOUNT_JACKIE_OID);
         display("Jack's account: ", existingJackieAccount);
 
         when("Adding account on the resource to user jackie...");
@@ -551,7 +553,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                     .assertValue(QNAME_GIVEN_NAME, "Jack")
                     .assertValue(QNAME_CN, "Jack Russel")
                     .assertValue(QNAME_SN, "Russel")
-                    .assertNoAttribute(QNAME_CAR_LICENSE)
+                    .assertNoSimpleAttribute(QNAME_CAR_LICENSE)
                 .end()
                 .assertResource(RESOURCE_OPENDJ_OID)
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED);
@@ -594,10 +596,10 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class,
                 accountOid, null, task, parentResult);
 
-        ResourceAttributeContainer attributes = ShadowUtil.getAttributesContainer(account);
+        ShadowAttributesContainer attributes = ShadowUtil.getAttributesContainer(account);
 
         assertEquals("shadow secondary identifier not equal with the account dn. ", dn, attributes
-                .findAttribute(getOpenDjSecondaryIdentifierQName()).getRealValue(String.class));
+                .findSimpleAttribute(getOpenDjSecondaryIdentifierQName()).getRealValue(String.class));
 
         String identifier = attributes.getPrimaryIdentifier().getRealValue(String.class);
 
@@ -734,7 +736,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     }
 
     protected void checkTest130DeadShadow(Task task, OperationResult parentResult) throws CommonException {
-        PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_GUYBRUSH_OID);
+        PrismObject<ShadowType> shadowRepo = getShadowRepoLegacy(ACCOUNT_GUYBRUSH_OID);
         ShadowAsserter.forShadow(shadowRepo)
                 .assertTombstone()
                 .assertDead()
@@ -791,7 +793,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     }
 
     protected void checkTest140DeadShadow(Task task, OperationResult result) throws CommonException {
-        PrismObject<ShadowType> shadowAfter = getShadowRepo(ACCOUNT_GUYBRUSH_OID);
+        PrismObject<ShadowType> shadowAfter = getShadowRepoLegacy(ACCOUNT_GUYBRUSH_OID);
         ShadowAsserter.forShadow(shadowAfter)
                 .assertTombstone()
                 .assertDead()
@@ -921,7 +923,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         String dn = ShadowUtil.getAttributeValue(shadowBefore, RESOURCE_OPENDJ_SECONDARY_IDENTIFIER);
         openDJController.delete(dn);
 
-        PrismObject<ShadowType> repoShadowBefore = getShadowRepo(liveLinkOidBefore);
+        PrismObject<ShadowType> repoShadowBefore = getShadowRepoLegacy(liveLinkOidBefore);
         assertNotNull("Repo shadow is gone!", repoShadowBefore);
         display("Repository shadow before", repoShadowBefore);
         assertThat(repoShadowBefore.asObjectable().isDead())
@@ -1104,7 +1106,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .assertNoPrimaryIdentifierValue()
                 .assertNoLegacyConsistency()
                 .attributes()
-                    .assertAttributes(QNAME_DN, QNAME_UID)
+                    .assertAttributesCachingAware(QNAME_DN, QNAME_UID)
                 .end()
                 .pendingOperations()
                     .singleOperation()
@@ -1161,7 +1163,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .assertNoPrimaryIdentifierValue()
                 .assertNoLegacyConsistency()
                 .attributes()
-                    .assertAttributes(QNAME_DN, QNAME_UID)
+                    .assertAttributesCachingAware(QNAME_DN, QNAME_UID)
                     .end()
                 .pendingOperations()
                     .assertOperations(2)
@@ -1409,7 +1411,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .assertNoPrimaryIdentifierValue()
                 .assertNoLegacyConsistency()
                 .attributes()
-                    .assertAttributes(QNAME_DN, QNAME_UID)
+                    .assertAttributesCachingAware(QNAME_DN, QNAME_UID)
                     .end()
                 .pendingOperations()
                     .singleOperation()
@@ -1666,7 +1668,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .assertNoPrimaryIdentifierValue()
                 .assertNoLegacyConsistency()
                 .attributes()
-                    .assertAttributes(QNAME_DN, QNAME_UID)
+                    .assertAttributesCachingAware(QNAME_DN, QNAME_UID)
                 .end()
                 .pendingOperations()
                     .singleOperation()
@@ -1682,9 +1684,9 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                             .display()
                             .assertAdd();
         // @formatter:on
-        PrismObject<ShadowType> repoShadow = getShadowRepo(shadowOid);
-        MetadataType metadata = repoShadow.asObjectable().getMetadata();
-        assertTrue("Shadow doesn't have metadata", metadata != null && metadata.getCreateTimestamp() != null);
+        PrismObject<ShadowType> repoShadow = getShadowRepoLegacy(shadowOid);
+        assertNotNull("Shadow doesn't have metadata",
+                ValueMetadataTypeUtil.getCreateTimestamp(repoShadow.asObjectable()));
 
         //start openDJ
         openDJController.start();
@@ -2210,7 +2212,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
                 .delta()
                 .assertNoModification(attributePath(QNAME_EMPLOYEE_TYPE))
-                .assertHasModification(ShadowType.F_ASSOCIATION);
+                .assertHasModification(ShadowType.F_ASSOCIATIONS.append(toRiQName("group")));
 
         //THEN
         openDJController.assumeRunning();
@@ -2348,8 +2350,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        provisioningService.applyDefinition(accountShadow, task, result);
+        var accountShadow = getShadowRepo(accountOid);
         display("account shadow (repo)", accountShadow);
         assertShadowRepo(accountShadow, accountOid, "uid=morgan,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
 
@@ -2397,8 +2398,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         assertEquals("old oid not used..", accOid, accountOid);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        provisioningService.applyDefinition(accountShadow, task, result);
+        var accountShadow = getShadowRepo(accountOid);
         assertShadowRepo(accountShadow, accountOid, "uid=chuck,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
 
         // Check account
@@ -2457,8 +2457,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         assertEquals("old oid not used..", ACCOUNT_HERMAN_OID, shadowOidAfter);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, shadowOidAfter, null, result);
-        provisioningService.applyDefinition(accountShadow, task, result);
+        var accountShadow = getShadowRepo(shadowOidAfter);
         assertShadowRepo(accountShadow, shadowOidAfter, "uid=ht,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
 
         // Check account
@@ -2521,7 +2520,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         // Check shadow
         String accountOid = linkRef.getOid();
         try {
-            PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+            var accountShadow = getShadowRepo(accountOid);
             assertAccountShadowRepo(accountShadow, accountOid, "uid=morgan,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo);
             fail("Unexpected shadow in repo. Shadow mut not exist");
         } catch (ObjectNotFoundException ex) {
@@ -2558,7 +2557,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         ExpressionType expression = new ExpressionType();
         ObjectFactory of = new ObjectFactory();
-        RawType raw = new RawType(prismContext.xnodeFactory().primitive("uid=morgan,ou=users,dc=example,dc=com").frozen(), prismContext);
+        RawType raw = new RawType(prismContext.xnodeFactory().primitive("uid=morgan,ou=users,dc=example,dc=com").frozen());
 
         JAXBElement<?> val = of.createValue(raw);
         expression.getExpressionEvaluator().add(val);
@@ -2572,7 +2571,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         ConstructionType construction = new ConstructionType();
         construction.getAttribute().add(attrDefType);
-        construction.setResourceRef(ObjectTypeUtil.createObjectRef(resourceTypeOpenDjrepo, prismContext));
+        construction.setResourceRef(ObjectTypeUtil.createObjectRef(resourceTypeOpenDjrepo));
 
         AssignmentType assignment = new AssignmentType();
         assignment.setConstruction(construction);
@@ -2600,14 +2599,13 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         // Check shadow
 
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        provisioningService.applyDefinition(accountShadow, task, result);
+        var accountShadow = getShadowRepo(accountOid);
         assertShadowRepo(accountShadow, accountOid, "uid=morgan,ou=users,dc=example,dc=com", resourceTypeOpenDjrepo, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
 
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertShadowModel(accountModel, accountOid, "uid=morgan,ou=users,dc=example,dc=com", resourceTypeOpenDjrepo, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
-        ResourceAttribute<?> attributes = ShadowUtil.getAttribute(accountModel, QNAME_UID);
+        ShadowSimpleAttribute<?> attributes = ShadowUtil.getSimpleAttribute(accountModel, QNAME_UID);
         assertEquals("morgan", attributes.getAnyRealValue());
         // TODO: check OpenDJ Account
     }
@@ -2732,7 +2730,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         String userOid = userBefore.getOid();
         String userName = userBefore.getName().getOrig();
         AssignmentType assignment = userBefore.getAssignment().get(0).clone();
-        AssignmentType assignmentNoId = userBefore.getAssignment().get(0).cloneWithoutId();
+        AssignmentType assignmentNoIdNoMetadata = userBefore.getAssignment().get(0).cloneWithoutIdAndMetadata();
 
         openDJController.stop();
 
@@ -2747,7 +2745,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         when("re-creating the account by re-assigning the construction");
         openDJController.start();
         modifyResourceAvailabilityStatus(AvailabilityStatusType.UP, result);
-        recreateAssignment(userOid, assignmentNoId, task, result);
+        recreateAssignment(userOid, assignmentNoIdNoMetadata, task, result);
 
         then("re-creating the account by re-assigning the construction");
         assertStateAfterRecreatingTheAssignment(userOid, userName, originalShadow, task, result);
@@ -2775,7 +2773,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         String userOid = userBefore.getOid();
         String userName = userBefore.getName().getOrig();
         AssignmentType assignment = userBefore.getAssignment().get(0).clone();
-        AssignmentType assignmentNoId = userBefore.getAssignment().get(0).cloneWithoutId();
+        AssignmentType assignmentNoIdNoMetadata = userBefore.getAssignment().get(0).cloneWithoutIdAndMetadata();
 
         turnMaintenanceModeOn(RESOURCE_OPENDJ_OID, result);
 
@@ -2789,7 +2787,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         // --- re-creating the assignment ---
         when("re-creating the account by re-assigning the construction");
         turnMaintenanceModeOff(RESOURCE_OPENDJ_OID, result);
-        recreateAssignment(userOid, assignmentNoId, task, result);
+        recreateAssignment(userOid, assignmentNoIdNoMetadata, task, result);
 
         then("re-creating the account by re-assigning the construction");
         assertStateAfterRecreatingTheAssignment(userOid, userName, originalShadow, task, result);
@@ -2798,7 +2796,8 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     /** Prepares OpenDJ resource for tests that we want to run standalone. (Contains the required core of test001.) */
     @SuppressWarnings("unused") // enabled on demand
     private void prepareOpenDjResource(Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException,
+            SecurityViolationException, CommunicationException {
         assertSuccess(
                 modelService.testResource(RESOURCE_OPENDJ_OID, task, result));
         fetchResourceObject(result);
@@ -2957,9 +2956,9 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         ShadowType eAccount = checkNormalizedShadowWithAttributes(accountOid, "e", "eeeee", "e", "e", task, result);
         assertAttribute(eAccount, "employeeNumber", "emp4321");
-        ResourceAttributeContainer attributeContainer = ShadowUtil
+        ShadowAttributesContainer attributeContainer = ShadowUtil
                 .getAttributesContainer(eAccount);
-        Collection<ResourceAttribute<?>> identifiers = attributeContainer.getPrimaryIdentifiers();
+        Collection<ShadowSimpleAttribute<?>> identifiers = attributeContainer.getPrimaryIdentifiers();
         assertNotNull(identifiers);
         assertFalse(identifiers.isEmpty());
         assertEquals(1, identifiers.size());
@@ -3047,14 +3046,14 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         ShadowType eAccount = checkNormalizedShadowWithAttributes(accountOid, "e123", "eeeee", "e", "e", task, result);
         assertAttribute(eAccount, "employeeNumber", "emp4321");
-        ResourceAttributeContainer attributeContainer = ShadowUtil
+        ShadowAttributesContainer attributeContainer = ShadowUtil
                 .getAttributesContainer(eAccount);
-        Collection<ResourceAttribute<?>> identifiers = attributeContainer.getPrimaryIdentifiers();
+        Collection<ShadowSimpleAttribute<?>> identifiers = attributeContainer.getPrimaryIdentifiers();
         assertNotNull(identifiers);
         assertFalse(identifiers.isEmpty());
         assertEquals(1, identifiers.size());
 
-        ResourceAttribute<?> icfNameAttr = attributeContainer.findAttribute(getOpenDjSecondaryIdentifierQName());
+        ShadowSimpleAttribute<?> icfNameAttr = attributeContainer.findSimpleAttribute(getOpenDjSecondaryIdentifierQName());
         assertEquals("Wrong secondary indetifier.", "uid=e123,ou=people,dc=example,dc=com", icfNameAttr.getRealValue());
 
         assertEquals("Wrong shadow name. ", "uid=e123,ou=people,dc=example,dc=com", eAccount.getName().getOrig());
@@ -3063,15 +3062,15 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         provisioningService.applyDefinition(repoShadow, task, result);
 
-        ResourceAttributeContainer repoAttributeContainer = ShadowUtil.getAttributesContainer(repoShadow);
-        ResourceAttribute<?> repoIcfNameAttr = repoAttributeContainer.findAttribute(getOpenDjSecondaryIdentifierQName());
+        ShadowAttributesContainer repoAttributeContainer = ShadowUtil.getAttributesContainer(repoShadow);
+        ShadowSimpleAttribute<?> repoIcfNameAttr = repoAttributeContainer.findSimpleAttribute(getOpenDjSecondaryIdentifierQName());
         assertEquals("Wrong secondary indetifier.", "uid=e123,ou=people,dc=example,dc=com", repoIcfNameAttr.getRealValue());
 
         assertEquals("Wrong shadow name. ", "uid=e123,ou=people,dc=example,dc=com", repoShadow.asObjectable().getName().getOrig());
 
     }
 
-    private void checkRepoOpenDjResource() throws ObjectNotFoundException, SchemaException {
+    private void checkRepoOpenDjResource() throws ObjectNotFoundException, SchemaException, ConfigurationException {
         OperationResult result = new OperationResult(TestConsistencyMechanism.class.getName()
                 + ".checkRepoOpenDjResource");
         PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class,
@@ -3083,7 +3082,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
      * Checks if the resource is internally consistent, if it has everything it
      * should have.
      */
-    private void checkOpenDjResource(ResourceType resource, String source) throws SchemaException {
+    private void checkOpenDjResource(ResourceType resource, String source) throws SchemaException, ConfigurationException {
         assertNotNull("Resource from " + source + " is null", resource);
         assertNotNull("Resource from " + source + " has null configuration", resource.getConnectorConfiguration());
         assertNotNull("Resource from " + source + " has null schema", resource.getSchema());
@@ -3104,11 +3103,11 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         checkOpenDjConfiguration(resource.asPrismObject(), source);
     }
 
-    private void checkOpenDjSchema(ResourceType resource, String source) throws SchemaException {
-        ResourceSchema schema = ResourceSchemaFactory.getRawSchema(resource);
+    private void checkOpenDjSchema(ResourceType resource, String source) throws SchemaException, ConfigurationException {
+        ResourceSchema schema = ResourceSchemaFactory.getCompleteSchemaRequired(resource);
         ResourceObjectClassDefinition accountDefinition = schema.findObjectClassDefinition(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
         assertNotNull("Schema does not define any account (resource from " + source + ")", accountDefinition);
-        Collection<? extends ResourceAttributeDefinition<?>> identifiers = accountDefinition.getPrimaryIdentifiers();
+        Collection<? extends ShadowSimpleAttributeDefinition<?>> identifiers = accountDefinition.getPrimaryIdentifiers();
         assertFalse("No account identifiers (resource from " + source + ")", identifiers.isEmpty());
         // TODO: check for naming attributes and display names, etc
 
@@ -3117,7 +3116,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         if (capActivation != null && capActivation.getStatus() != null && capActivation.getStatus().getAttribute() != null) {
             // There is simulated activation capability, check if the attribute is in schema.
             QName enableAttrName = capActivation.getStatus().getAttribute();
-            ResourceAttributeDefinition<?> enableAttrDef = accountDefinition.findAttributeDefinition(enableAttrName);
+            ShadowSimpleAttributeDefinition<?> enableAttrDef = accountDefinition.findSimpleAttributeDefinition(enableAttrName);
             displayDumpable("Simulated activation attribute definition", enableAttrDef);
             assertNotNull("No definition for enable attribute " + enableAttrName + " in account (resource from " + source + ")", enableAttrDef);
             assertSame("Enable attribute " + enableAttrName + " is not ignored (resource from " + source + ")",
@@ -3285,13 +3284,8 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     }
 
     @SafeVarargs
-    protected final <T> void assertAttribute(ShadowType shadowType, String attrName, T... expectedValues) {
-        assertAttribute(resourceTypeOpenDjrepo, shadowType, attrName, expectedValues);
-    }
-
-    @SafeVarargs
     protected final <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName, T... expectedValues) {
-        assertAttribute(resourceTypeOpenDjrepo, shadow.asObjectable(), attrName, expectedValues);
+        assertAttribute(shadow.asObjectable(), attrName, expectedValues);
     }
 
     protected boolean isReaper() {

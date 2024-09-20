@@ -10,24 +10,22 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.model.common.expression.evaluator.transformation.ValueTransformationContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReferenceSearchExpressionEvaluatorType;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Creates a generic reference (or references) based on specified condition for the referenced object.
- * (It seems to be not much used.)
  *
  * @author Radovan Semancik
  */
@@ -50,26 +48,20 @@ public class ReferenceSearchExpressionEvaluator
 
     @Override
     Evaluation createEvaluation(
-            VariablesMap variables,
-            PlusMinusZero valueDestination,
-            boolean useNew,
-            ExpressionEvaluationContext context,
-            String contextDescription,
-            Task task,
-            OperationResult result) throws SchemaException {
-        return new Evaluation(variables, valueDestination, useNew, context, contextDescription, task, result) {
+            @NotNull ValueTransformationContext vtCtx, @NotNull OperationResult result)
+            throws SchemaException {
+        return new Evaluation(vtCtx, result) {
             @Override
-            protected PrismReferenceValue createResultValue(
+            protected @NotNull PrismReferenceValue createResultValue(
                     String oid,
+                    @NotNull QName objectTypeName,
                     PrismObject<ObjectType> object,
-                    List<ItemDelta<PrismReferenceValue, PrismReferenceDefinition>> newValueDeltas) {
-                // Value deltas are ignored here (they cannot be applied to a reference, anyway).
-                PrismReferenceValue refVal = prismContext.itemFactory().createReferenceValue();
-                refVal.setOid(oid);
-                refVal.setTargetType(targetTypeQName);
-                refVal.setRelation(expressionEvaluatorBean.getRelation());
-                refVal.setObject(object);
-                return refVal;
+                    List<ItemDelta<PrismReferenceValue, PrismReferenceDefinition>> newValueDeltas)
+                    throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+                    ConfigurationException, ObjectNotFoundException {
+                var relation =
+                        determineRelation(expressionEvaluatorBean.getRelation(), expressionEvaluatorBean.getRelationExpression());
+                return createReferenceValue(oid, objectTypeName, object, relation);
             }
         };
     }

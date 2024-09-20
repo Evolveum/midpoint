@@ -2,12 +2,13 @@ package com.evolveum.midpoint.schema.processor.deleg;
 
 import com.evolveum.midpoint.schema.processor.*;
 
+import com.evolveum.midpoint.schema.processor.SynchronizationReactionDefinition.ObjectSynchronizationReactionDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -15,6 +16,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;
+import java.util.Set;
 
 public interface ResourceObjectTypeDefinitionDelegator extends ResourceObjectDefinitionDelegator, ResourceObjectTypeDefinition {
 
@@ -37,6 +39,11 @@ public interface ResourceObjectTypeDefinitionDelegator extends ResourceObjectDef
     }
 
     @Override
+    default @NotNull Set<ResourceObjectTypeIdentification> getAncestorsIds() {
+        return delegate().getAncestorsIds();
+    }
+
+    @Override
     default boolean isDefaultForKind() {
         return delegate().isDefaultForKind();
     }
@@ -54,6 +61,11 @@ public interface ResourceObjectTypeDefinitionDelegator extends ResourceObjectDef
     @Override
     default <T extends CapabilityType> @Nullable T getConfiguredCapability(Class<T> capabilityClass) {
         return delegate().getConfiguredCapability(capabilityClass);
+    }
+
+    @Override
+    default @Nullable CapabilityCollectionType getSpecificCapabilities() {
+        return delegate().getSpecificCapabilities();
     }
 
     @Override
@@ -87,7 +99,7 @@ public interface ResourceObjectTypeDefinitionDelegator extends ResourceObjectDef
     }
 
     @Override
-    default @NotNull Collection<SynchronizationReactionDefinition> getSynchronizationReactions() {
+    default @NotNull Collection<? extends ObjectSynchronizationReactionDefinition> getSynchronizationReactions() {
         return delegate().getSynchronizationReactions();
     }
 
@@ -98,13 +110,8 @@ public interface ResourceObjectTypeDefinitionDelegator extends ResourceObjectDef
 
     @Override
     @NotNull
-    default Collection<ResourceObjectDefinition> getAuxiliaryDefinitions() {
+    default Collection<? extends ResourceObjectDefinition> getAuxiliaryDefinitions() {
         return delegate().getAuxiliaryDefinitions();
-    }
-
-    @Override
-    default ResourceAttributeContainer instantiate(ItemName elementName) {
-        return delegate().instantiate(elementName);
     }
 
     @Override

@@ -11,12 +11,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import jakarta.persistence.*;
 
+import jakarta.persistence.*;
 import org.apache.commons.lang3.Validate;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.NotFound;
-import org.hibernate.annotations.NotFoundAction;
+import org.hibernate.annotations.JdbcType;
 import org.hibernate.annotations.Persister;
 
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
@@ -29,6 +27,8 @@ import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
+import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
 
 /**
  * @author lazyman
@@ -52,10 +52,15 @@ public class RCaseWorkItemReference extends RReference {
     private Integer ownerId;                            // work item ID
     private RCaseWorkItemReferenceOwner referenceType;
 
-    @ForeignKey(name = "fk_case_wi_reference_owner")
-    @MapsId("workItem")
+    @MapsId
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable
+    @JoinColumns(
+            value = {
+                    @JoinColumn(name = "owner_owner_oid", referencedColumnName = "owner_oid"),
+                    @JoinColumn(name = "owner_id", referencedColumnName = "id")
+            },
+            foreignKey = @ForeignKey(name = "fk_case_wi_reference_owner"))
     public RCaseWorkItem getOwner() {
         return owner;
     }
@@ -94,9 +99,12 @@ public class RCaseWorkItemReference extends RReference {
         this.ownerId = ownerId;
     }
 
-    @ForeignKey(name = "none")
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(referencedColumnName = "oid", updatable = false, insertable = false)
+    @JoinColumn(
+            referencedColumnName = "oid",
+            updatable = false,
+            insertable = false,
+            foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT))
     // commented because of The NotFoundAction.IGNORE @ManyToOne and @OneToOne associations are always fetched eagerly. (HHH-12770)
 //    @NotFound(action = NotFoundAction.IGNORE)
     @NotQueryable
@@ -118,6 +126,7 @@ public class RCaseWorkItemReference extends RReference {
     }
 
     @Id
+    @JdbcType(IntegerJdbcType.class)
     @Column(name = REFERENCE_TYPE, nullable = false)
     public RCaseWorkItemReferenceOwner getReferenceType() {
         return referenceType;
@@ -127,6 +136,7 @@ public class RCaseWorkItemReference extends RReference {
         this.referenceType = referenceType;
     }
 
+    @JdbcType(IntegerJdbcType.class)
     @Column(name = "targetType")
     @Enumerated(EnumType.ORDINAL)
     @Override

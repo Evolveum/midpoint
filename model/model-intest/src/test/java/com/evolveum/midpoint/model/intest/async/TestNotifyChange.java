@@ -16,7 +16,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -283,11 +283,11 @@ public class TestNotifyChange extends AbstractInitializedModelIntegrationTest {
 
         // GIVEN
 
-        ResourceSchema schema = ResourceSchemaFactory.getRawSchema(resourceDummyGrouper);
+        ResourceSchema schema = ResourceSchemaFactory.getBareSchema(resourceDummyGrouper);
         assert schema != null;
-        ResourceAttributeDefinition<?> privilegeDefinition =
+        ShadowSimpleAttributeDefinition<?> privilegeDefinition =
                 schema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS)
-                .findAttributeDefinition(DummyResourceContoller.DUMMY_ENTITLEMENT_PRIVILEGE_NAME);
+                .findSimpleAttributeDefinition(DummyResourceContoller.DUMMY_ENTITLEMENT_PRIVILEGE_NAME);
         ObjectDelta<ShadowType> delta = prismContext.deltaFor(ShadowType.class)
                 .item(ItemPath.create(ShadowType.F_ATTRIBUTES, DummyResourceContoller.DUMMY_ENTITLEMENT_PRIVILEGE_NAME), privilegeDefinition)
                 .add(ALUMNI_NAME)

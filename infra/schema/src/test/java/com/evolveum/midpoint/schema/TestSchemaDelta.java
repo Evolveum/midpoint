@@ -8,16 +8,19 @@ package com.evolveum.midpoint.schema;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 
+import com.evolveum.axiom.api.AxiomPath;
+import com.evolveum.midpoint.prism.*;
+
+import com.evolveum.midpoint.prism.path.InfraItemName;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -27,7 +30,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -308,7 +310,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
         // WHEN
         PrismContainerDefinition<AssignmentType> assignmentDef = PrismTestUtil.getSchemaRegistry()
                 .findContainerDefinitionByCompileTimeClass(AssignmentType.class).clone();
-        assignmentDef.toMutable().setMaxOccurs(1);
+        assignmentDef.mutator().setMaxOccurs(1);
         PrismContainer<AssignmentType> assignmentContainer = assignmentDef.instantiate();
 
         PrismContainerValue<AssignmentType> assignmentValue = ObjectTypeUtil
@@ -318,7 +320,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 
         System.out.println("Delta before operation:\n" + addDelta.debugDump() + "\n");
         System.out.println("Assignment to subtract:\n" + assignmentValue.debugDump() + "\n");
-        boolean removed = addDelta.subtract(ItemPath.create(SchemaConstants.PATH_ASSIGNMENT), assignmentValue, false, false);
+        boolean removed = addDelta.subtract(ItemPath.create(FocusType.F_ASSIGNMENT), assignmentValue, false, false);
 
         // THEN
         System.out.println("Delta after operation:\n" + addDelta.debugDump() + "\n");
@@ -343,7 +345,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
         // WHEN
         PrismContainerDefinition<AssignmentType> assignmentDef = PrismTestUtil.getSchemaRegistry()
                 .findContainerDefinitionByCompileTimeClass(AssignmentType.class).clone();
-        assignmentDef.toMutable().setMaxOccurs(1);
+        assignmentDef.mutator().setMaxOccurs(1);
         PrismContainer<AssignmentType> assignmentContainer = assignmentDef.instantiate();
 
         PrismContainerValue<AssignmentType> assignmentValue =
@@ -354,7 +356,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 
         System.out.println("Delta before operation:\n" + delta.debugDump() + "\n");
         System.out.println("Assignment to subtract:\n" + assignmentValue.debugDump() + "\n");
-        boolean removed = delta.subtract(ItemPath.create(SchemaConstants.PATH_ASSIGNMENT), assignmentValue, true, false);
+        boolean removed = delta.subtract(ItemPath.create(FocusType.F_ASSIGNMENT), assignmentValue, true, false);
 
         // THEN
         System.out.println("Delta after operation:\n" + delta.debugDump() + "\n");
@@ -523,7 +525,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
      * Analogy of:
      * MODIFY/replace (credentials/password) + MODIFY/add (credentials/password/metadata)   [MID-4593]
      */
-    @Test      // MID-4690
+    @Test // MID-4690
     public void testObjectDeltaUnion() throws Exception {
         // GIVEN
         ProtectedStringType value = new ProtectedStringType();
@@ -539,23 +541,98 @@ public class TestSchemaDelta extends AbstractSchemaTest {
                 .asObjectDelta("001");
 
         // WHEN
-        ObjectDelta<UserType> userDeltaUnion = ObjectDeltaCollectionsUtil.union(userDelta1, userDelta2);
+        ObjectDelta<UserType> summarizedDelta = ObjectDeltaCollectionsUtil.union(userDelta1, userDelta2);
 
         // THEN
-        displayValue("result", userDeltaUnion);
+        displayValue("result", summarizedDelta);
+        assertThat(summarizedDelta).isNotNull();
 
-        PrismObject<UserType> userWithSeparateDeltas = new UserType(getPrismContext()).asPrismObject();
+        PrismObject<UserType> userWithSeparateDeltas = new UserType().asPrismObject();
         userDelta1.applyTo(userWithSeparateDeltas);
         userDelta2.applyTo(userWithSeparateDeltas);
         displayValue("userWithSeparateDeltas after", userWithSeparateDeltas);
 
-        PrismObject<UserType> userWithUnion = new UserType(getPrismContext()).asPrismObject();
-        userDeltaUnion.applyTo(userWithUnion);
-        displayValue("userWithUnion after", userWithUnion);
+        PrismObject<UserType> userWithSummarizedDelta = new UserType().asPrismObject();
+        summarizedDelta.applyTo(userWithSummarizedDelta);
+        displayValue("userWithSummarizedDelta after", userWithSummarizedDelta);
 
-        // set to isLiteral = false after fixing MID-4688
-        ObjectDelta<UserType> diff = userWithSeparateDeltas.diff(userWithUnion, EquivalenceStrategy.LITERAL);
+        ObjectDelta<UserType> diff = userWithSeparateDeltas.diff(userWithSummarizedDelta, EquivalenceStrategy.LITERAL);
         displayValue("diff", diff.debugDump());
         assertTrue("Deltas have different effects:\n" + diff.debugDump(), diff.isEmpty());
+    }
+
+    /** Adding an assignment, and then modifying it. */
+    @Test
+    public void testSameAssignmentDeltaMerging() throws Exception {
+        given("object and item delta");
+        var userOid = "30c0a1c6-26f4-4aa9-b2a2-4096eae7c6af";
+        var targetOid = "b56dfd32-07e7-4cc0-b51d-093cf620bdca";
+        ObjectDelta<UserType> userDelta = getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT).add(
+                        new AssignmentType()
+                                .id(123L)
+                                .targetRef(targetOid, RoleType.COMPLEX_TYPE)
+                                .description("hi"))
+                .asObjectDelta(userOid);
+        var itemDelta = getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT, 123L, AssignmentType.F_DESCRIPTION)
+                .replace("bye")
+                .asItemDelta();
+
+        when("swallowing the delta");
+        userDelta.swallow(itemDelta);
+
+        then("the delta has single (and correct) modification");
+        displayValue("userDelta", userDelta.debugDump());
+        assertThat(userDelta.getModifications())
+                .singleElement()
+                .satisfies(mod -> {
+                    assertThat(mod.getPath().equivalent(UserType.F_ASSIGNMENT))
+                            .withFailMessage("Wrong path: %s", mod.getPath())
+                            .isTrue();
+                });
+
+        var user = new UserType();
+        userDelta.applyTo(user.asPrismObject());
+
+        assertThat(user.getAssignment())
+                .singleElement()
+                .satisfies(a -> {
+                    assertThat(a.getId()).isEqualTo(123L);
+                    assertThat(a.getDescription()).isEqualTo("bye");
+                    assertThat(a.getTargetRef().getOid()).isEqualTo(targetOid);
+                    assertThat(a.getTargetRef().getType()).isEqualTo(RoleType.COMPLEX_TYPE);
+                });
+    }
+
+    @Test
+    public void testObjectDeltaMetadataPaths() throws Exception {
+
+        var metadataItem = PrismContext.get().getValueMetadataFactory().createEmpty();
+        ValueMetadataType meta1 = new ValueMetadataType()
+                .storage(new StorageMetadataType()
+                        .createChannel("test")
+                );
+        var base = new UserType();
+        var delta = PrismContext.get().deltaFor(UserType.class)
+                .item(InfraItemName.METADATA)
+                .add(new ValueMetadataType()
+                        .storage(new StorageMetadataType()
+                                .createChannel("test")
+                        )
+                ).asObjectDelta(SystemObjectsType.USER_ADMINISTRATOR.value());
+
+        delta.applyTo(base.asPrismContainer());
+        var viaGetterPcv = base.asPrismContainerValue().getValueMetadataAsContainer().getValue();
+        assertNotNull("Metadata via getValueMetadata should exists", viaGetterPcv);
+        var viaGetter = (ValueMetadataType) viaGetterPcv.asContainerable();
+        assertEquals("getStorage.getCreateChannel should have value seet", viaGetter.getStorage().getCreateChannel(), "test");
+        assertTrue("Object does not contain normal items", base.asPrismContainerValue().getItems().isEmpty());
+
+        var viaPath = base.asPrismContainerValue().findItem(InfraItemName.METADATA).getValue();
+        assertNotNull(viaPath);
+        var delta2 = PrismContext.get().deltaFor(UserType.class)
+                .item(InfraItemName.METADATA, ValueMetadataType.F_STORAGE, StorageMetadataType.F_CREATE_CHANNEL).add("test")
+                .asObjectDelta("oid");
     }
 }

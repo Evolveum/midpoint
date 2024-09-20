@@ -13,8 +13,6 @@ import com.evolveum.midpoint.repo.sql.query.definition.JpaDataNodeDefinition;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -29,12 +27,14 @@ import org.jetbrains.annotations.NotNull;
  */
 public class HqlDataInstance<D extends JpaDataNodeDefinition> implements DebugDumpable {
 
-    @SuppressWarnings("unused")
-    private static final Trace LOGGER = TraceManager.getTrace(HqlDataInstance.class);
+    /** Concrete path for accessing this item */
+    @NotNull final String hqlPath;
 
-    @NotNull final String hqlPath;                         // concrete path for accessing this item
-    @NotNull final D jpaDefinition;                        // definition of this item
-    final HqlDataInstance<?> parentDataItem;                // how we got here - optional
+    /** Definition of this item */
+    @NotNull final D jpaDefinition;
+
+    /** How we got here - may be null if root or when using ".." path element. */
+    final HqlDataInstance<?> parentDataItem;
 
     HqlDataInstance(@NotNull String hqlPath, @NotNull D jpaDefinition, HqlDataInstance<?> parentDataItem) {
         this.hqlPath = hqlPath;
@@ -42,18 +42,17 @@ public class HqlDataInstance<D extends JpaDataNodeDefinition> implements DebugDu
         this.parentDataItem = parentDataItem;
     }
 
-    public String getHqlPath() {
-        if (jpaDefinition instanceof JpaAnyPropertyDefinition) {
-            // This is quite dangerous. Assumes that we don't continue with resolving ItemPath after finding
-            // this kind of definition (and that's true).
-            return hqlPath + "." + RAnyValue.F_VALUE;
-        } else {
-            return hqlPath;
-        }
+    /** Separate method because of type inference needs. */
+    static <D extends JpaDataNodeDefinition> @NotNull HqlDataInstance<?> create(
+            String newHqlPath, DataSearchResult<D> result, HqlDataInstance<?> parentDataInstance) {
+        return new HqlDataInstance<>(newHqlPath, result.getTargetDefinition(), parentDataInstance);
     }
 
-    @NotNull
-    public D getJpaDefinition() {
+    public String getHqlPath() {
+        return hqlPath;
+    }
+
+    public @NotNull D getJpaDefinition() {
         return jpaDefinition;
     }
 

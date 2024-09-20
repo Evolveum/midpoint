@@ -71,7 +71,7 @@ public abstract class PageBaseSystemConfiguration extends PageAssignmentHolderDe
 
     @Override
     protected Panel createSummaryPanel(String id, IModel<SystemConfigurationType> model) {
-        return new ObjectSummaryPanel(id, SystemConfigurationType.class, model, getSummaryPanelSpecification()) {
+        return new ObjectSummaryPanel(id, model, getSummaryPanelSpecification()) {
 
             @Override
             protected String getDefaultIconCssClass() {
@@ -155,7 +155,7 @@ public abstract class PageBaseSystemConfiguration extends PageAssignmentHolderDe
             }
 
             @Override
-            protected void savePerformed(AjaxRequestTarget target) {
+            protected void submitPerformed(AjaxRequestTarget target) {
                 PageBaseSystemConfiguration.this.savePerformed(target);
             }
 
@@ -169,5 +169,10 @@ public abstract class PageBaseSystemConfiguration extends PageAssignmentHolderDe
                 return PageBaseSystemConfiguration.this.hasUnsavedChanges(target);
             }
         };
+    }
+
+    @Override
+    protected boolean isContentVisible() {
+        return true;
     }
 }

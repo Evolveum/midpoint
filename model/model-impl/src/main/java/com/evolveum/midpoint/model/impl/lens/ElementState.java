@@ -140,6 +140,10 @@ class ElementState<O extends ObjectType> implements Serializable, Cloneable {
      * Generally set to true by {@link ContextLoader}
      * and reset to false by {@link LensContext#rot(String)} and {@link LensContext#rotAfterExecution()} methods.
      *
+     * FIXME For projections, this flag is misused: some shadows are marked as fresh, even if they are clearly out of date.
+     *  This causes problems especially when shadow caching is enabled. The {@link LensProjectionContext#reloadNeeded}
+     *  was created as a workaround. MID-9944.
+     *
      * @see LensContext#isFresh
      */
     private boolean fresh;
@@ -406,7 +410,6 @@ class ElementState<O extends ObjectType> implements Serializable, Cloneable {
                 return secondaryDelta;
             } else {
                 try {
-                    //noinspection unchecked
                     return ObjectDeltaCollectionsUtil.union(primaryDelta, secondaryDelta);
                 } catch (SchemaException e) {
                     throw new SystemException("Unexpected schema exception while merging deltas: " + e.getMessage(), e);
@@ -616,6 +619,14 @@ class ElementState<O extends ObjectType> implements Serializable, Cloneable {
         }
 
         invalidatePrimaryDeltaDependencies();
+    }
+
+    void modifySecondaryDelta(LensElementContext.DeltaModifier<O> modifier) throws SchemaException {
+        if (secondaryDelta == null) {
+            secondaryDelta = createEmptyDelta();
+        }
+        modifier.modify(secondaryDelta);
+        invalidateSecondaryDeltaDependencies();
     }
 
     void deleteEmptyPrimaryDelta() {

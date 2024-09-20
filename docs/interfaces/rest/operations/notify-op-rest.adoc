@@ -1,0 +1,97 @@
+= Notify Change Operations
+:page-nav-title: Notify Change
+:page-display-order: 550
+:page-toc: top
+:page-keywords: [ 'rest', 'notify', 'operation' ]
+:page-upkeep-status: green
+
+== Description
+
+Notify Change operation which can be used to "notify" midPoint of some change event which
+occurred on a resource. This is usable when the actual communication with the resource
+costs too many resources, is unsafe, slow or some other factors are against it.
+
+== Request
+
+The request is executed as an HTTP POST operation. The request contains the "notifyChange" string
+as a part of the URI.
+
+.*Notify Change* operation using HTTP POST
+[source, http]
+----
+POST http://localhost:8080/midpoint/ws/rest/notifyChange
+----
+
+
+=== Headers
+
+Regarding authorization type, the "Basic" Authorization header should be used.
+
+.Authorization header example replace {Base64EncodedCredentials} with the encoded credentials
+[source, http]
+----
+Authorization: Basic {Base64EncodedCredentials}
+----
+
+To specify the provided content type, please use the "Content-Type" header
+payload in the body:
+
+.Content type header example, other media types are supported as well
+[source, http]
+----
+"Content-Type: application/json"
+----
+
+You might need to specify the accepted type of content in case
+you are interested in a format different from xml (default):
+
+.Accept type header example, other media types are supported as well
+[source, http]
+----
+"Accept: application/json"
+----
+
+.For supported media types please refer to the following section of the documentation
+xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+
+=== Body
+
+The body should contain a payload consisting of a "resourceObjectShadowChangeDescription" type of object.
+Please see the examples below for an example of the content in the body of the request.
+
+
+=== Options
+
+No options are supported as a parameter for this request.
+
+include::../../rest/concepts/raw/outcome.adoc[]
+
+== Access Authorization
+
+include::../operations/raw/a-auth.adoc[]
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#notifyChange+`
+
+== Model Authorization
+
+include::../operations/raw/m-auth.adoc[]
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read+`
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#get+`
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#notifyChange+`
+
+== Examples
+
+include::../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+include::../../rest/operations/examples/raw/notify-change-password.adoc[]
+
+== See Also
+
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]
+- xref:/midpoint/reference/security/authorization/service/[]

@@ -6,8 +6,7 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="00000000-0000-0000-0000-00000000000a"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Approver</name>
     <description>Role authorizing users to make approval decisions on work items.</description>
     <assignment id="1">
@@ -29,23 +28,23 @@
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#service</action>
     </authorization>
     <authorization id="3">
-        <name>workitems-delegate</name>
+        <name>own-workitems-read-complete-delegate</name>
         <description>
-            Allow delegation of own work items.
-        </description>
-        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delegateOwnWorkItems</action>
-    </authorization>
-    <!-- TODO:
-    <authorization>
-        <name>workitems-read</name>
-        <description>
-            ...
+            Allows reading, completion, and delegation of own work items.
         </description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#completeWorkItem</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delegateWorkItem</action>
         <object>
-            <type>WorkItemType</type>
+            <parent>
+                <type>CaseType</type>
+                <path>workItem</path>
+            </parent>
+            <assignee>
+                <special>self</special>
+            </assignee>
         </object>
-    </authorization> -->
+    </authorization>
     <authorization id="4">
         <name>cases-read</name>
         <description>
@@ -57,8 +56,17 @@
         <object id="9">
             <type>CaseType</type>
         </object>
-        <item>requesterRef</item>
+        <item>name</item>
+        <item>archetypeRef</item>
+        <item>metadata</item>
+        <item>parentRef</item>
+        <item>requestorRef</item>
+        <item>objectRef</item>
+        <item>targetRef</item>
+        <item>state</item>
+        <item>stageNumber</item>
         <item>approvalContext</item>
+        <item>modelContext</item>
     </authorization>
     <authorization id="5">
         <name>users-read</name>

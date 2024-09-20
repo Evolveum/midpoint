@@ -1,0 +1,51 @@
+= Get User Self
+:page-nav-title: Get User Self
+:page-display-order: 800
+:page-toc: top
+:page-upkeep-status: green
+
+== Description
+Example of retrieving identity data from a web resource object representing a user. In this
+specific sample you will retrieve the profile information of the user executing the command.
+
+For the purpose of the sample we are using the CURL tool as it is a well maintained, well
+tested, and it's widely accessible.
+
+.Authentication methods used to work with the REST api
+xref:/midpoint/reference/interfaces/rest/concepts/authentication/#_basic_authentication[Authentication methods]
+
+== Example
+
+include::../../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+[#_ex_get_own_profile_information]
+.Get Own profile information
+[source,bash]
+----
+# Authenticating with the credentials "administrator" and password "5ecr3t" on a localhost instance running on port 8080
+curl --user administrator:5ecr3t -X GET http://localhost:8080/midpoint/ws/rest/self
+----
+
+
+.Get Own profile information in JSON format
+[source,bash]
+----
+# Authenticating with the credentials "administrator" and password "5ecr3t" on a localhost instance running on port 8080
+curl --user administrator:5ecr3t -H "Accept: application/json" -X GET http://localhost:8080/midpoint/ws/rest/self
+----
+[#_ex_get_own_profile_information_json_raw]
+.Get Own profile information in JSON format with the Raw option set to true
+[source,bash]
+----
+# Authenticating with the credentials "administrator" and password "5ecr3t" on a localhost instance running on port 8080
+curl --user administrator:5ecr3t -H "Accept: application/json" -X GET http://localhost:8080/midpoint/ws/rest/self?options=raw
+----
+
+== See Also
+
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]

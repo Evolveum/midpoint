@@ -7,11 +7,8 @@
 
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
+import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdNameMapper.connIdObjectClassNameToUcf;
 import static com.evolveum.midpoint.provisioning.ucf.impl.connid.TokenUtil.toUcf;
-
-import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
-
-import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnectorInstanceConnIdImpl.toShadowDefinition;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -19,8 +16,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.SyncDelta;
@@ -30,11 +28,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -49,20 +45,22 @@ class SyncDeltaConverter {
 
     private static final Trace LOGGER = TraceManager.getTrace(ConnectorInstanceConnIdImpl.class);
 
-    private final ConnectorInstanceConnIdImpl connectorInstance;
-    private final ConnIdNameMapper nameMapper;
-    private final ConnIdConvertor connIdConvertor;
-    private final ResourceObjectDefinition requestedObjectDefinition;
+    @NotNull private final ConnectorInstanceConnIdImpl connectorInstance;
+    @NotNull private final ConnIdObjectConvertor connIdObjectConvertor;
+    @Nullable private final ResourceObjectDefinition requestedObjectDefinition;
+    @NotNull private final ConnectorOperationContext operationContext;
 
-    SyncDeltaConverter(ConnectorInstanceConnIdImpl connectorInstance, ResourceObjectDefinition requestedObjectDefinition) {
+    SyncDeltaConverter(
+            @NotNull ConnectorInstanceConnIdImpl connectorInstance,
+            @Nullable ResourceObjectDefinition requestedObjectDefinition,
+            @NotNull ConnectorOperationContext operationContext) {
         this.connectorInstance = connectorInstance;
-        this.nameMapper = connectorInstance.connIdNameMapper;
-        this.connIdConvertor = connectorInstance.connIdConvertor;
+        this.connIdObjectConvertor = connectorInstance.connIdObjectConvertor;
         this.requestedObjectDefinition = requestedObjectDefinition;
+        this.operationContext = operationContext;
     }
 
-    @NotNull
-    UcfLiveSyncChange createChange(int localSequenceNumber, SyncDelta connIdDelta, OperationResult result) {
+    @NotNull UcfLiveSyncChange createChange(int localSequenceNumber, SyncDelta connIdDelta, OperationResult result) {
         // The following should not throw any exception. And if it does, we are lost anyway, because
         // we need this information to create even "errored" change object.
         // For non-nullability of these variables see the code of SyncDelta.
@@ -71,14 +69,14 @@ class SyncDeltaConverter {
         @NotNull String uidValue = uid.getUidValue();
         @NotNull UcfSyncToken token = toUcf(connIdDelta.getToken());
 
-        Collection<ResourceAttribute<?>> identifiers = new ArrayList<>();
+        Collection<ShadowSimpleAttribute<?>> identifiers = new ArrayList<>();
         ResourceObjectDefinition actualObjectDefinition = null;
         ObjectDelta<ShadowType> objectDelta = null;
-        PrismObject<ShadowType> resourceObject = null;
+        UcfResourceObject resourceObject = null;
 
         LOGGER.trace("START creating delta of type {}", icfDeltaType);
 
-        UcfErrorState errorState;
+        @NotNull UcfErrorState errorState;
         try {
             actualObjectDefinition = getActualObjectDefinition(connIdDelta);
             assert actualObjectDefinition != null || icfDeltaType == SyncDeltaType.DELETE;
@@ -87,39 +85,37 @@ class SyncDeltaConverter {
 
                 identifiers.addAll(
                         ConnIdUtil.convertToIdentifiers(
-                                uid, actualObjectDefinition, connectorInstance.getRawResourceSchema()));
+                                uid, actualObjectDefinition, operationContext.getResourceSchemaRequired()));
                 objectDelta = PrismContext.get().deltaFactory().object().create(ShadowType.class, ChangeType.DELETE);
 
             } else if (icfDeltaType == SyncDeltaType.CREATE || icfDeltaType == SyncDeltaType.CREATE_OR_UPDATE || icfDeltaType == SyncDeltaType.UPDATE) {
 
-                PrismObjectDefinition<ShadowType> objectDefinition = toShadowDefinition(actualObjectDefinition);
-                LOGGER.trace("Object definition: {}", objectDefinition);
-
-                // We can consider using "fetch result" error reporting method here, and go along with a partial object.
-                resourceObject = connIdConvertor
+                // We use the "object" error reporting method here, to be able to proceed with partial object.
+                // This is to avoid having to artificially add e.g. identifiers to the object later. If not done here,
+                // we have no possibility to guess the identifiers later! This is the best place to do that.
+                resourceObject = connIdObjectConvertor
                         .convertToUcfObject(
-                                connIdDelta.getObject(), objectDefinition, false,
-                                connectorInstance.isCaseIgnoreAttributeNames(), connectorInstance.isLegacySchema(),
-                                UcfFetchErrorReportingMethod.EXCEPTION, result)
-                        .getResourceObject();
+                                connIdDelta.getObject(),
+                                actualObjectDefinition,
+                                UcfFetchErrorReportingMethod.UCF_OBJECT,
+                                operationContext,
+                                result);
+
+                LOGGER.trace("Conversion result: {}", resourceObject.getErrorState());
 
                 LOGGER.trace("Got (current) resource object: {}", resourceObject.debugDumpLazily());
-                identifiers.addAll(emptyIfNull(ShadowUtil.getAllIdentifiers(resourceObject)));
+                identifiers.addAll(ShadowUtil.getAllIdentifiers(resourceObject.getPrismObject()));
 
                 if (icfDeltaType == SyncDeltaType.CREATE) {
                     objectDelta = PrismContext.get().deltaFactory().object().create(ShadowType.class, ChangeType.ADD);
-                    objectDelta.setObjectToAdd(resourceObject);
+                    objectDelta.setObjectToAdd(resourceObject.getPrismObject());
                 }
 
             } else {
                 throw new GenericFrameworkException("Unexpected sync delta type " + icfDeltaType);
             }
 
-            if (identifiers.isEmpty()) {
-                throw new SchemaException("No identifiers in sync delta " + connIdDelta);
-            }
-
-            errorState = UcfErrorState.success();
+            errorState = resourceObject != null ? resourceObject.getErrorState() : UcfErrorState.success();
 
         } catch (Exception e) {
             result.recordFatalError(e);
@@ -141,11 +137,10 @@ class SyncDeltaConverter {
         }
 
         ObjectClass deltaConnIdObjectClass = connIdDelta.getObjectClass();
-        QName deltaObjectClassName = nameMapper.objectClassToQname(deltaConnIdObjectClass, connectorInstance.isLegacySchema());
+        QName deltaObjectClassName = connIdObjectClassNameToUcf(deltaConnIdObjectClass, connectorInstance.isLegacySchema());
         ResourceObjectDefinition deltaObjectClass;
         if (deltaConnIdObjectClass != null) {
-            deltaObjectClass = (ResourceObjectClassDefinition) connectorInstance.getRawResourceSchema()
-                    .findComplexTypeDefinitionByType(deltaObjectClassName);
+            deltaObjectClass = operationContext.getResourceSchemaRequired().findDefinitionForObjectClass(deltaObjectClassName);
         } else {
             deltaObjectClass = null;
         }
@@ -153,8 +148,9 @@ class SyncDeltaConverter {
             if (connIdDelta.getDeltaType() == SyncDeltaType.DELETE) {
                 // tolerate this. E.g. LDAP changelogs do not have objectclass in delete deltas.
             } else {
-                throw new SchemaException("Got delta with object class " + deltaObjectClassName + " (" +
-                        deltaConnIdObjectClass + ") that has no definition in resource schema");
+                throw new SchemaException(
+                        "Got delta with object class %s (%s) that has no definition in resource schema".formatted(
+                                deltaObjectClassName, deltaConnIdObjectClass));
             }
         }
         return deltaObjectClass;

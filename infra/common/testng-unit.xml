@@ -31,4 +31,9 @@
             <class name="com.evolveum.midpoint.common.LocalizationTest" />
         </classes>
     </test>
+    <test name="Cleanup" preserve-order="false">
+        <classes>
+            <class name="com.evolveum.midpoint.common.cleanup.ObjectCleanerTest" />
+        </classes>
+    </test>
 </suite>

@@ -1,0 +1,60 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Create a new Task for Report Execution*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Content-Type: application/json" \
+-X POST http://localhost:8080/midpoint/ws/rest/tasks \
+-v \
+--data-binary @./samples/rest/task-report-create.json
+----
+
+.*Show* data source example for *"Create a new Task for Report Execution"* | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/task-report-create.json[GitHub]
+[%collapsible]
+====
+[source, json]
+----
+{
+  "task" : {
+    "name" : "Export task for all error audit records in 24h ",
+    "assignment" : {
+      "targetRef" : {
+        "oid" : "00000000-0000-0000-0000-000000000511",
+        "relation" : "org:default",
+        "type" : "c:ArchetypeType"
+      }
+    },
+    "archetypeRef" : {
+      "oid" : "00000000-0000-0000-0000-000000000511",
+      "relation" : "org:default",
+      "type" : "c:ArchetypeType"
+    },
+    "schedulingState" : "ready",
+    "binding" : "loose",
+    "activity" : {
+      "work" : {
+        "reportExport" : {
+          "reportRef" : {
+            "oid" : "04c476df-702d-4abf-aa77-c7384ee3b15c",
+            "relation" : "org:default",
+            "type" : "c:ReportType"
+          }
+        }
+      }
+    }
+  }
+}
+----
+====
+
+The response is an HTTP 202 code in case of success *without* a response body.
+Also, the response contains a *Location Header* pointing to the location of the created
+user.
+
+.Example location header
+[source, bash]
+----
+Location: http://localhost:8080/midpoint/ws/rest/tasks/6d13632c-6b75-4a33-9744-ec9523375f6b
+----

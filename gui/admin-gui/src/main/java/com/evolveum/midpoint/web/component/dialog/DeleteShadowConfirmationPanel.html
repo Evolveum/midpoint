@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2010-2020 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
+    <div class="d-flex flex-column">
+        <p class="text-center" wicket:id="confirmText"/>
+        <div class="col-12">
+            <div class="card p-4 mb-2" wicket:id="deleteResourceData"/>
+        </div>
+    </div>
+
+    <wicket:fragment wicket:id="buttons">
+        <div class="d-flex flex-wrap gap-2 w-100">
+            <a class="btn btn-primary" wicket:id="yes"/>
+            <a class="btn btn-default" wicket:id="no"/>
+        </div>
+    </wicket:fragment>
+</wicket:panel>

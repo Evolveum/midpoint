@@ -20,10 +20,7 @@
                <expression>
                   <associationTargetSearch>
                      <filter xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
-                        <q:equal>
-                           <q:path>attributes/ri:dn</q:path>
-                           <q:value>CN=StatsUsers,OU=groups,DC=example,DC=com</q:value>
-                        </q:equal>
+                         <q:text>attributes/ri:dn = "CN=StatsUsers,OU=groups,DC=example,DC=com"</q:text>
                      </filter>
                      <searchStrategy>onResourceIfNeeded</searchStrategy>
                   </associationTargetSearch>

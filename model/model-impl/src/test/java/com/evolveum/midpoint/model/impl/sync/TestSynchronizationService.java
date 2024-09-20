@@ -6,9 +6,16 @@
  */
 package com.evolveum.midpoint.model.impl.sync;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
+
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
+
+import com.evolveum.midpoint.util.MiscUtil;
+
+import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,8 +107,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         PrismObject<ShadowType> accountShadowJack = repoAddObjectFromFile(ACCOUNT_SHADOW_JACK_DUMMY_FILE, result);
         accountShadowJackDummyOid = accountShadowJack.getOid();
-        provisioningService.applyDefinition(accountShadowJack, task, result);
-        provisioningService.determineShadowState(accountShadowJack, task, result);
+        prepareShadow(accountShadowJack, task, result);
         assertNotNull("No oid in shadow", accountShadowJack.getOid());
         DummyAccount dummyAccount = new DummyAccount();
         dummyAccount.setName(ACCOUNT_JACK_DUMMY_USERNAME);
@@ -155,8 +161,8 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         OperationResult result = task.getResult();
         setDebugListener();
 
-        DummyAccount dummyAccount = getDummyResource().getAccountByUsername(ACCOUNT_JACK_DUMMY_USERNAME);
-        dummyAccount.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, "999");
+        DummyAccount dummyAccount = getDummyResource().getAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
+        dummyAccount.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 999L);
 
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
         PrismObject<ShadowType> accountShadowJack = provisioningService.getObject(ShadowType.class, accountShadowJackDummyOid, null, task, result);
@@ -210,7 +216,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         OperationResult result = task.getResult();
         setDebugListener();
 
-        DummyAccount dummyAccount = getDummyResource().getAccountByUsername(ACCOUNT_JACK_DUMMY_USERNAME);
+        DummyAccount dummyAccount = getDummyResource().getAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
         dummyAccount.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME);
 
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
@@ -422,8 +428,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         PrismObject<ShadowType> accountShadowCalypso = repoAddObjectFromFile(ACCOUNT_SHADOW_CALYPSO_DUMMY_FILE, result);
         accountShadowCalypsoDummyOid = accountShadowCalypso.getOid();
-        provisioningService.applyDefinition(accountShadowCalypso, task, result);
-        provisioningService.determineShadowState(accountShadowCalypso, task, result);
+        prepareShadow(accountShadowCalypso, task, result);
         assertNotNull("No oid in shadow", accountShadowCalypso.getOid());
         // Make sure that it is properly marked as protected. This is what provisioning would normally do
         accountShadowCalypso.asObjectable().setProtectedObject(true);
@@ -520,8 +525,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         PrismObject<ShadowType> accountShadowJack = repoAddObjectFromFile(ACCOUNT_SHADOW_JACK_DUMMY_FILE, result);
         accountShadowJackDummyOid = accountShadowJack.getOid();
-        provisioningService.applyDefinition(accountShadowJack, task, result);
-        provisioningService.determineShadowState(accountShadowJack, task, result);
+        prepareShadow(accountShadowJack, task, result);
         assertNotNull("No oid in shadow", accountShadowJack.getOid());
         DummyAccount dummyAccount = new DummyAccount();
         dummyAccount.setName(ACCOUNT_JACK_DUMMY_USERNAME);
@@ -653,8 +657,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         PrismObject<ShadowType> accountShadowJack = repoAddObjectFromFile(ACCOUNT_SHADOW_JACK_DUMMY_FILE, result);
         accountShadowJackDummyOid = accountShadowJack.getOid();
-        provisioningService.applyDefinition(accountShadowJack, task, result);
-        provisioningService.determineShadowState(accountShadowJack, task, result);
+        prepareShadow(accountShadowJack, task, result);
         assertNotNull("No oid in shadow", accountShadowJack.getOid());
         DummyAccount dummyAccount = new DummyAccount();
         dummyAccount.setName(ACCOUNT_JACK_DUMMY_USERNAME);
@@ -888,15 +891,24 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         getDummyResource().resetBreakMode();
         setDebugListener();
 
-        getDummyResource().getAccountByUsername(USER_JACK_USERNAME)
+        getDummyResource().getAccountByName(USER_JACK_USERNAME)
                 .replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Dummyland");
-        RESOURCE_DUMMY_LIMITED.controller.getDummyResource().getAccountByUsername(USER_JACK_USERNAME)
+        RESOURCE_DUMMY_LIMITED.controller.getDummyResource().getAccountByName(USER_JACK_USERNAME)
                 .replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Limitistan");
+
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_OID);
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_LIMITED.oid);
+
+        // Sleeping here so that "get" operation below will cache data with timestamp that is different from the one
+        // in the invalidation record.
+        MiscUtil.sleepCatchingInterruptedException(50L);
 
         displayDumpable("Dummy resource before", getDummyResource());
 
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
-        PrismObject<ShadowType> accountShadowLimitedJackBefore = getShadowModelNoFetch(accountShadowJackDummyLimitedOid);
+        PrismObject<ShadowType> accountShadowLimitedJackBefore = getShadowModel(accountShadowJackDummyLimitedOid);
+        // This is needed to avoid fetching the full shadow right after starting the synchronization
+        accountShadowLimitedJackBefore.asObjectable().setContentDescription(ShadowContentDescriptionType.FROM_RESOURCE_COMPLETE);
         change.setShadowedResourceObject(accountShadowLimitedJackBefore);
         change.setResource(getDummyResourceObject(RESOURCE_DUMMY_LIMITED.name));
         change.setSourceChannel(SchemaConstants.CHANNEL_LIVE_SYNC_URI);
@@ -936,7 +948,15 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
                         RESOURCE_DUMMY_LIMITED.oid, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT, null);
         LensProjectionContext accCtxDummyLimited = context.findProjectionContextByKeyExact(keyDummyLimited);
         assertNotNull("No account sync context for " + keyDummyLimited, accCtxDummyLimited);
-        assertTrue("Wrong fullShadow for " + keyDummyLimited, accCtxDummyLimited.isFullShadow());
+
+        // This is tricky. In both cases (caching, not caching) the shadow is initially marked as "full".
+        // In both cases, it is downgraded to "shadow only" after the execution of computed deltas.
+        // But in the "not caching" case, it is loaded again, because of the reconciliation (although
+        // this could be perhaps optimized some day).
+        assertThat(accCtxDummyLimited.isFullShadow())
+                .as("fullShadow flag in " + keyDummyLimited)
+                .isEqualTo(!InternalsConfig.isShadowCachingOnByDefault());
+
         assertTrue("Wrong canProject for " + keyDummyLimited, accCtxDummyLimited.isCanProject());
 
         assertLinked(context.getFocusContext().getObjectOld().getOid(), accountShadowJackDummyOid);
@@ -972,8 +992,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         getDummyResource().resetBreakMode();
 
         PrismObject<ShadowType> shadowPirates = repoAddObjectFromFile(SHADOW_PIRATES_DUMMY_FILE, result);
-        provisioningService.applyDefinition(shadowPirates, task, result);
-        provisioningService.determineShadowState(shadowPirates, task, result);
+        prepareShadow(shadowPirates, task, result);
         assertNotNull("No oid in shadow", shadowPirates.getOid());
         DummyGroup dummyGroup = new DummyGroup();
         dummyGroup.setName(GROUP_PIRATES_DUMMY_NAME);
@@ -1018,6 +1037,12 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertIteration(shadow, 0, "");
         assertSituation(shadow, SynchronizationSituationType.LINKED);
 
+    }
+
+    private void prepareShadow(PrismObject<ShadowType> shadow, Task task, OperationResult result) throws CommonException {
+        provisioningService.applyDefinition(shadow, task, result);
+        provisioningService.determineShadowState(shadow, task, result);
+        provisioningService.updateShadowMarksAndPolicies(shadow, false, task, result);
     }
 
     @Test

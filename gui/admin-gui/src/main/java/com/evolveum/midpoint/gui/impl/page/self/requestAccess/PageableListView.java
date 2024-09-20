@@ -162,8 +162,13 @@ public abstract class PageableListView<LI extends Serializable, SPI extends Seri
             }
 
             List<LI> list = new ArrayList<>();
+            if (provider.size() == 0) {
+                return list;
+            }
 
-            Iterator<? extends SPI> iterator = provider.iterator(getCurrentPage() * getItemsPerPage(), getItemsPerPage());
+            long itemOffset = getCurrentPage() * getItemsPerPage();
+            long size = Math.min(getItemsPerPage(), getItemCount() - itemOffset);
+            Iterator<? extends SPI> iterator = provider.iterator(itemOffset, size);
             iterator.forEachRemaining(i -> list.addAll(createItem(i)));
 
             result = list;

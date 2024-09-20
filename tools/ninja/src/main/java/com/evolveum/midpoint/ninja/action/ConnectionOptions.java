@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.ninja.action;
 
+import java.io.File;
+
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 
@@ -31,6 +33,16 @@ public class ConnectionOptions {
 
     public static final String P_MIDPOINT_HOME = "-m";
     public static final String P_MIDPOINT_HOME_LONG = "--midpoint-home";
+
+    public static final String P_JDBC = "-j";
+    public static final String P_JDBC_LONG = "--jdbc";
+
+    /**
+     * This option is not directly used by ninja code, however command parser needs it to be defined.
+     * Otherwise, command parser will throw an exception because of unknown parameter.
+     */
+    @Parameter(names = { P_JDBC, P_JDBC_LONG }, descriptionKey = "connection.jdbc", hidden = true)
+    private File jdbc;
 
     @Parameter(names = { P_URL, P_URL_LONG }, validateWith = URIConverter.class, descriptionKey = "connection.url")
     private String url;
@@ -86,5 +98,13 @@ public class ConnectionOptions {
 
     public void setMidpointHome(String midpointHome) {
         this.midpointHome = midpointHome;
+    }
+
+    public File jdbc() {
+        return jdbc;
+    }
+
+    public void setJdbc(File jdbc) {
+        this.jdbc = jdbc;
     }
 }

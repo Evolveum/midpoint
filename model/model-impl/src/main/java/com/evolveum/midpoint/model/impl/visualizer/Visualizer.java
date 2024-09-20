@@ -15,11 +15,7 @@ import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
 
 import java.util.*;
 
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
-
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -171,23 +167,12 @@ public class Visualizer {
 
         // Looks like, it should be an ADD not MODIFY delta (just a guess work since status is BROKEN)
         ObjectDelta<ShadowType> addDelta = PrismContext.get().deltaFactory().object().create(context.getObjectTypeClass(), ChangeType.ADD);
-        ResourceObjectDefinition objectTypeDef = context.getCompositeObjectDefinition();
+        ResourceObjectDefinition objectTypeDef = context.getCompositeObjectDefinitionRequired();
 
         ProjectionContextKey key = context.getKey();
-        if (objectTypeDef == null) {
-            throw new IllegalStateException("Definition for account type " + key
-                    + " not found in the context, but it should be there");
-        }
 
-        String resourceOid;
-        if (context.getResource() != null) {
-            resourceOid = context.getResource().getOid();
-        } else {
-            resourceOid = key.getResourceOid();
-        }
-
-        PrismObject<ShadowType> newAccount = objectTypeDef.createBlankShadow(resourceOid, key.getTag());
-        addDelta.setObjectToAdd(newAccount);
+        var newAccount = objectTypeDef.createBlankShadowWithTag(key.getTag());
+        addDelta.setObjectToAdd(newAccount.getPrismObject());
 
         if (executable != null) {
             addDelta.merge(executable);
@@ -459,7 +444,8 @@ public class Visualizer {
         if (delta.isEmpty()) {
             return;
         }
-        if (delta.getDefinition() != null && delta.getDefinition().isOperational() && !context.isIncludeOperationalItems()) {
+        PrismContainerDefinition def = delta.getDefinition();
+        if (def != null && def.isOperational() && !context.isIncludeOperationalItems() && def.getDisplayHint() != DisplayHint.REGULAR) {
             return;
         }
         Collection<PrismContainerValue<C>> valuesToAdd;
@@ -829,7 +815,7 @@ public class Visualizer {
 
         D def = itemDelta.getDefinition();
         if (def != null) {
-            Item<V, D> item = def.instantiate();
+            Item<V, D> item = (Item<V, D>) def.instantiate();
             if (itemDelta.getEstimatedOldValues() != null) {
                 item.addAll(CloneUtil.cloneCollectionMembers(itemDelta.getEstimatedOldValues()));
             }
@@ -934,7 +920,7 @@ public class Visualizer {
             return refValue;
         }
         PrismObject<? extends ObjectType> object = getObject(refValue.getOid(),
-                (Class) refValue.getTargetTypeCompileTimeClass(prismContext), context, task, result);
+                (Class) refValue.getTargetTypeCompileTimeClass(), context, task, result);
         if (object == null) {
             return refValue;
         }

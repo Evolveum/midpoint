@@ -10,12 +10,18 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.provisioning.ucf.api.ReferenceModificationOperation;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeValue;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
 import org.apache.commons.lang3.StringUtils;
 import org.identityconnectors.common.security.GuardedString;
+import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.AttributeDelta;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.identityconnectors.framework.common.objects.PredefinedAttributes;
@@ -40,95 +46,59 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import org.jetbrains.annotations.NotNull;
+
+import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdNameMapper.*;
+
 /**
+ * Converts UCF {@link Operation} objects into ConnId deltas:
+ *
+ * - either "modern" (set of {@link AttributeDelta}),
+ * - or "legacy" (sets of {@link Attribute} objects to add/delete/replace).
+ *
  * @author semancik
  */
-public abstract class AbstractModificationConverter implements DebugDumpable {
+abstract class AbstractModificationConverter implements DebugDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractModificationConverter.class);
 
-    private Collection<Operation> changes;
-    private ConnectorType connectorType;
-    private ResourceSchema resourceSchema;
-    private ResourceObjectDefinition objectDefinition;
-    private String connectorDescription;
-    private ConnectorOperationOptions options;
+    @NotNull private final Collection<Operation> changes;
+    @NotNull private final ResourceSchema resourceSchema;
+    @NotNull private final ResourceObjectDefinition objectDefinition;
+    private final String connectorDescription;
+    final ConnectorOperationOptions options;
+    private final ConnIdObjectConvertor objectConvertor;
 
-    private ConnIdNameMapper connIdNameMapper;
-    private Protector protector;
+    private final Protector protector = ConnIdBeans.get().protector;
 
-    public Collection<Operation> getChanges() {
-        return changes;
-    }
-
-    public void setChanges(Collection<Operation> changes) {
+    AbstractModificationConverter(
+            @NotNull Collection<Operation> changes,
+            @NotNull ResourceSchema resourceSchema,
+            @NotNull ResourceObjectDefinition objectDefinition,
+            String connectorDescription,
+            ConnectorOperationOptions options,
+            ConnIdObjectConvertor objectConvertor) {
         this.changes = changes;
-    }
-
-    public ConnectorType getConnectorType() {
-        return connectorType;
-    }
-
-    public void setConnectorType(ConnectorType connectorType) {
-        this.connectorType = connectorType;
-    }
-
-    public ResourceSchema getResourceSchema() {
-        return resourceSchema;
-    }
-
-    public void setResourceSchema(ResourceSchema resourceSchema) {
         this.resourceSchema = resourceSchema;
-    }
-
-    public ResourceObjectDefinition getObjectDefinition() {
-        return objectDefinition;
-    }
-
-    public void setObjectDefinition(ResourceObjectDefinition objectDefinition) {
         this.objectDefinition = objectDefinition;
-    }
-
-    public String getConnectorDescription() {
-        return connectorDescription;
-    }
-
-    public void setConnectorDescription(String connectorDescription) {
         this.connectorDescription = connectorDescription;
-    }
-
-    public ConnIdNameMapper getConnIdNameMapper() {
-        return connIdNameMapper;
-    }
-
-    public void setConnIdNameMapper(ConnIdNameMapper connIdNameMapper) {
-        this.connIdNameMapper = connIdNameMapper;
-    }
-
-    public Protector getProtector() {
-        return protector;
-    }
-
-    public void setProtector(Protector protector) {
-        this.protector = protector;
-    }
-
-    public ConnectorOperationOptions getOptions() {
-        return options;
-    }
-
-    public void setOptions(ConnectorOperationOptions options) {
         this.options = options;
+        this.objectConvertor = objectConvertor;
     }
 
     /**
      * Convenience using the default value converter.
      */
-    protected <T> void collect(String connIdAttrName, PropertyDelta<T> delta, PlusMinusZero isInModifiedAuxilaryClass) throws SchemaException {
-        collect(connIdAttrName, delta, isInModifiedAuxilaryClass, this::covertAttributeValuesToConnId);
+    protected <V extends PrismValue> void collect(String connIdAttrName, ItemDelta<V, ?> delta, PlusMinusZero isInModifiedAuxiliaryClass)
+            throws SchemaException {
+        collect(connIdAttrName, delta, isInModifiedAuxiliaryClass, this::convertAttributeValuesToConnId);
     }
 
-    protected abstract <T> void collect(String connIdAttrName, PropertyDelta<T> delta, PlusMinusZero isInModifiedAuxilaryClass, CollectorValuesConverter<T> valuesConverter) throws SchemaException;
+    protected abstract <V extends PrismValue> void collect(
+            String connIdAttrName,
+            ItemDelta<V, ?> delta,
+            PlusMinusZero isInModifiedAuxiliaryClass,
+            CollectorValuesConverter<V> valuesConverter) throws SchemaException;
 
     /**
      * Simplified collect for single-valued attribute (e.g. activation).
@@ -141,7 +111,7 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
 
     public void convert() throws SchemaException {
 
-        PropertyDelta<QName> auxiliaryObjectClassDelta = determineAuxilaryObjectClassDelta(changes);
+        PropertyDelta<QName> auxiliaryObjectClassDelta = determineAuxiliaryObjectClassDelta(changes);
 
         ResourceObjectDefinition structuralObjectClassDefinition = resourceSchema.findDefinitionForObjectClass(objectDefinition.getTypeName());
         if (structuralObjectClassDefinition == null) {
@@ -150,32 +120,28 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
         Map<QName, ResourceObjectDefinition> auxiliaryObjectClassMap = new HashMap<>();
         if (auxiliaryObjectClassDelta != null) {
             // Auxiliary object class change means modification of __AUXILIARY_OBJECT_CLASS__ attribute
-            collect(PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME, auxiliaryObjectClassDelta, null,
-                    (pvals, midPointAttributeName) ->
-                            covertAuxiliaryObjectClassValuesToConnId(pvals, midPointAttributeName, auxiliaryObjectClassMap));
+            collect(
+                    PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME,
+                    auxiliaryObjectClassDelta,
+                    null,
+                    (pvals, midPointAttributeName) -> convertAuxiliaryObjectClassValuesToConnId(pvals, auxiliaryObjectClassMap));
         }
 
         for (Operation operation : changes) {
-            if (operation instanceof PropertyModificationOperation) {
-                PropertyModificationOperation change = (PropertyModificationOperation) operation;
-                PropertyDelta<?> delta = change.getPropertyDelta();
-
+            if (operation instanceof PropertyModificationOperation<?> propertyModification) {
+                PropertyDelta<?> delta = propertyModification.getPropertyDelta();
                 if (delta.getParentPath().equivalent(ShadowType.F_ATTRIBUTES)) {
-                    if (delta.getDefinition() == null || !(delta.getDefinition() instanceof ResourceAttributeDefinition)) {
-                        ResourceAttributeDefinition def = objectDefinition
-                                .findAttributeDefinition(delta.getElementName());
+                    if (delta.getDefinition() == null || !(delta.getDefinition() instanceof ShadowSimpleAttributeDefinition)) {
+                        ShadowSimpleAttributeDefinition<?> def = objectDefinition.findSimpleAttributeDefinition(delta.getElementName());
                         if (def == null) {
-                            String message = "No definition for attribute " + delta.getElementName() + " used in modification delta";
-                            throw new SchemaException(message);
+                            throw new SchemaException(
+                                    "No definition for attribute " + delta.getElementName() + " used in modification delta");
                         }
-                        try {
-                            delta.applyDefinition(def);
-                        } catch (SchemaException e) {
-                            throw e;
-                        }
+                        //noinspection rawtypes,unchecked
+                        delta.applyDefinition((ShadowSimpleAttributeDefinition) def);
                     }
-                    PlusMinusZero isInModifiedAuxilaryClass = null;
-                    ResourceAttributeDefinition<?> structAttrDef = structuralObjectClassDefinition.findAttributeDefinition(delta.getElementName());
+                    PlusMinusZero isInModifiedAuxiliaryClass = null;
+                    ShadowSimpleAttributeDefinition<?> structAttrDef = structuralObjectClassDefinition.findSimpleAttributeDefinition(delta.getElementName());
                     // if this attribute is also in the structural object class. It does not matter if it is in
                     // aux object class, we cannot add/remove it with the object class unless it is normally requested
                     if (structAttrDef == null) {
@@ -187,10 +153,10 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
                             // is removed, the attributes must be removed as well.
                             for (PrismPropertyValue<QName> auxPval : auxiliaryObjectClassDelta.getValuesToDelete()) {
                                 ResourceObjectDefinition auxDef = auxiliaryObjectClassMap.get(auxPval.getValue());
-                                ResourceAttributeDefinition<?> attrDef = auxDef.findAttributeDefinition(delta.getElementName());
+                                ShadowSimpleAttributeDefinition<?> attrDef = auxDef.findSimpleAttributeDefinition(delta.getElementName());
                                 if (attrDef != null) {
                                     // means: is in removed auxiliary class
-                                    isInModifiedAuxilaryClass = PlusMinusZero.MINUS;
+                                    isInModifiedAuxiliaryClass = PlusMinusZero.MINUS;
                                     break;
                                 }
                             }
@@ -203,10 +169,10 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
                             // is added, the attributes must be added as well.
                             for (PrismPropertyValue<QName> auxPval : auxiliaryObjectClassDelta.getValuesToAdd()) {
                                 ResourceObjectDefinition auxOcDef = auxiliaryObjectClassMap.get(auxPval.getValue());
-                                ResourceAttributeDefinition<?> auxAttrDef = auxOcDef.findAttributeDefinition(delta.getElementName());
+                                ShadowSimpleAttributeDefinition<?> auxAttrDef = auxOcDef.findSimpleAttributeDefinition(delta.getElementName());
                                 if (auxAttrDef != null) {
                                     // means: is in added auxiliary class
-                                    isInModifiedAuxilaryClass = PlusMinusZero.PLUS;
+                                    isInModifiedAuxiliaryClass = PlusMinusZero.PLUS;
                                     break;
                                 }
                             }
@@ -214,26 +180,27 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
                     }
 
                     // Change in (ordinary) attributes. Transform to the ConnId attributes.
-                    String connIdAttrName = connIdNameMapper.convertAttributeNameToConnId(delta, objectDefinition);
-                    collect(connIdAttrName, delta, isInModifiedAuxilaryClass);
+                    String connIdAttrName = ucfAttributeNameToConnId(delta, objectDefinition);
+                    collect(connIdAttrName, delta, isInModifiedAuxiliaryClass);
 
                 } else if (delta.getParentPath().equivalent(ShadowType.F_ACTIVATION)) {
                     convertFromActivation(delta);
                 } else if (delta.getParentPath().equivalent(SchemaConstants.PATH_PASSWORD)) {
+                    //noinspection unchecked
                     convertFromPassword((PropertyDelta<ProtectedStringType>) delta);
                 } else if (delta.getPath().equivalent(ShadowType.F_AUXILIARY_OBJECT_CLASS)) {
                     // already processed
                 } else {
                     throw new SchemaException("Change of unknown attribute " + delta.getPath());
                 }
+            } else if (operation instanceof ReferenceModificationOperation referenceModification) {
+                String connIdAttrName = ucfAttributeNameToConnId(referenceModification.getReferenceDelta());
+                collect(connIdAttrName, referenceModification.getReferenceDelta(), null);
 
             } else {
-                throw new IllegalArgumentException("Unknown operation type " + operation.getClass().getName()
-                        + ": " + operation);
+                throw new IllegalArgumentException("Unknown operation type " + operation.getClass().getName() + ": " + operation);
             }
-
         }
-
     }
 
     private void convertFromActivation(PropertyDelta<?> propDelta) throws SchemaException {
@@ -284,7 +251,7 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
             // This is the case of setting no password. E.g. removing existing password
             LOGGER.debug("Setting null password.");
             collectReplace(OperationalAttributes.PASSWORD_NAME, null);
-        } else if (newPassword.getRealValue().canGetCleartext()) {
+        } else if (Objects.requireNonNull(newPassword.getRealValue()).canGetCleartext()) {
             // We have password and we can get a cleartext value of the password. This is normal case
             GuardedString guardedPassword = passwordToGuardedString(newPassword.getRealValue(), "new password");
             collectReplace(OperationalAttributes.PASSWORD_NAME, guardedPassword);
@@ -294,7 +261,7 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
         }
     }
 
-    protected GuardedString passwordToGuardedString(ProtectedStringType ps, String propertyName) {
+    GuardedString passwordToGuardedString(ProtectedStringType ps, String propertyName) {
         return ConnIdUtil.toGuardedString(ps, propertyName, protector);
     }
 
@@ -313,47 +280,48 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
         return propValue.getValue();
     }
 
-    protected <T> List<Object> covertAttributeValuesToConnId(Collection<PrismPropertyValue<T>> pvals, QName midPointAttributeName) throws SchemaException {
-        List<Object> connIdVals = new ArrayList<>(pvals.size());
-        for (PrismPropertyValue<T> pval : pvals) {
-            connIdVals.add(covertAttributeValueToConnId(pval, midPointAttributeName));
+    private <V extends PrismValue> List<Object> convertAttributeValuesToConnId(
+            Collection<V> prismValues, QName midPointAttributeName) throws SchemaException {
+        List<Object> connIdVals = new ArrayList<>(prismValues.size());
+        for (V prismValue : prismValues) {
+            connIdVals.add(covertAttributeValueToConnId(prismValue, midPointAttributeName));
         }
         return connIdVals;
     }
 
-    protected <T> Object covertAttributeValueToConnId(PrismPropertyValue<T> pval, QName midPointAttributeName) throws SchemaException {
-        return ConnIdUtil.convertValueToConnId(pval, protector, midPointAttributeName);
+    private <V extends PrismValue> Object covertAttributeValueToConnId(V prismValue, QName midPointAttributeName)
+            throws SchemaException {
+        if (prismValue instanceof ShadowReferenceAttributeValue referenceValue) {
+            return objectConvertor.convertReferenceAttributeValueToConnId(referenceValue);
+        } else {
+            return ConnIdUtil.convertValueToConnId(prismValue, protector, midPointAttributeName);
+        }
     }
 
-    private <T> List<Object> covertAuxiliaryObjectClassValuesToConnId(
+    private List<Object> convertAuxiliaryObjectClassValuesToConnId(
             Collection<PrismPropertyValue<QName>> pvals,
-            QName midPointAttributeName,
             Map<QName, ResourceObjectDefinition> auxiliaryObjectClassMap) throws SchemaException {
         List<Object> connIdVals = new ArrayList<>(pvals.size());
         for (PrismPropertyValue<QName> pval : pvals) {
             QName auxQName = pval.getValue();
-            ResourceObjectDefinition auxDef = resourceSchema.findObjectClassDefinition(auxQName);
-            if (auxDef == null) {
-                throw new SchemaException("Auxiliary object class " + auxQName + " not found in the schema");
-            }
-            auxiliaryObjectClassMap.put(auxQName, auxDef);
-            ObjectClass icfOc = connIdNameMapper.objectClassToConnId(pval.getValue(), connectorType, false);
+            auxiliaryObjectClassMap.put(auxQName, resourceSchema.findDefinitionForObjectClassRequired(auxQName));
+            ObjectClass icfOc = ucfObjectClassNameToConnId(pval.getValue(), false);
             connIdVals.add(icfOc.getObjectClassValue());
         }
         return connIdVals;
     }
 
-    private PropertyDelta<QName> determineAuxilaryObjectClassDelta(Collection<Operation> changes) {
+    private PropertyDelta<QName> determineAuxiliaryObjectClassDelta(Collection<Operation> changes) {
         PropertyDelta<QName> auxiliaryObjectClassDelta = null;
 
         for (Operation operation : changes) {
             if (operation == null) {
-                IllegalArgumentException e = new IllegalArgumentException("Null operation in modifyObject");
-                throw e;
+                throw new IllegalArgumentException("Null operation in modifyObject");
             }
-            if (operation instanceof PropertyModificationOperation) {
-                PropertyDelta<?> delta = ((PropertyModificationOperation) operation).getPropertyDelta();
+            if (operation instanceof PropertyModificationOperation<?> propertyModification) {
+                PropertyDelta<?> delta = propertyModification.getPropertyDelta();
                 if (delta.getPath().equivalent(ShadowType.F_AUXILIARY_OBJECT_CLASS)) {
+                    //noinspection unchecked
                     auxiliaryObjectClassDelta = (PropertyDelta<QName>) delta;
                 }
             }

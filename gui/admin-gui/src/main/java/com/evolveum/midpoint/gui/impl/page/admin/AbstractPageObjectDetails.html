@@ -10,7 +10,36 @@
 <wicket:extend>
     <div wicket:id="detailsView"></div>
 
+    <wicket:fragment wicket:id="errorView">
+        <div wicket:id="errorPanel"></div>
+    </wicket:fragment>
+
     <wicket:fragment wicket:id="details">
+
+        <form class="col-lg-12" wicket:id="mainForm">
+
+            <div class="row" wicket:id="buttons"></div>
+
+            <div class="row d-flex flex-wrap gap-3 flex-md-nowrap flex-lg-nowrap">
+                <div wicket:id="detailsNavigationPanel" class="d-flex flex-fill p-0 overflow-hidden rounded card mb-auto col-md-12 vertical-navigation-panel">
+                    <div wicket:id="summary"></div>
+                    <wicket:enclosure child="navigation">
+                        <div class="card-footer details-panel-navigation p-2" wicket:id="navigation" role="navigation"/>
+                    </wicket:enclosure>
+                </div>
+
+                <div class="col p-0" style="
+                align-items: stretch;
+                overflow: hidden;
+                " wicket:id="mainPanel"
+                        wicket:message="aria-label:AbstractPageObjectDetails.detailsPanel" tabindex="0" role="region">
+                </div>
+            </div>
+        </form>
+
+    </wicket:fragment>
+
+    <wicket:fragment wicket:id="detailsOld">
         <div class="row">
             <div class="col-lg-12" wicket:id="summary"></div>
         </div>
@@ -20,13 +49,14 @@
 
                 <div class="details-panel">
                     <wicket:enclosure child="navigation">
-                        <div class="details-panel-navigation p-2" wicket:id="navigation"/>
+                        <div class="details-panel-navigation p-2" wicket:id="navigation" role="navigation"/>
                     </wicket:enclosure>
-                    <div class="details-panel-details-form" wicket:id="mainPanel"/>
+                    <div class="details-panel-details-form" wicket:id="mainPanel" wicket:message="aria-label:AbstractPageObjectDetails.detailsPanel" tabindex="0" role="region"/>
                 </div>
             </form>
         </div>
     </wicket:fragment>
+
     <wicket:child/>
 </wicket:extend>
 </body>

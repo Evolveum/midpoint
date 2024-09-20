@@ -135,7 +135,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
 
         ObjectDelta<ResourceType> objectDelta = prismContext.deltaFactory().object()
                 .createModificationReplaceProperty(ResourceType.class, RESOURCE_OID, ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION,
-                        SchemaConstants.ICF_CONFIGURATION_PROPERTIES, new QName(NS_RESOURCE_CSV, "filePath")),
+                        SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME, new QName(NS_RESOURCE_CSV, "filePath")),
                         newRealValue);
         provisioningService.applyDefinition(objectDelta, task, result);
         provisioningService.modifyObject(ResourceType.class, objectDelta.getOid(), objectDelta.getModifications(), null, null, task, result);
@@ -282,7 +282,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
                 .assertNotDead()
                 .assertNoLegacyConsistency()
                 .attributes()
-                    .assertAttributes(CSV_ATTRIBUTE_USERNAME) // checks main attributes section, not attributes in the pending delta
+                    .assertAttributesCachingAware(CSV_ATTRIBUTE_USERNAME) // checks main attributes section, not attributes in the pending delta
                 .end()
                 .pendingOperations()
                     .singleOperation()
@@ -550,7 +550,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
                 .assertNotDead()
                 .assertNoLegacyConsistency()
                 .attributes()
-                .assertAttributes(CSV_ATTRIBUTE_USERNAME) // checks main attributes section, not attributes in the pending delta
+                .assertAttributesCachingAware(CSV_ATTRIBUTE_USERNAME) // checks main attributes section, not attributes in the pending delta
                 .end()
                 .pendingOperations()
                 .singleOperation()
@@ -598,33 +598,28 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
 
         then("unassign");
         result3.computeStatus();
-        TestUtil.assertInProgress("resource in the maintenance pending delta", result3);
+        // Before 4.9, the result was "in progress" here.
+        // But since the proposed accounts are no longer attempted to be deleted, it is "success",
+        // because the operation was not even attempted.
+        TestUtil.assertSuccess(result3);
 
         assertModelShadowNoFetch(newShadowOid)
                 .display("Shadow after delete")
                 .assertKind(ShadowKindType.ACCOUNT)
-                .assertNotDead()
+                .assertDead()
+                .assertIsNotExists()
                 .assertNoLegacyConsistency()
                 .attributes()
                 .assertHasPrimaryIdentifier()
                 .end()
                 .pendingOperations()
-                .assertOperations(2) // 1x create + 1x delete
-                .deleteOperation()
-                .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
-                .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
-                .assertAttemptNumber(1)
-                .delta()
-                .display()
-                .assertDelete()
-                .end()
-                .end();
+                .assertOperations(1); // completed (not applicable) "add" operation
 
         when("maintenance off");
 
         turnMaintenanceModeOff(result);
 
-        // Apply pending create + delete delta:
+        // Just repeat the recomputation (nothing should happen)
         OperationResult result4 = createOperationResult();
         modelService.recompute(UserType.class, USER2_OID, executeOptions().reconcile(), task, result4);
 
@@ -665,7 +660,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
                 .assertNotDead()
                 .assertNoLegacyConsistency()
                 .attributes()
-                .assertAttributes(CSV_ATTRIBUTE_USERNAME) // checks main attributes section, not attributes in the pending delta
+                .assertAttributesCachingAware(CSV_ATTRIBUTE_USERNAME) // checks main attributes section, not attributes in the pending delta
                 .end()
                 .pendingOperations()
                 .singleOperation()

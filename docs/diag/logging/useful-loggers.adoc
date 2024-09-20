@@ -1,0 +1,80 @@
+= Useful Loggers
+:page-wiki-name: Useful Loggers
+:page-wiki-id: 13074713
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2013-11-28T14:27:50.271+01:00
+:page-wiki-metadata-modify-user: vix
+:page-wiki-metadata-modify-date: 2016-09-28T13:57:36.744+02:00
+:page-upkeep-status: orange
+
+[%autowidth]
+|===
+| Logger name | Scope | Recommended log levels | Description | Verbosity
+
+| com.evolveum.midpoint.model.common.mapping.Mapping
+| *Mapping Trace*
+| TRACE
+| Logs summary of execution for each mapping. +
+This is quite high-level mapping evaluation.
+| Medium
+
+| com.evolveum.midpoint.model.common.expression.Expression
+| *Expression Trace*
+| TRACE
+| Logs summary of expression evaluation. +
+This is lower-level trace of the expression with input and output dumps.
+It is quite verbose.
+| High
+
+| com.evolveum.midpoint.model.common.expression.script.ScriptExpression
+| *Script Expression Trace*
+| TRACE
+| Logs a lot of details about script expression evaluation (Groovy, JavaScript, ...) +
+Provides a lot of details
+| Very high
+
+| com.evolveum.midpoint.model.impl.lens.projector.Projector
+| *Projector Trace*
+| DEBUG +
+TRACE
+| Logs the stages of projector computation.
+Especially the TRACE level is very verbose.
+However this is the best tool how to troubleshoot problems with synchronization mappings and mapping interactions.
+| High
+
+| com.evolveum.midpoint.model.impl.lens.projector
+| *Detailed Projector Trace*
+| DEBUG +
+TRACE
+| Logs the stages of projector computation and also the details of each stage.
+Especially the TRACE level is extremely verbose.
+It could be used in a rare occasions, usually used to diagnose midPoint bugs.
+| Nightmare
+
+| com.evolveum.midpoint.model.impl.lens.Clockwork
+| *Clockwork Summary*
+| DEBUG
+| Provides summary of clockwork execution including cause of the events, overview of projector computation and the results (changes).
+*Very nice output*. *Recommended for basic troubleshooting*.
+| Medium
+
+| com.evolveum.midpoint.model.impl.lens.Clockwork
+| *Clockwork Trace*
+| TRACE
+| Tracing the workings of clockwork (projection, execution, workflow).
+It dumps the context between major clockwork stages.
+| High
+
+| com.evolveum.midpoint.model.impl.lens.ChangeExecutor
+| *Change Executor Trace*
+| TRACE
+| Logs all changes that clockwork does (User, Accounts, also other objects)
+| Medium
+
+| org.identityconnectors.framework
+| *Connector Trace*
+| TRACE
+| Logs all invoked operations executed on all connectors and their return values.
+| High
+
+|===

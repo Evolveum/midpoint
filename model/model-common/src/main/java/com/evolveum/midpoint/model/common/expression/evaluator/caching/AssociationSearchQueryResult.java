@@ -7,27 +7,29 @@
 
 package com.evolveum.midpoint.model.common.expression.evaluator.caching;
 
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import java.util.Collection;
+
 import org.apache.commons.lang3.Validate;
 
-import java.util.List;
+import com.evolveum.midpoint.model.common.expression.evaluator.AbstractSearchExpressionEvaluator.ObjectFound;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-public class AssociationSearchQueryResult extends QueryResult<PrismContainerValue<ShadowAssociationType>> {
+public class AssociationSearchQueryResult extends QueryResult<ShadowAssociationValue> {
 
     private final String resourceOid;
     private final ShadowKindType kind;
 
     AssociationSearchQueryResult(
-            List<PrismContainerValue<ShadowAssociationType>> resultingList, List<PrismObject<ShadowType>> rawResultsList) {
-        super(resultingList);
+            Collection<? extends ObjectFound<ShadowType, ShadowAssociationValue>> objectsFound) {
+        super(objectsFound);
 
-        Validate.isTrue(rawResultsList != null && !rawResultsList.isEmpty());
-        ShadowType shadow = rawResultsList.get(0).asObjectable();
+        // TODO this is quite suspicious ... but it's here for ages, let us keep it for now
+
+        Validate.isTrue(objectsFound != null && !objectsFound.isEmpty());
+        ShadowType shadow = objectsFound.iterator().next().sourceObject().asObjectable();
 
         resourceOid = ShadowUtil.getResourceOid(shadow);
         kind = shadow.getKind();

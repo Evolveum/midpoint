@@ -15,9 +15,10 @@ import com.evolveum.midpoint.util.exception.*;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.ClusteringAction;
+import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.context.ClusteringActionExecutor;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.AffectedObjectsInformation;
@@ -100,14 +101,17 @@ public class RoleAnalysisClusteringActivityHandler
                 String sessionOid = getWorkDefinition().sessionOid;
                 LOGGER.debug("Running role analysis clustering activity; session OID = {}", sessionOid);
 
-                ClusteringAction clusteringAction = new ClusteringAction(this);
-                clusteringAction.execute(sessionOid, result);
+                ClusteringActionExecutor clusteringActionExecutor = new ClusteringActionExecutor(this, activityState);
+                clusteringActionExecutor.execute(sessionOid, result);
 
             } catch (Throwable t) {
                 result.recordException(t);
                 throw t;
             } finally {
                 runningTask.setExecutionSupport(null);
+                result.cleanupResultDeeply();
+                result.summarize(true);
+
                 result.close();
             }
 
@@ -133,7 +137,7 @@ public class RoleAnalysisClusteringActivityHandler
         }
 
         @Override
-        public @NotNull AffectedObjectsInformation.ObjectSet getAffectedObjectSetInformation() {
+        public @NotNull AffectedObjectsInformation.ObjectSet getAffectedObjectSetInformation(@Nullable AbstractActivityWorkStateType state) {
             return AffectedObjectsInformation.ObjectSet.notSupported();
         }
     }

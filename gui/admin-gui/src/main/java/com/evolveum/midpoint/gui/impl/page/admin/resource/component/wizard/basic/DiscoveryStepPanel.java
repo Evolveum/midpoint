@@ -16,6 +16,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.DiscoveredConfiguration;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
@@ -68,7 +69,7 @@ public class DiscoveryStepPanel extends AbstractConfigurationStepPanel {
 
                 if (item != null) {
                     if (suggestionDef.getAllowedValues() != null && !suggestionDef.getAllowedValues().isEmpty()) {
-                        item.toMutable().setAllowedValues(
+                        item.mutator().setAllowedValues(
                                 (Collection<? extends DisplayableValue<Object>>) suggestionDef.getAllowedValues());
                         if (suggestionDef.getAllowedValues().size() == 1
                                 && item.isEmpty()) {
@@ -77,7 +78,7 @@ public class DiscoveryStepPanel extends AbstractConfigurationStepPanel {
                         }
                     }
                     if (suggestionDef.getSuggestedValues() != null && !suggestionDef.getSuggestedValues().isEmpty()) {
-                        item.toMutable().setSuggestedValues(
+                        item.mutator().setSuggestedValues(
                                 (Collection<? extends DisplayableValue<Object>>) suggestionDef.getSuggestedValues());
                         if (suggestionDef.getSuggestedValues().size() == 1
                                 && item.isEmpty()) {
@@ -85,11 +86,11 @@ public class DiscoveryStepPanel extends AbstractConfigurationStepPanel {
                                     suggestionDef.getSuggestedValues().iterator().next().getValue());
                         }
                     }
-                    item.toMutable().setDisplayOrder(100);
-                    item.toMutable().toMutable().setEmphasized(true);
+                    item.mutator().setDisplayOrder(100);
+                    item.mutator().setEmphasized(true);
                 }
             }
-        } catch (SchemaException e) {
+        } catch (CommonException e) {
             result.recordFatalError("Couldn't get discovered configuration.", e);
         }
 

@@ -12,7 +12,7 @@ import static com.evolveum.midpoint.security.api.AuthorizationConstants.*;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.impl.authorization.AuthorizationActionValue;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.RestAuthorizationAction;
 
 /**
  * @author lazyman
@@ -42,6 +42,16 @@ public enum EndPointsUrlMapping {
             new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
                     "PageAdminRoles.authUri.rolesAll.label", "PageAdminRoles.authUri.guiAll.description")),
 
+
+    SCHEMA_DETAILS("/admin/schema/**",
+            new AuthorizationActionValue(AUTZ_UI_SCHEMA_DETAILS_URL,
+                    "PageAdminSchemas.authUri.schemaDetails.label", "PageAdminSchemas.authUri.schemaDetails.description"),
+            new AuthorizationActionValue(AUTZ_UI_SCHEMAS_ALL_URL,
+                    "PageAdminSchemas.authUri.schemasAll.label", "PageAdminSchemas.authUri.schemasAll.description"),
+            new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
+                    "PageAdminSchemas.authUri.guiAll.label", "PageAdminSchemas.authUri.guiAll.description")),
+
+
     //TODO authz
     ROLE_MINING_DETAILS("/admin/roleAnalysis/**",
             new AuthorizationActionValue(AUTZ_UI_ROLE_ANALYSIS_ALL_URL,
@@ -65,6 +75,14 @@ public enum EndPointsUrlMapping {
             new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
                     "PageAdminCluster.authUri.rolesAll.label", "PageAdminCluster.authUri.guiAll.description")),
 
+    ROLE_ANALYSIS_OUTLIER_DETAILS("/admin/roleAnalysisOutlier/**",
+            new AuthorizationActionValue(AUTZ_UI_ROLE_ANALYSIS_ALL_URL,
+                    "PageAdminSession.authUri.roleDetails.label", "PageAdminSession.authUri.roleDetails.description"),
+            new AuthorizationActionValue(AUTZ_UI_ROLE_ANALYSIS_SESSION_URL,
+                    "PageAdminSession.authUri.rolesAll.label", "PageAdminSession.authUri.rolesAll.description"),
+            new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
+                    "PageAdminCluster.authUri.rolesAll.label", "PageAdminCluster.authUri.guiAll.description")),
+
     ORG_DETAILS("/admin/org/unit/**",
             new AuthorizationActionValue(AUTZ_UI_ORG_ALL_URL,
                     "PageAdminUsers.auth.orgAll.label", "PageAdminUsers.auth.orgAll.description"),
@@ -82,6 +100,13 @@ public enum EndPointsUrlMapping {
                     "PageAdminRoles.authUri.servicesAll.label", "PageAdminRoles.authUri.servicesAll.description"),
             new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
                     "PageAdminRoles.authUri.guiAll.label", "PageAdminRoles.authUri.guiAll.description")),
+    POLICY_NEW_DETAILS("/admin/policy/**",
+            new AuthorizationActionValue(AUTZ_UI_POLICY_DETAILS_URL,
+                    "PageAdminPolicies.authUri.policyDetails.label", "PageAdminPolicies.authUri.policyDetails.description"),
+            new AuthorizationActionValue(AUTZ_UI_POLICIES_ALL_URL,
+                    "PageAdminPolicies.authUri.policiesAll.label", "PageAdminPolicies.authUri.policiesAll.description"),
+            new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
+                    "PageAdminPolicies.authUri.guiAll.label", "PageAdminPolicies.authUri.guiAll.description")),
     RESOURCE_DETAILS("/admin/resource/**",
             new AuthorizationActionValue(AUTZ_UI_RESOURCE_DETAILS_URL,
                     "PageAdminResources.authUri.resourceDetails.label", "PageAdminResources.authUri.resourceDetails.description"),
@@ -137,7 +162,8 @@ public enum EndPointsUrlMapping {
                     "PageReport.auth.report.label", "PageReport.auth.report.description"),
             new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
                     "PageCaseWorkItems.authUri.guiAll.label", "PageAdminRoles.authUri.guiAll.description")),
-    CAMPAIGN_DETAILS("/admin/certification/campaigns/**",
+
+    CAMPAIGN_DETAILS("/admin/certification/campaign/**",
             new AuthorizationActionValue(AUTZ_UI_CERTIFICATION_ALL_URL,
                     "PageAdminCertification.auth.certificationAll.label",
                     "PageAdminCertification.auth.certificationAll.description"),
@@ -147,6 +173,30 @@ public enum EndPointsUrlMapping {
             new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
                     "PageAdminCertification.auth.certificationCampaigns.label",
                     "PageAdminCertification.auth.certificationCampaigns.description")),
+
+    CAMPAIGNS("/admin/certification/campaigns/**",
+            new AuthorizationActionValue(AUTZ_UI_CERTIFICATION_ALL_URL,
+                    "PageAdminCertification.auth.certificationAll.label",
+                    "PageAdminCertification.auth.certificationAll.description"),
+            new AuthorizationActionValue(AUTZ_UI_CERTIFICATION_CAMPAIGNS_URL,
+                    "PageAdminCertification.auth.certificationCampaigns.label",
+                    "PageAdminCertification.auth.certificationCampaigns.description"),
+            new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
+                    "PageAdminCertification.auth.certificationCampaigns.label",
+                    "PageAdminCertification.auth.certificationCampaigns.description")),
+
+    //TODO better names for authorizations
+    CAMPAIGN_DECISIONS_DETAILS("/admin/certification/decisionsAll/**",
+            new AuthorizationActionValue(AUTZ_UI_CERTIFICATION_ALL_URL,
+                    "PageAdminCertification.auth.certificationAll.label",
+                    "PageAdminCertification.auth.certificationAll.description"),
+            new AuthorizationActionValue(AUTZ_UI_CERTIFICATION_DECISIONS_URL,
+                    "PageAdminCertification.auth.decisions.label",
+                    "PageAdminCertification.auth.decisions.description"),
+            new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
+                    "PageAdminCertification.auth.certificationCampaigns.label",
+                    "PageAdminCertification.auth.certificationCampaigns.description")),
+
     SIMULATION_DETAILS("/admin/simulation/**",
             new AuthorizationActionValue(AUTZ_UI_SIMULATION_RESULT_URL,
                     "PageSimulationResults.auth.simulationResult.label", "PageSimulationResults.auth.simulationResult.description"),
@@ -173,6 +223,10 @@ public enum EndPointsUrlMapping {
     ACTUATOR_METRICS("/actuator/metrics/**",
             new AuthorizationActionValue(AUTZ_ACTUATOR_METRICS_URL,
                     "ActuatorEndpoint.authActuator.metrics.label", "ActuatorEndpoint.authActuator.metrics.description")),
+    /**
+     * This is the authorization that provides access to all the methods. However, it is possible to authorize selected
+     * REST actions individually; see {@link RestAuthorizationAction} enum.
+     */
     REST("/ws/**",
             new AuthorizationActionValue(AUTZ_REST_ALL_URL,
                     "RestEndpoint.authRest.all.label", "RestEndpoint.authRest.all.description")),
@@ -182,7 +236,6 @@ public enum EndPointsUrlMapping {
     REST3("/api/**",
             new AuthorizationActionValue(AUTZ_REST_ALL_URL,
                     "RestEndpoint.authRest.all.label", "RestEndpoint.authRest.all.description")),
-
 
     INSPECTOR("/inspector/**",
             new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
@@ -196,7 +249,6 @@ public enum EndPointsUrlMapping {
     WICKET_PAGE("/wicket/**",
             new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
                     "WicketDebugInfo.authUri.guiAll.label", "WicketDebugInfo.authUri.guiAll.description"));
-
 
     private final String url;
 

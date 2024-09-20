@@ -1,0 +1,118 @@
+= Task Specific Operations
+:page-nav-title: Task Specific Operations
+:page-display-order: 900
+:page-toc: top
+:page-keywords: [ 'rest', 'task', 'suspend', 'resume', 'run', 'operation' ]
+:page-upkeep-status: green
+
+== Description
+A set of operations which are specific for objects of the "Task" type residing on the "tasks" endpoint.
+
+== Request
+
+The requests require the usage of HTTP POST. The URI of the request itself depends on the type of operation.
+There are THREE types of operation requests which are described on this page.
+
+.*Task Suspend* operation using HTTP POST
+[source, http]
+----
+POST http://localhost:8080/midpoint/ws/rest/tasks/{oid}/suspend
+----
+
+.*Task Resume* operation using HTTP POST
+[source, http]
+----
+POST http://localhost:8080/midpoint/ws/rest/tasks/{oid}/resume
+----
+
+.*Task Run* operation using HTTP POST
+[source, http]
+----
+POST http://localhost:8080/midpoint/ws/rest/tasks/{oid}/run
+----
+
+=== Headers
+
+Regarding authorization type, the "Basic" Authorization header should be used.
+
+.Authorization header example replace {Base64EncodedCredentials} with the encoded credentials
+[source, http]
+----
+Authorization: Basic {Base64EncodedCredentials}
+----
+
+To specify the provided content type, please use the "Content-Type" header
+payload in the body:
+
+.Content type header example, other media types are supported as well
+[source, http]
+----
+"Content-Type: application/json"
+----
+
+You might need to specify the accepted type of content in case
+you are interested in a format different from xml (default):
+
+.Accept type header example, other media types are supported as well
+[source, http]
+----
+"Accept: application/json"
+----
+
+.For supported media types please refer to the following section of the documentation
+xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+
+=== Body
+
+The Task specific operations do not need to contain any specific payload data in the body of the
+request.
+
+=== Options
+
+No additional option parameters supported for these types of requests.
+
+include::../../rest/concepts/raw/outcome.adoc[]
+
+== Access Authorization
+
+include::../operations/raw/a-auth.adoc[]
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#suspendTask+`
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#resumeTask+`
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#runTask+`
+
+== Model Authorization
+
+include::../operations/raw/m-auth.adoc[]
+
+For the "run" task operation please use:
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#runTaskImmediately+`
+
+For the "suspend" operation please use:
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#suspendTask+`
+
+For the "resume" operation please use:
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#resumeTask+`
+
+== Examples
+
+include::../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+include::../../rest/operations/examples/raw/task-op-suspend.adoc[]
+
+include::../../rest/operations/examples/raw/task-op-resume.adoc[]
+
+include::../../rest/operations/examples/raw/task-op-run.adoc[]
+
+== See Also
+
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]
+- xref:/midpoint/reference/security/authorization/service/[]

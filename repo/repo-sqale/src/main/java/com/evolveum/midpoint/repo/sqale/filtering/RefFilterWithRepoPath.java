@@ -6,8 +6,14 @@
  */
 package com.evolveum.midpoint.repo.sqale.filtering;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.path.TypedItemPath;
+
+import com.evolveum.midpoint.prism.query.FilterItemPathTransformer;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -100,6 +106,11 @@ class RefFilterWithRepoPath implements RefFilter {
     }
 
     @Override
+    public void setValues(@NotNull Collection<PrismReferenceValue> values) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public @Nullable ExpressionWrapper getExpression() {
         throw new UnsupportedOperationException();
     }
@@ -180,11 +191,6 @@ class RefFilterWithRepoPath implements RefFilter {
     }
 
     @Override
-    public PrismContext getPrismContext() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public RefFilter clone() {
         throw new UnsupportedOperationException();
     }
@@ -207,5 +213,14 @@ class RefFilterWithRepoPath implements RefFilter {
     @Override
     public boolean isTargetTypeNullAsAny() {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void collectUsedPaths(TypedItemPath base, Consumer<TypedItemPath> pathConsumer, boolean expandReferences) {
+        // NOOP - never used outside repo.
+    }
+
+    public void transformItemPaths(ItemPath parentPath, ItemDefinition<?> parentDef, FilterItemPathTransformer transformer) {
+        // NOOP - never used outside repo.
     }
 }

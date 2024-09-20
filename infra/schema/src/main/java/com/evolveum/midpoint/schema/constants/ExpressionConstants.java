@@ -92,7 +92,7 @@ public class ExpressionConstants {
     public static final String VAR_ADMINISTRATIVE_STATUS = "administrativeStatus";
     public static final ItemName VAR_ADMINISTRATIVE_STATUS_QNAME = new ItemName(SchemaConstants.NS_C, VAR_ADMINISTRATIVE_STATUS);
 
-    public static final String VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION = "associationTargetObjectClassDefinition";
+    public static final String VAR_ASSOCIATION_DEFINITION = "associationDefinition";
 
     /**
      * Numeric value describing the current iteration. It starts with 0 and increments on every iteration.

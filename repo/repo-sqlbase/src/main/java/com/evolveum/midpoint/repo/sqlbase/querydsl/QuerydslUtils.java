@@ -15,7 +15,6 @@ import com.querydsl.core.types.dsl.DateTimePath;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.StringTemplate;
 import com.querydsl.sql.Configuration;
-import com.querydsl.sql.H2Templates;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
@@ -35,10 +34,6 @@ public enum QuerydslUtils {
     public static Configuration querydslConfiguration(SupportedDatabase databaseType) {
         Configuration querydslConfiguration;
         switch (databaseType) {
-            case H2:
-                querydslConfiguration =
-                        new Configuration(H2Templates.DEFAULT);
-                break;
             case POSTGRESQL:
                 querydslConfiguration =
                         new Configuration(MidpointPostgreSQLTemplates.DEFAULT);

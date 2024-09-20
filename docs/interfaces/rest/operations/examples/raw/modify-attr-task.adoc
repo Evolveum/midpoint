@@ -1,0 +1,12 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Modify Tasks*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Content-Type: application/json" \
+-X PATCH http://localhost:8080/midpoint/ws/rest/tasks/6d13632c-6b75-4a33-9744-ec9523375f6b \
+-v \
+--data-binary @./samples/rest/modify-attribute-gen.json
+----

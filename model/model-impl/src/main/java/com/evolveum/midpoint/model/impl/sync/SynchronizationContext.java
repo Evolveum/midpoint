@@ -8,11 +8,13 @@ package com.evolveum.midpoint.model.impl.sync;
 
 import java.util.Collection;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+import com.evolveum.midpoint.schema.processor.*;
 
+import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.SimulationUtil;
 import com.evolveum.midpoint.task.api.TaskUtil;
+
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.BooleanUtils;
@@ -20,13 +22,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
-import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.ResourceObjectProcessingContext;
 import com.evolveum.midpoint.model.impl.ResourceObjectProcessingContextImpl;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.PreInboundsContext;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.SingleShadowInboundsProcessingContext;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
@@ -35,7 +35,6 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.schema.processor.SynchronizationPolicy;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -48,6 +47,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import static com.evolveum.midpoint.schema.util.ObjectOperationPolicyTypeUtil.isSyncInboundDisabled;
+
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -57,7 +58,7 @@ import static java.util.Objects.requireNonNull;
  * @param <F> Type of the matching focus object
  */
 public abstract class SynchronizationContext<F extends FocusType>
-        implements PreInboundsContext<F>, ResourceObjectProcessingContext {
+        implements SingleShadowInboundsProcessingContext<F>, ResourceObjectProcessingContext {
 
     private static final Trace LOGGER = TraceManager.getTrace(SynchronizationContext.class);
 
@@ -103,7 +104,7 @@ public abstract class SynchronizationContext<F extends FocusType>
     /**
      * Definition of corresponding object (currently found by kind+intent).
      */
-    @Nullable private final ResourceObjectDefinition resourceObjectDefinition;
+    @Nullable protected final ResourceObjectDefinition resourceObjectDefinition;
 
     @Nullable private final SynchronizationPolicy synchronizationPolicy;
 
@@ -147,8 +148,6 @@ public abstract class SynchronizationContext<F extends FocusType>
 
     @NotNull private final PrismContext prismContext = PrismContext.get();
 
-    @NotNull private final ModelBeans beans;
-
     /** TODO maybe will be removed */
     @Experimental
     private final String itemProcessingIdentifier;
@@ -167,7 +166,7 @@ public abstract class SynchronizationContext<F extends FocusType>
             @Nullable ObjectSynchronizationDiscriminatorType sorterResult,
             @Nullable String tag) {
         this.change = change;
-        this.shadowedResourceObject = processingContext.getShadowedResourceObject();
+        this.shadowedResourceObject = processingContext.getShadowRequired();
         this.shadowedResourceObjectBefore = this.shadowedResourceObject.clone();
         this.resourceObjectDelta = processingContext.getResourceObjectDelta();
         this.resource = processingContext.getResource();
@@ -175,7 +174,6 @@ public abstract class SynchronizationContext<F extends FocusType>
         this.systemConfiguration = processingContext.getSystemConfiguration();
         this.task = processingContext.getTask();
         this.executionMode = TaskUtil.getExecutionMode(task);
-        this.beans = processingContext.getBeans();
         this.typeIdentification = typeIdentification;
         this.resourceObjectDefinition = objectDefinition;
         this.synchronizationPolicy = synchronizationPolicy;
@@ -192,7 +190,7 @@ public abstract class SynchronizationContext<F extends FocusType>
         } else {
             this.forceClassificationUpdate = false;
         }
-        this.updater = new ShadowUpdater(this, beans);
+        this.updater = new ShadowUpdater(this);
     }
 
     boolean isSynchronizationEnabled() {
@@ -200,14 +198,15 @@ public abstract class SynchronizationContext<F extends FocusType>
                 && synchronizationPolicy.isSynchronizationEnabled();
     }
 
-    boolean isMarkedSkipSynchronization(OperationResult result) {
+    boolean isMarkedSkipSynchronization(OperationResult result) throws ConfigurationException {
         var policy = shadowedResourceObject.getEffectiveOperationPolicy();
-        // Policy should not be null if was provided by provisioning-impl, but sometimes in tests
-        // provisioning is skipped, so we need to ensure policy is computed.
+        // Policy should not be null if was provided by provisioning-impl. TODO Remove this check later
         if (policy == null) {
-            policy = ObjectOperationPolicyHelper.get().computeEffectivePolicy(shadowedResourceObject, result);
+            LOGGER.warn("Missing effective operation policy in {}.", shadowedResourceObject);
+            policy = ObjectOperationPolicyHelper.get().computeEffectivePolicy(
+                    shadowedResourceObject, task.getExecutionMode(), result);
         }
-        return !policy.getSynchronize().getInbound().isEnabled();
+        return isSyncInboundDisabled(policy);
     }
 
     public boolean isProtected() {
@@ -281,8 +280,8 @@ public abstract class SynchronizationContext<F extends FocusType>
     }
 
     @Override
-    public @NotNull ShadowType getShadowedResourceObject() {
-        return shadowedResourceObject;
+    public @NotNull ShadowLikeValue getShadowLikeValue() {
+        return AbstractShadow.of(shadowedResourceObject);
     }
 
     @NotNull ShadowType getShadowedResourceObjectBefore() {
@@ -331,12 +330,6 @@ public abstract class SynchronizationContext<F extends FocusType>
             throw SystemException.unexpected(e, "when creating pre-focus");
         }
         return preFocus;
-    }
-
-    @Override
-    public @NotNull PrismObject<F> getPreFocusAsPrismObject() {
-        //noinspection unchecked
-        return (PrismObject<F>) preFocus.asPrismObject();
     }
 
     ObjectTemplateType getObjectTemplateForCorrelation() {
@@ -479,11 +472,6 @@ public abstract class SynchronizationContext<F extends FocusType>
         return systemConfiguration;
     }
 
-    @Override
-    public @NotNull ModelBeans getBeans() {
-        return beans;
-    }
-
     public @NotNull ExecutionModeType getExecutionMode() {
         return executionMode;
     }
@@ -532,6 +520,10 @@ public abstract class SynchronizationContext<F extends FocusType>
         return SimulationUtil.isVisible(resource, resourceObjectDefinition, task.getExecutionMode());
     }
 
+    public @NotNull ShadowType getShadowedResourceObject() {
+        return shadowedResourceObject;
+    }
+
     /**
      * Synchronization context ready for the synchronization, i.e. it has type identification and synchronization policy present.
      */
@@ -562,6 +554,11 @@ public abstract class SynchronizationContext<F extends FocusType>
         public boolean isComplete() {
             return true;
         }
+
+        @Override
+        public @NotNull ResourceObjectInboundDefinition getInboundDefinition() throws SchemaException, ConfigurationException {
+            return getObjectDefinitionRequired();
+        }
     }
 
     /**
@@ -583,6 +580,15 @@ public abstract class SynchronizationContext<F extends FocusType>
         @Override
         public boolean isComplete() {
             return false;
+        }
+
+        @Override
+        public @NotNull ResourceObjectInboundDefinition getInboundDefinition() throws SchemaException, ConfigurationException {
+            if (resourceObjectDefinition != null) {
+                return resourceObjectDefinition;
+            } else {
+                throw new IllegalStateException("No object definition in " + this + ", this method should not have been called");
+            }
         }
     }
 }

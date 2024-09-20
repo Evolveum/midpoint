@@ -11,6 +11,7 @@ import com.evolveum.midpoint.web.component.prism.InputPanel;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.util.convert.IConverter;
 import org.apache.wicket.util.string.Strings;
 
 public class TextPanel<T> extends InputPanel {
@@ -49,7 +50,10 @@ public class TextPanel<T> extends InputPanel {
                 }
             }
 
-
+            @Override
+            public <C> IConverter<C> getConverter(Class<C> type) {
+                return super.getConverter(type);
+            }
         };
         text.setType(clazz);
         add(text);

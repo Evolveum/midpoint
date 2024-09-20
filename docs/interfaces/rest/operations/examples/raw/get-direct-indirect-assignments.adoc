@@ -1,0 +1,174 @@
+= Get Users Data with Direct and Indirect assignments
+:page-nav-title: Get user based on his unique identificator
+:page-display-order: 200
+:page-toc: top
+:page-keywords: [ 'direct and indirect assignments', 'rest', 'get']
+:page-upkeep-status: green
+
+== Description
+Example of retrieving identity data from a web resource object representing a user.
+
+In this case the User is a member of multiple roles by having them either directly
+or indirectly (inducement) assigned.
+
+In our example we want to fetch the data with an emphasis on the active
+assignments (or inducement).
+
+The motivation is to have as much information about
+the assigned objects from this single API call as possible. For this we augment
+the request URI with a special parameter
+
+For the purpose of the sample we are using the CURL tool as it is a well maintained, well
+tested, and it's widely accessible.
+
+.Authentication methods used to work with the REST api
+xref:/midpoint/reference/interfaces/rest/concepts/authentication/#_basic_authentication[Authentication methods]
+
+== Example
+
+Notice the usage of the options parameter set to *"resolveNames"*. It lets midPoint
+return an output which additionally to the traditional OID also contains the name of an assigned object.
+
+Look for the *"targetName"* parameter in the output of the request.
+
+[#_get_direct_indirect_assign]
+.Get user with direct and indirect assignments
+
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Accept: application/json" \
+-X GET http://localhost:8080/midpoint/ws/rest/users/00000000-0000-0000-0000-000000000002?options=resolveNames \
+-v
+----
+
+.Example Output for "Get user with direct and indirect assignments"
+[%collapsible]
+====
+This is only an example output, some *parts* of which *were* either *removed*
+or shortened to emphasize the parts related to the use-case.
+
+Please also notice the sections labeled as *"provenance"*. The *"segmentOrder"* parameter represents
+the order of the assignment in the assignment path (in case of induced assignments).
+
+[source, json]
+----
+{
+  "user" : {
+    "oid" : "a9885c61-c442-42d8-af34-8182a8653e3c",
+    "version" : "",
+    "name" : "Jack",
+    "metadata" : {},
+    "operationExecution" : [ {}, {} ],
+    "assignment" : [ {}, {} ],
+    "iteration" : 0,
+    "iterationToken" : "",
+    "roleMembershipRef" : [ {
+      "@metadata" : {
+        "storage" : {},
+        "provenance" : {
+          "assignmentPath" : {
+            "sourceRef" : {
+              "oid" : "a9885c61-c442-42d8-af34-8182a8653e3c",
+              "relation" : "org:default",
+              "type" : "c:UserType"
+            },
+            "segment" : {
+              "segmentOrder" : 1,
+              "assignmentId" : 2,
+              "targetRef" : {
+                "oid" : "00000000-0000-0000-0000-000000000008",
+                "relation" : "org:default",
+                "type" : "c:RoleType"
+              },
+              "matchingOrder" : true
+            }
+          }
+        }
+      },
+      "oid" : "00000000-0000-0000-0000-000000000008",
+      "relation" : "org:default",
+      "type" : "c:RoleType",
+      "targetName" : "End user"
+    }, {
+      "@metadata" : {
+        "storage" : {},
+        "provenance" : {
+          "assignmentPath" : {
+            "sourceRef" : {
+              "oid" : "a9885c61-c442-42d8-af34-8182a8653e3c",
+              "relation" : "org:default",
+              "type" : "c:UserType"
+            },
+            "segment" : {
+              "segmentOrder" : 1,
+              "assignmentId" : 7,
+              "targetRef" : {
+                "oid" : "c32093b9-a400-42d4-ab7d-5fdd78f96e58",
+                "relation" : "org:default",
+                "type" : "c:RoleType"
+              },
+              "matchingOrder" : true
+            }
+          }
+        }
+      },
+      "oid" : "c32093b9-a400-42d4-ab7d-5fdd78f96e58",
+      "relation" : "org:default",
+      "type" : "c:RoleType",
+      "targetName" : "Java Developer"
+    }, {
+      "@metadata" : {
+        "storage" : {},
+        "provenance" : {
+          "assignmentPath" : {
+            "sourceRef" : {
+              "oid" : "a9885c61-c442-42d8-af34-8182a8653e3c",
+              "relation" : "org:default",
+              "type" : "c:UserType"
+            },
+            "segment" : [ {
+              "segmentOrder" : 1,
+              "assignmentId" : 7,
+              "targetRef" : {
+                "oid" : "c32093b9-a400-42d4-ab7d-5fdd78f96e58",
+                "relation" : "org:default",
+                "type" : "c:RoleType"
+              },
+              "matchingOrder" : true
+            }, {
+              "segmentOrder" : 2,
+              "inducementId" : 2,
+              "targetRef" : {
+                "oid" : "06e34591-a2cd-4b13-a023-74d9db91352c",
+                "relation" : "org:default",
+                "type" : "c:RoleType"
+              },
+              "matchingOrder" : true
+            } ]
+          }
+        }
+      },
+      "oid" : "06e34591-a2cd-4b13-a023-74d9db91352c",
+      "relation" : "org:default",
+      "type" : "c:RoleType",
+      "targetName" : "Developer"
+    } ],
+    "activation" : {},
+    "credentials" : {}
+  }
+}
+----
+====
+
+.Search for users and fetch direct and indirect assignments
+
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d -H "Accept: application/json" -H "Content-Type: application/json" -X POST http://localhost:8080/midpoint/ws/rest/users/search?options=resolveNames --data-binary @pathToMidpointGit\samples\rest\query-all.json -v
+----
+
+== See Also
+
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]

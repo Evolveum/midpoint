@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 
 /**
- * TODO
+ * Abstract {@link SynchronizationEvent} implementation.
  */
 public abstract class SynchronizationEventImpl<AC extends ShadowedChange<?>> implements SynchronizationEvent {
 
@@ -30,7 +30,7 @@ public abstract class SynchronizationEventImpl<AC extends ShadowedChange<?>> imp
         this.change = change;
 
         // This is a temporary measure. We assume that we get fully initialized (successfully or not) change here.
-        change.getInitializationState().checkAfterInitialization();
+        change.checkInitialized();
     }
 
     @Override
@@ -51,22 +51,22 @@ public abstract class SynchronizationEventImpl<AC extends ShadowedChange<?>> imp
     @Override
     public boolean isComplete() {
         // Note that the initialization completeness was checked at construction. (Temporarily.)
-        return change.getInitializationState().isOk();
+        return change.isOk();
     }
 
     @Override
     public boolean isNotApplicable() {
-        return change.getInitializationState().isNotApplicable();
+        return change.isNotApplicable();
     }
 
     @Override
     public boolean isError() {
-        return change.getInitializationState().isError();
+        return change.isError();
     }
 
     @Override
     public String getErrorMessage() {
-        Throwable e = change.getInitializationState().getExceptionEncountered();
+        Throwable e = change.getExceptionEncountered();
         if (e != null) {
             return e.getClass().getSimpleName() + ": " + e.getMessage();
         } else {
@@ -93,7 +93,7 @@ public abstract class SynchronizationEventImpl<AC extends ShadowedChange<?>> imp
 
     @Override
     public String getShadowOid() {
-        return change.getShadowOid();
+        return change.getRepoShadowOid();
     }
 
     @Override

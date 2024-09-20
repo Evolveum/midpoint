@@ -251,7 +251,7 @@ public class DirectAndIndirectAssignmentPanel<AH extends AssignmentHolderType> e
 
     }
 
-    private ObjectDelta<AH> getObjectDelta(OperationResult result) throws SchemaException {
+    private ObjectDelta<AH> getObjectDelta(OperationResult result) throws CommonException {
         ObjectDetailsModels<AH> model = ((PageAssignmentHolderDetails) getPageBase()).getObjectDetailsModels();
         model.collectDeltas(result);
         return model.getDelta();
@@ -260,13 +260,16 @@ public class DirectAndIndirectAssignmentPanel<AH extends AssignmentHolderType> e
     private ModelExecuteOptions createPreviewAssignmentsOptions() {
         ModelExecuteOptions options = getPageBase()
                 .executeOptions()
-                .evaluateAllAssignmentRelationsOnRecompute();
+                .evaluateAllAssignmentRelationsOnRecompute()
+                .firstClickOnly()
+                .previewPolicyRulesEnforcement()
+                .operationStartPreAuthorized();
         options.getOrCreatePartialProcessing().outbound(PartialProcessingTypeType.SKIP);
         return options;
     }
 
     private List<PrismContainerValueWrapper<AssignmentType>> loadEvaluatedAssignments(IModel<PrismContainerWrapper<AssignmentType>> parent)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
+            throws CommonException {
         if (!(getPageBase() instanceof PageAssignmentHolderDetails)) {
             return parent.getObject().getValues();
         }
@@ -296,7 +299,6 @@ public class DirectAndIndirectAssignmentPanel<AH extends AssignmentHolderType> e
         DeltaSetTriple<? extends EvaluatedAssignmentTarget> targetsTriple = evaluatedAssignment.getRoles();
         Collection<? extends EvaluatedAssignmentTarget> targets = targetsTriple.getNonNegativeValues();
         for (EvaluatedAssignmentTarget target : targets) {
-            target.getTarget();
             if (ArchetypeType.class.equals(target.getTarget().getCompileTimeClass())) {
                 continue;
             }

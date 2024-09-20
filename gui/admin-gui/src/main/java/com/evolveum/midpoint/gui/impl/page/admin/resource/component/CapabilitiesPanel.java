@@ -18,6 +18,7 @@ import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerWrapperImpl;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -46,12 +47,13 @@ import java.util.stream.Collectors;
 /**
  * @author lskublik
  */
-public class CapabilitiesPanel extends BasePanel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> {
+public class CapabilitiesPanel extends BasePanel<PrismContainerValueWrapper<CapabilityCollectionType>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismContainerWrapperImpl.class);
 
     private static final String ID_CAPABILITIES = "capabilities";
     private static final String ID_CAPABILITY_BUTTON = "capabilityButton";
+    private static final String ID_ICON_BACKGROUND = "iconBackground";
     private static final String ID_ICON = "icon";
     private static final String ID_LABEL = "label";
 
@@ -68,7 +70,7 @@ public class CapabilitiesPanel extends BasePanel<PrismContainerValueWrapper<Reso
     public CapabilitiesPanel(
             String id,
             ResourceDetailsModel resourceModel,
-            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> model) {
+            IModel<PrismContainerValueWrapper<CapabilityCollectionType>> model) {
         super(id, model);
         this.resourceModel = resourceModel;
     }
@@ -86,7 +88,7 @@ public class CapabilitiesPanel extends BasePanel<PrismContainerValueWrapper<Reso
             protected ResourceType load() {
                 try {
                     return resourceModel.getObjectWrapper().getObjectApplyDelta().asObjectable();
-                } catch (SchemaException e) {
+                } catch (CommonException e) {
                     LOGGER.error("Couldn't get resource with applied deltas", e);
                 }
                 return null;
@@ -98,7 +100,12 @@ public class CapabilitiesPanel extends BasePanel<PrismContainerValueWrapper<Reso
             protected ResourceObjectTypeDefinitionType load() {
                 if (getModelObject() != null) {
                     try {
-                        return getModelObject().getContainerValueApplyDelta().asContainerable();
+                        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> parent =
+                                getModelObject().getParentContainerValue(ResourceObjectTypeDefinitionType.class);
+                        if (parent == null) {
+                            return null;
+                        }
+                        return parent.getContainerValueApplyDelta().asContainerable();
                     } catch (SchemaException e) {
                         LOGGER.error("Couldn't get object type with applied deltas", e);
                     }
@@ -116,6 +123,7 @@ public class CapabilitiesPanel extends BasePanel<PrismContainerValueWrapper<Reso
         ListView<PrismContainerWrapper<CapabilityType>> capabilities = new ListView<>(ID_CAPABILITIES, containers) {
             @Override
             protected void populateItem(ListItem<PrismContainerWrapper<CapabilityType>> item) {
+                item.setOutputMarkupId(true);
 
                 AjaxButton button = new AjaxButton(ID_CAPABILITY_BUTTON) {
 
@@ -152,16 +160,20 @@ public class CapabilitiesPanel extends BasePanel<PrismContainerValueWrapper<Reso
                     }
                 };
 
+                button.setOutputMarkupId(true);
+                button.add(new Label(ID_LABEL, getLabelModel(item.getModelObject())));
+                item.add(button);
+
+                WebComponent iconBg = new WebComponent(ID_ICON_BACKGROUND);
                 IModel<String> enabled = getActiveCss(item.getModel());
-                button.add(AttributeAppender.append("class", enabled));
+                iconBg.add(AttributeAppender.append("class", enabled));
+                button.add(iconBg);
+
                 WebComponent icon = new WebComponent(ID_ICON);
                 icon.add(AttributeAppender.append("class", getIcon(item.getModelObject())));
-                button.setOutputMarkupId(true);
+                IModel<String> color = getActiveIconCssColor(item.getModel());
+                icon.add(AttributeAppender.append("class", color));
                 button.add(icon);
-                button.add(new Label(ID_LABEL, getLabelModel(item.getModelObject())));
-
-                item.add(button);
-                item.setOutputMarkupId(true);
             }
         };
         capabilities.setOutputMarkupId(true);
@@ -185,7 +197,7 @@ public class CapabilitiesPanel extends BasePanel<PrismContainerValueWrapper<Reso
         return new LoadableDetachableModel<>() {
             @Override
             protected List<PrismContainerWrapper<CapabilityType>> load() {
-                PrismContainerValueWrapper<Containerable> capabilitiesContainer = null;
+                PrismContainerValueWrapper<? extends Containerable> capabilitiesContainer = null;
                 try {
                     if (getModelObject() == null) {
                         capabilitiesContainer = resourceModel.getObjectWrapper().findContainer(
@@ -193,8 +205,7 @@ public class CapabilitiesPanel extends BasePanel<PrismContainerValueWrapper<Reso
                                 .getValues().iterator().next();
 
                     } else {
-                        capabilitiesContainer = getModelObject().findContainer(ResourceObjectTypeDefinitionType.F_CONFIGURED_CAPABILITIES)
-                                .getValues().iterator().next();
+                        capabilitiesContainer = getModelObject();
                     }
                 } catch (SchemaException e) {
                     LOGGER.error("Couldn't find capabilities container", e);
@@ -284,11 +295,18 @@ public class CapabilitiesPanel extends BasePanel<PrismContainerValueWrapper<Reso
         if (SchemaCapabilityType.class.isAssignableFrom(capability)) {
             return "fa fa-table-cells";
         }
+        if (ReferencesCapabilityType.class.isAssignableFrom(capability)) {
+            return "fa fa-shield";
+        }
         return "fa fa-circle";
     }
 
     private IModel<String> getActiveCss(IModel<PrismContainerWrapper<CapabilityType>> model) {
-        return () -> isCapabilityEnabled(model.getObject()) ? "bg-primary" : "";
+        return () -> isCapabilityEnabled(model.getObject()) ? "text-success" : "icon-background";
+    }
+
+    private IModel<String> getActiveIconCssColor(IModel<PrismContainerWrapper<CapabilityType>> model) {
+        return () -> isCapabilityEnabled(model.getObject()) ? "" : "text-body";
     }
 
     private boolean isCapabilityEnabled(PrismContainerWrapper<CapabilityType> modelObject) {

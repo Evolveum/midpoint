@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectCollection xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                  oid="00000000-0000-0000-0002-000000000008">
+    <name>Certification tasks</name>
+    <type>TaskType</type>
+    <filter>
+        <q:text>
+            archetypeRef matches (oid = "00000000-0000-0000-0000-000000000520")
+            or archetypeRef matches (oid = "00000000-0000-0000-0000-000000000534")
+            or archetypeRef matches (oid = "00000000-0000-0000-0000-000000000535")
+        </q:text>
+    </filter>
+</objectCollection>

@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.repo.sql.data.common.embedded;
 
 import java.util.Objects;
+
 import jakarta.persistence.Embeddable;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -15,6 +16,9 @@ import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskAutoScalingType;
+
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
 
 /**
  * Embeddable mapping for TaskAutoScalingType.
@@ -25,6 +29,7 @@ public class RTaskAutoScaling {
 
     private RTaskAutoScalingMode mode;
 
+    @JdbcType(IntegerJdbcType.class)
     public RTaskAutoScalingMode getMode() {
         return mode;
     }
@@ -53,9 +58,9 @@ public class RTaskAutoScaling {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (o == null || getClass() != o.getClass()) { return false; }
-        if (!super.equals(o)) { return false; }
+        if (this == o) {return true;}
+        if (o == null || getClass() != o.getClass()) {return false;}
+        if (!super.equals(o)) {return false;}
 
         RTaskAutoScaling that = (RTaskAutoScaling) o;
         return mode == that.mode;

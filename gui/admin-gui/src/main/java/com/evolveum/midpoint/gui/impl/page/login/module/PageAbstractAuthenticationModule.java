@@ -9,6 +9,9 @@ package com.evolveum.midpoint.gui.impl.page.login.module;
 
 import java.io.Serial;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
@@ -22,7 +25,6 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
@@ -54,7 +56,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * adding links to actions such as self-registration, password reset,
  * username recovery.
  */
-public abstract class PageAbstractAuthenticationModule<MA extends ModuleAuthentication> extends AbstractPageLogin {
+public abstract class PageAbstractAuthenticationModule<MA extends ModuleAuthentication> extends AbstractPageLogin<MA> {
     @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_CSRF_FIELD = "csrfField";
@@ -275,16 +277,6 @@ public abstract class PageAbstractAuthenticationModule<MA extends ModuleAuthenti
         return  processingModuleIndex > 0;
     }
 
-    protected MA getAuthenticationModuleConfiguration() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (!(authentication instanceof MidpointAuthentication mpAuthentication)) {
-            getSession().error(getString("No midPoint authentication is found"));
-            throw new RestartResponseException(PageError.class);
-        }
-        //noinspection unchecked
-        return (MA) mpAuthentication.getProcessingModuleAuthentication();
-    }
-
     //TODO should be here?
     protected SecurityPolicyType resolveSecurityPolicy(PrismObject<UserType> user) {
         return runPrivileged((Producer<SecurityPolicyType>) () -> {
@@ -309,6 +301,35 @@ public abstract class PageAbstractAuthenticationModule<MA extends ModuleAuthenti
 
     protected String getArchetypeOid() {
         return null;
+    }
+
+    @Override
+    protected boolean isActionDefined() {
+        ModuleAuthentication module = getAuthenticationModuleConfiguration();
+        return module != null && module.getAction() != null && module.getAction().getTarget() != null;
+    }
+
+    @Override
+    protected IModel<String> getActionLabelModel() {
+        ModuleAuthentication module = getAuthenticationModuleConfiguration();
+        if (module == null || module.getAction() == null || module.getAction().getTarget() == null) {
+            return Model.of("");
+        }
+        DisplayType display = module.getAction().getDisplay();
+        String redirectLabel = GuiDisplayTypeUtil.getTranslatedLabel(display);
+        if (StringUtils.isNotEmpty(redirectLabel)) {
+            return Model.of(redirectLabel);
+        }
+        return Model.of(module.getAction().getTarget().getTargetUrl());
+    }
+
+    @Override
+    protected void actionPerformed() {
+        ModuleAuthentication module = getAuthenticationModuleConfiguration();
+        if (module == null || module.getAction() == null || module.getAction().getTarget() == null) {
+            return;
+        }
+        DetailsPageUtil.redirectFromDashboardWidget(module.getAction(), null, null);
     }
 
 }

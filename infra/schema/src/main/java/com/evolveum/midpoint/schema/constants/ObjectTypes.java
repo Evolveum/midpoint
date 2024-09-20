@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.RelationRegistry;
+
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Contract;
@@ -23,7 +25,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author lazyman
  */
 public enum ObjectTypes {
-
+    ROLE_ANALYSIS_OUTLIER(SchemaConstants.C_ROLE_ANALYSIS_OUTLIER_TYPE, SchemaConstants.C_ROLE_ANALYSIS_OUTLIER,
+            RoleAnalysisOutlierType.class, ObjectManager.MODEL, "roleAnalysisOutlier"),
     ROLE_ANALYSIS_SESSION(SchemaConstants.C_ROLE_ANALYSIS_SESSION_TYPE, SchemaConstants.C_ROLE_ANALYSIS_SESSION,
             RoleAnalysisSessionType.class, ObjectManager.MODEL, "roleAnalysisSession"),
     ROLE_ANALYSIS_CLUSTER(SchemaConstants.C_ROLE_ANALYSIS_CLUSTER_TYPE, SchemaConstants.C_ROLE_ANALYSIS_CLUSTER,
@@ -124,6 +127,14 @@ public enum ObjectTypes {
             SimulationResultType.COMPLEX_TYPE, SchemaConstantsGenerated.C_SIMULATION_RESULT, SimulationResultType.class,
             ObjectManager.MODEL, "simulationResults"),
 
+    POLICY(
+            PolicyType.COMPLEX_TYPE, SchemaConstantsGenerated.C_POLICY, PolicyType.class,
+            ObjectManager.MODEL, "policies"),
+
+    SCHEMA(
+            SchemaType.COMPLEX_TYPE, SchemaConstantsGenerated.C_SCHEMA, SchemaType.class,
+            ObjectManager.MODEL, "schemas"),
+
     // this should be at end, because otherwise it presents itself as entry for all subtypes of ObjectType
     OBJECT(SchemaConstants.C_OBJECT_TYPE, SchemaConstants.C_OBJECT, ObjectType.class, ObjectManager.MODEL, "objects");
 
@@ -222,6 +233,19 @@ public enum ObjectTypes {
         if (typeQName == null) {
             return null;
         }
+
+        ObjectTypes type = getObjectTypeFromTypeQNameIfKnown(typeQName);
+        if (type != null) {
+            return type;
+        }
+
+        throw new IllegalArgumentException("Unsupported object type qname " + typeQName);
+    }
+
+    public static ObjectTypes getObjectTypeFromTypeQNameIfKnown(QName typeQName) {
+        if (typeQName == null) {
+            return null;
+        }
         // HACK WARNING! FIXME
         // UGLY HORRIBLE TERRIBLE AWFUL HACK FOLLOWS
         // The JAXB fails to correctly process QNames in default namespace (no prefix)
@@ -238,7 +262,8 @@ public enum ObjectTypes {
                 return type;
             }
         }
-        throw new IllegalArgumentException("Unsupported object type qname " + typeQName);
+
+        return null;
     }
 
     @NotNull

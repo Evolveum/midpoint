@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
 public class CorrelationCaseUtil {
 
+    /** Must return live object, not a copy. */
     public static @Nullable ResourceObjectOwnerOptionsType getOwnerOptions(@NotNull CaseType aCase) {
         ShadowType shadow = (ShadowType) ObjectTypeUtil.getObjectFromReference(aCase.getTargetRef());
         if (shadow != null && shadow.getCorrelation() != null) {

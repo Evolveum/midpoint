@@ -1,0 +1,153 @@
+/*!
+ * Copyright (C) 2010-2023 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+
+.role-mining-no-border {
+    border-left: none !important;
+    border-right: none !important;
+    border-top: none !important;
+    border-bottom: none !important;
+}
+
+.role-mining-no-border-bottom {
+    border-bottom: none !important;
+}
+
+.role-mining-no-border-top {
+    border-top: none !important;
+}
+
+.role-mining-border-bottom {
+    border-bottom: 1px solid #f4f4f4;
+}
+
+.role-mining-border-top {
+    border-top: 1px solid #f4f4f4;
+}
+
+.dark-green {
+  color: #034310;
+}
+
+.dark-green-bg {
+  background-color: #034310;
+}
+
+.hashed-bg {
+  background: repeating-linear-gradient(-45deg, #FFFFFF, #FFFFFF 2px, #00A65A 2px, #00A65A 20px);
+}
+
+.corner-hashed-bg {
+   background: linear-gradient(to bottom right, transparent 48%, white 48%, white 52%, transparent 52%), #00A65A;
+}
+
+.middle-plus-bg {
+   background:
+       linear-gradient(to bottom, transparent 48%, white 48%, white 52%, transparent 52%),
+       linear-gradient(to right, transparent 48%, white 48%, white 52%, transparent 52%),
+       #00A65A;
+}
+
+$role-mining-static-header-level-1: 40px;
+$role-mining-static-header-level-2: 55px;
+$role-mining-static-header-level-3: 70px;
+$role-mining-static-header-level-4: 85px;
+$role-mining-static-header-level-5: 100px;
+
+.role-mining-rotated-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    writing-mode: vertical-lr;
+    transform: rotate(180deg);
+    height: 180px;
+    border: 1px solid #f4f4f4;
+    width: $role-mining-static-header-level-1;
+
+    &.level-1 {
+        width: $role-mining-static-header-level-1;
+    }
+
+    &.level-2 {
+        width: $role-mining-static-header-level-2;
+    }
+
+    &.level-3 {
+        width: $role-mining-static-header-level-3;
+    }
+
+    &.level-4 {
+        width: $role-mining-static-header-level-4;
+    }
+
+    &.level-5 {
+        width: $role-mining-static-header-level-5;
+    }
+}
+
+.role-mining-static-header {
+    &.level-1 {
+        width: $role-mining-static-header-level-1;
+    }
+
+    &.level-2 {
+        width: $role-mining-static-header-level-2;
+    }
+
+    &.level-3 {
+        width: $role-mining-static-header-level-3;
+    }
+}
+
+.role-mining-static-header-name {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transform: rotate(180deg);
+  writing-mode: revert;
+  width: 40px;
+  height: 120px;
+  border: 1px solid #f4f4f4;
+}
+
+.role-mining-header-height {
+  height: 180px;
+}
+
+.role-mining-column-item-rotate{
+  transform:rotate(90deg);
+}
+
+.role-mining-static-row-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0.25rem !important;
+  width: 230px;
+    border-left: none !important;
+    border-right: none !important;
+}
+
+.op-panel-collapsed {
+
+  .operation-panel-item {
+    display: none;
+  }
+}
+
+.bg-transparent-red {
+  background-color: rgb(243,219,222);
+ }
+
+ .bg-transparent-blue {
+  background-color: rgb(225,238,245);
+ }
+
+.widget-logo{
+  padding: 0.25rem !important;
+  height:50px;
+  width:50px;
+}

@@ -82,7 +82,7 @@ public class ContextLoader implements ProjectorProcessor {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
 
         for (int loadAttempt = 1; ; loadAttempt++) {
             Set<String> modifiedFocusOids = new HashSet<>();
@@ -238,11 +238,20 @@ public class ContextLoader implements ProjectorProcessor {
 
         // We create an assignment delta, but not archetypeRef one. The reason is that we hope that the assignment evaluator
         // will be run after this code. (It should be usually so.)
+
+
+        // Make assignment metadata aware so the OperationalDataManager should fill up corresponding value metadata
+        // such as task, creation, channel.
+        var assignment = new AssignmentType()
+                .targetRef(enforcedArchetypeOid, ArchetypeType.COMPLEX_TYPE);
+
+        assignment.asPrismContainerValue().getValueMetadata().add(new ValueMetadataType()
+                .asPrismContainerValue());
+
         focusContext.swallowToSecondaryDelta(
                 PrismContext.get().deltaFor(AssignmentHolderType.class)
                         .item(AssignmentHolderType.F_ASSIGNMENT)
-                        .add(new AssignmentType()
-                                .targetRef(enforcedArchetypeOid, ArchetypeType.COMPLEX_TYPE))
+                        .add(assignment)
                         .asItemDelta());
     }
 
@@ -357,7 +366,7 @@ public class ContextLoader implements ProjectorProcessor {
             @NotNull LensProjectionContext projCtx, String reason, Task task, OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
-        new ProjectionFullLoadOperation<>(projCtx.getLensContext(), projCtx, reason, false, task)
+        new ProjectionFullLoadOperation(projCtx, reason, false, task)
                 .loadFullShadow(result);
     }
 
@@ -366,7 +375,7 @@ public class ContextLoader implements ProjectorProcessor {
             @NotNull LensProjectionContext projCtx, String reason, Task task, OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
-        new ProjectionFullLoadOperation<>(projCtx.getLensContext(), projCtx, reason, true, task)
+        new ProjectionFullLoadOperation(projCtx, reason, true, task)
                 .loadFullShadow(result);
     }
 

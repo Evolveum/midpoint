@@ -205,7 +205,6 @@ public class SearchBuilder<C extends Serializable> {
                 && !isViewForDashboard && !isPreview) {
             Date todayDate = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
             timestampItem.setSingleDate(MiscUtil.asXMLGregorianCalendar(todayDate));
-            timestampItem.setInterval(true);
         }
     }
 
@@ -256,6 +255,9 @@ public class SearchBuilder<C extends Serializable> {
         AxiomQueryWrapper axiomWrapper = new AxiomQueryWrapper(getDefinitionOverride());
         AdvancedQueryWrapper advancedQueryWrapper = new AdvancedQueryWrapper(null);
         FulltextQueryWrapper fulltextQueryWrapper = new FulltextQueryWrapper(null);
+        if (AssignmentType.class.equals(type)) {
+            fulltextQueryWrapper = new AssignmentFulltextQueryWrapper(null);
+        }
 
         ObjectTypeSearchItemWrapper objectTypeSearchItemWrapper = new ObjectTypeSearchItemWrapper(mergedConfig.getObjectTypeConfiguration());
         objectTypeSearchItemWrapper.setAllowAllTypesSearch(isAllowedAllTypesSearch());
@@ -289,7 +291,10 @@ public class SearchBuilder<C extends Serializable> {
         BasicQueryWrapper basicSearchWrapper = createDefaultSearchBoxConfigurationWrapper(configuredSearchBox);
         basicSearchWrapper.setAllowToConfigureSearchItems(isAllowToConfigureSearchItems(configuredSearchBox));
 
-        if (isViewForDashboard) {
+        // isViewForDashboard == true && collectionView == null can happen when
+        // we're opening popup (different list of objects) and don't want to use collection ref
+        // from underyling page
+        if (isViewForDashboard && collectionView != null) {
             basicSearchWrapper.getItemsList().add(new ObjectCollectionSearchItemWrapper(collectionView));
         }
 
@@ -351,7 +356,7 @@ public class SearchBuilder<C extends Serializable> {
 
         for (SearchItemType searchItem : searchItems.getSearchItem()) {
             searchConfigWrapper.getItemsList().add(SearchConfigurationWrapperFactory.createPropertySearchItemWrapper(
-                    type, allSearchableItems, searchItem, additionalSearchContext, modelServiceLocator));
+                    type, allSearchableItems, searchItem, additionalSearchContext, collectionView, modelServiceLocator));
         }
 
         return searchConfigWrapper;

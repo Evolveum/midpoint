@@ -57,8 +57,6 @@ public abstract class AbstractPrismValueParserTest<T extends PrismValue> extends
                 //System.out.println("Checking " + label);
                 if (item.getDefinition() == null) {
                     assertTrue("No definition in " + label, isDynamic(item.getPath()));
-                } else {
-                    assertNotNull("No prism context in definition of " + label, item.getDefinition().getPrismContext());
                 }
             } else if (v instanceof PrismContainerValue) {
                 PrismContainerValue pcv = (PrismContainerValue) v;
@@ -66,8 +64,6 @@ public abstract class AbstractPrismValueParserTest<T extends PrismValue> extends
                 //System.out.println("Checking " + label);
                 if (pcv.getComplexTypeDefinition() == null) {
                     fail("No complex type definition in " + label);
-                } else {
-                    assertNotNull("No prism context in definition of " + label, pcv.getComplexTypeDefinition().getPrismContext());
                 }
             }
         });
@@ -88,17 +84,7 @@ public abstract class AbstractPrismValueParserTest<T extends PrismValue> extends
     }
 
     protected void assertPrismContext(Visitable value) {
-        value.accept(v -> {
-            if (v instanceof Item) {
-                Item item = (Item) v;
-                String label = item.getPath() + ": " + v;
-                assertNotNull("No prism context in " + label, item.getPrismContextLocal());
-            } else if (v instanceof PrismContainerValue) {
-                PrismContainerValue pcv = (PrismContainerValue) v;
-                String label = pcv.getPath() + ": " + v;
-                assertNotNull("No prism context in " + label, pcv.getPrismContextLocal());
-            }
-        });
+        // no-op
     }
 
     private boolean isDynamic(ItemPath path) {

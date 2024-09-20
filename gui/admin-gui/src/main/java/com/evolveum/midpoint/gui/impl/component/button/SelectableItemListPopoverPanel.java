@@ -25,6 +25,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
@@ -142,9 +143,11 @@ public abstract class SelectableItemListPopoverPanel<T extends FilterableSearchI
                 };
                 item.add(propLink);
 
-                Label name = new Label(ID_ITEM_NAME, getItemName(item.getModelObject()));
-                name.setRenderBodyOnly(true);
+                Label name = new Label(ID_ITEM_NAME, () -> getItemName(item.getModelObject()));
                 propLink.add(name);
+                propLink.setOutputMarkupId(true);
+
+                check.add(AttributeModifier.append("aria-labelledby", name.getMarkupId()));
 
                 Label help = new Label(ID_ITEM_HELP);
                 String helpText = getItemHelp(item.getModelObject()) != null ? getItemHelp(item.getModelObject()) : "";
@@ -156,6 +159,11 @@ public abstract class SelectableItemListPopoverPanel<T extends FilterableSearchI
                     }
                 });
                 help.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(helpText)));
+                help.add(AttributeAppender.append(
+                        "aria-label",
+                        getParentPage().createStringResource(
+                                "SelectableItemListPopoverPanel.helpTooltip",
+                                getItemName(item.getModelObject()))));
                 item.add(help);
 
                 item.add(new VisibleBehaviour(() -> !(item.getModelObject() instanceof AbstractRoleSearchItemWrapper)

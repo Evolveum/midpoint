@@ -19,6 +19,10 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+
+import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -116,7 +120,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        SchemaDebugUtil.initializePrettyPrinter();
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
     }
 
@@ -221,7 +225,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         // Check import with generated OID
 //        EqualsFilter equal = EqualsFilter.createEqual(UserType.class, PrismTestUtil.getPrismContext(), UserType.F_NAME, "guybrush");
 //        ObjectQuery query = ObjectQuery.createObjectQuery(equal);
-        ObjectQuery query = ObjectQueryUtil.createNameQuery("guybrush", PrismTestUtil.getPrismContext());
+        ObjectQuery query = ObjectQueryUtil.createNameQuery("guybrush");
 
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
 
@@ -796,7 +800,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         display("Result after good import", result);
         TestUtil.assertSuccessOrWarning("Import has failed (result)", result, 2);
 
-        ObjectQuery query = ObjectQueryUtil.createNameQuery("jack", PrismTestUtil.getPrismContext());
+        ObjectQuery query = ObjectQueryUtil.createNameQuery("jack");
 
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
 
@@ -928,7 +932,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
     }
 
     private <O extends ObjectType> void assertMetadata(O objectType, XMLGregorianCalendar startTime, XMLGregorianCalendar endTime) {
-        MetadataType metadata = objectType.getMetadata();
+        var metadata = ValueMetadataTypeUtil.getStorageMetadata(objectType);
         assertNotNull("No metadata in " + objectType, metadata);
         XMLGregorianCalendar createTimestamp = metadata.getCreateTimestamp();
         assertNotNull("No createTimestamp in metadata of " + objectType, createTimestamp);

@@ -1,0 +1,154 @@
+= PostgreSQL Configuration
+:page-toc: top
+:page-display-order: 2
+:page-since: "4.4"
+
+This page will contain some tips how to configure PostgreSQL DB (e.g. sizing).
+
+== DB server sizing
+
+TODO
+
+For orientation:
+
+* 1M of audit records takes ~5 GB of disk space, depending on the delta and execution result complexity.
+* 1M of user objects takes ~3-10 GB of disk space, depending on the number of assignments, refernces and extension data.
+* 1M of shadows takes ~2-3 GB of disk space, depending on the attribute data complexity.
+
+== Connections
+
+PostgreSQL, by default, is configured to use up to 100 connections.
+
+[WARNING]
+It is critical never to exceed the configured number of connections, because midPoint handles
+unavailable connection as serious error.
+
+One midPoint node with the default configuration is not a problem.
+The main DB connection pool is set for up to 40 connections and these connections are shared
+also for xref:/midpoint/reference/repository/native-audit/[SQL Audit] and
+xref:/midpoint/reference/tasks/task-manager/configuration/[Task Manager] duties.
+Even two such nodes easily fit into the connection limit set on the DB.
+
+If configured differently, it is essential to add up all the pools and their maximum sizes.
+For instance, if Task manager is set to use a separate connection pool, the maximum size there is 10
+and, currently, it cannot be configured.
+
+[NOTE]
+With the Native repository, it is strongly recommended to let the Task manager use the main repository DB pool.
+
+If we add a dedicated connection pool for audit, which makes sense in case it is stored in a separate DB,
+then you have to count `maxPoolSize` set for that connection pool (or its default).
+Then, depending on the `maxPoolSize` values, you're easily over 50 connections per single node.
+
+=== DB running out of connections
+
+When DB is asked for another connection which goes over `maxPoolSize` it may result in errors with stacktraces ending like:
+----
+Caused by: org.postgresql.util.PSQLException: FATAL: sorry, too many clients already
+----
+
+This will very likely happen during the start of a node, or when some activity requiring a lot of new connections is executed.
+It seems though, the connection pool rather waits for another used connection to be freed up first before complaining about this.
+
+=== midPoint running out of connection pool
+
+The following error indicates, at first glance, that the connection pool for a node is too small:
+
+----
+java.sql.SQLTransientConnectionException: HikariPool-1 – Connection is not available, request timed out after 30000ms.
+----
+
+But from the other perspective, it can also mean:
+
+* the load/demand is too high,
+* perhaps the load is not evenly distributed if multiple nodes are available,
+* requests are coming faster than are being handled,
+* potentially some requests are taking too long.
+
+This may happen, for example, when midPoint REST inteface is heavily used.
+
+=== Checking the connections on the database
+
+You can check the current state of connections with the following SQL commands:
+
+[source,sql]
+----
+-- list of client connections
+select pid, datname, usename, application_name, client_addr, backend_start, state
+from pg_stat_activity
+where client_addr is not null
+order by datname, usename, backend_start;
+
+-- list of connections aggregated
+select datname, usename, application_name, state, count(*)
+from pg_stat_activity
+where client_addr is not null
+group by datname, usename, application_name, state
+order by datname, usename, application_name, state;
+----
+
+Notice, that `application_name` identifies the midPoint connection pool like main (`mp-repo`), audit, etc.
+
+=== Possible fixes
+
+The most intuitive thing to do in this situation is to inflate the connection pools and allow more
+connections on the database as well.
+However, leting the DB do things for more than 100 clients at once is not always a good idea.
+Each PG connection is a process on the database server and requires some resources, especially memory.
+If the connection is IDLE, it should be, and likely is, returned to the midPoint connection pool.
+Such connection is available.
+
+If most connections are used and executing some queries, adding more connections doing something
+may actually hurt the performance.
+Sure - you're serving more clients, but at a speed that may result in lower overall throughput.
+Check https://www.enterprisedb.com/postgres-tutorials/why-you-should-use-connection-pooling-when-setting-maxconnections-postgres[this article]
+and/or search for other resources about scaling `max_connections` on PostgreSQL.
+
+That said, you can try and raise the `max_connections` to a few hundreds (PG restart required).
+Ideally, test it before and after on some representative environment.
+If it works fine for you, then you fixed it easily - just don't overdo it, it will likely not scale to thousands.
+
+Harder way is to find out why all the default 100 connections are taken.
+For example, with 4 midPoint nodes, you should tune the connection pool in their config
+to take ~24 connections maximum (with audit and Task manager sharing the same connection pool).
+This will take 96 connections from the DB server at most.
+Always leave a few connections for maintenance.
+
+[TIP]
+If you're solving this kind of problems and at least some load is audit related, you can try to
+configure xref:/midpoint/reference/security/audit/#separate-repository-configuration-for-audit[separate audit repository].
+
+Multiple midPoint nodes are not used to make the DB faster, it gives more power to midPoint (Java application)
+to process the results, do its logic, provide the GUI, etc.
+
+If the system is doing something and is slow, you should:
+
+* Check that it's not the midPoint nodes causing the bottleneck.
+* Check that nodes are used evenly.
+* Check that most of the DB connections are utilized (especially from the main pool).
+
+If something is limited on the database, you should:
+
+* Find if there is not too much locking going on.
+* Identify the slow queries and perhaps add special indexes for them.
+* Check the overall load of the DB (CPU, memory, IO).
+
+[TIP]
+Check xref:../db-maintenance/[DB maintenance] page for various maintenance queries.
+
+Especially the last point is important, because if the DB can't handle more,
+setting higher `max_connections` will only slow it down even further.
+If there is a headroom, you can go for it.
+For example, try 200 for `max_connections` and double the number of main pool connections.
+
+== Other configuration
+
+TODO
+
+== See Also
+
+* xref:../db-maintenance/[DB maintenance]
+
+== External links
+
+* https://www.enterprisedb.com/postgres-tutorials/why-you-should-use-connection-pooling-when-setting-maxconnections-postgres[Why you should use Connection Pooling when setting Max_connections in Postgres]

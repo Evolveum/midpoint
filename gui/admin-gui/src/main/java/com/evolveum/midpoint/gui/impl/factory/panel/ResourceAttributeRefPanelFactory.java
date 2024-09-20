@@ -14,14 +14,14 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import jakarta.annotation.PostConstruct;
 
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -108,7 +108,7 @@ public class ResourceAttributeRefPanelFactory
                 ResourceAttributeDefinitionType.F_OUTBOUND));
     }
 
-    private List<ItemName> getChoicesList(PrismPropertyPanelContext<ItemPathType> ctx) {
+    protected List<ItemName> getChoicesList(PrismPropertyPanelContext<ItemPathType> ctx) {
 
         PrismPropertyWrapper<?> wrapper = ctx.unwrapWrapperModel();
         //attribute/ref
@@ -153,13 +153,12 @@ public class ResourceAttributeRefPanelFactory
             }
 
             if (ConstructionType.F_ASSOCIATION.equivalent(attributeWrapper.getItemName())) {
-                Collection<ResourceAssociationDefinition> associationDefs = rOcd.getAssociationDefinitions();
-                return associationDefs.stream()
-                        .map(ResourceAssociationDefinition::getName)
+                return rOcd.getReferenceAttributeDefinitions().stream()
+                        .map(ShadowReferenceAttributeDefinition::getItemName)
                         .collect(Collectors.toList());
             }
 
-            Collection<? extends ResourceAttributeDefinition<?>> attrDefs = rOcd.getAttributeDefinitions();
+            Collection<? extends ShadowSimpleAttributeDefinition<?>> attrDefs = rOcd.getSimpleAttributeDefinitions();
             return attrDefs.stream().map(a -> a.getItemName()).collect(Collectors.toList());
 
         } catch (SchemaException | ConfigurationException e) {

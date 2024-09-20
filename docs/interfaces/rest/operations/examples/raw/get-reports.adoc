@@ -1,0 +1,167 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Get Report object*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Accept: application/json" \
+-X GET http://localhost:8080/midpoint/ws/rest/reports/4de173d5-4dff-4e4f-bfb8-47f951f26637?options=raw \
+-v
+----
+
+The response is an HTTP 200 code in case of success with a response body containing the queried item.
+
+.Example Output of *"Get Report object"* example
+[%collapsible]
+====
+The example is *simplified*, some properties were removed to keep the example output "short". This example *does
+not* contain all possible properties of this object type.
+[source, json]
+----
+{
+	"report": {
+		"oid": "4de173d5-4dff-4e4f-bfb8-47f951f26637",
+		"version": "1",
+		"name": "All error audit records in 24h",
+		"description": "Report made from all audit records.",
+		"metadata": {},
+		"operationExecution": {},
+		"assignment": {
+			"@id": 1,
+			"identifier": "archetype",
+			"metadata": {},
+			"targetRef": {
+				"oid": "00000000-0000-0000-0000-000000000171",
+				"relation": "org:default",
+				"type": "c:ArchetypeType"
+			}
+		},
+		"iteration": 0,
+		"iterationToken": "",
+		"archetypeRef": {
+			"oid": "00000000-0000-0000-0000-000000000171",
+			"relation": "org:default",
+			"type": "c:ArchetypeType"
+		},
+		"roleMembershipRef": {
+			"@metadata": {},
+			"oid": "00000000-0000-0000-0000-000000000171",
+			"relation": "org:default",
+			"type": "c:ArchetypeType"
+		},
+		"objectCollection": {
+			"collection": {
+				"baseCollectionRef": {
+					"collectionRef": {
+						"oid": "00000000-0000-0000-0001-000000000004",
+						"relation": "org:default",
+						"type": "c:ObjectCollectionType"
+					}
+				}
+			},
+			"parameter": [
+				{
+					"@id": 2,
+					"name": "outcome",
+					"type": "#OperationResultStatusType",
+					"display": {
+						"label": {
+							"orig": "outcome",
+							"norm": "outcome",
+							"translation": {
+								"key": "AuditEventRecordType.outcome"
+							}
+						}
+					}
+				},
+				{
+					"@id": 3,
+					"name": "eventType",
+					"type": "#AuditEventTypeType",
+					"display": {
+						"label": {
+							"orig": "eventType",
+							"norm": "eventtype",
+							"translation": {
+								"key": "AuditEventRecordType.eventType"
+							}
+						}
+					}
+				},
+				{
+					"@id": 4,
+					"name": "eventStage",
+					"type": "#AuditEventStageType",
+					"display": {
+						"label": {
+							"orig": "eventStage",
+							"norm": "eventstage",
+							"translation": {
+								"key": "AuditEventRecordType.eventStage"
+							}
+						}
+					}
+				},
+				{
+					"@id": 5,
+					"name": "from",
+					"type": "#dateTime",
+					"display": {
+						"label": {
+							"orig": "from",
+							"norm": "from",
+							"translation": {
+								"key": "AuditPopupPanel.dateFrom"
+							}
+						}
+					}
+				},
+				{
+					"@id": 6,
+					"name": "to",
+					"type": "#dateTime",
+					"display": {
+						"label": {
+							"orig": "to",
+							"norm": "to",
+							"translation": {
+								"key": "AuditPopupPanel.dateTo"
+							}
+						}
+					}
+				},
+				{
+					"@id": 7,
+					"name": "targetRef",
+					"type": "c:ObjectReferenceType",
+					"display": {
+						"label": {
+							"orig": "targetRef",
+							"norm": "targetref",
+							"translation": {
+								"key": "AuditEventRecordType.targetRef"
+							}
+						}
+					}
+				},
+				{
+					"@id": 8,
+					"name": "initiatorRef",
+					"type": "c:ObjectReferenceType",
+					"display": {
+						"label": {
+							"orig": "initiatorRef",
+							"norm": "initiatorref",
+							"translation": {
+								"key": "AuditEventRecordType.initiatorRef"
+							}
+						}
+					}
+				}
+			]
+		}
+	}
+}
+----
+====

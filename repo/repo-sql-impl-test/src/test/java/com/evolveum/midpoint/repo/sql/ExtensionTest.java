@@ -10,13 +10,17 @@ import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_GROUP_OBJECT_CLASS;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import org.hibernate.Session;
+import com.evolveum.midpoint.schema.processor.ShadowAttributesContainerDefinition;
+
+import jakarta.persistence.EntityManager;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -26,6 +30,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepoModifyOptions;
@@ -37,9 +42,12 @@ import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -49,6 +57,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Introduced as part of providing "index-only" extension values (MID-5558)
  * and related refactoring of ObjectDeltaUpdater.
  */
+@SuppressWarnings("deprecation")
 @ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class ExtensionTest extends BaseSQLRepoTest {
@@ -56,6 +65,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
     private static final File TEST_DIR = new File("src/test/resources/extension");
     private static final File USER_RUMCAJS_FILE = new File(TEST_DIR, "user-rumcajs.xml");
     private static final File USER_MANKA_FILE = new File(TEST_DIR, "user-manka.xml");
+    private static final File RESOURCE_TEST_FILE = new File(TEST_DIR, "resource-test.xml");
 
     private PrismObject<UserType> expectedUser;
     private String userOid;
@@ -66,20 +76,21 @@ public class ExtensionTest extends BaseSQLRepoTest {
     private RExtItem itemVisible;
     private RExtItem itemWeapon;
     private RExtItem itemShipName;
+    private RExtItem itemPoly;
 
     private PrismObject<ShadowType> expectedShadow;
     private String shadowOid;
 
-    private ResourceAttributeDefinition<String> attrGroupNameDefinition;
-    private ResourceAttributeDefinition<String> attrMemberDefinition;
-    private ResourceAttributeDefinition<String> attrManagerDefinition;
+    private ShadowSimpleAttributeDefinition<String> attrGroupNameDefinition;
+    private ShadowSimpleAttributeDefinition<String> attrMemberDefinition;
+    private ShadowSimpleAttributeDefinition<String> attrManagerDefinition;
 
     private RExtItem itemGroupName;
     private RExtItem itemMember;
     private RExtItem itemManager;
 
     private PrismObjectDefinition<ShadowType> shadowDefinition;
-    private ResourceAttributeContainerDefinition shadowAttributesDefinition;
+    private ShadowAttributesContainerDefinition shadowAttributesDefinition;
 
     @Override
     public void initSystem() throws Exception {
@@ -89,6 +100,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
         itemVisible = createOrFindExtensionItemDefinition(UserType.class, EXT_VISIBLE);
         itemWeapon = createOrFindExtensionItemDefinition(UserType.class, EXT_WEAPON);
         itemShipName = createOrFindExtensionItemDefinition(UserType.class, EXT_SHIP_NAME);
+        itemPoly = createOrFindExtensionItemDefinition(UserType.class, EXT_POLY);
 
         sqlRepositoryService.sqlConfiguration().setEnableNoFetchExtensionValuesInsertion(true);
         sqlRepositoryService.sqlConfiguration().setEnableNoFetchExtensionValuesDeletion(true);
@@ -97,35 +109,29 @@ public class ExtensionTest extends BaseSQLRepoTest {
         createShadowDefinition();
     }
 
-    private void createShadowDefinition() {
-        ResourceObjectClassDefinitionImpl ctd = ResourceObjectClassDefinitionImpl.raw(RI_ACCOUNT_OBJECT_CLASS);
-        attrGroupNameDefinition = ctd.createAttributeDefinition(
-                ATTR_GROUP_NAME, DOMUtil.XSD_STRING,
-                def -> def.setMaxOccurs(1));
-        attrMemberDefinition = ctd.createAttributeDefinition(
-                ATTR_MEMBER, DOMUtil.XSD_STRING,
-                def -> {
-                    def.setMaxOccurs(-1);
-                    def.setIndexOnly(true);
-                });
-        attrManagerDefinition = ctd.createAttributeDefinition(
-                ATTR_MANAGER, DOMUtil.XSD_STRING,
-                def -> def.setMaxOccurs(-1));
+    private void createShadowDefinition() throws SchemaException, IOException, ConfigurationException {
+        var classDef =
+                Resource.of(PrismTestUtil.<ResourceType>parseObjectable(RESOURCE_TEST_FILE))
+                        .getCompleteSchemaRequired()
+                        .findObjectClassDefinitionRequired(RI_GROUP_OBJECT_CLASS);
 
-        shadowAttributesDefinition = new ResourceAttributeContainerDefinitionImpl(ShadowType.F_ATTRIBUTES, ctd);
-        shadowDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class)
-                .cloneWithReplacedDefinition(ShadowType.F_ATTRIBUTES, shadowAttributesDefinition);
+        attrGroupNameDefinition = classDef.findSimpleAttributeDefinitionRequired(new ItemName(NS_RI, "groupName"));
+        attrMemberDefinition = classDef.findSimpleAttributeDefinitionRequired(new ItemName(NS_RI, "member"));
+        attrManagerDefinition = classDef.findSimpleAttributeDefinitionRequired(new ItemName(NS_RI, "manager"));
+
+        shadowAttributesDefinition = classDef.toShadowAttributesContainerDefinition();
+        shadowDefinition = classDef.getPrismObjectDefinition();
         itemGroupName = extItemDictionary.createOrFindItemDefinition(attrGroupNameDefinition, false);
         itemMember = extItemDictionary.createOrFindItemDefinition(attrMemberDefinition, false);
         itemManager = extItemDictionary.createOrFindItemDefinition(attrManagerDefinition, false);
     }
 
     boolean isNoFetchInsertion() {
-        return true;    // this is the default in production
+        return true; // this is the default in production
     }
 
     boolean isNoFetchDeletion() {
-        return false;       // this is the default in production
+        return false; // this is the default in production
     }
 
     int getExtraSafeInsertionSelects(int insertions) {
@@ -141,8 +147,6 @@ public class ExtensionTest extends BaseSQLRepoTest {
 
     private boolean checkCounts() {
         return false;
-        // Hibernate 6 generates one queries less
-        //return isUsingH2();
     }
 
     private void assertCounts(int queries, int executions) {
@@ -163,13 +167,14 @@ public class ExtensionTest extends BaseSQLRepoTest {
         userOid = repositoryService.addObject(user, null, result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             assertExtension(u, itemHidden1, "h1.1", "h1.2", "h1.3");
             assertExtension(u, itemHidden2);
             assertExtension(u, itemHidden3, "h3.1");
             assertExtension(u, itemVisible, "v1", "v2", "v3");
             assertExtension(u, itemWeapon);
+            assertPolyExtension(u, itemPoly, PolyString.fromOrig("VALUE"));
         }
 
         assertGetObject(result);
@@ -180,6 +185,12 @@ public class ExtensionTest extends BaseSQLRepoTest {
         assertSearch(EXT_HIDDEN2, "h2.1", 0, result);
         assertSearch(EXT_HIDDEN3, "h3.1", 1, result);
         assertSearch(EXT_HIDDEN3, "h1.3", 0, result);
+
+        assertPolySearch(EXT_POLY, PolyString.fromOrig("VALUE"), PrismConstants.POLY_STRING_STRICT_MATCHING_RULE_NAME, 1, result);
+        assertPolySearch(EXT_POLY, PolyString.fromOrig("VALUE"), PrismConstants.POLY_STRING_ORIG_MATCHING_RULE_NAME, 1, result);
+        assertPolySearch(EXT_POLY, PolyString.fromOrig("value"), PrismConstants.POLY_STRING_ORIG_MATCHING_RULE_NAME, 0, result);
+        assertPolySearch(EXT_POLY, PolyString.fromOrig("value"), PrismConstants.POLY_STRING_NORM_MATCHING_RULE_NAME, 1, result);
+        assertPolySearch(EXT_POLY, PolyString.fromOrig("xxxx"), PrismConstants.POLY_STRING_NORM_MATCHING_RULE_NAME, 0, result);
 
         /*
  [1] select count(*) from m_user where oid=?
@@ -205,8 +216,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             assertExtension(u, itemHidden1, "h1.1", "h1.2", "h1.3");
             assertExtension(u, itemHidden2);
             assertExtension(u, itemHidden3, "h3.1");
@@ -261,8 +272,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             assertExtension(u, itemHidden1, "h1.1", "h1.2", "h1.3");
             assertExtension(u, itemHidden2);
             assertExtension(u, itemHidden3, "h3.1");
@@ -307,8 +318,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             assertExtension(u, itemHidden1, "h1.1", "h1.2", "h1.3");
             assertExtension(u, itemHidden2);
             assertExtension(u, itemHidden3, "h3.1");
@@ -346,8 +357,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             assertExtension(u, itemHidden1, "h1.1", "h1.2", "h1.3");
             assertExtension(u, itemHidden2);
             assertExtension(u, itemHidden3, "h3.1");
@@ -400,8 +411,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             assertExtension(u, itemHidden1, "h1.1", "h1.2", "h1.3");
             assertExtension(u, itemHidden2);
             assertExtension(u, itemHidden3, "h3.1");
@@ -465,8 +476,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             assertExtension(u, itemHidden1, "h1.1", "h1.2", "h1.3", "h1.4");
             assertExtension(u, itemHidden2, "h2.1", "h2.2");
             assertExtension(u, itemHidden3, "h3.1");
@@ -507,8 +518,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             assertExtension(u, itemHidden1, "h1.1", "h1.2", "h1.3", "h1.4");
             assertExtension(u, itemHidden2, "h2.1", "h2.2");
             assertExtension(u, itemHidden3, "h3.1");
@@ -568,8 +579,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             assertExtension(u, itemHidden1, "h1.3", "h1.4");
             assertExtension(u, itemHidden2, "h2.1", "h2.2");
             assertExtension(u, itemHidden3, "h3.1");
@@ -625,8 +636,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             assertExtension(u, itemHidden1, "h1.3", "h1.4");
             assertExtension(u, itemHidden2, "h2.1", "h2.2");
             assertExtension(u, itemHidden3, "h3.1");
@@ -683,8 +694,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             assertExtension(u, itemHidden1, "h1.2", "h1.5");
             assertExtension(u, itemHidden2);
             assertExtension(u, itemHidden3);
@@ -729,8 +740,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             assertExtension(u, itemHidden1, "h1.2", "h1.5");
             assertExtension(u, itemHidden2);
             assertExtension(u, itemHidden3);
@@ -771,8 +782,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             assertExtension(u, itemHidden1);
             assertExtension(u, itemHidden2);
             assertExtension(u, itemHidden3);
@@ -817,8 +828,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             assertExtension(u, itemHidden1, "H1:1", "H1:2");
             assertExtension(u, itemHidden2);
             assertExtension(u, itemHidden3, "H3:1");
@@ -865,8 +876,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             assertExtension(u, itemHidden1, "H1:100");
             assertExtension(u, itemHidden2);
             assertExtension(u, itemHidden3);
@@ -910,8 +921,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             assertExtension(u, itemHidden1, "H1:2", "H1:3");
             assertExtension(u, itemHidden2, "H2:1");
             assertExtension(u, itemHidden3);
@@ -953,8 +964,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             assertExtension(u, itemHidden1);
             assertExtension(u, itemHidden2);
             assertExtension(u, itemHidden3);
@@ -998,8 +1009,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         userOid = repositoryService.addObject(user, null, result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             assertExtension(u, itemHidden1, "h1.1", "h1.2");
             assertExtension(u, itemHidden2);
             assertExtension(u, itemHidden3);
@@ -1040,8 +1051,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             assertExtension(u, itemHidden1, "h1.1", "h1.2");
             assertExtension(u, itemHidden2);
             assertExtension(u, itemHidden3);
@@ -1080,8 +1091,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             assertExtension(u, itemHidden1, "h1.1", "h1.2");
             assertExtension(u, itemHidden2);
             assertExtension(u, itemHidden3);
@@ -1116,8 +1127,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             assertExtension(u, itemHidden1, "h1.1", "h1.2");
             assertExtension(u, itemHidden2);
             assertExtension(u, itemHidden3);
@@ -1157,8 +1168,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             assertExtension(u, itemHidden1, "h1.1", "h1.2");
             assertExtension(u, itemHidden2);
             assertExtension(u, itemHidden3);
@@ -1226,8 +1237,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             assertExtension(u, itemHidden1, "h1.1", "h1.2");
             assertExtension(u, itemHidden2);
             assertExtension(u, itemHidden3);
@@ -1268,8 +1279,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             assertExtension(u, itemHidden1, "h1.1", "h1.2");
             assertExtension(u, itemHidden2);
             assertExtension(u, itemHidden3);
@@ -1319,8 +1330,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             assertExtension(u, itemHidden1, "h1.1", "h1.2");
             assertExtension(u, itemHidden2);
             assertExtension(u, itemHidden3);
@@ -1375,8 +1386,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             assertExtension(u, itemHidden1, "h1.1", "h1.2");
             assertExtension(u, itemHidden2);
             assertExtension(u, itemHidden3);
@@ -1427,8 +1438,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             assertExtension(u, itemHidden1, "h1.1", "h1.2");
             assertExtension(u, itemHidden2);
             assertExtension(u, itemHidden3);
@@ -1472,8 +1483,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             assertExtension(u, itemHidden1, "h1.1", "h1.2");
             assertExtension(u, itemHidden2);
             assertExtension(u, itemHidden3);
@@ -1534,8 +1545,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             assertExtension(u, itemHidden1, "h1.1", "h1.2");
             assertExtension(u, itemHidden2);
             assertExtension(u, itemHidden3);
@@ -1593,8 +1604,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             assertExtension(u, itemHidden1, "h1.1", "h1.2");
             assertExtension(u, itemHidden2);
             assertExtension(u, itemHidden3);
@@ -1636,7 +1647,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
     public void test175ReplaceAssignments() throws Exception {
         OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test175ReplaceAssignments");
 
-        AssignmentType newAssignment = new AssignmentType(prismContext)
+        AssignmentType newAssignment = new AssignmentType()
                 .id(999L)
                 .targetRef("999999aaaaa", OrgType.COMPLEX_TYPE);
         PrismContainerValue<?> newExtValue = newAssignment.asPrismContainerValue()
@@ -1655,8 +1666,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RUser u = session.get(RUser.class, userOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RUser u = em.find(RUser.class, userOid);
             assertExtension(u, itemHidden1, "h1.1", "h1.2");
             assertExtension(u, itemHidden2);
             assertExtension(u, itemHidden3);
@@ -1789,11 +1800,12 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.addObject(user, null, result);
         String userOid = user.getOid();
 
-        QName SHIP_NAME_QNAME = new QName("http://example.com/p", "shipName");
-        PrismPropertyDefinition<String> def1 = prismContext.definitionFactory().createPropertyDefinition(SHIP_NAME_QNAME, DOMUtil.XSD_STRING);
-        ExtensionType extension = new ExtensionType(prismContext);
+        QName shipNameQName = new QName("http://example.com/p", "shipName");
+        PrismPropertyDefinition<String> def1 = prismContext.definitionFactory().newPropertyDefinition(shipNameQName, DOMUtil.XSD_STRING);
+        ExtensionType extension = new ExtensionType();
         PrismProperty<String> loot = def1.instantiate();
         loot.setRealValue("otherString");
+        //noinspection unchecked
         extension.asPrismContainerValue().add(loot);
 
         List<ItemDelta<?, ?>> deltas = prismContext.deltaFor(UserType.class)
@@ -1804,16 +1816,16 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, deltas, getOptions(), result);
 
         ObjectQuery query = prismContext.queryFor(UserType.class)
-                .item(ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_EXTENSION, SHIP_NAME_QNAME), def1).eq("otherString")
+                .item(ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_EXTENSION, shipNameQName), def1).eq("otherString")
                 .build();
-        List list = repositoryService.searchObjects(UserType.class, query, null, result);
+        List<?> list = repositoryService.searchObjects(UserType.class, query, null, result);
         assertEquals("Wrong # of query1 results", 1, list.size());
 
-        Session session = open();
-        RUser ruser = (RUser) session.createQuery("from RUser where oid = :o").setParameter("o", user.getOid()).getSingleResult();
+        EntityManager em = open();
+        RUser ruser = (RUser) em.createQuery("from RUser where oid = :o").setParameter("o", user.getOid()).getSingleResult();
         RAssignmentExtension ext = ruser.getAssignments().iterator().next().getExtension();
         assertEquals(1, ext.getStrings().size());
-        close(session);
+        close(em);
 
         // delete
         deltas = prismContext.deltaFor(UserType.class)
@@ -1822,11 +1834,11 @@ public class ExtensionTest extends BaseSQLRepoTest {
                 .asItemDeltas();
         repositoryService.modifyObject(UserType.class, userOid, deltas, getOptions(), result);
 
-        session = open();
-        ruser = (RUser) session.createQuery("from RUser where oid = :o").setParameter("o", user.getOid()).getSingleResult();
+        em = open();
+        ruser = (RUser) em.createQuery("from RUser where oid = :o").setParameter("o", user.getOid()).getSingleResult();
         ext = ruser.getAssignments().iterator().next().getExtension();
         assertEquals(0, ext.getStrings().size());
-        close(session);
+        close(em);
 
         // add
         deltas = prismContext.deltaFor(UserType.class)
@@ -1835,11 +1847,11 @@ public class ExtensionTest extends BaseSQLRepoTest {
                 .asItemDeltas();
         repositoryService.modifyObject(UserType.class, userOid, deltas, getOptions(), result);
 
-        session = open();
-        ruser = (RUser) session.createQuery("from RUser where oid = :o").setParameter("o", user.getOid()).getSingleResult();
+        em = open();
+        ruser = (RUser) em.createQuery("from RUser where oid = :o").setParameter("o", user.getOid()).getSingleResult();
         ext = ruser.getAssignments().iterator().next().getExtension();
         assertEquals(1, ext.getStrings().size());
-        close(session);
+        close(em);
     }
 
     @Test
@@ -1851,13 +1863,13 @@ public class ExtensionTest extends BaseSQLRepoTest {
         PrismContainer<?> attributesContainer = shadowAttributesDefinition.instantiate();
         expectedShadow.getValue().add(attributesContainer);
         PrismContainerValue<?> attributes = attributesContainer.getValue();
-        ResourceAttribute<String> name = attrGroupNameDefinition.instantiate();
+        ShadowSimpleAttribute<String> name = attrGroupNameDefinition.instantiate();
         name.setRealValue("alumni");
         attributes.add(name);
-        ResourceAttribute<String> member = attrMemberDefinition.instantiate();
+        ShadowSimpleAttribute<String> member = attrMemberDefinition.instantiate();
         member.addRealValues("banderson", "kwhite");
         attributes.add(member);
-        ResourceAttribute<String> manager = attrManagerDefinition.instantiate();
+        ShadowSimpleAttribute<String> manager = attrManagerDefinition.instantiate();
         manager.addRealValues("jack", "jim");
         attributes.add(manager);
 
@@ -1865,8 +1877,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         shadowOid = repositoryService.addObject(expectedShadow.clone(), null, result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RShadow s = session.get(RShadow.class, shadowOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RShadow s = em.find(RShadow.class, shadowOid);
             assertExtension(s, itemGroupName, "alumni");
             assertExtension(s, itemMember, "banderson", "kwhite");
             assertExtension(s, itemManager, "jack", "jim");
@@ -1896,8 +1908,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(ShadowType.class, shadowOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RShadow s = session.get(RShadow.class, shadowOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RShadow s = em.find(RShadow.class, shadowOid);
             assertExtension(s, itemGroupName, "alumni");
             assertExtension(s, itemMember, "banderson", "kwhite");
             assertExtension(s, itemManager, "jack", "jim", "alice", "bob");
@@ -1937,8 +1949,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(ShadowType.class, shadowOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RShadow s = session.get(RShadow.class, shadowOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RShadow s = em.find(RShadow.class, shadowOid);
             assertExtension(s, itemGroupName, "alumni");
             assertExtension(s, itemMember, "banderson", "kwhite");
             assertExtension(s, itemManager, "jack", "jim", "alice", "bob");
@@ -1968,8 +1980,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(ShadowType.class, shadowOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RShadow s = session.get(RShadow.class, shadowOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RShadow s = em.find(RShadow.class, shadowOid);
             assertExtension(s, itemGroupName, "alumni");
             assertExtension(s, itemMember, "banderson", "kwhite");
             assertExtension(s, itemManager, "bob", "chuck");
@@ -2003,8 +2015,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(ShadowType.class, shadowOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RShadow s = session.get(RShadow.class, shadowOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RShadow s = em.find(RShadow.class, shadowOid);
             assertExtension(s, itemGroupName);
             assertExtension(s, itemMember, "banderson", "kwhite");
             assertExtension(s, itemManager, "bob", "chuck");
@@ -2053,8 +2065,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(ShadowType.class, shadowOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RShadow s = session.get(RShadow.class, shadowOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RShadow s = em.find(RShadow.class, shadowOid);
             assertExtension(s, itemGroupName, "ALUMNI");
             assertExtension(s, itemMember, "banderson", "kwhite");
             assertExtension(s, itemManager, "chuck");
@@ -2090,8 +2102,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(ShadowType.class, shadowOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RShadow s = session.get(RShadow.class, shadowOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RShadow s = em.find(RShadow.class, shadowOid);
             assertExtension(s, itemGroupName, "ALUMNI");
             assertExtension(s, itemMember, "banderson", "kwhite", "tbrown", "jsmith");
             assertExtension(s, itemManager, "chuck");
@@ -2131,8 +2143,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(ShadowType.class, shadowOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RShadow s = session.get(RShadow.class, shadowOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RShadow s = em.find(RShadow.class, shadowOid);
             assertExtension(s, itemGroupName, "ALUMNI");
             assertExtension(s, itemMember, "banderson", "kwhite", "tbrown", "jsmith");
             assertExtension(s, itemManager, "chuck");
@@ -2180,8 +2192,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(ShadowType.class, shadowOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RShadow s = session.get(RShadow.class, shadowOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RShadow s = em.find(RShadow.class, shadowOid);
             assertExtension(s, itemGroupName, "ALUMNI");
             assertExtension(s, itemMember, "banderson", "kwhite");
             assertExtension(s, itemManager, "chuck");
@@ -2226,8 +2238,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(ShadowType.class, shadowOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RShadow s = session.get(RShadow.class, shadowOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RShadow s = em.find(RShadow.class, shadowOid);
             assertExtension(s, itemGroupName, "ALUMNI");
             assertExtension(s, itemMember, "banderson", "kwhite");
             assertExtension(s, itemManager, "chuck");
@@ -2270,8 +2282,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(ShadowType.class, shadowOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RShadow s = session.get(RShadow.class, shadowOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RShadow s = em.find(RShadow.class, shadowOid);
             assertExtension(s, itemGroupName, "ALUMNI");
             assertExtension(s, itemMember, "alice", "bob");
             assertExtension(s, itemManager, "chuck");
@@ -2311,8 +2323,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(ShadowType.class, shadowOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RShadow s = session.get(RShadow.class, shadowOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RShadow s = em.find(RShadow.class, shadowOid);
             assertExtension(s, itemGroupName);
             assertExtension(s, itemMember);
             assertExtension(s, itemManager);
@@ -2342,13 +2354,13 @@ public class ExtensionTest extends BaseSQLRepoTest {
         expectedShadow.getValue().removeContainer(ShadowType.F_ATTRIBUTES); // just for sure
         PrismContainer<?> attributesContainer = shadowAttributesDefinition.instantiate();
         PrismContainerValue<?> attributes = attributesContainer.getValue();
-        ResourceAttribute<String> name = attrGroupNameDefinition.instantiate();
+        ShadowSimpleAttribute<String> name = attrGroupNameDefinition.instantiate();
         name.setRealValue("alumni");
         attributes.add(name);
-        ResourceAttribute<String> member = attrMemberDefinition.instantiate();
+        ShadowSimpleAttribute<String> member = attrMemberDefinition.instantiate();
         member.addRealValues("banderson", "kwhite");
         attributes.add(member);
-        ResourceAttribute<String> manager = attrManagerDefinition.instantiate();
+        ShadowSimpleAttribute<String> manager = attrManagerDefinition.instantiate();
         manager.addRealValues("jack", "jim");
         attributes.add(manager);
 
@@ -2362,8 +2374,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(ShadowType.class, shadowOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RShadow s = session.get(RShadow.class, shadowOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RShadow s = em.find(RShadow.class, shadowOid);
             assertExtension(s, itemGroupName, "alumni");
             assertExtension(s, itemMember, "banderson", "kwhite");
             assertExtension(s, itemManager, "jack", "jim");
@@ -2413,13 +2425,13 @@ public class ExtensionTest extends BaseSQLRepoTest {
 
         PrismContainer<?> attributesContainer = shadowAttributesDefinition.instantiate();
         PrismContainerValue<?> attributes = attributesContainer.getValue();
-        ResourceAttribute<String> name = attrGroupNameDefinition.instantiate();
+        ShadowSimpleAttribute<String> name = attrGroupNameDefinition.instantiate();
         name.setRealValue("alumni2");
         attributes.add(name);
-        ResourceAttribute<String> member = attrMemberDefinition.instantiate();
+        ShadowSimpleAttribute<String> member = attrMemberDefinition.instantiate();
         member.addRealValues("banderson2", "kwhite2");
         attributes.add(member);
-        ResourceAttribute<String> manager = attrManagerDefinition.instantiate();
+        ShadowSimpleAttribute<String> manager = attrManagerDefinition.instantiate();
         manager.addRealValues("jack2", "jim2");
         attributes.add(manager);
 
@@ -2433,8 +2445,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(ShadowType.class, shadowOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RShadow s = session.get(RShadow.class, shadowOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RShadow s = em.find(RShadow.class, shadowOid);
             assertExtension(s, itemGroupName, "alumni2");
             assertExtension(s, itemMember, "banderson2", "kwhite2");
             assertExtension(s, itemManager, "jack2", "jim2");
@@ -2483,13 +2495,13 @@ public class ExtensionTest extends BaseSQLRepoTest {
 
         PrismContainer<?> attributesContainer = shadowAttributesDefinition.instantiate();
         PrismContainerValue<?> attributes = attributesContainer.getValue();
-        ResourceAttribute<String> name = attrGroupNameDefinition.instantiate();
+        ShadowSimpleAttribute<String> name = attrGroupNameDefinition.instantiate();
         name.setRealValue("alumni3");
         attributes.add(name);
-        ResourceAttribute<String> member = attrMemberDefinition.instantiate();
+        ShadowSimpleAttribute<String> member = attrMemberDefinition.instantiate();
         member.addRealValues("banderson3", "kwhite3");
         attributes.add(member);
-        ResourceAttribute<String> manager = attrManagerDefinition.instantiate();
+        ShadowSimpleAttribute<String> manager = attrManagerDefinition.instantiate();
         manager.addRealValues("jack3", "jim3");
         attributes.add(manager);
 
@@ -2503,8 +2515,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(ShadowType.class, shadowOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RShadow s = session.get(RShadow.class, shadowOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RShadow s = em.find(RShadow.class, shadowOid);
             assertExtension(s, itemGroupName, "alumni3");
             assertExtension(s, itemMember, "banderson3", "kwhite3");
             assertExtension(s, itemManager, "jack3", "jim3");
@@ -2561,8 +2573,8 @@ public class ExtensionTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(ShadowType.class, shadowOid, delta.getModifications(), getOptions(), result);
         queryListener.dumpAndStop();
 
-        try (Session session = factory.openSession()) {
-            RShadow s = session.get(RShadow.class, shadowOid);
+        try (EntityManager em = factory.createEntityManager()) {
+            RShadow s = em.find(RShadow.class, shadowOid);
             assertExtension(s, itemGroupName);
             assertExtension(s, itemMember);
             assertExtension(s, itemManager);
@@ -2599,6 +2611,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
     }
 
     // toInclude == null means "ALL"
+    @SuppressWarnings("SameParameterValue")
     private void assertGetShadowInclude(String oid, Collection<ItemName> toInclude, PrismObject<ShadowType> expected, OperationResult result) throws SchemaException,
             ObjectNotFoundException {
         checkShadow(oid, expected, true, true, toInclude, result);

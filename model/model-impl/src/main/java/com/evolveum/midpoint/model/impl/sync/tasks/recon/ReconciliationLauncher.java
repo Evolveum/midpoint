@@ -68,7 +68,7 @@ public class ReconciliationLauncher {
         PolyStringType polyString = new PolyStringType("Reconciling " + resource.getName());
         task.setName(polyString);
 
-        ObjectReferenceType resourceRef = ObjectTypeUtil.createObjectRef(resource, prismContext);
+        ObjectReferenceType resourceRef = ObjectTypeUtil.createObjectRef(resource);
 
         // Not strictly necessary but nice to do (activity would fill-in these when started)
         task.setObjectRef(resourceRef.clone());

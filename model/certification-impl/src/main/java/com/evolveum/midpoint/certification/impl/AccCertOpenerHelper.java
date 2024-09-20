@@ -90,7 +90,7 @@ public class AccCertOpenerHelper {
 
     //region ================================ Campaign create ================================
 
-    AccessCertificationCampaignType createCampaign(PrismObject<AccessCertificationDefinitionType> definition,
+    public AccessCertificationCampaignType createCampaign(PrismObject<AccessCertificationDefinitionType> definition,
             OperationResult result, Task task)
             throws SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ObjectNotFoundException {
         AccessCertificationCampaignType newCampaign = createCampaignObject(definition.asObjectable(), task, result);
@@ -112,7 +112,7 @@ public class AccCertOpenerHelper {
         newCampaign.setDescription(definition.getDescription());
         newCampaign.setOwnerRef(securityContextManager.getPrincipal().toObjectReference());
         newCampaign.setTenantRef(definition.getTenantRef());
-        newCampaign.setDefinitionRef(ObjectTypeUtil.createObjectRef(definition, prismContext));
+        newCampaign.setDefinitionRef(ObjectTypeUtil.createObjectRef(definition));
 
         if (definition.getHandlerUri() != null) {
             newCampaign.setHandlerUri(definition.getHandlerUri());
@@ -185,7 +185,7 @@ public class AccCertOpenerHelper {
     }
 
     private boolean campaignExists(String name, OperationResult result) throws SchemaException {
-        ObjectQuery query = ObjectQueryUtil.createNameQuery(AccessCertificationCampaignType.class, prismContext, name);
+        ObjectQuery query = ObjectQueryUtil.createNameQuery(AccessCertificationCampaignType.class, name);
         SearchResultList<PrismObject<AccessCertificationCampaignType>> existingCampaigns =
                 repositoryService.searchObjects(AccessCertificationCampaignType.class, query, null, result);
         return !existingCampaigns.isEmpty();
@@ -296,7 +296,9 @@ public class AccCertOpenerHelper {
         repositoryService.searchObjectsIterative(typedQuery.getObjectClass(), typedQuery.getObjectQuery(),
                 (object, parentResult) -> {
                     try {
+
                         caseList.addAll(handler.createCasesForObject(object, campaign, task, parentResult));
+
                     } catch (CommonException | RuntimeException e) {
                         // TODO process the exception more intelligently
                         throw new SystemException("Cannot create certification case for object " + toShortString(object.asObjectable()) + ": " + e.getMessage(), e);

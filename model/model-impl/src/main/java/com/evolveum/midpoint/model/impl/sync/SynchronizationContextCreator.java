@@ -60,7 +60,7 @@ class SynchronizationContextCreator {
         ResourceType updatedResource = checkNotInMaintenance(change.getResource().asObjectable(), task, result);
 
         ResourceObjectProcessingContextImpl processingContext =
-                aResourceObjectProcessingContext(shadow, updatedResource, task, beans)
+                aResourceObjectProcessingContext(shadow, updatedResource, task)
                         .withResourceObjectDelta(change.getObjectDelta())
                         .withExplicitChannel(change.getSourceChannel())
                         .withSystemConfiguration(
@@ -72,10 +72,10 @@ class SynchronizationContextCreator {
                         shadow, processingContext.getResource(), task, result);
 
         // Note this may update shadow kind/intent.
-        TypeAndDefinition typeAndDefinition = determineObjectTypeAndDefinition(processingContext, sorterResult, result);
+        TypeAndDefinition typeAndDefinition = determineObjectTypeAndDefinition(processingContext, shadow, sorterResult, result);
         LOGGER.trace("Type and definition: {}", typeAndDefinition);
 
-        String tag = getOrGenerateTag(processingContext, typeAndDefinition.definition, result);
+        String tag = getOrGenerateTag(processingContext, shadow, typeAndDefinition.definition, result);
 
         @Nullable SynchronizationPolicy policy =
                 typeAndDefinition.typeIdentification != null ?
@@ -136,11 +136,11 @@ class SynchronizationContextCreator {
 
     private @NotNull TypeAndDefinition determineObjectTypeAndDefinition(
             @NotNull ResourceObjectProcessingContextImpl processingContext,
+            @NotNull ShadowType shadow,
             @Nullable ObjectSynchronizationDiscriminatorType sorterResult,
             @NotNull OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         @Nullable ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(processingContext.getResource());
-        ShadowType shadow = processingContext.getShadowedResourceObject();
         if (ShadowUtil.isClassified(shadow)) {
             if (isClassificationInSorterResult(sorterResult)) {
                 // Sorter result overrides any classification information stored in the shadow
@@ -156,8 +156,8 @@ class SynchronizationContextCreator {
             // exotic channels, like "external changes"? Let us try the classification once more.
             //
             // Note that the sorter result is used here (if it contains the classification)
-            ResourceObjectClassification classification = beans.provisioningService
-                    .classifyResourceObject(
+            ResourceObjectClassification classification =
+                    beans.provisioningService.classifyResourceObject(
                             shadow,
                             processingContext.getResource(),
                             sorterResult,
@@ -180,15 +180,15 @@ class SynchronizationContextCreator {
 
     private @Nullable String getOrGenerateTag(
             @NotNull ResourceObjectProcessingContextImpl processingContext,
+            @NotNull ShadowType shadow,
             @Nullable ResourceObjectDefinition definition,
             @NotNull OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
-        ShadowType shadow = processingContext.getShadowedResourceObject();
         if (shadow.getTag() == null) {
             if (definition != null) {
                 return beans.provisioningService.generateShadowTag(
-                        processingContext.getShadowedResourceObject(),
+                        shadow,
                         processingContext.getResource(),
                         definition,
                         processingContext.getTask(),

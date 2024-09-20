@@ -9,12 +9,28 @@ package com.evolveum.midpoint.schema.internals;
 import org.apache.commons.configuration2.Configuration;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 /**
  * @author semancik
  *
  */
 public class InternalsConfig {
+
+    private static final String CONSISTENCY_CHECKS = "consistencyChecks";
+    private static final String SANITY_CHECKS = "sanityChecks";
+    private static final String ENCRYPTION_CHECKS = "encryptionChecks";
+    private static final String READ_ENCRYPTION_CHECKS = "readEncryptionChecks";
+    private static final String AVOID_LOGGING_CHANGE = "avoidLoggingChange";
+    private static final String ALLOW_CLEAR_DATA_LOGGING = "allowClearDataLogging";
+    private static final String PRISM_MONITORING = "prismMonitoring";
+    private static final String MODEL_PROFILING = "modelProfiling";
+    private static final String DETAILED_AUTHORIZATION_LOG = "detailedAuthorizationLog";
+    private static final String SHADOW_CACHING_DEFAULT = "shadowCachingDefault";
 
     /**
      * Checks for consistency of data structures (e.g. prism objects, containers, contexts).
@@ -57,6 +73,20 @@ public class InternalsConfig {
     private static TestingPaths testingPaths = null;
 
     private static boolean detailedAuthorizationLog = false;
+
+    /**
+     * What caching should be turned on for resources that have no specific caching configuration?
+     * This is influenced by `midpoint.internals.shadowCachingDefault` system property.
+     */
+    private static ShadowCachingDefault shadowCachingDefault;
+
+    /**
+     * This is the default setting for {@link #shadowCachingDefault} (if the respective system property is not present).
+     * Currently, we need different values for tests and standard GUI mode.
+     *
+     * TODO resolve this somehow before 4.9 release
+     */
+    public static ShadowCachingDefault shadowCachingDefaultDefault = ShadowCachingDefault.NONE;
 
     public static boolean isPrismMonitoring() {
         return prismMonitoring;
@@ -143,6 +173,18 @@ public class InternalsConfig {
         testingPaths = null;
     }
 
+    public static boolean isShadowCachingOnByDefault() {
+        return shadowCachingDefault != ShadowCachingDefault.NONE;
+    }
+
+    /**
+     * If true, and if the shadow caching is enabled because of {@link #isShadowCachingOnByDefault()}, then the cache is turned
+     * on with long TTL, and for all attributes. To be used for tests.
+     */
+    public static boolean isShadowCachingFullByDefault() {
+        return shadowCachingDefault == ShadowCachingDefault.FULL;
+    }
+
     public static void set(Configuration internalsConfig) {
         if (internalsConfig.containsKey("developmentMode")) {
             boolean developmentMode = internalsConfig.getBoolean("developmentMode");
@@ -153,16 +195,20 @@ public class InternalsConfig {
             }
         }
 
-        consistencyChecks = internalsConfig.getBoolean("consistencyChecks", consistencyChecks);
-        sanityChecks = internalsConfig.getBoolean("sanityChecks", sanityChecks);
-        encryptionChecks = internalsConfig.getBoolean("encryptionChecks", encryptionChecks);
-        readEncryptionChecks = internalsConfig.getBoolean("readEncryptionChecks", readEncryptionChecks);
-        avoidLoggingChange = internalsConfig.getBoolean("avoidLoggingChange", avoidLoggingChange);
-        allowClearDataLogging = internalsConfig.getBoolean("allowClearDataLogging", allowClearDataLogging);
-        prismMonitoring = internalsConfig.getBoolean("prismMonitoring", prismMonitoring);
-        modelProfiling = internalsConfig.getBoolean("modelProfiling", modelProfiling);
+        consistencyChecks = internalsConfig.getBoolean(CONSISTENCY_CHECKS, consistencyChecks);
+        sanityChecks = internalsConfig.getBoolean(SANITY_CHECKS, sanityChecks);
+        encryptionChecks = internalsConfig.getBoolean(ENCRYPTION_CHECKS, encryptionChecks);
+        readEncryptionChecks = internalsConfig.getBoolean(READ_ENCRYPTION_CHECKS, readEncryptionChecks);
+        avoidLoggingChange = internalsConfig.getBoolean(AVOID_LOGGING_CHANGE, avoidLoggingChange);
+        allowClearDataLogging = internalsConfig.getBoolean(ALLOW_CLEAR_DATA_LOGGING, allowClearDataLogging);
+        prismMonitoring = internalsConfig.getBoolean(PRISM_MONITORING, prismMonitoring);
+        modelProfiling = internalsConfig.getBoolean(MODEL_PROFILING, modelProfiling);
         // TODO: testingPaths
-        detailedAuthorizationLog = internalsConfig.getBoolean("detailedAuthorizationLog", detailedAuthorizationLog);
+        detailedAuthorizationLog = internalsConfig.getBoolean(DETAILED_AUTHORIZATION_LOG, detailedAuthorizationLog);
+
+        shadowCachingDefault =
+                ShadowCachingDefault.fromString(
+                        internalsConfig.getString(SHADOW_CACHING_DEFAULT, shadowCachingDefaultDefault.stringValue));
     }
 
     public static void reset() {
@@ -176,6 +222,7 @@ public class InternalsConfig {
         modelProfiling = false;
         testingPaths = null;
         detailedAuthorizationLog = false;
+        // intentionally not manipulating shadow caching (at least for now)
     }
 
     public static void setDevelopmentMode() {
@@ -210,5 +257,45 @@ public class InternalsConfig {
     public static boolean nonCriticalExceptionsAreFatal() {
         // TODO: return true in development mode: MID-3529
         return false;
+    }
+
+    public enum ShadowCachingDefault {
+
+        /** The default is no caching, just like it was in 4.8 and earlier. */
+        NONE("none"),
+
+        /** The default is short-lived caching ... TODO specify. This is the default. */
+        STANDARD("standard"),
+
+        /** The default is caching of all data, with long TTL. To be used primarily in tests. */
+        FULL("full");
+
+        private final String stringValue;
+
+        ShadowCachingDefault(String stringValue) {
+            this.stringValue = stringValue;
+        }
+
+        public static @NotNull ShadowCachingDefault fromString(@Nullable String valueToFind) {
+            if (valueToFind == null) {
+                return STANDARD;
+            }
+            for (ShadowCachingDefault value : values()) {
+                if (valueToFind.equals(value.stringValue)) {
+                    return value;
+                }
+            }
+            throw new IllegalStateException(
+                    "Unknown shadow caching default value: '%s'. Valid ones are: %s".formatted(
+                            valueToFind,
+                            Arrays.stream(values())
+                                    .map(v -> "'" + v + "'")
+                                    .collect(Collectors.joining(", "))));
+        }
+
+        @Override
+        public String toString() {
+            return stringValue;
+        }
     }
 }

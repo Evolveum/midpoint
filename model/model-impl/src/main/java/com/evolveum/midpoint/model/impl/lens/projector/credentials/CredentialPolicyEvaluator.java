@@ -19,19 +19,11 @@ import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.OperationalDataManager;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -55,13 +47,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractCredentialTy
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsStorageTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordHistoryEntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.jetbrains.annotations.NotNull;
+
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
+import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
@@ -218,7 +213,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
         boolean credentialValueChanged = false;
         boolean checkMinOccurs = false;
         ObjectDelta<F> focusDelta = focusContext.getCurrentDelta();
-        ContainerDelta<R> containerDelta = focusDelta != null ? focusDelta.findContainerDelta(getCredentialsContainerPath()) : null;        // e.g. credentials/password
+        ContainerDelta<R> containerDelta = focusDelta != null ? focusDelta.findContainerDelta(getCredentialsContainerPath()) : null; // e.g. credentials/password
         if (containerDelta != null) {
             if (containerDelta.isAdd()) {
                 for (PrismContainerValue<R> cVal : containerDelta.getValuesToAdd()) {
@@ -242,9 +237,11 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
                 checkMinOccurs = true; // might not be precise (e.g. might check minOccurs even if a value is being added)
                 processValueDelta(focusDelta);
 
-                // Do not add metadata to the password and do not append password history, if the new value is same as old (and password reuse in history is ON). This is because modifyTimestamp would change and could not be relied upon with maxAge.
+                // Do not add metadata to the password and do not append password history, if the new value is same as old
+                // (and password reuse in history is ON). This is because modifyTimestamp would change and could not be
+                // relied upon with maxAge.
                 if (!credentialValueChanged && SecurityUtil.isHistoryAllowExistingPasswordReuse(getCredentialPolicy())) {
-                    LOGGER.trace("Skipping Metadata delta.");
+                    LOGGER.trace("Skipping processing metadata delta");
                 } else {
                     addMetadataDelta();
                 }
@@ -267,16 +264,16 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 
         PropertyDelta<ProtectedStringType> valueDelta = focusDelta.findPropertyDelta(getCredentialValuePath());
         if (valueDelta != null && valueDelta.getValuesToReplace() != null) {
-            for (PrismPropertyValue val : valueDelta.getValuesToReplace()) {
-                newPassword = (ProtectedStringType) val.getValue();
+            for (var val : valueDelta.getValuesToReplace()) {
+                newPassword = val.getValue();
                 break; // password should have only one value
             }
         }
 
         // in case that password is added and not replaced:
         if (newPassword == null && valueDelta != null && valueDelta.getValuesToAdd() != null) {
-            for (PrismPropertyValue val : valueDelta.getValuesToAdd()) {
-                newPassword = (ProtectedStringType) val.getValue();
+            for (var val : valueDelta.getValuesToAdd()) {
+                newPassword = val.getValue();
                 break; // password should have only one value
             }
         }
@@ -308,7 +305,6 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
         if (objectNew != null) {
             return objectNew;
         }
-        focusContext.recompute();
         PrismObject<F> objectNewAfter = focusContext.getObjectNew();
         if (objectNewAfter != null) {
             return objectNewAfter;
@@ -397,23 +393,22 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
     }
 
     private void addMetadataDelta() throws SchemaException {
-        Collection<? extends ItemDelta<?, ?>> metaDeltas = metadataManager.createModifyMetadataDeltas(
-                context, getCurrentCredentialMetadata(),
-                getCredentialsContainerPath().append(AbstractCredentialType.F_METADATA),
-                context.getFocusClass(), now, task);
-        for (ItemDelta<?, ?> metaDelta : metaDeltas) {
-            context.getFocusContext().swallowToSecondaryDelta(metaDelta);
-        }
+        context.getFocusContextRequired().swallowToSecondaryDelta(
+                metadataManager.createCredentialsModificationRelatedStorageMetadataDeltas(
+                        context,
+                        getCredentialsContainerPath(),
+                        getCurrentCredential(),
+                        context.getFocusClass(), now, task));
     }
 
     private void addMissingMetadata(PrismContainerValue<R> cVal) throws SchemaException {
         if (hasValueChange(cVal)) {
-            if (!hasMetadata(cVal)) {
-                MetadataType metadataType = metadataManager.createCreateMetadata(context, now, task);
-                ContainerDelta<MetadataType> metadataDelta = prismContext.deltaFactory().container().createModificationAdd(
-                        getCredentialsContainerPath().append(AbstractCredentialType.F_METADATA), FocusType.class,
-                        metadataType);
-                context.getFocusContext().swallowToSecondaryDelta(metadataDelta);
+            if (!cVal.hasValueMetadata()) {
+                context.getFocusContext().swallowToSecondaryDelta(
+                        prismContext.deltaFactory().container().createModificationAdd(
+                                getCredentialsContainerPath().append(InfraItemName.METADATA),
+                                FocusType.class,
+                                metadataManager.createCreateMetadata(context, now, task)));
             }
         }
     }
@@ -455,23 +450,9 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
                 && !AbstractCredentialType.F_PREVIOUS_SUCCESSFUL_LOGIN.matches(itemName);
     }
 
-    private boolean hasMetadata(PrismContainerValue<R> cVal) {
-        for (Item<?, ?> item : cVal.getItems()) {
-            if (AbstractCredentialType.F_METADATA.matches(item.getElementName())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     private AbstractCredentialType getOldCredential() {
         PrismContainer<R> oldCredentialContainer = getOldCredentialContainer();
         return oldCredentialContainer != null ? oldCredentialContainer.getRealValue() : null;
-    }
-
-    private MetadataType getCurrentCredentialMetadata() {
-        AbstractCredentialType currentCredential = getCurrentCredential();
-        return currentCredential != null ? currentCredential.getMetadata() : null;
     }
 
     private AbstractCredentialType getCurrentCredential() {
@@ -504,9 +485,6 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 
     // TODO: generalize for other credentials
     private int createAddHistoryDelta(PrismContainer<R> oldCredentialContainer) throws SchemaException {
-        R oldCredentialContainerType = oldCredentialContainer.getRealValue();
-        MetadataType oldCredentialMetadata = oldCredentialContainerType.getMetadata();
-
         PrismProperty<ProtectedStringType> oldValueProperty = oldCredentialContainer.findProperty(getCredentialRelativeValuePath());
         if (oldValueProperty == null) {
             return 0;
@@ -527,7 +505,8 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
         PrismContainerValue<PasswordHistoryEntryType> entryPcv = entryContainer.createNewValue();
         PasswordHistoryEntryType entry = entryPcv.asContainerable();
         entry.setValue(passwordPsForStorage);
-        entry.setMetadata(oldCredentialMetadata != null ? oldCredentialMetadata.clone() : null);
+        entry.asPrismContainerValue().setValueMetadata(
+                oldCredentialContainer.getValue().getValueMetadata().clone());
         entry.setChangeTimestamp(now);
 
         ContainerDelta<PasswordHistoryEntryType> addHistoryDelta = prismContext.deltaFactory().container()
@@ -566,7 +545,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
         try {
             switch (storageType) {
                 case ENCRYPTION:
-                    if (ps.isEncrypted()) {
+                    if (ps.isEncrypted() || ps.isExternal()) {
                         break;
                     }
                     if (ps.isHashed()) {

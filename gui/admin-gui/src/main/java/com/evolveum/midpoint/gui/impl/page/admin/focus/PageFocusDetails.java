@@ -9,12 +9,15 @@ package com.evolveum.midpoint.gui.impl.page.admin.focus;
 import java.time.Duration;
 import java.util.*;
 
+import com.evolveum.midpoint.schema.TaskExecutionMode;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Fragment;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.protocol.http.WebSession;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -30,7 +33,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignment
 import com.evolveum.midpoint.gui.impl.page.admin.component.FocusOperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.component.ProgressPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.component.ProgressReportingAwarePage;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -63,10 +65,6 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
 
     public PageFocusDetails() {
         super();
-    }
-
-    public PageFocusDetails(PrismObject<F> focus, List<BusinessRoleDto> patternDeltas) {
-        super(focus, patternDeltas);
     }
 
     public PageFocusDetails(PageParameters pageParameters) {
@@ -118,8 +116,14 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
             }
 
             @Override
-            protected void savePerformed(AjaxRequestTarget target) {
+            protected void submitPerformed(AjaxRequestTarget target) {
                 PageFocusDetails.this.savePerformed(target);
+            }
+
+            @Override
+            protected void addButtons(RepeatingView repeatingView) {
+                super.addButtons(repeatingView);
+                PageFocusDetails.this.addButtons(repeatingView);
             }
 
             @Override
@@ -143,7 +147,13 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
 
     public void previewPerformed(AjaxRequestTarget target) {
         previewRequested = true;
-        OperationResult result = new OperationResult(OPERATION_PREVIEW_CHANGES);
+        OperationResult result;
+        if (getExecuteChangesOptionsDto() != null
+                && TaskExecutionMode.SIMULATED_DEVELOPMENT.equals(getExecuteChangesOptionsDto().getTaskMode())) {
+            result = new OperationResult(OPERATION_PREVIEW_CHANGES_WITH_DEV_CONFIG);
+        } else {
+            result = new OperationResult(OPERATION_PREVIEW_CHANGES);
+        }
         saveOrPreviewPerformed(target, result, true);
     }
 
@@ -334,5 +344,9 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
         return objectWrapper != null &&
                 org.apache.commons.lang3.StringUtils.isNotEmpty(objectWrapper.getOid()) &&
                 objectWrapper.getOid().equals(WebModelServiceUtils.getLoggedInFocusOid());
+    }
+
+    protected void addButtons(RepeatingView repeatingView) {
+       //empty
     }
 }

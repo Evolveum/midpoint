@@ -1,0 +1,167 @@
+= REST Endpoints
+:page-nav-title: REST Endpoints
+:page-display-order: 100
+:page-toc: top
+:page-upkeep-status: green
+
+== Overview
+The REST api provides you with access to a long list of web resources. The web
+resources are basically midPoint objects, each is a specific object type. The bellow
+table holds a list of all accessible web resources.
+
+*Click on the endpoint name* to get to the web resource overview page with
+the complete *list of supported operations*.
+
+[%autowidth]
+|===
+| Object Type (class) | REST type (endpoint)
+
+| ConnectorType
+| xref:/midpoint/reference/interfaces/rest/endpoints/connectors/[connectors]
+
+
+| ConnectorHostType
+| xref:/midpoint/reference/interfaces/rest/endpoints/connector-hosts/[connectorHosts]
+
+
+| GenericObjectType
+| xref:/midpoint/reference/interfaces/rest/endpoints/generic-objects/[genericObjects]
+
+
+| ResourceType
+| xref:/midpoint/reference/interfaces/rest/endpoints/resources/[resources]
+
+
+| UserType
+| xref:/midpoint/reference/interfaces/rest/endpoints/users/[users]
+
+
+| ObjectTemplateType
+| xref:/midpoint/reference/interfaces/rest/endpoints/object-templates/[objectTemplates]
+
+
+| SystemConfigurationType
+| xref:/midpoint/reference/interfaces/rest/endpoints/system-configurations/[systemConfigurations]
+
+
+| TaskType
+| xref:/midpoint/reference/interfaces/rest/endpoints/tasks/[tasks]
+
+
+| ShadowType
+| xref:/midpoint/reference/interfaces/rest/endpoints/shadows/[shadows]
+
+
+| RoleType
+| xref:/midpoint/reference/interfaces/rest/endpoints/roles/[roles]
+
+
+| ValuePolicyType
+| xref:/midpoint/reference/interfaces/rest/endpoints/value-policies/[valuePolicies]
+
+
+| NodeType
+| xref:/midpoint/reference/interfaces/rest/endpoints/nodes/[nodes]
+
+
+| FormType
+| xref:/midpoint/reference/interfaces/rest/endpoints/forms/[forms]
+
+
+| OrgType
+| xref:/midpoint/reference/interfaces/rest/endpoints/organizational-units/[orgs]
+
+
+| ReportType
+| xref:/midpoint/reference/interfaces/rest/endpoints/reports/[reports]
+
+
+| ReportDataType
+| xref:/midpoint/reference/interfaces/rest/endpoints/report-data/[reportData]
+
+
+| SecurityPolicyType
+| xref:/midpoint/reference/interfaces/rest/endpoints/security-policies/[securityPolicies]
+
+
+| LookupTableType
+| xref:/midpoint/reference/interfaces/rest/endpoints/lookup-tables/[lookupTables]
+
+
+| AccessCertificationDefinitionType
+| xref:/midpoint/reference/interfaces/rest/endpoints/access-certification-definition-type/[accessCertificationDefinitions]
+
+
+| AccessCertificationCampaignType
+| xref:/midpoint/reference/interfaces/rest/endpoints/access-certification-campaign-type/[accessCertificationCampaigns]
+
+
+| SequenceType
+| xref:/midpoint/reference/interfaces/rest/endpoints/sequences/[sequences]
+
+
+| ServiceType
+| xref:/midpoint/reference/interfaces/rest/endpoints/services/[services]
+
+
+| CaseType
+| xref:/midpoint/reference/interfaces/rest/endpoints/cases/[cases]
+
+
+| FunctionLibraryType
+| xref:/midpoint/reference/interfaces/rest/endpoints/functions/[functionLibraries]
+
+
+| ObjectCollectionType
+| xref:/midpoint/reference/interfaces/rest/endpoints/object-collections/[objectCollections]
+
+
+| ArchetypeType
+| xref:/midpoint/reference/interfaces/rest/endpoints/archetypes/[archetypes]
+
+
+| DashboardType
+| xref:/midpoint/reference/interfaces/rest/endpoints/dashboards/[dashboards]
+
+| * Remote Procedure Call
+| xref:/midpoint/reference/interfaces/rest/endpoints/rpc/[rpc]
+
+|===
+
+=== General Classification of Web Resource Types
+
+MidPoint REST API is not entirely RESTful.
+There are operations that would be very difficult and very inefficient if modeled as pure RESTful web resource - just because the very nature of those operations is to invoke an operation.
+Therefore, the API web resources are divided into two broad categories:
+
+* *Create-Read-Update-Delete (CRUD) web resources*: Those resources try to adhere to the RESTful approach as close as possible (a.k.a. "almost real REST web resources"). Those resources support the full range of HTTP verbs and they almost behave in a way that can be expected from a RESTful API.
+Those resources can be subdivided into two groups: +
+
+** *Individual web resources* usually represent a single midPoint object.
+They are used to retrieve a specific object, modify it, delete it - and in the very impractical case of PUT also create it.
+Typical example is a web resource that represents a single user (e.g. URI `.../ws/rest/users/ca8fb11c-72ae-11e7-a09e-9f03da78ca34`).
+
+** *Collection web resources* represents collection of objects such as "all users" or "all roles".
+Those resources can be used to list and search for objects of a particular type (GET operation).
+Collection resources may also be used to create new objects of a particular type (POST operation).
+Typical example is a web resource that represents all users (e.g. URI `.../ws/rest/users`).
+
+* *Remote Procedure Call (RPC) web resources*: Those are simply endpoints for RPC-like operations.
+They typically support only POST operation.
+There are also two subgroups:
+
+** *Object-related RPC operations*: Operations that deal with a specific midPoint object.
+They are hierarchically located in the namespace of that object.
+Typical examples are operations to suspend and resume tasks (e.g. URI `.../ws/rest/tasks/e630b1fe-72af-11e7-8500-771f92d1099a/suspend`). Even though they are located in the namespace of (REST-like) object web resource, those are in fact almost pure RPC operations.
+Speaking strict REST those operations might in fact be modeled as state changes in the object (web resource) that they "belong" to.
+But we have decided to model those operations as RPC-like for several reasons.
+Those are non-trivial operations that may have complex consequences, the operations may fail in a non-trivial way, we may need to execute them in an asynchronous mode in the future and so on.
+Modeling those as state changes would pollute both the server and the client code with a lot of special-case-handling code and it would make everything more complex and fragile.
+Therefore, we have decided not to follow strict REST guidelines here and to model those operations as RPC.
+
+** *Global RPC operations:* Operations that do not deal with any specific object, operations that deal with broad selection of objects or simply operations that cannot be classified to any of the above categories.
+Typical example is an execution of a xref:/midpoint/reference/misc/bulk/[action].
+
+== See Also
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]

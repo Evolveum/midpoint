@@ -285,6 +285,11 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
         return getSituationFromConstraints(policyConstraints);
     }
 
+    @Override
+    public @NotNull List<ObjectReferenceType> getPolicyMarkRef() {
+        return policyRuleBean.getMarkRef(); //TODO
+    }
+
     @Nullable
     private String getSituationFromConstraints(PolicyConstraintsType policyConstraints) {
         if (!policyConstraints.getExclusion().isEmpty()) {
@@ -340,8 +345,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
         debugDumpWithLabelLn(sb, "name", getName(), indent + 1);
         debugDumpLabelLn(sb, "policyRuleType", indent + 1);
         indentDebugDump(sb, indent + 2);
-        PrismPrettyPrinter.debugDumpValue(sb, indent + 2, policyRuleCI, PrismContext.get(),
-                PolicyRuleType.COMPLEX_TYPE, PrismContext.LANG_XML);
+        PrismPrettyPrinter.debugDumpValue(sb, indent + 2, policyRuleCI, PolicyRuleType.COMPLEX_TYPE, PrismContext.LANG_XML);
         sb.append('\n');
         debugDumpWithLabelLn(sb, "assignmentPath", assignmentPath, indent + 1);
         debugDumpWithLabelLn(sb, "triggers", triggers, indent + 1);
@@ -494,11 +498,11 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
             var.put(ExpressionConstants.VAR_TARGET, target, target != null ? target.getDefinition() : getObjectDefinition());
             var.put(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, actx.evaluatedAssignment, EvaluatedAssignment.class);
             AssignmentType assignment = actx.evaluatedAssignment.getAssignment(actx.state == ObjectState.BEFORE);
-            var.put(ExpressionConstants.VAR_ASSIGNMENT, assignment, getAssignmentDefinition(assignment, prismContext));
+            var.put(ExpressionConstants.VAR_ASSIGNMENT, assignment, getAssignmentDefinition(assignment));
         } else if (rctx instanceof ObjectPolicyRuleEvaluationContext) {
             var.put(ExpressionConstants.VAR_TARGET, null, getObjectDefinition());
             var.put(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, null, EvaluatedAssignment.class);
-            var.put(ExpressionConstants.VAR_ASSIGNMENT, null, getAssignmentDefinition(null, prismContext));
+            var.put(ExpressionConstants.VAR_ASSIGNMENT, null, getAssignmentDefinition(null));
         } else if (rctx != null) {
             throw new AssertionError(rctx);
         }
@@ -510,7 +514,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
         return PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ObjectType.class);
     }
 
-    private static PrismContainerDefinition<?> getAssignmentDefinition(AssignmentType assignment, PrismContext prismContext) {
+    private static PrismContainerDefinition<?> getAssignmentDefinition(AssignmentType assignment) {
         if (assignment != null) {
             PrismContainerDefinition<?> definition = assignment.asPrismContainerValue().getDefinition();
             if (definition != null) {
@@ -518,7 +522,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
             }
         }
 
-        return prismContext.getSchemaRegistry()
+        return PrismContext.get().getSchemaRegistry()
                 .findObjectDefinitionByCompileTimeClass(AssignmentHolderType.class)
                 .findContainerDefinition(AssignmentHolderType.F_ASSIGNMENT);
     }

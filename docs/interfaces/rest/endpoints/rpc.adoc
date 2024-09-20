@@ -1,0 +1,101 @@
+= RPC REST Endpoint
+:page-nav-title: RPC
+:page-display-order: 2800
+:page-toc: top
+:page-keywords: [ 'rest', 'rpc', 'endpoint' ]
+:page-upkeep-status: green
+
+== Description
+
+Here we are describing the RPC (Remote Procedure Call) endpoint in relation to midPoints REST API.
+
+.Endpoint
+[source, http]
+----
+rpc/
+----
+== Operations And Examples
+
+The Remote Procedure Call endpoint gives you the possibility to execute commands and scripts of various
+nature on midPoint.
+
+include::../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+
+=== Execute Script
+
+include::../operations/examples/raw/execute-script-rpc.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/script-execute-op-rest.adoc[Script Execute Operation]
+
+=== Generate and Validate Value
+
+include::../operations/examples/raw/validate-value-rpc.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-op-rest.adoc[Generate and Validate value Operation]
+
+== Common Use-case Examples
+
+== JSON Example
+
+.Show JSON Example
+[%collapsible]
+====
+[source, json]
+----
+{
+  "@ns" : "http://prism.evolveum.com/xml/ns/public/types-3",
+  "object" : {
+    "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/api-types-3#ExecuteScriptResponseType",
+    "output" : {
+      "dataOutput" : {
+        "item" : [ {
+          "value" : {
+            "@type" : "c:UserType",
+            "oid" : "a9885c61-c442-42d8-af34-8182a8653e3c",
+            "version" : "16",
+            "name" : "Jack",
+            "metadata" : {},
+            "operationExecution" : [ {}, {}],
+            "assignment" : [ {}, {} ],
+            "iteration" : 0,
+            "iterationToken" : "",
+            "roleMembershipRef" : [ {}, {} ],
+            "activation" : {},
+            "emailAddress" : "jack@evolveum.com",
+            "credentials" : {}
+          },
+          "result" : {
+            "operation" : "com.evolveum.midpoint.model.impl.scripting.BulkActionsExecutor.process",
+            "status" : "success",
+            "importance" : "normal",
+            "end" : "2024-02-19T12:05:26.393+01:00",
+            "token" : 1000000000000004223
+          }
+        } ]
+      },
+      "consoleOutput" : "Recomputed user:a9885c61-c442-42d8-af34-8182a8653e3c(Jack)\n"
+    },
+    "result" : {
+      "operation" : "executeScript",
+      "status" : "success",
+      "importance" : "normal",
+      "start" : "2024-02-19T12:05:26.366+01:00",
+      "end" : "2024-02-19T12:05:26.393+01:00",
+      "microseconds" : 26863,
+      "invocationId" : 17478,
+      "token" : 1000000000000004219,
+      "partialResults" : [ {} ]
+    }
+  }
+}
+----
+====
+
+== See Also
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]

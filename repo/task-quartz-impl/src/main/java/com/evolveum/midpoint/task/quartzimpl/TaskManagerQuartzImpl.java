@@ -10,6 +10,8 @@ import static java.util.Collections.emptySet;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -158,6 +160,19 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     /** Cached task prism definition. */
     private PrismObjectDefinition<TaskType> taskPrismDefinition;
 
+    /**
+     * A flag that the task manager is going down (most probably as part of the system shutdown).
+     * We use it to prevent starting the quartz scheduler in such a state, to prevent erroneous situations like MID-7331:
+     * service stop is requested during service startup, which leads to a situation when the scheduler is first paused
+     * (because of shutdown), and then started (because of startup) - which leads to tasks being closed because of internal
+     * inconsistencies due to missing task handlers.
+     *
+     * We simply assume that once system goes down, it will never be started in its current instance.
+     */
+    private boolean goingDown;
+
+    @NotNull private final Set<ClusteringAvailabilityProvider> clusteringAvailabilityProviders = ConcurrentHashMap.newKeySet();
+
     private static final Trace LOGGER = TraceManager.getTrace(TaskManagerQuartzImpl.class);
 
     //region Initialization and shutdown
@@ -165,13 +180,14 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     public void init() {
         OperationResult result = new OperationResult(DOT_IMPL_CLASS + "init");
         systemConfigurationChangeDispatcher.registerListener(this);
-        upAndDown.init(result);
+        upAndDown.init(result); // not actually starting the scheduler, unless in test mode
     }
 
     @PreDestroy
     public void destroy() {
         OperationResult result = new OperationResult(DOT_IMPL_CLASS + "shutdown");
         systemConfigurationChangeDispatcher.unregisterListener(this);
+        goingDown = true;
         upAndDown.shutdown(result);
     }
 
@@ -192,7 +208,11 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     @EventListener(ApplicationReadyEvent.class)
     public void onSystemStarted() {
         OperationResult result = new OperationResult(DOT_IMPL_CLASS + "onSystemStarted");
-        upAndDown.onSystemStarted(result);
+        if (!goingDown) {
+            upAndDown.switchToUpState(result);
+        } else {
+            LOGGER.info("NOT starting threads (scheduler + cluster manager) because we are going down");
+        }
     }
 
     /**
@@ -205,6 +225,7 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     @EventListener(ContextClosedEvent.class)
     public void onSystemShutdown() {
         OperationResult result = new OperationResult(DOT_IMPL_CLASS + "onSystemShutdown");
+        goingDown = true;
         upAndDown.stopLocalSchedulerAndTasks(result);
     }
     //endregion
@@ -1267,6 +1288,25 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
             };
         }
         return null;
+    }
+
+    @Override
+    public void registerClusteringAvailabilityProvider(@NotNull ClusteringAvailabilityProvider provider) {
+        clusteringAvailabilityProviders.add(provider);
+    }
+
+    @Override
+    public void unregisterClusteringAvailabilityProvider(@NotNull ClusteringAvailabilityProvider provider) {
+        clusteringAvailabilityProviders.remove(provider);
+    }
+
+    @Override
+    public boolean isClusteringAvailable() {
+        if (clusteringAvailabilityProviders.isEmpty()) {
+            return true; // should not occur during the regular system operation; there should be exactly one such provider
+        }
+        return clusteringAvailabilityProviders.stream()
+                .anyMatch(provider -> provider.isClusteringAvailable());
     }
 
     public TaskBeans getBeans() {

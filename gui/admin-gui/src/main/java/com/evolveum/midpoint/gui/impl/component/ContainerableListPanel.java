@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.component;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -15,12 +16,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.PropertyModel;
@@ -35,7 +38,9 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.data.column.ConfigurableExpressionColumn;
@@ -47,18 +52,22 @@ import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.component.search.SearchableItemsDefinitions;
 import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
+import com.evolveum.midpoint.gui.impl.component.table.ChartedHeaderDto;
+import com.evolveum.midpoint.gui.impl.component.table.WidgetTableChartedHeader;
 import com.evolveum.midpoint.gui.impl.component.table.WidgetTableHeader;
 import com.evolveum.midpoint.gui.impl.page.admin.report.PageReport;
 import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.impl.query.ObjectPagingImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
@@ -72,6 +81,7 @@ import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ContainerableNameColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
+import com.evolveum.midpoint.web.component.data.mining.RoleAnalysisCollapsableTablePanel;
 import com.evolveum.midpoint.web.component.input.validator.NotNullValidator;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
@@ -85,6 +95,7 @@ import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
 import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.wicket.chartjs.ChartConfiguration;
 
 /**
  * @param <C> the container of displayed objects in table
@@ -116,6 +127,15 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     private CompiledObjectCollectionView compiledCollectionViewFromPanelConfiguration;
 
     private ContainerPanelConfigurationType config;
+
+    /**
+     * Currently this is a switch to turn of the collection view loading from page urls and other places.
+     * Eg. for usages in popups that have nothing to do with underlying page
+     *
+     * TODO this should be "false" - or the other way around, container panel should by default be too "smart" and read
+     *  page params and all kinds of stuff from everywhere just because we expect that it's used on page listing "main" objects...
+     */
+    private boolean useCollectionView = true;
 
     /**
      * @param defaultType specifies type of the object that will be selected by default. It can be changed.
@@ -159,7 +179,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         }
 
         String searchByName = getSearchByNameParameterValue();
-        return searchByName == null || !search.searchByNameEquals(searchByName);
+        return searchByName == null || search.searchByNameEquals(searchByName);
     }
 
     private LoadableDetachableModel<Search<C>> createSearchModel() {
@@ -176,8 +196,12 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         PageStorage storage = getPageStorage();
         Search<C> search = loadSearch(storage);
 
+        //is this correct place for loading paging?
+        ObjectPaging paging = loadPaging(storage);
+
         if (storage != null && !isPreview()) {
             storage.setSearch(search);
+            storage.setPaging(paging);
         }
         getPageBase().getPageParameters().remove(PageBase.PARAMETER_SEARCH_BY_NAME);
         return search;
@@ -195,13 +219,50 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return search;
     }
 
+    private ObjectPaging loadPaging(PageStorage storage) {
+        ObjectPaging paging = null;
+        if (storage != null) {
+            paging = storage.getPaging();
+        }
+        if (paging == null) {
+            paging = createPaging();
+        }
+        return paging;
+    }
+
+    private ObjectPaging createPaging() {
+        CompiledObjectCollectionView view = getObjectCollectionView();
+        ObjectPaging paging = null;
+        if (view != null) {
+            paging = ObjectQueryUtil.convertToObjectPaging(view.getPaging());
+        }
+        if (paging == null) {
+            paging = ObjectPagingImpl.createEmptyPaging();
+            paging.setMaxSize(getDefaultPageSize());
+        }
+        return paging;
+    }
+
     protected String getSearchByNameParameterValue() {
         return null;
     }
 
+    /**
+     * This is to avoid using the object collection in search defined in page as it's loaded automagically.
+     * E.g. on popup where we want to do complete different search - without {@link #useCollectionView}
+     * qual false, search builder will load collection from underlying page no matter what.
+     *
+     * @param useCollectionView
+     */
+    public void setUseCollectionView(boolean useCollectionView) {
+        this.useCollectionView = useCollectionView;
+    }
+
     private Search createSearch() {
+        CompiledObjectCollectionView objectCollectionView = useCollectionView ? getObjectCollectionView() : null;
+
         SearchBuilder searchBuilder = new SearchBuilder(getType())
-                .collectionView(getObjectCollectionView())
+                .collectionView(objectCollectionView)
                 .modelServiceLocator(getPageBase())
                 .nameSearch(getSearchByNameParameterValue())
                 .isPreview(isPreview())
@@ -231,14 +292,29 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     }
 
     private void initLayout() {
-        BoxedTablePanel<PO> itemTable = initItemTable();
-        itemTable.setOutputMarkupId(true);
-        itemTable.setOutputMarkupPlaceholderTag(true);
-        add(itemTable);
+        Component table;
 
-        itemTable.add(new VisibleBehaviour(this::isListPanelVisible));
+        if (isCollapsableTable()) {
+            table = initCollapsableItemTable();
+        } else {
+            table = initItemTable();
+        }
+
+        table.setOutputMarkupId(true);
+        table.setOutputMarkupPlaceholderTag(true);
+        add(table);
+
+        table.add(new VisibleBehaviour(this::isListPanelVisible));
         setOutputMarkupId(true);
+    }
 
+    /**
+     * Checks if the table is collapsible.
+     *
+     * @return {@code true} if the table is collapsible, {@code false} otherwise.
+     */
+    protected boolean isCollapsableTable() {
+        return false;
     }
 
     protected boolean isListPanelVisible() {
@@ -249,8 +325,17 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return initSearch(headerId);
     }
 
-    private WidgetTableHeader createWidgetHeader(String headerId) {
-        return new WidgetTableHeader(headerId, new PropertyModel<>(config, "display"));
+    private <T extends ChartConfiguration> WidgetTableHeader createWidgetHeader(String headerId) {
+        IModel<ChartedHeaderDto<T>> chartModel = getChartedHeaderDtoModel();
+        if (chartModel != null) {
+            return new WidgetTableChartedHeader<>(headerId, new PropertyModel<>(config, "display"), chartModel);
+        } else {
+            return new WidgetTableHeader(headerId, new PropertyModel<>(config, "display"));
+        }
+    }
+
+    protected <T extends ChartConfiguration> IModel<ChartedHeaderDto<T>> getChartedHeaderDtoModel() {
+        return null;
     }
 
     private void setUseCounting(ISelectableDataProvider provider) {
@@ -267,7 +352,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         setUseCounting(provider);
         BoxedTablePanel<PO> itemTable = new BoxedTablePanel<>(ID_ITEMS_TABLE,
                 provider, columns, getTableId()) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected Component createHeader(String headerId) {
@@ -291,7 +376,173 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             @Override
             protected WebMarkupContainer createButtonToolbar(String id) {
                 if (isPreview()) {
-                    return new ButtonBar<>(id, ID_BUTTON_BAR, ContainerableListPanel.this, (PreviewContainerPanelConfigurationType) config);
+                    return new ButtonBar<>(id, ID_BUTTON_BAR, ContainerableListPanel.this,
+                            (PreviewContainerPanelConfigurationType) config, getNavigationParametersModel());
+                }
+                return new ButtonBar<>(id, ID_BUTTON_BAR, ContainerableListPanel.this, createToolbarButtonsList(ID_BUTTON));
+            }
+
+            @Override
+            public String getAdditionalBoxCssClasses() {
+                return ContainerableListPanel.this.getAdditionalBoxCssClasses();
+            }
+
+            @Override
+            protected boolean hideFooterIfSinglePage() {
+                return ContainerableListPanel.this.hideFooterIfSinglePage();
+            }
+
+            @Override
+            protected boolean isDataTableVisible() {
+                return ContainerableListPanel.this.isDataTableVisible();
+            }
+
+            @Override
+            public int getAutoRefreshInterval() {
+                return ContainerableListPanel.this.getAutoRefreshInterval();
+            }
+
+            @Override
+            public boolean isAutoRefreshEnabled() {
+                return ContainerableListPanel.this.isRefreshEnabled();
+            }
+
+            @Override
+            public boolean enableSavePageSize() {
+                return ContainerableListPanel.this.enableSavePageSize();
+            }
+
+            @Override
+            protected boolean isPagingVisible() {
+                return ContainerableListPanel.this.isPagingVisible();
+            }
+
+            @Override
+            protected Integer getConfiguredPagingSize() {
+                return getViewPagingMaxSize();
+            }
+
+            @Override
+            protected void savePagingNewValue(Integer newValue) {
+                setPagingSizeNewValue(newValue);
+            }
+        };
+        itemTable.setOutputMarkupId(true);
+
+        itemTable.setItemsPerPage(getDefaultPageSize());
+
+        if (getPageStorage() != null) {
+            ObjectPaging pageStorage = getPageStorage().getPaging();
+            if (pageStorage != null) {
+                itemTable.setCurrentPage(pageStorage);
+            }
+        }
+        itemTable.setShowAsCard(showTableAsCard());
+
+        return itemTable;
+    }
+
+    private void setPagingSizeNewValue(Integer newValue) {
+        PageStorage pageStorage = getPageStorage();
+        if (pageStorage == null) {
+            return;
+        }
+        ObjectPaging paging = pageStorage.getPaging();
+        if (paging == null) {
+            return;
+        }
+        paging.setMaxSize(newValue);
+    }
+
+    protected boolean showTableAsCard() {
+        return true;
+    }
+
+    /**
+     * <p>NOTE: This method is experimental and may be removed in the future.</p>
+     * Initializes a collapsible table for displaying items.
+     *
+     * <p>When using this method, ensure that specific IDs are used for the collapsible components,
+     * as defined in the RoleAnalysisCollapsableTablePanel class. These IDs are required for proper
+     * functionality of collapsible elements.
+     *
+     * <p>An example of how to utilize this method is provided below:
+     * <pre>{@code
+     * Component firstCollapseContainer = cellItem.findParent(Item.class).get(ID_FIRST_COLLAPSABLE_CONTAINER);
+     * Component secondCollapseContainer = cellItem.findParent(Item.class).get(ID_SECOND_COLLAPSABLE_CONTAINER);
+     *
+     * // Assuming there's a button in the table header with the ID "headerActionButton"
+     * AjaxButton headerActionButton = new AjaxButton("headerActionButton") {
+     *     @Override
+     *     public void onSubmit(AjaxRequestTarget target) {
+     *         // Your action logic here
+     *         target.appendJavaScript(getCollapseScript(firstCollapseContainer, secondCollapseContainer));
+     *     }
+     * };
+     * add(headerActionButton);
+     * }</pre>
+     *
+     * <p>You can customize components further by overriding the {@code newRowItem} method, as shown below:
+     * <pre>{@code
+     * @Override
+     * protected Item<SelectableBean<RoleAnalysisClusterType>> newRowItem(String id, int index,
+     * IModel<SelectableBean<RoleAnalysisClusterType>> model) {
+     *     // Customization logic here
+     * }
+     * }</pre>
+     *
+     * @return The initialized RoleAnalysisCollapsableTablePanel instance.
+     */
+    protected RoleAnalysisCollapsableTablePanel<PO> initCollapsableItemTable() {
+
+        List<IColumn<PO, String>> columns = createColumns();
+        ISelectableDataProvider<PO> provider = createProvider();
+        setDefaultSorting(provider);
+        setUseCounting(provider);
+        RoleAnalysisCollapsableTablePanel<PO> itemTable = new RoleAnalysisCollapsableTablePanel<>(ID_ITEMS_TABLE,
+                provider, columns, getTableId()) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected Item<PO> newRowItem(String id, int index, Item<PO> item, @NotNull IModel<PO> rowModel) {
+
+                Item<PO> components = ContainerableListPanel.this.newRowItem(id, index, item, rowModel);
+                if (components != null) {
+                    return components;
+                } else {
+                    return super.newRowItem(id, index, item, rowModel);
+                }
+            }
+
+            @Override
+            public boolean isShowAsCard() {
+                return ContainerableListPanel.this.showTableAsCard();
+            }
+
+            @Override
+            protected Component createHeader(String headerId) {
+                if (isPreview()) {
+                    return createWidgetHeader(headerId);
+                }
+                Component header = ContainerableListPanel.this.createHeader(headerId);
+                header.add(new VisibleBehaviour(() -> isHeaderVisible()));
+                return header;
+
+            }
+
+            @Override
+            protected Item<PO> customizeNewRowItem(Item<PO> item, IModel<PO> model) {
+                item.add(AttributeModifier.append("class", () -> GuiImplUtil.getObjectStatus(model.getObject())));
+
+                customProcessNewRowItem(item, model);
+                return item;
+            }
+
+            @Override
+            protected WebMarkupContainer createButtonToolbar(String id) {
+                if (isPreview()) {
+                    return new ButtonBar<>(id, ID_BUTTON_BAR, ContainerableListPanel.this,
+                            (PreviewContainerPanelConfigurationType) config, getNavigationParametersModel());
                 }
                 return new ButtonBar<>(id, ID_BUTTON_BAR, ContainerableListPanel.this, createToolbarButtonsList(ID_BUTTON));
             }
@@ -340,10 +591,22 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return itemTable;
     }
 
+    protected Item<PO> newRowItem(String id, int index, Item<PO> item, @NotNull IModel<PO> rowModel) {
+        return null;
+    }
+
     private int getDefaultPageSize() {
         if (isPreview()) {
             Integer previewSize = ((PreviewContainerPanelConfigurationType) config).getPreviewSize();
             return Objects.requireNonNullElse(previewSize, UserProfileStorage.DEFAULT_DASHBOARD_PAGING_SIZE);
+        }
+
+        PageStorage storage = getPageStorage();
+        if (storage != null) {
+            ObjectPaging paging = storage.getPaging();
+            if (paging != null && paging.getMaxSize() != null) {
+                return paging.getMaxSize();
+            }
         }
 
         Integer collectionViewPagingSize = getViewPagingMaxSize();
@@ -363,7 +626,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return view != null && view.getPaging() != null ? view.getPaging().getMaxSize() : null;
     }
 
-    protected void customProcessNewRowItem(org.apache.wicket.markup.repeater.Item<PO> item, IModel<PO> model) {
+    protected void customProcessNewRowItem(Item<PO> item, IModel<PO> model) {
     }
 
     protected boolean isPagingVisible() {
@@ -410,7 +673,16 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
     public BoxedTablePanel<PO> getTable() {
         //noinspection unchecked
-        return (BoxedTablePanel<PO>) get(ID_ITEMS_TABLE);
+        return (BoxedTablePanel<PO>) getTableComponent();
+    }
+
+    private RoleAnalysisCollapsableTablePanel<PO> getCollapsableTable() {
+        //noinspection unchecked
+        return (RoleAnalysisCollapsableTablePanel<PO>) getTableComponent();
+    }
+
+    public Component getTableComponent() {
+        return get(ID_ITEMS_TABLE);
     }
 
     public Class<C> getType() {
@@ -436,28 +708,56 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         List<IColumn<PO, String>> columns = collectColumns();
 
         if (!isPreview()) {
-            List<InlineMenuItem> menuItems = createInlineMenu();
-            if (menuItems == null) {
-                menuItems = new ArrayList<>();
-            }
-            addCustomActions(menuItems, this::getSelectedRealObjects);
-
-            if (!menuItems.isEmpty()) {
-                InlineMenuButtonColumn<PO> actionsColumn = new InlineMenuButtonColumn<>(menuItems, getPageBase()) {
-                    @Override
-                    public String getCssClass() {
-                        return getInlineMenuCssClass();
-                    }
-
-                    @Override
-                    protected boolean isButtonMenuItemEnabled(IModel<PO> rowModel) {
-                        return isMenuItemVisible(rowModel);
-                    }
-                };
+            IColumn<PO, String> actionsColumn = createActionsColumn();
+            if (actionsColumn != null) {
                 columns.add(actionsColumn);
             }
         }
         return columns;
+    }
+
+    protected IColumn<PO, String> createActionsColumn() {
+        List<InlineMenuItem> allItems = new ArrayList<>();
+        List<InlineMenuItem> menuItems = createInlineMenu();
+        if (menuItems != null) {
+            allItems.addAll(menuItems);
+        }
+        addBasicActions(allItems);
+        addCustomActions(allItems, this::getSelectedRealObjects);
+
+        if (!allItems.isEmpty()) {
+            InlineMenuButtonColumn<PO> actionsColumn = new InlineMenuButtonColumn<>(allItems, getPageBase()) {
+                @Override
+                public String getCssClass() {
+                    return getInlineMenuCssClass();
+                }
+
+                @Override
+                protected String getInlineMenuItemCssClass() {
+                    return ContainerableListPanel.this.getInlineMenuItemCssClass();
+                }
+
+                @Override
+                protected boolean isButtonMenuItemEnabled(IModel<PO> rowModel) {
+                    return isMenuItemVisible(rowModel);
+                }
+
+                @Override
+                public void populateItem(Item<ICellPopulator<PO>> cellItem, String componentId, IModel<PO> rowModel) {
+//                        cellItem.add(Attr))
+                    super.populateItem(cellItem, componentId, rowModel);
+                }
+            };
+            return actionsColumn;
+        }
+        return null;
+    }
+
+    /**
+     * Method define basic menu action that is default for all subclasses
+     * and will be added on end of menu items list.
+     */
+    protected void addBasicActions(List<InlineMenuItem> menuItems) {
     }
 
     protected String getInlineMenuCssClass() {
@@ -583,7 +883,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         DisplayType displayType = customColumn.getDisplay();
         PolyStringType label = displayType != null ? displayType.getLabel() : null;
         if (label != null) {
-            return createStringResource(label);
+            return createStringResource(LocalizationUtil.translatePolyString(label));
         }
 
         return createStringResource(getItemDisplayName(customColumn));
@@ -645,7 +945,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         if (others == null) {
             return columns;
         } else if (notContainsNameColumn(others)) {
-            IColumn<PO, String> nameColumn = createNameColumn(null, null, null);
+            IColumn<PO, String> nameColumn = createNameColumn(createStringResource("ObjectType.name"), null, null);
             if (nameColumn != null) {
                 columns.add(nameColumn);
             }
@@ -745,6 +1045,13 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         CsvDownloadButtonPanel exportDataLink = new CsvDownloadButtonPanel(buttonId) {
             @Override
             protected DataTable<?, ?> getDataTable() {
+                Component tableComponent = getTableComponent();
+                if (tableComponent instanceof BoxedTablePanel) {
+                    return getTable().getDataTable();
+                } else if (tableComponent instanceof RoleAnalysisCollapsableTablePanel) {
+                    return getCollapsableTable().getDataTable();
+                }
+
                 return getTable().getDataTable();
             }
 
@@ -889,6 +1196,9 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         }
     }
 
+    // TODO: FIX THIS, how can list component know about widget from page parameter, wrong dependency to "page".
+    //  When used on page with such parameter (anywhere, e.g. in popup listing random suff) this panel will still
+    //  trick it's search (at least) that collection has to be used in search...
     protected boolean isCollectionViewPanelForWidget() {
         PageParameters parameters = getPageBase().getPageParameters();
         if (parameters != null) {
@@ -909,9 +1219,9 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     }
 
     protected boolean isCollectionViewPanel() {
-        return isCollectionViewPanelForCompiledView() || isCollectionViewPanelForWidget()
+        return useCollectionView && (isCollectionViewPanelForCompiledView() || isCollectionViewPanelForWidget()
                 || defaultCollectionExists() || getCompiledCollectionViewFromPanelConfiguration() != null
-                || getObjectCollectionView() != null;
+                || getObjectCollectionView() != null);
     }
 
     protected boolean defaultCollectionExists() {
@@ -923,18 +1233,23 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     }
 
     protected ISelectableDataProvider getDataProvider() {
-        BoxedTablePanel<PO> table = getTable();
-        return (ISelectableDataProvider) table.getDataTable().getDataProvider();
+        Component tableComponent = getTableComponent();
+        if (tableComponent instanceof BoxedTablePanel) {
+            return (ISelectableDataProvider) getTable().getDataTable().getDataProvider();
+        } else if (tableComponent instanceof RoleAnalysisCollapsableTablePanel) {
+            return (ISelectableDataProvider) getCollapsableTable().getDataTable().getDataProvider();
+        }
+        return null;
     }
 
     public void refreshTable(AjaxRequestTarget target) {
-        BoxedTablePanel<PO> table = getTable();
         if (searchModel.getObject().isForceReload()) {
             resetTable(target);
         } else {
             saveSearchModel(getCurrentTablePaging());
         }
-        target.add(table);
+
+        target.add(getTableComponent());
         target.add(getFeedbackPanel());
     }
 
@@ -1029,6 +1344,10 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
     protected boolean hideFooterIfSinglePage() {
         return false;
+    }
+
+    protected boolean isDataTableVisible() {
+        return true;
     }
 
     public void setManualRefreshEnabled(Boolean manualRefreshEnabled) {
@@ -1186,4 +1505,13 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     public boolean isValidFormComponents() {
         return isValidFormComponents(null);
     }
+
+    protected LoadableModel<PageParameters> getNavigationParametersModel() {
+        return null;
+    }
+
+    protected String getInlineMenuItemCssClass() {
+        return "btn btn-default btn-xs";
+    }
+
 }

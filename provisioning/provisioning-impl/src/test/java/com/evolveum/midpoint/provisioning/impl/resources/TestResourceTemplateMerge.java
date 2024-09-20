@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.provisioning.impl.resources;
 
+import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.schema.SchemaConstantsGenerated.ICF_C_CONFIGURATION_PROPERTIES;
@@ -19,14 +20,16 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.InboundMappin
 import static com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_3.ResultsHandlerConfigurationType.*;
 
 import java.io.File;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
@@ -98,7 +101,7 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
 
     /** Adds a resource to repository, fills-in connector OID externally. */
     private void addResourceObject(TestObject<ResourceType> resource, List<String> connectorTypes, OperationResult result)
-            throws CommonException, EncryptionException {
+            throws CommonException {
         addResource(resource, connectorTypes, false, result);
         resource.reload(result);
     }
@@ -472,16 +475,16 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
                 findObjectTypeDefinitionRequired(schema, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
 
         and("gossip is added in types-1");
-        ResourceAttributeDefinition<?> gossipDef =
-                accountDef.findAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_QNAME);
+        ShadowSimpleAttributeDefinition<?> gossipDef =
+                accountDef.findSimpleAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_QNAME);
         PropertyLimitations gossipModelLimitations = gossipDef.getLimitations(LayerType.MODEL);
         assertThat(gossipModelLimitations.canRead()).as("read access to gossip").isFalse();
         assertThat(gossipModelLimitations.canAdd()).as("add access to gossip").isTrue();
         assertThat(gossipModelLimitations.canModify()).as("modify access to gossip").isTrue();
 
         and("drink is updated");
-        ResourceAttributeDefinition<?> drinkDef =
-                accountDef.findAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_QNAME);
+        ShadowSimpleAttributeDefinition<?> drinkDef =
+                accountDef.findSimpleAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_QNAME);
         PropertyLimitations drinkModelLimitations = drinkDef.getLimitations(LayerType.MODEL);
         assertThat(drinkModelLimitations.canRead()).as("read access to drink").isTrue();
         assertThat(drinkModelLimitations.canAdd()).as("add access to drink").isTrue(); // overridden in types-1
@@ -489,8 +492,8 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
         assertThat(drinkDef.isTolerant()).as("drink 'tolerant' flag").isFalse(); // overridden in types-1
 
         and("inbound mapping in weapon is updated");
-        ResourceAttributeDefinition<?> weaponDef =
-                accountDef.findAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_QNAME);
+        ShadowSimpleAttributeDefinition<?> weaponDef =
+                accountDef.findSimpleAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_QNAME);
         List<InboundMappingType> weaponInbounds = weaponDef.getInboundMappingBeans();
         assertThat(weaponInbounds).as("weapon inbound mappings").hasSize(1);
         InboundMappingType weaponInbound = weaponInbounds.get(0);
@@ -499,31 +502,37 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
         assertThat(weaponInbound.getName()).as("weapon mapping name").isEqualTo("weapon-mapping"); // this is the key
 
         and("one protected pattern is added (there are two, but one is exactly the same as one in parent)");
-        Collection<ResourceObjectPattern> protectedPatterns = accountDef.getProtectedObjectPatterns();
-        assertThat(protectedPatterns).as("protected object patterns").hasSize(3); // 2 inherited, 1 added
-        Set<String> names = protectedPatterns.stream().map(this::getFilterValue).collect(Collectors.toSet());
-        assertThat(names)
+        var shadowMarkingRules = accountDef.getShadowMarkingRules().getMarkingRulesMap();
+        assertThat(shadowMarkingRules)
+                .as("shadow marking rules map")
+                .hasSize(1) // marking protected accounts
+                .extracting(map -> map.get(SystemObjectsType.MARK_PROTECTED.value()))
+                .as("protected objects entry")
+                .extracting(rule -> rule.getPatterns(), as(InstanceOfAssertFactories.collection(ResourceObjectPattern.class)))
+                .as("protected objects patterns")
+                .hasSize(3) // 2 inherited, 1 added
+                .extracting(pattern -> getFilterValue(pattern))
                 .as("protected objects names")
                 .containsExactlyInAnyOrder("root", "daemon", "extra");
 
-        and("association ri:group is updated");
-        Collection<ResourceAssociationDefinition> associationDefinitions = accountDef.getAssociationDefinitions();
-        displayCollection("associations", associationDefinitions);
-        assertThat(associationDefinitions).as("association definitions").hasSize(2);
+        and("legacy association ri:group is updated");
+        var referenceAttributeDefinitions = accountDef.getReferenceAttributeDefinitions();
+        displayCollection("reference attributes", referenceAttributeDefinitions);
+        assertThat(referenceAttributeDefinitions).as("definitions of reference attributes").hasSize(2);
 
         QName groupQName = new QName(NS_RI, "group");
-        ResourceAssociationDefinition groupDef = accountDef.findAssociationDefinitionRequired(groupQName, () -> "");
-        assertThat(groupDef.requiresExplicitReferentialIntegrity())
+        var groupDef = accountDef.findReferenceAttributeDefinitionRequired(groupQName, () -> "");
+        assertThat(groupDef.getSimulationDefinitionRequired().requiresExplicitReferentialIntegrity())
                 .as("requiresExplicitReferentialIntegrity flag")
                 .isFalse();
-        assertThat(groupDef.getName())
+        assertThat(groupDef.getItemName())
                 .as("group name")
                 .isEqualTo(groupQName); // i.e. it's qualified
 
         and("synchronization reactions are correctly merged");
-        Collection<SynchronizationReactionDefinition> reactions = accountDef.getSynchronizationReactions();
+        var reactions = accountDef.getSynchronizationReactions();
         assertThat(reactions).as("sync reactions").hasSize(2);
-        SynchronizationReactionDefinition unnamed =
+        var unnamed =
                 reactions.stream().filter(r -> r.getName() == null).findFirst().orElseThrow();
         assertThat(unnamed.getSituations())
                 .as("situations in unnamed")
@@ -534,7 +543,7 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
         assertThat(unnamed.getActions().get(0).getNewDefinitionBeanClass())
                 .as("action in unnamed")
                 .isEqualTo(DeleteResourceObjectSynchronizationActionType.class);
-        SynchronizationReactionDefinition reaction1 =
+        var reaction1 =
                 reactions.stream().filter(r -> "reaction1".equals(r.getName())).findFirst().orElseThrow();
         assertThat(reaction1.getSituations())
                 .as("situations in reaction1")
@@ -664,8 +673,8 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
                 findObjectTypeDefinitionRequired(schema, ShadowKindType.ACCOUNT, "employee");
 
         and("drink is updated");
-        ResourceAttributeDefinition<?> employeeDrinkDef =
-                employeeDef.findAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_QNAME);
+        ShadowSimpleAttributeDefinition<?> employeeDrinkDef =
+                employeeDef.findSimpleAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_QNAME);
         PropertyLimitations drinkModelLimitations = employeeDrinkDef.getLimitations(LayerType.MODEL);
         assertThat(drinkModelLimitations.canRead()).as("read access to drink").isTrue();
         assertThat(drinkModelLimitations.canAdd()).as("add access to drink").isFalse();
@@ -677,8 +686,8 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
                 findObjectTypeDefinitionRequired(schema, ShadowKindType.ACCOUNT, "admin");
 
         and("drink is updated");
-        ResourceAttributeDefinition<?> adminDrinkDef =
-                adminDef.findAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_QNAME);
+        ShadowSimpleAttributeDefinition<?> adminDrinkDef =
+                adminDef.findSimpleAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_QNAME);
         assertThat(adminDrinkDef.isTolerant()).as("drink 'tolerant' flag").isTrue(); // default
         assertThat(adminDrinkDef.isIgnored(LayerType.MODEL)).as("drink 'ignored' flag").isTrue(); // overridden
         assertThat(adminDrinkDef.getDocumentation()).isEqualTo("Administrators do not drink!");
@@ -695,7 +704,7 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
     /** Hacked: gets the value of (assuming) single property value filter in the pattern. */
     private String getFilterValue(ResourceObjectPattern pattern) {
         //noinspection unchecked
-        return Objects.requireNonNull(((PropertyValueFilter<String>) pattern.getObjectFilter()).getValues())
+        return Objects.requireNonNull(((PropertyValueFilter<String>) pattern.getFilter()).getValues())
                 .get(0).getRealValue();
     }
 }

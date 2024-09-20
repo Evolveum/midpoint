@@ -7,47 +7,43 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
+import static com.evolveum.midpoint.util.MiscUtil.requireNonNull;
+import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
+
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Document;
 
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.processor.NativeObjectClassDefinition.NativeObjectClassDefinitionBuilder;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import static com.evolveum.midpoint.util.MiscUtil.*;
-
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * A schema covering the whole resource.
  *
- * It contains both "raw" object class definition and "refined" object type and class definitions.
+ * It contains object classes and types definitions and (experimental) association classes definitions.
+ * It refers to the {@link NativeResourceSchema} upon which it was built.
  *
- * - Raw (class) definitions are represented by {@link ResourceObjectClassDefinition} objects
- * and are obtained directly from the connector.
- * - Refined (type or class) definitions (represented by {@link ResourceObjectTypeDefinition} and
- * {@link ResourceObjectClassDefinition}) are derived from the raw ones by merging them with information
- * in `schemaHandling` part of the resource definition.
- *
- * This interface contains a lot of methods that try to find object type/class definition matching
- * criteria.
+ * This interface contains a lot of methods that try to find object type/class definition matching criteria.
  *
  * NOTE: There can be schemas that contain no refined definitions. Either the resource definition
- * contains no `schemaHandling`, or we work at lower layers (e.g. when fetching and parsing the schema
- * in ConnId connector).
+ * contains no `schemaHandling`, or we intentionally want to avoid them. See {@link BareResourceSchema}.
  *
  * NOTE: Resolution of definitions is a complex process. So it's delegated to {@link ResourceObjectDefinitionResolver}.
  *
@@ -68,6 +64,10 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
         return getDefinitions(ResourceObjectClassDefinition.class);
     }
 
+    default int getObjectClassDefinitionsCount() {
+        return getObjectClassDefinitions().size(); // implement more efficiently if needed
+    }
+
     /** Returns definitions for all the object types. */
     default @NotNull Collection<ResourceObjectTypeDefinition> getObjectTypeDefinitions() {
         return getDefinitions(ResourceObjectTypeDefinition.class);
@@ -75,9 +75,15 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
 
     /** Returns definitions for all types with given kind. (If null, returns all types.) */
     default @NotNull List<? extends ResourceObjectTypeDefinition> getObjectTypeDefinitions(@Nullable ShadowKindType kind) {
+        return getObjectTypeDefinitions(def -> def.matchesKind(kind));
+    }
+
+    /** Returns all matching object type definitions. */
+    default @NotNull List<ResourceObjectTypeDefinition> getObjectTypeDefinitions(
+            @NotNull Predicate<ResourceObjectTypeDefinition> predicate) {
         return getObjectTypeDefinitions().stream()
-                .filter(def -> def.matchesKind(kind))
-                .collect(Collectors.toList());
+                .filter(predicate)
+                .toList();
     }
 
     /** Returns definition of the given type. No hacks/guesses here. */
@@ -95,6 +101,13 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
     default @Nullable ResourceObjectTypeDefinition getObjectTypeDefinition(
             @NotNull ResourceObjectTypeIdentification identification) {
         return getObjectTypeDefinition(identification.getKind(), identification.getIntent());
+    }
+
+    default @NotNull ResourceObjectTypeDefinition getObjectTypeDefinitionRequired(
+            @NotNull ResourceObjectTypeIdentification identification) {
+        return stateNonNull(
+                getObjectTypeDefinition(identification.getKind(), identification.getIntent()),
+                "No object type definition for %s in %s", identification, this);
     }
     //endregion
 
@@ -179,8 +192,8 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
     /**
      * As {@link #findDefinitionForObjectClass(QName)} but throws an exception if there's no suitable definition.
      */
-    default @NotNull ResourceObjectDefinition findDefinitionForObjectClassRequired(@NotNull QName name) {
-        return stateNonNull(
+    default @NotNull ResourceObjectDefinition findDefinitionForObjectClassRequired(@NotNull QName name) throws SchemaException {
+        return requireNonNull(
                 findDefinitionForObjectClass(name),
                 () -> "No definition for object class " + name + " in " + this);
     }
@@ -201,9 +214,15 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
      */
     default @NotNull ResourceObjectClassDefinition findObjectClassDefinitionRequired(@NotNull QName name)
             throws SchemaException {
+        return findObjectClassDefinitionRequired(name, () -> "");
+    }
+
+    default @NotNull ResourceObjectClassDefinition findObjectClassDefinitionRequired(
+            @NotNull QName name, @NotNull Supplier<String> contextSupplier)
+            throws SchemaException {
         return MiscUtil.requireNonNull(
                 findObjectClassDefinition(name),
-                () -> "Object class " + name + " not found in " + this);
+                () -> "Object class " + name + " not found in " + this + contextSupplier.get());
     }
 
     /**
@@ -258,14 +277,14 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
      */
     default @Nullable ResourceObjectDefinition findDefinitionForShadow(
             @NotNull ShadowType shadow,
-            @NotNull Collection<QName> additionalAuxObjectClassNames) {
+            @NotNull Collection<QName> additionalAuxObjectClassNames) throws SchemaException {
         return ResourceObjectDefinitionResolver.findDefinitionForShadow(this, shadow, additionalAuxObjectClassNames);
     }
 
     /**
      * Convenience variant of {@link #findDefinitionForShadow(ShadowType, Collection)}.
      */
-    default @Nullable ResourceObjectDefinition findDefinitionForShadow(@NotNull ShadowType shadow) {
+    default @Nullable ResourceObjectDefinition findDefinitionForShadow(@NotNull ShadowType shadow) throws SchemaException {
         return findDefinitionForShadow(shadow, List.of());
     }
     //endregion
@@ -280,7 +299,7 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
     }
 
     /** Returns an interface to mutate this schema. */
-    MutableResourceSchema toMutable();
+    ResourceSchemaMutator mutator();
 
     /** Returns a representation of the schema for given layer (immutable). */
     ResourceSchema forLayerImmutable(LayerType layer);
@@ -300,7 +319,13 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
                 .collect(Collectors.toSet());
     }
 
+    Document serializeNativeToXsd() throws SchemaException;
+
     ResourceSchema clone();
+
+    static @NotNull QName qualifyTypeName(@NotNull String localPart) {
+        return new QName(MidPointConstants.NS_RI, localPart);
+    }
 
     /**
      * Returns true if the schema contains no "refined" (type) definitions.
@@ -310,5 +335,12 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
      */
     default boolean isRaw() {
         return getObjectTypeDefinitions().isEmpty();
+    }
+
+    @NotNull NativeResourceSchema getNativeSchema();
+
+    interface ResourceSchemaMutator extends PrismSchemaMutator {
+
+        @NotNull NativeObjectClassDefinitionBuilder newComplexTypeDefinitionLikeBuilder(String localName);
     }
 }

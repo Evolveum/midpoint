@@ -7,21 +7,26 @@
 
 package com.evolveum.midpoint.model.common.expression.evaluator.caching;
 
-import com.evolveum.midpoint.prism.PrismContext;
+import java.util.Collection;
+import java.util.Objects;
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSearchStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-import javax.xml.namespace.QName;
-
 public class AssociationSearchQueryKey extends QueryKey {
 
-    private QName mappingName;
+    private final QName mappingName;
 
-    public AssociationSearchQueryKey(Class<? extends ObjectType> type, ObjectQuery query, ObjectSearchStrategyType searchStrategy, ExpressionEvaluationContext params, PrismContext prismContext) {
-        super(type, query, searchStrategy, prismContext);
-        mappingName = params != null ? params.getMappingQName() : null;
+    AssociationSearchQueryKey(
+            Class<? extends ObjectType> type,
+            Collection<ObjectQuery> queries,
+            ObjectSearchStrategyType searchStrategy,
+            ExpressionEvaluationContext eeCtx) {
+        super(type, queries, searchStrategy);
+        mappingName = eeCtx != null ? eeCtx.getMappingQName() : null;
     }
 
     @Override
@@ -32,7 +37,7 @@ public class AssociationSearchQueryKey extends QueryKey {
 
         AssociationSearchQueryKey that = (AssociationSearchQueryKey) o;
 
-        return !(mappingName != null ? !mappingName.equals(that.mappingName) : that.mappingName != null);
+        return Objects.equals(mappingName, that.mappingName);
     }
 
     @Override

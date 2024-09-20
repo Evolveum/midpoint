@@ -1,0 +1,341 @@
+---
+midpoint-feature: rest-api
+doc-type: intro
+---
+= REST API
+:page-wiki-name: REST API
+:page-wiki-id: 13074536
+:page-wiki-metadata-create-user: katkav
+:page-wiki-metadata-create-date: 2013-10-24T17:29:05.212+02:00
+:page-wiki-metadata-modify-user: slavek
+:page-wiki-metadata-modify-date: 2021-02-16T10:07:40.669+01:00
+:page-upkeep-status: green
+:page-toc: top
+:page-keywords: [ 'rest', 'interface', 'rest api', 'restful']
+:search-alias: "rest"
+
+== Description
+
+The MidPoint *REST API* is one of the interfaces which gives you the possibility to
+access and interact with the data present in your midPoint instance.
+
+The REST api gives you a feature rich toolset with which you can operate over different
+*web resources*, these are represented as specific endpoints to which you send your operation request.
+
+There are many possibilities which we provide in regard to the endpoints you can access. So many
+that we have a dedicated page for them.
+
+.To display a *list of REST endpoints* please have a look at:
+xref:/midpoint/reference/interfaces/rest/endpoints/[REST Endpoints]
+
+.For a *more technical description* of our REST api please have a look here:
+xref:/midpoint/reference/interfaces/rest/concepts/[Concepts]
+
+== How To Use
+
+The *format of the REST request* depends on the type of web resource you try to invoke, the  operation
+which you want to execute and any additional options you wish to specify for the request.
+
+.Also, you have to authenticate your self
+xref:/midpoint/reference/interfaces/rest/concepts/authentication/#_basic_authentication[Authentication methods]
+
+The most *basic form* of the url request would be:
+
+.Request to read own profile data (raw)
+[source,http]
+----
+GET http://localhost:8080/midpoint/ws/rest/self?options=raw
+----
+.Request to read own profile data (raw) full example using CURL
+xref:/midpoint/reference/interfaces/rest/operations/examples/get-user-self/#_ex_get_own_profile_information_json_raw[Request to read own profile data]
+
+=== Content Type
+
+Please have a look at the following example of a search request (we used curl as a REST client):
+
+include::../rest/operations/examples/raw/search-all-users.adoc[]
+
+By changing the content headers in the request you are capable of using
+different formats in the request body. Please see *below* for the
+"request" and "return" content.
+
+.For supported media types please refer to the following section of the documentation
+xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+
+==== Request Content Types
+There are multiple possibilities regarding the content type of the request body and also
+regarding the type of data which will be returned to the client.
+
+The content type can be specified inside the URI of the request. This is done via the
+addition of a *request header*.
+
+.Content-Type header example, other media types are supported as well
+[source, http]
+----
+"Content-Type: application/json"
+----
+
+The following are examples of the content type:
+
+.*Content examples*
+[source,xml]
+----
+<q:query xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <q:filter>
+        <q:text>name startsWith "a"</q:text>
+    </q:filter>
+</q:query>
+----
+
+[source,json]
+----
+{
+  "query": {
+    "filter": {
+      "text": "name startsWith \"a\""
+    }
+  }
+}
+----
+
+[source,yaml]
+----
+query:
+  filter:
+    text: "name startsWith \"a\""
+----
+
+==== Reply ("Accept") Content Types
+
+You might need to specify the accepted type of content in case
+you are interested in a format different from xml (default). This can be done via the "Accept" header
+
+.Accept type header example, other media types are supported as well
+[source, http]
+----
+"Accept: application/json"
+----
+
+TIP:: Note the *"Accept: application/xml"* Header usage.
+
+You could have multiple different types of output format:
+
+.*Reply content type examples*
+[source,xml]
+----
+<t:object xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
+xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:type="apti:ObjectListType">
+
+    <apti:object oid="6506b8f0-9e34-4197-bba1-bd1f75820f12" version="1" xsi:type="c:UserType">
+        <name>adam</name>
+        <metadata/>
+        <operationExecution/>
+        <iteration>0</iteration>
+        <iterationToken/>
+        <activation/>
+    </apti:object>
+    <apti:object oid="00000000-0000-0000-0000-000000000002" version="905" xsi:type="c:UserType">
+        <name>administrator</name>
+        <description>Description parameter modified via REST</description>
+        <metadata/>
+        <operationExecution/>
+        <indestructible>true</indestructible>
+        <assignment/>
+        <iteration>0</iteration>
+        <iterationToken/>
+        <archetypeRef oid="00000000-0000-0000-0000-000000000300" relation="org:default" type="c:ArchetypeType"/>
+        <roleMembershipRef/>
+        <activation/>
+        <credentials/>
+        <behavior/>
+        <fullName>midPoint Administrator</fullName>
+        <givenName>midPoint</givenName>
+        <familyName>Administrator</familyName>
+    </apti:object>
+</t:object>
+
+
+----
+
+[source,json]
+----
+{
+  "@ns" : "http://prism.evolveum.com/xml/ns/public/types-3",
+  "object" : {
+    "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/api-types-3#ObjectListType",
+    "object" : [ {
+      "@type" : "c:UserType",
+      "oid" : "6506b8f0-9e34-4197-bba1-bd1f75820f12",
+      "version" : "1",
+      "name" : "adam",
+      "metadata" : {},
+      "operationExecution" : {},
+      "iteration" : 0,
+      "iterationToken" : "",
+      "activation" : {}
+    }, {
+      "@type" : "c:UserType",
+      "oid" : "00000000-0000-0000-0000-000000000002",
+      "version" : "903",
+      "name" : "administrator",
+      "description" : "Description parameter modified via REST",
+      "metadata" : {},
+      "operationExecution" : [],
+      "indestructible" : true,
+      "assignment" : [],
+      "iteration" : 0,
+      "iterationToken" : "",
+      "archetypeRef" : {},
+      "roleMembershipRef" : [],
+      "activation" : {},
+      "credentials" : {},
+      "behavior" : {},
+      "fullName" : "midPoint Administrator",
+      "givenName" : "midPoint",
+      "familyName" : "Administrator"
+    } ]
+  }
+}
+----
+
+[source,yaml]
+----
+---
+'@ns': "http://prism.evolveum.com/xml/ns/public/types-3"
+object: !<http://midpoint.evolveum.com/xml/ns/public/common/api-types-3/ObjectListType>
+  object:
+  - !<http://midpoint.evolveum.com/xml/ns/public/common/common-3/UserType>
+    oid: "6506b8f0-9e34-4197-bba1-bd1f75820f12"
+    version: "1"
+    name: "adam"
+    metadata:
+    operationExecution:
+    iteration: 0
+    iterationToken: ""
+    activation:
+  - !<http://midpoint.evolveum.com/xml/ns/public/common/common-3/UserType>
+    oid: "00000000-0000-0000-0000-000000000002"
+    version: "907"
+    name: "administrator"
+    description: "Description parameter modified via REST"
+    metadata:
+    operationExecution:
+    indestructible: true
+    assignment:
+    iteration: 0
+    iterationToken: ""
+    archetypeRef:
+    roleMembershipRef:
+    activation:
+    credentials:
+    behavior:
+    fullName: "midPoint Administrator"
+    givenName: "midPoint"
+    familyName: "Administrator"
+
+----
+
+=== REST Endpoints
+Naturally by having a feature rich interface there is no "one size fits them all" way to invoke the operations, so the url will
+be different in specific use cases. The most common ones you can see
+at xref:/midpoint/reference/interfaces/rest/#_common_use_cases[this] section of the documentation.
+
+The REST interface provides you with a long list of *Endpoints* which you can access. The interface also provides
+you with *different kinds of operations*, based on the type of object endpoint you choose.
+
+.*Commonly Used Object Endpoints:*
+- xref:/midpoint/reference/interfaces/rest/endpoints/users/[users]
+- xref:/midpoint/reference/interfaces/rest/endpoints/roles/[roles]
+- xref:/midpoint/reference/interfaces/rest/endpoints/organizational-units/[orgs]
+- xref:/midpoint/reference/interfaces/rest/endpoints/resources/[resources]
+- xref:/midpoint/reference/interfaces/rest/endpoints/rpc/[rpc]
+
+
+.The *full collection of Object Endpoints* can be found here:
+xref:/midpoint/reference/interfaces/rest/endpoints/[Endpoints]
+
+== MidPoint Client
+
+To ease up the development of you own implementation of a MidPoint REST client. Please
+have a look and consider using the midPoint Java Client project:
+
+xref:/midpoint/reference/interfaces/midpoint-client-java/[MidPoint Client Library]
+
+[#_common_use_cases]
+== Common Use Cases
+
+1. xref:/midpoint/reference/interfaces/rest/operations/examples/search-objects-filter.adoc[List all users with their profile information.]
+2. xref:/midpoint/reference/interfaces/rest/operations/examples/get-user-unique-id.adoc[Get User with the REST API]
+3. xref:/midpoint/reference/interfaces/rest/operations/examples/create-user.adoc[Create User with the REST API]
+4. xref:/midpoint/reference/interfaces/rest/operations/examples/user-pwd-reset.adoc[Password reset by Administrator]
+5. xref:/midpoint/reference/interfaces/rest/operations/examples/access-request/[User access request]
+6. xref:/midpoint/reference/interfaces/rest/operations/examples/access-request-approval/[Access request review]
+
+
+== Gotchas
+
+=== Storing of Authentication Events
+
+By default, *midPoint stores* the information about *authentication events* in midPoint focus objects.
+This behaviour should cause no problem in case of "standard" sign-in behaviour of users.
+Yet in the case of a service account leveraging the *REST* api, when *large amounts of authentication request* might occur, this stored information could build up quite quickly.
+
+Issues which could occur are *prolonged response times* in case of API calls.
+
+The default behaviour of storing such event after each login can be changed in midPoint configuration.
+Specifically in changing the "*focusBehaviorUpdate*" parameter of a "sequence" of your "securityPolicy".
+
+The possible values are:
+
+* *enabled*: Behaviour attributes will be updated every login.
+* *disabled*: Authentication behaviour attributes will not be updated during login.
+* *failureOnly*: Authentication behaviour attributes will be updated when login failed and when login will be success,
+but previous login was failed and midPoint need update attributes as is number of login fails
+and lockout state.
+
+.*Configuration Example*
+[%collapsible]
+====
+[source,xml]
+----
+<securityPolicy>
+<!--Other configuration parameters-->
+<!-- ... -->
+        <sequence>
+            <identifier>rest-default</identifier>
+            <channel>
+                <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#rest</channelId>
+                <default>true</default>
+                <urlSuffix>rest-default</urlSuffix>
+            </channel>
+            <module>
+                <identifier>httpBasic</identifier>
+                <order>1</order>
+                <necessity>sufficient</necessity>
+            </module>
+            <focusBehaviorUpdate>disabled</focusBehaviorUpdate>
+                <!--Authentication behaviour attributes will not be updated during login.-->
+        </sequence>
+<!-- ... -->
+<!--Other configuration parameters-->
+</securityPolicy>
+----
+====
+
+== See Also
+
+* xref:/midpoint/reference/interfaces/[Interfaces]
+
+* What is link:https://evolveum.com/midpoint/[midPoint Open Source Identity & Access Management]
+
+* link:https://evolveum.com/[Evolveum] - Team of IAM professionals who developed midPoint
+
+* xref:/midpoint/reference/concepts/query/[midPoint Query]

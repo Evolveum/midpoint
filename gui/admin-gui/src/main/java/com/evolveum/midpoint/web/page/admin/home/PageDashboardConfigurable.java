@@ -7,8 +7,14 @@
 package com.evolveum.midpoint.web.page.admin.home;
 
 import java.io.Serial;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.query.RefFilter;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -19,9 +25,10 @@ import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
@@ -38,12 +45,14 @@ import com.evolveum.midpoint.model.api.interaction.DashboardWidget;
 import com.evolveum.midpoint.model.api.util.DashboardUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.repo.sqlbase.NativeOnlySupportedException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.SelectorQualifiedGetOptionsUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -60,6 +69,8 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author skublik
@@ -85,6 +96,8 @@ public class PageDashboardConfigurable extends PageDashboard {
     private static final String OPERATION_COMPILE_DASHBOARD_COLLECTION = DOT_CLASS + "compileDashboardCollection";
 
     private static final Map<String, Class<? extends WebPage>> LINKS_REF_COLLECTIONS;
+    private static final String NATIVE_ONLY_SUPPORTED_KEY = "PageDashboardConfigurable.widget.native.only";
+    private static final String UNSUPPORTED_KEY = "PageDashboardConfigurable.widget.unsupported";
 
     static {
         Map<String, Class<? extends WebPage>> map = new HashMap<>();
@@ -155,7 +168,20 @@ public class PageDashboardConfigurable extends PageDashboard {
     }
 
     private void initInfoBoxes() {
-        add(new ListView<DashboardWidgetType>(ID_WIDGETS, new PropertyModel<>(dashboardModel, "widget")) {
+        IModel<List<DashboardWidgetType>> model = new LoadableDetachableModel<>() {
+
+            @Override
+            protected List<DashboardWidgetType> load() {
+                List<DashboardWidgetType> widgets = dashboardModel.getObject().getWidget();
+                return widgets.stream()
+                        .sorted(
+                                Comparator.comparing(
+                                        DashboardWidgetType::getDisplayOrder, Comparator.nullsLast(Comparator.naturalOrder())))
+                        .toList();
+            }
+        };
+
+        add(new ListView<>(ID_WIDGETS, model) {
 
             @Override
             protected void populateItem(ListItem<DashboardWidgetType> item) {
@@ -184,7 +210,6 @@ public class PageDashboardConfigurable extends PageDashboard {
             data.setTitle(widget.getNumberLabel());
             data.setDescription(widget.getMessage());
             data.setIcon(widget.getIconCssClass());
-
             return data;
         }) {
 
@@ -209,6 +234,7 @@ public class PageDashboardConfigurable extends PageDashboard {
 
     private IModel<DashboardWidgetDto> loadWidgetData(IModel<DashboardWidgetType> model) {
         return new LoadableModel<>(false) {
+
             @Override
             protected DashboardWidgetDto load() {
                 Task task = createSimpleTask("Get DashboardWidget");
@@ -221,28 +247,74 @@ public class PageDashboardConfigurable extends PageDashboard {
 
                     return new DashboardWidgetDto(dashboardWidget, PageDashboardConfigurable.this);
                 } catch (Exception e) {
-                    LOGGER.error("Couldn't get DashboardWidget with widget " + model.getObject().getIdentifier(), e);
-                    result.recordFatalError("Couldn't get widget, reason: " + e.getMessage(), e);
+                    var ret = new DashboardWidgetDto(null, PageDashboardConfigurable.this);
+                    var nativeOnlySupport = findNativeOnlyException(e);
+                    if (nativeOnlySupport != null) {
+                        // Here we can handle special case - that filter is only supported on native repository (and we are using generic)
+                        LOGGER.warn("Couldn't get DashboardWidget with widget {}. Uses features supported only native repository.",
+                                model.getObject().getIdentifier(), nativeOnlySupport.getMessage());
+                        result.recordHandledError(nativeOnlySupport.getLocalizedUserFriendlyMessage(), e);
+                        result.setUserFriendlyMessage(new SingleLocalizableMessage(
+                                NATIVE_ONLY_SUPPORTED_KEY, new Object[] { model.getObject().getIdentifier() }));
+
+                        return createUnsupportedWidget(model);
+                    } else {
+                        LOGGER.error("Couldn't get DashboardWidget with widget " + model.getObject().getIdentifier(), e);
+                        result.recordFatalError("Couldn't get widget, reason: " + e.getMessage(), e);
+                    }
+                    result.computeStatusIfUnknown();
+                    showResult(result);
+
+                    return ret;
                 }
-
-                result.computeStatusIfUnknown();
-                showResult(result);
-
-                return new DashboardWidgetDto(null, PageDashboardConfigurable.this);
             }
         };
     }
 
-    private boolean isCollectionLoadable(DashboardWidgetType widget) {
+    private DashboardWidgetDto createUnsupportedWidget(IModel<DashboardWidgetType> model) {
+        // Let's modify widget to warning
+        var widget = model.getObject();
+        widget.setData(null);
+        var data = getDashboardService().createEmptyWidgetData(widget);
+        var display = data.getDisplay();
+        display.setColor("var(--warning)");
+        display.setCssStyle("color: var(--navy) !important;");
+        display.setIcon(new IconType().cssClass("fa fa-exclamation-triangle"));
+        var unsupportedShort = getLocalizationService().translate(UNSUPPORTED_KEY, new Object[] {}, getLocale());
+        data.setNumberMessage(unsupportedShort);
+        var ret = new DashboardWidgetDto(data, PageDashboardConfigurable.this);
+        var unsupportedLong = getLocalizationService().translate(NATIVE_ONLY_SUPPORTED_KEY, new Object[] { ret.getMessage() }, getLocale());
+        ret.setMessage(unsupportedLong);
+        return ret;
+
+    }
+
+    @Nullable
+    static final NativeOnlySupportedException findNativeOnlyException(Exception e) {
+        Throwable next = e;
+        while (next != null) {
+            if (next instanceof NativeOnlySupportedException nativeOnly) {
+                return nativeOnly;
+            }
+            next = e.getCause();
+        }
+        return null;
+    }
+
+    private CompiledObjectCollectionView compileCollectionView(DashboardWidgetType widget) {
         Task task = createSimpleTask(OPERATION_COMPILE_DASHBOARD_COLLECTION);
         OperationResult result = new OperationResult(OPERATION_COMPILE_DASHBOARD_COLLECTION);
         try {
-            getModelInteractionService().compileObjectCollectionView(getDashboardService()
+            return getModelInteractionService().compileObjectCollectionView(getDashboardService()
                     .getCollectionRefSpecificationType(widget, task, result), null, task, result);
-            return true;
         } catch (Exception e) {
-            return false;
         }
+
+        return null;
+    }
+
+    private boolean isCollectionLoadable(DashboardWidgetType widget) {
+        return compileCollectionView(widget) != null;
     }
 
     private boolean existLinkRef(DashboardWidgetType widget) {
@@ -268,7 +340,7 @@ public class PageDashboardConfigurable extends PageDashboard {
     }
 
     private boolean linkRefForObjectCollectionExists(DashboardWidgetType widget) {
-        ObjectCollectionType collection = getObjectCollectionType(widget);
+        CollectionRefObjectProvider<?> collection = getObjectCollectionType(widget);
         if (collection != null && collection.getType() != null && collection.getType().getLocalPart() != null) {
             if (QNameUtil.match(collection.getType(), ShadowType.COMPLEX_TYPE)) {
                 String oid = getResourceOid(collection.getFilter());
@@ -302,19 +374,28 @@ public class PageDashboardConfigurable extends PageDashboard {
         return model.getData().getCollection();
     }
 
-    private ObjectCollectionType getObjectCollectionType(DashboardWidgetType widget) {
+    private CollectionRefObjectProvider<?> getObjectCollectionType(DashboardWidgetType widget) {
         CollectionRefSpecificationType collectionRef = getObjectCollectionRef(widget);
         if (collectionRef == null) {
             return null;
         }
+
         ObjectReferenceType ref = collectionRef.getCollectionRef();
         Task task = createSimpleTask("Search collection");
-        PrismObject<ObjectCollectionType> objectCollection = WebModelServiceUtils.loadObject(ref, this, task, task.getResult());
+        PrismObject<?> objectCollection = WebModelServiceUtils.loadObject(ref, this, task, task.getResult());
         if (objectCollection == null) {
             return null;
         }
 
-        return objectCollection.asObjectable();
+        if (objectCollection.asObjectable() instanceof ObjectCollectionType oc) {
+            return new ObjectCollectionProviderImpl(oc);
+        } else if (objectCollection.asObjectable() instanceof AbstractRoleType role) {
+            // todo improve this is just a messy way to figure out type of objects for search, since widgets defined via archetype in collectionRefs don't have place to define type (other than assignmentRelation/holderType)
+            CompiledObjectCollectionView view = compileCollectionView(widget);
+            return new AbstractRoleProviderImpl(role, view.getContainerType());
+        }
+
+        return null;
     }
 
     private boolean isDataNull(DashboardWidgetType dashboardWidgetType) {
@@ -369,7 +450,7 @@ public class PageDashboardConfigurable extends PageDashboard {
     }
 
     private void navigateToObjectCollectionPage(DashboardWidgetType widget) {
-        ObjectCollectionType collection = getObjectCollectionType(widget);
+        CollectionRefObjectProvider<?> collection = getObjectCollectionType(widget);
         if (collection != null && collection.getType() != null && collection.getType().getLocalPart() != null) {
             Class<? extends WebPage> pageType = LINKS_REF_COLLECTIONS.get(collection.getType().getLocalPart());
             PageParameters parameters = new PageParameters();
@@ -401,5 +482,75 @@ public class PageDashboardConfigurable extends PageDashboard {
         parameters.add(OnePageParameterEncoder.PARAMETER, object.getOid());
 
         navigateToNext(pageType, parameters);
+    }
+
+
+
+    private abstract static class CollectionRefObjectProvider<O extends ObjectType> {
+
+        protected O object;
+
+        public CollectionRefObjectProvider(O object) {
+            this.object = object;
+        }
+
+        abstract QName getType();
+
+        abstract SearchFilterType getFilter();
+
+        abstract SelectorQualifiedGetOptionsType getGetOptions();
+    }
+
+    private static class ObjectCollectionProviderImpl extends CollectionRefObjectProvider<ObjectCollectionType> {
+
+        public ObjectCollectionProviderImpl(ObjectCollectionType object) {
+            super(object);
+        }
+
+        @Override
+        QName getType() {
+            return object.getType();
+        }
+
+        @Override
+        SearchFilterType getFilter() {
+            return object.getFilter();
+        }
+
+        @Override
+        SelectorQualifiedGetOptionsType getGetOptions() {
+            return object.getGetOptions();
+        }
+    }
+
+    private static class AbstractRoleProviderImpl extends CollectionRefObjectProvider<AbstractRoleType> {
+
+        QName type;
+
+        public AbstractRoleProviderImpl(AbstractRoleType object, QName type) {
+            super(object);
+
+            this.type = type;
+        }
+
+        @Override
+        QName getType() {
+            return type;
+        }
+
+        @Override
+        SearchFilterType getFilter() {
+            PrismContext ctx = PrismContext.get();
+            RefFilter archetypeFilter = (RefFilter) ctx.queryFor(AssignmentHolderType.class)
+                    .item(AssignmentHolderType.F_ARCHETYPE_REF).ref(object.getOid())
+                    .buildFilter();
+            archetypeFilter.setTargetTypeNullAsAny(true);
+            return null;
+        }
+
+        @Override
+        SelectorQualifiedGetOptionsType getGetOptions() {
+            return null;
+        }
     }
 }

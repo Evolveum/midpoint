@@ -1,0 +1,106 @@
+= Create Operation
+:page-nav-title: Create
+:page-display-order: 300
+:page-toc: top
+:page-keywords: [ 'rest', 'create', 'operation' ]
+:page-upkeep-status: green
+
+== Create With Rest
+Request to create a midPoint object based on data provided in the body of the request.
+
+== Request
+
+Use either the HTTP POST or PUT method with your request. Based on the method used
+there are different requirements on the resulting URI:
+
+Using the PUT method, the client has to provide a complete object, including the identifier (OID).
+
+.Create operation using HTTP PUT
+[source, http]
+----
+PUT http://localhost:8080/midpoint/ws/rest/{endpoint}/{oid}
+----
+
+If you use the POST method to create new web resources,
+you can do this without the need to know the complete URI (i.e. without the oid identifier).
+
+.Create operation using HTTP POST
+[source, http]
+----
+POST http://localhost:8080/midpoint/ws/rest/{endpoint}/
+----
+
+=== Headers
+
+Regarding authorization type, the "Basic" Authorization header should be used.
+
+.Authorization header example replace {Base64EncodedCredentials} with the encoded credentials
+[source, http]
+----
+Authorization: Basic {Base64EncodedCredentials}
+----
+
+In case of the create operation you need to specify the provided content type of the
+payload in the body:
+
+.Content type header example, other media types are supported as well
+[source, http]
+----
+"Content-Type: application/json"
+----
+
+.For supported media types please refer to the following section of the documentation
+xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+
+=== Body
+
+=== Options
+
+Example of usage of options:
+
+[source, http]
+----
+?options=raw
+----
+
+In case of create with the use of the *PUT* method please have a look at the folowing
+links were you can find the options described:
+
+.Usable options for this type of operation
+link:https://evolveum.com/downloads/midpoint/latest/midpoint-latest-schemadoc/http---midpoint-evolveum-com-xml-ns-public-common-common-3/type/ModelExecuteOptionsType.html[ModelExecuteOptionsType]
+
+If you want to use the *POST* method please have a look at the following
+links were you can find the options described:
+
+.Usable options for this type of operation
+link:https://evolveum.com/downloads/midpoint/latest/midpoint-latest-schemadoc/http---midpoint-evolveum-com-xml-ns-public-common-common-3/type/ModelExecuteOptionsType.html[ModelExecuteOptionsType]
+
+include::../../rest/concepts/raw/outcome.adoc[]
+
+== Access Authorization
+
+include::../operations/raw/a-auth.adoc[]
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#addObject+`
+
+== Model Authorizations
+
+include::../operations/raw/m-auth.adoc[]
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add+`
+
+== Examples
+
+include::../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+
+include::../operations/examples/raw/create-user-jack.adoc[]
+
+== See Also
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]
+- xref:/midpoint/reference/security/authorization/service/[]

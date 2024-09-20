@@ -16,14 +16,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocalAutoassignSpeci
 
 public class FocalAutoassignSpecificationConfigItem extends ConfigurationItem<FocalAutoassignSpecificationType> {
 
-    @SuppressWarnings("unused") // called dynamically
+    @SuppressWarnings({ "unused", "WeakerAccess" }) // called dynamically
     public FocalAutoassignSpecificationConfigItem(@NotNull ConfigurationItem<FocalAutoassignSpecificationType> original) {
         super(original);
-    }
-
-    public static FocalAutoassignSpecificationConfigItem embedded(@NotNull FocalAutoassignSpecificationType value) {
-        return ConfigurationItem.embedded(value)
-                .as(FocalAutoassignSpecificationConfigItem.class);
     }
 
     public @Nullable ObjectSelectorConfigItem getSelector() {

@@ -10,6 +10,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.TitleWithMarks;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.web.component.data.column.*;
 
@@ -17,10 +18,13 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
@@ -81,10 +85,10 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     private IModel<PrismContainerWrapper<AssignmentType>> model;
     protected int assignmentsRequestsLimit = -1;
 
-    private Class<? extends Objectable> objectType;
+    private Class<? extends AssignmentHolderType> objectType;
     private String objectOid;
 
-    public AbstractAssignmentTypePanel(String id, IModel<PrismContainerWrapper<AssignmentType>> model, ContainerPanelConfigurationType config, Class<? extends Objectable> type, String oid) {
+    public AbstractAssignmentTypePanel(String id, IModel<PrismContainerWrapper<AssignmentType>> model, ContainerPanelConfigurationType config, Class<? extends AssignmentHolderType> type, String oid) {
         super(id, AssignmentType.class, config);
         this.model = model;
         this.objectType = type;
@@ -149,8 +153,15 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
 
             @Override
             protected IModel<String> getContainerName(PrismContainerValueWrapper<AssignmentType> rowModel) {
-                return () -> {
-                    String name = AssignmentsUtil.getName(ColumnUtils.unwrapRowRealValue(rowModel), getPageBase());
+                return () -> null;
+            }
+
+            @Override
+            protected Component createComponent(String componentId, IModel<String> labelModel, IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
+                IModel<String> title = () -> {
+                    PrismContainerValueWrapper<AssignmentType> wrapper = rowModel.getObject();
+
+                    String name = getNameOfAssignment(wrapper);
                     LOGGER.trace("Name for AssignmentType: " + name);
                     if (StringUtils.isBlank(name)) {
                         return createStringResource("AssignmentPanel.noName").getString();
@@ -158,16 +169,101 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
 
                     return name;
                 };
-            }
 
-            @Override
-            public boolean isClickable(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
-                return rowModel.getObject().getRealValue().getFocusMappings() == null && !isPreview();
+                return new TitleWithMarks(componentId, title, createObjectMarksModel(rowModel)) {
+
+                    @Override
+                    protected AbstractLink createTitleLinkComponent(String id) {
+                        return new AjaxLink<>(id) {
+
+                            @Override
+                            public void onClick(AjaxRequestTarget target) {
+                                onClickPerformed(target, rowModel);
+                            }
+                        };
+                    }
+
+                    @Override
+                    protected boolean isTitleLinkEnabled() {
+                        return rowModel.getObject().getRealValue().getFocusMappings() == null && !isPreview();
+                    }
+
+                    @Override
+                    protected IModel<String> createSecondaryMarksList() {
+                        return createAssignmentMarksModel(rowModel);
+                    }
+
+                    @Override
+                    protected IModel<String> createPrimaryMarksTitle() {
+                        return createStringResource("AbstractAssignmentTypePanel.targetRefMarks");
+                    }
+
+                    @Override
+                    protected IModel<String> createSecondaryMarksTitle() {
+                        return createStringResource("AbstractAssignmentTypePanel.assignmentMarks");
+                    }
+                };
             }
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
                 AbstractAssignmentTypePanel.this.itemDetailsPerformed(target, rowModel);
+            }
+        };
+    }
+
+    protected String getNameOfAssignment(PrismContainerValueWrapper<AssignmentType> wrapper) {
+        return AssignmentsUtil.getName(ColumnUtils.unwrapRowRealValue(wrapper), getPageBase());
+    }
+
+    protected final String getNameResourceOfConstruction(PrismContainerValueWrapper<AssignmentType> wrapper) {
+        AssignmentType inducement = ColumnUtils.unwrapRowRealValue(wrapper);
+        if (inducement != null && inducement.getConstruction() != null) {
+            return AssignmentsUtil.getNameFromConstruction(inducement.getConstruction(), false, getPageBase());
+        }
+        return AssignmentsUtil.getName(ColumnUtils.unwrapRowRealValue(wrapper), getPageBase());
+    }
+
+    private IModel<String> createAssignmentMarksModel(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
+        return new LoadableDetachableModel<>() {
+
+            @Override
+            protected String load() {
+                AssignmentType assignment = rowModel.getObject().getRealValue();
+                if (assignment == null) {
+                    return "";
+                }
+
+                List<ObjectReferenceType> refs = assignment.getEffectiveMarkRef();
+                return WebComponentUtil.createMarkList(refs, getPageBase());
+            }
+        };
+    }
+
+    private IModel<String> createObjectMarksModel(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
+        return new LoadableModel<>() {
+
+            @Override
+            protected String load() {
+                AssignmentType assignment = rowModel.getObject().getRealValue();
+                if (assignment == null) {
+                    return null;
+                }
+
+                ObjectReferenceType targetRef = assignment.getTargetRef();
+                if (targetRef == null || targetRef.getOid() == null || targetRef.getType() == null) {
+                    return null;
+                }
+
+                Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ASSIGNMENTS_TARGET_OBJ);
+                PrismObject<? extends ObjectType> target =
+                        WebModelServiceUtils.loadObject(assignment.getTargetRef(), true, getPageBase(), task, task.getResult());
+                if (target == null) {
+                    return null;
+                }
+
+                List<ObjectReferenceType> refs = target.asObjectable().getEffectiveMarkRef();
+                return WebComponentUtil.createMarkList(refs, getPageBase());
             }
         };
     }
@@ -691,4 +787,17 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
         };
     }
 
+    @Override
+    protected boolean isDuplicationSupported() {
+        return false;
+    }
+
+    @Override
+    protected boolean isFulltextEnabled() {
+        return isRepositorySearchEnabled();
+    }
+
+    protected final Class<? extends AssignmentHolderType> getAssignmentHolderType() {
+        return objectType;
+    }
 }

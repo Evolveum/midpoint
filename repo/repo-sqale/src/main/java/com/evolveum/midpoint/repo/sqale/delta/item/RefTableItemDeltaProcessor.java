@@ -19,6 +19,8 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Delta value processor for multi-value references stored in separate tables.
  *
@@ -29,7 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 public class RefTableItemDeltaProcessor<Q extends QReference<?, OR>, OQ extends FlexibleRelationalPathBase<OR>, OR>
         extends ItemDeltaValueProcessor<ObjectReferenceType> {
 
-    private final SqaleUpdateContext<?, OQ, OR> context;
+    protected final SqaleUpdateContext<?, OQ, OR> context;
     private final QReferenceMapping<Q, ?, OQ, OR> refTableMapping;
 
     public RefTableItemDeltaProcessor(
@@ -44,22 +46,46 @@ public class RefTableItemDeltaProcessor<Q extends QReference<?, OR>, OQ extends 
     public void addValues(Collection<ObjectReferenceType> values)
             throws SchemaException {
         for (ObjectReferenceType ref : values) {
-            ref = SqaleUtils.referenceWithTypeFixed(ref);
-            context.insertOwnedRow(refTableMapping, ref);
+           addRealValue(ref);
         }
     }
 
     @Override
+    protected void addRealValue(ObjectReferenceType ref) throws SchemaException {
+        ref = SqaleUtils.referenceWithTypeFixed(ref);
+        context.insertOwnedRow(refTableMapping, ref);
+    }
+
+    @Override
     public void deleteValues(Collection<ObjectReferenceType> values) {
-        Q r = refTableMapping.defaultAlias();
-        for (Referencable ref : values) {
-            Integer relId = context.repositoryContext().searchCachedRelationId(ref.getRelation());
-            context.jdbcSession().newDelete(r)
-                    .where(r.isOwnedBy(context.row())
-                            .and(r.targetOid.eq(UUID.fromString(ref.getOid())))
-                            .and(r.relationId.eq(relId)))
-                    .execute();
+        for (ObjectReferenceType ref : values) {
+            deleteRealValue(ref);
         }
+    }
+
+    @Override
+    protected void deleteRealValue(ObjectReferenceType ref) {
+        Q r = refTableMapping.defaultAlias();
+        Integer relId = context.repositoryContext().searchCachedRelationId(ref.getRelation());
+        context.jdbcSession().newDelete(r)
+                .where(r.isOwnedBy(context.row())
+                        .and(r.targetOid.eq(UUID.fromString(ref.getOid())))
+                        .and(r.relationId.eq(relId)))
+                .execute();
+    }
+
+    @Override
+    public @Nullable ObjectReferenceType convertRealValue(Object realValue) {
+        if (realValue instanceof ObjectReferenceType ort) {
+            return ort;
+        }
+        if (realValue instanceof Referencable realRef) {
+            var prismRef = realRef.asReferenceValue().clone();
+            var ret = new ObjectReferenceType();
+            ret.setupReferenceValue(prismRef);
+            return ret;
+        }
+        throw new UnsupportedOperationException("Unknown reference type");
     }
 
     @Override

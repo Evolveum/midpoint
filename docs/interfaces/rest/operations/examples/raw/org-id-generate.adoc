@@ -1,0 +1,13 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Generate Identifier for Role Type Object*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Accept: application/json" \
+-H "Content-Type: application/json" \
+-X POST http://localhost:8080/midpoint/ws/rest/orgs/e5ae2f30-141c-4990-8387-4c8e7433132d/generate \
+-v \
+--data-binary @./samples/rest/policy-items-identifier-generate.json
+----

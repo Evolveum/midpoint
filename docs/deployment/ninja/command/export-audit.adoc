@@ -1,0 +1,25 @@
+= Export audit
+
+//TODO split into export and import
+
+[NOTE]
+Audit export/import uses the same format as objects, even utilizing `<objects>` element,
+but audit records are *containers, not objects*.
+These files are only useful for Ninja import/export, do not try to use them in Studio or otherwise.
+
+.Example: audit export to a zipped file, overwriting any existing file, using an Axiom filter
+[source,bash]
+----
+./bin/ninja.sh exportAudit -o audit-export.xml.zip -z -O -f '%timestamp < "2021-12-01"'
+----
+
+Now you can move the exported file to a new environment and run the import:
+
+.Example: audit import
+[source,bash]
+----
+./bin/ninja.sh importAudit -i audit-export.xml.zip -z
+----
+
+Check also the xref:/midpoint/reference/repository/native-audit/#audit-migration-from-other-database[migration guide for the Native audit].
+

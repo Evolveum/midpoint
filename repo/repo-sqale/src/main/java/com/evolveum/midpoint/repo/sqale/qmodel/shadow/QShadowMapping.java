@@ -11,6 +11,11 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType.*;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.path.PathSet;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
@@ -37,9 +42,6 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowCorrelationStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Mapping between {@link QShadow} and {@link ShadowType}.
@@ -62,10 +64,13 @@ public class QShadowMapping
         return Objects.requireNonNull(instance);
     }
 
+
+    private final ShadowPartitionManager partitionManager;
+
     private QShadowMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QShadow.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 ShadowType.class, QShadow.class, repositoryContext);
-
+        partitionManager = new ShadowPartitionManager(repositoryContext);
         addItemMapping(ShadowType.F_OBJECT_CLASS, uriMapper(q -> q.objectClassId));
         addRefMapping(F_RESOURCE_REF,
                 q -> q.resourceRefTargetOid,
@@ -96,11 +101,29 @@ public class QShadowMapping
                 .addItemMapping(ShadowCorrelationStateType.F_SITUATION,
                         enumMapper(q -> q.correlationSituation));
 
+        addNestedMapping(F_ACTIVATION, ActivationType.class)
+                .addItemMapping(ActivationType.F_DISABLE_REASON, uriMapper(q -> q.disableReasonId))
+                .addItemMapping(ActivationType.F_ENABLE_TIMESTAMP,timestampMapper(q -> q.enableTimestamp))
+                .addItemMapping(ActivationType.F_DISABLE_TIMESTAMP, timestampMapper(q -> q.disableTimestamp))
+        ;
         // Item mapping to update the count, relation resolver for query with EXISTS filter.
         addItemMapping(F_PENDING_OPERATION, new SqaleItemSqlMapper<>(
                 ctx -> new CountItemDeltaProcessor<>(ctx, q -> q.pendingOperationCount)));
         addRelationResolver(F_PENDING_OPERATION,
                 new CountMappingResolver<>(q -> q.pendingOperationCount));
+
+
+
+
+        //addItemMapping(F_REFERENCE_ATTRIBUTES, new SqaleItemSqlMapper<>(
+        //        ctx -> new RefTableItemFilterProcessor<>(ctx, referenceMapping),
+        //        ctx -> new RefTableItemDeltaProcessor<>(ctx, referenceMapping)));
+
+        // Needed for queries with ref/@/... paths, this resolves the "ref/" part before @.
+        QShadowReferenceAttributeMapping referenceMapping = QShadowReferenceAttributeMapping.init(repositoryContext);
+        addItemMapping(F_REFERENCE_ATTRIBUTES, new ShadowReferenceAttributesMapper());
+        addRelationResolver(F_REFERENCE_ATTRIBUTES, new ShadowReferenceAttributesResolver(referenceMapping));
+
     }
 
     @Override
@@ -143,31 +166,69 @@ public class QShadowMapping
             row.correlationCaseCloseTimestamp = MiscUtil.asInstant(correlation.getCorrelationCaseCloseTimestamp());
             row.correlationSituation = correlation.getSituation();
         }
+        var activation = shadow.getActivation();
+        if (activation != null) {
+            row.disableReasonId = processCacheableUri(activation.getDisableReason());
+            row.enableTimestamp = MiscUtil.asInstant(activation.getEnableTimestamp());
+            row.disableTimestamp = MiscUtil.asInstant(activation.getDisableTimestamp());
+        }
         return row;
     }
+
+    @Override
+    public void storeRelatedEntities(@NotNull MShadow row, @NotNull ShadowType shadow, @NotNull JdbcSession jdbcSession) throws SchemaException {
+        super.storeRelatedEntities(row, shadow, jdbcSession);
+        insertReferenceAttributes(shadow.getReferenceAttributes(), row, jdbcSession);
+
+    }
+
+    private void insertReferenceAttributes(ShadowReferenceAttributesType refAttrsBean, MShadow owner, JdbcSession jdbcSession) throws SchemaException {
+        if (refAttrsBean == null) {
+            return;
+        }
+        PrismContainerValue<?> refAttrs = refAttrsBean.asPrismContainerValue();
+        for (var item : refAttrs.getItems()) {
+            var name = item.getElementName();
+            if (item instanceof PrismReference ref) {
+                Integer pathId = null;
+                for (var val : ref.getValues()) {
+                    if (pathId == null) {
+                        pathId = repositoryContext().processCacheableUri(name);
+                    }
+                    var ort = (ObjectReferenceType) val.getRealValue();
+                    if (ort.getType() == null) {
+                        // Target type should be shadow
+                        ort.setType(COMPLEX_TYPE);
+                    }
+                    QShadowReferenceAttributeMapping.get().insert(pathId, ort, owner, jdbcSession);
+                }
+            }
+        }
+
+   }
 
     @Override
     public ShadowType toSchemaObject(@NotNull Tuple row, @NotNull QShadow entityPath,
             @NotNull JdbcSession jdbcSession, Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException {
         ShadowType shadowType = super.toSchemaObject(row, entityPath, jdbcSession, options);
-        // FIXME: we store it because provisioning now sends it to repo, but it should be transient
-        shadowType.asPrismObject().removeContainer(ShadowType.F_ASSOCIATION);
+        shadowType.asPrismObject().removeContainer(ShadowType.F_ASSOCIATIONS); // temporary
 
         GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-        if (GetOperationOptions.isRaw(rootOptions)) {
+        /*if (GetOperationOptions.isRaw(rootOptions)) {
             // If raw=true, we populate attributes with types cached in repository
             Jsonb rowAttributes = row.get(entityPath.attributes);
             applyShadowAttributesDefinitions(shadowType, rowAttributes);
-        }
-
+        }*/
+        addIndexOnlyAttributes(shadowType, row, entityPath);
         List<SelectorOptions<GetOperationOptions>> retrieveOptions = SelectorOptions.filterRetrieveOptions(options);
         if (retrieveOptions.isEmpty()) {
             return shadowType;
         }
 
-        if (SelectorOptions.hasToFetchPathNotRetrievedByDefault(F_ATTRIBUTES, retrieveOptions)) {
-            addIndexOnlyAttributes(shadowType, row, entityPath);
-        }
+        // FIXME temporarily disabled
+//        if (SelectorOptions.hasToFetchPathNotRetrievedByDefault(F_ATTRIBUTES, retrieveOptions)) {
+
+//        }
         return shadowType;
     }
 
@@ -188,6 +249,9 @@ public class QShadowMapping
         }
 
         new ExtensionProcessor(repositoryContext()).extensionsToContainer(attributes, attributeContainer);
+        // Data were loaded, lets mark it as complete.
+        shadowType.asPrismObject().findItem(F_ATTRIBUTES).setIncomplete(false);
+
     }
 
     @Override
@@ -206,11 +270,7 @@ public class QShadowMapping
     public @NotNull Path<?>[] selectExpressions(QShadow entity,
             Collection<SelectorOptions<GetOperationOptions>> options) {
         var retrieveOptions = SelectorOptions.filterRetrieveOptions(options);
-        boolean isRaw = GetOperationOptions.isRaw(SelectorOptions.findRootOptions(options));
-        if (isRaw || SelectorOptions.hasToFetchPathNotRetrievedByDefault(F_ATTRIBUTES, retrieveOptions)) {
-            return new Path[] { entity.oid, entity.fullObject, entity.attributes };
-        }
-        return new Path[] { entity.oid, entity.fullObject };
+        return new Path[] { entity.oid, entity.objectType, entity.fullObject, entity.attributes };
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -226,7 +286,7 @@ public class QShadowMapping
             ItemName itemName = attribute.getElementName();
             MExtItem itemInfo = definitions.get(itemName);
             if (itemInfo != null && attribute.getDefinition() == null) {
-                ((Item) attribute).applyDefinition(ExtUtils.createDefinition(itemName, itemInfo, false), true);
+                ((Item) attribute).applyDefinition(ExtUtils.createDefinition(itemName, itemInfo, false));
             }
         }
     }
@@ -246,5 +306,17 @@ public class QShadowMapping
             }
         }
         return definitions;
+    }
+
+    @Override
+    protected void customizeFullObjectItemsToSkip(PathSet mutableSet) {
+        super.customizeFullObjectItemsToSkip(mutableSet);
+        mutableSet.add(F_ATTRIBUTES);
+    }
+
+
+    @Override
+    public ShadowPartitionManager getPartitionManager() {
+        return partitionManager;
     }
 }

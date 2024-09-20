@@ -35,11 +35,6 @@ public class TestDummyCaseIgnoreUpcaseName extends TestDummyCaseIgnore {
     }
 
     @Override
-    protected String transformNameFromResource(String origName) {
-        return origName.toUpperCase();
-    }
-
-    @Override
     protected String transformNameToResource(String origName) {
         return origName.toUpperCase();
     }
@@ -52,7 +47,7 @@ public class TestDummyCaseIgnoreUpcaseName extends TestDummyCaseIgnore {
     @Override
     protected String[] getSortedUsernames18x() {
         // MORGAN, WILL, carla, daemon, meathook
-        return new String[] { transformNameFromResource("morgan"), transformNameFromResource("Will"), "carla", "daemon", "meathook" };
+        return new String[] { transformNameToResource("morgan"), getWillNameOnResource(), "carla", "daemon", "meathook" };
     }
 
 }

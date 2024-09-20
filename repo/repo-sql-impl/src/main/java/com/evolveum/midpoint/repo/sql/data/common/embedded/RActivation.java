@@ -12,6 +12,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import org.hibernate.annotations.JdbcType;
 import org.hibernate.annotations.Type;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -22,6 +23,8 @@ import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+
+import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
 
 @Embeddable
 @JaxbType(type = ActivationType.class)
@@ -63,19 +66,19 @@ public class RActivation {
         return validityChangeTimestamp;
     }
 
-    @Column
+    @JdbcType(IntegerJdbcType.class)
     @Enumerated(EnumType.ORDINAL)
     public RTimeIntervalStatus getValidityStatus() {
         return validityStatus;
     }
 
-    @Column
+    @JdbcType(IntegerJdbcType.class)
     @Enumerated(EnumType.ORDINAL)
     public RActivationStatus getAdministrativeStatus() {
         return administrativeStatus;
     }
 
-    @Column
+    @JdbcType(IntegerJdbcType.class)
     @Enumerated(EnumType.ORDINAL)
     public RActivationStatus getEffectiveStatus() {
         return effectiveStatus;
@@ -204,7 +207,7 @@ public class RActivation {
         repo.setValidityChangeTimestamp(jaxb.getValidityChangeTimestamp());
     }
 
-    public static void copyToJAXB(RActivation repo, ActivationType jaxb, PrismContext prismContext) {
+    public static void copyToJAXB(RActivation repo, ActivationType jaxb) {
         Objects.requireNonNull(jaxb, "JAXB object must not be null.");
         Objects.requireNonNull(repo, "Repo object must not be null.");
 
@@ -229,7 +232,7 @@ public class RActivation {
 
     public ActivationType toJAXB(PrismContext prismContext) {
         ActivationType activation = new ActivationType();
-        RActivation.copyToJAXB(this, activation, prismContext);
+        RActivation.copyToJAXB(this, activation);
         return activation;
     }
 }

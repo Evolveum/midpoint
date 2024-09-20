@@ -17,15 +17,13 @@ import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.repo.common.expression.ValueSetDefinition;
+import com.evolveum.midpoint.repo.common.expression.ValueSetDefinition.ExtraSetSpecification;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractMappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueSetDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -51,7 +49,10 @@ class MappingParser<D extends ItemDefinition<?>, MBT extends AbstractMappingType
     /** Path of the output item (i.e. target) in the targetContext. */
     private ItemPath outputPath;
 
-    /** Original output path, as specified in the mapping bean (or implicit one) - i.e., before being overridden. */
+    /**
+     * Original output path, as specified in the mapping bean (or implicit one) - i.e., before being overridden.
+     * Without variable. For diagnostics purposes now.
+     */
     private ItemPath originalOutputPath;
 
     MappingParser(AbstractMappingImpl<?, D, MBT> mapping) {
@@ -72,7 +73,10 @@ class MappingParser<D extends ItemDefinition<?>, MBT extends AbstractMappingType
     }
 
     private void parseTarget() throws SchemaException {
-        ItemPath targetPath = ExpressionUtil.getPath(m.mappingBean.getTarget());
+        ItemPath targetPath =
+                m.targetPathOverride != null ?
+                        m.targetPathOverride :
+                        ExpressionUtil.getPath(m.mappingBean.getTarget());
         if (targetPath == null) {
             outputDefinition = m.defaultTargetDefinition;
             originalOutputPath = m.defaultTargetPath;
@@ -80,18 +84,19 @@ class MappingParser<D extends ItemDefinition<?>, MBT extends AbstractMappingType
             outputDefinition = ExpressionUtil.resolveDefinitionPath(
                     targetPath,
                     m.variables,
-                    m.targetContext,
+                    m.targetContextDefinition,
                     "target definition in " + m.getMappingContextDescription());
             if (outputDefinition == null) {
-                throw new SchemaException("No target item that would conform to the path "
-                        + targetPath + " in " + m.getMappingContextDescription());
+                throw new SchemaException(
+                        "No target item that would conform to the path %s in %s".formatted(
+                                targetPath, m.getMappingContextDescription()));
             }
             originalOutputPath = targetPath.stripVariableSegment();
         }
 
-        if (m.targetPathOverride != null) {
-            LOGGER.trace("Overriding output path from {} to {}", outputPath, m.targetPathOverride);
-            outputPath = m.targetPathOverride;
+        if (m.targetPathExecutionOverride != null) {
+            LOGGER.trace("Overriding output path from {} to {}", targetPath, m.targetPathExecutionOverride);
+            outputPath = m.targetPathExecutionOverride;
         } else {
             outputPath = originalOutputPath;
         }
@@ -134,7 +139,7 @@ class MappingParser<D extends ItemDefinition<?>, MBT extends AbstractMappingType
     }
 
     private <IV extends PrismValue, ID extends ItemDefinition<?>> Source<IV, ID> parseSource(
-            VariableBindingDefinitionType sourceDefinition, OperationResult result)
+            @NotNull VariableBindingDefinitionType sourceDefinition, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         ItemPath path = getSourcePath(sourceDefinition);
@@ -145,7 +150,7 @@ class MappingParser<D extends ItemDefinition<?>, MBT extends AbstractMappingType
                 path,
                 m.variables,
                 true,
-                m.getTypedSourceContext(),
+                m.getTypedDefaultSourceContextIdi(),
                 ModelCommonBeans.get().objectResolver,
                 "source definition in " + m.getMappingContextDescription(),
                 m.getTask(),
@@ -189,11 +194,13 @@ class MappingParser<D extends ItemDefinition<?>, MBT extends AbstractMappingType
         if (domainSetType != null) {
             ValueSetDefinition<IV, ID> setDef = new ValueSetDefinition<>(
                     domainSetType,
+                    ExtraSetSpecification.fromBean(sourceDefinition),
                     sourceItemDefinition,
                     m.valueMetadataDefinition,
                     m.getExpressionProfile(),
                     ModelCommonBeans.get().expressionFactory,
                     variableName,
+                    null, // FIXME: Why?
                     null,
                     "domain of " + variableName,
                     "domain of " + variableName + " in " + m.getMappingContextDescription(),

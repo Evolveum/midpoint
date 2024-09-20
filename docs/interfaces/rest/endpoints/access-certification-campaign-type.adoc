@@ -1,0 +1,168 @@
+= Access Certification Campaign Type REST Endpoint
+:page-nav-title: Access Certification Campaign
+:page-display-order: 900
+:page-toc: top
+:page-keywords: [ 'rest', 'certification', 'campaign' ,'endpoint' ]
+:page-upkeep-status: green
+
+== Description
+
+Here we are describing the Access Certification Campaign object type in relation to midPoints REST API. The
+Access Certification Campaign objects are a part of the REST API web resources.
+
+.Endpoint
+[source, http]
+----
+accessCertificationCampaigns/
+----
+
+== Operations And Examples
+
+The Access Certification Campaign Type endpoint operations and examples.
+
+include::../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+
+=== Get Access Certification Campaign Type Objects
+
+Get operation for fetching a single specific object.
+
+.Get Access Certification Campaign Type object with REST
+
+include::../operations/examples/raw/get-acc.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/get-op-rest/[Get Operation]
+
+=== Search for Access Certification Campaign Type Objects
+
+Search operation usable for fetching the full list of objects or a list based on filter.
+
+include::../operations/examples/raw/search-all-acc.adoc[]
+
+include::../operations/examples/raw/search-all.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[Search Operation]
+
+=== Modify Access Certification Campaign Type Objects
+
+include::../operations/examples/raw/modify-attr-acc.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/modify-op-rest/[Modify Operation]
+
+=== Delete Access Certification Campaign Type Objects
+
+include::../operations/examples/raw/delete-acc.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/delete-op-rest/[Delete Operation]
+
+=== Generate and Validate Operations for Access Certification Campaign Type Objects
+
+Operations to generate or validate values.
+
+- xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]
+
+== JSON Example
+
+Example output of information regarding a specific Access Certification Campaign object. Metadata
+is usually a part of the output, yet it was removed for the purpose of the example.
+
+.Show JSON Example
+[%collapsible]
+====
+[source, json]
+----
+{
+	"accessCertificationCampaign": {
+		"oid": "3a0fb4a2-ffbd-4e72-bbff-47327df054c4",
+		"version": "0",
+		"name": "User's assignemnts according to the manager 1",
+		"description": "Certifies all users' assignments. Everything is certified by the administrator.",
+		"iteration": 1,
+		"definitionRef": {
+			"oid": "8f37ee15-9945-4872-8b90-8cb75f304b41",
+			"relation": "org:default",
+			"type": "c:AccessCertificationDefinitionType"
+		},
+		"ownerRef": {
+			"oid": "00000000-0000-0000-0000-000000000002",
+			"relation": "org:default",
+			"type": "c:UserType"
+		},
+		"handlerUri": "http://midpoint.evolveum.com/xml/ns/public/certification/handlers-3#direct-assignment",
+		"scopeDefinition": {
+			"@type": "c:AccessCertificationAssignmentReviewScopeType",
+			"objectType": "#UserType",
+			"searchFilter": {
+				"org": {
+					"@ns": "http://prism.evolveum.com/xml/ns/public/query-3",
+					"path": "parentOrgRef",
+					"orgRef": {
+						"oid": "7d1e7065-455c-48d5-a469-1734fd255739",
+						"scope": "SUBTREE"
+					}
+				}
+			},
+			"itemSelectionExpression": {
+				"script": [
+					{
+						"code": "\nimport com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType\nlog.info(\"####### assignment: \" + assignment)\nif (assignment.targetRef.type.localPart.equals('RoleType')) \n{log.info(\"#### not a OrgType: \" + assignment.targetRef.type.localPart)\nrole = midpoint.resolveReferenceIfExists(assignment.targetRef)\nlog.info(\"##### role: \" + role)\nlog.info(\"##### role type: \" + role.subtype)\nreturn role != null && role.requestable}\norg = midpoint.resolveReferenceIfExists(assignment.targetRef)\nlog.info(\"##### org: \" + org)\nlog.info(\"##### org type: \" + org.subtype)\nreturn org != null && org.subtype[0] == 'access'\n\n                "
+					}
+				]
+			},
+			"includeRoles": true,
+			"includeOrgs": true,
+			"includeResources": false
+		},
+		"remediationDefinition": {
+			"style": "automated"
+		},
+		"stageDefinition": {
+			"@id": 1,
+			"number": 1,
+			"name": "Manager's review",
+			"description": "In this stage, the manager has to review all the assignments of users belonging to his org unit.",
+			"duration": "P14D",
+			"notifyBeforeDeadline": [
+				"PT48H",
+				"PT12H"
+			],
+			"notifyOnlyWhenNoDecision": true,
+			"reviewerSpecification": {
+				"useObjectManager": {
+					"allowSelf": false
+				}
+			},
+			"timedActions": {
+				"@id": 2,
+				"time": {
+					"value": [
+						"P7D"
+					]
+				},
+				"actions": {
+					"escalate": {
+						"approverRef": {
+							"oid": "00000000-0000-0000-0000-000000000002",
+							"relation": "org:default",
+							"type": "c:UserType"
+						},
+						"delegationMethod": "addAssignees",
+						"escalationLevelName": "Level1"
+					}
+				}
+			}
+		},
+		"state": "created",
+		"stageNumber": 0
+	}
+}
+----
+====
+
+== See Also
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]

@@ -108,7 +108,7 @@ public abstract class TestAsyncProvisioningArtemis extends TestAsyncProvisioning
         startEmbeddedBroker();
         connectToTestBroker();
 
-        PrismObject<ShadowType> jim = createShadow(resource, "jim");
+        PrismObject<ShadowType> jim = createShadow(resource, "jim", "jim").getPrismObject();
 
         when();
         provisioningService.addObject(jim, null, null, task, result);

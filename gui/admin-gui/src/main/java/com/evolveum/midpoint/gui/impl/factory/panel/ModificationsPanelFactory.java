@@ -47,7 +47,7 @@ public class ModificationsPanelFactory extends AbstractGuiComponentFactory<Objec
                 return null;
             }
 
-            PrismContext prismContext = panelCtx.getPrismContext();
+            PrismContext prismContext = PrismContext.get();
             ObjectDeltaType objectDeltaType = model.getObject();
             try {
                 ObjectDelta<?> delta = DeltaConvertor.createObjectDelta(objectDeltaType, prismContext);

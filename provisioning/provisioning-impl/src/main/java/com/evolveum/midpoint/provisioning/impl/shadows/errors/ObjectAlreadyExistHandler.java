@@ -7,15 +7,15 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows.errors;
 
-import static com.evolveum.midpoint.provisioning.util.ProvisioningUtil.selectLiveShadow;
-
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
-import com.evolveum.midpoint.provisioning.impl.shadows.ShadowAddOperation;
-import com.evolveum.midpoint.provisioning.impl.shadows.ShadowModifyOperation;
-import com.evolveum.midpoint.provisioning.impl.shadows.ShadowProvisioningOperation;
-import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowFinder;
+import com.evolveum.midpoint.provisioning.impl.shadows.RepoShadowWithState;
+import com.evolveum.midpoint.schema.util.RawRepoShadow;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
+
+import com.evolveum.midpoint.schema.processor.ResourceObjectIdentifier;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,20 +24,24 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
+import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.provisioning.impl.RepoShadow;
+import com.evolveum.midpoint.provisioning.impl.shadows.ShadowAddOperation;
+import com.evolveum.midpoint.provisioning.impl.shadows.ShadowModifyOperation;
+import com.evolveum.midpoint.provisioning.impl.shadows.ShadowProvisioningOperation;
+import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowFinder;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceObjectIdentifiers;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -67,7 +71,7 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
 
         ProvisioningContext ctx = operation.getCtx();
 
-        if (ProvisioningUtil.isDoDiscovery(ctx.getResource(), operation.getOptions())) {
+        if (ProvisioningUtil.isDiscoveryAllowed(ctx.getResource(), operation.getOptions())) {
             discoverConflictingShadow(ctx, operation.getResourceObjectToAdd(), result);
         }
 
@@ -86,10 +90,11 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
 
         ProvisioningContext ctx = operation.getCtx();
 
-        if (ProvisioningUtil.isDoDiscovery(ctx.getResource(), operation.getOptions())) {
-            ShadowType newShadow = operation.getOpState().getRepoShadow().clone();
-            ObjectDeltaUtil.applyTo(newShadow.asPrismObject(), operation.getRequestedModifications());
-            discoverConflictingShadow(ctx, newShadow, result);
+        if (ProvisioningUtil.isDiscoveryAllowed(ctx.getResource(), operation.getOptions())) {
+            RepoShadow updatedRepoShadow = operation.getOpState().getRepoShadow().clone();
+            // This may or may not fully work (applying full delta to a repository shadow only).
+            updatedRepoShadow.updateWith(operation.getRequestedModifications());
+            discoverConflictingShadow(ctx, updatedRepoShadow, result);
         }
 
         throwException(operation, cause, result);
@@ -97,44 +102,42 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
     }
 
     private void discoverConflictingShadow(
-            ProvisioningContext ctx, ShadowType newShadow, OperationResult parentResult)
+            ProvisioningContext ctx, AbstractShadow targetObjectState, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, SecurityViolationException {
 
         OperationResult result = parentResult.createSubresult(OP_DISCOVERY);
         try {
 
-            ObjectQuery query = createQueryBySecondaryIdentifier(newShadow);
+            // In theory, during ADD conflict resolution, there may be no identifiers in object being added (targetObjectState).
+            // But in practice, let's ignore this. We will simply throw an exception in that case here.
+            ObjectQuery query = createQueryBySecondaryIdentifier(targetObjectState);
             List<PrismObject<ShadowType>> conflictingRepoShadows = shadowFinder.searchShadows(ctx, query, null, result);
-            PrismObject<ShadowType> oldShadow = selectLiveShadow(conflictingRepoShadows, "(conflicting repo shadows)");
-            if (oldShadow != null) {
-                ctx.applyAttributesDefinition(oldShadow);
-            }
+            RawRepoShadow oldShadow = RawRepoShadow.selectLiveShadow(conflictingRepoShadows, "(conflicting repo shadows)");
 
-            LOGGER.trace("DISCOVERY: looking for conflicting shadow for {}", ShadowUtil.shortDumpShadowLazily(newShadow));
+            LOGGER.trace("DISCOVERY: looking for conflicting shadow for {}", targetObjectState.shortDumpLazily());
 
             final List<PrismObject<ShadowType>> conflictingResourceShadows =
                     findConflictingShadowsOnResource(query, ctx.getTask(), result);
-            PrismObject<ShadowType> conflictingShadow =
-                    selectLiveShadow(conflictingResourceShadows, "(conflicting shadows)");
+            RawRepoShadow conflictingShadow =
+                    RawRepoShadow.selectLiveShadow(conflictingResourceShadows, "(conflicting shadows)");
 
-            LOGGER.trace("DISCOVERY: found conflicting shadow for {}:\n{}", newShadow,
+            LOGGER.trace("DISCOVERY: found conflicting shadow for {}:\n{}", targetObjectState,
                     conflictingShadow == null ? "  no conflicting shadow" : conflictingShadow.debugDumpLazily(1));
-            LOGGER.debug("DISCOVERY: discovered new shadow {}", ShadowUtil.shortDumpShadowLazily(conflictingShadow));
+            LOGGER.debug("DISCOVERY: discovered new shadow {}", conflictingShadow != null ? conflictingShadow.shortDumpLazily() : null);
             LOGGER.trace("Processing \"already exists\" error for shadow:\n{}\nConflicting repo shadow:\n{}\nConflicting resource shadow:\n{}",
-                    newShadow.debugDumpLazily(1),
+                    targetObjectState.debugDumpLazily(1),
                     oldShadow == null ? "  null" : oldShadow.debugDumpLazily(1),
                     conflictingShadow == null ? "  null" : conflictingShadow.debugDumpLazily(1));
 
             if (conflictingShadow != null) {
-                // Original object and found object share the same object class, therefore they must
-                // also share a kind. We can use this short-cut.
-                conflictingShadow.asObjectable().setKind(newShadow.getKind());
-
+                var adoptedConflictingShadow = ctx.adoptRawRepoShadow(conflictingShadow);
                 ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
                 change.setResource(ctx.getResource().asPrismObject());
                 change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANNEL_DISCOVERY));
-                change.setShadowedResourceObject(conflictingShadow);
+                ctx.computeAndUpdateEffectiveMarksAndPolicies(
+                        adoptedConflictingShadow, RepoShadowWithState.ShadowState.EXISTING, result);
+                change.setShadowedResourceObject(adoptedConflictingShadow.getPrismObject());
                 change.setShadowExistsInRepo(true);
                 eventDispatcher.notifyChange(change, ctx.getTask(), result);
             }
@@ -146,26 +149,35 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
         }
     }
 
-    static ObjectQuery createQueryBySecondaryIdentifier(ShadowType shadow) {
+    static ObjectQuery createQueryBySecondaryIdentifier(AbstractShadow shadow) throws SchemaException {
         // Note that if the query is to be used against the repository, we should not provide matching rules here. See MID-5547.
         // We also do not need to deal with normalization, as shadow manager will be used to execute the query.
-        Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(shadow);
+        ResourceObjectIdentifiers identifiers = shadow.getIdentifiersRequired();
         S_FilterEntry q = PrismContext.get().queryFor(ShadowType.class);
         q = q.block();
+        Set<ResourceObjectIdentifier.Secondary<?>> secondaryIdentifiers = identifiers.getSecondaryIdentifiers();
         if (secondaryIdentifiers.isEmpty()) {
-            for (ResourceAttribute<?> primaryIdentifier: ShadowUtil.getPrimaryIdentifiers(shadow)) {
-                q = q.itemAs(primaryIdentifier).or();
+            ResourceObjectIdentifier.Primary<?> primaryIdentifier = identifiers.getPrimaryIdentifier();
+            if (primaryIdentifier != null) {
+                // A kind of fallback
+                ShadowSimpleAttribute<?> attr = primaryIdentifier.getAttribute();
+                q = q.item(ShadowType.F_ATTRIBUTES.append(attr.getElementName()), attr.getDefinition())
+                        .eq(attr.getValue())
+                        .or();
+            } else {
+                // the query will match nothing (empty "OR") clause
             }
         } else {
-            // secondary identifiers connected by 'or' clause
-            for (ResourceAttribute<?> secondaryIdentifier : secondaryIdentifiers) {
-                q = q.itemAs(secondaryIdentifier).or();
+            for (var secondaryIdentifier : secondaryIdentifiers) {
+                ShadowSimpleAttribute<?> attr = secondaryIdentifier.getAttribute();
+                q = q.item(ShadowType.F_ATTRIBUTES.append(attr.getElementName()), attr.getDefinition())
+                        .eq(attr.getValue())
+                        .or();
             }
         }
         q = q.none().endBlock().and();
-        // resource + object class
-        q = q.item(ShadowType.F_RESOURCE_REF).ref(shadow.getResourceRef().getOid()).and();
-        return q.item(ShadowType.F_OBJECT_CLASS).eq(shadow.getObjectClass()).build();
+        q = q.item(ShadowType.F_RESOURCE_REF).ref(shadow.getResourceOidRequired()).and();
+        return q.item(ShadowType.F_OBJECT_CLASS).eq(shadow.getObjectClassName()).build();
     }
 
     /**

@@ -22,8 +22,6 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditResultHandler;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.audit.spi.AuditServiceRegistry;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -65,7 +63,6 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
     @Qualifier("securityContextManager")
     private SecurityContextManager securityContextManager;
 
-    @Autowired private PrismContext prismContext;
     @Autowired private SchemaService schemaService;
 
     private final List<AuditService> services = new ArrayList<>();
@@ -208,7 +205,7 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
             Collection<SelectorOptions<GetOperationOptions>> nameOnlyOptions = schemaService.getOperationOptionsBuilder()
                     .item(ObjectType.F_NAME).retrieve()
                     .build();
-            ObjectDeltaSchemaLevelUtil.NameResolver nameResolver = (objectClass, oid) -> {
+            ObjectDeltaSchemaLevelUtil.NameResolver nameResolver = (objectClass, oid, lResult) -> {
                 if (record.getNonExistingReferencedObjects().contains(oid)) {
                     return null;    // save a useless getObject call plus associated warning (MID-5378)
                 }
@@ -219,11 +216,11 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
                 LOGGER.warn("Unresolved object reference in delta being audited (for {}: {}) -- this might indicate "
                                 + "a performance problem, as these references are normally resolved using repository cache",
                         objectClass.getSimpleName(), oid);
-                PrismObject<? extends ObjectType> object = repositoryService.getObject(objectClass, oid, nameOnlyOptions,
-                        new OperationResult(AuditServiceProxy.class.getName() + ".completeRecord.resolveName"));
-                return object.getName();
+                return repositoryService
+                        .getObject(objectClass, oid, nameOnlyOptions, lResult)
+                        .getName();
             };
-            resolveNames(delta, nameResolver, prismContext);
+            resolveNames(delta, nameResolver, result);
         }
     }
 

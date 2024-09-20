@@ -13,6 +13,8 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorConfiguration;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
 import org.apache.commons.lang3.StringUtils;
@@ -143,7 +145,22 @@ public abstract class ConnectorSpec {
                 () -> new IllegalStateException("Expected to have connector OID but there was none; in " + this));
     }
 
-    public abstract @Nullable PrismContainer<ConnectorConfigurationType> getConnectorConfiguration();
+    public abstract @Nullable PrismContainer<ConnectorConfigurationType> getConnectorConfigurationContainer();
+
+    private @Nullable PrismContainerValue<?> getConnectorConfigurationContainerValue() {
+        var container = getConnectorConfigurationContainer();
+        if (container != null && container.hasAnyValue()) {
+            return container.getValue();
+        } else {
+            return null;
+        }
+    }
+
+    public @NotNull ConnectorConfiguration getConnectorConfiguration() {
+        return new ConnectorConfiguration(
+                getConnectorConfigurationContainerValue(),
+                ResourceTypeUtil.getSchemaGenerationConstraints(resource));
+    }
 
     @NotNull ConfiguredConnectorCacheKey getCacheKey() {
         return new ConfiguredConnectorCacheKey(resource.getOid(), getConnectorName());
@@ -190,7 +207,7 @@ public abstract class ConnectorSpec {
         }
 
         @Override
-        public @Nullable PrismContainer<ConnectorConfigurationType> getConnectorConfiguration() {
+        public @Nullable PrismContainer<ConnectorConfigurationType> getConnectorConfigurationContainer() {
             return resource.asPrismObject().findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
         }
 
@@ -260,7 +277,7 @@ public abstract class ConnectorSpec {
         }
 
         @Override
-        public @Nullable PrismContainer<ConnectorConfigurationType> getConnectorConfiguration() {
+        public @Nullable PrismContainer<ConnectorConfigurationType> getConnectorConfigurationContainer() {
             //noinspection unchecked
             return definitionBean.asPrismContainerValue().findContainer(
                     ConnectorInstanceSpecificationType.F_CONNECTOR_CONFIGURATION);

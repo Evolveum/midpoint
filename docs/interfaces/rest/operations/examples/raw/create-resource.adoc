@@ -1,0 +1,120 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Create a new Resource object in MidPoint with file data source*
+[source,bash]
+----
+
+curl --user administrator:y0uR_P455woR*d \
+-H "Content-Type: application/json" \
+-X POST http://localhost:8080/midpoint/ws/rest/resources \
+-v \
+--data-binary @./samples/rest/resource-csv.json
+----
+
+.*Show* data source example for *"Create a new Resource object in MidPoint"* | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/resource-csv.json[GitHub]
+[%collapsible]
+====
+[source, json]
+----
+{
+  "resource" : {
+    "oid" : "ef2bc95b-76e0-59e2-86d6-9999cccccccc",
+    "name" : "Test CSV: username",
+    "description" : "Simple CSV resource that is using single identifier (username)",
+    "connectorRef" : {
+      "type" : "c:ConnectorType",
+      "filter" : {
+        "equal" : {
+          "path" : "c:connectorType",
+          "value" : "com.evolveum.polygon.connector.csv.CsvConnector"
+        }
+      }
+    },
+    "connectorConfiguration" : {
+      "@ns" : "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3",
+      "configurationProperties" : {
+        "@ns" : "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector",
+        "filePath" : "target/midpoint.csv",
+        "encoding" : "utf-8",
+        "fieldDelimiter" : ",",
+        "multivalueDelimiter" : ";",
+        "uniqueAttribute" : "username",
+        "passwordAttribute" : "password"
+      }
+    },
+    "schemaHandling" : {
+      "objectType" : {
+        "displayName" : "Default Account",
+        "default" : true,
+        "objectClass" : "ri:AccountObjectClass",
+        "attribute" : [ {
+          "ref" : "ri:username",
+          "outbound" : {
+            "source" : {
+              "path" : "$user/name"
+            }
+          }
+        }, {
+          "ref" : "ri:firstname",
+          "outbound" : {
+            "source" : {
+              "path" : "$user/givenName"
+            }
+          }
+        }, {
+          "ref" : "ri:lastname",
+          "outbound" : {
+            "source" : {
+              "path" : "$user/familyName"
+            }
+          }
+        } ],
+        "activation" : {
+          "administrativeStatus" : {
+            "outbound" : { }
+          }
+        },
+        "credentials" : {
+          "password" : {
+            "outbound" : { }
+          }
+        }
+      }
+    },
+    "capabilities" : {
+      "configured" : {
+        "activation" : {
+          "status" : {
+            "attribute" : "ri:disabled",
+            "enableValue" : "false",
+            "disableValue" : "true"
+          }
+        }
+      }
+    }
+  }
+}
+----
+====
+
+.*Show* source data for resource for *"Create a new Resource object in MidPoint"* | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/resources/csv/midpoint-username.csv[GitHub]
+[%collapsible]
+====
+[source, csv]
+----
+username,firstname,lastname,disabled,password
+user01,Firstname,Lastname,false,secret
+user02,Test,Lastname,false,secret
+----
+====
+
+The response is an HTTP 201 code in case of success *without* a response body.
+Also, the response contains a *Location Header* pointing to the location of the created
+user.
+
+.Example location header
+[source, bash]
+----
+Location: http://localhost:8080/midpoint/ws/rest/resources/ef2bc95b-76e0-59e2-86d6-9999cccccccc
+----

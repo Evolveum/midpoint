@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.impl.page.forgotpassword;
 
 import java.io.Serial;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordHintConfigurabilityType;
+
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -129,6 +131,11 @@ public class PageResetPassword extends AbstractPageLogin {
             protected String getChangePasswordButtonStyle() {
                 return CHANGE_PASSWORD_BUTTON_STYLE;
             }
+
+            @Override
+            protected boolean isHintPanelVisible() {
+                return getPasswordHintConfigurability() == PasswordHintConfigurabilityType.ALWAYS_CONFIGURE;
+            }
         };
         changePasswordPanel.setOutputMarkupId(true);
         form.add(changePasswordPanel);
@@ -141,12 +148,12 @@ public class PageResetPassword extends AbstractPageLogin {
     }
 
     @Override
-    protected IModel<String> getLoginPanelTitleModel() {
+    protected IModel<String> getDefaultLoginPanelTitleModel() {
         return createStringResource("PageResetPassword.title");
     }
 
     @Override
-    protected IModel<String> getLoginPanelDescriptionModel() {
+    protected IModel<String> getDefaultLoginPanelDescriptionModel() {
         return createStringResource("PageResetPassword.description");
     }
 

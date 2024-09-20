@@ -18,6 +18,8 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.web.page.admin.reports.ReportDownloadHelper;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -63,7 +65,6 @@ import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
 import com.evolveum.midpoint.web.page.admin.server.LivesyncTokenEditorPanel;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -133,24 +134,24 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
         });
         saveButton.setOutputMarkupId(true);
         saveButton.setOutputMarkupPlaceholderTag(true);
-        saveButton.add(AttributeAppender.append("class", "btn-primary btn-sm"));
+        saveButton.add(AttributeAppender.append("class", "btn btn-primary btn-sm"));
         repeatingView.add(saveButton);
     }
 
     private void saveAndRunPerformed(AjaxRequestTarget target) {
         runEnabled = true;
         try {
-            savePerformed(target);
+            submitPerformed(target);
         } finally {
             runEnabled = false;
         }
     }
 
     @Override
-    protected void savePerformed(AjaxRequestTarget target) {
+    protected void submitPerformed(AjaxRequestTarget target) {
 
         WebComponentUtil.setTaskStateBeforeSave(getModelObject(), runEnabled, getPageBase(), target);
-        super.savePerformed(target);
+        super.submitPerformed(target);
     }
 
     private void initLayout() {
@@ -364,10 +365,10 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected InputStream initStream() {
+            protected InputStream getInputStream() {
                 ReportDataType reportObject = getReportData();
                 if (reportObject != null) {
-                    return PageCreatedReports.createReport(reportObject, this, getPageBase());
+                    return ReportDownloadHelper.createReport(reportObject, this, getPageBase());
                 } else {
                     return null;
                 }
@@ -376,7 +377,7 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
             @Override
             public String getFileName() {
                 ReportDataType reportObject = getReportData();
-                return PageCreatedReports.getReportFileName(reportObject);
+                return ReportDownloadHelper.getReportFileName(reportObject);
             }
         };
         add(ajaxDownloadBehavior);

@@ -161,8 +161,8 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
         memberContainer.setOutputMarkupPlaceholderTag(true);
         form.add(memberContainer);
 
-        MultiSelectTileTablePanel<FocusType, FocusType> tilesTable =
-                new MultiSelectTileTablePanel<>(
+        MultiSelectObjectTileTablePanel<FocusType, FocusType> tilesTable =
+                new MultiSelectObjectTileTablePanel<>(
                         ID_MEMBER_TABLE,
                         getTableId(getType())) {
 
@@ -258,7 +258,7 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
                     }
 
                     @Override
-                    protected Component createTile(String id, IModel<TemplateTile<SelectableBean<FocusType>>> model) {
+                    public Component createTile(String id, IModel<TemplateTile<SelectableBean<FocusType>>> model) {
                         return createTilePanel(id, model);
                     }
 
@@ -273,7 +273,7 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
                     }
 
                     @Override
-                    protected SelectableBeanObjectDataProvider<FocusType> createProvider() {
+                    public SelectableBeanObjectDataProvider<FocusType> createProvider() {
                         SelectableBeanObjectDataProvider<FocusType> provider = super.createProvider();
                         provider.addQueryVariables(
                                 ExpressionConstants.VAR_PARENT_OBJECT,
@@ -282,7 +282,7 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
                     }
 
                     @Override
-                    protected PageStorage getPageStorage() {
+                    public PageStorage getPageStorage() {
                         return getMemberPanelStorage();
                     }
 
@@ -545,7 +545,8 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
     }
 
     @Override
-    protected void unassignMembersPerformed(IModel<?> rowModel, QName relation, AjaxRequestTarget target) {
+    protected <AH extends AssignmentHolderType> void unassignMembersPerformed(IModel<SelectableBean<AH>> rowModel, QName relation,
+            AjaxRequestTarget target) {
         super.unassignMembersPerformed(rowModel, relation, target);
         target.add(getFeedback());
     }

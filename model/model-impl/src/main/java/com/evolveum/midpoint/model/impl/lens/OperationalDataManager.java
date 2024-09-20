@@ -6,19 +6,15 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
+import static com.evolveum.midpoint.prism.delta.ObjectDelta.isAdd;
+import static com.evolveum.midpoint.prism.delta.ObjectDelta.isModify;
+import static com.evolveum.midpoint.prism.path.ItemPath.CompareResult.EQUIVALENT;
+import static com.evolveum.midpoint.prism.path.ItemPath.CompareResult.SUPERPATH;
+import static com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil.*;
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+
 import java.util.*;
-
 import javax.xml.datatype.XMLGregorianCalendar;
-
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
-import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.schema.constants.Channel;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,15 +22,28 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.ActivationComputer;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.InfraItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
+import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import static com.evolveum.midpoint.prism.PrismContainerValue.asContainerable;
-import static com.evolveum.midpoint.prism.path.ItemPath.CompareResult.EQUIVALENT;
-import static com.evolveum.midpoint.prism.path.ItemPath.CompareResult.SUPERPATH;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Manages metadata (mostly before delta execution), but also some other operational data, namely assignment effective status.
@@ -49,190 +58,453 @@ public class OperationalDataManager implements DeltaExecutionPreprocessor {
 
     @Autowired private ActivationComputer activationComputer;
     @Autowired private PrismContext prismContext;
+    @Autowired private Clock clock;
 
-    /**
-     * Stores request metadata in the model context. Because the operation can finish later
-     * (if switched to background), we need to have these data recorded at the beginning.
-     */
-    <F extends ObjectType> void setRequestMetadataInContext(LensContext<F> context, XMLGregorianCalendar now, Task task) {
-        context.setRequestMetadata(
-                collectRequestMetadata(now, task));
-    }
-
-    private MetadataType collectRequestMetadata(XMLGregorianCalendar now, Task task) {
-        MetadataType metaData = new MetadataType();
-        metaData.setRequestTimestamp(now);
-        if (task.getOwnerRef() != null) {
-            metaData.setRequestorRef(ObjectTypeUtil.createObjectRefCopy(task.getOwnerRef()));
-        }
-        // It is not necessary to store requestor comment here as it is preserved in context.options field.
-        return metaData;
-    }
-
-    /**
-     * "Transplants" previously stored request metadata from model context into target metadata container.
-     */
-    private <F extends ObjectType> void transplantRequestMetadata(LensContext<F> context, MetadataType metaData) {
-        MetadataType requestMetadata = context.getRequestMetadata();
-        if (requestMetadata != null) {
-            metaData.setRequestTimestamp(requestMetadata.getRequestTimestamp());
-            metaData.setRequestorRef(requestMetadata.getRequestorRef());
-        }
-        OperationBusinessContextType businessContext = context.getRequestBusinessContext();
-        if (businessContext != null) {
-            metaData.setRequestorComment(businessContext.getComment());
-        }
-    }
-
+    //region Object ADD operation
     /**
      * Sets object and assignment metadata on object ADD operation.
+     * We assume that assignments already have the respective metadata values, see
+     * {@link #applyMetadataOnAssignmentAddOp(LensContext, AssignmentType, String, XMLGregorianCalendar, Task)}.
      */
-    public <T extends ObjectType, F extends ObjectType> void applyMetadataAdd(
-            LensContext<F> context, PrismObject<T> objectToAdd, XMLGregorianCalendar now, Task task) {
+    public <T extends ObjectType> void applyMetadataOnObjectAddOp(
+            LensContext<?> context, PrismObject<T> objectToAdd, XMLGregorianCalendar now, Task task)
+            throws SchemaException, ConfigurationException {
 
-        MetadataType metadata = getOrCreateMetadata(objectToAdd);
+        var objectBean = objectToAdd.asObjectable();
+        ValueMetadataType metadata = ValueMetadataTypeUtil.getOrCreateMetadata(objectBean);
 
-        transplantRequestMetadata(context, metadata);
-        applyCreateMetadata(context, metadata, now, task);
-        applyCreateApprovalMetadata(context, metadata);
+        setRequestMetadataOnAddOp(context, metadata);
+        setStorageMetadataOnAddOp(context, metadata, now, task);
+        setProcessMetadataOnAddOp(context, metadata);
+        setProvisioningMetadataOnAddOp(context, metadata, now, objectBean instanceof ShadowType);
 
-        if (objectToAdd.canRepresent(AssignmentHolderType.class)) {
-            //noinspection unchecked
-            applyAssignmentMetadataObject((LensContext<? extends AssignmentHolderType>) context, objectToAdd, now, task);
-        }
-    }
-
-    private <T extends ObjectType> @NotNull MetadataType getOrCreateMetadata(PrismObject<T> objectToAdd) {
-        T object = objectToAdd.asObjectable();
-        MetadataType metadata = object.getMetadata();
-        if (metadata != null) {
-            return metadata;
-        } else {
-            MetadataType newMetadata = new MetadataType();
-            object.setMetadata(newMetadata);
-            return newMetadata;
-        }
-    }
-
-    public <T extends ObjectType, F extends ObjectType, AH extends AssignmentHolderType> void applyMetadataModify(
-            ObjectDelta<T> objectDelta,
-            Class<T> objectTypeClass,
-            LensElementContext<T> elementContext,
-            XMLGregorianCalendar now,
-            Task task,
-            LensContext<F> context) throws SchemaException {
-        assert objectDelta.isModify();
-
-        MetadataType currentMetadata = getCurrentMetadata(elementContext);
-
-        ItemDeltaCollectionsUtil.mergeAll(
-                objectDelta.getModifications(),
-                createModifyMetadataDeltas(context, currentMetadata, ObjectType.F_METADATA, objectTypeClass, now, task));
-
-        ItemDeltaCollectionsUtil.mergeAll(
-                objectDelta.getModifications(),
-                createModifyApprovalMetadataDeltas(objectTypeClass, context));
-
-        if (AssignmentHolderType.class.isAssignableFrom(objectTypeClass)) {
-            //noinspection unchecked
-            applyAssignmentMetadataDelta((LensContext<AH>) context, (ObjectDelta<AH>) objectDelta, now, task);
-        }
-    }
-
-    private <T extends ObjectType> MetadataType getCurrentMetadata(LensElementContext<T> elementContext) {
-        PrismObject<T> objectCurrent = elementContext.getObjectCurrent();
-        return objectCurrent != null ? objectCurrent.asObjectable().getMetadata() : null;
-    }
-
-    private <AH extends AssignmentHolderType, T extends ObjectType> void applyAssignmentMetadataObject(
-            LensContext<AH> context, PrismObject<T> objectToAdd, XMLGregorianCalendar now, Task task) {
-
-        PrismContainer<AssignmentType> assignmentContainer = objectToAdd.findContainer(AssignmentHolderType.F_ASSIGNMENT);
-        if (assignmentContainer != null) {
-            for (PrismContainerValue<AssignmentType> assignmentContainerValue: assignmentContainer.getValues()) {
-                applyAssignmentValueMetadataAdd(context, assignmentContainerValue, "ADD", now, task);
+        if (objectBean instanceof AssignmentHolderType assignmentHolder) {
+            for (var assignment : assignmentHolder.getAssignment()) {
+                applyMetadataOnAssignmentAddOp(context, assignment, "ADD", now, task);
             }
         }
     }
 
-    private <AH extends AssignmentHolderType> void applyAssignmentMetadataDelta(
-            LensContext<AH> context, ObjectDelta<AH> objectDelta,
+    private void setProcessMetadataOnAddOp(LensContext<?> context, ValueMetadataType metadata) {
+        var process = getOrCreateProcessMetadata(metadata);
+        process.getCreateApproverRef().addAll(
+                CloneUtil.cloneCollectionMembers(context.getOperationApprovedBy()));
+        process.getCreateApprovalComment().addAll(
+                context.getOperationApproverComments());
+    }
+
+    private void setProvisioningMetadataOnAddOp(
+            LensContext<?> context, ValueMetadataType metadata, XMLGregorianCalendar now, boolean isProjection)
+            throws SchemaException, ConfigurationException {
+        if (!isProjection && context.hasProjectionChange()) {
+            getOrCreateProvisioningMetadata(metadata).setLastProvisioningTimestamp(now);
+        }
+    }
+    //endregion
+
+    //region Object MODIFY operation
+    /**
+     * Creates deltas for object and assignment metadata on object MODIFY operation.
+     * We assume that assignments already have the respective metadata values, see
+     * {@link #applyMetadataOnAssignmentAddOp(LensContext, AssignmentType, String, XMLGregorianCalendar, Task)}.
+     */
+    public <T extends ObjectType> void applyMetadataOnObjectModifyOp(
+            @NotNull ObjectDelta<T> objectDelta,
+            @NotNull LensElementContext<T> elementContext,
+            @NotNull XMLGregorianCalendar now,
+            @NotNull Task task,
+            @NotNull LensContext<?> context) throws SchemaException, ConfigurationException {
+        assert objectDelta.isModify();
+
+        var objectCurrent = elementContext.getObjectCurrentRequired().asObjectable();
+        var isProjection = elementContext instanceof LensProjectionContext;
+        ItemDeltaCollectionsUtil.mergeAll(
+                objectDelta.getModifications(),
+                createObjectModificationRelatedMetadataDeltas(context, isProjection, objectCurrent, now, task));
+
+        if (objectCurrent instanceof AssignmentHolderType assignmentHolder) {
+            applyAssignmentMetadataOnObjectModifyOp(context, assignmentHolder, objectDelta, now, task);
+        }
+    }
+
+    /**
+     * Creates deltas for object-modification-related metadata.
+     * The exact form of these deltas (add/replace/...) depends on the existence of relevant items/values in the current object.
+     */
+    private Collection<ItemDelta<?, ?>> createObjectModificationRelatedMetadataDeltas(
+            LensContext<?> context, boolean isProjection, @NotNull ObjectType currentObject, XMLGregorianCalendar now, Task task)
+            throws SchemaException, ConfigurationException {
+        var storageMetadata = ObjectModificationStorageMetadata.create(context, now, task);
+        var processMetadata = ObjectModificationProcessMetadata.create(context);
+        var provisioningMetadata = ObjectModificationProvisioningMetadata.create(context, now, isProjection);
+        var metadata = ValueMetadataTypeUtil.getMetadata(currentObject);
+        if (metadata == null) {
+            return prismContext.deltaFor(currentObject.getClass())
+                    .item(InfraItemName.METADATA)
+                    .add(new ValueMetadataType()
+                            .storage(storageMetadata.toBean())
+                            .process(processMetadata.toBean())
+                            .provisioning(provisioningMetadata.toBean()))
+                    .asItemDeltas();
+        } else {
+            ItemPath metadataValuePath = ValueMetadataTypeUtil.getPathOf(metadata);
+            var rv = new ArrayList<ItemDelta<?, ?>>();
+            rv.addAll(
+                    storageMetadata.toItemDeltas(
+                            metadataValuePath.append(ValueMetadataType.F_STORAGE),
+                            currentObject.getClass()));
+            rv.addAll(
+                    processMetadata.toItemDeltas(
+                            metadataValuePath.append(ValueMetadataType.F_PROCESS),
+                            currentObject.getClass()));
+            rv.addAll(
+                    provisioningMetadata.toItemDeltas(
+                            metadataValuePath.append(ValueMetadataType.F_PROVISIONING),
+                            currentObject.getClass()));
+            return rv;
+        }
+    }
+
+    /**
+     * Creates deltas for object-modification-related STORAGE metadata.
+     */
+    public Collection<ItemDelta<?, ?>> createObjectModificationRelatedStorageMetadataDeltas(
+            LensContext<?> context, @NotNull ObjectType currentObject, XMLGregorianCalendar now, Task task)
+            throws SchemaException {
+        var storageMetadata = ObjectModificationStorageMetadata.create(context, now, task);
+        var metadata = ValueMetadataTypeUtil.getMetadata(currentObject);
+        if (metadata == null) {
+            return prismContext.deltaFor(currentObject.getClass())
+                    .item(InfraItemName.METADATA)
+                    .add(new ValueMetadataType()
+                            .storage(storageMetadata.toBean()))
+                    .asItemDeltas();
+        } else {
+            return storageMetadata.toItemDeltas(
+                    ValueMetadataTypeUtil.getPathOf(metadata).append(ValueMetadataType.F_STORAGE),
+                    currentObject.getClass());
+        }
+    }
+    //endregion
+
+    //region Objects - other operations
+    public Collection<? extends ItemDelta<?, ?>> createObjectCertificationMetadataDeltas(
+            @NotNull ObjectType object,
+            CertificationProcessMetadata certificationProcessMetadata)
+            throws SchemaException {
+        var metadata = ValueMetadataTypeUtil.getMetadata(object);
+        if (metadata == null) {
+            return prismContext.deltaFor(object.getClass())
+                    .item(InfraItemName.METADATA)
+                    .add(new ValueMetadataType().process(certificationProcessMetadata.toBean()))
+                    .asItemDeltas();
+        } else {
+            return certificationProcessMetadata.toItemDeltas(
+                    ValueMetadataTypeUtil.getPathOf(metadata).append(ValueMetadataType.F_PROCESS),
+                    object.getClass());
+        }
+    }
+
+    //endregion
+
+    //region Assignments
+    /**
+     * Adds provenance metadata to assignments being explicitly added (via primary delta). This is necessary so that they
+     * can be distinguished from assignments provided by mappings. Typically used on operation start.
+     */
+    public void addExternalAssignmentProvenance(LensContext<?> context, Task task)
+            throws SchemaException {
+        var focusContext = context.getFocusContext();
+        if (focusContext == null) {
+            return;
+        }
+        var primaryDelta = focusContext.getPrimaryDelta();
+        if (isAdd(primaryDelta)) {
+            // These conditions are here to avoid unnecessary cloning of the primary delta in modifyPrimaryDelta method.
+            if (primaryDelta.getObjectableToAdd() instanceof AssignmentHolderType assignmentHolder
+                    && !assignmentHolder.getAssignment().isEmpty()) {
+                focusContext.modifyPrimaryDelta(delta -> addExternalAssignmentProvenanceForAddDelta(context, delta, task));
+            }
+        } else if (isModify(primaryDelta)) {
+            // These conditions are here to avoid unnecessary cloning of the primary delta in modifyPrimaryDelta method.
+            if (ItemDeltaCollectionsUtil.findItemDelta(
+                    primaryDelta.getModifications(), AssignmentHolderType.F_ASSIGNMENT, ContainerDelta.class, true) != null) {
+                focusContext.modifyPrimaryDelta(delta -> addExternalAssignmentProvenanceForModifyDelta(context, delta, task));
+            }
+        }
+    }
+
+    private void addExternalAssignmentProvenanceForAddDelta(LensContext<?> context, ObjectDelta<?> delta, Task task)
+            throws SchemaException {
+        for (var assignment : ((AssignmentHolderType) delta.getObjectableToAdd()).getAssignment()) {
+            addExternalAssignmentProvenance(context, assignment.asPrismContainerValue(), task);
+        }
+    }
+
+    private void addExternalAssignmentProvenanceForModifyDelta(LensContext<?> context, ObjectDelta<?> delta, Task task)
+            throws SchemaException {
+        for (var itemDelta : delta.getModifications()) {
+            if (AssignmentHolderType.F_ASSIGNMENT.equivalent(itemDelta.getPath())) {
+                var assignmentDelta = (ContainerDelta<?>) itemDelta;
+                for (var assignmentContainerValue : emptyIfNull(assignmentDelta.getValuesToAdd())) {
+                    addExternalAssignmentProvenance(context, assignmentContainerValue, task);
+                }
+                for (var assignmentContainerValue: emptyIfNull(assignmentDelta.getValuesToReplace())) {
+                    addExternalAssignmentProvenance(context, assignmentContainerValue, task);
+                }
+            }
+        }
+    }
+
+    private void addExternalAssignmentProvenance(LensContext<?> context, PrismContainerValue<?> value, Task task)
+            throws SchemaException {
+        if (value.hasValueMetadata()) {
+            return; // Supplied by the caller. We hope they know what they are doing.
+        }
+        ValueMetadataType metadata = new ValueMetadataType()
+                .provenance(new ProvenanceMetadataType()
+                        .acquisition(new ProvenanceAcquisitionType()
+                                //.originRef(SystemObjectsType.ORIGIN_USER_ENTRY.value(), ServiceType.COMPLEX_TYPE)
+                                .actorRef(ObjectTypeUtil.createObjectRefCopy(task.getOwnerRef()))
+                                .channel(LensUtil.getChannel(context, task))
+                                .timestamp(clock.currentTimeXMLGregorianCalendar()))
+                );
+        value.getValueMetadata().addMetadataValue(metadata.asPrismContainerValue());
+    }
+
+    /**
+     * Applies metadata to an assignment that is being added (either as part of object ADD operation, or by object MODIFY
+     * operation). We assume that there are already existing metadata, generated either by mapping(s), by model API caller,
+     * or at the beginning of the clockwork operation. We only set the relevant metadata there.
+     */
+    private void applyMetadataOnAssignmentAddOp(
+            LensContext<?> context, AssignmentType assignment, String desc,
+            XMLGregorianCalendar now, Task task) {
+
+        var allMetadata = assignment.asPrismContainerValue().getValueMetadata();
+        if (allMetadata.hasNoValues()) {
+            LOGGER.debug("No metadata in assignment ({})", desc);
+            return;
+        }
+
+        ActivationType activation = setAssignmentEffectiveStatus(assignment);
+
+        // TODO is it OK that we add the request/create metadata to all the values?
+        for (var metadata : allMetadata.getRealValues(ValueMetadataType.class)) {
+            setRequestMetadataOnAddOp(context, metadata);
+            setStorageMetadataOnAddOp(context, metadata, now, task);
+            // note that assignment approval metadata are handled by ApprovalMetadataHelper in workflow-impl (WHY?)
+        }
+
+        LOGGER.trace("Added operational data to assignment ({}):\nCurrent metadata:\n{}\nCurrent activation:\n{}",
+                desc, allMetadata.debugDumpLazily(1), activation.debugDumpLazily(1));
+    }
+
+    private void applyAssignmentMetadataOnObjectModifyOp(
+            LensContext<?> context, @NotNull AssignmentHolderType objectCurrent, ObjectDelta<?> objectDelta,
             XMLGregorianCalendar now, Task task) throws SchemaException {
 
         assert objectDelta.isModify();
 
         // see also ApprovalMetadataHelper.addAssignmentApprovalMetadataOnObjectModify
-        Set<Long> processedIds = new HashSet<>();
-        List<ItemDelta<?,?>> assignmentMetadataDeltas = new ArrayList<>();
-        for (ItemDelta<?,?> itemDelta: objectDelta.getModifications()) {
+        Set<Long> processedAssignmentIds = new HashSet<>(); // an assignment can be mentioned by multiple item deltas
+        for (var itemDelta : List.copyOf(objectDelta.getModifications())) { // copying because of concurrent modifications
             ItemPath deltaPath = itemDelta.getPath();
-            CompareResult comparison = deltaPath.compareComplex(SchemaConstants.PATH_ASSIGNMENT);
+            CompareResult comparison = deltaPath.compareComplex(FocusType.F_ASSIGNMENT);
             if (comparison == EQUIVALENT) {
                 // whole assignment is being added/replaced (or deleted but we are not interested in that)
                 //noinspection unchecked
                 ContainerDelta<AssignmentType> assignmentDelta = (ContainerDelta<AssignmentType>)itemDelta;
-                if (assignmentDelta.getValuesToAdd() != null) {
-                    for (PrismContainerValue<AssignmentType> assignmentContainerValue: assignmentDelta.getValuesToAdd()) {
-                        applyAssignmentValueMetadataAdd(context, assignmentContainerValue, "MOD/add", now, task);
-                    }
+                for (var assignmentContainerValue : emptyIfNull(assignmentDelta.getValuesToAdd())) {
+                    applyMetadataOnAssignmentAddOp(
+                            context, assignmentContainerValue.asContainerable(), "MOD/add", now, task);
                 }
-                if (assignmentDelta.getValuesToReplace() != null) {
-                    for (PrismContainerValue<AssignmentType> assignmentContainerValue: assignmentDelta.getValuesToReplace()) {
-                        applyAssignmentValueMetadataAdd(context, assignmentContainerValue, "MOD/replace", now, task);
-                    }
+                for (var assignmentContainerValue: emptyIfNull(assignmentDelta.getValuesToReplace())) {
+                    applyMetadataOnAssignmentAddOp(
+                            context, assignmentContainerValue.asContainerable(), "MOD/replace", now, task);
                 }
             } else if (comparison == SUPERPATH) {
                 Object secondSegment = deltaPath.rest().first();
-                if (!ItemPath.isId(secondSegment)) {
-                    throw new IllegalStateException("Assignment modification contains no assignment ID. Offending path = " + deltaPath);
-                }
-                Long id = ItemPath.toId(secondSegment);
+                Long id = ItemPath.isId(secondSegment) ? ItemPath.toId(secondSegment) : null;
                 if (id == null) {
-                    throw new IllegalStateException("Assignment modification contains no assignment ID. Offending path = " + deltaPath);
+                    throw new IllegalStateException(
+                            "Assignment modification contains no assignment ID. Offending path = " + deltaPath);
                 }
-                if (processedIds.add(id)) {
-                    assignmentMetadataDeltas.addAll(
-                            createModifyMetadataDeltas(context,
-                                    getCurrentAssignmentMetadata(context, id),
-                                    ItemPath.create(FocusType.F_ASSIGNMENT, id, AssignmentType.F_METADATA),
-                                    context.getFocusClass(), now, task));
+                if (processedAssignmentIds.add(id)) {
+                    var assignment = ObjectTypeUtil.getAssignmentRequired(objectCurrent, id);
+                    ItemDeltaCollectionsUtil.mergeAll(
+                            objectDelta.getModifications(),
+                            createAssignmentModificationRelatedMetadataDeltas(context, assignment, now, task));
+                } else {
+                    // this assignment was already processed
                 }
             }
         }
-        ItemDeltaCollectionsUtil.mergeAll(objectDelta.getModifications(), assignmentMetadataDeltas);
     }
 
-    private <AH extends AssignmentHolderType> MetadataType getCurrentAssignmentMetadata(LensContext<AH> context, Long id) {
-        LensFocusContext<AH> focusContext = context.getFocusContext();
-        if (focusContext == null) {
+    private Collection<ItemDelta<?, ?>> createAssignmentModificationRelatedMetadataDeltas(
+            LensContext<?> context, AssignmentType assignment, XMLGregorianCalendar now, Task task) throws SchemaException {
+        var metadataPath = ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, assignment.getId(), InfraItemName.METADATA);
+        var storageMetadata = ObjectModificationStorageMetadata.create(context, now, task);
+        var allMetadata = assignment.asPrismContainerValue().getValueMetadata();
+        if (allMetadata.hasNoValues()) {
+            LOGGER.debug("No metadata in assignment being modified (id {}), we'll provide some", assignment.getId());
+            return prismContext.deltaFor(context.getFocusClass())
+                    .item(metadataPath)
+                    .add(new ValueMetadataType()
+                            .storage(storageMetadata.toBean()))
+                    .asItemDeltas();
+        }
+
+        var deltas = new ArrayList<ItemDelta<?, ?>>();
+        // TODO is it OK that we add the request/create metadata to all the values?
+        for (var metadata : allMetadata.getRealValues(ValueMetadataType.class)) {
+            deltas.addAll(
+                    storageMetadata.toItemDeltas(
+                            ItemPath.create(metadataPath, metadata.getId(), ValueMetadataType.F_STORAGE),
+                            context.getFocusClass()));
+            // note that assignment approval metadata are handled by ApprovalMetadataHelper in workflow-impl (WHY?)
+        }
+        return deltas;
+    }
+
+    public void addAssignmentCreationApprovalMetadata(
+            AssignmentType assignment, Collection<ObjectReferenceType> approvedBy, Collection<String> comments)
+            throws SchemaException {
+        var metadata = assignment.asPrismContainerValue().getValueMetadata();
+        if (metadata.hasNoValues()) {
+            metadata.addMetadataValue(
+                    minimalAssignmentMetadata().asPrismContainerValue());
+        }
+        for (var metadataBean : metadata.getRealValues(ValueMetadataType.class)) {
+            var processMetadata = getOrCreateProcessMetadata(metadataBean);
+            processMetadata.getCreateApproverRef().clear();
+            processMetadata.getCreateApproverRef().addAll(CloneUtil.cloneCollectionMembers(approvedBy));
+            processMetadata.getCreateApprovalComment().clear();
+            processMetadata.getCreateApprovalComment().addAll(comments);
+        }
+    }
+
+    /** This is the minimal information. Later, we can add more (actor, channel, timestamp). */
+    private static ValueMetadataType minimalAssignmentMetadata() {
+        return new ValueMetadataType();
+//                .provenance(new ProvenanceMetadataType()
+//                        .acquisition(new ProvenanceAcquisitionType()
+//                                .originRef(SystemObjectsType.ORIGIN_USER_ENTRY.value(), ServiceType.COMPLEX_TYPE)));
+    }
+
+    public Collection<ItemDelta<?, ?>> createAssignmentModificationApprovalMetadata(
+            AssignmentHolderType focus, long assignmentId, Collection<ObjectReferenceType> approvedBy, Collection<String> comments)
+            throws SchemaException {
+        var assignmentPcv = (PrismContainerValue<?>) MiscUtil.stateNonNull(
+                focus.asPrismObject().find(ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, assignmentId)),
+                "No assignment with ID %d in %s", assignmentId, focus);
+        var metadata = assignmentPcv.getValueMetadata();
+        if (metadata.hasNoValues()) {
+            var processMetadata = new ProcessMetadataType();
+            processMetadata.getModifyApproverRef().addAll(CloneUtil.cloneCollectionMembers(approvedBy));
+            processMetadata.getModifyApprovalComment().addAll(comments);
+            return PrismContext.get().deltaFor(focus.getClass())
+                    .item(FocusType.F_ASSIGNMENT, assignmentId, InfraItemName.METADATA)
+                    .add(minimalAssignmentMetadata()
+                            .process(processMetadata))
+                    .asItemDeltas();
+        }
+        List<ItemDelta<?, ?>> rv = new ArrayList<>();
+        for (var metadataBean : metadata.getRealValues(ValueMetadataType.class)) {
+            long mdId = MiscUtil.stateNonNull(metadataBean.getId(),
+                    "No metadata PCV ID in %s in assignment #%d in %s", metadataBean, assignmentId, focus);
+            rv.addAll(
+                    PrismContext.get().deltaFor(focus.getClass())
+                            .item(FocusType.F_ASSIGNMENT, assignmentId, InfraItemName.METADATA, mdId,
+                                    ValueMetadataType.F_PROCESS, ProcessMetadataType.F_MODIFY_APPROVER_REF)
+                            .replaceRealValues(CloneUtil.cloneCollectionMembers(approvedBy))
+                            .item(FocusType.F_ASSIGNMENT, assignmentId, InfraItemName.METADATA, mdId,
+                                    ValueMetadataType.F_PROCESS, ProcessMetadataType.F_MODIFY_APPROVAL_COMMENT)
+                            .replaceRealValues(comments)
+                            .asItemDeltas());
+        }
+        return rv;
+    }
+
+    public Collection<? extends ItemDelta<?, ?>> createAssignmentCertificationMetadataDeltas(
+            Class<? extends ObjectType> objectClass,
+            ItemPath assignmentPcvPath,
+            PrismContainerValue<?> assignmentPcv,
+            CertificationProcessMetadata certificationProcessMetadata)
+            throws SchemaException {
+        var metadata = assignmentPcv.getValueMetadata();
+        if (metadata.hasNoValues()) {
+            return PrismContext.get().deltaFor(objectClass)
+                    .item(assignmentPcvPath, InfraItemName.METADATA)
+                    .add(minimalAssignmentMetadata()
+                            .process(certificationProcessMetadata.toBean()))
+                    .asItemDeltas();
+        }
+        List<ItemDelta<?, ?>> rv = new ArrayList<>();
+        for (var metadataBean : metadata.getRealValues(ValueMetadataType.class)) {
+            long mdId = MiscUtil.stateNonNull(metadataBean.getId(),
+                    "No metadata PCV ID in %s in %s", metadataBean, assignmentPcvPath);
+            rv.addAll(
+                    certificationProcessMetadata.toItemDeltas(
+                            assignmentPcvPath.append(InfraItemName.METADATA, mdId, ValueMetadataType.F_PROCESS),
+                            objectClass));
+        }
+        return rv;
+    }
+    //endregion
+
+    //region Support
+
+    private <F extends ObjectType> void setStorageMetadataOnAddOp(
+            LensContext<F> context, ValueMetadataType metadata, XMLGregorianCalendar now, Task task) {
+        if (metadata.getStorage() != null) {
+            // Keep previously entered data manually.
+            return;
+        }
+
+        var storage = getOrCreateStorageMetadata(metadata);
+        storage.setCreateChannel(LensUtil.getChannel(context, task));
+        storage.setCreateTimestamp(now);
+        if (task.getOwnerRef() != null) {
+            storage.setCreatorRef(ObjectTypeUtil.createObjectRefCopy(task.getOwnerRef()));
+        }
+        storage.setCreateTaskRef(createRootTaskRef(task));
+    }
+
+    /**
+     * Returns a reference suitable for use as create/modifyTaskRef: a reference to the root of the task tree.
+     *
+     * (We assume that if the task is a part of a task tree, it is always a {@link RunningTask}.)
+     */
+    private static @Nullable ObjectReferenceType createRootTaskRef(@NotNull Task task) {
+        if (task instanceof RunningTask) {
+            return ((RunningTask) task).getRootTask().getSelfReference();
+        } else if (task.isPersistent()) {
+            // Actually this should not occur in real life. If a task is persistent, it should be a RunningTask.
+            return task.getSelfReference();
+        } else {
             return null;
         }
-        PrismObject<AH> focusCurrent = focusContext.getObjectCurrent();
-        if (focusCurrent == null) {
-            return null;
+    }
+
+    /** "Transplants" previously stored request metadata from model context into target metadata container. */
+    private <F extends ObjectType> void setRequestMetadataOnAddOp(LensContext<F> context, ValueMetadataType targetMetadata) {
+        var requestMetadata = context.getRequestMetadata();
+        if (requestMetadata != null) {
+            var process = getOrCreateProcessMetadata(targetMetadata);
+            process.requestTimestamp(requestMetadata.requestTimestamp());
+            process.setRequestorRef(CloneUtil.clone(requestMetadata.requestorRef()));
         }
-        PrismContainer<MetadataType> metadataContainer = focusCurrent.findContainer(
-                ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, id, AssignmentType.F_METADATA));
-        return metadataContainer != null && metadataContainer.hasAnyValue() ?
-                asContainerable(metadataContainer.getValue()) : null;
+        OperationBusinessContextType businessContext = context.getRequestBusinessContext();
+        if (businessContext != null) {
+            var process = getOrCreateProcessMetadata(targetMetadata);
+            process.setRequestorComment(businessContext.getComment());
+        }
     }
+    //endregion
 
-    private <AH extends AssignmentHolderType> void applyAssignmentValueMetadataAdd(
-            LensContext<AH> context, PrismContainerValue<AssignmentType> assignmentContainerValue, String desc,
-            XMLGregorianCalendar now, Task task) {
-
-        AssignmentType assignment = assignmentContainerValue.asContainerable();
-        MetadataType metadata = getOrCreateMetadata(assignment);
-
-        transplantRequestMetadata(context, metadata);
-        ActivationType activation = setAssignmentEffectiveStatus(assignment);
-        applyCreateMetadata(context, metadata, now, task);
-
-        LOGGER.trace("Adding operational data {} to assignment cval ({}):\nMETADATA:\n{}\nACTIVATION:\n{}",
-                metadata, desc, assignmentContainerValue.debugDumpLazily(1),
-                activation.asPrismContainerValue().debugDumpLazily(1));
-    }
-
+    //region Unsorted
     /**
      * TODO why we do this here and not in ActivationProcessor or something like that?
      */
@@ -251,100 +523,171 @@ public class OperationalDataManager implements DeltaExecutionPreprocessor {
         activation.setEffectiveStatus(effectiveStatus);
         return activation;
     }
+    //endregion
 
-    private @NotNull MetadataType getOrCreateMetadata(AssignmentType assignment) {
-        MetadataType metadata = assignment.getMetadata();
-        if (metadata != null) {
-            return metadata;
+    //region Credentials
+    /** Currently used for the credentials. */
+    public <F extends ObjectType> ValueMetadataType createCreateMetadata(
+            LensContext<F> context, XMLGregorianCalendar now, Task task) {
+        ValueMetadataType metadata = new ValueMetadataType();
+        // TODO apply provenance metadata
+        setStorageMetadataOnAddOp(context, metadata, now, task);
+        return metadata;
+    }
+
+    public <T extends ObjectType> Collection<ItemDelta<?,?>> createCredentialsModificationRelatedStorageMetadataDeltas(
+            @NotNull LensContext<?> context,
+            @NotNull ItemPath credentialContainerPath,
+            @Nullable AbstractCredentialType currentObject,
+            @NotNull Class<T> objectType,
+            @NotNull XMLGregorianCalendar now,
+            @NotNull Task task)
+            throws SchemaException {
+        var storageMetadata = ObjectModificationStorageMetadata.create(context, now, task);
+        var metadata = currentObject != null ? ValueMetadataTypeUtil.getMetadata(currentObject) : null;
+        if (metadata == null) {
+            return prismContext.deltaFor(objectType)
+                    .item(credentialContainerPath.append(InfraItemName.METADATA))
+                    .add(new ValueMetadataType()
+                            .storage(storageMetadata.toBean()))
+                    .asItemDeltas();
         } else {
-            MetadataType newMetadata = new MetadataType();
-            assignment.setMetadata(newMetadata);
-            return newMetadata;
+            return storageMetadata.toItemDeltas(
+                    credentialContainerPath
+                            .append(ValueMetadataTypeUtil.getPathOf(metadata))
+                            .append(ValueMetadataType.F_STORAGE),
+                    objectType);
+        }
+    }
+    //endregion
+
+    /** All values are parent-less here, to be directly insertable into beans and deltas. */
+    private record ObjectModificationStorageMetadata(
+            String modifyChannel,
+            XMLGregorianCalendar modifyTimestamp,
+            ObjectReferenceType modifierRef,
+            ObjectReferenceType modifyTaskRef) {
+
+        static ObjectModificationStorageMetadata create(LensContext<?> context, XMLGregorianCalendar now, Task task) {
+            return new ObjectModificationStorageMetadata(
+                    LensUtil.getChannel(context, task),
+                    now,
+                    ObjectTypeUtil.createObjectRefCopy(task.getOwnerRef()),
+                    createRootTaskRef(task));
+        }
+
+        private StorageMetadataType toBean() {
+            return new StorageMetadataType()
+                    .modifyChannel(modifyChannel)
+                    .modifyTimestamp(modifyTimestamp)
+                    .modifierRef(modifierRef)
+                    .modifyTaskRef(modifyTaskRef);
+        }
+
+        private Collection<ItemDelta<?, ?>> toItemDeltas(
+                ItemPath storageMetadataPath, Class<? extends ObjectType> objectTypeClass) throws SchemaException {
+            return PrismContext.get().deltaFor(objectTypeClass)
+                    .item(storageMetadataPath.append(StorageMetadataType.F_MODIFY_CHANNEL)).replace(modifyChannel)
+                    .item(storageMetadataPath.append(StorageMetadataType.F_MODIFY_TIMESTAMP)).replace(modifyTimestamp)
+                    .item(storageMetadataPath.append(StorageMetadataType.F_MODIFIER_REF)).replace(modifierRef)
+                    .item(storageMetadataPath.append(StorageMetadataType.F_MODIFY_TASK_REF)).replace(modifyTaskRef)
+                    .asItemDeltas();
         }
     }
 
-    public <F extends ObjectType> MetadataType createCreateMetadata(LensContext<F> context, XMLGregorianCalendar now, Task task) {
-        MetadataType metaData = new MetadataType();
-        applyCreateMetadata(context, metaData, now, task);
-        return metaData;
-    }
+    /** All values are parent-less here, to be directly insertable into beans and deltas. */
+    private record ObjectModificationProcessMetadata(
+            Collection<ObjectReferenceType> modifyApproverRefCollection,
+            Collection<String> approvalComments) {
 
-    private <F extends ObjectType> void applyCreateMetadata(
-            LensContext<F> context, MetadataType metaData, XMLGregorianCalendar now, Task task) {
-        String channel = LensUtil.getChannel(context, task);
-        metaData.setCreateChannel(channel);
-        metaData.setCreateTimestamp(now);
-        if (task.getOwnerRef() != null) {
-            metaData.setCreatorRef(ObjectTypeUtil.createObjectRefCopy(task.getOwnerRef()));
+        static ObjectModificationProcessMetadata create(LensContext<?> context) {
+            return new ObjectModificationProcessMetadata(
+                    CloneUtil.cloneCollectionMembers(context.getOperationApprovedBy()),
+                    context.getOperationApproverComments());
         }
-        metaData.setCreateTaskRef(createRootTaskRef(task));
-    }
 
-    private <F extends ObjectType> void applyCreateApprovalMetadata(LensContext<F> context, MetadataType metadata) {
-        metadata.getCreateApproverRef().addAll(CloneUtil.cloneCollectionMembers(context.getOperationApprovedBy()));
-        metadata.getCreateApprovalComment().addAll(context.getOperationApproverComments());
-    }
-
-    private List<ItemDelta<?, ?>> createModifyApprovalMetadataDeltas(
-            Class<? extends ObjectType> objectTypeClass, LensContext<? extends ObjectType> context) throws SchemaException {
-        List<PrismReferenceValue> approverReferenceValues = new ArrayList<>();
-        for (ObjectReferenceType approverRef : context.getOperationApprovedBy()) {
-            approverReferenceValues.add(approverRef.asReferenceValue().clone());
+        @Nullable ProcessMetadataType toBean() {
+            var process = new ProcessMetadataType();
+            process.getModifyApproverRef().addAll(modifyApproverRefCollection);
+            process.getModifyApprovalComment().addAll(approvalComments);
+            return !process.asPrismContainerValue().hasNoItems() ? process : null;
         }
-        return prismContext.deltaFor(objectTypeClass)
-                .item(ObjectType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF).replace(approverReferenceValues)
-                .item(ObjectType.F_METADATA, MetadataType.F_MODIFY_APPROVAL_COMMENT).replaceRealValues(context.getOperationApproverComments())
-                .asItemDeltas();
-    }
 
-    /**
-     * Creates deltas for modification-related metadata (except for modification approval metadata).
-     * But also migrates creation channel, if needed.
-     *
-     * @param existingMetadata Existing metadata bean, if known. It is used to execute the migration.
-     */
-    public <F extends ObjectType, T extends ObjectType> Collection<ItemDelta<?,?>> createModifyMetadataDeltas(
-            LensContext<F> context, MetadataType existingMetadata,
-            ItemPath metadataPath, Class<T> objectType, XMLGregorianCalendar now, Task task) throws SchemaException {
-
-        List<ItemDelta<?, ?>> deltas = new ArrayList<>(prismContext.deltaFor(objectType)
-                .item(metadataPath.append(MetadataType.F_MODIFY_CHANNEL)).replace(LensUtil.getChannel(context, task))
-                .item(metadataPath.append(MetadataType.F_MODIFY_TIMESTAMP)).replace(now)
-                .item(metadataPath.append(MetadataType.F_MODIFIER_REF))
-                    .replace(ObjectTypeUtil.createObjectRefCopy(task.getOwnerRef()))
-                .item(metadataPath.append(MetadataType.F_MODIFY_TASK_REF))
-                    .replace(createRootTaskRef(task))
-                .asItemDeltas());
-        if (existingMetadata != null) {
-            createMigrationDelta(existingMetadata, metadataPath, objectType, deltas);
-        }
-        return deltas;
-    }
-
-    private <T extends ObjectType> void createMigrationDelta(MetadataType existingMetadata, ItemPath metadataPath,
-            Class<T> objectType, List<ItemDelta<?, ?>> deltas) throws SchemaException {
-        Channel.Migration migration = Channel.findMigration(existingMetadata.getCreateChannel());
-        if (migration != null && migration.isNeeded()) {
-            deltas.add(
-                    prismContext.deltaFor(objectType)
-                            .item(metadataPath.append(MetadataType.F_CREATE_CHANNEL)).replace(migration.getNewUri())
-                            .asItemDelta());
+        private Collection<ItemDelta<?, ?>> toItemDeltas(
+                ItemPath processMetadataPath, Class<? extends ObjectType> objectTypeClass)
+                throws SchemaException {
+            return PrismContext.get().deltaFor(objectTypeClass)
+                    .item(processMetadataPath.append(ProcessMetadataType.F_MODIFY_APPROVER_REF))
+                    .replaceRealValues(modifyApproverRefCollection)
+                    .item(processMetadataPath.append(MetadataType.F_MODIFY_APPROVAL_COMMENT))
+                    .replaceRealValues(approvalComments)
+                    .asItemDeltas();
         }
     }
 
-    /**
-     * Returns a reference suitable for use as create/modifyTaskRef: a reference to the root of the task tree.
-     *
-     * (We assume that if the task is a part of a task tree, it is always a {@link RunningTask}.)
-     */
-    private static @Nullable ObjectReferenceType createRootTaskRef(@NotNull Task task) {
-        if (task instanceof RunningTask) {
-            return ((RunningTask) task).getRootTask().getSelfReference();
-        } else if (task.isPersistent()) {
-            // Actually this should not occur in real life. If a task is persistent, it should be a RunningTask.
-            return task.getSelfReference();
-        } else {
-            return null;
+    /** All values are parent-less here, to be directly insertable into beans and deltas. */
+    public record CertificationProcessMetadata(
+            XMLGregorianCalendar certificationFinishedTimestamp,
+            String outcome,
+            @NotNull Collection<ObjectReferenceType> certifierRefs,
+            @NotNull Collection<String> comments) {
+
+
+        ProcessMetadataType toBean() {
+            var processMetadata = new ProcessMetadataType()
+                    .certificationFinishedTimestamp(certificationFinishedTimestamp)
+                    .certificationOutcome(outcome);
+            processMetadata.getCertifierRef().addAll(CloneUtil.cloneCollectionMembers(certifierRefs));
+            processMetadata.getCertifierComment().addAll(comments);
+            return processMetadata;
+        }
+
+        private Collection<ItemDelta<?, ?>> toItemDeltas(
+                ItemPath processMetadataPath, Class<? extends ObjectType> objectTypeClass)
+                throws SchemaException {
+            return PrismContext.get().deltaFor(objectTypeClass)
+                    .item(processMetadataPath.append(ProcessMetadataType.F_CERTIFICATION_FINISHED_TIMESTAMP))
+                    .replace(certificationFinishedTimestamp)
+                    .item(processMetadataPath.append(ProcessMetadataType.F_CERTIFICATION_OUTCOME))
+                    .replace(outcome)
+                    .item(processMetadataPath.append(ProcessMetadataType.F_CERTIFIER_REF))
+                    .replaceRealValues(certifierRefs)
+                    .item(processMetadataPath.append(ProcessMetadataType.F_CERTIFIER_COMMENT))
+                    .replaceRealValues(comments)
+                    .asItemDeltas();
+        }
+    }
+
+    private record ObjectModificationProvisioningMetadata(
+            @Nullable XMLGregorianCalendar lastProvisioningTimestamp) {
+
+        static ObjectModificationProvisioningMetadata create(
+                LensContext<?> context, XMLGregorianCalendar now, boolean isProjection)
+                throws SchemaException, ConfigurationException {
+            return new ObjectModificationProvisioningMetadata(
+                    !isProjection && context.hasProjectionChange() ? now : null);
+        }
+
+        @Nullable ProvisioningMetadataType toBean() {
+            if (lastProvisioningTimestamp != null) {
+                return new ProvisioningMetadataType().lastProvisioningTimestamp(lastProvisioningTimestamp);
+            } else {
+                return null;
+            }
+        }
+
+        private Collection<ItemDelta<?, ?>> toItemDeltas(
+                ItemPath provisioningMetadataPath, Class<? extends ObjectType> objectTypeClass)
+                throws SchemaException {
+            // This is different from the other kinds of data: no information means no change
+            if (lastProvisioningTimestamp != null) {
+                return PrismContext.get().deltaFor(objectTypeClass)
+                        .item(provisioningMetadataPath.append(ProvisioningMetadataType.F_LAST_PROVISIONING_TIMESTAMP))
+                        .replace(lastProvisioningTimestamp)
+                        .asItemDeltas();
+            } else {
+                return List.of();
+            }
         }
     }
 }

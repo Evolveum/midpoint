@@ -1,0 +1,52 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Generate Value on Input Procedure Call*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Accept: application/json" \
+-H "Content-Type: application/json" \
+-X POST http://localhost:8080/midpoint/ws/rest/rpc/generate \
+-v \
+--data-binary @./samples/rest/policy-items-password-rpc-generate.json
+----
+
+.*Show* data source example for *"Generate value on input procedure call"* | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/policy-items-password-rpc-generate.json[GitHub]
+[%collapsible]
+====
+By using an empty policyItemDefinition, the default value policy is used.
+
+[source, json]
+----
+{
+  "policyItemsDefinition": {
+    "policyItemDefinition": {
+    }
+  }
+}
+----
+====
+
+The response is an HTTP 200 code in case of success *with* a response body.
+
+
+.Example Output of *"Generate value on input procedure call"* example
+[%collapsible]
+====
+[source, json]
+----
+{
+  "@ns" : "http://prism.evolveum.com/xml/ns/public/types-3",
+  "object" : {
+    "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/api-types-3#PolicyItemsDefinitionType",
+    "policyItemDefinition" : [ {
+      "value" : {
+        "@type" : "xsd:string",
+        "@value" : "3ju6We:q,DL"
+      }
+    } ]
+  }
+}
+----
+====

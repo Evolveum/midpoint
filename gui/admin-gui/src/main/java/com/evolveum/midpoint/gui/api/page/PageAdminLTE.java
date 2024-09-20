@@ -14,15 +14,23 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.secrets.SecretsProviderManager;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
 
+import com.evolveum.midpoint.model.api.trigger.TriggerHandlerRegistry;
+import com.evolveum.midpoint.model.common.MarkManager;
 import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
 
+import com.evolveum.midpoint.repo.common.subscription.SubscriptionState;
 import com.evolveum.midpoint.schema.merger.AdminGuiConfigurationMergeManager;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaRegistry;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 
 import com.evolveum.midpoint.security.api.SecurityContextManager.ResultAwareCheckedProducer;
+import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.Component;
@@ -95,7 +103,6 @@ import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.repo.common.util.SubscriptionUtil.SubscriptionType;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
@@ -125,6 +132,8 @@ import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
 import com.evolveum.midpoint.wf.api.ApprovalsManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -252,6 +261,18 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     @SpringBean
     private CertGuiHandlerRegistry certGuiHandlerRegistry;
 
+    @SpringBean
+    private SecretsProviderManager secretsProviderManager;
+
+    @SpringBean
+    private TriggerHandlerRegistry triggerHandlerRegistry;
+
+    @SpringBean
+    private ResourceSchemaRegistry resourceSchemaRegistry;
+
+    @SpringBean
+    private MarkManager markManager;
+
     // No need for this to store in session. It is used only during single init and render.
     private transient Task pageTask;
 
@@ -290,11 +311,16 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
         add(body);
 
         Label title = new Label(ID_TITLE, createPageTitleModel());
+        title.add(getPageTitleBehaviour());
         title.setRenderBodyOnly(true);
         add(title);
 
         addFooter();
         initDebugBarLayout();
+    }
+
+    protected VisibleEnableBehaviour getPageTitleBehaviour() {
+        return VisibleBehaviour.ALWAYS_VISIBLE_ENABLED;
     }
 
     protected void addDefaultBodyStyle(TransparentWebMarkupContainer body) {
@@ -329,19 +355,32 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
                     @Override
                     public String getObject() {
-                        SubscriptionType subscriptionType = MidPointApplication.get().getSubscriptionType();
-                        if (!subscriptionType.isCorrect()) {
+                        SubscriptionState subscription = getSubscriptionState();
+                        if (!subscription.isActive()) {
                             return " " + createStringResource("PageBase.nonActiveSubscriptionMessage").getString();
-                        }
-                        if (subscriptionType == SubscriptionType.DEMO_SUBSCRIPTION) {
+                        } else if (subscription.isDemo()) {
                             return " " + createStringResource("PageBase.demoSubscriptionMessage").getString();
+                        } else if (subscription.isInGracePeriod()) {
+                            int daysToGracePeriodGone = subscription.getDaysToGracePeriodGone();
+                            if(daysToGracePeriodGone < 2) {
+                                return " " + createStringResource("PageBase.gracePeriodSubscriptionMessage.lastDay").getString();
+                            }
+                            return " " + createStringResource(
+                                    "PageBase.gracePeriodSubscriptionMessage",
+                                    subscription.getDaysToGracePeriodGone())
+                                    .getString();
+                        } else {
+                            return "";
                         }
-                        return "";
                     }
                 });
         subscriptionMessage.setOutputMarkupId(true);
         subscriptionMessage.add(getFooterVisibleBehaviour());
         footerContainer.add(subscriptionMessage);
+    }
+
+    public SubscriptionState getSubscriptionState() {
+        return MidPointApplication.get().getSubscriptionState();
     }
 
     private VisibleEnableBehaviour getFooterVisibleBehaviour() {
@@ -356,9 +395,8 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     }
 
     private boolean isFooterVisible() {
-        SubscriptionType subscriptionType = MidPointApplication.get().getSubscriptionType();
-        return !subscriptionType.isCorrect()
-                || subscriptionType == SubscriptionType.DEMO_SUBSCRIPTION;
+        SubscriptionState subscription = getSubscriptionState();
+        return subscription.isFooterVisible();
     }
 
     /**
@@ -550,6 +588,10 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     @Override
     public SimulationResultManager getSimulationResultManager() {
         return simulationResultManager;
+    }
+
+    public RoleAnalysisService getRoleAnalysisService() {
+        return getMidpointApplication().getRoleAnalysisService();
     }
 
     public CertGuiHandlerRegistry getCertGuiHandlerRegistry() {
@@ -834,6 +876,10 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
         return guiConfigurationRegistry.findPanel(identifier);
     }
 
+    public Class<? extends AbstractGuiAction<?>> findGuiAction(String identifier) {
+        return guiConfigurationRegistry.findAction(identifier);
+    }
+
     public SimpleCounter getCounterProvider(String identifier) {
         return guiConfigurationRegistry.findCounter(identifier);
     }
@@ -912,7 +958,7 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
         OperationResult topResult = task.getResult();
         try {
             ExpressionFactory factory = getExpressionFactory();
-            PrismPropertyDefinition<OperationResultType> outputDefinition = getPrismContext().definitionFactory().createPropertyDefinition(
+            PrismPropertyDefinition<OperationResultType> outputDefinition = getPrismContext().definitionFactory().newPropertyDefinition(
                     ExpressionConstants.OUTPUT_ELEMENT_NAME, OperationResultType.COMPLEX_TYPE);
             Expression<PrismPropertyValue<OperationResultType>, PrismPropertyDefinition<OperationResultType>> expression = factory.makeExpression(expressionType, outputDefinition, MiscSchemaUtil.getExpressionProfile(), contextDesc, task, topResult);
 
@@ -1034,5 +1080,22 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     public SessionStorage getSessionStorage() {
         MidPointAuthWebSession session = (MidPointAuthWebSession) getSession();
         return session.getSessionStorage();
+    }
+
+    public SecretsProviderManager getSecretsProviderManager() {
+        return secretsProviderManager;
+    }
+
+    @Override
+    public TriggerHandlerRegistry getTriggerHandlerRegistry() {
+        return triggerHandlerRegistry;
+    }
+
+    public ResourceSchemaRegistry getResourceSchemaRegistry() {
+        return resourceSchemaRegistry;
+    }
+
+    public MarkManager getMarkManager() {
+        return markManager;
     }
 }

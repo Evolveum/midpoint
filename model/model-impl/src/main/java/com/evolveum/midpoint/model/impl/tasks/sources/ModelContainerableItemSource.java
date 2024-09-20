@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.impl.tasks.sources;
 
 import java.util.List;
 
+import com.evolveum.midpoint.repo.api.RepositoryService;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -35,6 +37,8 @@ public class ModelContainerableItemSource implements SearchableItemSource {
 
     @Autowired private ModelService modelService;
 
+    @Autowired private RepositoryService repositoryService;
+
     @Override
     public Integer count(@NotNull SearchSpecification<?> searchSpecification, @NotNull RunningTask task,
             @NotNull OperationResult result) throws CommonException {
@@ -49,16 +53,26 @@ public class ModelContainerableItemSource implements SearchableItemSource {
     public <C extends Containerable> void searchIterative(@NotNull SearchSpecification<C> searchSpecification,
             @NotNull ContainerableResultHandler<C> handler, @NotNull RunningTask task, @NotNull OperationResult result)
             throws CommonException {
-        List<C> items = modelService.searchContainers(
-                searchSpecification.getType(),
-                searchSpecification.getQuery(),
-                searchSpecification.getSearchOptions(),
-                task, result);
-
-        for (C item : items) {
-            if (!handler.handle(item, result)) {
-                break;
+        if (repositoryService.isNative()) {
+            modelService.searchContainersIterative(
+                    searchSpecification.getType(),
+                    searchSpecification.getQuery(),
+                    handler,
+                    searchSpecification.getSearchOptions(),
+                    task, result);
+        } else {
+            List<C> items = modelService.searchContainers(
+                    searchSpecification.getType(),
+                    searchSpecification.getQuery(),
+                    searchSpecification.getSearchOptions(),
+                    task, result);
+            for (C item : items) {
+                if (!handler.handle(item, result)) {
+                    break;
+                }
             }
         }
+
+
     }
 }

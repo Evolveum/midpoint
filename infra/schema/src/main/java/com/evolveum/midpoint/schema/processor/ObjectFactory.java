@@ -9,10 +9,14 @@ package com.evolveum.midpoint.schema.processor;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.schema.processor.NativeResourceSchema.NativeResourceSchemaBuilder;
 import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-import com.google.common.annotations.VisibleForTesting;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 import javax.xml.namespace.QName;
 
@@ -22,46 +26,41 @@ import javax.xml.namespace.QName;
 @Experimental
 public class ObjectFactory {
 
-    public static <T> ResourceAttribute<T> createResourceAttribute(QName name, ResourceAttributeDefinition<T> definition) {
-        return new ResourceAttributeImpl<>(name, definition);
+    @TestOnly
+    public static <T> ShadowSimpleAttribute<T> createSimpleAttribute(QName name) {
+        return new ShadowSimpleAttributeImpl<>(name, null);
     }
 
     /**
-     * Creates {@link ResourceAttributeDefinition} with given parameters.
+     * Creates {@link ShadowSimpleAttributeDefinition} with given parameters.
      *
      * The created definition is effectively immutable.
      */
-    @VisibleForTesting
-    public static <T> ResourceAttributeDefinition<T> createResourceAttributeDefinition(QName name, QName typeName) {
-        return ResourceAttributeDefinitionImpl.create(
-                createRawResourceAttributeDefinition(name, typeName));
+    @TestOnly
+    public static <T> ShadowSimpleAttributeDefinition<T> createSimpleAttributeDefinition(
+            @NotNull QName name, @NotNull QName typeName) throws SchemaException {
+        return ShadowSimpleAttributeDefinitionImpl.create(
+                createNativeAttributeDefinition(name, typeName));
     }
 
-    /**
-     * Creates {@link RawResourceAttributeDefinition}. It is mutable but not directly instantiable.
-     */
-    public static <T> MutableRawResourceAttributeDefinition<T> createRawResourceAttributeDefinition(QName name, QName typeName) {
-        return new RawResourceAttributeDefinitionImpl<>(name, typeName);
+    public static <T> NativeShadowAttributeDefinitionImpl<T> createNativeAttributeDefinition(
+            @NotNull QName name, @NotNull QName typeName) {
+        return new NativeShadowAttributeDefinitionImpl<>(ItemName.fromQName(name), typeName);
     }
 
-    public static ResourceAttributeContainer createResourceAttributeContainer(
-            QName name, ResourceAttributeContainerDefinition definition) {
-        return new ResourceAttributeContainerImpl(name, definition);
+    public static NativeResourceSchemaBuilder createNativeResourceSchemaBuilder() {
+        return new NativeResourceSchemaImpl();
     }
 
-    public static ResourceAttributeContainerDefinition createResourceAttributeContainerDefinition(
-            QName name, ResourceObjectDefinition resourceObjectDefinition) {
-        return new ResourceAttributeContainerDefinitionImpl(name, resourceObjectDefinition);
-    }
-
-    public static MutableResourceSchema createResourceSchema() {
-        return new ResourceSchemaImpl();
-    }
-
-    public static PrismObjectDefinition<ShadowType> constructObjectDefinition(ResourceAttributeContainerDefinition rACD) {
+    public static PrismObjectDefinition<ShadowType> constructObjectDefinition(
+            ShadowAttributesContainerDefinition rACD,
+            ShadowAssociationsContainerDefinition rAsCD) {
         // Almost-shallow clone of object definition and complex type
         PrismObjectDefinition<ShadowType> shadowDefinition =
                 PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
-        return shadowDefinition.cloneWithReplacedDefinition(ShadowType.F_ATTRIBUTES, rACD);
+        // FIXME eliminate double cloning!
+        return shadowDefinition
+                .cloneWithNewDefinition(ShadowType.F_ATTRIBUTES, rACD)
+                .cloneWithNewDefinition(ShadowType.F_ASSOCIATIONS, rAsCD);
     }
 }

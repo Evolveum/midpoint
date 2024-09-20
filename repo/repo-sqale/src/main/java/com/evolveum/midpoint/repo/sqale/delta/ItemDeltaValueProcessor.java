@@ -6,9 +6,12 @@
  */
 package com.evolveum.midpoint.repo.sqale.delta;
 
+
 import static java.util.stream.Collectors.toList;
 
 import java.util.Collection;
+
+import com.evolveum.midpoint.prism.ItemModifyResult;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -53,13 +56,53 @@ public abstract class ItemDeltaValueProcessor<T> implements ItemDeltaProcessor {
             return;
         }
 
+
+        var applyResults = modification.applyResults();
+
+
+        if (applyResults != null && useRealDeltaApplyResults()) {
+            for (var result : applyResults) {
+                processResult(result);
+            }
+            return;
+        }
+
+
         // if it was replace, we don't get here, but delete+add can be used together
         if (modification.isDelete()) {
-            deleteRealValues(modification.getRealValuesToDelete());
+            deleteRealValues(modification.getValuesToDelete().stream().map(v -> v.getRealValue()).toList());
         }
         if (modification.isAdd()) {
             addRealValues(modification.getRealValuesToAdd());
         }
+    }
+
+    protected boolean useRealDeltaApplyResults() {
+        return true;
+    }
+
+    private void processResult(ItemModifyResult<?> result) throws SchemaException {
+        switch (result.operation()) {
+            case ADDED -> addRealValue(convertRealValue(result.finalRealValue()));
+            case DELETED -> deleteRealValue(convertRealValue(result.finalRealValue()));
+            case MODIFIED -> modifyRealValue(convertRealValue(result.finalRealValue()));
+
+        }
+
+
+    }
+
+    protected void modifyRealValue(T realValue) throws SchemaException  {
+        deleteRealValue(realValue);
+        addRealValue(realValue);
+    }
+
+    protected void deleteRealValue(T realValue) {
+        throw new UnsupportedOperationException("delete real value not implemented");
+    }
+
+    protected void addRealValue(T realValue) throws SchemaException {
+        throw new UnsupportedOperationException("addValue not implemented");
     }
 
     /** Default conversion for one value is a mere type cast, override as necessary. */

@@ -1,0 +1,91 @@
+= Value Policy Type REST Endpoint
+:page-nav-title: Value Policy
+:page-display-order: 3200
+:page-toc: top
+:page-keywords: [ 'rest', 'value', 'password', 'policy', 'endpoint' ]
+:page-upkeep-status: green
+
+== Description
+
+Here we are describing the Value Policy object type in relation to midPoints REST API. The
+Value Policy objects are a part of the REST API web resources.
+
+.Endpoint
+[source, http]
+----
+valuePolicies/
+----
+
+== Operations And Examples
+
+The Value Policy type endpoint operations and examples.
+
+include::../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+
+
+=== Create Value Policy type Object
+
+- xref:/midpoint/reference/interfaces/rest/operations/create-op-rest/[Create Operation]
+
+=== Get Value Policy type Objects
+
+Get operation for fetching a single specific object.
+
+- xref:/midpoint/reference/interfaces/rest/operations/get-op-rest/[Get Operation]
+
+=== Search for Value Policy type Objects
+
+Search operation usable for fetching the full list of objects or a list based on filter.
+
+include::../operations/examples/raw/search-all.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[Search Operation]
+
+=== Modify Value Policy type Objects
+
+- xref:/midpoint/reference/interfaces/rest/operations/modify-op-rest/[Modify Operation]
+
+=== Delete Value Policy type Objects
+
+- xref:/midpoint/reference/interfaces/rest/operations/delete-op-rest/[Delete Operation]
+
+=== Generate and Validate Operations for Value Policy Objects
+
+Operations to generate or validate values.
+
+- xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]
+
+== JSON Example
+
+Example output of information regarding a specific Value Policy object. Metadata is usually a
+part of the output, yet it was removed for the purpose of the example.
+
+.Show JSON Example
+[%collapsible]
+====
+[source, json]
+----
+{
+  "valuePolicy" : {
+    "oid" : "00000000-0000-0000-0000-000000000003",
+    "version" : "",
+    "name" : "Default Password Policy",
+    "description" : "Default password policy",
+    "metadata" : {},
+    "operationExecution" : {},
+    "iteration" : 0,
+    "iterationToken" : "",
+    "stringPolicy" : {}
+  }
+}
+----
+====
+
+== See Also
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]

@@ -7,24 +7,21 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
-import com.evolveum.midpoint.provisioning.api.LiveSyncToken;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
-import com.evolveum.midpoint.provisioning.impl.TokenUtil;
+import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.provisioning.api.LiveSyncToken;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.shadows.sync.NotApplicableException;
-import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
+import com.evolveum.midpoint.provisioning.impl.TokenUtil;
+import com.evolveum.midpoint.provisioning.ucf.api.ShadowItemsToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfLiveSyncChange;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
  * A live sync change at the level of ResourceObjectConverter, i.e. completely processed except
@@ -39,66 +36,33 @@ public class ResourceObjectLiveSyncChange extends ResourceObjectChange {
      */
     @NotNull private final LiveSyncToken token;
 
-    /** The context known at creation time. Used for initialization. */
-    @NotNull private final InitializationContext ictx;
+    /** The value provided by original caller of the `synchronize` method. */
+    private final ShadowItemsToReturn originalShadowItemsToReturn;
 
     /**
      * @param originalContext Provisioning context determined from the parameters of the synchronize method. It can be wildcard.
-     * @param originalAttributesToReturn Attributes to return determined from the parameters of the synchronize method. It can be null.
+     * @param originalShadowItemsToReturn Attributes to return determined from the parameters of the synchronize method. It can be null.
      */
-    ResourceObjectLiveSyncChange(UcfLiveSyncChange ucfLiveSyncChange, Exception preInitializationException,
-            ResourceObjectConverter converter, ProvisioningContext originalContext, AttributesToReturn originalAttributesToReturn) {
-        super(ucfLiveSyncChange, preInitializationException, originalContext, converter.getBeans());
+    ResourceObjectLiveSyncChange(
+            UcfLiveSyncChange ucfLiveSyncChange,
+            ProvisioningContext originalContext,
+            ShadowItemsToReturn originalShadowItemsToReturn) {
+        super(ucfLiveSyncChange, originalContext);
         this.token = TokenUtil.fromUcf(ucfLiveSyncChange.getToken());
-        this.ictx = new InitializationContext(originalAttributesToReturn, originalContext);
+        this.originalShadowItemsToReturn = originalShadowItemsToReturn;
+    }
+
+    ShadowItemsToReturn determineAttributesToReturn() {
+        if (effectiveCtx == originalCtx) {
+            return originalShadowItemsToReturn;
+        } else {
+            return effectiveCtx.createAttributesToReturn();
+        }
     }
 
     @Override
-    protected void processObjectAndDelta(OperationResult result) throws CommunicationException, ObjectNotFoundException,
-            NotApplicableException, SchemaException, SecurityViolationException, ConfigurationException,
-            ExpressionEvaluationException {
-        if (isDelete()) {
-            return;
-        }
-
-        AttributesToReturn actualAttributesToReturn = determineAttributesToReturn(ictx.originalContext, ictx.originalAttrsToReturn);
-        if (resourceObject == null) {
-            // TODO maybe we can postpone this fetch to ShadowCache.preProcessChange where it is implemented anyway
-            //  But, actually, for all non-delete ConnId LS changes the object is here anyway.
-            LOGGER.trace("Fetching object {} because it is not in the change", identifiers);
-            fetchResourceObject(actualAttributesToReturn, result);
-        } else if (ictx.originalContext.isWildcard() && !MiscUtil.equals(actualAttributesToReturn, ictx.originalAttrsToReturn)) {
-            LOGGER.trace("Re-fetching object {} because mismatching attributesToReturn", identifiers);
-            fetchResourceObject(actualAttributesToReturn, result);
-        } else {
-            beans.resourceObjectConverter
-                    .postProcessResourceObjectRead(context, resourceObject, true, result);
-        }
-    }
-
-    private void fetchResourceObject(AttributesToReturn attributesToReturn, OperationResult result)
-            throws CommunicationException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException, NotApplicableException {
-        try {
-            // todo consider whether it is always necessary to fetch the entitlements
-            resourceObject = beans.resourceObjectConverter
-                    .fetchResourceObject(context, identifiers, attributesToReturn, null, true, result);
-        } catch (ObjectNotFoundException ex) {
-            result.recordHandledError(
-                    "Object detected in change log no longer exist on the resource. Skipping processing this object.", ex);
-            LOGGER.warn("Object detected in change log no longer exist on the resource. Skipping processing this object "
-                    + ex.getMessage());
-            throw new NotApplicableException();
-        }
-    }
-
-    private AttributesToReturn determineAttributesToReturn(
-            ProvisioningContext originalCtx, AttributesToReturn originalAttrsToReturn) {
-        if (context == originalCtx) {
-            return originalAttrsToReturn;
-        } else {
-            return context.createAttributesToReturn();
-        }
+    boolean attributesToReturnAreDifferent(ShadowItemsToReturn actualShadowItemsToReturn) {
+        return !Objects.equals(actualShadowItemsToReturn, originalShadowItemsToReturn);
     }
 
     public @NotNull LiveSyncToken getToken() {
@@ -112,7 +76,8 @@ public class ResourceObjectLiveSyncChange extends ResourceObjectChange {
 
     @Override
     protected void debugDumpExtra(StringBuilder sb, int indent) {
-        DebugUtil.debugDumpWithLabelLn(sb, "token", String.valueOf(token), indent + 1);
+        sb.append('\n');
+        DebugUtil.debugDumpWithLabel(sb, "token", String.valueOf(token), indent + 1);
     }
 
     @Override
@@ -120,22 +85,14 @@ public class ResourceObjectLiveSyncChange extends ResourceObjectChange {
         return LOGGER;
     }
 
-    private static class InitializationContext {
-        private final AttributesToReturn originalAttrsToReturn;
-        private final ProvisioningContext originalContext;
-
-        private InitializationContext(AttributesToReturn originalAttrsToReturn, ProvisioningContext originalContext) {
-            this.originalAttrsToReturn = originalAttrsToReturn;
-            this.originalContext = originalContext;
-        }
-    }
-
     @Override
     public void checkConsistence() throws SchemaException {
         super.checkConsistence();
-        if (initializationState.isOk() && initializationState.isAfterInitialization()) {
-            // Maybe temporary. This is a specialty of LS change.
-            stateCheck(resourceObject != null || isDelete(), "No resource object for non-delete delta");
+        stateCheck(ucfResourceObject != null || isDelete(), "No UCF resource object for non-delete delta");
+
+        if (isInitialized() && isOk()) {
+            // Currently, livesync ADD+MODIFY changes contain the whole object.
+            stateCheck(completeResourceObject != null || isDelete(), "No resource object for non-delete delta");
         }
     }
 }

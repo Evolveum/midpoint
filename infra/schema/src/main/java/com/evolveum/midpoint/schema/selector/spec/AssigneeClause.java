@@ -54,7 +54,8 @@ public class AssigneeClause extends SelectorClause {
         }
         var assignees = getAssignees(realValue, ctx);
         if (!assignees.isEmpty()) {
-            var childCtx = ctx.next(getDelegatorSelectionMode(realValue), "a", "assignee");
+            // The assignees are always known "in full", as they are fetched from the repository via objectResolver.
+            var childCtx = ctx.next(getDelegatorSelectionMode(realValue), "a", "assignee", true);
             for (PrismObject<? extends ObjectType> assignee : assignees) {
                 assert assignee != null;
                 if (selector.matches(assignee.getValue(), childCtx)) {

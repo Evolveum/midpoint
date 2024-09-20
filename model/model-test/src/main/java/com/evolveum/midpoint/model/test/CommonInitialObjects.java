@@ -17,10 +17,7 @@ import com.evolveum.midpoint.test.TestReport;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Definition of commonly used initial objects be used in tests on or above the `model` level.
@@ -35,11 +32,13 @@ public interface CommonInitialObjects {
     String MARKS = INITIAL_OBJECTS + "/mark";
     String REPORTS = INITIAL_OBJECTS + "/report";
     String OBJECT_COLLECTION = INITIAL_OBJECTS + "/object-collection";
+    String POLICIES = INITIAL_OBJECTS + "/policy";
 
     String ARCHETYPES = INITIAL_OBJECTS + "/archetype";
 
     String FUNCTION_LIBRARY = INITIAL_OBJECTS + "/function-library";
 
+    String SERVICES = INITIAL_OBJECTS + "/service";
     TestObject<ArchetypeType> ARCHETYPE_REPORT = TestObject.classPath(
             ARCHETYPES, "059-archetype-report.xml", SystemObjectsType.ARCHETYPE_REPORT.value());
 
@@ -52,6 +51,9 @@ public interface CommonInitialObjects {
     TestObject<ArchetypeType> ARCHETYPE_OBJECT_MARK = TestObject.classPath(
             ARCHETYPES, "701-archetype-object-mark.xml", SystemObjectsType.ARCHETYPE_OBJECT_MARK.value());
 
+    TestObject<ArchetypeType> ARCHETYPE_SHADOW_POLICY_MARK = TestObject.classPath(
+            ARCHETYPES, "705-archetype-shadow-policy-mark.xml", SystemObjectsType.ARCHETYPE_SHADOW_POLICY_MARK.value());
+
     TestObject<ArchetypeType> ARCHETYPE_RECONCILIATION_TASK = TestObject.classPath(
             ARCHETYPES, "501-archetype-task-reconciliation.xml",
             SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value());
@@ -63,6 +65,39 @@ public interface CommonInitialObjects {
     TestObject<ArchetypeType> ARCHETYPE_ITERATIVE_BULK_ACTION_TASK = TestObject.classPath(
             ARCHETYPES, "509-archetype-task-iterative-bulk-action.xml",
             SystemObjectsType.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK.value());
+
+    TestObject<ArchetypeType> ARCHETYPE_CLASSIFICATION = TestObject.classPath(
+            ARCHETYPES, "062-archetype-classification.xml",
+            SystemObjectsType.ARCHETYPE_CLASSIFICATION.value());
+
+    TestObject<ArchetypeType> ARCHETYPE_BUSINESS_ROLE = TestObject.classPath(
+            ARCHETYPES, "022-archetype-business-role.xml",
+            SystemObjectsType.ARCHETYPE_BUSINESS_ROLE.value());
+
+    //Certification tasks
+    TestObject<ArchetypeType> ARCHETYPE_CERTIFICATION_TASK_PARENT = TestObject.classPath(
+            ARCHETYPES, "520-archetype-task-certification.xml",
+            SystemObjectsType.ARCHETYPE_CERTIFICATION_TASK.value());
+
+    TestObject<ArchetypeType> ARCHETYPE_CERTIFICATION_TASK_OPEN_NEXT_STAGE = TestObject.classPath(
+            ARCHETYPES, "534-archetype-task-certification-open-next-stage.xml",
+            SystemObjectsType.ARCHETYPE_CERTIFICATION_OPEN_NEXT_STAGE_TASK.value());
+
+    TestObject<ArchetypeType> ARCHETYPE_CERTIFICATION_TASK_REMEDIATION = TestObject.classPath(
+            ARCHETYPES, "535-archetype-task-certification-remediation.xml",
+            SystemObjectsType.ARCHETYPE_CERTIFICATION_REMEDIATION_TASK.value());
+
+    TestObject<ArchetypeType> ARCHETYPE_CERTIFICATION_TASK_START_CAMPAIGN = TestObject.classPath(
+            ARCHETYPES, "536-archetype-task-certification-start-campaign.xml",
+            SystemObjectsType.ARCHETYPE_CERTIFICATION_START_CAMPAIGN_TASK.value());
+
+    TestObject<ArchetypeType> ARCHETYPE_CERTIFICATION_TASK_CLOSE_CURRENT_STAGE = TestObject.classPath(
+            ARCHETYPES, "537-archetype-task-certification-close-current-stage.xml",
+            SystemObjectsType.ARCHETYPE_CERTIFICATION_START_CAMPAIGN_TASK.value());
+
+    TestObject<ArchetypeType> ARCHETYPE_CERTIFICATION_TASK_REITERATE_CAMPAIGN = TestObject.classPath(
+            ARCHETYPES, "538-archetype-task-certification-reiterate-campaign.xml",
+            SystemObjectsType.ARCHETYPE_CERTIFICATION_REITERATE_CAMPAIGN_TASK.value());
 
     TestObject<MarkType> MARK_FOCUS_ACTIVATED = TestObject.classPath(
             MARKS, "710-mark-focus-activated.xml", SystemObjectsType.MARK_FOCUS_ACTIVATED.value());
@@ -135,6 +170,63 @@ public interface CommonInitialObjects {
     TestObject<MarkType> MARK_INVALID_DATA = TestObject.classPath(
             MARKS, "804-mark-invalid-data.xml", SystemObjectsType.MARK_INVALID_DATA.value());
 
+    TestObject<MarkType> MARK_UNMANAGED = TestObject.classPath(
+            MARKS, "805-mark-unmanaged.xml", SystemObjectsType.MARK_UNMANAGED.value());
+
+    TestObject<MarkType> MARK_MANAGED = TestObject.classPath(
+            MARKS, "806-mark-managed.xml", SystemObjectsType.MARK_MANAGED.value());
+
+    TestObject<MarkType> MARK_EXCLUSION_VIOLATION = TestObject.classPath(
+            MARKS, "811-exclusion-violation.xml", SystemObjectsType.MARK_EXCLUSION_VIOLATION.value());
+
+    TestObject<MarkType> MARK_REQUIREMENT_VIOLATION = TestObject.classPath(
+            MARKS, "812-requirement-violation.xml", SystemObjectsType.MARK_REQUIREMENT_VIOLATION.value());
+
+    TestObject<MarkType> MARK_UNDERASSIGNED = TestObject.classPath(
+            MARKS, "813-underassigned.xml", SystemObjectsType.MARK_UNDERASSIGNED.value());
+
+    TestObject<MarkType> MARK_OVERASSIGNED = TestObject.classPath(
+            MARKS, "814-overassigned.xml", SystemObjectsType.MARK_OVERASSIGNED.value());
+
+    TestObject<MarkType> MARK_OBJECT_MODIFIED = TestObject.classPath(
+            MARKS, "815-object-modified.xml", SystemObjectsType.MARK_OBJECT_MODIFIED.value());
+
+    TestObject<MarkType> MARK_ASSIGNMENT_MODIFIED = TestObject.classPath(
+            MARKS, "816-assignment-modified.xml", SystemObjectsType.MARK_ASSIGNMENT_MODIFIED.value());
+
+    TestObject<MarkType> MARK_HAS_ASSIGNMENT = TestObject.classPath(
+            MARKS, "817-has-assignment.xml", SystemObjectsType.MARK_HAS_ASSIGNMENT.value());
+
+    TestObject<MarkType> MARK_HAS_NO_ASSIGNMENT = TestObject.classPath(
+            MARKS, "818-has-no-assignment.xml", SystemObjectsType.MARK_HAS_NO_ASSIGNMENT.value());
+
+    TestObject<MarkType> MARK_OBJECT_STATE = TestObject.classPath(
+            MARKS, "819-object-state.xml", SystemObjectsType.MARK_OBJECT_STATE.value());
+
+    TestObject<MarkType> MARK_ASSIGNMENT_STATE = TestObject.classPath(
+            MARKS, "820-assignment-state.xml", SystemObjectsType.MARK_ASSIGNMENT_STATE.value());
+
+    TestObject<MarkType> MARK_OBJECT_TIME_VALIDITY = TestObject.classPath(
+            MARKS, "821-object-time-validity.xml", SystemObjectsType.MARK_OBJECT_TIME_VALIDITY.value());
+
+    TestObject<MarkType> MARK_ASSIGNMENT_TIME_VALIDITY = TestObject.classPath(
+            MARKS, "822-assignment-time-validity.xml", SystemObjectsType.MARK_ASSIGNMENT_TIME_VALIDITY.value());
+
+    TestObject<MarkType> MARK_SUSPICIOUS = TestObject.classPath(
+            MARKS, "830-suspicious.xml", SystemObjectsType.MARK_SUSPICIOUS.value());
+
+    TestObject<MarkType> MARK_UNDERSTAFFED_SECURITY = TestObject.classPath(
+            MARKS, "831-understaffed-security.xml", SystemObjectsType.MARK_UNDERSTAFFED_SECURITY.value());
+
+    TestObject<MarkType> MARK_ORPHANED = TestObject.classPath(
+            MARKS, "832-orphaned.xml", SystemObjectsType.MARK_ORPHANED.value());
+
+    TestObject<MarkType> MARK_NEGLECTED = TestObject.classPath(
+            MARKS, "833-neglected.xml", SystemObjectsType.MARK_NEGLECTED.value());
+
+    TestObject<PolicyType> POLICY_INFORMATION_SECURITY_RESPONSIBILITY = TestObject.classPath(
+            POLICIES, "333-classification-information-security-responsibility.xml", SystemObjectsType.CLASSIFICATION_INFORMATION_SECURITY_RESPONSIBILITY.value());
+
     String PARAM_SIMULATION_RESULT_REF = "simulationResultRef";
     String PARAM_PATHS_TO_INCLUDE = "pathsToInclude";
     String PARAM_PATHS_TO_EXCLUDE = "pathsToExclude";
@@ -195,6 +287,29 @@ public interface CommonInitialObjects {
             "160-report-certification-work-items.xml",
             "00000000-0000-0000-0000-000000000160");
 
+    TestObject<ServiceType> SERVICE_ORIGIN_INTERNAL = TestObject.classPath(
+            SERVICES,
+            "600-origin-internal.xml",
+            "00000000-0000-0000-0000-000000000600"
+    );
+
+    static void addCertificationTasks(AbstractModelIntegrationTest test, Task task, OperationResult result) throws CommonException, IOException{
+        try {
+            test.initTestObjects(
+                    task, result,
+                    ARCHETYPE_CERTIFICATION_TASK_PARENT,
+                    ARCHETYPE_CERTIFICATION_TASK_OPEN_NEXT_STAGE,
+                    ARCHETYPE_CERTIFICATION_TASK_REMEDIATION,
+                    ARCHETYPE_CERTIFICATION_TASK_START_CAMPAIGN,
+                    ARCHETYPE_CERTIFICATION_TASK_CLOSE_CURRENT_STAGE,
+                    ARCHETYPE_CERTIFICATION_TASK_REITERATE_CAMPAIGN);
+        } catch (CommonException | IOException | RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw SystemException.unexpected(e);
+        }
+    }
+
     /** To be used when needed. */
     static void addMarks(AbstractModelIntegrationTest test, Task task, OperationResult result)
             throws CommonException, IOException {
@@ -206,6 +321,7 @@ public interface CommonInitialObjects {
                     task, result,
                     ARCHETYPE_EVENT_MARK,
                     ARCHETYPE_OBJECT_MARK,
+                    ARCHETYPE_SHADOW_POLICY_MARK,
                     MARK_FOCUS_ACTIVATED,
                     MARK_FOCUS_DEACTIVATED,
                     MARK_FOCUS_RENAMED,
@@ -226,7 +342,25 @@ public interface CommonInitialObjects {
                     MARK_DECOMMISSION_LATER,
                     MARK_CORRELATE_LATER,
                     MARK_DO_NOT_TOUCH,
-                    MARK_INVALID_DATA);
+                    MARK_INVALID_DATA,
+                    MARK_UNMANAGED,
+                    MARK_MANAGED,
+                    MARK_EXCLUSION_VIOLATION,
+                    MARK_REQUIREMENT_VIOLATION,
+                    MARK_UNDERASSIGNED,
+                    MARK_OVERASSIGNED,
+                    MARK_OBJECT_MODIFIED,
+                    MARK_ASSIGNMENT_MODIFIED,
+                    MARK_HAS_ASSIGNMENT,
+                    MARK_HAS_NO_ASSIGNMENT,
+                    MARK_OBJECT_STATE,
+                    MARK_ASSIGNMENT_STATE,
+                    MARK_OBJECT_TIME_VALIDITY,
+                    MARK_ASSIGNMENT_TIME_VALIDITY,
+                    MARK_SUSPICIOUS,
+                    MARK_UNDERSTAFFED_SECURITY,
+                    MARK_ORPHANED,
+                    MARK_NEGLECTED);
         } catch (CommonException | IOException | RuntimeException e) {
             throw e;
         } catch (Exception e) {

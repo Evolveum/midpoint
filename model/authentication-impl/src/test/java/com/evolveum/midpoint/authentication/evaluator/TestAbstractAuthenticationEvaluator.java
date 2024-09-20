@@ -13,7 +13,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.authentication.api.evaluator.context.AbstractAuthenticationContext;
 import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
@@ -29,6 +28,7 @@ import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAut
 import com.evolveum.midpoint.authentication.impl.util.AuthModuleImpl;
 import com.evolveum.midpoint.model.impl.AbstractModelImplementationIntegrationTest;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.TestTask;
@@ -132,7 +132,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
     public abstract String getModuleIdentifier();
     public abstract String getSequenceIdentifier();
-    public abstract QName getCredentialType();
+    public abstract ItemName getCredentialType();
 
     public abstract void modifyUserCredential(Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
@@ -176,7 +176,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         ((CredentialsAuthenticationEvaluatorImpl) getAuthenticationEvaluator()).setPrincipalManager(new GuiProfiledPrincipalManager() {
 
             @Override
-            public <F extends FocusType, O extends ObjectType> PrismObject<F> resolveOwner(PrismObject<O> object) throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            public <F extends FocusType, O extends ObjectType> Collection<PrismObject<F>> resolveOwner(PrismObject<O> object) throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
                 return focusProfileService.resolveOwner(object);
             }
 

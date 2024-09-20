@@ -16,15 +16,18 @@
     </div>
 
 
-    <div class="login-box">
+    <div class="login-box" role="main" aria-labelledby="panelTitle">
         <div class="card card-primary">
             <div class="card-header text-center">
                 <h1>midPoint</h1>
                 <p wicket:id="sequence"/>
             </div>
             <div class="card-body login-card-body justify-content-between">
-                <h4 class="login-box-msg" wicket:id="panelTitle"></h4>
+                <h2 class="login-box-msg" wicket:id="panelTitle" id="panelTitle"></h2>
                 <p class="login-panel-description text-center" wicket:id="panelDescription"></p>
+                <a class="d-flex text-center mt-2 justify-content-center" wicket:id="actionLink">
+                    <span wicket:id="actionLinkLabel"/>
+                </a>
 
                 <wicket:child/>
 

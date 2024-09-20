@@ -96,7 +96,7 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
         saveAndRunButton.add(new VisibleBehaviour(() -> !getModelObject().isReadOnly()));
         saveAndRunButton.setOutputMarkupId(true);
         saveAndRunButton.setOutputMarkupPlaceholderTag(true);
-        saveAndRunButton.add(AttributeAppender.append("class", "btn-primary btn-sm"));
+        saveAndRunButton.add(AttributeAppender.append("class", "btn btn-primary btn-sm"));
         repeatingView.add(saveAndRunButton);
     }
 

@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.PageAdminCertification;
 import com.evolveum.midpoint.model.api.AccessCertificationService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -36,7 +37,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertCampaignDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertCaseDto;
 import com.evolveum.midpoint.web.component.data.provider.CertCaseDtoProvider;
-import com.evolveum.midpoint.web.page.admin.certification.helpers.AvailableResponses;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.AvailableResponses;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -64,12 +65,11 @@ import java.util.List;
 
 import static com.evolveum.midpoint.web.page.admin.certification.CertDecisionHelper.WhichObject.OBJECT;
 import static com.evolveum.midpoint.web.page.admin.certification.CertDecisionHelper.WhichObject.TARGET;
-import static com.evolveum.midpoint.web.page.admin.certification.PageCertCampaigns.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCasesStatisticsType.*;
 
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/certification/campaign", matchUrlForSecurity = "/admin/certification/campaign")
+                @Url(mountUrl = "/admin/certification/campaignOld", matchUrlForSecurity = "/admin/certification/campaignOld")
         },
         action = {
                 @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
@@ -119,6 +119,11 @@ public class PageCertCampaign extends PageAdminCertification {
     private static final String OPERATION_CLOSE_STAGE = DOT_CLASS + "closeStage";
     private static final String OPERATION_CLOSE_CAMPAIGN = DOT_CLASS + "closeCampaign";
     private static final String OPERATION_START_REMEDIATION = DOT_CLASS + "startRemediation";
+    static final String OP_START_CAMPAIGN = "PageCertCampaigns.button.startCampaign";
+    static final String OP_CLOSE_CAMPAIGN = "PageCertCampaigns.button.closeCampaign";
+    static final String OP_CLOSE_STAGE = "PageCertCampaigns.button.closeStage";
+    static final String OP_OPEN_NEXT_STAGE = "PageCertCampaigns.button.openNextStage";
+    static final String OP_START_REMEDIATION = "PageCertCampaigns.button.startRemediation";
 
     private static final String ID_OUTCOMES_TABLE = "outcomesTable";
 

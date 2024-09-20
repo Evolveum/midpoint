@@ -8,10 +8,11 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <a data-toggle="dropdown" href="#">
+    <a data-toggle="dropdown" href="#" aria-labelledby="languageAriaDesc selectedLanguage">
         <div class="d-flex flex-nowrap gap-2 align-items-center">
             <i wicket:id="icon"></i>
-            <span wicket:id="text"/>
+            <span id="languageAriaDesc" style="display:none;"><wicket:message key="Accessibility.PageLogin.language.title"/></span>
+            <span wicket:id="text" id="selectedLanguage"/>
             <i class="fas fa-xs fa-chevron-left"></i>
         </div>
     </a>

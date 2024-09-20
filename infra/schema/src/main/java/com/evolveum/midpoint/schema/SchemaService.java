@@ -6,6 +6,10 @@
  */
 package com.evolveum.midpoint.schema;
 
+import com.evolveum.midpoint.prism.polystring.NormalizerRegistry;
+
+import com.evolveum.midpoint.schema.processor.ResourceSchemaRegistry;
+
 import jakarta.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
@@ -31,6 +35,8 @@ public class SchemaService {
     @Autowired private PrismContext prismContext;
     @Autowired private RelationRegistry relationRegistry;
     @Autowired private MatchingRuleRegistry matchingRuleRegistry;
+    @Autowired private NormalizerRegistry normalizerRegistry;
+    @Autowired private ResourceSchemaRegistry resourceSchemaRegistry;
 
     private static SchemaService instance;
 
@@ -41,11 +47,15 @@ public class SchemaService {
 
     @VisibleForTesting
     public static void init(
-            PrismContext prismContext, RelationRegistry relationRegistry, MatchingRuleRegistry matchingRuleRegistry) {
+            @NotNull PrismContext prismContext,
+            @NotNull RelationRegistry relationRegistry,
+            @NotNull MatchingRuleRegistry matchingRuleRegistry,
+            @NotNull NormalizerRegistry normalizerRegistry) {
         SchemaService newInstance = new SchemaService();
         newInstance.prismContext = prismContext;
         newInstance.relationRegistry = relationRegistry;
         newInstance.matchingRuleRegistry = matchingRuleRegistry;
+        newInstance.normalizerRegistry = normalizerRegistry;
         newInstance.init();
     }
 
@@ -53,29 +63,31 @@ public class SchemaService {
         return instance;
     }
 
-    public PrismContext prismContext() {
+    public @NotNull PrismContext prismContext() {
         return prismContext;
     }
 
-    public RelationRegistry relationRegistry() {
+    public @NotNull RelationRegistry relationRegistry() {
         return relationRegistry;
     }
 
-    public MatchingRuleRegistry matchingRuleRegistry() {
+    public @NotNull MatchingRuleRegistry matchingRuleRegistry() {
         return matchingRuleRegistry;
+    }
+
+    public @NotNull ResourceSchemaRegistry resourceSchemaRegistry() {
+        return resourceSchemaRegistry;
     }
 
     public GetOperationOptionsBuilder getOperationOptionsBuilder() {
         return new GetOperationOptionsBuilderImpl(prismContext);
     }
 
-    @NotNull
-    public PrismSerializer<String> createStringSerializer(@NotNull String language) {
+    public @NotNull PrismSerializer<String> createStringSerializer(@NotNull String language) {
         return prismContext.serializerFor(language);
     }
 
-    @NotNull
-    public PrismParserNoIO parserFor(@NotNull String serializedForm) {
+    public @NotNull PrismParserNoIO parserFor(@NotNull String serializedForm) {
         return prismContext.parserFor(serializedForm);
     }
 
@@ -95,12 +107,10 @@ public class SchemaService {
         return relationRegistry.normalizeRelation(qName);
     }
 
-    @NotNull
-    public PrismReferenceValue createReferenceValue(
+    public @NotNull PrismReferenceValue createReferenceValue(
             @NotNull String oid, @NotNull Class<? extends ObjectType> schemaType) {
         return prismContext.itemFactory().createReferenceValue(oid,
                 prismContext.getSchemaRegistry().determineTypeForClass(schemaType));
-
     }
 
     public <C extends Containerable> PrismContainerDefinition<C>

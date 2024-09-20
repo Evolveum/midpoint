@@ -16,6 +16,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -368,5 +369,31 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
 
     public @Nullable String getArchetypeOid() {
         return getOid(getArchetypeRef());
+    }
+
+    public CompiledObjectCollectionView clone() {
+        CompiledObjectCollectionView clone = new CompiledObjectCollectionView(containerType, viewIdentifier);
+        clone.actions = CloneUtil.cloneCollectionMembers(actions);
+        clone.collection = CloneUtil.clone(collection);
+        clone.columns = CloneUtil.cloneCollectionMembers(columns);
+        clone.display = CloneUtil.clone(display);
+        clone.distinct = distinct;
+        clone.disableSorting = disableSorting;
+        clone.disableCounting = disableCounting;
+        clone.searchBoxConfiguration = CloneUtil.clone(searchBoxConfiguration);
+        clone.filter = CloneUtil.clone(filter);
+        clone.domainFilter = CloneUtil.clone(domainFilter);
+        clone.displayOrder = displayOrder;
+        clone.refreshInterval = refreshInterval;
+        clone.options = CloneUtil.cloneCollectionMembers(options);
+        clone.domainOptions = CloneUtil.cloneCollectionMembers(domainOptions);
+        clone.paging = CloneUtil.clone(paging);
+        clone.name = CloneUtil.clone(name);
+        clone.visibility = visibility;
+        clone.applicableForOperation = applicableForOperation;
+        clone.includeDefaultColumns = includeDefaultColumns;
+        clone.objectCollectionDescription = objectCollectionDescription;
+        clone.defaultView = defaultView;
+        return clone;
     }
 }

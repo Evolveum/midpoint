@@ -15,9 +15,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-import com.nimbusds.jose.shaded.json.JSONArray;
-import com.nimbusds.jose.shaded.json.JSONObject;
 import com.nimbusds.jose.util.JSONObjectUtils;
+import net.minidev.json.JSONArray;
+import net.minidev.json.JSONObject;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.text.StringEscapeUtils;
@@ -31,8 +31,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
-import java.util.Optional;
-import java.util.Properties;
+import java.util.*;
 
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -70,7 +69,6 @@ public abstract class TestAbstractOidcRestModule extends TestAbstractAuthenticat
     private static final String TRUSTING_ASYMMETRIC_CERT_KEY = "trustingAsymmetricCertificate";
     private static final String KEY_STORE_PATH_KEY = "keyStorePath";
     private static final String USER_INFO_URI_KEY = "userInfoUri";
-    private static final String KID_KEY = "kid";
 
     private Properties properties;
 
@@ -156,73 +154,123 @@ public abstract class TestAbstractOidcRestModule extends TestAbstractAuthenticat
 
     @Test
     public void test004OidcAuthByPublicKey() throws Exception {
-        String securityContent = getSecurityPolicy(SECURITY_POLICY_PUBLIC_KEY);
-        securityContent = securityContent.replace(createTag(TRUSTING_ASYMMETRIC_CERT_KEY), getPublicKey());
-        replaceSecurityPolicy(securityContent);
-
+        Map<String, String> publicKeys = getPublicKeys();
+        boolean allKeysFails = true;
         WebClient client = prepareClient();
 
-        when();
-        Response response = client.get();
+        for (String publicKeyKid : publicKeys.keySet()) {
+            String securityContent = getSecurityPolicy(SECURITY_POLICY_PUBLIC_KEY);
+            securityContent = securityContent.replace(createTag(TRUSTING_ASYMMETRIC_CERT_KEY), publicKeys.get(publicKeyKid));
+            replaceSecurityPolicy(securityContent);
 
-        then();
-        assertSuccess(response);
+            when();
+            Response response = client.get();
+
+            boolean success = true;
+            then();
+            try {
+                assertSuccess(response);
+            } catch (AssertionError e) {
+                success = false;
+                LOGGER.error("Couldn't use key with kid " + publicKeyKid + " for test.", e);
+                getDummyAuditService().clear();
+            }
+            if (success) {
+                allKeysFails = false;
+                break;
+            }
+        }
+        if (allKeysFails) {
+            throw new AssertionError("Test for each public keys fails.");
+        }
     }
 
     @Test
     public void test005oidcAuthByPublicKeyWithWrongAlg() throws Exception {
-        String securityContent = getSecurityPolicy(SECURITY_POLICY_PUBLIC_KEY_WRONG_ALG);
-        securityContent = securityContent.replace(createTag(TRUSTING_ASYMMETRIC_CERT_KEY), getPublicKey());
-        replaceSecurityPolicy(securityContent);
-
+        Map<String, String> publicKeys = getPublicKeys();
+        boolean oneIsSuccess = false;
         WebClient client = prepareClient();
 
-        when();
-        Response response = client.get();
+        for (String publicKeyKid : publicKeys.keySet()) {
+            String securityContent = getSecurityPolicy(SECURITY_POLICY_PUBLIC_KEY_WRONG_ALG);
+            securityContent = securityContent.replace(createTag(TRUSTING_ASYMMETRIC_CERT_KEY), publicKeys.get(publicKeyKid));
+            replaceSecurityPolicy(securityContent);
 
-        then();
-        assertUnsuccess(response);
+            when();
+            Response response = client.get();
+
+            then();
+            try {
+                assertUnsuccess(response);
+            } catch (AssertionError e) {
+                LOGGER.error("Unexpected success assert for using key with kid " + publicKeyKid + " for test.", e);
+                oneIsSuccess = true;
+                break;
+            }
+        }
+        if (oneIsSuccess) {
+            throw new AssertionError("Test for each public keys fails.");
+        }
     }
 
     @Test
     public void test006OidcAuthByPublicKeyAsKeystore() throws Exception {
-        KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
-        keystore.load(null);
-        String publicKey = getPublicKey();
-
-        byte[] certBytes;
-        if (Base64.isBase64(publicKey)) {
-            boolean isBase64Url = publicKey.contains("-") || publicKey.contains("_");
-            certBytes = Base64Utility.decode(publicKey, isBase64Url);
-        } else {
-            certBytes = publicKey.getBytes();
-        }
-        CertificateFactory cf = CertificateFactory.getInstance("X.509");
-        Certificate certificate = cf.generateCertificate(new ByteArrayInputStream(certBytes));
-        keystore.setCertificateEntry("cert", certificate);
+        Map<String, String> publicKeys = getPublicKeys();
+        boolean allKeysFails = true;
 
         String pathToKeystore = MIDPOINT_HOME + "/test-keystore";
-        File file = new File(pathToKeystore);
-        file.deleteOnExit();
-        if (file.exists()) {
-            file.delete();
-        }
-
-        FileOutputStream out = new FileOutputStream(file);
-        keystore.store(out, "secret".toCharArray());
-        out.close();
-
         String securityContent = getSecurityPolicy(SECURITY_POLICY_PUBLIC_KEY_KEYSTORE);
         securityContent = securityContent.replace(createTag(KEY_STORE_PATH_KEY), pathToKeystore);
         replaceSecurityPolicy(securityContent);
 
         WebClient client = prepareClient();
 
-        when();
-        Response response = client.get();
+        for (String publicKeyKid : publicKeys.keySet()) {
+            KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+            keystore.load(null);
+            String publicKey = publicKeys.get(publicKeyKid);
 
-        then();
-        assertSuccess(response);
+            byte[] certBytes;
+            if (Base64.isBase64(publicKey)) {
+                boolean isBase64Url = publicKey.contains("-") || publicKey.contains("_");
+                certBytes = Base64Utility.decode(publicKey, isBase64Url);
+            } else {
+                certBytes = publicKey.getBytes();
+            }
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            Certificate certificate = cf.generateCertificate(new ByteArrayInputStream(certBytes));
+            keystore.setCertificateEntry("cert", certificate);
+
+            File file = new File(pathToKeystore);
+            file.deleteOnExit();
+            if (file.exists()) {
+                file.delete();
+            }
+
+            FileOutputStream out = new FileOutputStream(file);
+            keystore.store(out, "secret".toCharArray());
+            out.close();
+
+            when();
+            Response response = client.get();
+
+            boolean success = true;
+            then();
+            try {
+                assertSuccess(response);
+            } catch (AssertionError e) {
+                success = false;
+                LOGGER.error("Couldn't use key with kid " + publicKeyKid + " for test.", e);
+                getDummyAuditService().clear();
+            }
+            if (success) {
+                allKeysFails = false;
+                break;
+            }
+        }
+        if (allKeysFails) {
+            throw new AssertionError("Test for each public keys fails.");
+        }
     }
 
     @Test
@@ -259,18 +307,22 @@ public abstract class TestAbstractOidcRestModule extends TestAbstractAuthenticat
         return prepareClient();
     }
 
-    private String getPublicKey() {
+    private Map<String, String> getPublicKeys() {
+        Map<String, String> publicKeys = new HashMap<>();
         try {
-            Optional<Object> jsonWithKey = ((JSONArray) JSONObjectUtils.parse(
-                    WebClient.create(getJwksUri()).get().readEntity(String.class)).get("keys"))
-                    .stream().filter(json ->
+            JSONArray keys = ((JSONArray) JSONObjectUtils.parse(
+                    WebClient.create(getJwksUri()).get().readEntity(String.class)).get("keys"));
+            keys.stream()
+                    .filter(json ->
                             ((JSONObject) json).containsKey("use")
-                            && "sig".equals(((JSONObject) json).get("use"))
-                            && (getProperty(KID_KEY) == null || getProperty(KID_KEY).equals(((JSONObject) json).get("kid"))))
-                    .findFirst();
-            return (String) ((JSONArray)((JSONObject)jsonWithKey.get()).get("x5c")).get(0);
+                                    && "sig".equals(((JSONObject) json).get("use")))
+                    .forEach(key ->
+                publicKeys.put(
+                        (String) ((JSONObject) key).get("kid"),
+                        (String) ((JSONArray) ((JSONObject) key).get("x5c")).get(0)));
+            return publicKeys;
         } catch (Exception e) {
-            LOGGER.error("Couldn't get public key for keycloak", e);
+            LOGGER.error("Couldn't get public key from IDP", e);
             return null;
         }
     }

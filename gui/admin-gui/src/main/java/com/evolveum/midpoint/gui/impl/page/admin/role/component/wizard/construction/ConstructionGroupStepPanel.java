@@ -6,17 +6,26 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.button.ReloadableButton;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.*;
 
+import com.evolveum.midpoint.gui.impl.component.wizard.MultiSelectObjectTypeTileWizardStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.shadow.ShadowAssociationObjectsColumn;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.TitleWithMarks;
 import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -45,7 +54,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
-import com.evolveum.midpoint.gui.impl.component.wizard.MultiSelectTileWizardStepPanel;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -53,7 +61,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -77,7 +84,7 @@ import org.jetbrains.annotations.Nullable;
         display = @PanelDisplay(label = "PageRole.wizard.step.construction.group"),
         containerPath = "empty")
 public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
-        extends MultiSelectTileWizardStepPanel<ConstructionGroupStepPanel<AR>.AssociationWrapper, ShadowType, FocusDetailsModels<AR>, ConstructionType> {
+        extends MultiSelectObjectTypeTileWizardStepPanel<ConstructionGroupStepPanel<AR>.AssociationWrapper, ShadowType, FocusDetailsModels<AR>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ConstructionGroupStepPanel.class);
 
@@ -111,7 +118,7 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
     }
 
     private boolean nonExistAssociations() {
-        List<ResourceAssociationDefinition> associations = ProvisioningObjectsUtil.getRefinedAssociationDefinition(getValueModel().getObject().getRealValue(), getPageBase());
+        List<ShadowReferenceAttributeDefinition> associations = ProvisioningObjectsUtil.getRefinedAssociationDefinition(getValueModel().getObject().getRealValue(), getPageBase());
         return associations.isEmpty();
     }
 
@@ -154,7 +161,7 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
     }
 
     @Override
-    protected void processSelectOrDeselectItem(SelectableBean<ShadowType> value, AjaxRequestTarget target) {
+    protected void processSelectOrDeselectItem(SelectableBean<ShadowType> value, SelectableBeanObjectDataProvider<ShadowType> provider, AjaxRequestTarget target) {
         if (getAssociationRef() == null || getAssociationRef().getValue() == null) {
             return;
         }
@@ -214,7 +221,7 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
             selectedItems.getObject().forEach(item -> {
                 try {
 
-                    PrismContainerValueWrapper<ResourceObjectAssociationType> valueWrapper;
+                    PrismContainerValueWrapper<ResourceObjectAssociationType> valueWrapper = null;
 
                     Optional<PrismContainerValueWrapper<ResourceObjectAssociationType>> match = associationContainer.getValues().stream().filter(
                             value -> {
@@ -223,9 +230,21 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
                                 }
                                 return item.associationName.equivalent(value.getRealValue().getRef().getItemPath());
                             }).findFirst();
+
+                    boolean  createNewAssociationValue = false;
+
                     if (match.isPresent()) {
                         valueWrapper = match.get();
+
+                        PrismPropertyWrapper<ExpressionType> expression = valueWrapper.findProperty(
+                                        ItemPath.create(ResourceObjectAssociationType.F_OUTBOUND, MappingType.F_EXPRESSION));
+                        if (ExpressionUtil.containsAssociationFromLinkElement(expression.getValue().getRealValue())) {
+                            createNewAssociationValue = true;
+                        }
                     } else {
+                        createNewAssociationValue = true;
+                    }
+                    if (createNewAssociationValue) {
 
                         PrismContainerValue<ResourceObjectAssociationType> newValue = associationContainer.getItem().createNewValue();
 
@@ -250,8 +269,7 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
                                     ItemPath.create(ResourceObjectAssociationType.F_OUTBOUND, MappingType.F_EXPRESSION));
                     ExpressionUtil.addShadowRefEvaluatorValue(
                             expression.getValue().getRealValue(),
-                            item.oid,
-                            PrismContext.get());
+                            item.oid);
 
                 } catch (SchemaException e) {
                     LOGGER.error("Couldn't create new value for association container.");
@@ -381,11 +399,33 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<ShadowType>>> item, String id, IModel<SelectableBean<ShadowType>> row) {
                 item.add(AttributeAppender.append("class", "align-middle"));
-                item.add(new Label(id,
-                        () -> WebComponentUtil.getDisplayNameOrName(row.getObject().getValue().asPrismObject())));
+                item.add(new TitleWithMarks(
+                        id,
+                        () -> WebComponentUtil.getDisplayNameOrName(row.getObject().getValue().asPrismObject()),
+                        createRealMarksList(row.getObject().getValue())){
+                    @Override
+                    protected boolean isTitleLinkEnabled() {
+                        return false;
+                    }
+                });
             }
         });
         return columns;
+    }
+
+    private IModel<String> createRealMarksList(ShadowType shadowBean) {
+        return new LoadableDetachableModel<>() {
+
+            @Override
+            protected String load() {
+                if (shadowBean == null) {
+                    return "";
+                }
+
+                List<ObjectReferenceType> refs = shadowBean.getEffectiveMarkRef();
+                return WebComponentUtil.createMarkList(refs, getPageBase());
+            }
+        };
     }
 
     @Override
@@ -449,5 +489,10 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
         reloadButton.add(new VisibleEnableBehaviour(() -> true, () -> !nonExistAssociations()));
         fragment.add(reloadButton);
         return fragment;
+    }
+
+    @Override
+    protected boolean isFullTextSearchEnabled() {
+        return false;
     }
 }

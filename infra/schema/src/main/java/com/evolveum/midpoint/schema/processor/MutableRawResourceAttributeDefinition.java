@@ -7,17 +7,17 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 
 /**
+ * Mutable interface to (some of) {@link ShadowSimpleAttributeDefinition} implementations.
  *
+ * TODO remove this
  */
 public interface MutableRawResourceAttributeDefinition<T>
-        extends RawResourceAttributeDefinition<T>, MutablePrismPropertyDefinition<T> {
 
-    void setReturnedByDefault(Boolean returnedByDefault);
+        extends ShadowAttributeUcfDefinition.Mutable,
+        ResourceItemPrismDefinition.Mutable,
+        PrismPropertyDefinition.PrismPropertyDefinitionMutator<T> {
 
-    void setNativeAttributeName(String nativeAttributeName);
-
-    void setFrameworkAttributeName(String frameworkAttributeName);
 }

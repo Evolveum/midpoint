@@ -82,7 +82,8 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSear
                 LOGGER.trace("Query {} with {}", getType().getSimpleName(), query.debugDump());
             }
 
-            List<C> list = WebModelServiceUtils.searchContainers(getType(), query, options, result, getPageBase());
+            List<C> list = WebModelServiceUtils.searchContainers(
+                    getType(), query, options, result, getPageBase());
 
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Query {} resulted in {} containers", getType().getSimpleName(), list.size());
@@ -138,5 +139,11 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSear
 
         LOGGER.trace("end::internalSize(): {}", count);
         return count;
+    }
+
+    @Override
+    public void detach() {
+        super.detach();
+        getAvailableData().clear();
     }
 }

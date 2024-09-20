@@ -7,13 +7,11 @@
 
 package com.evolveum.midpoint.model.impl.correlator.items;
 
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.correlation.CorrelationPropertyDefinition;
 import com.evolveum.midpoint.model.api.indexing.IndexingItemConfiguration;
 import com.evolveum.midpoint.model.api.indexing.IndexedItemValueNormalizer;
 import com.evolveum.midpoint.model.impl.ModelBeans;
@@ -42,7 +40,6 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
@@ -101,31 +98,25 @@ public class CorrelationItem implements DebugDumpable {
     public static CorrelationItem create(
             @NotNull CorrelationItemType itemBean,
             @NotNull CorrelatorContext<?> correlatorContext,
-            @NotNull ObjectType preFocus)
+            @NotNull Containerable preFocus)
             throws ConfigurationException {
-        @NotNull ItemPath path = getPath(itemBean);
+        @NotNull CorrelationPropertyDefinition propertyDef =
+                CorrelationPropertyDefinition.fromConfiguration(
+                        itemBean, preFocus.asPrismContainerValue().getComplexTypeDefinition());
+        @NotNull ItemPath path = propertyDef.getItemPath();
         @Nullable IndexingItemConfiguration indexingConfig = getIndexingItemConfiguration(itemBean, correlatorContext);
         @Nullable ItemSearchDefinitionType searchDef = getSearch(itemBean, correlatorContext, path);
         @Nullable String explicitIndexName = searchDef != null ? searchDef.getIndex() : null;
         @Nullable QName defaultMatchingRuleName =
                 correlatorContext.getTemplateCorrelationConfiguration().getDefaultMatchingRuleName(path);
         return new CorrelationItem(
-                getName(itemBean),
+                propertyDef.getName(),
                 path,
                 getValueNormalizer(indexingConfig, explicitIndexName, path),
                 searchDef,
                 indexingConfig,
                 defaultMatchingRuleName,
                 getPrismValues(preFocus, path));
-    }
-
-    private static @NotNull ItemPath getPath(@NotNull CorrelationItemType itemBean) throws ConfigurationException {
-        ItemPathType specifiedPath = itemBean.getRef();
-        if (specifiedPath != null) {
-            return specifiedPath.getItemPath();
-        } else {
-            throw new ConfigurationException("No path for " + itemBean);
-        }
     }
 
     private static IndexingItemConfiguration getIndexingItemConfiguration(
@@ -170,24 +161,9 @@ public class CorrelationItem implements DebugDumpable {
         }
     }
 
-    private static @NotNull String getName(CorrelationItemType itemBean) {
-        String explicitName = itemBean.getName();
-        if (explicitName != null) {
-            return explicitName;
-        }
-        ItemPathType pathBean = itemBean.getRef();
-        if (pathBean != null) {
-            ItemName lastName = pathBean.getItemPath().lastName();
-            if (lastName != null) {
-                return lastName.getLocalPart();
-            }
-        }
-        throw new IllegalStateException(
-                "Couldn't determine name for correlation item: no name nor path in " + itemBean);
-    }
-
-    private static @NotNull List<? extends PrismValue> getPrismValues(@NotNull ObjectType preFocus, @NotNull ItemPath itemPath) {
-        Item<?, ?> item = preFocus.asPrismObject().findItem(itemPath);
+    private static @NotNull List<? extends PrismValue> getPrismValues(
+            @NotNull Containerable preFocus, @NotNull ItemPath itemPath) {
+        Item<?, ?> item = preFocus.asPrismContainerValue().findItem(itemPath);
         return item != null ? item.getValues() : List.of();
     }
 
@@ -225,6 +201,10 @@ public class CorrelationItem implements DebugDumpable {
             return builder
                     .item(searchSpec.itemPath, searchSpec.itemDef)
                     .fuzzyString(convertToString(searchSpec.value), fuzzyMatchingMethod);
+        } else if (searchSpec.value instanceof Referencable referencable) {
+            return builder
+                    .item(searchSpec.itemPath, searchSpec.itemDef)
+                    .ref(referencable.asReferenceValue().clone());
         } else {
             return builder
                     .item(searchSpec.itemPath, searchSpec.itemDef)
@@ -301,7 +281,11 @@ public class CorrelationItem implements DebugDumpable {
         return name;
     }
 
-    double computeConfidence(ObjectType candidate, Task task, OperationResult result)
+    public @NotNull ItemPath getItemPath() {
+        return itemPath;
+    }
+
+    double computeConfidence(Containerable candidate, Task task, OperationResult result)
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException {
         ExpressionType expression = getConfidenceExpression();
@@ -349,8 +333,8 @@ public class CorrelationItem implements DebugDumpable {
                                                 .code(code)));
     }
 
-    /** Returns the values of given metric (e.g. Levenshtein distance) for given candidate for this item. */
-    private @NotNull List<Double> computeMatchMetricValues(ObjectType candidate, Task task, OperationResult result)
+    /** Returns the values of given metric (e.g. Levenshtein distance) for given candidate for this item. No nulls on return. */
+    private @NotNull List<Double> computeMatchMetricValues(Containerable candidate, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         SearchSpec searchSpec = createSearchSpec(task, result);
@@ -386,19 +370,23 @@ public class CorrelationItem implements DebugDumpable {
         };
     }
 
+    /** No nulls in returned list. */
     private @NotNull List<Double> convertMetricToConfidence(
             List<Double> matchMetricValues, ExpressionType expression, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         QName inputTypeName = DOMUtil.XSD_DOUBLE;
         PrismPropertyDefinition<Double> inputPropertyDef =
-                PrismContext.get().definitionFactory().createPropertyDefinition(
+                PrismContext.get().definitionFactory().newPropertyDefinition(
                         ExpressionConstants.VAR_INPUT_QNAME, inputTypeName);
+        inputPropertyDef.mutator().setMaxOccurs(-1);
         PrismPropertyDefinition<Double> outputPropertyDef =
-                PrismContext.get().definitionFactory().createPropertyDefinition(
+                PrismContext.get().definitionFactory().newPropertyDefinition(
                         ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_DOUBLE);
+        outputPropertyDef.mutator().setMaxOccurs(-1);
         PrismProperty<Double> inputProperty = inputPropertyDef.instantiate();
-        matchMetricValues.forEach(inputProperty::addRealValue);
+        new HashSet<>(matchMetricValues) // To avoid "Adding value to property input that already exists (overwriting)" warnings
+                .forEach(inputProperty::addRealValue);
         Source<PrismPropertyValue<Double>, PrismPropertyDefinition<Double>> inputSource =
                 new Source<>(
                         inputProperty, null, inputProperty, inputProperty.getElementName(), inputPropertyDef);
@@ -455,25 +443,18 @@ public class CorrelationItem implements DebugDumpable {
     }
 
     /** What we are looking for, when correlating according to this item? */
-    private static class SearchSpec {
-        @NotNull private final ItemPath itemPath;
-        @Nullable private final ItemDefinition<?> itemDef;
-        @NotNull private final Object value;
-
-        private SearchSpec(
-                @NotNull ItemPath itemPath, @Nullable ItemDefinition<?> itemDef, @NotNull Object value) {
-            this.itemPath = itemPath;
-            this.itemDef = itemDef;
-            this.value = value;
-        }
+    private record SearchSpec(
+            @NotNull ItemPath itemPath,
+            @Nullable ItemDefinition<?> itemDef,
+            @NotNull Object value) {
 
         @Override
-        public String toString() {
-            return "path='" + itemPath + "'" +
-                    ", def='" + itemDef + "'" +
-                    ", value='" + value + "'";
+            public String toString() {
+                return "path='" + itemPath + "'" +
+                        ", def='" + itemDef + "'" +
+                        ", value='" + value + "'";
+            }
         }
-    }
 
     private interface MatchMetricValueComputer {
         double computeMatchMetricValue(String source, String target);

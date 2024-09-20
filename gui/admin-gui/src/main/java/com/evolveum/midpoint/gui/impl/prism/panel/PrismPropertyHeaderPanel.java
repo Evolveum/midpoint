@@ -37,7 +37,7 @@ public class PrismPropertyHeaderPanel<T> extends ItemHeaderPanel<PrismPropertyVa
     @Override
     protected Component createTitle(IModel<String> label) {
         Label displayName = new Label(ID_LABEL, label);
-
+        displayName.setOutputMarkupId(true);
         return displayName;
 
     }
@@ -50,5 +50,15 @@ public class PrismPropertyHeaderPanel<T> extends ItemHeaderPanel<PrismPropertyVa
     @Override
     protected void refreshPanel(AjaxRequestTarget target) {
 
+    }
+
+    @Override
+    protected IModel<String> getTitleForAddButton() {
+        return getParentPage().createStringResource("PrismPropertyHeaderPanel.addButtonTitle", createLabelModel().getObject());
+    }
+
+    @Override
+    protected IModel<String> getTitleForRemoveAllButton() {
+        return getParentPage().createStringResource("PrismPropertyHeaderPanel.removeAllButtonTitle", createLabelModel().getObject());
     }
 }

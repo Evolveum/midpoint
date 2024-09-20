@@ -11,7 +11,7 @@ import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
@@ -33,7 +33,7 @@ public class ResourceDataItem extends DataItem {
 
     private ResourceSchema refinedResourceSchema;
     private ResourceObjectDefinition objectDefinition;
-    private ResourceAttributeDefinition<?> attributeDefinition;
+    private ShadowSimpleAttributeDefinition<?> attributeDefinition;
 
     public ResourceDataItem(
             @NotNull DataModel ctx,
@@ -97,17 +97,17 @@ public class ResourceDataItem extends DataItem {
         return objectDefinition;
     }
 
-    public ResourceAttributeDefinition<?> getAttributeDefinition() {
+    public ShadowSimpleAttributeDefinition<?> getAttributeDefinition() {
         if (attributeDefinition == null) {
             ResourceObjectDefinition def = getObjectDefinition();
             if (def != null && itemPath.size() == 1) {
-                attributeDefinition = def.findAttributeDefinition(getLastItemName());
+                attributeDefinition = def.findSimpleAttributeDefinition(getLastItemName());
             }
         }
         return attributeDefinition;
     }
 
-    public void setAttributeDefinition(ResourceAttributeDefinition<?> attributeDefinition) {
+    public void setAttributeDefinition(ShadowSimpleAttributeDefinition<?> attributeDefinition) {
         this.attributeDefinition = attributeDefinition;
     }
 

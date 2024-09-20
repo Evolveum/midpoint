@@ -7,13 +7,33 @@
 package com.evolveum.midpoint.gui.api.component;
 
 import java.io.Serial;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
-import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+
+import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.dialog.OnePanelPopupPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
+import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.mark.component.MarksOfObjectListPopupPanel;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.util.MarkTypeUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.exception.*;
+
+import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -21,8 +41,10 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
@@ -39,6 +61,9 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
+import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.gui.impl.util.ObjectCollectionViewUtil;
 import com.evolveum.midpoint.gui.impl.util.TableUtil;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
@@ -52,7 +77,6 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -82,6 +106,9 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     private static final String DOT_CLASS = MainObjectListPanel.class.getName() + ".";
     private static final String OPERATION_DELETE_OBJECTS = DOT_CLASS + "deleteObjects";
     private static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
+
+    private static final String OPERATION_MARK_OBJECT = DOT_CLASS + "markObject";
+    private static final String OPERATION_UNMARK_OBJECT = DOT_CLASS + "unmarkObject";
 
     private final LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel;
 
@@ -133,7 +160,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         }
     }
 
-        @Override
+    @Override
     protected IColumn<SelectableBean<O>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
         return new ObjectNameColumn<>(displayModel == null ? createStringResource("ObjectType.name") : displayModel,
                 customColumn, expression, getPageBase()) {
@@ -153,7 +180,8 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     }
 
     protected boolean isObjectDetailsEnabled(IModel<SelectableBean<O>> rowModel) {
-        return true;
+        O object = rowModel.getObject().getValue();
+        return WebComponentUtil.isAuthorized(object.getClass());
     }
 
     protected List<ObjectReferenceType> getNewObjectReferencesList(CompiledObjectCollectionView collectionView, AssignmentObjectRelation relation) {
@@ -349,6 +377,17 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         return false;
     }
 
+    protected boolean isReportObjectButtonVisible() {
+
+        try {
+            return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CREATE_REPORT_BUTTON_URI);
+        } catch (Exception ex) {
+            LOGGER.error("Failed to check authorization for REPORT action for " + getType().getSimpleName()
+                    + " object, ", ex);
+        }
+        return false;
+    }
+
     private AjaxCompositedIconButton createCreateReportButton(String buttonId) {
         final CompositedIconBuilder builder = new CompositedIconBuilder();
         builder.setBasicIcon(IconAndStylesUtil.createReportIcon(), IconCssStyle.IN_ROW_STYLE);
@@ -367,7 +406,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             }
         };
         createReport.add(AttributeAppender.append("class", "mr-2 btn btn-default btn-sm"));
-        createReport.add(new VisibleBehaviour(() -> WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CREATE_REPORT_BUTTON_URI)));
+        createReport.add(new VisibleBehaviour(this::isReportObjectButtonVisible));
         return createReport;
     }
 
@@ -382,7 +421,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 clearCache();
                 refreshTable(target);
 
-                target.add(getTable());
+                target.add(getTableComponent());
             }
         };
         refreshIcon.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
@@ -407,7 +446,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     private void onClickPlayPauseButton(AjaxRequestTarget target, boolean refreshEnabled) {
         clearCache();
         setManualRefreshEnabled(refreshEnabled);
-        target.add(getTable());
+        target.add(getTableComponent());
     }
 
     public void startRefreshing(AjaxRequestTarget target) {
@@ -432,12 +471,14 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             return createStringResource("MainObjectListPanel.refresh.start").getString();
         };
     }
+
     protected boolean isCreateNewObjectVisible() {
         return !isCollectionViewPanel() || getObjectCollectionView().isApplicableForOperation(OperationTypeType.ADD) ||
                 CollectionUtils.isNotEmpty(getNewObjectInfluencesList());
     }
 
-    @NotNull protected List<CompiledObjectCollectionView> getNewObjectInfluencesList() {
+    @NotNull
+    protected List<CompiledObjectCollectionView> getNewObjectInfluencesList() {
         if (isCollectionViewPanelForCompiledView()) {
             return new ArrayList<>();
         }
@@ -522,6 +563,22 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         throw new UnsupportedOperationException("getConfirmMessageKeyForSingleObject() not implemented for " + getClass());
     }
 
+    @Override
+    protected void addBasicActions(List<InlineMenuItem> menuItems) {
+        if (!isDuplicationSupported()) {
+            return;
+        }
+
+        DuplicationProcessHelper.addDuplicationActionForObject(menuItems, getPageBase());
+    }
+
+    /**
+     * Define whether duplication action for item of table will be added to item menu.
+     */
+    protected boolean isDuplicationSupported() {
+        return isCreateNewObjectVisible();
+    }
+
     public InlineMenuItem createDeleteInlineMenu() {
         return new InlineMenuItem(createStringResource("MainObjectListPanel.menu.delete")) {
             @Serial private static final long serialVersionUID = 1L;
@@ -553,4 +610,135 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         }
     }
 
+    public InlineMenuItem modifyMarkInlineMenuAction() {
+        return new InlineMenuItem(createStringResource("MainObjectListPanel.menu.modifyMark"), true) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isHeaderMenuItem() {
+                return false;
+            }
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<SelectableBean<O>>() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target) {
+
+                        IModel<SelectableBean<O>> selected = getRowModel();
+                        if (selected == null) {
+                            warn(getString("MainObjectListPanel.message.noFocusSelected"));
+                            target.add(getPageBase().getFeedbackPanel());
+                            return;
+                        }
+
+                        OperationResult result = new OperationResult("createWrapper");
+                        LoadableDetachableModel<PrismObjectWrapper<O>> focusModel = loadWrapper(selected.getObject().getValue(), result);
+
+                        if (focusModel == null || focusModel.getObject() == null) {
+                            if (result.isSuccess()) {
+                                warn(getString("ProcessedObjectsPanel.message.noObjectFound", selected.getObject().getValue().getOid()));
+                            }
+                            target.add(getPageBase().getFeedbackPanel());
+                            return;
+                        }
+
+                        MarksOfObjectListPopupPanel popup = new MarksOfObjectListPopupPanel(
+                                getPageBase().getMainPopupBodyId(), focusModel) {
+                            @Override
+                            protected void refreshTable(AjaxRequestTarget target) {
+                                MainObjectListPanel.this.refreshTable(target);
+                            }
+                        };
+
+                        getPageBase().showMainPopup(popup, target);
+                    }
+                };
+            }
+        };
+    }
+
+    private LoadableDetachableModel<PrismObjectWrapper<O>> loadWrapper(O objectBean, OperationResult result) {
+        return new LoadableDetachableModel<>() {
+            @Override
+            protected PrismObjectWrapper<O> load() {
+                if (objectBean == null) {
+                    return null;
+                }
+
+                Task task = getPageBase().createSimpleTask("createWrapper");
+                task.setResult(result);
+
+                Collection<SelectorOptions<GetOperationOptions>> options = getPageBase().getOperationOptionsBuilder()
+                        .noFetch()
+                        .item(ItemPath.create(ObjectType.F_POLICY_STATEMENT, PolicyStatementType.F_MARK_REF)).resolve()
+                        .item(ItemPath.create(ObjectType.F_POLICY_STATEMENT, PolicyStatementType.F_LIFECYCLE_STATE)).resolve()
+                        .build();
+
+                try {
+                    PrismObject<O> prismObject = (PrismObject<O>) WebModelServiceUtils.loadObject(
+                            objectBean.getClass(), objectBean.getOid(), options, getPageBase(), task, result);
+
+                    if (prismObject == null) {
+                        return null;
+                    }
+
+                    PrismObjectWrapperFactory<O> factory = getPageBase().findObjectWrapperFactory(prismObject.getDefinition());
+                    OperationResult result = task.getResult();
+                    WrapperContext ctx = new WrapperContext(task, result);
+                    ctx.setCreateIfEmpty(true);
+
+                    return factory.createObjectWrapper(prismObject, ItemStatus.NOT_CHANGED, ctx);
+                } catch (SchemaException e) {
+                    LOGGER.error("Couldn't create wrapper for " + objectBean, e);
+                }
+                return null;
+            }
+        };
+    }
+
+    protected void markObjects(IModel<SelectableBean<O>> rowModel, List<String> markOids, AjaxRequestTarget target) {
+        Task task = getPageBase().createSimpleTask(OPERATION_MARK_OBJECT);
+        OperationResult result = task.getResult();
+
+        var selected = isAnythingSelected(rowModel);
+
+        if (selected == null || selected.isEmpty()) {
+            result.recordWarning(createStringResource("ResourceContentPanel.message.markShadowPerformed.warning").getString());
+            getPageBase().showResult(result);
+            target.add(getPageBase().getFeedbackPanel());
+            return;
+        }
+
+        for (SelectableBean<O> shadow : selected) {
+            List<PolicyStatementType> statements = new ArrayList<>();
+            // We recreate statements (can not reuse them between multiple objects - we can create new or clone
+            // but for each delta we need separate statement
+            for (String oid : markOids) {
+                statements.add(new PolicyStatementType().markRef(oid, MarkType.COMPLEX_TYPE)
+                        .type(PolicyStatementTypeType.APPLY));
+            }
+            try {
+                var delta = getPageBase().getPrismContext().deltaFactory().object()
+                        .createModificationAddContainer(getType(),
+                                shadow.getValue().getOid(), ObjectType.F_POLICY_STATEMENT,
+                                statements.toArray(new PolicyStatementType[0]));
+                getPageBase().getModelService().executeChanges(MiscUtil.createCollection(delta), null, task, result);
+            } catch (Exception e) {
+                result.recordPartialError(
+                        createStringResource(
+                                "ResourceContentPanel.message.markShadowPerformed.partialError", shadow)
+                                .getString(),
+                        e);
+                LOGGER.error("Could not mark shadow {} with marks {}", shadow, markOids, e);
+            }
+        }
+
+        result.computeStatusIfUnknown();
+        getPageBase().showResult(result);
+        refreshTable(target);
+        target.add(getPageBase().getFeedbackPanel());
+    }
 }

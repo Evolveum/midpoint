@@ -6,9 +6,16 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
+import java.io.Serial;
 import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.match.MatchingRule;
+
+import com.evolveum.midpoint.prism.path.ItemName;
+
+import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -21,12 +28,14 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DisplayableValue;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * @author katka
  */
 public class PrismPropertyWrapperImpl<T> extends ItemWrapperImpl<PrismProperty<T>, PrismPropertyValueWrapper<T>> implements PrismPropertyWrapper<T> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private String predefinedValuesOid;
 
@@ -60,6 +69,11 @@ public class PrismPropertyWrapperImpl<T> extends ItemWrapperImpl<PrismProperty<T
     }
 
     @Override
+    public @NotNull MatchingRule<T> getMatchingRule() {
+        return getItemDefinition().getMatchingRule();
+    }
+
+    @Override
     public @NotNull PropertyDelta<T> createEmptyDelta(ItemPath path) {
         return getItemDefinition().createEmptyDelta(path);
     }
@@ -71,8 +85,13 @@ public class PrismPropertyWrapperImpl<T> extends ItemWrapperImpl<PrismProperty<T
     }
 
     @Override
-    public MutablePrismPropertyDefinition<T> toMutable() {
-        return getItemDefinition().toMutable();
+    public @NotNull ItemDefinition<PrismProperty<T>> cloneWithNewName(@NotNull ItemName itemName) {
+        throw new UnsupportedOperationException("Implement if needed");
+    }
+
+    @Override
+    public @NotNull PrismPropertyDefinitionMutator<T> mutator() {
+        return getItemDefinition().mutator();
     }
 
     @NotNull
@@ -148,8 +167,13 @@ public class PrismPropertyWrapperImpl<T> extends ItemWrapperImpl<PrismProperty<T
     }
 
     @Override
-    public Class<T> getTypeClass() {
+    public @NotNull Class<T> getTypeClass() {
         //noinspection unchecked
         return (Class<T>) super.getTypeClass();
+    }
+
+    @Override
+    public @Nullable SchemaContextDefinition getSchemaContextDefinition() {
+        return null;
     }
 }

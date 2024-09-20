@@ -11,12 +11,16 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.HumanReadableDescribable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
 
-public interface PrismValueDeltaSetTripleProducer<V extends PrismValue, D extends ItemDefinition> extends HumanReadableDescribable {
+import org.jetbrains.annotations.NotNull;
 
-    QName getMappingQName();
+public interface PrismValueDeltaSetTripleProducer<V extends PrismValue, D extends ItemDefinition<?>>
+        extends HumanReadableDescribable, DebugDumpable {
+
+    QName getTargetItemName();
 
     /**
      * Null output triple means "the mapping is not applicable", e.g. due to the
@@ -25,7 +29,7 @@ public interface PrismValueDeltaSetTripleProducer<V extends PrismValue, D extend
      */
     PrismValueDeltaSetTriple<V> getOutputTriple();
 
-    MappingStrengthType getStrength();
+    @NotNull MappingStrengthType getStrength();
 
     PrismValueDeltaSetTripleProducer<V, D> clone();
 
@@ -58,4 +62,6 @@ public interface PrismValueDeltaSetTripleProducer<V extends PrismValue, D extend
     }
 
     boolean isPushChanges();
+
+    boolean isEnabled();
 }

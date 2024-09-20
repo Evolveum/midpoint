@@ -134,7 +134,7 @@ public class ManualResourceTest extends AbstractWfTest {
         display("Manual Connector", repoConnector);
 
         // Check connector schema
-        IntegrationTestTools.assertConnectorSchemaSanity(repoConnector, prismContext);
+        IntegrationTestTools.assertConnectorSchemaSanity(repoConnector);
 
         PrismObject<UserType> userWill = getUser(userWillOid);
         assertUser(userWill, userWillOid, USER_WILL_NAME, USER_WILL_FULL_NAME, USER_WILL_GIVEN_NAME, USER_WILL_FAMILY_NAME);
@@ -330,11 +330,6 @@ public class ManualResourceTest extends AbstractWfTest {
         assertShadowPassword(shadowModelAsserter);
 
         assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
-    }
-
-    @SafeVarargs
-    private <T> void assertAttribute(PrismObject<ShadowType> shadow, QName attrName, T... expectedValues) {
-        assertAttribute(shadow.asObjectable(), attrName, expectedValues);
     }
 
     private void assertNoAttribute(PrismObject<ShadowType> shadow, QName attrName) {

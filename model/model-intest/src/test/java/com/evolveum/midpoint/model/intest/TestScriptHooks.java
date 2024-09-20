@@ -101,7 +101,7 @@ public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
         String accountOid = getSingleLinkOid(userJack);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        var accountShadow = getShadowRepo(accountOid);
         display("Shadow (repo)", accountShadow);
         assertAccountShadowRepo(accountShadow, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyHookType);
 
@@ -152,7 +152,7 @@ public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
         String accountOid = getSingleLinkOid(userJack);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        var accountShadow = getShadowRepo(accountOid);
         display("Shadow (repo)", accountShadow);
         assertAccountShadowRepo(accountShadow, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyHookType);
 
@@ -192,10 +192,10 @@ public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
         PrismObject<ObjectType> newConfiguration = prismContext.parseObject(SYSTEM_CONFIGURATION_PRIMARY_DELTA_HOOK_FILE);
         repositoryService.addObject(newConfiguration, RepoAddOptions.createOverwrite(), result);
 
-        UserType user = new UserType(prismContext)
+        UserType user = new UserType()
                 .name("test200")
                 .beginAssignment()
-                    .targetRef(ROLE_SUPERUSER_OID, RoleType.COMPLEX_TYPE)
+                    .targetRef(ROLE_SUPERUSER.oid, RoleType.COMPLEX_TYPE)
                     .subtype("fragile")
                     .beginActivation()
                         .effectiveStatus(ActivationStatusType.ENABLED)

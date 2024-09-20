@@ -59,6 +59,7 @@ public class CaseStageClosing extends AbstractCaseStageProcessing {
         return new StageClosingResultImpl(
                 shouldContinue,
                 ApprovalUtils.toUri(shouldContinue),
+                ApprovalUtils.toUri(shouldContinue),
                 null);
     }
 

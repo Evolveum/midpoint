@@ -1,0 +1,51 @@
+= IDM Model Interface
+:page-wiki-name: IDM Model Interface
+:page-wiki-id: 3145821
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2011-09-27T10:53:12.691+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-09-08T14:02:14.858+02:00
+:page-upkeep-status: red
+:page-upkeep-note: is this s right concept to describe interfaces?
+
+*Status:* Public +
+*Stability:* STABLE +
+*Platform:* Java +
+*Dependencies:* xref:/midpoint/reference/schema/[Data Model], Common schema +
+
+== Description
+
+IDM Model interface provides unified access to the identity objects stored in the repository and on the resources.
+It abstracts away the details about where and how are the data stored, it hides all the low-level system components.
+This is the primary and most important midPoint interface.
+
+Implementation of this interface are enforcing a consistency of access control decisions and model, e.g. to enforcing Role-Based Access Control (RBAC) and other policies, making sure that the mappings are applied properly, etc.
+
+For general introduction to interface concepts please see xref:/midpoint/architecture/concepts/common-interface-concepts/[Common Interface Concepts] page.
+
+
+== Artifacts
+
+[%autowidth]
+|===
+| Artifact | Path/Link | Description
+
+| Interface definition
+| link:https://github.com/Evolveum/midpoint/blob/{{page.midpointBranch}}/model/model-api/src/main/java/com/evolveum/midpoint/model/api/ModelService.java[https://github.com/Evolveum/midpoint/blob/{{page.midpointBranch}}/model/model-api/src/main/java/com/evolveum/midpoint/model/api/ModelService.java]
+| Well-commented Java definition of the interface.
+
+
+{% if page.midpointVersion == 'master' %}
+// TODO: javadoc link for master
+{% else %}
+| Interface documentation
+| link:http://www.evolveum.com/downloads/midpoint/{{page.midpointVersion}}/midpoint-api-{{page.midpointVersion}}-javadoc/com/evolveum/midpoint/model/api/ModelService.html[http://www.evolveum.com/downloads/midpoint/{{page.midpointVersion}}/midpoint-api-{{page.midpointVersion}}-javadoc/com/evolveum/midpoint/model/api/ModelService.html]
+| Javadoc description of the interface
+{% endif %}
+
+|===
+
+
+== See Also
+
+* xref:/midpoint/reference/interfaces/model-java/introduction/[IDM Model Interface Introduction]

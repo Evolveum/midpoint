@@ -9,37 +9,62 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         version="0">
-    <name>
-        <t:orig>Default Password Policy</t:orig>
-        <t:norm>default password policy</t:norm>
-    </name>
+    <name>Default Password Policy</name>
     <description>Default password policy</description>
     <stringPolicy>
         <description>Testing string policy</description>
         <limitations>
-            <minLength>5</minLength>
-            <!--             <maxLength>8</maxLength> -->
+            <minLength>8</minLength>
+            <maxLength>14</maxLength>
             <minUniqueChars>3</minUniqueChars>
             <checkAgainstDictionary>true</checkAgainstDictionary>
-            <checkPattern />
-            <!--             <limit> -->
-            <!--                 <description>Alphas</description> -->
-            <!--                 <minOccurs>1</minOccurs> -->
-            <!--                 <maxOccurs>5</maxOccurs> -->
-            <!--                 <mustBeFirst>false</mustBeFirst> -->
-            <!--                 <characterClass> -->
-            <!--                     <value>abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ</value> -->
-            <!--                 </characterClass> -->
-            <!--             </limit> -->
-            <!--             <limit> -->
-            <!--                 <description>Numbers</description> -->
-            <!--                 <minOccurs>1</minOccurs> -->
-            <!--                 <maxOccurs>5</maxOccurs> -->
-            <!--                 <mustBeFirst>false</mustBeFirst> -->
-            <!--                 <characterClass> -->
-            <!--                     <value>1234567890</value> -->
-            <!--                 </characterClass> -->
-            <!--             </limit> -->
+            <checkPattern/>
+            <checkExpression>
+                <expression>
+                    <script>
+                        <code>
+                            if (object instanceof com.evolveum.midpoint.xml.ns._public.common.common_3.UserType) {
+                            return !basic.containsIgnoreCase(input, object.getName()) &amp;&amp; !basic.containsIgnoreCase(input, object.getFamilyName()) &amp;&amp; !basic.containsIgnoreCase(input, object.getGivenName()) &amp;&amp; !basic.containsIgnoreCase(input, object.getAdditionalName())
+                            } else {
+                            return true
+                            }
+                        </code>
+                    </script>
+                </expression>
+                <failureMessage>must not contain username, family name and given name and additional names</failureMessage>
+            </checkExpression>
+            <limit>
+                <description>Lowercase characters</description>
+                <minOccurs>1</minOccurs>
+                <mustBeFirst>false</mustBeFirst>
+                <characterClass>
+                    <value>abcdefghijklmnopqrstuvwxyz</value>
+                </characterClass>
+            </limit>
+            <limit>
+                <description>Uppercase characters</description>
+                <minOccurs>1</minOccurs>
+                <mustBeFirst>false</mustBeFirst>
+                <characterClass>
+                    <value>ABCDEFGHIJKLMNOPQRSTUVWXYZ</value>
+                </characterClass>
+            </limit>
+            <limit>
+                <description>Numeric characters</description>
+                <minOccurs>1</minOccurs>
+                <mustBeFirst>false</mustBeFirst>
+                <characterClass>
+                    <value>1234567890</value>
+                </characterClass>
+            </limit>
+            <limit>
+                <description>Special characters</description>
+                <minOccurs>0</minOccurs>
+                <mustBeFirst>false</mustBeFirst>
+                <characterClass>
+                    <value> !"#$%&amp;'()*+,-.:;&lt;&gt;?@[]^_`{|}~</value>
+                </characterClass>
+            </limit>
         </limitations>
     </stringPolicy>
 </valuePolicy>

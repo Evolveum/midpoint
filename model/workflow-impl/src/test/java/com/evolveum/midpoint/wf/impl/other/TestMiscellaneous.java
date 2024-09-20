@@ -8,6 +8,8 @@ package com.evolveum.midpoint.wf.impl.other;
 
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
+import static com.evolveum.midpoint.util.MiscUtil.extractSingleton;
+
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
@@ -18,6 +20,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.query.*;
+
+import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
+
+import com.evolveum.midpoint.util.MiscUtil;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
@@ -42,7 +48,6 @@ import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.asserter.OperationResultRepoSearchAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -100,6 +105,8 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
             TEST_DIR, "role-approved-by-multiple-relations.xml", "62d7fcdf-92b0-4c49-ae40-33b0a814ed56");
     private static final TestObject<UserType> USER_APPROVER_BY_MULTIPLE_RELATIONS = TestObject.file(
             TEST_DIR, "user-approver-by-multiple-relations.xml", "a9aca7bb-923e-4be6-9aa4-5c90af978207");
+    private static final TestObject<RoleType> ROLE_APPROVE_WITH_SKIP_LAST_STAGE = TestObject.file(
+            TEST_DIR, "role-approve-with-skip-last-stage.xml", "8b928d45-bb91-4a02-8418-6ae0d3b6a1d3");
 
     @Override
     protected PrismObject<UserType> getDefaultActor() {
@@ -137,6 +144,8 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         ROLE_APPROVED_BY_ORG.init(this, initTask, initResult);
         ROLE_APPROVED_BY_MULTIPLE_RELATIONS.init(this, initTask, initResult);
         USER_APPROVER_BY_MULTIPLE_RELATIONS.init(this, initTask, initResult);
+
+        ROLE_APPROVE_WITH_SKIP_LAST_STAGE.init(this, initTask, initResult);
     }
 
     @Test
@@ -197,10 +206,13 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 
         AssignmentType assignment = assertAssignedRole(USER_JACK.oid, ROLE_SAILOR.oid, result);
         display("assignment after creation", assignment);
-        MetadataType metadata = assignment.getMetadata();
-        assertNotNull("Null request timestamp in metadata", metadata.getRequestTimestamp());
-        assertRefEquals("Wrong requestorRef in metadata", ObjectTypeUtil.createObjectRef(userAdministrator), metadata.getRequestorRef());
-        assertEquals("Wrong requestorComment in metadata", REQUESTER_COMMENT, metadata.getRequestorComment());
+        assertNotNull("Null request timestamp in metadata", ValueMetadataTypeUtil.getRequestTimestamp(assignment));
+        assertRefEquals("Wrong requestorRef in metadata",
+                ObjectTypeUtil.createObjectRef(userAdministrator),
+                extractSingleton(ValueMetadataTypeUtil.getRequestorRefs(assignment)));
+        assertEquals(
+                "Wrong requestorComment in metadata", REQUESTER_COMMENT,
+                extractSingleton(ValueMetadataTypeUtil.getRequestorComments(assignment)));
     }
 
     @Test
@@ -263,10 +275,12 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 
         AssignmentType assignment = assertAssignedRole(USER_JACK.oid, ROLE_CAPTAIN.oid, result);
         display("assignment after creation", assignment);
-        MetadataType metadata = assignment.getMetadata();
-        assertNotNull("Null request timestamp in metadata", metadata.getRequestTimestamp());
-        assertRefEquals("Wrong requestorRef in metadata", ObjectTypeUtil.createObjectRef(userAdministrator), metadata.getRequestorRef());
-        assertEquals("Wrong requestorComment in metadata", REQUESTER_COMMENT, metadata.getRequestorComment());
+        assertNotNull("Null request timestamp in metadata", ValueMetadataTypeUtil.getRequestTimestamp(assignment));
+        assertRefEquals("Wrong requestorRef in metadata",
+                ObjectTypeUtil.createObjectRef(userAdministrator),
+                extractSingleton(ValueMetadataTypeUtil.getRequestorRefs(assignment)));
+        assertEquals("Wrong requestorComment in metadata",
+                REQUESTER_COMMENT, extractSingleton(ValueMetadataTypeUtil.getRequestorComments(assignment)));
     }
 
     @Test
@@ -958,6 +972,46 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         assertUserAfterByUsername(name)
                 .assignments()
                 .assertRole(ROLE_APPROVED_BY_MULTIPLE_RELATIONS.oid);
+    }
+
+    @Test
+    public void test430ApproveWithSkipLastStage() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        login(userAdministrator);
+
+        when("a user with role assignment is created");
+        String name = "test430";
+        UserType user = new UserType()
+                .name(name)
+                .assignment(ROLE_APPROVE_WITH_SKIP_LAST_STAGE.assignmentTo());
+
+//        setTracing(task, createDefaultTracingProfile()); // just to get the whole operation result
+        addObject(user, task, result);
+
+        then("user is not created but case exists");
+        assertNoUserByUsername(name);
+        var workItem = assertCase(result, "after")
+                .display()
+                .subcases()
+                .assertSubcases(2)
+                .singleWithoutApprovalSchema().display().end() // user ADD
+                .singleWithApprovalSchema() // assignment ADD
+                .display()
+                .workItems()
+                .single()
+                .assertAssignees(userAdministrator.getOid())
+                .getRealValue();
+
+        when("work item is approved");
+        approveWorkItem(workItem, task, result);
+
+        @NotNull CaseType caseBean = CaseTypeUtil.getCaseRequired(workItem);
+        waitForCaseClose(caseBean);
+
+        then("user with assignment exists");
+        assertCase(getCase(caseBean.getOid()), "case")
+                .assertApproved();
     }
 
     private void checkNoMultiRelationsOrFilter(TraceType t) {

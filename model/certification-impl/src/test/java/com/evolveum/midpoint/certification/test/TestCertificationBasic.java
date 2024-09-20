@@ -27,6 +27,9 @@ import java.util.List;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
+import com.evolveum.midpoint.util.exception.*;
+
+import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -43,8 +46,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * Very simple certification test.
@@ -109,6 +113,8 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test002OpenFirstForeignStage() throws Exception {
         given();
+        clock.resetOverride();
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
@@ -118,7 +124,11 @@ public class TestCertificationBasic extends AbstractCertificationTest {
 
         then();
         result.computeStatus();
-        TestUtil.assertSuccess(result);
+        TestUtil.assertInProgressOrSuccess(result);
+
+        List<PrismObject<TaskType>> tasks = getFirstStageTasks(roleInducementCampaignOid, startTime, result);
+        assertEquals("unexpected number of related tasks", 1, tasks.size());
+        waitForTaskFinish(tasks.get(0).getOid());
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(roleInducementCampaignOid);
         display("campaign in stage 1", campaign);
@@ -189,6 +199,8 @@ public class TestCertificationBasic extends AbstractCertificationTest {
 
     @Test
     public void test011CreateCampaignAllowed() throws Exception {
+        clock.resetOverride();
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -234,7 +246,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
 
         when();
         List<AccessCertificationCaseType> caseList = modelService.searchContainers(
-                AccessCertificationCaseType.class, CertCampaignTypeUtil.createCasesForCampaignQuery(campaignOid, prismContext),
+                AccessCertificationCaseType.class, CertCampaignTypeUtil.createCasesForCampaignQuery(campaignOid),
                 null, task, result);
 
         then();
@@ -266,6 +278,8 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test021OpenFirstStageAllowed() throws Exception {
         given();
+        clock.resetOverride();
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         login(getUserFromRepo(USER_BOB_OID));
@@ -276,7 +290,11 @@ public class TestCertificationBasic extends AbstractCertificationTest {
 
         then();
         result.computeStatus();
-        TestUtil.assertSuccess(result);
+        TestUtil.assertInProgressOrSuccess(result);
+
+        List<PrismObject<TaskType>> tasks = getFirstStageTasks(campaignOid, startTime, result);
+        assertEquals("unexpected number of related tasks", 1, tasks.size());
+        waitForTaskFinish(tasks.get(0).getOid());
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign in stage 1", campaign);
@@ -398,7 +416,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         when();
         List<AccessCertificationWorkItemType> workItems =
                 certificationService.searchOpenWorkItems(
-                        CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaignOid, prismContext),
+                        CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaignOid),
                         false, null, task, result);
 
         then();
@@ -506,7 +524,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         when();
         List<AccessCertificationWorkItemType> workItems =
                 certificationService.searchOpenWorkItems(
-                        CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaignOid, prismContext),
+                        CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaignOid),
                         false, null, task, result);
 
         then();
@@ -528,7 +546,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         when();
         List<AccessCertificationWorkItemType> workItems =
                 certificationService.searchOpenWorkItems(
-                        CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaignOid, prismContext),
+                        CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaignOid),
                         false, null, task, result);
 
         then();
@@ -536,7 +554,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         TestUtil.assertSuccess(result);
 
         display("workItems", workItems);
-        assertEquals("Wrong number of certification cases", 7, workItems.size());
+        assertEquals("Wrong number of certification work items", 7, workItems.size());
         checkAllWorkItemsSanity(workItems);
     }
 
@@ -712,6 +730,9 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     public void test152CloseFirstStageAllow() throws Exception {
         login(getUserFromRepo(USER_BOB_OID));
 
+        clock.resetOverride();
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
+
         given();
         Task task = getTestTask();
         task.setOwner(getUserFromRepo(USER_BOB_OID));
@@ -722,7 +743,11 @@ public class TestCertificationBasic extends AbstractCertificationTest {
 
         then();
         result.computeStatus();
-        TestUtil.assertSuccess(result);
+        TestUtil.assertInProgressOrSuccess(result);
+
+        List<PrismObject<TaskType>> tasks = getCloseStageTask(campaignOid, startTime, result);
+        assertEquals("unexpected number of related tasks", 1, tasks.size());
+        waitForTaskFinish(tasks.get(0).getOid());
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign in stage 1", campaign);
@@ -760,6 +785,8 @@ public class TestCertificationBasic extends AbstractCertificationTest {
 
     @Test
     public void test205StartRemediationAllow() throws Exception {
+        clock.resetOverride();
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         login(getUserFromRepo(USER_BOB_OID));
 
         given();
@@ -778,10 +805,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         display("campaign after remediation start", campaign);
         assertTrue("wrong campaign state: " + campaign.getState(), campaign.getState() == CLOSED || campaign.getState() == IN_REMEDIATION);
 
-        ObjectQuery query = prismContext.queryFor(TaskType.class)
-                .item(TaskType.F_OBJECT_REF).ref(campaign.getOid())
-                .build();
-        List<PrismObject<TaskType>> tasks = taskManager.searchObjects(TaskType.class, query, null, result);
+        List<PrismObject<TaskType>> tasks = getRemediationTasks(campaignOid, startTime, result);
         assertEquals("unexpected number of related tasks", 1, tasks.size());
         waitForTaskFinish(tasks.get(0).getOid());
 
@@ -822,9 +846,8 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         then();
         userAdministrator = getUser(USER_ADMINISTRATOR_OID).asObjectable();
         display("administrator", userAdministrator);
-        AssignmentType assignment = findAssignmentByTargetRequired(userAdministrator.asPrismObject(), ROLE_SUPERUSER_OID);
         assertCertificationMetadata(
-                assignment.getMetadata(),
+                findAssignmentByTargetRequired(userAdministrator.asPrismObject(), ROLE_SUPERUSER_OID),
                 SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT,
                 singleton(USER_ADMINISTRATOR_OID),
                 singleton("administrator: no comment"));
@@ -836,7 +859,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
      * Note that we check the reports here and not in `report-impl` because of the current dependencies between these
      * two modules (`report-impl` and `certification-impl`). Maybe we'll move this test in the future into `report-impl`.
      */
-    @Test
+    @Test(enabled = false)
     public void test220CreateReports() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();

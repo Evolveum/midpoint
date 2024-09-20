@@ -1,0 +1,43 @@
+= Service Authorizations
+:page-wiki-name: Service Authorizations
+:page-wiki-id: 15859829
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2014-06-30T16:22:35.956+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2017-05-10T17:57:53.249+02:00
+
+== REST Service Authorizations
+
+[%autowidth]
+|===
+| ID | Action | Allows access to
+
+| 1
+| `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#all+`
+| All operations
+
+| 2
+| `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#<operation>+`
+| Access to specific REST operation.
+The URI fragments of individual operations are present xref:/midpoint/reference/interfaces/rest/operations/[in their description]: on pages devoted to individual operations, e.g., xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[].
+These authorizations do *not* check for any specific objects, e.g., an object that is going to be retrieved or modified by the operation.
+They are just "yes/no" authorizations for the operation itself.
+
+| 3
+| `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#proxy+`
+| Authorizes the xref:/midpoint/reference/interfaces/rest/concepts/authentication/#proxy-impersonation[impersonation].
+
+|===
+
+== Service Authorizations and Object Authorizations
+
+REST authorizations are necessary, but not sufficient condition to allow access to data in midPoint.
+These authorizations are just the "first line" of defense.
+The user needs to have these authorizations to invoke the service operation.
+But this authorization does not give access to any data.
+For practical use-cases the user must also have ordinary (object) authorizations such as _read_, _add_, _modify_ or _delete_ to access any midPoint data.
+Without these authorizations the REST authorizations are almost useless.
+
+== See Also
+
+* xref:../[Authorization]

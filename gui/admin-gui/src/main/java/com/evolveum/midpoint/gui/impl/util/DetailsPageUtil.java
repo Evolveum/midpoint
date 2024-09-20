@@ -14,15 +14,25 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.policy.PagePolicies;
+import com.evolveum.midpoint.gui.impl.page.admin.policy.PagePolicy;
+import com.evolveum.midpoint.gui.impl.page.admin.policy.PagePolicyHistory;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisCluster;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisOutlier;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession;
 
+import com.evolveum.midpoint.gui.impl.page.admin.schema.PageSchema;
+
+import com.evolveum.midpoint.gui.impl.page.admin.schema.PageSchemas;
+
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.flow.RedirectToUrlException;
+import org.apache.wicket.request.mapper.parameter.INamedParameters;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
@@ -81,6 +91,7 @@ public final class DetailsPageUtil {
         DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(OrgType.class, PageOrg.class);
         DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(RoleType.class, PageRole.class);
         DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(ServiceType.class, PageService.class);
+        DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(PolicyType.class, PagePolicy.class);
         DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(ResourceType.class, PageResource.class);
         DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(TaskType.class, PageTask.class);
         DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(ReportType.class, PageReport.class);
@@ -98,6 +109,10 @@ public final class DetailsPageUtil {
         DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(RoleAnalysisSessionType.class, PageRoleAnalysisSession.class);
         DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(RoleAnalysisClusterType.class, PageRoleAnalysisCluster.class);
 
+        DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(SchemaType.class, PageSchema.class);
+
+        DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(RoleAnalysisOutlierType.class, PageRoleAnalysisOutlier.class);
+
     }
 
     static {
@@ -105,9 +120,11 @@ public final class DetailsPageUtil {
         DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(UserType.class, PageUsers.class);
         DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(RoleType.class, PageRoles.class);
         DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(ServiceType.class, PageServices.class);
+        DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(PolicyType.class, PagePolicies.class);
         DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(ResourceType.class, PageResources.class);
         DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(TaskType.class, PageTasks.class);
         DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(PageMessageTemplate.class, PageMessageTemplates.class);
+        DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(SchemaType.class, PageSchemas.class);
     }
 
     static {
@@ -115,6 +132,7 @@ public final class DetailsPageUtil {
         DetailsPageUtil.OBJECT_HISTORY_PAGE_MAP.put(PageService.class, PageServiceHistory.class);
         DetailsPageUtil.OBJECT_HISTORY_PAGE_MAP.put(PageRole.class, PageRoleHistory.class);
         DetailsPageUtil.OBJECT_HISTORY_PAGE_MAP.put(PageOrg.class, PageOrgHistory.class);
+        DetailsPageUtil.OBJECT_HISTORY_PAGE_MAP.put(PagePolicy.class, PagePolicyHistory.class);
         DetailsPageUtil.OBJECT_HISTORY_PAGE_MAP.put(PageUser.class, PageUserHistory.class);
     }
 
@@ -138,6 +156,7 @@ public final class DetailsPageUtil {
                 // The parentOrgRef should be added by the projector. But
                 // this is needed to successfully pass through security
                 // TODO: fix MID-3234
+                //  see also TreeTablePanel.initObjectForAdd
                 if (ref.getType() != null && OrgType.COMPLEX_TYPE.equals(ref.getType())) {
                     if (ref.getRelation() == null || pageBase.getRelationRegistry().isStoredIntoParentOrgRef(ref.getRelation())) {
                         assignmentHolder.getParentOrgRef().add(ref.clone());
@@ -184,9 +203,13 @@ public final class DetailsPageUtil {
             return true;
         }
     }
-
     // shows the actual object that is passed via parameter (not its state in repository)
     public static void dispatchToObjectDetailsPage(PrismObject obj, boolean isNewObject, Component component) {
+        dispatchToObjectDetailsPage(obj, isNewObject, false, component);
+    }
+
+    // shows the actual object that is passed via parameter (not its state in repository)
+    public static void dispatchToObjectDetailsPage(PrismObject obj, boolean isNewObject, boolean showWizard, Component component) {
         Class<?> newObjectPageClass = isNewObject ? getNewlyCreatedObjectPage(obj.getCompileTimeClass()) : getObjectDetailsPage(obj.getCompileTimeClass());
         if (newObjectPageClass == null) {
             throw new IllegalArgumentException("Cannot determine details page for " + obj.getCompileTimeClass());
@@ -195,19 +218,19 @@ public final class DetailsPageUtil {
         Constructor<?> constructor;
         try {
             PageBase page;
-            if (ResourceType.class.equals(obj.getCompileTimeClass())) {
-                constructor = newObjectPageClass.getConstructor(PageParameters.class);
-                page = (PageBase) constructor.newInstance(new PageParameters());
-            } else {
-                if (isNewDesignEnabled()) {
+            if (isNewDesignEnabled()) {
+                if (showWizard) {
+                    constructor = newObjectPageClass.getConstructor(PrismObject.class, boolean.class);
+                    page = (PageBase) constructor.newInstance(obj, showWizard);
+                } else {
                     constructor = newObjectPageClass.getConstructor(PrismObject.class);
                     page = (PageBase) constructor.newInstance(obj);
-                } else {
-                    constructor = newObjectPageClass.getConstructor(PrismObject.class, boolean.class);
-                    page = (PageBase) constructor.newInstance(obj, isNewObject);
                 }
-
+            } else {
+                constructor = newObjectPageClass.getConstructor(PrismObject.class, boolean.class);
+                page = (PageBase) constructor.newInstance(obj, isNewObject);
             }
+
             if (component.getPage() instanceof PageBase pb) {
                 // this way we have correct breadcrumbs
                 pb.navigateToNext(page);
@@ -252,14 +275,40 @@ public final class DetailsPageUtil {
     }
 
     public static void redirectFromDashboardWidget(GuiActionType action, PageBase pageBase) {
+        redirectFromDashboardWidget(action, null, pageBase);
+    }
+
+    public static void redirectFromDashboardWidget(GuiActionType action, PageParameters params, PageBase pageBase) {
+        if (params == null) {
+            params = new PageParameters();
+        }
+
         RedirectionTargetType redirectionTarget = action.getTarget();
+        if (redirectionTarget == null) {
+            return;
+        }
+
         String url = redirectionTarget.getTargetUrl();
         String pageClass = redirectionTarget.getPageClass();
 
         Class<? extends WebPage> webPageClass = null;
         if (StringUtils.isNotEmpty(url)) {
             if (new UrlValidator().isValid(url)) {
-                throw new RedirectToUrlException(url);
+
+                StringBuilder sb = new StringBuilder(url);
+                if (CollectionUtils.isNotEmpty(params.getAllNamed())) {
+                    sb.append("?");
+
+                    List<INamedParameters.NamedPair> pairs = params.getAllNamed();
+                    for (INamedParameters.NamedPair p : pairs) {
+                        sb.append(p.getKey()).append("=").append(p.getValue());
+                        if (params.getAllNamed().indexOf(p) < params.getAllNamed().size() - 1) {
+                            sb.append("&");
+                        }
+                    }
+                }
+
+                throw new RedirectToUrlException(sb.toString());
             }
             webPageClass = PageMounter.getUrlClassMap().get(url);
         }
@@ -269,7 +318,6 @@ public final class DetailsPageUtil {
                 webPageClass = (Class<? extends WebPage>) Class.forName(pageClass);
             }
 
-            PageParameters params = new PageParameters();
             String panelType = redirectionTarget.getPanelIdentifier();
             if (panelType != null) {
                 params.set(AbstractPageObjectDetails.PARAM_PANEL_ID, panelType);
@@ -279,7 +327,9 @@ public final class DetailsPageUtil {
             if (collectionIdentifier != null) {
                 params.set(PageBase.PARAMETER_OBJECT_COLLECTION_NAME, collectionIdentifier);
             }
-            pageBase.navigateToNext(webPageClass, params);
+            if (pageBase != null) {
+                pageBase.navigateToNext(webPageClass, params);
+            }
 
         } catch (Throwable e) {
             LOGGER.trace("Problem with redirecting to page: {}, reason: {}", webPageClass, e.getMessage(), e);

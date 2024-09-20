@@ -14,7 +14,7 @@ import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.model.impl.lens.projector.ActivationProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.ProjectionCredentialsProcessor;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.ClockworkInboundsProcessing;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.FullInboundsProcessing;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -36,6 +36,8 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.*;
 
+import static com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator.EvaluationContext.forModelContext;
+
 /**
  * Evaluates a set of mappings related to a projection.
  *
@@ -43,7 +45,7 @@ import java.util.*;
  *
  * - outbound password mappings ({@link ProjectionCredentialsProcessor}),
  * - outbound existence and activation mappings ({@link ActivationProcessor}),
- * - inbound password and activation mappings ({@link ClockworkInboundsProcessing}).
+ * - inbound password and activation mappings ({@link FullInboundsProcessing}).
  *
  * TODO Consider merging evaluation of these special mappings with the evaluation of standard attribute/association mappings.
  *
@@ -81,7 +83,8 @@ public class ProjectionMappingSetEvaluator {
             Task task,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException,
+            MappingLoader.NotLoadedException {
 
         String mappingDesc = params.getMappingDesc();
         LensElementContext<T> targetContext = params.getTargetContext();
@@ -118,8 +121,8 @@ public class ProjectionMappingSetEvaluator {
                 mappingBuilder.defaultTargetDefinition(params.getTargetItemDefinition());
             }
             mappingBuilder.defaultTargetPath(defaultTargetItemPath);
-            mappingBuilder.targetContext(targetObjectDefinition);
-            mappingBuilder.sourceContext(params.getSourceContext());
+            mappingBuilder.targetContextDefinition(targetObjectDefinition);
+            mappingBuilder.defaultSourceContextIdi(params.getSourceContext());
 
             // Initialize mapping (using Inversion of Control)
             MappingBuilder<V, D> initializedMappingBuilder = params.getInitializer().initialize(mappingBuilder);
@@ -138,7 +141,7 @@ public class ProjectionMappingSetEvaluator {
             }
         }
 
-        boolean hasFullTargetObject = params.hasFullTargetObject();
+        boolean targetValueAvailable = params.isTargetValueAvailable();
         PrismObject<T> aPrioriTargetObject = params.getAPrioriTargetObject();
 
         LOGGER.trace("Going to process {} mappings for {}", mappings.size(), mappingDesc);
@@ -154,7 +157,10 @@ public class ProjectionMappingSetEvaluator {
             }
 
             UniformItemPath mappingOutputPathUniform = prismContext.toUniformPathKeepNull(mapping.getOutputPath());
-            if (params.isFixTarget() && mappingOutputPathUniform != null && defaultTargetItemPath != null && !mappingOutputPathUniform.equivalent(defaultTargetItemPath)) {
+            if (params.isFixTarget()
+                    && mappingOutputPathUniform != null
+                    && defaultTargetItemPath != null
+                    && !mappingOutputPathUniform.equivalent(defaultTargetItemPath)) {
                 throw new ExpressionEvaluationException("Target cannot be overridden in " + mappingDesc);
             }
 
@@ -168,30 +174,27 @@ public class ProjectionMappingSetEvaluator {
                 }
             }
 
-            mappingEvaluator.evaluateMapping(mapping, params.getContext(), task, result);
+            mappingEvaluator.evaluateMapping(mapping, forModelContext(params.getContext()), task, result);
 
             PrismValueDeltaSetTriple<V> mappingOutputTriple = mapping.getOutputTriple();
             LOGGER.trace("Output triple:\n{}", mappingOutputTriple == null ? null : mappingOutputTriple.debugDumpLazily(1));
 
             if (isMeaningful(mappingOutputTriple)) {
 
-                MappingOutputStruct<V> mappingOutputStruct = outputTripleMap.get(mappingOutputPathUniform);
-                if (mappingOutputStruct == null) {
-                    mappingOutputStruct = new MappingOutputStruct<>();
-                    outputTripleMap.put(mappingOutputPathUniform, mappingOutputStruct);
-                }
+                MappingOutputStruct<V> mappingOutputStruct =
+                        outputTripleMap.computeIfAbsent(mappingOutputPathUniform, k -> new MappingOutputStruct<>());
 
                 if (mapping.getStrength() == MappingStrengthType.STRONG) {
                     mappingOutputStruct.setStrongMappingWasUsed(true);
 
-                    if (!hasFullTargetObject
+                    if (!targetValueAvailable
                             && params.getTargetLoader() != null
                             && aPrioriTargetObject != null
                             && aPrioriTargetObject.getOid() != null
                             && !params.getTargetLoader().isLoaded()) {
                         aPrioriTargetObject = params.getTargetLoader().load("strong mapping", task, result);
                         LOGGER.trace("Loaded object because of strong mapping: {}", aPrioriTargetObject);
-                        hasFullTargetObject = true;
+                        targetValueAvailable = true;
                     }
                 }
 
@@ -201,14 +204,14 @@ public class ProjectionMappingSetEvaluator {
 
                     // TODO should we really load the resource object also if we are pushing the changes?
                     //  (but it looks like we have to!)
-                    if (!hasFullTargetObject
+                    if (!targetValueAvailable
                             && params.getTargetLoader() != null
                             && aPrioriTargetObject != null
                             && aPrioriTargetObject.getOid() != null
                             && !params.getTargetLoader().isLoaded()) {
                         aPrioriTargetObject = params.getTargetLoader().load("pushing changes", task, result);
                         LOGGER.trace("Loaded object because of pushing changes: {}", aPrioriTargetObject);
-                        hasFullTargetObject = true;
+                        targetValueAvailable = true;
                     }
                 }
 
@@ -236,15 +239,15 @@ public class ProjectionMappingSetEvaluator {
                 LOGGER.trace("Evaluating weak mapping: {}", mapping.getContextDescription());
 
                 UniformItemPath mappingOutputPath = prismContext.toUniformPathKeepNull(mapping.getOutputPath());
-                if (params.isFixTarget() && mappingOutputPath != null && defaultTargetItemPath != null && !mappingOutputPath.equivalent(defaultTargetItemPath)) {
+                if (params.isFixTarget()
+                        && mappingOutputPath != null
+                        && defaultTargetItemPath != null
+                        && !mappingOutputPath.equivalent(defaultTargetItemPath)) {
                     throw new ExpressionEvaluationException("Target cannot be overridden in " + mappingDesc);
                 }
 
-                MappingOutputStruct<V> mappingOutputStruct = outputTripleMap.get(mappingOutputPath);
-                if (mappingOutputStruct == null) {
-                    mappingOutputStruct = new MappingOutputStruct<>();
-                    outputTripleMap.put(mappingOutputPath, mappingOutputStruct);
-                }
+                MappingOutputStruct<V> mappingOutputStruct =
+                        outputTripleMap.computeIfAbsent(mappingOutputPath, k -> new MappingOutputStruct<>());
 
                 PrismValueDeltaSetTriple<V> outputTriple = mappingOutputStruct.getOutputTriple();
                 if (outputTriple != null && !outputTriple.getNonNegativeValues().isEmpty()) {
@@ -267,9 +270,11 @@ public class ProjectionMappingSetEvaluator {
                 }
                 if (hasNoValue(aPrioriTargetItem)) {
 
+                    LOGGER.trace("A priori target item has no value, going to evaluate the mapping; item: {}", aPrioriTargetItem);
+
                     mappingOutputStruct.setWeakMappingWasUsed(true);
 
-                    mappingEvaluator.evaluateMapping(mapping, params.getContext(), task, result);
+                    mappingEvaluator.evaluateMapping(mapping, forModelContext(params.getContext()), task, result);
 
                     PrismValueDeltaSetTriple<V> mappingOutputTriple = mapping.getOutputTriple();
                     if (mappingOutputTriple != null) {
@@ -278,19 +283,23 @@ public class ProjectionMappingSetEvaluator {
                         // But the mapping may not be activated (e.g. condition is false). And in that
                         // case we really do not want to trigger object loading.
                         // This is all not right. See MID-3847
-                        if (!hasFullTargetObject
+                        if (!targetValueAvailable
                                 && params.getTargetLoader() != null
                                 && aPrioriTargetObject != null
                                 && aPrioriTargetObject.getOid() != null
                                 && !params.getTargetLoader().isLoaded()) {
                             aPrioriTargetObject = params.getTargetLoader().load("weak mapping", task, result);
                             LOGGER.trace("Loaded object because of weak mapping: {}", aPrioriTargetObject);
-                            hasFullTargetObject = true;
+                            targetValueAvailable = true;
                         }
                         if (aPrioriTargetObject != null && mappingOutputPath != null) {
                             aPrioriTargetItem = aPrioriTargetObject.findItem(mappingOutputPath);
+                            if (targetValueAvailable) {
+                                LOGGER.trace("A priori target item after object loaded: {}", aPrioriTargetItem);
+                            }
                         }
                         if (!hasNoValue(aPrioriTargetItem)) {
+                            LOGGER.trace("A priori target item has a value, ignoring mapping output; item: {}", aPrioriTargetItem);
                             continue;
                         }
 
@@ -300,7 +309,8 @@ public class ProjectionMappingSetEvaluator {
                             outputTriple.merge(mappingOutputTriple);
                         }
                     }
-
+                } else {
+                    LOGGER.trace("A priori target item has a value, skipping mapping evaluation; item: {}", aPrioriTargetItem);
                 }
             }
         }
@@ -348,6 +358,7 @@ public class ProjectionMappingSetEvaluator {
                 } else {
                     aPrioriTargetItem = null;
                 }
+                LOGGER.trace("A priori target item: {}", aPrioriTargetItem);
 
                 // WARNING
                 // Following code seems to be wrong. It is not very relativistic. It seems to always
@@ -377,7 +388,7 @@ public class ProjectionMappingSetEvaluator {
 
                     Collection<V> valuesToReplace;
 
-                    if (hasFullTargetObject && (mappingOutputStruct.isStrongMappingWasUsed() || mappingOutputStruct.isPushChanges())) {
+                    if (targetValueAvailable && (mappingOutputStruct.isStrongMappingWasUsed() || mappingOutputStruct.isPushChanges())) {
                         valuesToReplace = outputTriple.getNonNegativeValues();
                     } else {
                         valuesToReplace = outputTriple.getPlusSet();
@@ -385,7 +396,7 @@ public class ProjectionMappingSetEvaluator {
 
                     LOGGER.trace(
                             "Computed new values when hasFullTargetObject={}, isStrongMappingWasUsed={}, pushingChange={}: {}",
-                            hasFullTargetObject, mappingOutputStruct.isStrongMappingWasUsed(),
+                            targetValueAvailable, mappingOutputStruct.isStrongMappingWasUsed(),
                             mappingOutputStruct.isPushChanges(), valuesToReplace);
 
                     if (!valuesToReplace.isEmpty()) {
@@ -393,7 +404,7 @@ public class ProjectionMappingSetEvaluator {
                         // if what we want to set is the same as is already in the shadow, we skip that
                         // (we insist on having full shadow, to be sure we work with current data)
 
-                        if (hasFullTargetObject && targetContext.isFresh() && aPrioriTargetItem != null) {
+                        if (targetValueAvailable && targetContext.isFresh() && aPrioriTargetItem != null) {
                             Collection<V> valuesPresent = aPrioriTargetItem.getValues();
                             if (PrismValueCollectionsUtil.equalsRealValues(valuesPresent, valuesToReplace)) {
                                 LOGGER.trace("Computed values are equivalent to existing ones, skipping creation of a delta");
@@ -515,8 +526,8 @@ public class ProjectionMappingSetEvaluator {
         }
         for (V pval : set) {
             Object val = pval.getRealValue();
-            if (val instanceof ProtectedStringType) {
-                if (!((ProtectedStringType) val).isHashed()) {
+            if (val instanceof ProtectedStringType protectedString) {
+                if (!protectedString.isHashed()) {
                     return false;
                 }
             } else {

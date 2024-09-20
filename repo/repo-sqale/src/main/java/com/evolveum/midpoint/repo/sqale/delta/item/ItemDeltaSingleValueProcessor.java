@@ -35,13 +35,13 @@ public abstract class ItemDeltaSingleValueProcessor<T> extends ItemDeltaValuePro
     public void process(ItemDelta<?, ?> modification) throws RepositoryException, SchemaException {
         T value = getAnyValue(modification);
 
-        if (modification.isDelete() || value == null) {
+        if ((modification.isReplace() || modification.isAdd()) && value != null) {
+            // We treat add and replace the same way for single-value properties.
+            setValue(value);
+        } else if (modification.isDelete() || value == null) {
             // Repo does not check deleted value for single-value properties.
             // This should be handled already by narrowing the modifications.
             delete();
-        } else {
-            // We treat add and replace the same way for single-value properties.
-            setValue(value);
         }
     }
 

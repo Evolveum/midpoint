@@ -206,7 +206,7 @@
                             <asIs/>
                         </expression>
                     </outbound>
-                       <caching>
+                    <caching>
                         <cachingStrategy>passive</cachingStrategy>
                     </caching>
                 </password>

@@ -13,12 +13,14 @@ import static org.apache.commons.lang3.BooleanUtils.isTrue;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -33,8 +35,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -70,12 +71,11 @@ public class ObjectModificationConstraintEvaluator
                 .setMinor()
                 .build();
         try {
-            if (!(rctx instanceof ObjectPolicyRuleEvaluationContext)) {
+            if (!(rctx instanceof ObjectPolicyRuleEvaluationContext<O> ctx)) {
                 LOGGER.trace(
                         "Policy rule evaluation context is not of type ObjectPolicyRuleEvaluationContext. Skipping processing.");
                 return List.of();
             }
-            ObjectPolicyRuleEvaluationContext<O> ctx = (ObjectPolicyRuleEvaluationContext<O>) rctx;
 
             if (modificationConstraintMatches(constraint, ctx, result)) {
                 LocalizableMessage message = createMessage(constraint, rctx, result);
@@ -213,92 +213,83 @@ public class ObjectModificationConstraintEvaluator
             LOGGER.trace("No object definition -> no special item {} evaluation", specialItem);
             return false;
         }
-        switch (specialItem) {
-            case RESOURCE_OBJECT_IDENTIFIER:
-                return pathBasedSpecialItemMatches(
-                        delta, specialItem, getResourceObjectIdentifierPaths(objectDefinition));
-            case RESOURCE_OBJECT_NAMING_ATTRIBUTE:
-                return pathBasedSpecialItemMatches(
-                        delta, specialItem, getResourceObjectNamingAttributePath(objectDefinition, specialItem));
-            case RESOURCE_OBJECT_ENTITLEMENT:
-                return isEntitlementChange(delta, objectDefinition);
-            case RESOURCE_OBJECT_ITEM:
-                return ShadowUtil.hasResourceModifications(delta.getModifications());
-            default:
-                throw new IllegalStateException("Item specification " + specialItem + " is not supported");
-        }
+        return switch (specialItem) {
+            case RESOURCE_OBJECT_IDENTIFIER -> pathBasedSpecialItemMatches(
+                    delta, specialItem, getResourceObjectIdentifierPaths(objectDefinition));
+            case RESOURCE_OBJECT_NAMING_ATTRIBUTE -> pathBasedSpecialItemMatches(
+                    delta, specialItem, getResourceObjectNamingAttributePath(objectDefinition, specialItem));
+            case RESOURCE_OBJECT_ENTITLEMENT -> isEntitlementChange(delta, objectDefinition);
+            case RESOURCE_OBJECT_ITEM -> ShadowUtil.hasResourceModifications(delta.getModifications());
+        };
     }
 
     /**
      * In order to check whether an entitlement was changed, we have to know which associations were changed -> to see
-     * if these are real entitlements, or not. It would be better if the associations were treated just like attributes,
-     * i.e. $shadow/association/ri:xyz, but they are not: specific associations are distinguished by
-     * {@link ShadowAssociationType#F_NAME} field. This may present problems when replace deltas are provided; but,
-     * generally, such deltas should not be allowed at all, as they are hard to execute.
+     * if these are real entitlements, or not.
      */
     private boolean isEntitlementChange(ObjectDelta<?> delta, ResourceObjectDefinition objectDefinition) {
         for (ItemDelta<?, ?> modification : delta.getModifications()) {
-            if (!modification.getPath().equivalent(ShadowType.F_ASSOCIATION)) {
-                continue;
-            }
-            Collection<?> valuesToReplace = modification.getValuesToReplace();
-            if (valuesToReplace != null) {
-                // Should not occur
-                if (isEntitlementChange(valuesToReplace, objectDefinition)) {
+            if (modification.getParentPath().equivalent(ShadowType.F_ASSOCIATIONS)) {
+                if (isEntitlementChange(modification.getElementName(), objectDefinition)) {
                     return true;
                 }
-                Collection<?> estimatedOldValues = modification.getEstimatedOldValues();
-                if (estimatedOldValues != null) {
-                    return isEntitlementChange(estimatedOldValues, objectDefinition);
+            } else if (modification.getPath().equivalent(ShadowType.F_ASSOCIATIONS)) {
+                // We are touching the whole container (strange, but possible)
+                Collection<?> valuesToReplace = modification.getValuesToReplace();
+                if (valuesToReplace != null) {
+                    // This is a direct replacement of the whole container. Ugly! Consider disallowing this operation.
+                    var newItemsNames = getItemNames(valuesToReplace);
+                    if (isEntitlementChange(newItemsNames, objectDefinition)) {
+                        return true; // The presence of the entitlement here is enough to conclude it MAY HAVE changed.
+                    }
+                    Collection<?> estOldValues = modification.getEstimatedOldValues();
+                    if (estOldValues != null) {
+                        // Let us check all entitlements that were deleted.
+                        Collection<QName> oldItemsNames = estOldValues.isEmpty() ? List.of() : getItemNames(estOldValues);
+                        var deletedItemsNames = CollectionUtils.subtract(oldItemsNames, newItemsNames);
+                        return isEntitlementChange(deletedItemsNames, objectDefinition);
+                    } else {
+                        LOGGER.warn("Replacement delta for associations, not knowing old values -> we cannot evaluate whether"
+                                + " there are any entitlement changes. Delta: {}, modification: {}", delta, modification);
+                        return false;
+                    }
                 } else {
-                    LOGGER.warn("Replacement delta for association, not knowing old values -> we cannot evaluate whether"
-                            + " there are any entitlement changes. Delta: {}, modification: {}", delta, modification);
-                    return false;
+                    if (isEntitlementChange(getItemNames(emptyIfNull(modification.getValuesToAdd())), objectDefinition)) {
+                        return true;
+                    }
+                    if (isEntitlementChange(getItemNames(emptyIfNull(modification.getValuesToDelete())), objectDefinition)) {
+                        return true;
+                    }
                 }
-            } else {
-                return isEntitlementChange(modification.getValuesToAdd(), objectDefinition)
-                        || isEntitlementChange(modification.getValuesToDelete(), objectDefinition);
             }
         }
         return false;
     }
 
-    private boolean isEntitlementChange(Collection<?> values, ResourceObjectDefinition objectDefinition) {
-        if (values == null) {
-            return false;
+    private static @NotNull Collection<QName> getItemNames(Collection<?> values) {
+        if (values.isEmpty()) {
+            return List.of();
         }
-        Collection<QName> associationsModified = new HashSet<>();
-        for (Object value : values) {
-            if (!(value instanceof PrismContainerValue<?>)) {
-                continue;
-            }
-            PrismContainerValue<?> pcv = (PrismContainerValue<?>) value;
-            Class<?> compileTimeClass = pcv.getCompileTimeClass();
-            if (compileTimeClass == null || !ShadowAssociationType.class.isAssignableFrom(compileTimeClass)) {
-                continue;
-            }
-            ShadowAssociationType assocValue = (ShadowAssociationType) pcv.asContainerable();
-            associationsModified.add(assocValue.getName());
-        }
-        for (QName associationModified : associationsModified) {
-            if (associationModified != null) {
-                ResourceAssociationDefinition association = objectDefinition.findAssociationDefinition(associationModified);
-                if (association == null) {
-                    LOGGER.warn("Modifying unknown association {} in {}", associationModified, objectDefinition);
-                    continue;
-                }
-                if (association.getKind() == ShadowKindType.ENTITLEMENT) {
-                    return true;
-                }
-            }
-        }
-        return false;
+        stateCheck(values.size() == 1,
+                "Wrong number of values to replace: %s", values);
+        var newAssociations = (PrismContainerValue<?>) values.iterator().next();
+        return newAssociations.getItemNames();
+    }
+
+    private boolean isEntitlementChange(QName assocName, ResourceObjectDefinition objectDefinition) {
+        // FIXME reconsider this (move to real association definitions)
+        var assocDef = objectDefinition.findReferenceAttributeDefinition(assocName);
+        return assocDef != null && assocDef.isEntitlement();
+    }
+
+    private boolean isEntitlementChange(Collection<? extends QName> assocNames, ResourceObjectDefinition objectDefinition) {
+        return assocNames.stream().anyMatch(itemName -> isEntitlementChange(itemName, objectDefinition));
     }
 
     private ResourceObjectDefinition getObjectDefinition(ObjectPolicyRuleEvaluationContext<?> ctx)
             throws SchemaException, ConfigurationException {
-        if (ctx.elementContext instanceof LensProjectionContext) {
-            return ((LensProjectionContext) ctx.elementContext).getCompositeObjectDefinition();
+        if (ctx.elementContext instanceof LensProjectionContext lensProjectionContext) {
+            return lensProjectionContext.getCompositeObjectDefinition();
         } else {
             return null;
         }
@@ -313,7 +304,7 @@ public class ObjectModificationConstraintEvaluator
 
     private Collection<ItemPath> getResourceObjectNamingAttributePath(
             ResourceObjectDefinition objectDefinition, SpecialItemSpecificationType specialItem) {
-        ResourceAttributeDefinition<?> namingAttributeDef = objectDefinition.getNamingAttribute();
+        ShadowSimpleAttributeDefinition<?> namingAttributeDef = objectDefinition.getNamingAttribute();
         if (namingAttributeDef == null) {
             LOGGER.trace("No naming attribute for {} -> no special item {} evaluation", objectDefinition, specialItem);
             return null;

@@ -136,10 +136,9 @@ class MappingTimeConstraintsEvaluation implements Serializable {
                 time = (XMLGregorianCalendar) referenceTime.clone();
             }
         } else {
-            MutablePrismPropertyDefinition<XMLGregorianCalendar> timeDefinition =
-                    PrismContext.get().definitionFactory().createPropertyDefinition(
-                    ExpressionConstants.OUTPUT_ELEMENT_NAME, PrimitiveType.XSD_DATETIME);
-            timeDefinition.setMaxOccurs(1);
+            PrismPropertyDefinition<XMLGregorianCalendar> timeDefinition =
+                    PrismContext.get().definitionFactory().newPropertyDefinition(
+                    ExpressionConstants.OUTPUT_ELEMENT_NAME, PrimitiveType.XSD_DATETIME, 0, 1);
 
             VariablesMap timeVariables = new VariablesMap();
             timeVariables.addVariableDefinitions(m.variables);
@@ -181,7 +180,7 @@ class MappingTimeConstraintsEvaluation implements Serializable {
                 path,
                 m.variables,
                 false,
-                m.getTypedSourceContext(),
+                m.getTypedDefaultSourceContextIdi(),
                 ModelCommonBeans.get().objectResolver,
                 "reference time definition in " + m.getMappingContextDescription(),
                 m.getTask(),

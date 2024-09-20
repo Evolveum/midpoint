@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Copyright (c) 2021 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
+    <div class="btn-group btn-group-sm">
+        <a class="btn" wicket:id="actionButton">
+            <i class="mr-1" wicket:id="actionButtonIcon"/>
+            <span wicket:id="actionButtonLabel"/>
+        </a>
+        <a aria-expanded="false" type="button" class="btn btn-sm dropdown-toggle dropdown-icon" data-toggle="dropdown"
+                wicket:id="dropdownButton"></a>
+        <ul class="dropdown-menu dropdown-menu-right" role="menu">
+            <wicket:container wicket:id="items">
+                <a role="button" class="dropdown-item" wicket:id="item"/>
+            </wicket:container>
+        </ul>
+    </div>
+</wicket:panel>

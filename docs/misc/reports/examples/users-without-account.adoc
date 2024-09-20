@@ -1,0 +1,37 @@
+= Collection report: Users Without Account
+:page-nav-title: Users Without Account
+:page-wiki-name: Example of new report: Users Without Account
+:page-wiki-id: 52003073
+:page-wiki-metadata-create-user: lskublik
+:page-wiki-metadata-create-date: 2020-08-18T13:56:23.128+02:00
+:page-wiki-metadata-modify-user: lskublik
+:page-wiki-metadata-modify-date: 2020-08-20T08:16:17.750+02:00
+:page-upkeep-status: yellow
+:page-upkeep-note: check TODO's after sampleRef is fully in prod remove links
+
+Please see xref:/midpoint/reference/misc/reports/configuration/#new-report[Report configuration] for basic information about configuration variables.
+
+== Example Use-case
+
+We need a report of users which have assignments of a construction role, but don’t have an account on our resource, which they should have.
+
+
+=== Configuration
+
+We need only report configuration with condition.
+
+//TODO check after sampleRef is fully in prod
+.*Example Report configuration*
+[%collapsible]
+====
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/reports/users-without-account.xml[Git]
+
+sampleRef::samples/reports/users-without-account.xml[]
+====
+
+== See Also
+
+- xref:/midpoint/reference/misc/reports/examples/[Report Examples]
+- xref:/midpoint/reference/misc/reports/configuration/[Report Configuration]
+- xref:/midpoint/reference/misc/reports/configuration/collection-report.adoc[Collection Based Reports]
+- xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[Dashboard Based Reports]

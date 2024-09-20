@@ -7,41 +7,42 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.impl.ComplexTypeDefinitionImpl;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.delta.ItemMerger;
 
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.prism.key.NaturalKeyDefinition;
 
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.CapabilityUtil;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
+
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.merger.BaseMergeOperation;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 
 /**
  * Common implementation for both {@link ResourceObjectClassDefinition} and {@link ResourceObjectTypeDefinition}.
- *
- * Note about not inheriting from {@link ComplexTypeDefinitionImpl}:
- *
- * As we do not inherit from that class, we have to provide our own implementation of various methods like
- * {@link #getExtensionForType()}, {@link #isContainerMarker()}, and so on. This is basically
- * no problem, as this information is not available from a resource connector, so we are OK with the default values.
- * Should this change, we would need to reconsider this design. The current implementation is more straightforward,
- * less entangled with a hierarchy of ancestor implementations.
  */
 public abstract class AbstractResourceObjectDefinitionImpl
         extends AbstractFreezable
@@ -57,16 +58,28 @@ public abstract class AbstractResourceObjectDefinitionImpl
      */
     @NotNull final LayerType currentLayer;
 
+    /** See {@link ResourceObjectDefinition#getBasicResourceInformation()}. */
+    @NotNull final BasicResourceInformation basicResourceInformation;
+
+    /**
+     * Effective shadow caching policy determined from resource and object type/class level.
+     * If present, all defaults are resolved.
+     *
+     * Nullable only for unattached raw object class definitions.
+     */
+    @Nullable private final ShadowCachingPolicyType effectiveShadowCachingPolicy;
+
     /**
      * Definition of attributes.
      *
-     * It seems that elements are strictly of {@link ResourceAttributeDefinitionImpl} class, but this is currently
-     * not enforceable in the compile time - see e.g. {@link #copyDefinitionDataFrom(LayerType, ResourceObjectDefinition)}
+     * It seems that elements are strictly of {@link ShadowAttributeDefinitionImpl} class and its subclasses,
+     * but this is currently not enforceable in the compile time -
+     * see e.g. {@link #copyDefinitionDataFrom(LayerType, ResourceObjectDefinition)}
      * or {@link #addInternal(ItemDefinition)}. TODO reconsider if it's ok this way.
      *
      * Frozen after creation.
      */
-    @NotNull final DeeplyFreezableList<ResourceAttributeDefinition<?>> attributeDefinitions =
+    @NotNull final DeeplyFreezableList<ShadowAttributeDefinition<?, ?, ?, ?>> attributeDefinitions =
             new DeeplyFreezableList<>();
 
     /**
@@ -75,7 +88,28 @@ public abstract class AbstractResourceObjectDefinitionImpl
      *
      * Temporary/experimental.
      */
-    private Map<QName, ResourceAttributeDefinition<?>> attributeDefinitionMap;
+    private Map<QName, ShadowAttributeDefinition<?, ?, ?, ?>> attributeDefinitionMap;
+
+    /**
+     * Definition of associations.
+     *
+     * It seems that elements are strictly of {@link ShadowAssociationDefinitionImpl} class and its subclasses,
+     * but this is currently not enforceable in the compile time -
+     * see e.g. {@link #copyDefinitionDataFrom(LayerType, ResourceObjectDefinition)}
+     * or {@link #addInternal(ItemDefinition)}. TODO reconsider if it's ok this way.
+     *
+     * Frozen after creation.
+     */
+    @NotNull final DeeplyFreezableList<ShadowAssociationDefinition> associationDefinitions =
+            new DeeplyFreezableList<>();
+
+    /**
+     * Indexed association definitions for faster access.
+     * Created (as immutable map) on freezing.
+     *
+     * Temporary/experimental.
+     */
+    private Map<QName, ShadowAssociationDefinition> associationDefinitionMap;
 
     /**
      * Names of primary identifiers. They are the same for both raw and refined definitions.
@@ -114,16 +148,6 @@ public abstract class AbstractResourceObjectDefinitionImpl
             new DeeplyFreezableList<>();
 
     /**
-     * Definition of associations.
-     *
-     * They are not present in the "raw" object class definition, as they do not exist in this form on the resource.
-     *
-     * Immutable.
-     */
-    @NotNull final DeeplyFreezableList<ResourceAssociationDefinition> associationDefinitions =
-            new DeeplyFreezableList<>();
-
-    /**
      * The "source" bean for this definition.
      *
      * It contains all refinements relevant for this object definition:
@@ -134,21 +158,22 @@ public abstract class AbstractResourceObjectDefinitionImpl
      * refinements).
      * - For object type definitions, it is relevant `objectType` value in `schemaHandling`, expanded by resolving
      * object type inheritance. Note that object type definition that refers to refined object class definition is also
-     * a case of inheritance! Such definition bean contains all data from the refined object class definition bean.
+     * a case of inheritance, so such type definition bean contains all data from the refined object class definition bean.
      *
      * Immutable.
      */
     @NotNull final ResourceObjectTypeDefinitionType definitionBean;
 
     /**
-     * Compiled patterns denoting protected objects.
+     * Compiled instructions for marking shadows (e.g., as protected objects).
+     *
+     * Frozen after parsing.
      *
      * @see ResourceObjectTypeDefinitionType#getProtected()
+     * @see ResourceObjectTypeDefinitionType#getMarking()
      * @see ResourceObjectPatternType
-     *
-     * Frozen after parsing. (TODO)
      */
-    @NotNull private final FreezableList<ResourceObjectPattern> protectedObjectPatterns = new FreezableList<>();
+    @NotNull private final FreezableReference<ShadowMarkingRules> shadowMarkingRules = new FreezableReference<>();
 
     /**
      * "Compiled" object set delineation.
@@ -162,45 +187,68 @@ public abstract class AbstractResourceObjectDefinitionImpl
 
     AbstractResourceObjectDefinitionImpl(
             @NotNull LayerType currentLayer,
-            @NotNull ResourceObjectTypeDefinitionType definitionBean) {
+            @NotNull BasicResourceInformation basicResourceInformation,
+            @NotNull ResourceObjectTypeDefinitionType definitionBean)
+            throws SchemaException, ConfigurationException {
         this.currentLayer = currentLayer;
+        this.basicResourceInformation = basicResourceInformation;
         definitionBean.freeze();
         this.definitionBean = definitionBean;
+        this.effectiveShadowCachingPolicy = computeEffectiveShadowCachingPolicy();
     }
 
-    @NotNull
     @Override
-    public List<? extends ResourceAttributeDefinition<?>> getAttributeDefinitions() {
+    public @NotNull BasicResourceInformation getBasicResourceInformation() {
+        return basicResourceInformation;
+    }
+
+    @Override
+    public @NotNull List<? extends ShadowAttributeDefinition<?, ?, ?, ?>> getAttributeDefinitions() {
         return attributeDefinitions;
     }
 
     @Override
-    public @NotNull Collection<ResourceAssociationDefinition> getAssociationDefinitions() {
+    public @NotNull List<ShadowAssociationDefinition> getAssociationDefinitions() {
         return associationDefinitions;
     }
 
     @Override
-    public @Nullable ResourceAttributeDefinition<?> findAttributeDefinition(QName name, boolean caseInsensitive) {
+    public <T> @Nullable ShadowSimpleAttributeDefinition<T> findSimpleAttributeDefinition(QName name, boolean caseInsensitive) {
         if (caseInsensitive || isMutable() || QNameUtil.isUnqualified(name)) {
-            return ResourceObjectDefinition.super.findAttributeDefinition(name, caseInsensitive);
+            return ResourceObjectDefinition.super.findSimpleAttributeDefinition(name, caseInsensitive);
+        }
+        var def = attributeDefinitionMap.get(name);
+        //noinspection unchecked
+        return def instanceof ShadowSimpleAttributeDefinition<?> ? (ShadowSimpleAttributeDefinition<T>) def : null;
+    }
+
+    @Override
+    public ShadowAssociationDefinition findAssociationDefinition(QName name) {
+        if (isMutable() || QNameUtil.isUnqualified(name)) {
+            for (var associationDefinition : associationDefinitions) {
+                if (QNameUtil.match(associationDefinition.getItemName(), name)) {
+                    return associationDefinition;
+                }
+            }
+            return null;
         } else {
-            return attributeDefinitionMap.get(name);
+            return associationDefinitionMap.get(name);
         }
     }
 
     @NotNull
     @Override
-    public Collection<ResourceAttributeDefinition<?>> getPrimaryIdentifiers() {
+    public Collection<ShadowSimpleAttributeDefinition<?>> getPrimaryIdentifiers() {
         return primaryIdentifiersNames.stream()
-                .map(this::findAttributeDefinitionStrictlyRequired)
+                .map(this::findSimpleAttributeDefinitionStrictlyRequired)
                 .collect(Collectors.toUnmodifiableList());
     }
 
     @NotNull
     @Override
-    public Collection<ResourceAttributeDefinition<?>> getSecondaryIdentifiers() {
+    public Collection<ShadowSimpleAttributeDefinition<?>> getSecondaryIdentifiers() {
         return secondaryIdentifiersNames.stream()
-                .map(this::findAttributeDefinitionStrictlyRequired)
+                .map(this::findSimpleAttributeDefinitionStrictlyRequired)
                 .collect(Collectors.toUnmodifiableList());
     }
 
@@ -295,8 +343,10 @@ public abstract class AbstractResourceObjectDefinitionImpl
     @Override
     public PrismObjectDefinition<ShadowType> getPrismObjectDefinition() {
         if (prismObjectDefinition == null) {
-            PrismObjectDefinition<ShadowType> definition = computePrismObjectDefinition();
+            PrismObjectDefinition<ShadowType> definition = toPrismObjectDefinition();
             definition.freeze();
+            // We could also consider not caching the definition if this object is still mutable. That would be perhaps safer.
+            // Currently, it is solved by invalidation this definition when attributes/associations are added. See also MID-9535.
             this.prismObjectDefinition = definition;
         }
         return prismObjectDefinition;
@@ -304,11 +354,6 @@ public abstract class AbstractResourceObjectDefinitionImpl
 
     private void invalidatePrismObjectDefinition() {
         prismObjectDefinition = null;
-    }
-
-    @NotNull PrismObjectDefinition<ShadowType> computePrismObjectDefinition() {
-        return ObjectFactory.constructObjectDefinition(
-                toResourceAttributeContainerDefinition());
     }
 
     //region Accessing parts of schema handling ========================================================
@@ -330,12 +375,14 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     @Override
-    public @NotNull Collection<ResourceObjectPattern> getProtectedObjectPatterns() {
-        return protectedObjectPatterns;
+    public @NotNull ShadowMarkingRules getShadowMarkingRules() {
+        return MiscUtil.stateNonNull(
+                shadowMarkingRules.getValue(),
+                "Unparsed definition? %s", this);
     }
 
-    void addProtectedObjectPattern(ResourceObjectPattern pattern) {
-        protectedObjectPatterns.add(pattern);
+    void setShadowMarkingRules(ShadowMarkingRules rules) {
+        shadowMarkingRules.setValue(rules);
     }
 
     @Override
@@ -367,25 +414,6 @@ public abstract class AbstractResourceObjectDefinitionImpl
     //endregion
 
     @Override
-    public PrismObject<ShadowType> createBlankShadow(String resourceOid, String tag) {
-        ShadowType shadow =
-                new ShadowType()
-                        .tag(tag)
-                        .objectClass(getObjectClassName())
-                        .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE);
-
-        PrismObject<ShadowType> shadowPrismObject = shadow.asPrismObject();
-
-        // Setup definition
-        shadowPrismObject.setDefinition(
-                shadowPrismObject.getDefinition()
-                        .cloneWithReplacedDefinition(
-                                ShadowType.F_ATTRIBUTES, toResourceAttributeContainerDefinition()));
-
-        return shadowPrismObject;
-    }
-
-    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -395,13 +423,14 @@ public abstract class AbstractResourceObjectDefinitionImpl
         }
         AbstractResourceObjectDefinitionImpl that = (AbstractResourceObjectDefinitionImpl) o;
         return attributeDefinitions.equals(that.attributeDefinitions)
+                && associationDefinitions.equals(that.associationDefinitions)
                 && primaryIdentifiersNames.equals(that.primaryIdentifiersNames)
                 && secondaryIdentifiersNames.equals(that.secondaryIdentifiersNames);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(attributeDefinitions, primaryIdentifiersNames, secondaryIdentifiersNames);
+        return Objects.hash(attributeDefinitions, associationDefinitions, primaryIdentifiersNames, secondaryIdentifiersNames);
     }
 
     public abstract @NotNull AbstractResourceObjectDefinitionImpl clone();
@@ -416,14 +445,9 @@ public abstract class AbstractResourceObjectDefinitionImpl
         primaryIdentifiersNames.addAll(source.getPrimaryIdentifiersNames());
         secondaryIdentifiersNames.addAll(source.getSecondaryIdentifiersNames());
         auxiliaryObjectClassDefinitions.addAll(source.getAuxiliaryDefinitions());
-        protectedObjectPatterns.addAll(source.getProtectedObjectPatterns());
+        shadowMarkingRules.setValue(source.getShadowMarkingRules());
         displayNameAttributeName = source.getDisplayNameAttributeName();
         // prism object definition need not be copied
-    }
-
-    @Override
-    public PrismContext getPrismContext() {
-        return PrismContext.get();
     }
 
     @Override
@@ -431,47 +455,39 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     @Override
-    public @Nullable Class<?> getCompileTimeClass() {
-        return null;
-    }
-
-    @Override
-    public @Nullable QName getSuperType() {
-        return null;
-    }
-
-    @Override
-    public @NotNull Collection<TypeDefinition> getStaticSubTypes() {
-        return List.of();
-    }
-
-    @Override
-    public Integer getInstantiationOrder() {
-        return null;
-    }
-
-    @Override
-    public boolean canRepresent(QName typeName) {
-        return QNameUtil.match(typeName, getObjectClassName());
-    }
-
-    @Override
     protected void performFreeze() {
         attributeDefinitions.freeze();
         createAttributeDefinitionMap();
         associationDefinitions.freeze();
+        createAssociationDefinitionMap();
+
+//        stateCheck(itemDefinitions.isEmpty(), "Any item definitions in %s", this);
+//        //noinspection unchecked,rawtypes
+//        itemDefinitions.addAll((Collection) getMergedDefinitions());
+//        itemDefinitions.freeze();
+
         primaryIdentifiersNames.freeze();
         secondaryIdentifiersNames.freeze();
         auxiliaryObjectClassDefinitions.freeze();
+        shadowMarkingRules.freeze();
     }
 
     private void createAttributeDefinitionMap() {
-        var map = new HashMap<QName, ResourceAttributeDefinition<?>>();
+        var map = new HashMap<QName, ShadowAttributeDefinition<?, ?, ?, ?>>();
         attributeDefinitions.forEach(def -> {
             var previous = map.put(def.getItemName(), def);
             stateCheck(previous == null, "Multiple definitions for attribute %s in %s", def, this);
         });
         attributeDefinitionMap = Collections.unmodifiableMap(map);
+    }
+
+    private void createAssociationDefinitionMap() {
+        var map = new HashMap<QName, ShadowAssociationDefinition>();
+        associationDefinitions.forEach(def -> {
+            var previous = map.put(def.getItemName(), def);
+            stateCheck(previous == null, "Multiple definitions for association %s in %s", def, this);
+        });
+        associationDefinitionMap = Collections.unmodifiableMap(map);
     }
 
     @Override
@@ -507,12 +523,13 @@ public abstract class AbstractResourceObjectDefinitionImpl
         sb.append(SchemaDebugUtil.prettyPrint(_this.getTypeName()));
         _this.addDebugDumpHeaderExtension(sb);
         if (layer != null) {
-            sb.append(",layer=").append(layer);
+            sb.append(", layer=").append(layer);
         }
-        sb.append(")");
-        for (ResourceAttributeDefinition<?> rAttrDef : _this.getAttributeDefinitions()) {
+        List<? extends ShadowAttributeDefinition<?, ?, ?, ?>> attributeDefinitions = _this.getAttributeDefinitions();
+        sb.append(") with ").append(attributeDefinitions.size()).append(" attribute definitions");
+        for (var attrDef : attributeDefinitions) {
             sb.append("\n");
-            sb.append(rAttrDef.debugDump(indent + 1, layer));
+            sb.append(attrDef.debugDump(indent + 1, layer));
         }
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "Expanded definition bean", _this.getDefinitionBean(), indent + 1);
@@ -528,60 +545,15 @@ public abstract class AbstractResourceObjectDefinitionImpl
 
     @Override
     public @NotNull List<? extends ItemDefinition<?>> getDefinitions() {
-        return getAttributeDefinitions();
+        //noinspection unchecked
+        return (List<? extends ItemDefinition<?>>) getAttributeDefinitions();
     }
 
-    @Override
-    public @Nullable QName getExtensionForType() {
-        return null;
-    }
-
-    @Override
-    public boolean isReferenceMarker() {
-        return false;
-    }
-
-    @Override
-    public boolean isContainerMarker() {
-        return true;
-    }
-
-    @Override
-    public boolean isObjectMarker() {
-        return false;
-    }
-
-    @Override
-    public boolean isXsdAnyMarker() {
-        return true;
-    }
-
-    @Override
-    public boolean isListMarker() {
-        return false;
-    }
-
-    @Override
-    public @Nullable String getDefaultNamespace() {
-        return null;
-    }
-
-    @Override
-    public @NotNull List<String> getIgnoredNamespaces() {
-        return List.of();
-    }
-
-    @Override
-    public void merge(ComplexTypeDefinition otherComplexTypeDef) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return attributeDefinitions.isEmpty()
-                && associationDefinitions.isEmpty()
-                && auxiliaryObjectClassDefinitions.isEmpty();
-    }
+//    @Override
+//    public @NotNull Collection<? extends ShadowAttributeDefinition<?, ?>> getShadowItemDefinitions() {
+//        //noinspection unchecked
+//        return (Collection<? extends ShadowAttributeDefinition<?, ?>>) getDefinitions();
+//    }
 
     @Override
     public @NotNull QName getTypeName() {
@@ -609,6 +581,11 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     @Override
+    public boolean isOptionalCleanup() {
+        return false;
+    }
+
+    @Override
     public String getRemovedSince() {
         return null;
     }
@@ -630,6 +607,31 @@ public abstract class AbstractResourceObjectDefinitionImpl
 
     @Override
     public String getDeprecatedSince() {
+        return null;
+    }
+
+    @Override
+    public DisplayHint getDisplayHint() {
+        return null;
+    }
+
+    @Override
+    public @Nullable String getMergerIdentifier() {
+        return null;
+    }
+
+    @Override
+    public @Nullable List<QName> getNaturalKeyConstituents() {
+        return null;
+    }
+
+    @Override
+    public @Nullable ItemMerger getMergerInstance(@NotNull MergeStrategy strategy, @Nullable OriginMarker originMarker) {
+        return null;
+    }
+
+    @Override
+    public @Nullable NaturalKeyDefinition getNaturalKeyInstance() {
         return null;
     }
 
@@ -661,11 +663,6 @@ public abstract class AbstractResourceObjectDefinitionImpl
     @Override
     public <A> A getAnnotation(QName qname) {
         return null;
-    }
-
-    @Override
-    public <A> void setAnnotation(QName qname, A value) {
-        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -722,7 +719,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     @Override
-    public void replaceDefinition(@NotNull QName itemName, @Nullable ItemDefinition<?> newDefinition) {
+    public void replaceAttributeDefinition(@NotNull QName itemName, @Nullable ItemDefinition<?> newDefinition) {
         checkMutable();
         invalidatePrismObjectDefinition();
         attributeDefinitions.removeIf(def -> def.getItemName().equals(itemName));
@@ -735,33 +732,23 @@ public abstract class AbstractResourceObjectDefinitionImpl
         addInternal(definition);
     }
 
-    @NotNull ResourceAttributeDefinition<?> addInternal(@NotNull ItemDefinition<?> definition) {
-        ResourceAttributeDefinition<?> definitionToAdd;
-        if (definition instanceof ResourceAttributeDefinition<?>) {
+    private void addInternal(@NotNull ItemDefinition<?> definition) {
+        if (definition instanceof ShadowAttributeDefinition<?, ?, ?, ?> attributeDefinition) {
             // Can occur during definition replacement.
-            definitionToAdd = (ResourceAttributeDefinition<?>) definition;
-        } else if (definition instanceof RawResourceAttributeDefinition<?>) {
-            // This is the case during parsing. We get the really raw (and mutable) definition.
-            // The following call will convert it into usable form, including freezing.
-            definitionToAdd = ResourceAttributeDefinitionImpl.create((RawResourceAttributeDefinition<?>) definition);
+            attributeDefinitions.add(attributeDefinition);
+        } else if (definition instanceof ShadowAssociationDefinition associationDefinition) {
+            associationDefinitions.add(associationDefinition);
         } else {
             throw new IllegalArgumentException(
-                    "Only ResourceAttributeDefinitions should be put into a ResourceObjectClassDefinition. "
-                            + "Item definition = " + definition + " (" + definition.getClass() + "), "
-                            + "ResourceObjectClassDefinition = " + this);
+                    ("Only attribute or association definitions should be put into a resource object definition. "
+                            + "Item definition = %s (%s), object definition = %s").formatted(
+                                    definition, definition.getClass(), this));
         }
-
-        attributeDefinitions.add(definitionToAdd);
-        return definitionToAdd;
+        invalidatePrismObjectDefinition();
     }
 
     @Override
-    public ItemProcessing getProcessing() {
-        return null; // No information at the level of object class
-    }
-
-    @Override
-    public Collection<QName> getConfiguredAuxiliaryObjectClassNames() {
+    public @NotNull Collection<QName> getConfiguredAuxiliaryObjectClassNames() {
         // TODO keep the names, not the resolved definitions
         return getAuxiliaryDefinitions().stream()
                 .map(Definition::getTypeName)
@@ -769,7 +756,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     @Override
-    public void trimTo(@NotNull Collection<ItemPath> paths) {
+    public void trimAttributesTo(@NotNull Collection<ItemPath> paths) {
         if (isImmutable()) {
             return; // This would fail anyway
         }
@@ -778,7 +765,6 @@ public abstract class AbstractResourceObjectDefinitionImpl
                 .map(ItemPath::asSingleName)
                 .collect(Collectors.toList());
         attributeDefinitions.removeIf(itemDefinition -> !QNameUtil.contains(names, itemDefinition.getItemName()));
-        associationDefinitions.removeIf(itemDefinition -> !QNameUtil.contains(names, itemDefinition.getName()));
 
         // TODO what about QName references like primary or secondary identifier names,
         //  or name, display name, or description attribute names?
@@ -787,15 +773,15 @@ public abstract class AbstractResourceObjectDefinitionImpl
     @Override
     public void validate() throws SchemaException {
         Set<QName> attributeNames = new HashSet<>();
-        for (ResourceAttributeDefinition<?> attributeDefinition : getAttributeDefinitions()) {
+        for (ShadowSimpleAttributeDefinition<?> attributeDefinition : getSimpleAttributeDefinitions()) {
             QName attrName = attributeDefinition.getItemName();
             if (!attributeNames.add(attrName)) {
                 throw new SchemaException("Duplicate definition of attribute " + attrName + " in " + this);
             }
         }
 
-        Collection<? extends ResourceAttributeDefinition<?>> primaryIdentifiers = getPrimaryIdentifiers();
-        Collection<? extends ResourceAttributeDefinition<?>> secondaryIdentifiers = getSecondaryIdentifiers();
+        Collection<? extends ShadowSimpleAttributeDefinition<?>> primaryIdentifiers = getPrimaryIdentifiers();
+        Collection<? extends ShadowSimpleAttributeDefinition<?>> secondaryIdentifiers = getSecondaryIdentifiers();
 
         if (primaryIdentifiers.isEmpty() && secondaryIdentifiers.isEmpty()) {
             throw new SchemaException("No identifiers in definition of object class " + getTypeName() + " in " + this);
@@ -806,18 +792,124 @@ public abstract class AbstractResourceObjectDefinitionImpl
         return definitionBean;
     }
 
-    void addAssociationDefinition(@NotNull ResourceAssociationDefinition associationDef) {
-        checkMutable();
-        associationDefinitions.add(associationDef);
-    }
+//    void addReferenceAttributeDefinition(@NotNull ShadowReferenceAttributeDefinition definition) {
+//        checkMutable();
+//        associationDefinitions.add(definition);
+//        invalidatePrismObjectDefinition();
+//    }
 
     void addAuxiliaryObjectClassDefinition(@NotNull ResourceObjectDefinition definition) {
         checkMutable();
         auxiliaryObjectClassDefinitions.add(definition);
     }
 
-    public void setDisplayNameAttributeName(QName name) {
+    void setDisplayNameAttributeName(QName name) {
         checkMutable();
         this.displayNameAttributeName = name;
+    }
+
+    @Override
+    public @NotNull ShadowCachingPolicyType getEffectiveShadowCachingPolicy() {
+        return MiscUtil.argNonNull(
+                effectiveShadowCachingPolicy,
+                "Effective shadow caching policy is not available for unattached definitions: %s", this);
+    }
+
+    private ShadowCachingPolicyType computeEffectiveShadowCachingPolicy() throws SchemaException, ConfigurationException {
+        var merged = BaseMergeOperation.merge(
+                definitionBean.getCaching(),
+                basicResourceInformation.cachingPolicy());
+        var workingCopy = merged != null ? merged.clone() : new ShadowCachingPolicyType();
+
+        boolean readCachedCapabilityPresent = isReadCachedCapabilityPresent();
+
+        boolean enabledBecauseOfReadCachedCapability = false;
+        boolean defaultIsMaxCaching = false;
+        if (workingCopy.getCachingStrategy() == null) {
+            if (readCachedCapabilityPresent) {
+                workingCopy.setCachingStrategy(CachingStrategyType.PASSIVE);
+                enabledBecauseOfReadCachedCapability = true;
+                defaultIsMaxCaching = true;
+            } else if (InternalsConfig.isShadowCachingOnByDefault()) {
+                workingCopy.setCachingStrategy(CachingStrategyType.PASSIVE);
+                defaultIsMaxCaching = InternalsConfig.isShadowCachingFullByDefault();
+            } else {
+                workingCopy.setCachingStrategy(CachingStrategyType.NONE);
+            }
+        }
+
+        if (workingCopy.getScope() == null) {
+            workingCopy.setScope(new ShadowCachingScopeType());
+        }
+        var scope = workingCopy.getScope();
+        if (scope.getAttributes() == null) {
+            scope.setAttributes(
+                    defaultIsMaxCaching ?
+                            ShadowSimpleAttributesCachingScopeType.ALL : ShadowSimpleAttributesCachingScopeType.DEFINED);
+        }
+        if (scope.getAssociations() == null) {
+            scope.setAssociations(ShadowItemsCachingScopeType.ALL);
+        }
+        if (scope.getActivation() == null) {
+            scope.setActivation(ShadowItemsCachingScopeType.ALL);
+        }
+        if (scope.getCredentials() == null) {
+            scope.setCredentials(
+                    enabledBecauseOfReadCachedCapability ? ShadowItemsCachingScopeType.NONE : ShadowItemsCachingScopeType.ALL);
+        }
+        if (scope.getAuxiliaryObjectClasses() == null) {
+            scope.setAuxiliaryObjectClasses(ShadowItemsCachingScopeType.ALL);
+        }
+        if (workingCopy.getDefaultCacheUse() == null) {
+            // When enabling the caching because of read cached, we want to keep the pre-4.9 behavior (of not using
+            // the cache by projector) by default. It should not make a difference, but seemingly it does. TODO research
+            if (workingCopy.getCachingStrategy() == CachingStrategyType.PASSIVE && !enabledBecauseOfReadCachedCapability) {
+                workingCopy.setDefaultCacheUse(CachedShadowsUseType.USE_CACHED_OR_FRESH);
+            } else {
+                workingCopy.setDefaultCacheUse(CachedShadowsUseType.USE_FRESH);
+            }
+        }
+        if (workingCopy.getTimeToLive() == null) {
+            workingCopy.setTimeToLive(
+                    XmlTypeConverter.createDuration(defaultIsMaxCaching ? "P1000Y" : "P1D"));
+        }
+        return workingCopy;
+    }
+
+    private boolean isReadCachedCapabilityPresent() {
+        var typeDef = getTypeDefinition();
+        if (typeDef != null) {
+            var readCapabilityOfObjectType = typeDef.getConfiguredCapability(ReadCapabilityType.class);
+            if (readCapabilityOfObjectType != null) {
+                return CapabilityUtil.isCapabilityEnabled(readCapabilityOfObjectType)
+                        && Boolean.TRUE.equals(readCapabilityOfObjectType.isCachingOnly());
+            }
+        }
+        return basicResourceInformation.readCachedCapabilityPresent();
+    }
+
+    @Override
+    public @Nullable ItemName resolveFrameworkName(@NotNull String frameworkName) {
+        return FrameworkNameResolver.findInObjectDefinition(this, frameworkName);
+    }
+
+    @Override
+    public ItemInboundDefinition getSimpleAttributeInboundDefinition(ItemName itemName) {
+        return findSimpleAttributeDefinition(itemName);
+    }
+
+    @Override
+    public ItemInboundDefinition getReferenceAttributeInboundDefinition(ItemName itemName) {
+        return findReferenceAttributeDefinition(itemName);
+    }
+
+    @Override
+    public CorrelationDefinitionType getCorrelation() {
+        return getDefinitionBean().getCorrelation();
+    }
+
+    @Override
+    public DefinitionMutator mutator() {
+        throw new UnsupportedOperationException();
     }
 }

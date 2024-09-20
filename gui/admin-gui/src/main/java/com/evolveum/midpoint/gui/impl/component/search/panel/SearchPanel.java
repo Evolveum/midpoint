@@ -6,17 +6,20 @@
  */
 package com.evolveum.midpoint.gui.impl.component.search.panel;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
@@ -61,9 +64,11 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import org.apache.wicket.util.string.StringValue;
+
 public abstract class SearchPanel<C extends Serializable> extends BasePanel<Search<C>> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String DOT_CLASS = SearchPanel.class.getName() + ".";
     private static final Trace LOGGER = TraceManager.getTrace(SearchPanel.class);
@@ -100,9 +105,21 @@ public abstract class SearchPanel<C extends Serializable> extends BasePanel<Sear
         add(form);
 
         initSearchPanel(form);
+        IModel<SearchBoxModeType> searchButtonModel = new IModel<>(){
+
+            @Override
+            public SearchBoxModeType getObject() {
+                return getModelObject().getSearchMode();
+            }
+
+            @Override
+            public void setObject(SearchBoxModeType searchBoxMode) {
+                getModelObject().setSearchMode(searchBoxMode);
+            }
+        };
         SearchButtonWithDropdownMenu<SearchBoxModeType> searchButtonPanel = new SearchButtonWithDropdownMenu<>(ID_SEARCH_BUTTON_PANEL,
-                new PropertyModel<>(getModel(), Search.F_ALLOWED_MODES), new PropertyModel<>(getModelObject(), Search.F_MODE)) {
-            private static final long serialVersionUID = 1L;
+                new PropertyModel<>(getModel(), Search.F_ALLOWED_MODES), searchButtonModel) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void searchPerformed(AjaxRequestTarget target) {
@@ -185,7 +202,7 @@ public abstract class SearchPanel<C extends Serializable> extends BasePanel<Sear
         saveSearchContainer.setOutputMarkupId(true);
         form.add(saveSearchContainer);
         savedSearchListModel = new LoadableDetachableModel<>() {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected List<InlineMenuItem> load() {
@@ -205,7 +222,7 @@ public abstract class SearchPanel<C extends Serializable> extends BasePanel<Sear
 
         AjaxButton saveSearchButton = new AjaxButton(ID_SAVE_SEARCH_BUTTON) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -229,7 +246,7 @@ public abstract class SearchPanel<C extends Serializable> extends BasePanel<Sear
 
                     @Override
                     protected void saveSearchFilterPerformed(AjaxRequestTarget target) {
-                        SearchPanel.this.saveSearchFilterPerformed(target);
+                        reloadSavedSearchFilters(target);
                     }
                 };
                 getPageBase().showMainPopup(panel, target);
@@ -240,7 +257,7 @@ public abstract class SearchPanel<C extends Serializable> extends BasePanel<Sear
         saveSearchContainer.add(saveSearchButton);
 
         AjaxLink<Void> savedSearchMenu = new AjaxLink<>(ID_SAVED_SEARCH_MENU) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -263,7 +280,7 @@ public abstract class SearchPanel<C extends Serializable> extends BasePanel<Sear
             @Override
             protected void populateItem(ListItem<InlineMenuItem> item) {
                 AjaxSubmitLink itemLabel = new AjaxSubmitLink(ID_SAVED_FILTER_NAME) {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
                     @Override
                     public void onSubmit(AjaxRequestTarget target) {
                         selectSavedFilterPerformed(findFilterById(item.getModelObject().getId()), target);
@@ -281,27 +298,7 @@ public abstract class SearchPanel<C extends Serializable> extends BasePanel<Sear
                                 ajaxRequestTarget);
                     }
                 };
-                final String mouseOverStyle = "color: red;";
-                final String mouseLeaveStyle = "color: red; display: none;";
-                removeButton.add(AttributeAppender.append("style", mouseLeaveStyle));
                 item.add(removeButton);
-
-                item.add(new AjaxEventBehavior("mouseenter") {
-                    @Override
-                    public void onEvent(AjaxRequestTarget target) {
-                        removeButton.add(AttributeModifier.remove("style"));
-                        removeButton.add(AttributeAppender.append("style", mouseOverStyle));
-                        target.add(removeButton);
-                    }
-                });
-                item.add(new AjaxEventBehavior("mouseleave") {
-                    @Override
-                    public void onEvent(AjaxRequestTarget target) {
-                        removeButton.add(AttributeAppender.append("style", mouseLeaveStyle));
-                        target.add(removeButton);
-                    }
-                });
-
             }
         };
 
@@ -349,35 +346,74 @@ public abstract class SearchPanel<C extends Serializable> extends BasePanel<Sear
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
                 deleteFilterPerformed(filter, target);
+                reloadSavedSearchFilters(target);
             }
         };
         getPageBase().showMainPopup(confirmationPanel, target);
     }
 
-    private void saveSearchFilterPerformed(AjaxRequestTarget target) {
+    private void reloadSavedSearchFilters(AjaxRequestTarget target) {
         savedSearchListModel.detach();
         getModelObject().reloadSavedFilters(getParentPage());
         refreshSearchForm(target);
     }
 
     private void deleteFilterPerformed(AvailableFilterType filter, AjaxRequestTarget target) {
-        Task task = getPageBase().createSimpleTask(OPERATION_REMOVE_SAVED_FILTER);
+        PageBase page = getPageBase();
+        Task task = page.createSimpleTask(OPERATION_REMOVE_SAVED_FILTER);
         OperationResult result = task.getResult();
+        FocusType principalFocus = page.getPrincipalFocus();
         try {
-            ObjectDelta<UserType> delta = getPageBase().getPrismContext().deltaFactory().object().createModificationDeleteContainer
-                    (UserType.class, getPageBase().getPrincipalFocus().getOid(),
-                            filter.asPrismContainerValue().getPath().allExceptLast(),
+            ObjectDelta<UserType> delta = page.getPrismContext().deltaFactory().object().createModificationDeleteContainer
+                    (UserType.class, principalFocus.getOid(),
+                            getAvailableFilterItemPath(principalFocus, filter),
                             filter.asPrismContainerValue().clone());
-            getPageBase().getModelService().executeChanges(MiscUtil.createCollection(delta), null, task, result);
+            page.getModelService().executeChanges(MiscUtil.createCollection(delta), ModelExecuteOptions.create().raw(), task, result);
         } catch (Exception e) {
             LOGGER.error("Cannot remove filter from user admin gui configuration: {}", e.getMessage(), e);
             result.recordPartialError("Cannot remove filter from user admin gui configuration: {}", e);
-
         }
         result.computeStatusIfUnknown();
-        getPageBase().showResult(result);
-        target.add(getPageBase().getFeedbackPanel());
+        page.showResult(result);
+        target.add(page.getFeedbackPanel());
         target.add(get(ID_FORM));
+    }
+
+    private ItemPath getAvailableFilterItemPath(FocusType principalFocus, AvailableFilterType filter) {
+        if (!(principalFocus instanceof UserType user)) {
+            return null;
+        }
+
+        OperationResult result = new OperationResult("load user");
+        Task task = getPageBase().createSimpleTask("load user");
+        PrismObject<UserType> reloadedPrincipalUser = WebModelServiceUtils.loadObject(UserType.class, user.getOid(), getParentPage(),
+                task, result);
+        if (reloadedPrincipalUser == null) {
+            return null;
+        }
+        user = reloadedPrincipalUser.asObjectable();
+        List<GuiObjectListViewType> views = user.getAdminGuiConfiguration().getObjectCollectionViews().getObjectCollectionView();
+        if (CollectionUtils.isEmpty(views)) {
+            return null;
+        }
+
+        StringValue collectionViewParameter = WebComponentUtil.getCollectionNameParameterValue(getPageBase());
+        String viewName = collectionViewParameter == null || collectionViewParameter.isNull()
+                ? getCollectionInstanceDefaultIdentifier() : collectionViewParameter.toString();
+        if (viewName == null) {
+            return null;
+        }
+        for (GuiObjectListViewType view : views) {
+            if (viewName.equals(view.getIdentifier())) {
+                SearchBoxConfigurationType searchBoxConfigurationType = view.getSearchBoxConfiguration();
+                for (AvailableFilterType availableFilter : searchBoxConfigurationType.getAvailableFilter()) {
+                    if (availableFilter.equals(filter)) {
+                        return availableFilter.asPrismContainerValue().getPath().allExceptLast();
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     private VisibleEnableBehaviour getSearchButtonVisibleEnableBehavior() {
@@ -478,7 +514,8 @@ public abstract class SearchPanel<C extends Serializable> extends BasePanel<Sear
             return;
         }
         try {
-            ObjectFilter objectFilter = getPageBase().getQueryConverter().createObjectFilter(getModelObject().getTypeClass(), axiomSearchItem.getFilter());
+            ObjectFilter objectFilter = getPageBase().getQueryConverter().createObjectFilter(
+                    getModelObject().getTypeClass(), axiomSearchItem.getFilter());
             PrismQuerySerialization serializer = PrismContext.get().querySerializer().serialize(objectFilter);
             getModelObject().setDslQuery(serializer.filterText());
         } catch (SchemaException | PrismQuerySerialization.NotSupportedException e) {
@@ -595,8 +632,8 @@ public abstract class SearchPanel<C extends Serializable> extends BasePanel<Sear
             return null;
         }
         return availableFilterTypes.stream().sorted((filter1, filter2) -> {
-            String label1 = WebComponentUtil.getTranslatedPolyString(GuiDisplayTypeUtil.getLabel(filter1.getDisplay()));
-            String label2 = WebComponentUtil.getTranslatedPolyString(GuiDisplayTypeUtil.getLabel(filter2.getDisplay()));
+            String label1 = LocalizationUtil.translatePolyString(GuiDisplayTypeUtil.getLabel(filter1.getDisplay()));
+            String label2 = LocalizationUtil.translatePolyString(GuiDisplayTypeUtil.getLabel(filter2.getDisplay()));
             return String.CASE_INSENSITIVE_ORDER.compare(label1, label2);
 
         }).collect(Collectors.toList());

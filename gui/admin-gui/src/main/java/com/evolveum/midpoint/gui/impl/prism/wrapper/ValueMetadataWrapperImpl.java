@@ -9,12 +9,17 @@ package com.evolveum.midpoint.gui.impl.prism.wrapper;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
+import com.evolveum.midpoint.gui.impl.util.ExecutedDeltaPostProcessor;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ItemMerger;
+import com.evolveum.midpoint.prism.key.NaturalKeyDefinition;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -47,6 +52,11 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     @Override
     public boolean isIgnored() {
         return metadataValueWrapper.isIgnored();
+    }
+
+    @Override
+    public boolean isOptionalCleanup() {
+        return metadataValueWrapper.isOptionalCleanup();
     }
 
     @Override
@@ -92,6 +102,41 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     @Override
     public String getDeprecatedSince() {
         return metadataValueWrapper.getDeprecatedSince();
+    }
+
+    @Override
+    public DisplayHint getDisplayHint() {
+        return metadataValueWrapper.getDisplayHint();
+    }
+
+    @Override
+    public @Nullable String getMergerIdentifier() {
+        return metadataValueWrapper.getMergerIdentifier();
+    }
+
+    @Override
+    public @Nullable List<QName> getNaturalKeyConstituents() {
+        return metadataValueWrapper.getNaturalKeyConstituents();
+    }
+
+    @Override
+    public @Nullable ItemMerger getMergerInstance(@NotNull MergeStrategy strategy, @Nullable OriginMarker originMarker) {
+        return metadataValueWrapper.getMergerInstance(strategy, originMarker);
+    }
+
+    @Override
+    public @Nullable NaturalKeyDefinition getNaturalKeyInstance() {
+        return metadataValueWrapper.getNaturalKeyInstance();
+    }
+
+    @Override
+    public @Nullable SchemaContextDefinition getSchemaContextDefinition() {
+        return metadataValueWrapper.getSchemaContextDefinition();
+    }
+
+    @Override
+    public boolean isAlwaysUseForEquals() {
+        return metadataValueWrapper.isAlwaysUseForEquals();
     }
 
     @Override
@@ -228,11 +273,6 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
         return metadataValueWrapper.isValidFor(elementQName, clazz, caseInsensitive);
     }
 
-    @Override
-    public void adoptElementDefinitionFrom(ItemDefinition<?> otherDef) {
-        metadataValueWrapper.adoptElementDefinitionFrom(otherDef);
-    }
-
     @NotNull
     @Override
     public PrismContainer<ValueMetadataType> instantiate() throws SchemaException {
@@ -261,6 +301,21 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     }
 
     @Override
+    public @NotNull ItemDefinition<PrismContainer<ValueMetadataType>> cloneWithNewName(@NotNull ItemName itemName) {
+        throw new UnsupportedOperationException("Implement if needed");
+    }
+
+    @Override
+    public @NotNull PrismContainerDefinition<?> cloneWithNewType(@NotNull QName newTypeName, @NotNull ComplexTypeDefinition newCtd) {
+        throw new UnsupportedOperationException("Implement if needed");
+    }
+
+    @Override
+    public Boolean isIndexed() {
+        return metadataValueWrapper.isIndexed();
+    }
+
+    @Override
     public ItemDefinition<PrismContainer<ValueMetadataType>> deepClone(@NotNull DeepCloneOperation operation) {
         return metadataValueWrapper.deepClone(operation);
     }
@@ -279,19 +334,9 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     }
 
     @Override
-    public boolean canBeDefinitionOf(PrismContainer<ValueMetadataType> item) {
-        return metadataValueWrapper.canBeDefinitionOf(item);
-    }
-
-    @Override
-    public boolean canBeDefinitionOf(PrismValue pvalue) {
-        return metadataValueWrapper.canBeDefinitionOf(pvalue);
-    }
-
-    @Override
-    public PrismContainerDefinition<ValueMetadataType> cloneWithReplacedDefinition(
-            QName itemName, ItemDefinition<?> newDefinition) {
-        return metadataValueWrapper.cloneWithReplacedDefinition(itemName, newDefinition);
+    public PrismContainerDefinition<ValueMetadataType> cloneWithNewDefinition(
+            QName newItemName, ItemDefinition<?> newDefinition) {
+        return metadataValueWrapper.cloneWithNewDefinition(newItemName, newDefinition);
     }
 
     @Override
@@ -315,8 +360,8 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     }
 
     @Override
-    public MutablePrismContainerDefinition<ValueMetadataType> toMutable() {
-        return metadataValueWrapper.toMutable();
+    public PrismContainerDefinitionMutator<ValueMetadataType> mutator() {
+        return metadataValueWrapper.mutator();
     }
 
     @Override
@@ -327,11 +372,6 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     @Override
     public <A> A getAnnotation(QName qname) {
         return metadataValueWrapper.getAnnotation(qname);
-    }
-
-    @Override
-    public <A> void setAnnotation(QName qname, A value) {
-        metadataValueWrapper.setAnnotation(qname, value);
     }
 
     @Override
@@ -593,11 +633,6 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     }
 
     @Override
-    public PrismContext getPrismContext() {
-        return metadataValueWrapper.getPrismContext();
-    }
-
-    @Override
     public boolean accept(Visitor<Definition> visitor, SmartVisitation<Definition> visitation) {
         return metadataValueWrapper.accept(visitor, visitation);
     }
@@ -669,5 +704,10 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     @Override
     public void setValidated(boolean validated) {
         metadataValueWrapper.setValidated(validated);
+    }
+
+    @Override
+    public Collection<ExecutedDeltaPostProcessor> getPreconditionDeltas(ModelServiceLocator serviceLocator, OperationResult result) {
+        return null;
     }
 }

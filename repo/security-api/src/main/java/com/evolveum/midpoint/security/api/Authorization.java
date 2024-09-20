@@ -10,6 +10,7 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
@@ -24,6 +25,8 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
+import static com.evolveum.midpoint.security.api.AuthorizationConstants.AUTZ_ALL_URL;
+
 /**
  * Parsed form of {@link AuthorizationType}.
  *
@@ -33,6 +36,7 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
     @Serial private static final long serialVersionUID = 1L;
 
     @NotNull private final AuthorizationType authorizationBean;
+    private final boolean exceptMetadata;
     private String sourceDescription;
 
     @NotNull private final PathSet items;
@@ -44,6 +48,7 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
         this.authorizationBean = authorizationBean;
         items = parseItems(this.authorizationBean.getItem());
         exceptItems = parseItems(this.authorizationBean.getExceptItem());
+        exceptMetadata = Optional.ofNullable(authorizationBean.getExceptMetadata()).orElse(false);
     }
 
     public static Authorization create(@NotNull AuthorizationType authorizationBean, String sourceDescription) {
@@ -91,6 +96,12 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
     public boolean matchesPhase(@Nullable AuthorizationPhaseType phase) {
         var autzPhase = getPhase();
         return autzPhase == null || autzPhase == phase;
+    }
+
+    public boolean matchesAnyAction(@NotNull List<String> actionUrls) {
+        var authorizedActions = getAction();
+        return authorizedActions.contains(AUTZ_ALL_URL)
+                || authorizedActions.stream().anyMatch(actionUrls::contains);
     }
 
     public AuthorizationEnforcementStrategyType getEnforcementStrategy() {
@@ -225,6 +236,10 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
     @Override
     public String toString() {
         return "Authorization(" + authorizationBean.getAction() + ")";
+    }
+
+    public boolean isExceptMetadata() {
+        return exceptMetadata;
     }
 
     @Override

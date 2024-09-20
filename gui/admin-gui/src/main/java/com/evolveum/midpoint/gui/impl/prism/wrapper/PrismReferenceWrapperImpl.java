@@ -12,6 +12,9 @@ import java.util.function.Function;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 
 import org.apache.wicket.model.IModel;
@@ -24,6 +27,8 @@ import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author katka
@@ -51,18 +56,28 @@ public class PrismReferenceWrapperImpl<R extends Referencable>
     }
 
     @Override
-    public QName getCompositeObjectElementName() {
-        return getItemDefinition().getCompositeObjectElementName();
-    }
-
-    @Override
     public boolean isComposite() {
         return getItemDefinition().isComposite();
     }
 
     @Override
+    public @Nullable SchemaContextDefinition getSchemaContextDefinition() {
+        return getItemDefinition().getSchemaContextDefinition();
+    }
+
+    @Override
     public @NotNull PrismReferenceDefinition clone() {
         return getItemDefinition().clone();
+    }
+
+    @Override
+    public @NotNull ItemDefinition<PrismReference> cloneWithNewName(@NotNull ItemName itemName) {
+        throw new UnsupportedOperationException("Implement if needed");
+    }
+
+    @Override
+    public Boolean isIndexed() {
+        return getItemDefinition().isIndexed();
     }
 
     @NotNull
@@ -178,5 +193,10 @@ public class PrismReferenceWrapperImpl<R extends Referencable>
 
     public boolean isOnlyForDeltaComputation() {
         return onlyForDeltaComputation;
+    }
+
+    @Override
+    public PrismReferenceDefinitionMutator mutator() {
+        return getItemDefinition().mutator();
     }
 }

@@ -1,0 +1,12 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Modify Organizational Unit*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Content-Type: application/json" \
+-X PATCH http://localhost:8080/midpoint/ws/rest/orgs/e5ae2f30-141c-4990-8387-4c8e7433132d \
+-v \
+--data-binary @./samples/rest/modify-attribute-gen.json
+----

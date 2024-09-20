@@ -76,14 +76,14 @@ public class SequentialValueExpressionEvaluator<V extends PrismValue, D extends 
      */
     static long getSequenceCounterValue(String sequenceOid, RepositoryService repositoryService, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
-        ModelContext<? extends FocusType> ctx = ModelExpressionThreadLocalHolder.getLensContextRequired();
+        ModelContext<?> ctx = ModelExpressionThreadLocalHolder.getLensContextRequired();
 
         Long alreadyObtainedValue = ctx.getSequenceCounter(sequenceOid);
         if (alreadyObtainedValue != null) {
             return alreadyObtainedValue;
         } else {
             long freshValue;
-            if (!isAdvanceSequenceSafe()) {
+            if (!ctx.isSimulation()) {
                 freshValue = repositoryService.advanceSequence(sequenceOid, result);
             } else {
                 SequenceType seq =
@@ -99,21 +99,12 @@ public class SequentialValueExpressionEvaluator<V extends PrismValue, D extends 
         }
     }
 
-    private static boolean isAdvanceSequenceSafe() {
-        return isAdvanceSequenceSafe(
-                ModelExpressionThreadLocalHolder.getLensContextRequired());
-    }
-
-    public static boolean isAdvanceSequenceSafe(ModelContext<?> context) {
-        return ModelExecuteOptions.isAdvanceSequenceSafe(
-                context.getOptions());
-    }
-
     @NotNull
     private Item<V, D> addValueToOutputProperty(Object value) throws SchemaException {
         //noinspection unchecked
-        Item<V, D> output = outputDefinition.instantiate();
+        Item<V, D> output = (Item<V, D>) outputDefinition.instantiate();
         if (output instanceof PrismProperty) {
+            //noinspection unchecked
             ((PrismProperty<Object>) output).addRealValue(value);
         } else {
             throw new UnsupportedOperationException("Can only provide values of property, not " + output.getClass());

@@ -6,22 +6,6 @@
  */
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
-import com.evolveum.midpoint.schema.LabeledString;
-import com.evolveum.midpoint.schema.RepositoryDiag;
-
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.dialect.Dialect;
-import org.hibernate.internal.SessionFactoryImpl;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
-import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
-
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
@@ -29,6 +13,23 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import org.hibernate.Session;
+import org.hibernate.dialect.Dialect;
+import org.hibernate.internal.SessionFactoryImpl;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
+import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
+import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
+import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
+import com.evolveum.midpoint.schema.LabeledString;
+import com.evolveum.midpoint.schema.RepositoryDiag;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * Common supertype for SQL-based repository-like services.
@@ -79,7 +80,7 @@ public abstract class SqlBaseService {
         }
     }
 
-    public RepositoryDiag getRepositoryDiag() {
+    public @NotNull RepositoryDiag getRepositoryDiag() {
         LOGGER.debug("Getting repository diagnostics.");
 
         RepositoryDiag diag = new RepositoryDiag();
@@ -91,7 +92,6 @@ public abstract class SqlBaseService {
         //todo improve, find and use real values (which are used by sessionFactory) MID-1219
         diag.setDriverShortName(config.getDriverClassName());
         diag.setRepositoryUrl(config.getJdbcUrl());
-        diag.setEmbedded(config.isEmbedded());
 
         Enumeration<Driver> drivers = DriverManager.getDrivers();
         while (drivers.hasMoreElements()) {
@@ -119,9 +119,10 @@ public abstract class SqlBaseService {
     private void readDetailsFromConnection(RepositoryDiag diag, final SqlRepositoryConfiguration config) {
         final List<LabeledString> details = diag.getAdditionalDetails();
 
-        Session session = baseHelper.getSessionFactory().openSession();
+        EntityManager em = baseHelper.getEntityManagerFactory().createEntityManager();
         try {
-            session.beginTransaction();
+            em.getTransaction().begin();
+            Session session = em.unwrap(Session.class);
             session.doWork(connection -> {
                 details.add(new LabeledString(DETAILS_TRANSACTION_ISOLATION,
                         getTransactionIsolation(connection, config)));
@@ -135,15 +136,16 @@ public abstract class SqlBaseService {
                     details.add(new LabeledString(DETAILS_CLIENT_INFO + name, info.getProperty(name)));
                 }
             });
-            session.getTransaction().commit();
+            em.getTransaction().commit();
 
-            SessionFactory sessionFactory = baseHelper.getSessionFactory();
-            if (!(sessionFactory instanceof SessionFactoryImpl)) {
+            EntityManagerFactory entityManagerFactory = baseHelper.getEntityManagerFactory();
+            // TODO THIS WILL NOT NOT WORK
+            //xxx
+            if (!(entityManagerFactory instanceof SessionFactoryImpl sessionFactoryImpl)) {
                 return;
             }
-            SessionFactoryImpl sessionFactoryImpl = (SessionFactoryImpl) sessionFactory;
             // we try to override configuration which was read from sql repo configuration with
-            // real configuration from session factory
+            // real configuration from em factory
             Dialect dialect = sessionFactoryImpl.getJdbcServices().getDialect();
             if (dialect != null) {
                 for (int i = 0; i < details.size(); i++) {
@@ -157,9 +159,9 @@ public abstract class SqlBaseService {
             }
         } catch (Throwable th) {
             //nowhere to report error (no operation result available)
-            session.getTransaction().rollback();
+            em.getTransaction().rollback();
         } finally {
-            baseHelper.cleanupSessionAndResult(session, null);
+            baseHelper.cleanupManagerAndResult(em, null);
         }
     }
 

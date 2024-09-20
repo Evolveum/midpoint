@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.web.page.admin.home;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.interaction.DashboardWidget;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
@@ -80,7 +81,7 @@ public class DashboardWidgetDto implements Serializable {
         }
         DisplayType displayType = dashboardWidget.getDisplay();
         if (displayType != null && StringUtils.isNoneBlank(displayType.getColor())) {
-            return "background-color:" + displayType.getColor() + ";";
+            return "background-color:" + GuiDisplayTypeUtil.removeStringAfterSemicolon(displayType.getColor()) + ";";
         }
         return DEFAULT_BACKGROUND_COLOR;
     }
@@ -140,5 +141,9 @@ public class DashboardWidgetDto implements Serializable {
 
     public String getIconCssClass() {
         return iconCssClass;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
     }
 }

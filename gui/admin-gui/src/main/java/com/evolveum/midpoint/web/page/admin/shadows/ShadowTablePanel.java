@@ -25,9 +25,10 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.MarkTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectOperationPolicyTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -40,7 +41,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
-import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
+import com.evolveum.midpoint.web.component.dialog.DeleteShadowConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -301,116 +302,11 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
             }
         });
 
-        items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.mark"), true) {
-            private static final long serialVersionUID = 1L;
+        items.add(modifyMarkInlineMenuAction());
 
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<ShadowType>>() {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onSubmit(AjaxRequestTarget target) {
-
-                        var selected = getSelectedShadowsList(getRowModel());
-
-                        if (selected.isEmpty()) {
-                            warn(getString("pageContentAccounts.message.noAccountSelected"));
-                            target.add(getPageBase().getFeedbackPanel());
-                            return;
-                        }
-
-                        ObjectFilter marksFilter = PrismContext.get().queryFor(MarkType.class)
-                                .item(MarkType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
-                                .ref(SystemObjectsType.ARCHETYPE_OBJECT_MARK.value())
-                                .buildFilter();
-
-                        ObjectBrowserPanel<MarkType> browser = new ObjectBrowserPanel<>(
-                                getPageBase().getMainPopupBodyId(), MarkType.class,
-                                Collections.singletonList(MarkType.COMPLEX_TYPE), true, getPageBase(), marksFilter) {
-
-                            protected void addPerformed(AjaxRequestTarget target, QName type, List<MarkType> selected) {
-                                LOGGER.debug("Selected marks: {}", selected);
-
-                                List<String> markOids = Lists.transform(selected, MarkType::getOid);
-                                markShadows(getRowModel(), markOids, target);
-                                super.addPerformed(target, type, selected);
-                            }
-
-                            public org.apache.wicket.model.StringResourceModel getTitle() {
-                                return createStringResource("pageContentAccounts.menu.mark.select");
-                            }
-                        };
-
-                        getPageBase().showMainPopup(browser, target);
-                    }
-                };
-            }
-        });
-
-        items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.mark.remove"), true) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<ShadowType>>() {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onSubmit(AjaxRequestTarget target) {
-
-                        var selected = getSelectedShadowsList(getRowModel());
-
-                        if (selected.isEmpty()) {
-                            warn(getString("pageContentAccounts.message.noAccountSelected"));
-                            target.add(getPageBase().getFeedbackPanel());
-                            return;
-                        }
-
-                        var selectedMarks = collectExistingMarks(selected);
-
-                        if (selectedMarks.length == 0) {
-                            warn(getString("pageContentAccounts.message.noMarkOnSelectedAccount"));
-                            target.add(getPageBase().getFeedbackPanel());
-                            return;
-                        }
-
-                        ObjectFilter marksFilter = PrismContext.get().queryFor(MarkType.class)
-                                .item(MarkType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
-                                .ref(SystemObjectsType.ARCHETYPE_OBJECT_MARK.value())
-                                .and()
-                                .id(selectedMarks)
-                                .buildFilter();
-
-                        ObjectBrowserPanel<MarkType> browser = new ObjectBrowserPanel<>(
-                                getPageBase().getMainPopupBodyId(), MarkType.class,
-                                Collections.singletonList(MarkType.COMPLEX_TYPE), true, getPageBase(), marksFilter) {
-
-                            protected void addPerformed(AjaxRequestTarget target, QName type, List<MarkType> selected) {
-                                LOGGER.warn("Selected marks: {}", selected);
-
-                                List<String> markOids = Lists.transform(selected, MarkType::getOid);
-                                removeShadowMarks(getRowModel(), markOids, target);
-                                super.addPerformed(target, type, selected);
-                            }
-
-                            public org.apache.wicket.model.StringResourceModel getTitle() {
-                                return createStringResource("pageContentAccounts.menu.mark.select.remove");
-                            }
-
-                            protected org.apache.wicket.model.StringResourceModel getAddButtonTitle() {
-                                return createStringResource("pageContentAccounts.menu.mark.remove");
-                            }
-
-                            ;
-                        };
-
-                        getPageBase().showMainPopup(browser, target);
-                    }
-
-                };
-            }
-        });
+//        items.add(createMarkInlineMenuAction());
+//
+//        items.add(createUnmarkInlineMenuAction());
 
         return items;
     }
@@ -440,6 +336,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
 
                         List<ObjectReferenceType> refs = shadow.getEffectiveMarkRef();
                         Object[] marks = refs.stream()
+                                .filter(MarkTypeUtil::isEffective) // TODO reconsider if really needed
                                 .map(ref -> WebModelServiceUtils.loadObject(ref, getPageBase()))
                                 .filter(mark -> mark != null)
                                 .map(mark -> WebComponentUtil.getDisplayNameOrName(mark))
@@ -451,7 +348,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
                 return new TitleWithMarks(componentId, labelModel, marks) {
 
                     @Override
-                    protected void onTitleClicked(AjaxRequestTarget target) {
+                    protected void onTitleClicked() {
                         ShadowType object = rowModel.getObject().getValue();
                         if (object == null) {
                             return;
@@ -490,7 +387,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
 
                 ShadowType value = dto.getValue();
                 if (value != null) {
-                    for (ResourceAttribute<?> attr : ShadowUtil.getAllIdentifiers(value)) {
+                    for (ShadowSimpleAttribute<?> attr : ShadowUtil.getAllIdentifiers(value)) {
                         repeater.add(new Label(repeater.newChildId(),
                                 attr.getElementName().getLocalPart() + ": " + attr.getRealValue()));
 
@@ -746,30 +643,50 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
             return;
         }
 
-        ConfirmationPanel dialog = new DeleteConfirmationPanel(
-                ((PageBase) getPage()).getMainPopupBodyId(), createDeleteConfirmString(selectedShadows)) {
-            @Override
-            public void yesPerformed(AjaxRequestTarget target) {
-                deleteAccountsConfirmedPerformed(target, selectedShadows, result);
-            }
-        };
+        ConfirmationPanel dialog;
+
+        if (isDeleteOnlyRepoShadowAllow()) {
+            dialog = new DeleteShadowConfirmationPanel(
+                    ((PageBase) getPage()).getMainPopupBodyId(), createDeleteConfirmString(selectedShadows)) {
+                @Override
+                public void yesPerformed(AjaxRequestTarget target) {
+                    ModelExecuteOptions options = createModelExecuteOptions();
+                    if (options == null && !isDeletedResourceData()) {
+                        options = getPageBase().executeOptions().raw();
+                    }
+                    deleteAccountsConfirmedPerformed(target, selectedShadows, options, result);
+                }
+            };
+        } else {
+            dialog = new ConfirmationPanel(
+                    ((PageBase) getPage()).getMainPopupBodyId(), createDeleteConfirmString(selectedShadows)) {
+                @Override
+                public void yesPerformed(AjaxRequestTarget target) {
+                    deleteAccountsConfirmedPerformed(target, selectedShadows, createModelExecuteOptions(), result);
+                }
+            };
+        }
         getPageBase().showMainPopup(dialog, target);
 
     }
 
+    protected boolean isDeleteOnlyRepoShadowAllow() {
+        return true;
+    }
+
     private void deleteAccountsConfirmedPerformed(
-            AjaxRequestTarget target, List<SelectableBean<ShadowType>> selected, OperationResult parentResult) {
+            AjaxRequestTarget target, List<SelectableBean<ShadowType>> selected, ModelExecuteOptions options, OperationResult parentResult) {
         Task task = getPageBase().createSimpleTask(OPERATION_DELETE_OBJECTS); // created here because of serializability issues
 
         for (SelectableBean<ShadowType> shadowBean : selected) {
             ShadowType shadow = shadowBean.getValue();
-            ModelExecuteOptions options = createModelExecuteOptions();
             var result = parentResult.subresult(OPERATION_DELETE_OBJECT)
                     .addArbitraryObjectAsParam("object", shadow)
                     .build();
             try {
                 // Preliminary solution for MID-8601. Here we assume the shadow marks are visible by GUI.
-                var policy = getPageBase().getObjectOperationPolicyHelper().getEffectivePolicy(shadow, result);
+                var policy = getPageBase().getObjectOperationPolicyHelper()
+                        .getEffectivePolicy(shadow, task.getExecutionMode(), result);
                 var severity = ObjectOperationPolicyTypeUtil.getDeletionRestrictionSeverity(policy);
                 if (severity == null) { // i.e. permitted
                     ObjectDelta<ShadowType> deleteDelta =
@@ -848,114 +765,19 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
 
         ReferenceDelta delta = getPageBase().getPrismContext().deltaFactory().reference().createModificationDelete(FocusType.F_LINK_REF,
                 getFocusDefinition(),
-                ObjectTypeUtil.createObjectRef(shadow, PrismContext.get()).asReferenceValue());
+                ObjectTypeUtil.createObjectRef(shadow).asReferenceValue());
         changeOwnerInternal(owner.getOid(), owner.getClass(), Collections.singletonList(delta), target);
     }
 
     private <F extends FocusType> void setNewShadowOwner(F ownerToChange, SelectableBean<ShadowType> selectableShadow, AjaxRequestTarget target) {
         ShadowType shadow = selectableShadow.getValue();
         ReferenceDelta delta = getPageBase().getPrismContext().deltaFactory().reference().createModificationAdd(FocusType.F_LINK_REF, getFocusDefinition(),
-                ObjectTypeUtil.createObjectRef(shadow, PrismContext.get()).asReferenceValue());
+                ObjectTypeUtil.createObjectRef(shadow).asReferenceValue());
         changeOwnerInternal(ownerToChange.getOid(), ownerToChange.getClass(), Collections.singletonList(delta), target);
     }
 
-    private void removeShadowMarks(IModel<SelectableBean<ShadowType>> rowModel, List<String> markOids,
-            AjaxRequestTarget target) {
-        OperationResult result = new OperationResult(OPERATION_MARK_SHADOW);
-        Task task = getPageBase().createSimpleTask(OPERATION_MARK_SHADOW);
-
-        var selected = getSelectedShadowsList(rowModel);
-        if (selected == null || selected.isEmpty()) {
-            result.recordWarning(createStringResource("ResourceContentPanel.message.markShadowPerformed.warning").getString());
-            getPageBase().showResult(result);
-            target.add(getPageBase().getFeedbackPanel());
-            return;
-        }
-
-        for (SelectableBean<ShadowType> shadow : selected) {
-            List<PolicyStatementType> statements = new ArrayList<>();
-            // We recreate statements (can not reuse them between multiple objects - we can create new or clone
-            // but for each delta we need separate statement
-
-            for (var statement : shadow.getValue().getPolicyStatement()) {
-                if (!PolicyStatementTypeType.APPLY.equals(statement.getType())) {
-                    continue;
-                }
-                if (markOids.contains(statement.getMarkRef().getOid())) {
-                    statements.add(statement.clone());
-                }
-            }
-            try {
-                var delta = getPageBase().getPrismContext().deltaFactory().object()
-                        .createModificationDeleteContainer(ShadowType.class,
-                                shadow.getValue().getOid(), ShadowType.F_POLICY_STATEMENT,
-                                statements.toArray(new PolicyStatementType[0]));
-                getPageBase().getModelService().executeChanges(MiscUtil.createCollection(delta), null, task, result);
-            } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
-                    | ExpressionEvaluationException | CommunicationException | ConfigurationException
-                    | PolicyViolationException | SecurityViolationException e) {
-                result.recordPartialError(
-                        createStringResource(
-                                "ResourceContentPanel.message.markShadowPerformed.partialError", shadow)
-                                .getString(),
-                        e);
-                LOGGER.error("Could not mark shadow {} with marks {}", shadow, markOids, e);
-            }
-        }
-
-        result.computeStatusIfUnknown();
-        getPageBase().showResult(result);
-        refreshTable(target);
-        target.add(getPageBase().getFeedbackPanel());
-    }
-
-    private void markShadows(IModel<SelectableBean<ShadowType>> rowModel, List<String> markOids,
-            AjaxRequestTarget target) {
-        OperationResult result = new OperationResult(OPERATION_MARK_SHADOW);
-        Task task = getPageBase().createSimpleTask(OPERATION_MARK_SHADOW);
-
-        var selected = getSelectedShadowsList(rowModel);
-        if (selected == null || selected.isEmpty()) {
-            result.recordWarning(createStringResource("ResourceContentPanel.message.markShadowPerformed.warning").getString());
-            getPageBase().showResult(result);
-            target.add(getPageBase().getFeedbackPanel());
-            return;
-        }
-
-        for (SelectableBean<ShadowType> shadow : selected) {
-            List<PolicyStatementType> statements = new ArrayList<>();
-            // We recreate statements (can not reuse them between multiple objects - we can create new or clone
-            // but for each delta we need separate statement
-            for (String oid : markOids) {
-                statements.add(new PolicyStatementType().markRef(oid, MarkType.COMPLEX_TYPE)
-                        .type(PolicyStatementTypeType.APPLY));
-            }
-            try {
-                var delta = getPageBase().getPrismContext().deltaFactory().object()
-                        .createModificationAddContainer(ShadowType.class,
-                                shadow.getValue().getOid(), ShadowType.F_POLICY_STATEMENT,
-                                statements.toArray(new PolicyStatementType[0]));
-                getPageBase().getModelService().executeChanges(MiscUtil.createCollection(delta), null, task, result);
-            } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
-                    | ExpressionEvaluationException | CommunicationException | ConfigurationException
-                    | PolicyViolationException | SecurityViolationException e) {
-                result.recordPartialError(
-                        createStringResource(
-                                "ResourceContentPanel.message.markShadowPerformed.partialError", shadow)
-                                .getString(),
-                        e);
-                LOGGER.error("Could not mark shadow {} with marks {}", shadow, markOids, e);
-            }
-        }
-
-        result.computeStatusIfUnknown();
-        getPageBase().showResult(result);
-        refreshTable(target);
-        target.add(getPageBase().getFeedbackPanel());
-    }
-
     private void markProtectedShadow(IModel<SelectableBean<ShadowType>> model, AjaxRequestTarget target) {
-        markShadows(model, Collections.singletonList(SystemObjectsType.MARK_PROTECTED.value()), target);
+        markObjects(model, Collections.singletonList(SystemObjectsType.MARK_PROTECTED.value()), target);
     }
 
     private boolean isSatisfyConstraints(List selected) {
@@ -1008,20 +830,13 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
                 .findObjectDefinitionByCompileTimeClass(FocusType.class);
     }
 
-    private String[] collectExistingMarks(List<SelectableBean<ShadowType>> selected) {
-        Set<String> marks = new HashSet<>();
-        for (SelectableBean<ShadowType> shadow : selected) {
-            for (var statement : shadow.getValue().getPolicyStatement()) {
-                if (PolicyStatementTypeType.APPLY.equals(statement.getType())) {
-                    marks.add(statement.getMarkRef().getOid());
-                }
-            }
-        }
-        return marks.toArray(new String[] {});
-    }
 
     protected ModelExecuteOptions createModelExecuteOptions() {
         return null;
     }
 
+    @Override
+    protected boolean isDuplicationSupported() {
+        return false;
+    }
 }

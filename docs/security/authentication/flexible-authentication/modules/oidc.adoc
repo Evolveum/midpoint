@@ -1,0 +1,554 @@
+= Module oidc
+:page-nav-title: Module oidc
+
+++++
+{% include since.html since="4.5" %}
+++++
+
+OIDC authentication module supports authentication via Identity provider that supports OpenID connect.
+
+OIDC Authentication module contains two different types of configuration:
+
+. *GUI* with channel _http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user_, that was defined by attribute _client_,
+. *REST* with channel _http://midpoint.evolveum.com/xml/ns/public/common/channels-3#rest_, that was defined by attribute _resourceServer_.
+
+== Configuration for GUI
+
+Configuration for GUI is provided via attribute _client_, that is type _OidcClientAuthenticationModuleType_. Client supports only grand type *Authorization code*. We need to configure client properties for client authentication and configuration of OpenID provider for provide identity for identification of midpoint focus.
+
+Client contains following attributes:
+
+[%autowidth]
+|===
+| Name | Description | Required | Type
+
+| `registrationId`
+| Unique identifier of the client. RegistrationId is used in url path, so it has to contain only correct symbols.
+| true
+| _String_
+
+
+| `clientId`
+| OAuth 2.0 Client Identifier valid at the Authorization Server.
+| true
+| _String_
+
+
+| `clientSecret`
+| OAuth 2.0 Client Secret valid at the Authorization Server.
+| false
+| _ProtectedStringType_
+
+
+| `clientAuthenticationMethod`
+| Define client authentication method. Possible values is clientSecretBasic, clientSecretPost, clientSecretJwt and privateKeyJwt.
+| false
+| _OidcClientAuthenticationMethodType_
+
+
+| `clientSigningAlgorithm`
+| Required node group.
+Identifier of algorithm for digitally sign or create a MAC of the content. (RFC7518 section-3.1)
+| false
+| _String_
+
+
+| `scope`
+| OpenID Connect Clients use scope values as defined in 3.3 of OAuth 2.0 [RFC6749] to specify what access privileges are being requested for Access Tokens. Scope contains 'openid', so we don't need set it. Scope is multivalue attribute, so please set every value of scope to separate tags.
+| false
+| _String_
+
+
+| `clientName`
+| Human friendly name of client.
+| false
+| _String_
+
+| `nameOfUsernameAttribute`
+| Name of attribute in response, which value define name of user in Midpoint. Default value is 'sub'.
+| false
+| _String_
+
+| `openIdProvider`
+| OpenID Provider.
+| false
+| _OidcOpenIdProviderType_
+
+| `simpleProofKey`
+| Key used for sign with privateKeyJwt. Choice _simpleProofKey_ or _keyStoreProofKey_.
+| false
+| _AbstractSimpleKeyType_
+
+| `keyStoreProofKey`
+| Key from key store used for sign with privateKeyJwt. Choice _simpleProofKey_ or _keyStoreProofKey_.
+| false
+| _AbstractKeyStoreKeyType_
+
+|===
+
+=== AbstractSimpleKeyType
+AbstractSimpleKeyType contains following attributes:
+
+[%autowidth]
+|===
+| Name | Description | Required | Type
+
+| `privateKey`
+| Private key.
+| true
+| _ProtectedStringType_
+
+
+| `passphrase`
+| Password.
+| true
+| _ProtectedStringType_
+
+
+| `certificate`
+| Certificate of key.
+| true
+| _ProtectedStringType_
+
+|===
+
+=== AbstractKeyStoreKeyType
+AbstractKeyStoreKeyType contains following attributes:
+
+[%autowidth]
+|===
+| Name | Description | Required | Type
+
+| `keyStorePath`
+| Path to KeyStore.
+| true
+| _String_
+
+
+| `keyStorePassword`
+| Password of KeyStore.
+| true
+| _ProtectedStringType_
+
+
+| `keyAlias`
+| Alias of private key in KeyStore.
+| true
+| _ProtectedStringType_
+
+
+| `keyPassword`
+| Password of private key with alias '`keyAlias`' in KeyStore.
+| true
+| _ProtectedStringType_
+
+|===
+
+=== OidcOpenIdProviderType
+
+Definition for OpenID Provider. Possible attributes are:
+
+[%autowidth]
+|===
+| Name | Description | Required | Type
+
+| `issuerUri`
+| Issuer identifier uri for the OpenID Connect provider.
+| true
+| _String_
+
+| `authorizationUri`
+| Uri for the authorization endpoint.
+| false
+| _String_
+
+
+| `tokenUri`
+| Uri for the token endpoint.
+| false
+| _String_
+
+
+| `userInfoUri`
+| Uri for user info endpoint.
+| false
+| _String_
+
+
+| `endSessionUri`
+| Uri for logout endpoint.
+| false
+| _String_
+
+| `jwkSetUri`
+| Uri for JSON web key set endpoint. Available from midPoint 4.8.
+| false
+| _String_
+
+
+|===
+
+Required attribute is only `issuerUri`, because midPoint gets configuration for all other URIs from 'issuerUri'/.well-known/openid-configuration. MidPoint can write error to log file that some from optional configuration URIs is null and required. This error we can see when 'issuerUri'/.well-known/openid-configuration is unavailable.
+
+=== Examples
+
+The following example shows a simple client secret based authentication against Keycloak.
+
+What is needed to make it work:
+
+. Installed Keycloak e.g. from https://www.keycloak.org/getting-started/getting-started-docker[the Docker image].
+In the following we assume it's running on `http://192.168.4.100:8080/`
+. Created client `midpoint` (in Keycloak), with client authentication turned on and our midPoint URL (e.g., `http://localhost:8080/midpoint/*`) set as "Valid redirect URI".
+. A sample user (e.g. `jack`) created in Keycloak, with a password set.
+. The same user created in midPoint, with no password, but some roles (e.g. End user) allowing them to log in.
+
+.Example of client configuration with client authentication using client secret
+[source,xml]
+----
+<securityPolicy>
+    <authentication>
+        <modules>
+            ...
+            <loginForm> <!--1-->
+                <identifier>loginForm</identifier>
+            </loginForm>
+            ...
+            <oidc> <!--2-->
+                <identifier>gui-oidc</identifier>
+                <client>
+                    <registrationId>oidc-registration</registrationId> <!--3-->
+                    <clientId>midpoint</clientId> <!--4-->
+                    <clientSecret>
+                        <t:clearValue>RwdBxRhOggkDCr321SzyGwkEVvRHd7g1</t:clearValue> <!--5-->
+                    </clientSecret>
+                    <clientAuthenticationMethod>clientSecretBasic</clientAuthenticationMethod>
+                    <nameOfUsernameAttribute>preferred_username</nameOfUsernameAttribute>
+                    <openIdProvider>
+                        <issuerUri>http://192.168.4.100:8080/realms/master</issuerUri> <!--6-->
+                    </openIdProvider>
+                </client>
+            </oidc>
+            ...
+        </modules>
+        ...
+        <sequence> <!--2-->
+            <identifier>gui-oidc</identifier>
+            <channel>
+                <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</channelId>
+                <default>true</default>
+                <urlSuffix>gui-oidc</urlSuffix>
+            </channel>
+            <module>
+                <identifier>gui-oidc</identifier>
+            </module>
+        </sequence>
+        ...
+        <sequence> <!--1-->
+            <identifier>gui-login-form</identifier>
+            <channel>
+                <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</channelId>
+                <urlSuffix>gui-login-form</urlSuffix>
+            </channel>
+            <module>
+                <identifier>loginForm</identifier>
+            </module>
+        </sequence>
+        ...
+    </authentication>
+</securityPolicy>
+----
+<1> To allow logging in for users that have no accounts in Keycloak (e.g., default midPoint `administrator`).
+Not strictly necessary.
+<2> OpenID Connect login for ordinary users.
+<3> Technical information that may be basically anything legal for inclusion into URI.
+<4> ID of the client as registered in Keycloak.
+<5> Secret of the client as generated by Keycloak (or provided manually).
+<6> URL at which Keycloak runs.
+
+Administrator logs in at `http://localhost:8080/midpoint/auth/gui-login-form`.
+Ordinary users log in at `http://localhost:8080/midpoint` (the default authentication).
+
+=== More advanced example
+
+The following is a more advanced example using JWT-based authentication method.
+
+.Example of client configuration with client authentication for client signed JWT
+[source,xml]
+----
+<securityPolicy>
+    <authentication>
+        ...
+        <modules>
+            <oidc>
+                <identifier>oidcKeycloak</identifier>
+                <client>
+                    <registrationId>keycloak</registrationId>
+                    <clientId>account</clientId>
+                    <clientSecret>
+                        <clearValue>'client_secret'</clearValue>
+                    </clientSecret>
+                    <clientAuthenticationMethod>privateKeyJwt</clientAuthenticationMethod>
+                    <nameOfUsernameAttribute>preferred_username</nameOfUsernameAttribute>
+                    <openIdProvider>
+                        <issuerUri>https://keycloak.lab.evolveum.com/auth/realms/test</issuerUri>
+                    </openIdProvider>
+                    <keyStoreProofKey>
+                        <keyStorePath>/home/user/keystore.jks</keyStorePath>
+                        <keyStorePassword>
+                            <clearValue>password</clearValue>
+                        </keyStorePassword>
+                        <keyAlias>account</keyAlias>
+                        <keyPassword>
+                            <clearValue>password</clearValue>
+                        </keyPassword>
+                    </keyStoreProofKey>
+                    <scope>profile</scope>
+                    <scope>user</scope>
+                </client>
+            </oidc>
+        </modules>
+        <sequence>
+            <identifier>admin-gui-default</identifier>
+            <channel>
+                <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</channelId>
+                <default>true</default>
+                <urlSuffix>defaultGui</urlSuffix>
+            </channel>
+            <module>
+                <identifier>oidcKeycloak</identifier>
+                <order>10</order>
+                <necessity>sufficient</necessity>
+            </module>
+        </sequence>
+        ...
+    </authentication>
+</securityPolicy>
+----
+
+WARNING: Since version 4.8, the flow for identifying a user logged in via the GUI has been changed. MidPoint uses the claim value with the name from the _nameOfUsernameAttribute_. The claim is primarily obtained from the ID token. When a claim is missing in the ID token, midPoint looks for it in the access token. Finally, if the claim is missing in the access token, midPoint uses the user info endpoint to retrieve the claim. Only the last step applies to Midpoint 4.7
+
+If Midpoint is located behind a reverse proxy it may be useful to set the _publicHttpUrlPattern_ setting to the right value in order for the OIDC Redirect URI to point to a valid public URL (see below).
+
+.Example of public URL configuration
+[source,xml]
+----
+<systemConfiguration>
+    .
+    .
+    .
+    <infrastructure>
+        <publicHttpUrlPattern>https://public.url.local/midpoint</publicHttpUrlPattern>
+    </infrastructure>
+    .
+    .
+    .
+</systemConfiguration>
+----
+
+== Configuration for REST
+
+Configuration for REST is provided via attribute _resourceServer_, that is type _OidcResourceServerAuthenticationModuleType_. When we want to use OIDC module for REST, midPoint works as resource server. REST request has to contain WWW-Authentication header with syntax `Authorization: Bearer {token}`.
+
+Resource server contains following attributes:
+
+[%autowidth]
+|===
+| Name | Description | Required | Type | Note
+
+| `jwt`
+| Define that resource server expect token in format JWT.
+| false
+| _JwtOidcResourceServerType_
+| Since midPoint 4.8.
+
+| `opaqueToken`
+| Define that resource server expect opaque token, which have to be verified by user info endpoint.
+| false
+| _OpaqueTokenOidcResourceServerType_
+| Since midPoint 4.8.
+
+| `realm`
+| Realm which midPoint use for WWW-Authentication header.
+| false
+| _String_
+| Deprecated since midPoint 4.8. Use attribute in token definition instead. +
+Planned removal in midPoint 4.9.
+
+| `issuerUri`
+| Issuer identifier URI for the OpenID Connect provider.
+| false
+| _String_
+| Deprecated since midPoint 4.8. Use attribute in token definition instead. +
+Planned removal in midPoint 4.9.
+
+| `jwkSetUri`
+| URI for the JSON Web Key (JWK) Set endpoint.
+| false
+| _String_
+| Deprecated since midPoint 4.8. Use attribute in token definition instead. +
+Planned removal in midPoint 4.9.
+
+| `nameOfUsernameClaim`
+| Name of claim in JWT, which value define name of user in midPoint.
+| false
+| _String_
+| Deprecated since midPoint 4.8. Use attribute in token definition instead. +
+Planned removal in midPoint 4.9.
+
+| `singleSymmetricKey`
+| Trusting a Single Asymmetric Key.
+| false
+| _ProtectedStringType_
+| Deprecated since midPoint 4.8. Use attribute in token definition instead. +
+Planned removal in midPoint 4.9.
+
+| `trustedAlgorithm`
+| Trusted Algorithms. (RFC7518 section-3.1).
+| false
+| _String_
+| Deprecated since midPoint 4.8. Use attribute in token definition instead. +
+Planned removal in midPoint 4.9.
+
+| `trustingAsymmetricCertificate`
+| Certificate of trusting a single asymmetric RSA public key.
+| false
+| _ProtectedStringType_
+| Deprecated since midPoint 4.8. Use attribute in token definition instead. +
+Planned removal in midPoint 4.9.
+
+| `keyStoreTrustingAsymmetricKey`
+| Key store with trusting a single asymmetric RSA public key.
+| false
+| _AbstractKeyStoreKeyType_
+| Deprecated since midPoint 4.8. Use attribute in token definition instead. +
+Planned removal in midPoint 4.9.
+
+|===
+
+WARNING: Until version 4.8 midPoint needs a JWT to authenticate and identify the midpoint. The configuration attributes used are directly in the OidcResourceServerAuthenticationModuleType.
+
+Since version 4.8, midPoint supports two token formats, JWT (_JwtOidcResourceServerType_) and opaque token (_OpaqueTokenOidcResourceServerType_).
+
+=== JWT format
+
+When we choose the configuration for _jwt_(_JwtOidcResourceServerType_) midPoint obtains a claim, with the name from the _nameOfUsernameClaim_ attribute, from the jwt that is contained in the request.
+
+We have four choices for verification JWT, using issuerUri, JWKSetUri, singleSymmetricKey or using public key, by trustingAsymmetricCertificate or keyStoreTrustingAsymmetricKey.
+
+_JwtOidcResourceServerType_ contains following attributes:
+
+[%autowidth]
+|===
+| Name | Description | Required | Type
+
+| `realm`
+| Realm which Midpoint use for WWW-Authentication header.
+| false
+| _String_
+
+| `issuerUri`
+| Issuer identifier URI for the OpenID Connect provider.
+| false
+| _String_
+
+| `jwkSetUri`
+| URI for the JSON Web Key (JWK) Set endpoint.
+| false
+| _String_
+
+| `nameOfUsernameClaim`
+| Name of claim in JWT, which value define name of user in midPoint.
+|
+| _String_
+
+| `singleSymmetricKey`
+| Trusting a Single Asymmetric Key.
+| false
+| _ProtectedStringType_
+
+| `trustedAlgorithm`
+| Trusted Algorithms. (RFC7518 section-3.1).
+| false
+| _String_
+
+| `trustingAsymmetricCertificate`
+| Certificate of trusting a single asymmetric RSA public key.
+| false
+| _ProtectedStringType_
+
+| `keyStoreTrustingAsymmetricKey`
+| Key store with trusting a single asymmetric RSA public key.
+| false
+| _AbstractKeyStoreKeyType_
+
+|===
+
+=== Opaque token format
+
+When we select the configuration for the _opaqueToken_(_OpaqueTokenOidcResourceServerType_) midPoint, we get the claim with the name from the _nameOfUsernameClaim_ attribute from the user info endpoint.
+
+_OpaqueTokenOidcResourceServerType_ contains following attributes:
+
+[%autowidth]
+|===
+| Name | Description | Required | Type
+
+| `realm`
+| Realm which Midpoint use for WWW-Authentication header.
+| false
+| _String_
+
+| `issuerUri`
+| Issuer identifier URI for the OpenID Connect provider.
+| false
+| _String_
+
+| `nameOfUsernameClaim`
+| Name of claim in JWT, which value define name of user in midPoint.
+|
+| _String_
+
+| `userInfoUri`
+| URI for user info endpoint.
+| false
+| _String_
+
+|===
+
+.Example of Resource server configuration with issuerUri.
+[source,xml]
+----
+<securityPolicy>
+    <authentication>
+        ...
+        <modules>
+            <oidc>
+                <identifier>oidcResourceServer</identifier>
+                <resourceServer>
+                    <jwt> <!-- or opaqueToken -->
+                        <issuerUri>https://keycloak.lab.evolveum.com/auth/realms/test</issuerUri>
+                        <nameOfUsernameClaim>preferred_username</nameOfUsernameClaim>
+                    </jwt>
+                </resourceServer>
+            </oidc>
+        </modules>
+        <sequence>
+            <identifier>rest</identifier>
+            <channel>
+                <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#rest</channelId>
+                <default>true</default>
+                <urlSuffix>rest-default</urlSuffix>
+            </channel>
+            <module>
+                <identifier>oidcResourceServer</identifier>
+                <order>10</order>
+                <necessity>sufficient</necessity>
+            </module>
+        </sequence>
+        ...
+    </authentication>
+</securityPolicy>
+----
+
+== See also
+* xref:/midpoint/reference/security/authentication/flexible-authentication/configuration/[Flexible Authentication]

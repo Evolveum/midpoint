@@ -20,13 +20,14 @@ import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdNameMapper;
 import com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdNameMapper.ucfAttributeNameToConnId;
 
 public class ValueOperation extends Operation {
 
@@ -35,7 +36,7 @@ public class ValueOperation extends Operation {
     }
 
     @Override
-    public <T> Filter interpret(ObjectFilter objectFilter, ConnIdNameMapper icfNameMapper) throws SchemaException {
+    public <T> Filter interpret(ObjectFilter objectFilter) throws SchemaException {
         ValueFilter valueFilter = (ValueFilter) objectFilter;
         if (valueFilter.getParentPath().isEmpty()) {
             throw new UnsupportedOperationException("Empty path is not supported (filter: " + objectFilter + ")");
@@ -43,7 +44,7 @@ public class ValueOperation extends Operation {
         if (valueFilter.getParentPath().equivalent(ShadowType.F_ATTRIBUTES)) {
             try {
                 QName propName = valueFilter.getDefinition().getItemName();
-                String icfName = icfNameMapper.convertAttributeNameToConnId(
+                String icfName = ucfAttributeNameToConnId(
                         propName, getInterpreter().getObjectDefinition(), "(attribute in the filter)");
 
                 if (objectFilter instanceof EqualFilter) {

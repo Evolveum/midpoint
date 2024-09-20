@@ -24,10 +24,10 @@ import static java.util.Collections.singleton;
  */
 public class ResourceUtils {
 
-    public static void deleteSchema(PrismObject<? extends ResourceType> resource, ModelService modelService, PrismContext prismContext, Task task, OperationResult parentResult)
+    public static void deleteSchema(PrismObject<? extends ResourceType> resource, ModelService modelService, Task task, OperationResult parentResult)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, PolicyViolationException, SecurityViolationException {
-        ObjectDelta<ResourceType> delta = prismContext.deltaFor(ResourceType.class)
+        ObjectDelta<ResourceType> delta = PrismContext.get().deltaFor(ResourceType.class)
                 .item(ItemPath.create(ResourceType.F_SCHEMA, XmlSchemaType.F_DEFINITION)).replace()
                 .item(ItemPath.create(ResourceType.F_SCHEMA, XmlSchemaType.F_CACHING_METADATA)).replace()
                 .asObjectDelta(resource.getOid());

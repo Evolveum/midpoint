@@ -1,0 +1,458 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/prism-schema-3"
+        xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/prism-schema-3"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+        xmlns:jaxb="https://jakarta.ee/xml/ns/jaxb"
+        xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+        elementFormDefault="qualified"
+        attributeFormDefault="qualified"
+        jaxb:extensionBindingPrefixes="xjc"
+        jaxb:version="3.0">
+
+    <xsd:annotation>
+        <xsd:documentation>
+            Schema that defines data types used in schema type.
+
+            Version: 4.9
+            Recommended namespace prefix: prisms
+        </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        <xsd:annotation>
+            <xsd:documentation>
+                Common midPoint schema.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:import>
+
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"
+            schemaLocation="http://prism.evolveum.com/xml/ns/public/annotation-3">
+        <xsd:annotation>
+            <xsd:documentation>
+                Common midPoint annotations used in various XSD schemas.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:import>
+
+    <xsd:complexType name="PrismSchemaType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="namespace" type="xsd:string" minOccurs="1">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayOrder>5</a:displayOrder>
+                        <a:displayHint>emphasized</a:displayHint>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        Namespace for schema.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="defaultPrefix" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayOrder>9</a:displayOrder>
+                        <a:displayHint>emphasized</a:displayHint>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        Defines constant prefix, which should be used for namespace defined in XSD schema.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="complexType" type="tns:ComplexTypeDefinitionType" minOccurs="1" maxOccurs="unbounded"/>
+            <xsd:element name="enumerationType" type="tns:EnumerationTypeDefinitionType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="prismSchema" type="tns:PrismSchemaType"/>
+
+    <xsd:complexType name="ComplexTypeDefinitionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:DefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="extension" type="xsd:QName" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayOrder>20</a:displayOrder>
+                                <a:displayHint>emphasized</a:displayHint>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="itemDefinitions" type="tns:PrismItemDefinitionType" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="PrismContainerDefinitionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:PrismItemDefinitionType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="PrismReferenceDefinitionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:PrismItemDefinitionType">
+                <xsd:sequence>
+                    <xsd:element ref="a:objectReferenceTargetType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayOrder>20</a:displayOrder>
+                                <a:displayHint>emphasized</a:displayHint>
+                            </xsd:appinfo>
+                            <xsd:documentation>
+                                Object reference annotation: reference target type. Content of this
+                                annotation specifies the object type that the reference points to.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="PrismPropertyDefinitionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:PrismItemDefinitionType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="PrismItemDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Common elements for property, reference and container definition.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:DefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="type" type="xsd:QName" minOccurs="1">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayOrder>10</a:displayOrder>
+                                <a:displayHint>emphasized</a:displayHint>
+                            </xsd:appinfo>
+                            <xsd:documentation>
+                                <p>
+                                    Type of the item.
+                                </p>
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="required" type="xsd:boolean" minOccurs="0" default="false">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayOrder>30</a:displayOrder>
+                                <a:displayName>PrismItemDefinitionType.required</a:displayName>
+                            </xsd:appinfo>
+                            <xsd:documentation>
+                                <p>
+                                Mark that this item is required.
+                                </p>
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="multivalue" type="xsd:boolean" minOccurs="0" default="false">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayOrder>40</a:displayOrder>
+                                <a:displayName>PrismItemDefinitionType.multivalue</a:displayName>
+                            </xsd:appinfo>
+                            <xsd:documentation>
+                                <p>
+                                Mark that this item is multivalue.
+                                </p>
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="indexed" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayOrder>50</a:displayOrder>
+                                <a:displayName>PrismItemDefinitionType.indexed</a:displayName>
+                            </xsd:appinfo>
+                            <xsd:documentation>
+                                <p>
+                                Mark that this item is indexed. The default value for indexed flag (i.e. the XSD annotation)
+                                is true for the above supported types, and it can be switched to false if the property
+                                is not important for searching. For other property types, complex types or extension containers
+                                (and their content) it is false and cannot be changed to true. It is only possible to search
+                                by the properties on the top level of the extension container.
+                                </p>
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="valueEnumerationRef" type="c:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                Reference to an object that directly or indirectly represents possible values for
+                                this item. We do not define here what exactly the object has to be. It can be a lookup
+                                table, script that dynamically produces the values or anything similar.
+                                The object must produce the values of the correct type for this item otherwise an
+                                error occurs.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>c:LookupTableType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element ref="a:access" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="prismItemDef" type="tns:PrismItemDefinitionType"/>
+
+    <xsd:complexType name="DefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Common elements for all definitions.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:QName" minOccurs="1">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayOrder>0</a:displayOrder>
+                        <a:displayHint>emphasized</a:displayHint>
+                        <a:displayName>DefinitionType.name</a:displayName>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        <p>
+                            Name of the item.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element ref="c:displayName" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Human readable name. This name may be displayed in tools and GUIs
+                            to provide more pleasant user experience, as the XML data type names
+                            or object names may look quite frightening.</p>
+
+                        <p>
+                            The "displayName" should contain a value that is readable for almost any
+                            user. It is never used in the "logic", it is used only for display purposes.
+                        </p>
+
+                        <p>
+                            The use of national characters is in "displayName" is fully supported.
+                        </p>
+
+                        <p>
+                            DisplayName is reused in several location, but the meaning is still the same.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>DefinitionType.displayName</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="help" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Help text for the displayed item. Help text is usually
+                            displayed when the user clicks on help/information icon.
+                            This may be a longer text (several sentences).
+                        </p>
+                        <p>
+                            This is equivalent to "help" schema annotation.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element ref="c:documentation" minOccurs="0"/>
+            <xsd:element name="displayOrder" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Order of element.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="displayHint" type="c:DisplayHintType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Enumeration annotation that specifies how the item should be displayed.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element ref="c:lifecycleState" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Lifecycle state of the object. This property defines whether the
+                            object represents proposed definition, whether it is active,
+                            deprecated and archived. Only this values is supported.
+                            You can change value to next in order but not back.
+                            See "Object Lifecycle" in the documentation.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ObjectType.lifecycleState</a:displayName>
+                        <a:valueEnumerationRef oid="00000000-0000-0000-0000-000000000230" type="tns:LookupTableType"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="EnumerationTypeDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Elements for enumeration definition.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:DefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="values" type="tns:EnumerationValueTypeDefinitionType" minOccurs="1" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Values of enumeration.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="baseType" type="xsd:QName" minOccurs="1">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayOrder>10</a:displayOrder>
+                                <a:displayHint>emphasized</a:displayHint>
+                            </xsd:appinfo>
+                            <xsd:documentation>
+                                <p>
+                                    Base type of the values.
+                                </p>
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="EnumerationValueTypeDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Elements for enumeration value definition.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="value" type="xsd:string" minOccurs="1">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayOrder>0</a:displayOrder>
+                        <a:displayHint>emphasized</a:displayHint>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        <p>
+                            Value of enumeration value.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="documentation" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayOrder>30</a:displayOrder>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        <p>
+                            Documentation of enumeration value.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="constantName" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayOrder>20</a:displayOrder>
+                        <a:displayHint>emphasized</a:displayHint>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        <p>
+                            Constant name of enumeration value.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+</xsd:schema>

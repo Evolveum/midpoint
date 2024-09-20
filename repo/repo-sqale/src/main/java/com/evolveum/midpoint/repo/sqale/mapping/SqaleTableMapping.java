@@ -15,6 +15,15 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.xml.namespace.QName;
 
+import com.evolveum.axiom.concepts.CheckedFunction;
+import com.evolveum.midpoint.prism.ItemDefinition;
+
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.schema.SchemaRegistryState;
+
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
+import com.evolveum.midpoint.util.exception.SystemException;
+
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.*;
 import org.jetbrains.annotations.NotNull;
@@ -284,7 +293,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
      * While public, for Sqale repo it should only be called for internal mapping purposes.
      *
      * *Do not call this in result list transformers* because the results would not have resolved reference names (if requested).
-     * Notice that the default implementation of {@link #createRowTransformer} in this class calls
+     * Notice that the default implementation of {@link QueryTableMapping#createRowTransformer} in this class calls
      * {@link #toSchemaObjectCompleteSafe} which is the right thing to call in result list transformers.
      */
     @Override
@@ -429,7 +438,13 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             @NotNull OR ownerRow, @NotNull List<ObjectReferenceType> refs,
             @NotNull QReferenceMapping<?, REF, OQ, OR> mapping, @NotNull JdbcSession jdbcSession) {
         if (!refs.isEmpty()) {
-            refs.forEach(ref -> mapping.insert(ref, ownerRow, jdbcSession));
+            refs.forEach(ref -> {
+                try {
+                    mapping.insert(ref, ownerRow, jdbcSession);
+                } catch (SchemaException e) {
+                    throw new RuntimeException(e);
+                }
+            });
         }
     }
 
@@ -467,17 +482,19 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
                 .processExtensions(extContainer, holderType);
     }
 
-    protected S parseSchemaObject(byte[] fullObject, String identifier) throws SchemaException {
+    public S parseSchemaObject(byte[] fullObject, String identifier) throws SchemaException {
         return parseSchemaObject(fullObject, identifier, schemaType());
     }
 
-    protected <T> T parseSchemaObject(byte[] fullObject, String identifier, Class<T> clazz) throws SchemaException {
+    public <T> T parseSchemaObject(byte[] fullObject, String identifier, Class<T> clazz) throws SchemaException {
         String serializedForm = fullObject != null
                 ? new String(fullObject, StandardCharsets.UTF_8)
                 : null;
         try {
-            RepositoryObjectParseResult<T> result =
-                    repositoryContext().parsePrismObject(serializedForm, clazz);
+            var definition = getDefinition();
+            RepositoryObjectParseResult<T> result = definition != null ?
+                    repositoryContext().parsePrismObject(serializedForm, definition,  clazz)
+                    : repositoryContext().parsePrismObject(serializedForm, clazz);
             T schemaObject = result.prismValue;
             if (result.parsingContext.hasWarnings()) {
                 logger.warn("Object {} parsed with {} warnings",
@@ -500,7 +517,11 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     /** Creates serialized (byte array) form of an object or a container. */
     public <C extends Containerable> byte[] createFullObject(C container) throws SchemaException {
         repositoryContext().normalizeAllRelations(container.asPrismContainerValue());
+
+        ItemDefinition<?> definition = (ItemDefinition<?>) getDefinition();
+
         return repositoryContext().createStringSerializer()
+                .definition(definition)
                 .itemsToSkip(fullObjectItemsToSkip())
                 .options(SerializationOptions
                         .createSerializeReferenceNamesForNullOids()
@@ -530,7 +551,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
      * Prefer overriding {@link #toSchemaObject} as we want to get rid of this version and forceFull flag.
      *
      * *Do not call this in result list transformers* because the results would not have resolved reference names (if requested).
-     * Notice that the default implementation of {@link #createRowTransformer} in this class calls
+     * Notice that the default implementation of {@link QueryTableMapping#createRowTransformer} in this class calls
      * {@link #toSchemaObjectCompleteSafe} which is the right thing to call in result list transformers.
      *
      * @param forceFull true when reindex is forced on the modified object, otherwise false
@@ -593,8 +614,35 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
     @Override
     public ResultListRowTransformer<S, Q, R> createRowTransformer(
-            SqlQueryContext<S, Q, R> sqlQueryContext, JdbcSession jdbcSession) {
-        return (tuple, entityPath, options) ->
+            SqlQueryContext<S, Q, R> sqlQueryContext, JdbcSession jdbcSession, Collection<SelectorOptions<GetOperationOptions>> options) {
+        return (tuple, entityPath) ->
                 toSchemaObjectCompleteSafe(tuple, entityPath, options, jdbcSession, false);
+    }
+
+    /**
+     * Returns current global item definition for items stored in the table.
+     * @return
+     */
+    @Nullable
+    protected ItemDefinition<?> getDefinition() {
+        if (definitionDerivationKey() == null) {
+            return null;
+        }
+        return PrismContext.get().getSchemaRegistry().getDerivedObject(definitionDerivationKey(), definitionDerivation());
+    }
+
+    protected CheckedFunction<SchemaRegistryState, ItemDefinition<?>, SystemException> definitionDerivation() {
+        return null;
+    }
+
+    protected SchemaRegistryState.DerivationKey<ItemDefinition<?>> definitionDerivationKey() {
+        return null;
+    }
+
+    /**
+     * @return Partition manager if table support partitioning
+     */
+    public @Nullable  PartitionManager<R> getPartitionManager() {
+        return null;
     }
 }

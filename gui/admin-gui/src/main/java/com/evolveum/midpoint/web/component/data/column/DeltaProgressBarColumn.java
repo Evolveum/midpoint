@@ -66,9 +66,13 @@ public abstract class DeltaProgressBarColumn<R extends Serializable, S extends S
 
                     if (id.isAdd()) {
                         add++;
-                    } else if (id.isReplace()) {
+                    }
+
+                    if (id.isReplace()) {
                         modify++;
-                    } else if (id.isDelete()) {
+                    }
+
+                    if (id.isDelete()) {
                         delete++;
                     }
                 }

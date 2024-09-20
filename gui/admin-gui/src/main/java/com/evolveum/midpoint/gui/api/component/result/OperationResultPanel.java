@@ -6,21 +6,24 @@
  */
 package com.evolveum.midpoint.gui.api.component.result;
 
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FeedbackMessagesHookType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -129,7 +132,13 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
         box.add(message);
 
         AjaxLink<String> backgroundTaskLink = new AjaxLink<>(ID_BACKGROUND_TASK_LINK) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                super.updateAjaxAttributes(attributes);
+                attributes.setEventPropagation(AjaxRequestAttributes.EventPropagation.STOP);
+            }
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -244,11 +253,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 
             String msg = null;
             if (result.getUserFriendlyMessage() != null) {
-                //TODO: unify with WebModelServiceUtil.translateMessage()
-                LocalizationService service = page.getLocalizationService();
-                Locale locale = page.getSession().getLocale();
-
-                msg = service.translate(result.getUserFriendlyMessage(), locale);
+                msg = LocalizationUtil.translateMessage(result.getUserFriendlyMessage());
             }
 
             if (StringUtils.isNotBlank(msg)) {
@@ -375,7 +380,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
         errorContainer.add(errorMessage);
 
         Label errorStackTrace = new Label(ID_ERROR_STACK_TRACE, () -> getModelObject().getExceptionsStackTrace());
-        errorStackTrace.add(new VisibleBehaviour(() -> getModelObject().isShowError()));
+        errorStackTrace.add(new VisibleBehaviour(() -> getModelObject().isShowError() && isStackTraceVisible()));
         errorContainer.add(errorStackTrace);
 
         Label linkText = new Label("linkText", () -> {
@@ -395,7 +400,30 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
             }
         };
         errorStackTraceLink.add(linkText);
+        errorStackTraceLink.add(new VisibleBehaviour(() -> isStackTraceVisible()));
         errorContainer.add(errorStackTraceLink);
+    }
+
+    private boolean isStackTraceVisible() {
+        UserInterfaceElementVisibilityType stackTraceVisibility = null;
+        FeedbackMessagesHookType feedbackConfig = getPageBase().getCompiledGuiProfile().getFeedbackMessagesHook();
+        if (feedbackConfig != null) {
+            stackTraceVisibility = feedbackConfig.getStackTraceVisibility();
+        }
+
+        if (stackTraceVisibility == null) {
+            stackTraceVisibility = UserInterfaceElementVisibilityType.VISIBLE;
+        }
+
+        if (stackTraceVisibility == UserInterfaceElementVisibilityType.VISIBLE) {
+            return true;
+        }
+
+        if (stackTraceVisibility == UserInterfaceElementVisibilityType.HIDDEN) {
+            return false;
+        }
+
+        return true;
     }
 
     private void showHideAll(final boolean show, AjaxRequestTarget target) {

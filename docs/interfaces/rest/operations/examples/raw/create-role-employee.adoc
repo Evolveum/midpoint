@@ -1,0 +1,36 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Create a new Role object in MidPoint with file data source*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Content-Type: application/json" \
+-X POST http://localhost:8080/midpoint/ws/rest/roles \
+-v \
+--data-binary @./samples/rest/role-employee.json
+----
+
+.*Show* data source example for *"Create a new Role object in MidPoint"* | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/role-employee.json[GitHub]
+[%collapsible]
+====
+[source, json]
+----
+{
+  "role": {
+    "name": "employee",
+    "displayName": "Basic Employee"
+  }
+}
+----
+====
+
+The response is an HTTP 201 code in case of success *without* a response body.
+Also, the response contains a *Location Header* pointing to the location of the created
+user.
+
+.Example location header
+[source, bash]
+----
+Location: http://localhost:8080/midpoint/ws/rest/roles/76fcec3e-7224-435e-8c9b-7532f081d8b0
+----

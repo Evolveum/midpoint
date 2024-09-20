@@ -9,7 +9,6 @@ package com.evolveum.midpoint.certification.test;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
@@ -23,6 +22,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.File;
 import java.util.Collection;
 import java.util.Date;
@@ -221,6 +221,8 @@ public class TestSoDCertification extends AbstractCertificationTest {
     @Test
     public void test020OpenFirstStage() throws Exception {
         // GIVEN
+        clock.resetOverride();
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
@@ -229,12 +231,16 @@ public class TestSoDCertification extends AbstractCertificationTest {
 
         // WHEN
         when();
-        certificationManager.openNextStage(campaignOid, task, result);
+        certificationService.openNextStage(campaignOid, task, result);
 
         // THEN
         then();
         result.computeStatus();
-        TestUtil.assertSuccess(result);
+        TestUtil.assertInProgressOrSuccess(result);
+
+        List<PrismObject<TaskType>> tasks = getFirstStageTasks(campaignOid, startTime, result);
+        assertEquals("unexpected number of related tasks", 1, tasks.size());
+        waitForTaskFinish(tasks.get(0).getOid());
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign in stage 1", campaign);
@@ -384,6 +390,8 @@ public class TestSoDCertification extends AbstractCertificationTest {
     @Test
     public void test200StartRemediation() throws Exception {
         // GIVEN
+        clock.resetOverride();
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
@@ -401,10 +409,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
         display("campaign after remediation start", campaign);
         assertTrue("wrong campaign state: " + campaign.getState(), campaign.getState() == CLOSED || campaign.getState() == IN_REMEDIATION);
 
-        ObjectQuery query = prismContext.queryFor(TaskType.class)
-                .item(TaskType.F_OBJECT_REF).ref(campaign.getOid())
-                .build();
-        List<PrismObject<TaskType>> tasks = taskManager.searchObjects(TaskType.class, query, null, result);
+        List<PrismObject<TaskType>> tasks = getRemediationTasks(campaignOid, startTime, result);
         assertEquals("unexpected number of related tasks", 1, tasks.size());
         waitForTaskFinish(tasks.get(0).getOid());
 
@@ -446,14 +451,25 @@ public class TestSoDCertification extends AbstractCertificationTest {
         // THEN
         userJack = getUser(USER_JACK_OID).asObjectable();
         display("jack", userJack);
-        assertCertificationMetadata(findAssignmentByTargetRequired(userJack.asPrismObject(), roleATest2bOid).getMetadata(),
-                SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT, singleton(USER_JACK_OID), emptySet());
-        assertCertificationMetadata(findAssignmentByTargetRequired(userJack.asPrismObject(), roleATest2cOid).getMetadata(),
-                SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT, singleton(USER_JACK_OID), emptySet());
-        assertCertificationMetadata(findAssignmentByTargetRequired(userJack.asPrismObject(), roleATest3aOid).getMetadata(),
-                SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT, singleton(USER_JACK_OID), singleton("jack: OK"));
-        assertCertificationMetadata(findAssignmentByTargetRequired(userJack.asPrismObject(), roleATest3bOid).getMetadata(),
-                SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT, singleton(USER_JACK_OID), singleton("jack: dunno"));
+        assertCertificationMetadata(
+                findAssignmentByTargetRequired(userJack.asPrismObject(), roleATest2bOid),
+                SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT,
+                singleton(USER_JACK_OID),
+                emptySet());
+        assertCertificationMetadata(
+                findAssignmentByTargetRequired(userJack.asPrismObject(), roleATest2cOid),
+                SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT,
+                singleton(USER_JACK_OID),
+                emptySet());
+        assertCertificationMetadata(
+                findAssignmentByTargetRequired(userJack.asPrismObject(), roleATest3aOid),
+                SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT,
+                singleton(USER_JACK_OID),
+                singleton("jack: OK"));
+        assertCertificationMetadata(
+                findAssignmentByTargetRequired(userJack.asPrismObject(), roleATest3bOid),
+                SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT,
+                singleton(USER_JACK_OID),
+                singleton("jack: dunno"));
     }
-
 }

@@ -13,9 +13,10 @@ import java.util.Set;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.constants.TestResourceOpNames;
 
-import com.evolveum.midpoint.schema.merger.OriginMarker;
+import com.evolveum.midpoint.prism.OriginMarker;
 import com.evolveum.midpoint.schema.processor.*;
 
+import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -41,6 +42,8 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import javax.xml.namespace.QName;
+
+import static com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext.empty;
 
 /**
  * Provisioning Service Interface
@@ -317,6 +320,18 @@ public interface ProvisioningService {
             @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;
+
+    /** A convenience method. */
+    default @NotNull AbstractShadow getShadow(
+            @NotNull String oid,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
+        return AbstractShadow.of(
+                getObject(ShadowType.class, oid, options, new ProvisioningOperationContext(), task, result));
+    }
 
     /**
      * This is method doesn't take {@link ProvisioningOperationContext} as a parameter to simplify backward compatibility for now.
@@ -622,6 +637,18 @@ public interface ProvisioningService {
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;
 
+    /** A convenience method. */
+    default @NotNull SearchResultList<? extends AbstractShadow> searchShadows(
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        return searchObjects(ShadowType.class, query, options, empty(), task, result)
+                .transform(AbstractShadow::of);
+    }
+
     /**
      * This is method doesn't take {@link ProvisioningOperationContext} as a parameter to simplify backward compatibility for now.
      * It shouldn't be used, will be deprecated and removed after tests were updated accordingly.
@@ -732,6 +759,26 @@ public interface ProvisioningService {
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
         return searchObjectsIterative(type, query, options, handler, new ProvisioningOperationContext(), task, parentResult);
+    }
+
+    /** A convenience method. */
+    @Experimental
+    default <T extends ObjectType> SearchResultMetadata searchShadowsIterative(
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull ObjectHandler<AbstractShadow> handler,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
+        return searchObjectsIterative(
+                ShadowType.class,
+                query,
+                options,
+                (object, lResult) -> handler.handle(AbstractShadow.of(object), lResult),
+                new ProvisioningOperationContext(),
+                task,
+                result);
     }
 
     /**
@@ -973,12 +1020,12 @@ public interface ProvisioningService {
             @NotNull PrismObject<ResourceType> resource, @NotNull OperationResult parentResult);
 
     /**
-     * The operation try fetch schema by connector configuration from resource object.
+     * The operation fetches the resource schema using the connector configuration from provided resource object.
      *
      * @param resource resource with connector configuration
      * @return Resource schema fetched by connector
      */
-    @Nullable ResourceSchema fetchSchema(@NotNull PrismObject<ResourceType> resource, @NotNull OperationResult parentResult);
+    @Nullable BareResourceSchema fetchSchema(@NotNull PrismObject<ResourceType> resource, @NotNull OperationResult parentResult);
 
     /**
      * Discovers local or remote connectors.
@@ -1005,9 +1052,14 @@ public interface ProvisioningService {
      * And so on. However, this is NOT reconciliation function that will make sure that the resource object attributes are OK
      * with all the policies. This is just a provisioning-level operation.
      */
-    void refreshShadow(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, ProvisioningOperationContext context, Task task, OperationResult parentResult)
+    void refreshShadow(
+            @NotNull PrismObject<ShadowType> shadow,
+            ProvisioningOperationOptions options,
+            ProvisioningOperationContext context,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ObjectAlreadyExistsException, SecurityViolationException, ExpressionEvaluationException;
+            ObjectAlreadyExistsException, SecurityViolationException, ExpressionEvaluationException, EncryptionException;
 
     /**
      * This is method doesn't take {@link ProvisioningOperationContext} as a parameter to simplify backward compatibility for now.
@@ -1015,7 +1067,7 @@ public interface ProvisioningService {
      */
     default void refreshShadow(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ObjectAlreadyExistsException, SecurityViolationException, ExpressionEvaluationException {
+            ObjectAlreadyExistsException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
         refreshShadow(shadow, options, new ProvisioningOperationContext(), task, parentResult);
     }
 
@@ -1044,6 +1096,22 @@ public interface ProvisioningService {
      */
     void determineShadowState(PrismObject<ShadowType> shadow, Task task, OperationResult parentResult)
         throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+
+    /**
+     * Determines effective shadow marks and policies, updating the shadow object in memory.
+     *
+     * This is to be used for externally acquired shadows, to make them look like all other shadows returned from the provisioning
+     * module. Usually called along with {@link #determineShadowState(PrismObject, Task, OperationResult)}.
+     *
+     * TODO consider merging these methods
+     *
+     * The `isNew` parameter should be true if we believe the shadow does not exist yet (on the resource nor in the repo).
+     *
+     * TODO reconsider the `isNew` parameter
+     */
+    void updateShadowMarksAndPolicies(PrismObject<ShadowType> shadow, boolean isNew, Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException, SecurityViolationException;
 
     /**
      * Applies appropriate definition to the query.
@@ -1091,26 +1159,6 @@ public interface ProvisioningService {
             @NotNull OperationResult parentResult)
             throws CommunicationException, ObjectAlreadyExistsException, SchemaException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException;
-
-    /**
-     * This is method doesn't take {@link ProvisioningOperationContext} as a parameter to simplify backward compatibility for now.
-     * It shouldn't be used, will be deprecated and removed after tests were updated accordingly.
-     */
-    default ConstraintsCheckingResult checkConstraints(
-            ResourceObjectDefinition objectTypeDefinition,
-            PrismObject<ShadowType> shadowObject,
-            PrismObject<ShadowType> shadowObjectOld,
-            ResourceType resource,
-            String shadowOid,
-            ConstraintViolationConfirmer constraintViolationConfirmer,
-            ConstraintsCheckingStrategyType strategy,
-            @NotNull Task task,
-            @NotNull OperationResult parentResult)
-            throws CommunicationException, ObjectAlreadyExistsException, SchemaException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
-        return checkConstraints(objectTypeDefinition, shadowObject, shadowObjectOld, resource, shadowOid, constraintViolationConfirmer,
-                strategy, null, task, parentResult);
-    }
 
     void enterConstraintsCheckerCache();
 
@@ -1200,4 +1248,11 @@ public interface ProvisioningService {
     @Experimental
     @NotNull CapabilityCollectionType getNativeCapabilities(@NotNull String connOid, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, ObjectNotFoundException;
+
+    /** Returns the default operation policy for given object type (if specified). */
+    @Nullable ObjectOperationPolicyType getDefaultOperationPolicy(
+            @NotNull String resourceOid,
+            @NotNull ResourceObjectTypeIdentification typeIdentification,
+            @NotNull Task task,
+            @NotNull OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException;
 }

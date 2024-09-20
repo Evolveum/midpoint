@@ -763,34 +763,34 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
     }
 
     // a bit of hack - TODO place appropriately
-    public static void adopt(AuditEventRecordType record, PrismContext prismContext) throws SchemaException {
+    public static void adopt(AuditEventRecordType record) throws SchemaException {
         for (ObjectDeltaOperationType odo : record.getDelta()) {
-            adopt(odo.getObjectDelta(), prismContext);
+            adopt(odo.getObjectDelta());
         }
     }
 
-    public static void adopt(ObjectDeltaType delta, PrismContext prismContext) throws SchemaException {
+    public static void adopt(ObjectDeltaType delta) throws SchemaException {
         if (delta == null) {
             return;
         }
         if (delta.getObjectToAdd() != null) {
             //noinspection unchecked
-            prismContext.adopt(delta.getObjectToAdd().asPrismObject());
+            PrismContext.get().adopt(delta.getObjectToAdd().asPrismObject());
         }
         for (ItemDeltaType itemDelta : delta.getItemDelta()) {
-            adopt(itemDelta, prismContext);
+            adopt(itemDelta);
         }
     }
 
-    private static void adopt(ItemDeltaType itemDelta, PrismContext prismContext) {
+    private static void adopt(ItemDeltaType itemDelta) {
         for (RawType value : itemDelta.getValue()) {
             if (value != null) {
-                value.revive(prismContext);
+                value.revive(PrismContext.get());
             }
         }
         for (RawType value : itemDelta.getEstimatedOldValue()) {
             if (value != null) {
-                value.revive(prismContext);
+                value.revive(PrismContext.get());
             }
         }
     }

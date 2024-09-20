@@ -8,8 +8,11 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteQNamePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.gui.impl.factory.panel.qname.AbstractObjectClassFactory;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.SimulatedAssociationClassParticipantDelineationType;
 
 import org.springframework.stereotype.Component;
 
@@ -37,8 +40,10 @@ public class ResourceObjectClassFactory extends AbstractObjectClassFactory {
         if (!(object instanceof ResourceType)) {
             return false;
         }
-        return wrapper.getPath().lastName().equivalent(ResourceObjectTypeDefinitionType.F_OBJECT_CLASS)
-                || wrapper.getPath().lastName().equivalent(ResourceObjectTypeDefinitionType.F_AUXILIARY_OBJECT_CLASS);
+        return ResourceObjectTypeDefinitionType.F_OBJECT_CLASS.equivalent(wrapper.getPath().lastName())
+                || ResourceObjectTypeDefinitionType.F_AUXILIARY_OBJECT_CLASS.equivalent(wrapper.getPath().lastName())
+                || SimulatedAssociationClassParticipantDelineationType.F_AUXILIARY_OBJECT_CLASS.equivalent(wrapper.getPath().lastName())
+                || SimulatedAssociationClassParticipantDelineationType.F_OBJECT_CLASS.equivalent(wrapper.getPath().lastName());
     }
 
     @Override

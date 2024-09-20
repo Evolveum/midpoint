@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.reports.component;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismReferenceDefinition.PrismReferenceDefinitionMutator;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -186,34 +187,34 @@ public class RunReportPopupPanel extends BasePanel<ReportType> implements Popupa
                     LOGGER.error("Couldn't create container item for parameter " + parameter);
                     continue;
                 }
-                MutableItemDefinition def;
-                String namespaceUri = SchemaConstants.NS_REPORT_EXTENSION + "/" + AbstractReportWorkDefinitionType.F_REPORT_PARAM;
+                ItemDefinition def;
                 if (Referencable.class.isAssignableFrom(clazz)) {
-                    def = getPrismContext().definitionFactory().createReferenceDefinition(
-                            new QName(namespaceUri, parameter.getName()), type);
-                    ((MutablePrismReferenceDefinition) def).setTargetTypeName(parameter.getTargetType());
+                    def = getPrismContext().definitionFactory().newReferenceDefinition(
+                            new QName(SchemaConstants.NS_REPORT_PARAM_EXTENSION, parameter.getName()), type);
+                    ((PrismReferenceDefinition) def).mutator().setTargetTypeName(parameter.getTargetType());
                 } else {
                     List values = WebComponentUtil.getAllowedValues(parameter, getPageBase());
                     if (CollectionUtils.isNotEmpty(values)) {
-                        def = getPrismContext().definitionFactory().createPropertyDefinition(
-                                new QName(namespaceUri, parameter.getName()), type, values, null).toMutable();
+                        def = getPrismContext().definitionFactory().newPropertyDefinition(
+                                new QName(SchemaConstants.NS_REPORT_PARAM_EXTENSION, parameter.getName()),
+                                type, values, null);
                     } else {
-                        def = getPrismContext().definitionFactory().createPropertyDefinition(
-                                new QName(namespaceUri, parameter.getName()), type);
+                        def = getPrismContext().definitionFactory().newPropertyDefinition(
+                                new QName(SchemaConstants.NS_REPORT_PARAM_EXTENSION, parameter.getName()), type);
                     }
                 }
-                def.setDynamic(true);
-                def.setRuntimeSchema(true);
-                def.setMaxOccurs(1);
-                def.setMinOccurs(0);
+                def.mutator().setDynamic(true);
+                def.mutator().setRuntimeSchema(true);
+                def.mutator().setMaxOccurs(1);
+                def.mutator().setMinOccurs(0);
                 if (parameter.getDisplay() != null) {
                     String displayName = WebComponentUtil.getTranslatedPolyString(parameter.getDisplay().getLabel());
-                    def.setDisplayName(displayName);
+                    def.mutator().setDisplayName(displayName);
                     String help = WebComponentUtil.getTranslatedPolyString(parameter.getDisplay().getHelp());
-                    def.setHelp(help);
+                    def.mutator().setHelp(help);
                 }
                 if (parameter.getAllowedValuesLookupTable() != null) {
-                    def.setValueEnumerationRef(parameter.getAllowedValuesLookupTable().asReferenceValue());
+                    def.mutator().setValueEnumerationRef(parameter.getAllowedValuesLookupTable().asReferenceValue());
                 }
 
                 try {

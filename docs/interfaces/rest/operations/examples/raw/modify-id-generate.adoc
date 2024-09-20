@@ -1,0 +1,45 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Show* data source example for *"Generate identifier for object"* | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/policy-items-identifier-generate.json[GitHub]
+[%collapsible]
+====
+[source, json]
+----
+{
+	"policyItemsDefinition": {
+		"policyItemDefinition": {
+			"target": {
+				"path": "identifier"
+			},
+			"execute": "true"
+		}
+	}
+}
+----
+====
+The response is an HTTP 200 code in case of success with a response body.
+
+.*Show* example output for *"Generate identifier for object"*
+[%collapsible]
+====
+[source, json]
+----
+{
+  "@ns" : "http://prism.evolveum.com/xml/ns/public/types-3",
+  "object" : {
+    "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/api-types-3#PolicyItemsDefinitionType",
+    "policyItemDefinition" : [ {
+      "target" : {
+        "path" : "identifier"
+      },
+      "value" : {
+        "@type" : "xsd:string",
+        "@value" : "s2cMJrD5^21"
+      },
+      "execute" : true
+    } ]
+  }
+}
+----
+====

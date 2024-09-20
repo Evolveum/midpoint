@@ -1,0 +1,50 @@
+= Get Users with filter query
+:page-nav-title: Get User with filter query
+:page-display-order: 300
+:page-toc: top
+:page-upkeep-status: green
+
+== Description
+Example of retrieving identity data from a web resource object representing a user.
+In this specific sample you will retrieve the data of a set of users with a specific value of an attribute.
+This will be used as a part of a filter query
+
+For the purpose of the sample we are using the CURL tool as it is a well maintained, well tested, and it's widely accessible.
+
+.Authentication methods used to work with the REST api
+xref:/midpoint/reference/interfaces/rest/concepts/authentication/#_basic_authentication[Authentication methods]
+
+== Example
+
+include::../../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+.Get Users with filter query
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d -H "Accept: application/json" -H "Content-Type: application/json" -X POST http://localhost:8080/midpoint/ws/rest/users/search --data-binary @pathToMidpointGit\samples\rest\query-users-param.json -v
+----
+
+.*Show* data source example for *"Get Users with filter query"* | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/query-users-param.json[GitHub]
+[%collapsible]
+====
+[source, json]
+----
+{
+  "query": {
+    "filter": {
+      "text": "emailAddress endsWith \"@evolveum.com\""
+    }
+  }
+}
+----
+====
+
+== See Also
+
+- xref:/midpoint/reference/concepts/query/[MidPoint Query language]
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]

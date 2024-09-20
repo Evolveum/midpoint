@@ -51,7 +51,7 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
 
     // converts assignments to cases
     @Override
-    public <F extends FocusType> Collection<? extends AccessCertificationCaseType> createCasesForObject(
+    public <F extends AssignmentHolderType> Collection<? extends AccessCertificationCaseType> createCasesForObject(
             PrismObject<F> objectPrism, AccessCertificationCampaignType campaign, Task task, OperationResult parentResult)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException {
@@ -90,7 +90,7 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
         AccessCertificationAssignmentCaseType assignmentCase = new AccessCertificationAssignmentCaseType();
         assignmentCase.setAssignment(assignment.clone());
         assignmentCase.setIsInducement(isInducement);
-        assignmentCase.setObjectRef(ObjectTypeUtil.createObjectRef(object, prismContext));
+        assignmentCase.setObjectRef(ObjectTypeUtil.createObjectRef(object));
         assignmentCase.setTenantRef(assignment.getTenantRef());
         assignmentCase.setOrgRef(assignment.getOrgRef());
         assignmentCase.setActivation(assignment.getActivation());
@@ -105,6 +105,8 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
                 valid = isIncludeServices(scope);
             } else if (UserType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType())) {
                 valid = isIncludeUsers(scope);
+            } else if (PolicyType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType())) {
+                valid = isIncludePolicies(scope);
             } else if (ArchetypeType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType())) {
                 // archetype assignment management is not fully supported for now, therefore ignoring
                 valid = false;
@@ -179,6 +181,10 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
 
     private boolean isIncludeUsers(AccessCertificationAssignmentReviewScopeType scope) {
         return scope == null || !Boolean.FALSE.equals(scope.isIncludeUsers());
+    }
+
+    private boolean isIncludePolicies(AccessCertificationAssignmentReviewScopeType scope) {
+        return scope == null || !Boolean.FALSE.equals(scope.isIncludePolicies());
     }
 
     private boolean isEnabledItemsOnly(AccessCertificationAssignmentReviewScopeType scope) {

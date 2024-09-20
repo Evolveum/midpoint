@@ -45,8 +45,23 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
     /**
      * Is this operation already authorized, i.e. should it be executed without any further authorization checks?
      * EXPERIMENTAL. Currently supported only for raw executions.
+     *
+     * For internal use.
      */
     private Boolean preAuthorized;
+
+    /**
+     * Is the operation start already authorized, i.e. does not require any checks?
+     *
+     * Used to compute direct/indirect assignments via previewChanges() - formally a modification operation,
+     * but, in fact, the clockwork execution is used only to determine the current assignments. (Or future,
+     * if there is a delta. But that is a subject of #assign authorizations, then.)
+     *
+     * Only for simulated non-raw executions.
+     *
+     * For internal use.
+     */
+    private Boolean operationStartPreAuthorized;
 
     /**
      * Processes all assignment relations on recompute. Used for computing all assignments.
@@ -136,6 +151,10 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 
     public static boolean isForce(ModelExecuteOptions options) {
         return is(options, ModelExecuteOptionsType.F_FORCE);
+    }
+
+    public static @Nullable CachedShadowsUseType getCachedShadowsUse(ModelExecuteOptions options) {
+        return options != null ? options.content.getCachedShadowsUse() : null;
     }
 
     public Boolean getPushChanges() {
@@ -312,7 +331,21 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
     }
 
     public static boolean isPreAuthorized(ModelExecuteOptions options) {
-        return options != null && options.preAuthorized != null && options.preAuthorized;
+        return options != null && Boolean.TRUE.equals(options.preAuthorized);
+    }
+
+    @SuppressWarnings("WeakerAccess")
+    public void operationStartPreAuthorized(Boolean value) {
+        this.operationStartPreAuthorized = value;
+    }
+
+    public ModelExecuteOptions operationStartPreAuthorized() {
+        operationStartPreAuthorized(true);
+        return this;
+    }
+
+    public static boolean isOperationStartPreAuthorized(ModelExecuteOptions options) {
+        return options != null && Boolean.TRUE.equals(options.operationStartPreAuthorized);
     }
 
     @SuppressWarnings("WeakerAccess")
@@ -365,6 +398,20 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
     }
 
     @SuppressWarnings("WeakerAccess")
+    public ModelExecuteOptions firstClickOnly(Boolean value) {
+        content.setFirstClickOnly(value);
+        return this;
+    }
+
+    public ModelExecuteOptions firstClickOnly() {
+        return firstClickOnly(true);
+    }
+
+    public static boolean isFirstClickOnly(ModelExecuteOptions options) {
+        return is(options, F_FIRST_CLICK_ONLY);
+    }
+
+    @SuppressWarnings("WeakerAccess")
     public ConflictResolutionType getFocusConflictResolution() {
         return content.getFocusConflictResolution();
     }
@@ -408,33 +455,6 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
         return options != null ? options.tracingProfile : null;
     }
 
-    public SimulationOptionsType getSimulationOptions() {
-        return content.getSimulation();
-    }
-
-    public static boolean isAdvanceSequenceSafe(@Nullable ModelExecuteOptions options) {
-        if (options == null) {
-            return false;
-        }
-        SimulationOptionsType simulationOptions = options.getSimulationOptions();
-        return simulationOptions != null
-                && simulationOptions.getSequence() == SimulationOptionType.SAFE;
-    }
-
-    public static boolean isCreateOnDemandSafe(@Nullable ModelExecuteOptions options) {
-        if (options == null) {
-            return false;
-        }
-        SimulationOptionsType simulationOptions = options.getSimulationOptions();
-        return simulationOptions != null
-                && simulationOptions.getCreateOnDemand() == SimulationOptionType.SAFE;
-    }
-
-    public ModelExecuteOptions simulationOptions(SimulationOptionsType options) {
-        content.setSimulation(options);
-        return this;
-    }
-
     @SuppressWarnings("WeakerAccess")
     public ModelExecuteOptions ignoreAssignmentPruning(Boolean value) {
         content.setIgnoreAssignmentPruning(value);
@@ -447,6 +467,20 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 
     public static boolean isIgnoreAssignmentPruning(ModelExecuteOptions options) {
         return is(options, F_IGNORE_ASSIGNMENT_PRUNING);
+    }
+
+    @SuppressWarnings("WeakerAccess")
+    public ModelExecuteOptions previewPolicyRulesEnforcement(Boolean value) {
+        content.setPreviewPolicyRulesEnforcement(value);
+        return this;
+    }
+
+    public ModelExecuteOptions previewPolicyRulesEnforcement() {
+        return previewPolicyRulesEnforcement(true);
+    }
+
+    public static boolean isPreviewPolicyRulesEnforcement(ModelExecuteOptions options) {
+        return is(options, F_PREVIEW_POLICY_RULES_ENFORCEMENT);
     }
 
     //endregion

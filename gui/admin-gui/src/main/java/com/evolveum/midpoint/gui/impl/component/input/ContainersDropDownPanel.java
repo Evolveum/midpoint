@@ -12,6 +12,8 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.component.input.converter.AutoCompleteDisplayableValueConverter;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -70,7 +72,15 @@ public class ContainersDropDownPanel<C extends Containerable> extends BasePanel<
                             .filter(container -> !ValueStatus.DELETED.equals(container.getValues().iterator().next().getStatus()))
                             .collect(Collectors.toList());
                     if (containers.size() == 1) {
-                        for (ItemWrapper<?, ?> container : containers) {
+                        PrismContainerWrapper<? extends Containerable> container = containers.iterator().next();
+                        if (validateChildContainer(container.getItem().getDefinition())) {
+                            return container.getItemName();
+                        }
+                    } else {
+                        for (PrismContainerWrapper<? extends Containerable> container : containers) {
+                            if (WebPrismUtil.isEmptyContainer(container.getItem())) {
+                                continue;
+                            }
                             if (validateChildContainer(container.getItem().getDefinition())) {
                                 return container.getItemName();
                             }
@@ -173,7 +183,7 @@ public class ContainersDropDownPanel<C extends Containerable> extends BasePanel<
         };
         panel.setOutputMarkupId(true);
         panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-        panel.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change"){
+        panel.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 ContainersDropDownPanel.this.onUpdate(target);

@@ -7,11 +7,8 @@
 
 package com.evolveum.midpoint.web.component.dialog;
 
-import com.evolveum.midpoint.gui.impl.page.self.requestAccess.CatalogItemDetailsPanel;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Fragment;
@@ -19,6 +16,8 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AjaxButton;
+
+import java.io.Serial;
 
 /**
  * Created by Honchar.
@@ -28,11 +27,11 @@ import com.evolveum.midpoint.web.component.AjaxButton;
  */
 public class ConfirmationPanel extends BasePanel<String> implements Popupable {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
     private static final String ID_CONFIRM_TEXT = "confirmText";
 
     private static final String ID_BUTTONS = "buttons";
-    private static final String ID_YES = "yes";
+    protected static final String ID_YES = "yes";
     private static final String ID_NO = "no";
 
     private Fragment footer;
@@ -43,11 +42,15 @@ public class ConfirmationPanel extends BasePanel<String> implements Popupable {
 
     public ConfirmationPanel(String id, IModel<String> message) {
         super(id, message);
+    }
 
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
         initLayout();
     }
 
-    private void initLayout() {
+    protected void initLayout() {
         Label label = new Label(ID_CONFIRM_TEXT, getModel());
         label.setEscapeModelStrings(true);
         add(label);
@@ -59,21 +62,12 @@ public class ConfirmationPanel extends BasePanel<String> implements Popupable {
 
     private Fragment initFooter() {
         footer = new Fragment(Popupable.ID_FOOTER, ID_BUTTONS, this);
-        AjaxButton yesButton = new AjaxButton(ID_YES, createYesLabel()) {
 
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                // todo this is wrong, this panel shouldn't know about it being used as content for dialog, also this hideMainPopup should be probably part of yesPerformed
-                getPageBase().hideMainPopup(target);
-                yesPerformed(target);
-            }
-        };
-        footer.add(yesButton);
+        footer.add(createYesButton());
 
         AjaxButton noButton = new AjaxButton(ID_NO, createNoLabel()) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
+
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -83,6 +77,20 @@ public class ConfirmationPanel extends BasePanel<String> implements Popupable {
         footer.add(noButton);
 
         return footer;
+    }
+
+    protected Component createYesButton() {
+        return new AjaxButton(ID_YES, createYesLabel()) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                // todo this is wrong, this panel shouldn't know about it being used as content for dialog, also this hideMainPopup should be probably part of yesPerformed
+                getPageBase().hideMainPopup(target);
+                yesPerformed(target);
+            }
+        };
     }
 
     @Override

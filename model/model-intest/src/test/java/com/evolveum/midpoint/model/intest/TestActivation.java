@@ -10,6 +10,8 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
 import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ACCOUNT;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
@@ -19,6 +21,7 @@ import java.io.File;
 import java.util.*;
 
 import com.evolveum.midpoint.prism.PrismValueCollectionsUtil;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 
 import jakarta.xml.bind.JAXBElement;
@@ -69,14 +72,18 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
     private static final File TEST_DIR = new File("src/test/resources/activation");
 
-    // This resource does not support native activation. It has simulated activation instead.
-    // + unusual validTo and validFrom mappings
+    /**
+     * This resource does not support native activation. It has simulated activation instead.
+     * + unusual validTo and validFrom mappings
+     */
     private static final DummyTestResource RESOURCE_DUMMY_KHAKI = new DummyTestResource(TEST_DIR,
             "resource-dummy-khaki.xml", "10000000-0000-0000-0000-0000000a1004", "khaki",
             c -> c.extendSchemaPirate());
 
-    // This resource does not support native activation. It has simulated activation instead.
-    // + unusual validTo and validFrom mappings
+    /**
+     * This resource does not support native activation. It has simulated activation instead.
+     * + unusual validTo and validFrom mappings
+     */
     private static final File RESOURCE_DUMMY_CORAL_FILE = new File(TEST_DIR, "resource-dummy-coral.xml");
     private static final String RESOURCE_DUMMY_CORAL_OID = "10000000-0000-0000-0000-0000000b1004";
     private static final String RESOURCE_DUMMY_CORAL_NAME = "coral";
@@ -86,6 +93,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     private static final DummyTestResource RESOURCE_DUMMY_FULL_VALIDITY = new DummyTestResource(TEST_DIR,
             "resource-dummy-full-validity.xml", "729b0fc8-261b-476b-bfcc-9ac2be3ecd8a", "full-validity",
             c -> c.extendSchemaPirate());
+    private static final DummyTestResource RESOURCE_DUMMY_FIXED_EXISTENCE = new DummyTestResource(TEST_DIR,
+            "resource-dummy-fixed-existence.xml", "8ba303ee-3f07-4163-aa46-508cbc496ff4", "fixed-existence");
 
     private static final String ACCOUNT_MANCOMB_DUMMY_USERNAME = "mancomb";
     private static final Date ACCOUNT_MANCOMB_VALID_FROM_DATE = MiscUtil.asDate(2011, 2, 3, 4, 5, 6);
@@ -120,9 +129,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         dummyResourceCtlCoral.setResource(resourceDummyCoral);
         dummyResourceCollection.initDummyResource(RESOURCE_DUMMY_CORAL_NAME, dummyResourceCtlCoral);
 
-        RESOURCE_DUMMY_KHAKI.init(this, initTask, initResult);
-        RESOURCE_DUMMY_PRECREATE.init(this, initTask, initResult);
-        RESOURCE_DUMMY_FULL_VALIDITY.init(this, initTask, initResult);
+        initTestObjects(initTask, initResult,
+                RESOURCE_DUMMY_KHAKI,
+                RESOURCE_DUMMY_PRECREATE,
+                RESOURCE_DUMMY_FULL_VALIDITY,
+                RESOURCE_DUMMY_FIXED_EXISTENCE);
 
         resourceDummyKhaki = modelService
                 .getObject(ResourceType.class, RESOURCE_DUMMY_KHAKI.oid, null, initTask, initResult)
@@ -507,7 +518,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         accountOid = getSingleLinkOid(userJack);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        var accountShadow = getShadowRepo(accountOid);
         display("Shadow (repo)", accountShadow);
         assertDummyAccountShadowRepo(accountShadow, accountOid, "jack");
         TestUtil.assertCreateTimestamp(accountShadow, start, end);
@@ -634,7 +645,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         PrismObject<ShadowType> accountShadow = getShadowModel(accountOid);
         assertAdministrativeStatusDisabled(accountShadow);
         assertDisableTimestampShadow(accountShadow, startTime, endTime);
-        assertDisableReasonShadow(accountShadow, SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
+        assertDisableReasonShadow(accountShadow, MODEL_DISABLE_REASON_EXPLICIT);
 
         assertAdministrativeStatusEnabled(userJack);
         assertDummyDisabled("jack");
@@ -667,7 +678,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         PrismObject<ShadowType> accountShadow = getShadowModel(accountOid);
         assertAdministrativeStatusDisabled(accountShadow);
         assertDisableTimestampShadow(accountShadow, null, startTime);
-        assertDisableReasonShadow(accountShadow, SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
+        assertDisableReasonShadow(accountShadow, MODEL_DISABLE_REASON_EXPLICIT);
 
         assertAdministrativeStatusEnabled(userJack);
         assertDummyDisabled("jack");
@@ -793,7 +804,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertAccountShadowModel(account, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, getDummyResourceType());
         assertAdministrativeStatusDisabled(account);
         assertDisableTimestampShadow(account, startTime, endTime);
-        assertDisableReasonShadow(account, SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
+        assertDisableReasonShadow(account, MODEL_DISABLE_REASON_EXPLICIT);
     }
 
     /**
@@ -918,7 +929,13 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
         assertAdministrativeStatusDisabled(userJack);
         assertDummyEnabled("jack");
-        assertDummyEnabled(RESOURCE_DUMMY_RED_NAME, "jack");
+        if (InternalsConfig.isShadowCachingOnByDefault()) {
+            // The outbound administrativeStatus mapping is STRONG, so the primary delta gets superseded by the computed value.
+            assertDummyDisabled(RESOURCE_DUMMY_RED_NAME, "jack");
+        } else {
+            // When not caching, a bug in the code prevents that from happening. See MID-9955.
+            assertDummyEnabled(RESOURCE_DUMMY_RED_NAME, "jack");
+        }
     }
 
     /**
@@ -1224,7 +1241,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         // WHEN
         when();
 
-        modelService.executeChanges(MiscSchemaUtil.createCollection(dummyDelta, yellowDelta), null, task, result);
+        modelService.executeChanges(List.of(dummyDelta, yellowDelta), null, task, result);
 
         // THEN
         then();
@@ -1234,7 +1251,10 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         display("User after change execution", userJack);
         assertUserJack(userJack);
 
-        checkAdminStatusFor15x(userJack, true, false, false);
+        // With caching disabled, MID-9955 causes that primary delta (-> disable) overrules the strong mapping.
+        // With caching enabled, the bug does not manifest itself. Just as in test130.
+        boolean expectedStatusOnYellow = InternalsConfig.isShadowCachingOnByDefault();
+        checkAdminStatusFor15x(userJack, true, false, expectedStatusOnYellow);
 
         // WHEN (2) - now let's do a reconciliation on both resources
         when();
@@ -1247,7 +1267,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         assertSuccess("executeChanges result (after reconciliation)", result);
 
-        checkAdminStatusFor15x(userJack, true, false, true);        // yellow has a STRONG mapping for adminStatus, therefore it should be replaced by the user's adminStatus
+        // yellow has a STRONG mapping for adminStatus, therefore it should be replaced by the user's adminStatus
+        checkAdminStatusFor15x(userJack, true, false, true);
     }
 
     /**
@@ -1279,8 +1300,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
         // WHEN (2) - now let's do a reconciliation on both resources
 
-        ObjectDelta innocentDelta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_LOCALITY,
-                userJack.asObjectable().getLocality().toPolyString());
+        ObjectDelta<?> innocentDelta = createModifyUserReplaceDelta(
+                USER_JACK_OID, UserType.F_LOCALITY, userJack.asObjectable().getLocality().toPolyString());
         modelService.executeChanges(MiscSchemaUtil.createCollection(innocentDelta), executeOptions().reconcile(), task, result);
 
         // THEN
@@ -1349,7 +1370,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         String accountKhakiOid = getLiveLinkRefOid(userAfter, RESOURCE_DUMMY_KHAKI.oid);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountKhakiOid, null, result);
+        var accountShadow = getShadowRepo(accountKhakiOid);
         display("Shadow (repo)", accountShadow);
         assertAccountShadowRepo(accountShadow, accountKhakiOid, "jack", resourceDummyKhaki);
         TestUtil.assertCreateTimestamp(accountShadow, start, end);
@@ -1508,7 +1529,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         DummyAccount dummyAccount = getDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME);
-        dummyAccount.setLockout(true);
+        dummyAccount.setLockoutStatus(true);
 
         // WHEN
         PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, accountOid, null, task, result);
@@ -1544,7 +1565,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess("executeChanges result", result);
 
         DummyAccount dummyAccount = getDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME);
-        assertFalse("Dummy account was not unlocked", dummyAccount.isLockout());
+        assertFalse("Dummy account was not unlocked", dummyAccount.getLockoutStatus());
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
@@ -1565,18 +1586,20 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         DummyAccount dummyAccount = getDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME);
-        dummyAccount.setLockout(true);
+        dummyAccount.setLockoutStatus(true);
+
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_OID);
 
         // WHEN
-        modifyUserReplace(USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, task, result,
-                LockoutStatusType.NORMAL);
+        modifyUserReplace(
+                USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, task, result, LockoutStatusType.NORMAL);
 
         // THEN
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
 
         DummyAccount dummyAccountAfter = getDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME);
-        assertFalse("Dummy account was not unlocked", dummyAccountAfter.isLockout());
+        assertFalse("Dummy account was not unlocked", dummyAccountAfter.getLockoutStatus());
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
@@ -1652,7 +1675,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_LARGO_OID, RESOURCE_DUMMY_OID, null, true);
-        accountAssignmentUserDelta.addModificationAddProperty(UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Largo LaGrande"));
+        accountAssignmentUserDelta.addModificationAddProperty(UserType.F_FULL_NAME, PolyString.fromOrig("Largo LaGrande"));
         deltas.add(accountAssignmentUserDelta);
 
         // WHEN
@@ -1668,7 +1691,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         accountOid = getSingleLinkOid(userLargo);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        var accountShadow = getShadowRepo(accountOid);
         assertDummyAccountShadowRepo(accountShadow, accountOid, USER_LARGO_USERNAME);
 
         // Check account
@@ -1703,7 +1726,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         accountOid = getSingleLinkOid(userLargo);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        var accountShadow = getShadowRepo(accountOid);
         assertDummyAccountShadowRepo(accountShadow, accountOid, USER_LARGO_USERNAME);
 
         // Check account
@@ -1739,7 +1762,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         accountOid = getSingleLinkOid(userLargo);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        var accountShadow = getShadowRepo(accountOid);
         assertDummyAccountShadowRepo(accountShadow, accountOid, USER_LARGO_USERNAME);
 
         // Check account
@@ -1778,7 +1801,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         accountOid = getSingleLinkOid(userLargo);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        var accountShadow = getShadowRepo(accountOid);
         assertDummyAccountShadowRepo(accountShadow, accountOid, USER_LARGO_USERNAME);
 
         // Check account
@@ -1817,7 +1840,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         accountOid = getSingleLinkOid(userLargo);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        var accountShadow = getShadowRepo(accountOid);
         assertDummyAccountShadowRepo(accountShadow, accountOid, USER_LARGO_USERNAME);
 
         // Check account
@@ -1851,7 +1874,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         accountOid = getSingleLinkOid(userLargo);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        var accountShadow = getShadowRepo(accountOid);
         assertDummyAccountShadowRepo(accountShadow, accountOid, USER_LARGO_USERNAME);
 
         // Check account
@@ -1885,7 +1908,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         accountOid = getSingleLinkOid(userLargo);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        var accountShadow = getShadowRepo(accountOid);
         assertDummyAccountShadowRepo(accountShadow, accountOid, USER_LARGO_USERNAME);
 
         // Check account
@@ -2090,8 +2113,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        modifyUserReplace(USER_RAPP_OID, UserType.F_LIFECYCLE_STATE, task, result,
-                SchemaConstants.LIFECYCLE_ACTIVE);
+        modifyUserReplace(USER_RAPP_OID, UserType.F_LIFECYCLE_STATE, task, result, SchemaConstants.LIFECYCLE_ACTIVE);
 
         // THEN
         then();
@@ -2102,7 +2124,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         display("user after", userAfter);
         assertUser(userAfter, "user after")
                 .activation()
-                .assertNoAdministrativeStatus()
+                .assertAdministrativeStatus( // When caching is on, more inbounds are evaluated
+                        InternalsConfig.isShadowCachingOnByDefault() ? ActivationStatusType.ENABLED : null)
                 .assertEffectiveStatus(ActivationStatusType.ENABLED);
 
         assertAssignedRoles(userAfter, ROLE_CARIBBEAN_PIRATE_OID, ROLE_CAPTAIN_OID);
@@ -2132,13 +2155,13 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
         assertUserBefore(USER_RAPP_OID)
                 .activation()
-                .assertNoAdministrativeStatus()
+                .assertAdministrativeStatus( // When caching is on, more inbounds are evaluated
+                        InternalsConfig.isShadowCachingOnByDefault() ? ActivationStatusType.ENABLED : null)
                 .assertEffectiveStatus(ActivationStatusType.ENABLED);
 
         // WHEN
         when();
-        modifyUserReplace(USER_RAPP_OID, UserType.F_LIFECYCLE_STATE, task, result,
-                SchemaConstants.LIFECYCLE_SUSPENDED);
+        modifyUserReplace(USER_RAPP_OID, UserType.F_LIFECYCLE_STATE, task, result, SchemaConstants.LIFECYCLE_SUSPENDED);
 
         // THEN
         then();
@@ -2149,12 +2172,17 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         display("user after", userAfter);
         assertUser(userAfter, "user after")
                 .activation()
-                // DISABLED administrative status gets propagated here from inbound mapping on dummy resource
-                // This is not ideal configuration ... it dates back to early midpoint.
-                // But we need to live with it ... for now.
-                .assertAdministrativeStatus(ActivationStatusType.DISABLED)
+                // For not-caching variant:
+                //   DISABLED administrative status gets propagated here from weak inbound mapping on dummy resource
+                //   This is not ideal configuration ... it dates back to early midpoint.
+                //   But we need to live with it ... for now.
+                //
+                // For caching variant:
+                //   The status is ENABLED, so it's not touched by the weak inbound mapping.
+                .assertAdministrativeStatus(
+                        InternalsConfig.isShadowCachingOnByDefault() ?
+                                ActivationStatusType.ENABLED : ActivationStatusType.DISABLED)
                 .assertEffectiveStatus(ActivationStatusType.DISABLED);
-
 
         assertAssignedRoles(userAfter, ROLE_CARIBBEAN_PIRATE_OID, ROLE_CAPTAIN_OID);
         assertAssignments(userAfter, 2);
@@ -2337,7 +2365,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME));
         display("Account shadow after", accountMancomb);
 
-        DummyAccount dummyAccountAfter = getDummyResource(RESOURCE_DUMMY_GREEN_NAME).getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        DummyAccount dummyAccountAfter = getDummyResource(RESOURCE_DUMMY_GREEN_NAME).getAccountByName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         displayDumpable("Account after", dummyAccountAfter);
 
         assertNotNull("No mancomb account shadow", accountMancomb);
@@ -2741,7 +2769,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         user1 = getUser(ObjectDeltaOperation.findFocusDeltaOidInCollection(executedChanges));
         display("User after change execution", user1);
 
-        DummyAccount dummyAccount = dummyResourceCoral.getAccountByUsername("user1");
+        DummyAccount dummyAccount = dummyResourceCoral.getAccountByName("user1");
         displayDumpable("Dummy account", dummyAccount);
         checkSuspendedAttribute(dummyAccount, Boolean.TRUE);
 
@@ -2779,7 +2807,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         user1 = getUser(user1.getOid());
         display("User after change execution", user1);
 
-        DummyAccount dummyAccount = dummyResourceCoral.getAccountByUsername("user1");
+        DummyAccount dummyAccount = dummyResourceCoral.getAccountByName("user1");
         displayDumpable("Dummy account", dummyAccount);
         checkSuspendedAttribute(dummyAccount, Boolean.FALSE);
 
@@ -2937,7 +2965,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         yesterday.add(XmlTypeConverter.createDuration("-P1D"));
         System.out.println("yesterday = " + yesterday);
 
-        UserType user = new UserType(prismContext)
+        UserType user = new UserType()
                 .name("test750")
                 .beginAssignment()
                 .beginConstruction()
@@ -2982,10 +3010,10 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar dayBeforeYesterday = XmlTypeConverter.fromNow("-P2D");
         XMLGregorianCalendar yesterday = XmlTypeConverter.fromNow("-P1D");
 
-        UserType user = new UserType(prismContext)
+        UserType user = new UserType()
                 .name("test800")
                 .beginAssignment()
-                .targetRef(ROLE_SUPERUSER_OID, RoleType.COMPLEX_TYPE)
+                .targetRef(ROLE_SUPERUSER.oid, RoleType.COMPLEX_TYPE)
                 .beginActivation()
                 .effectiveStatus(ActivationStatusType.ENABLED)
                 .validFrom(dayBeforeYesterday)
@@ -3034,14 +3062,14 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
                 LIFECYCLE_SUSPENDED);
 
         and("account is manually enabled");
-        var account = RESOURCE_DUMMY_KHAKI.getDummyResource().getAccountByUsername(userName);
+        var account = RESOURCE_DUMMY_KHAKI.getDummyResource().getAccountByName(userName);
         account.replaceAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "alive");
 
         when("account is imported");
         dummyAuditService.clear();
         importAccountsRequest()
                 .withResourceOid(RESOURCE_DUMMY_KHAKI.oid)
-                .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, INTENT_DEFAULT))
+                .withTypeIdentification(ResourceObjectTypeIdentification.of(ACCOUNT, INTENT_DEFAULT))
                 .withNameValue(userName)
                 .executeOnForeground(result);
 
@@ -3059,6 +3087,32 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertThat(PrismValueCollectionsUtil.getRealValuesOfCollection(statusDelta.getEstimatedOldValues()))
                 .as("status estimated old values")
                 .containsExactlyInAnyOrder(ActivationStatusType.ENABLED);
+    }
+
+    /** When deleting focus with persistent projection, we want to keep the projection intact. MID-9669. */
+    @Test
+    public void test820FixedExistence() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = getTestNameShort();
+        var fullName = "Mr. " + userName;
+
+        given("a user with a single account exists");
+        var user = new UserType()
+                .name(userName)
+                .fullName(fullName)
+                .assignment(
+                        RESOURCE_DUMMY_FIXED_EXISTENCE.assignmentWithConstructionOf(ACCOUNT, INTENT_DEFAULT));
+        addObject(user, task, result);
+
+        when("user is deleted");
+        deleteObject(UserType.class, user.getOid(), task, result);
+
+        then("everything is OK, user is gone, and the account still exists");
+        assertSuccess(result);
+        assertNoObject(UserType.class, user.getOid());
+        assertDummyAccountByUsername(RESOURCE_DUMMY_FIXED_EXISTENCE.name, userName)
+                .assertFullName(fullName);
     }
 
     private void assertDummyActivationEnabledState(String userId, Boolean expectedEnabled) throws SchemaViolationException, ConflictException, InterruptedException {

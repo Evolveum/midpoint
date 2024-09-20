@@ -41,7 +41,7 @@ public class ObjectClassWrapper extends Selectable<ObjectClassWrapper>
     }
 
     public String getNativeObjectClass() {
-        return definition.getNativeObjectClass();
+        return definition.getNativeObjectClassName();
     }
 
     public @NotNull ResourceObjectClassDefinition getDefinition() {

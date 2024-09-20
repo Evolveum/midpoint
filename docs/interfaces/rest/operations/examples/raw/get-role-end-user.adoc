@@ -1,0 +1,41 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Get Role*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Accept: application/json" \
+-X GET http://localhost:8080/midpoint/ws/rest/roles/00000000-0000-0000-0000-000000000008?options=raw \
+-v
+----
+
+The response is an HTTP 200 code in case of success with a response body containing the queried item.
+
+.Example Output of *"Get Role"* example
+[%collapsible]
+====
+The example is *simplified*, some properties were removed to keep the example output "short". This example *does
+not* contain all possible properties of this object type.
+[source, json]
+----
+{
+	"role": {
+		"oid": "00000000-0000-0000-0000-000000000008",
+		"version": "1",
+		"name": "End user",
+		"description": "Role authorizing end users to log in, change their passwords and review assigned accounts. Note: This role definition is just an example. It should be tailored for each specific deployment.",
+		"metadata": {
+		},
+		"operationExecution": {
+		},
+		"iteration": 0,
+		"iterationToken": "",
+		"activation": {
+		},
+		"authorization": [],
+		"adminGuiConfiguration": {}
+	}
+}
+----
+====

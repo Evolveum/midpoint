@@ -47,6 +47,12 @@ public class GuiStyleConstants {
     public static final String CLASS_OBJECT_SERVICE_BOX_CSS_CLASSES = "card-outline object-service-box";
     public static final String CLASS_OBJECT_SERVICE_BOX_THIN_CSS_CLASSES = "object-service-box-thin";
 
+    public static final String CLASS_OBJECT_POLICY_ICON = "fa fa-balance-scale";
+    public static final String CLASS_OBJECT_POLICY_BG = "object-policy-bg";
+    public static final String CLASS_OBJECT_POLICY_ICON_COLORED = CLASS_OBJECT_POLICY_ICON + " object-policy-color";
+    public static final String CLASS_OBJECT_POLICY_BOX_CSS_CLASSES = "card-outline object-policy-box";
+    public static final String CLASS_OBJECT_POLICY_BOX_THIN_CSS_CLASSES = "object-policy-box-thin";
+
     public static final String CLASS_OBJECT_RESOURCE_ICON = "fa fa-database";
     public static final String CLASS_OBJECT_RESOURCE_TEMPLATE_ICON = "fa-regular fa-file";
     public static final String CLASS_OBJECT_RESOURCE_ICON_COLORED = CLASS_OBJECT_RESOURCE_ICON + " object-resource-color";
@@ -85,6 +91,8 @@ public class GuiStyleConstants {
 
     public static final String CLASS_OBJECT_CONNECTOR_ICON = "fa fa-microchip";
 
+    public static final String CLASS_OBJECT_SCHEMA_TEMPLATE_ICON = "fa fa-sitemap";
+
     public static final String CLASS_REPORT_ICON = "fa fa-chart-pie";
 
     public static final String CLASS_ICON_STYLE = "icon-style-";  //some icon styles start with this string
@@ -115,6 +123,7 @@ public class GuiStyleConstants {
     public static final String CLASS_ICON_CONSENT = "fa fa-check-square";
 
     public static final String CLASS_APPROVAL_OUTCOME_ICON_UNKNOWN_COLORED = "fa fa-check text-warning";
+    public static final String CLASS_APPROVAL_OUTCOME_ICON_UNRECOGNIZED_COLORED = "fa fa-question text-warning";
     public static final String CLASS_APPROVAL_OUTCOME_ICON_APPROVED_COLORED = "fa fa-check text-success";
     public static final String CLASS_APPROVAL_OUTCOME_ICON_REJECTED_COLORED = "fa fa-times text-danger";
     public static final String CLASS_APPROVAL_OUTCOME_ICON_SKIPPED_COLORED = "fa fa-step-forward text-success";
@@ -122,6 +131,12 @@ public class GuiStyleConstants {
     public static final String CLASS_APPROVAL_OUTCOME_ICON_IN_PROGRESS_COLORED = GuiStyleConstants.ICON_FAR_CLOCK + " text-info";
     public static final String CLASS_APPROVAL_OUTCOME_ICON_FUTURE_COLORED = "fa fa-question-circle text-warning";
     public static final String CLASS_APPROVAL_OUTCOME_ICON_CANCELLED_COLORED = "fa fa-ban text-warning";
+
+    public static final String CLASS_CERT_OUTCOME_ICON_NOT_DECIDED = "fa fa-question";
+    public static final String CLASS_CERT_OUTCOME_ICON_APPROVED = "fa fa-check";
+    public static final String CLASS_CERT_OUTCOME_ICON_REJECTED = "fa fa-times";
+    public static final String CLASS_CERT_OUTCOME_ICON_REDUCED = "fa fa-rotate-left";
+    public static final String CLASS_CERT_OUTCOME_ICON_NO_RESPONSE = "far fa-clock";
 
     public static final String CLASS_ICON_EXPAND = "fa fa-chevron-left";
     public static final String CLASS_ICON_COLLAPSE = "fa  fa-chevron-down";
@@ -177,7 +192,7 @@ public class GuiStyleConstants {
     public static final String CLASS_BADGE_ACTIVE = "badge-primary";
     public static final String CLASS_BADGE_PASSIVE = "badge-secondary";
 
-    public static final String DEFAULT_BG_COLOR = "#3c8dbc"; //blue-light theme
+    public static final String DEFAULT_BG_COLOR = "#357DA7"; //blue-light theme
 
     public static final String CLASS_PLUS_CIRCLE = "fa fa-plus-circle";
     public static final String CLASS_PLUS_CIRCLE_SUCCESS = CLASS_PLUS_CIRCLE + " text-success";
@@ -245,8 +260,9 @@ public class GuiStyleConstants {
     public static final String EVO_MESSAGE_TEMPLATE_TYPE_ICON = "fa fa-book";
 
     public static final String CLASS_ROLE_ANALYSIS_SESSION_ICON = "fa fa-bar-chart";
+    public static final String CLASS_BAR_CHART_ICON = "fa fa-bar-chart";
+    public static final String CLASS_LINE_CHART_ICON = "fa fa-line-chart";
     public static final String CLASS_ROLE_ANALYSIS_CLUSTER_ICON = "fa fa-cubes";
-
 
     public static final String GREEN_COLOR = "color-green";
     public static final String YELLOW_COLOR = "color-yellow";
@@ -298,4 +314,22 @@ public class GuiStyleConstants {
     public static final String CLASS_MARK = "fa-solid fa-tag";
 
     public static final String CLASS_AUDIT = "fa-solid fa-magnifying-glass-chart";
+
+    public static final String CLASS_SCHEMA_BASIC_SETTINGS_PANEL_ICON = "fa fa-cog";
+    public static final String CLASS_SCHEMA_COMPLEX_TYPE_ICON = "fa fa-cubes";
+    public static final String CLASS_SCHEMA_ENUM_TYPE_ICON = "fa fa-cube";
+    public static final String CLASS_REFRESH = "fa fa-refresh";
+    public static final String CLASS_OPTIONS_COGS = "fa fa-cogs";
+    public static final String CLASS_OPTIONS_COG = "fa fa-cog";
+    public static final String CLASS_INFO_CIRCLE = "fa fa-info-circle";
+    public static final String ARROW_LONG_DOWN = "fa fa-long-arrow-down";
+    public static final String CLASS_DETECTED_PATTERN_ICON = "fa fa-cube";
+    public static final String CLASS_CANDIDATE_ROLE_ICON = "fe fe-role";
+    public static final String THUMBS_UP = "fa fa-thumbs-up";
+
+    public static final String CLASS_OUTLIER_ICON = "fa fa-id-badge";
+    public static final String CLASS_ICON_OUTLIER = "fa fa-user-circle";
+
+    public static final String CLASS_ICON_RECYCLE = "fa fa-recycle";
+    public static final String CLASS_MIGRATION_ICON = "fa fa-wrench";
 }

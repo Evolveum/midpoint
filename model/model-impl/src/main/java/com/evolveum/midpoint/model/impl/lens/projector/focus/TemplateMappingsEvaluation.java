@@ -7,40 +7,37 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus;
 
-import static com.evolveum.midpoint.model.impl.lens.LensUtil.setMappingTarget;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingEvaluationPhaseType.BEFORE_ASSIGNMENTS;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
-
-import com.evolveum.midpoint.schema.config.*;
-
-import jakarta.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
+
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.common.util.ObjectTemplateIncludeProcessor;
 import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.impl.lens.ItemValueWithOrigin;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation.APrioriDeltaProvider;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation.ItemDefinitionProvider;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.*;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
+import com.evolveum.midpoint.schema.config.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -288,7 +285,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
 
     private void consolidateToItemDeltas() throws ExpressionEvaluationException, SchemaException,
             ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
-        PathKeyedMap<DeltaSetTriple<ItemValueWithOrigin<?, ?>>> outputTripleMap = mappingSetEvaluation.getOutputTripleMap();
+        DeltaSetTripleIvwoMap outputTripleMap = mappingSetEvaluation.getOutputTripleMap();
         LOGGER.trace("outputTripleMap before item delta computation:\n{}", DebugUtil.debugDumpMapMultiLineLazily(outputTripleMap));
 
         // TODO for chained mappings: what exactly should be the target object?
@@ -297,14 +294,13 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
 
         consolidation = new DeltaSetTripleMapConsolidation<>(
                 outputTripleMap,
-                targetObject,
-                targetAPrioriDelta,
+                ObjectTypeUtil.getValue(targetObject),
+                APrioriDeltaProvider.forDelta(targetAPrioriDelta),
                 itemDeltaExistsProvider,
                 null,
                 null,
                 ItemDefinitionProvider.forObjectDefinition(targetDefinition),
                 env,
-                beans,
                 context,
                 result);
         consolidation.computeItemDeltas();
@@ -416,27 +412,6 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
         selectionMapping.value().getSource().add(new VariableBindingDefinitionType()
                 .path(new ItemPathType(SchemaConstants.PATH_FOCUS_DEFAULT_AUTHORITATIVE_SOURCE)));
         return selectionMapping.setTargetIfMissing(ref);
-    }
-
-    private void setDefaultStrong(ObjectTemplateMappingType mapping) {
-        if (mapping.getStrength() == null) {
-            mapping.setStrength(MappingStrengthType.STRONG);
-        }
-    }
-
-    private void setDefaultRelativityAbsolute(ObjectTemplateMappingType mapping) {
-        ExpressionType expression = mapping.getExpression();
-        if (expression == null) {
-            return;
-        }
-        for (JAXBElement<?> evaluator : expression.getExpressionEvaluator()) {
-            Object evaluatorValue = evaluator.getValue();
-            if (evaluatorValue instanceof TransformExpressionEvaluatorType transform) {
-                if (transform.getRelativityMode() == null) {
-                    transform.setRelativityMode(TransformExpressionRelativityModeType.ABSOLUTE);
-                }
-            }
-        }
     }
 
     private ObjectTemplateMappingConfigItem getAuthoritativeSourceMapping(MultiSourceDataHandlingConfigItem handlingCI) {

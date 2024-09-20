@@ -19,10 +19,10 @@ import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
@@ -48,14 +48,17 @@ import java.util.List;
 
 import static com.evolveum.midpoint.model.test.CommonInitialObjects.MARK_PROJECTION_ACTIVATED;
 import static com.evolveum.midpoint.model.test.CommonInitialObjects.MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_DISABLE_TIMESTAMP;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
+import static com.evolveum.midpoint.schema.internals.InternalsConfig.isShadowCachingOnByDefault;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRefWithFullObject;
 import static com.evolveum.midpoint.test.DummyResourceContoller.*;
 import static com.evolveum.midpoint.test.util.MidPointAsserts.assertSerializable;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ACCOUNT;
+
 import static java.util.Collections.singleton;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -74,6 +77,11 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
     // LEMON dummy resource has a STRICT dependency on default dummy resource
     private static final DummyTestResource RESOURCE_DUMMY_LEMON = new DummyTestResource(TEST_DIR,
             "resource-dummy-lemon.xml", "10000000-0000-0000-0000-000000000504", "lemon",
+            DummyResourceContoller::extendSchemaPirate);
+
+    /** For various ad-hoc purposes. */
+    private static final DummyTestResource RESOURCE_DUMMY_MISC = new DummyTestResource(TEST_DIR,
+            "resource-dummy-misc.xml", "6b71a242-2306-4bbc-a46e-9444c2f74823", "misc",
             DummyResourceContoller::extendSchemaPirate);
 
     private static final TestObject<UserType> USER_ROGERS = TestObject.file(TEST_DIR, "user-rogers.xml", "c0c010c0-d34d-b33f-f00d-11d2d2d2d22d");
@@ -97,6 +105,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         CommonInitialObjects.addMarks(this, initTask, initResult);
 
         RESOURCE_DUMMY_LEMON.initAndTest(this, initTask, initResult);
+        RESOURCE_DUMMY_MISC.initAndTest(this, initTask, initResult);
 
         // Elaine is in inconsistent state. Account attributes do not match the mappings.
         // We do not want that here, as it would add noise to preview operations.
@@ -372,7 +381,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
         assertNotNull("Null model focus context", focusContext);
         assertNull("Unexpected focus primary delta: " + focusContext.getPrimaryDelta(), focusContext.getPrimaryDelta());
-        assertSideEffectiveDeltasOnly(focusContext.getSecondaryDelta(), "focus secondary delta", ActivationStatusType.ENABLED);
+        assertSideEffectiveDeltasOnly(focusContext.getSummarySecondaryDelta(), "focus secondary delta", ActivationStatusType.ENABLED);
 
         Collection<? extends ModelProjectionContext> projectionContexts = modelContext.getProjectionContexts();
         assertNotNull("Null model projection context list", projectionContexts);
@@ -391,7 +400,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         PrismReference resourceRef = accountToAddPrimary.findReference(ShadowType.F_RESOURCE_REF);
         assertEquals(getDummyResourceObject().getOid(), resourceRef.getOid());
 
-        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
+        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSummarySecondaryDelta();
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
         PropertyDelta<String> fullNameDelta = accountSecondaryDelta.findPropertyDelta(
                 dummyResourceCtl.getAttributeFullnamePath());
@@ -418,7 +427,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                         .delta()
                             .assertModifiedExclusive(
                                     UserType.F_LINK_REF,
-                                    UserType.F_METADATA)
+                                    InfraItemName.METADATA)
                         .end()
                     .end()
                     .by().objectType(ShadowType.class).changeType(ChangeType.ADD).find()
@@ -426,7 +435,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                         .delta()
                             .objectToAdd()
                                 .asShadow()
-                                    .assertKind(ShadowKindType.ACCOUNT)
+                                    .assertKind(ACCOUNT)
                                     .assertIntent("default")
                                     .attributes()
                                         .assertValue(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_QNAME, "Jack Sparrow");
@@ -520,7 +529,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
         assertNotNull("Null model focus context", focusContext);
         assertNull("Unexpected focus primary delta: " + focusContext.getPrimaryDelta(), focusContext.getPrimaryDelta());
-        assertSideEffectiveDeltasOnly("focus secondary delta", focusContext.getSecondaryDelta());
+        assertSideEffectiveDeltasOnly("focus secondary delta", focusContext.getSummarySecondaryDelta());
 
         Collection<? extends ModelProjectionContext> projectionContexts = modelContext.getProjectionContexts();
         assertNotNull("Null model projection context list", projectionContexts);
@@ -580,7 +589,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         PrismReference resourceRef = accountToAddPrimary.findReference(ShadowType.F_RESOURCE_REF);
         assertEquals(getDummyResourceObject().getOid(), resourceRef.getOid());
 
-        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
+        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSummarySecondaryDelta();
         PrismAsserts.assertModifications(accountSecondaryDelta, 1);
 
         assertSerializable(modelContext);
@@ -640,7 +649,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertNotNull("Null model focus context", focusContext);
         assertNull("Unexpected focus primary delta: " + focusContext.getPrimaryDelta(), focusContext.getPrimaryDelta());
 
-        assertSideEffectiveDeltasOnly("focus secondary delta", focusContext.getSecondaryDelta());
+        assertSideEffectiveDeltasOnly("focus secondary delta", focusContext.getSummarySecondaryDelta());
 
         Collection<? extends ModelProjectionContext> projectionContexts = modelContext.getProjectionContexts();
         assertNotNull("Null model projection context list", projectionContexts);
@@ -652,7 +661,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ObjectDelta<ShadowType> accountPrimaryDelta = accContext.getPrimaryDelta();
         assertNull("Unexpected account primary delta", accountPrimaryDelta);
 
-        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
+        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSummarySecondaryDelta();
         assertEquals("Unexpected size of account secondary delta: " + accountSecondaryDelta, 2, accountSecondaryDelta.getModifications().size());
         PrismAsserts.assertPropertyAdd(accountSecondaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_DRINK_PATH, "rum");
         PrismAsserts.assertPropertyAdd(accountSecondaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_PATH, "Arr!");
@@ -732,7 +741,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ObjectDelta<ShadowType> accountPrimaryDelta = accContext.getPrimaryDelta();
         assertNull("Unexpected account primary delta", accountPrimaryDelta);
 
-        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
+        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSummarySecondaryDelta();
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
 
         assertAccountItemModify(accountSecondaryDelta,
@@ -818,6 +827,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         DummyAccount dummyAccount = assertDummyAccount(null, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
         displayDumpable("Dummy account after", dummyAccount);
         dummyAccount.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Great Pirate");
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_OID);
     }
 
     /**
@@ -848,7 +858,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
         assertNotNull("Model focus context missing", focusContext);
         assertNull("Unexpected focus primary delta", focusContext.getPrimaryDelta());
-        assertNull("Unexpected focus secondary delta", focusContext.getSecondaryDelta());
+        assertNull("Unexpected focus secondary delta", focusContext.getSummarySecondaryDelta());
 
         Collection<? extends ModelProjectionContext> projectionContexts = modelContext.getProjectionContexts();
         assertNotNull("Null model projection context list", projectionContexts);
@@ -856,12 +866,13 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ModelProjectionContext accContext = projectionContexts.iterator().next();
         assertNotNull("Null model projection context", accContext);
         assertNotNull("Missing account primary delta", accContext.getPrimaryDelta());
-        assertNull("Unexpected account secondary delta", accContext.getSecondaryDelta());
+        assertNull("Unexpected account secondary delta", accContext.getSummarySecondaryDelta());
         assertEquals(ChangeType.MODIFY, accContext.getPrimaryDelta().getChangeType());
 
         assertAccountDefaultDummyAttributeModify(accContext.getPrimaryDelta(),
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME,
-                null, // old
+                // Note: the fullName mapping is not strong
+                isShadowCachingOnByDefault() ? new String[] { "Guybrush Threepwood" } : null, // old
                 null, // add
                 null, // delete
                 new String[] { "Mighty Pirate Guybrush Threepwood" });  // replace
@@ -899,7 +910,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
         assertNotNull("Model focus context missing", focusContext);
         assertNull("Unexpected focus primary delta", focusContext.getPrimaryDelta());
-        assertNotNull("Missing focus secondary delta", focusContext.getSecondaryDelta());
+        assertNotNull("Missing focus secondary delta", focusContext.getSummarySecondaryDelta());
 
         Collection<? extends ModelProjectionContext> projectionContexts = modelContext.getProjectionContexts();
         assertNotNull("Null model projection context list", projectionContexts);
@@ -907,7 +918,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ModelProjectionContext accContext = projectionContexts.iterator().next();
         assertNotNull("Null model projection context", accContext);
         assertNotNull("Missing account primary delta", accContext.getPrimaryDelta());
-        assertNull("Unexpected account secondary delta", accContext.getSecondaryDelta());
+        assertNull("Unexpected account secondary delta", accContext.getSummarySecondaryDelta());
         assertEquals(ChangeType.MODIFY, accContext.getPrimaryDelta().getChangeType());
 
         assertAccountDefaultDummyAttributeModify(accContext.getPrimaryDelta(),
@@ -958,7 +969,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ObjectDelta<ShadowType> accountPrimaryDelta = accContext.getPrimaryDelta();
         assertNull("Unexpected account primary delta", accountPrimaryDelta);
 
-        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
+        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSummarySecondaryDelta();
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
 
         assertAccountDefaultDummyAttributeModify(accountSecondaryDelta,
@@ -1025,7 +1036,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ObjectDelta<ShadowType> accountPrimaryDelta = accContext.getPrimaryDelta();
         assertNull("Unexpected account primary delta", accountPrimaryDelta);
 
-        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
+        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSummarySecondaryDelta();
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
 
         assertAccountDefaultDummyAttributeModify(accountSecondaryDelta,
@@ -1091,7 +1102,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ObjectDelta<ShadowType> accountPrimaryDelta = accContext.getPrimaryDelta();
         assertNull("Unexpected account primary delta", accountPrimaryDelta);
 
-        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
+        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSummarySecondaryDelta();
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
 
         assertAccountDefaultDummyAttributeModify(accountSecondaryDelta,
@@ -1120,8 +1131,8 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         // WHEN
         when();
-        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta),
-                null, task, result);
+        var options = ModelExecuteOptions.create().firstClickOnly(); // to avoid assignments evaluation in later stages
+        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(List.of(delta), options, task, result);
 
         // THEN
         then();
@@ -1186,6 +1197,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_RELATIVE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
         displayDumpable("Dummy account after", dummyAccount);
         dummyAccount.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Great Pirate");
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_RELATIVE_OID);
     }
 
     /**
@@ -1228,12 +1240,12 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ObjectDelta<ShadowType> accountPrimaryDelta = accContext.getPrimaryDelta();
         assertNull("Unexpected account primary delta", accountPrimaryDelta);
 
-        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
+        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSummarySecondaryDelta();
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
 
         assertAccountDummyAttributeModify(accountSecondaryDelta,
                 RESOURCE_DUMMY_RELATIVE_NAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME,
-                null, // old
+                isShadowCachingOnByDefault() ? new String[] { "tongue" } : null, // old
                 new String[] { ROLE_PIRATE_WEAPON }, // add
                 null, // delete
                 null);  // replace
@@ -1294,7 +1306,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ObjectDelta<ShadowType> accountPrimaryDelta = accContext.getPrimaryDelta();
         assertNull("Unexpected account primary delta", accountPrimaryDelta);
 
-        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
+        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSummarySecondaryDelta();
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
 
         assertAccountDummyAttributeModify(accountSecondaryDelta,
@@ -1400,7 +1412,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertNotNull("Null model focus context", focusContext);
         assertNull("Unexpected focus primary delta: " + focusContext.getPrimaryDelta(), focusContext.getPrimaryDelta());
 
-        assertSideEffectiveDeltasOnly("focus secondary delta", focusContext.getSecondaryDelta());
+        assertSideEffectiveDeltasOnly("focus secondary delta", focusContext.getSummarySecondaryDelta());
 
         Collection<? extends ModelProjectionContext> projectionContexts = modelContext.getProjectionContexts();
         assertNotNull("Null model projection context list", projectionContexts);
@@ -1417,7 +1429,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                 getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME),
                 "Elaine Threepwood");
 
-        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
+        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSummarySecondaryDelta();
         assertNull("Unexpected account secondary delta: " + accountSecondaryDelta, accountSecondaryDelta);
         assertSerializable(modelContext);
     }
@@ -1454,7 +1466,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertNotNull("Null model focus context", focusContext);
         assertNull("Unexpected focus primary delta: " + focusContext.getPrimaryDelta(), focusContext.getPrimaryDelta());
 
-        assertSideEffectiveDeltasOnly("focus secondary delta", focusContext.getSecondaryDelta());
+        assertSideEffectiveDeltasOnly("focus secondary delta", focusContext.getSummarySecondaryDelta());
 
         Collection<? extends ModelProjectionContext> projectionContexts = modelContext.getProjectionContexts();
         assertNotNull("Null model projection context list", projectionContexts);
@@ -1470,7 +1482,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         PrismAsserts.assertPropertyAdd(accountPrimaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH, "Elaine Threepwood");
         PrismAsserts.assertPropertyDelete(accountPrimaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH, "Elaine Marley");
 
-        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
+        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSummarySecondaryDelta();
         assertNull("Unexpected account secondary delta: " + accountSecondaryDelta, accountSecondaryDelta);
         assertSerializable(modelContext);
     }
@@ -1567,7 +1579,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertNotNull("Null model focus context", focusContext);
         assertNull("Unexpected focus primary delta: " + focusContext.getPrimaryDelta(), focusContext.getPrimaryDelta());
 
-        ObjectDelta<UserType> userSecondaryDelta = focusContext.getSecondaryDelta();
+        ObjectDelta<UserType> userSecondaryDelta = focusContext.getSummarySecondaryDelta();
         assertSideEffectiveDeltasOnly("focus secondary delta", userSecondaryDelta);
 
         Collection<? extends ModelProjectionContext> projectionContexts = modelContext.getProjectionContexts();
@@ -1585,7 +1597,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                 getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME),
                 "Elaine Threepwood");
 
-        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
+        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSummarySecondaryDelta();
         assertNull("Unexpected account secondary delta: " + accountSecondaryDelta, accountSecondaryDelta);
         assertSerializable(modelContext);
     }
@@ -1624,7 +1636,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertNotNull("Null model focus context", focusContext);
         assertNull("Unexpected focus primary delta: " + focusContext.getPrimaryDelta(), focusContext.getPrimaryDelta());
 
-        ObjectDelta<UserType> userSecondaryDelta = focusContext.getSecondaryDelta();
+        ObjectDelta<UserType> userSecondaryDelta = focusContext.getSummarySecondaryDelta();
         assertSideEffectiveDeltasOnly("focus secondary delta", userSecondaryDelta);
 
         Collection<? extends ModelProjectionContext> projectionContexts = modelContext.getProjectionContexts();
@@ -1645,7 +1657,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                 getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME),
                 "Elaine Marley");
 
-        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
+        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSummarySecondaryDelta();
         assertNull("Unexpected account secondary delta: " + accountSecondaryDelta, accountSecondaryDelta);
         assertSerializable(modelContext);
     }
@@ -1685,7 +1697,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         PrismAsserts.assertModifications(userPrimaryDelta, 1);
         PrismAsserts.assertPropertyReplace(userPrimaryDelta, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Elaine Threepwood"));
 
-        ObjectDelta<UserType> userSecondaryDelta = focusContext.getSecondaryDelta();
+        ObjectDelta<UserType> userSecondaryDelta = focusContext.getSummarySecondaryDelta();
         assertSideEffectiveDeltasOnly("focus secondary delta", userSecondaryDelta);
 
         Collection<? extends ModelProjectionContext> projectionContexts = modelContext.getProjectionContexts();
@@ -1700,7 +1712,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ObjectDelta<ShadowType> accountPrimaryDelta = accContext.getPrimaryDelta();
         assertNull("Unexpected account primary delta (default)", accountPrimaryDelta);
 
-        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
+        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSummarySecondaryDelta();
         assertNotNull("No account secondary delta (default)", accountSecondaryDelta);
         PrismAsserts.assertModifications(accountSecondaryDelta, 1);
         PrismAsserts.assertPropertyReplace(
@@ -1714,7 +1726,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         accountPrimaryDelta = accContext.getPrimaryDelta();
         assertNull("Unexpected account primary delta (red)", accountPrimaryDelta);
 
-        accountSecondaryDelta = accContext.getSecondaryDelta();
+        accountSecondaryDelta = accContext.getSummarySecondaryDelta();
         assertNotNull("No account secondary delta (red)", accountSecondaryDelta);
         PrismAsserts.assertModifications(accountSecondaryDelta, 1);
         PrismAsserts.assertPropertyReplace(
@@ -1728,7 +1740,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         accountPrimaryDelta = accContext.getPrimaryDelta();
         assertNull("Unexpected account primary delta (blue)", accountPrimaryDelta);
 
-        accountSecondaryDelta = accContext.getSecondaryDelta();
+        accountSecondaryDelta = accContext.getSummarySecondaryDelta();
         PrismAsserts.assertModifications(accountSecondaryDelta, 1);
         PrismAsserts.assertPropertyDelete(
                 accountSecondaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_PATH, "null -- Elaine Marley");
@@ -1777,7 +1789,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         PrismAsserts.assertModifications(userPrimaryDelta, 1);
         PrismAsserts.assertPropertyReplace(userPrimaryDelta, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Elaine Threepwood"));
 
-        ObjectDelta<UserType> userSecondaryDelta = focusContext.getSecondaryDelta();
+        ObjectDelta<UserType> userSecondaryDelta = focusContext.getSummarySecondaryDelta();
         assertSideEffectiveDeltasOnly("focus secondary delta", userSecondaryDelta);
 
         Collection<? extends ModelProjectionContext> projectionContexts = modelContext.getProjectionContexts();
@@ -1795,7 +1807,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         PrismAsserts.assertPropertyReplace(
                 accountPrimaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH, "Elaine LeChuck");
 
-        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
+        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSummarySecondaryDelta();
         assertNull("Unexpected account secondary delta: " + accountSecondaryDelta, accountSecondaryDelta);
 
         // RED dummy resource: strong mappings
@@ -1805,7 +1817,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertEquals("Wrong policy decision", SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
         accountPrimaryDelta = accContext.getPrimaryDelta();
         assertNull("Unexpected account primary delta (red)", accountPrimaryDelta);
-        accountSecondaryDelta = accContext.getSecondaryDelta();
+        accountSecondaryDelta = accContext.getSummarySecondaryDelta();
         assertNotNull("No account secondary delta (red)", accountSecondaryDelta);
         PrismAsserts.assertModifications(accountSecondaryDelta, 1);
         PrismAsserts.assertPropertyReplace(
@@ -1822,7 +1834,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         PrismAsserts.assertPropertyReplace(
                 accountPrimaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH, "Elaine LeChuck");
 
-        accountSecondaryDelta = accContext.getSecondaryDelta();
+        accountSecondaryDelta = accContext.getSummarySecondaryDelta();
         PrismAsserts.assertModifications("account secondary delta (blue)", accountSecondaryDelta, 1);
         PrismAsserts.assertPropertyDelete(
                 accountSecondaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_PATH, "null -- Elaine Marley");
@@ -1858,7 +1870,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertNotNull("No focus primary delta: " + userPrimaryDelta, userPrimaryDelta);
         PrismAsserts.assertIsAdd(userPrimaryDelta);
 
-        ObjectDelta<UserType> userSecondaryDelta = focusContext.getSecondaryDelta();
+        ObjectDelta<UserType> userSecondaryDelta = focusContext.getSummarySecondaryDelta();
         assertSideEffectiveDeltasOnly(userSecondaryDelta, "focus secondary delta", ActivationStatusType.ENABLED);
 
         Collection<? extends ModelProjectionContext> projectionContexts = modelContext.getProjectionContexts();
@@ -1874,7 +1886,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertNotNull("No account primary delta (default)", accountPrimaryDelta);
         PrismAsserts.assertIsAdd(accountPrimaryDelta);
 
-        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
+        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSummarySecondaryDelta();
         assertNotNull("No account secondary delta (default)", accountSecondaryDelta);
         PrismAsserts.assertModifications(accountSecondaryDelta, 9);
         PrismAsserts.assertNoItemDelta(accountSecondaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH);
@@ -1888,7 +1900,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertNotNull("No account primary delta (default)", accountPrimaryDelta);
         PrismAsserts.assertIsAdd(accountPrimaryDelta);
 
-        accountSecondaryDelta = accContext.getSecondaryDelta();
+        accountSecondaryDelta = accContext.getSummarySecondaryDelta();
         assertNotNull("No account secondary delta (red)", accountSecondaryDelta);
         PrismAsserts.assertModifications(accountSecondaryDelta, 9);
         PrismAsserts.assertPropertyReplace(
@@ -1903,7 +1915,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertNotNull("No account primary delta (default)", accountPrimaryDelta);
         PrismAsserts.assertIsAdd(accountPrimaryDelta);
 
-        accountSecondaryDelta = accContext.getSecondaryDelta();
+        accountSecondaryDelta = accContext.getSummarySecondaryDelta();
         assertNotNull("No account secondary delta (default)", accountSecondaryDelta);
         PrismAsserts.assertModifications(accountSecondaryDelta, 10);
         PrismAsserts.assertNoItemDelta(accountSecondaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH);
@@ -1941,7 +1953,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertNotNull("No focus primary delta: " + userPrimaryDelta, userPrimaryDelta);
         PrismAsserts.assertIsAdd(userPrimaryDelta);
 
-        ObjectDelta<UserType> userSecondaryDelta = focusContext.getSecondaryDelta();
+        ObjectDelta<UserType> userSecondaryDelta = focusContext.getSummarySecondaryDelta();
         // inbound from ship (explicitly specified) to organizationalUnit (dummy resource)
         // inbound from gossip (computed via outbound) to description (lemon resource)
         assertEffectualDeltas(userSecondaryDelta, "focus secondary delta", ActivationStatusType.ENABLED, 2);
@@ -1965,7 +1977,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertNotNull("No account primary delta (default)", accountPrimaryDelta);
         PrismAsserts.assertIsAdd(accountPrimaryDelta);
 
-        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
+        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSummarySecondaryDelta();
         assertNotNull("No account secondary delta (default)", accountSecondaryDelta);
         // administrativeStatus (ENABLED), enableTimestamp, name, drink, quote, iteration, iterationToken, password/value
         PrismAsserts.assertModifications(accountSecondaryDelta, 9);
@@ -1980,7 +1992,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertNotNull("No account primary delta (default)", accountPrimaryDelta);
         PrismAsserts.assertIsAdd(accountPrimaryDelta);
 
-        accountSecondaryDelta = accContext.getSecondaryDelta();
+        accountSecondaryDelta = accContext.getSummarySecondaryDelta();
         assertNotNull("No account secondary delta (lemon)", accountSecondaryDelta);
         // administrativeStatus (ENABLED), enableTimestamp, ship (from organizationalUnit), name, gossip, water, iteration, iterationToken, password/value
         PrismAsserts.assertModifications(accountSecondaryDelta, 10);
@@ -2034,7 +2046,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertNotNull("Null model focus context", focusContext);
         assertNull("Unexpected focus primary delta: " + focusContext.getPrimaryDelta(), focusContext.getPrimaryDelta());
 
-        ObjectDelta<UserType> userSecondaryDelta = focusContext.getSecondaryDelta();
+        ObjectDelta<UserType> userSecondaryDelta = focusContext.getSummarySecondaryDelta();
         assertSideEffectiveDeltasOnly("focus secondary delta", userSecondaryDelta);
 
         Collection<? extends ModelProjectionContext> projectionContexts = modelContext.getProjectionContexts();
@@ -2050,7 +2062,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         PrismAsserts.assertModifications(accountPrimaryDelta, 1);
         PrismAsserts.assertPropertyReplace(accountPrimaryDelta, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.DISABLED);
 
-        ObjectDelta<ShadowType> accountSecondaryDelta = accContextDefault.getSecondaryDelta();
+        ObjectDelta<ShadowType> accountSecondaryDelta = accContextDefault.getSummarySecondaryDelta();
         PrismAsserts.assertModifications(accountSecondaryDelta, 2);
         assertNotNull("No disableTimestamp delta in account secondary delta (default)",
                 accountSecondaryDelta.findPropertyDelta(PATH_ACTIVATION_DISABLE_TIMESTAMP));
@@ -2067,7 +2079,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         PrismAsserts.assertModifications(accountPrimaryDeltaBlue, 1);
         PrismAsserts.assertPropertyReplace(accountPrimaryDeltaBlue, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.DISABLED);
 
-        ObjectDelta<ShadowType> accountSecondaryDeltaBlue = accContextBlue.getSecondaryDelta();
+        ObjectDelta<ShadowType> accountSecondaryDeltaBlue = accContextBlue.getSummarySecondaryDelta();
         PrismAsserts.assertModifications(accountSecondaryDeltaBlue, 2);
         assertNotNull("No disableTimestamp delta in account secondary delta (blue)",
                 accountSecondaryDeltaBlue.findPropertyDelta(PATH_ACTIVATION_DISABLE_TIMESTAMP));
@@ -2078,7 +2090,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
     private ModelProjectionContext findAccountContext(ModelContext<UserType> modelContext, String resourceOid) {
         Collection<? extends ModelProjectionContext> accountContexts = modelContext.findProjectionContexts(
-                new ProjectionContextFilter(resourceOid, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT));
+                new ProjectionContextFilter(resourceOid, ACCOUNT, SchemaConstants.INTENT_DEFAULT));
         return MiscUtil.extractSingletonRequired(
                 accountContexts,
                 () -> new IllegalStateException("Multiple account/default contexts: " + accountContexts),
@@ -2174,18 +2186,66 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         AssertJUnit.assertEquals(ChangeType.ADD, scene.getChangeType());
 
         ObjectDelta<?> sourceDelta = scene.getSourceDelta();
-        PrismAsserts.assertPropertyAdd(sourceDelta, ItemPath.create(ShadowType.F_KIND), ShadowKindType.ACCOUNT);
+        PrismAsserts.assertPropertyAdd(sourceDelta, ItemPath.create(ShadowType.F_KIND), ACCOUNT);
         PrismAsserts.assertPropertyAdd(sourceDelta, ItemPath.create(ShadowType.F_INTENT), "default");
         PrismAsserts.assertReferenceAdd(sourceDelta, ShadowType.F_RESOURCE_REF, RESOURCE_SIMPLE.oid);
     }
 
-    private static class Checkers {
-        final ObjectChecker<ModelContext<UserType>> ctxChecker;
-        final ObjectChecker<TestSimulationResult> simChecker;
+    /**
+     * Having projection with both outbound and inbound mappings.
+     *
+     * When user LC state goes to `archived`, the "preview" and real execution behavior should be the same:
+     * account is deleted, but the inbounds are not evaluated, so the user remains unchanged.
+     *
+     * MID-9853.
+     *
+     * This originally failed, because:
+     *
+     * - The real behavior is that when LC is `archived`, shadow gets deleted
+     * (wave 0). In wave 1, the rotten projection context is removed. Hence, no inbounds are processed on that already-deleted
+     * shadow.
+     *
+     * - The preview behavior is that the projection context is not rotten, and not removed in wave 1 (actually, that's a good
+     * thing; otherwise, we couldn't see the deletion deltas). But that means that inbounds are processed, removing user's
+     * `name`, which leads to a "No name in new object" exception.
+     *
+     * The fix was to replace previewChanges by simulations.
+     */
+    @Test
+    public void test760PreviewArchival() throws CommonException, IOException {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = getTestNameShort();
 
-        Checkers(ObjectChecker<ModelContext<UserType>> ctxChecker, ObjectChecker<TestSimulationResult> simChecker) {
-            this.ctxChecker = ctxChecker;
-            this.simChecker = simChecker;
-        }
+        given("user with assigned 'account/test'");
+        var userOid = addObject(
+                new UserType()
+                        .name(userName)
+                        .assignment(RESOURCE_DUMMY_MISC.assignmentWithConstructionOf(ACCOUNT, INTENT_DEFAULT)),
+                task, result);
+        assertUserBefore(userOid)
+                .assertLiveLinks(1);
+
+        when("user archival is previewed");
+        var modelContext = previewChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_LIFECYCLE_STATE)
+                        .replace(SchemaConstants.LIFECYCLE_ARCHIVED)
+                        .asObjectDelta(userOid),
+                null, task, result);
+
+        then("shadow deletion is there");
+        assertSuccess(result);
+        assertThat(modelContext.getProjectionContexts())
+                .as("projection contexts")
+                .singleElement()
+                .extracting(projCtx -> projCtx.getSynchronizationPolicyDecision())
+                .as("sync policy decision")
+                .isEqualTo(SynchronizationPolicyDecision.DELETE);
+    }
+
+    private record Checkers(
+            ObjectChecker<ModelContext<UserType>> ctxChecker,
+            ObjectChecker<TestSimulationResult> simChecker) {
     }
 }

@@ -1,0 +1,61 @@
+= Starting MidPoint With Task Scheduler Stopped
+:page-wiki-name: Starting midPoint with task scheduler stopped
+:page-wiki-id: 24674414
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2017-06-01T18:00:20.934+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2017-06-01T18:02:22.458+02:00
+:page-upkeep-status: yellow
+
+Imagine that you have a runaway task that starts on midPoint startup and quickly consumes all the available resources (or prevents normal functioning of midPoint in any other way).
+Since 3.6 it is possible to start midPoint with task scheduler simply stopped, so you can easily inspect the tasks and delete or suspend the troublemaker.
+
+There are two methods:
+
+
+== Safe mode
+
+.Setting safe mode in config.xml
+[source,xml]
+----
+<configuration>
+    <midpoint>
+        ...
+        <safeMode>true</safeMode>
+    </midpoint>
+</configuration>
+----
+
+Setting safe mode currently causes the following:
+
+. Suppresses the start of task scheduler at startup.
+
+. Sets 'tolerate undeclared prefixes' to true, allowing some misconfigurations to be manually corrected.
+
+More similar effects are to be expected in the future.
+
+
+== Using schedulerInitiallyStopped parameter
+
+This configuration parameter directly makes task scheduler to stay stopped at startup.
+It can be set like this:
+
+.Setting schedulerInitiallyStopped in config.xml
+[source,xml]
+----
+<configuration>
+    <midpoint>
+        <taskManager>
+            <schedulerInitiallyStopped>true</schedulerInitiallyStopped>
+            ...
+        </taskManager>
+    </midpoint>
+</configuration>
+----
+
+
+== Starting the scheduler later
+
+In both cases, the scheduler can be simply started manually in the _List tasks_ screen, by clicking on _Start_ action on a given midPoint node.
+
+Or, you could change the config.xml to a normal state, and restart midPoint.

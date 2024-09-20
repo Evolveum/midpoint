@@ -11,6 +11,9 @@ import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+
 import jakarta.annotation.PostConstruct;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -49,7 +52,7 @@ public class CacheInvalidationPerformanceTest extends AbstractSpringTest impleme
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        SchemaDebugUtil.initializePrettyPrinter();
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
     }
 
@@ -69,7 +72,7 @@ public class CacheInvalidationPerformanceTest extends AbstractSpringTest impleme
         OperationResult result = createOperationResult();
 
         // create the archetype - we should create reasonably sized object, as
-        ArchetypeType archetype = new ArchetypeType(getPrismContext())
+        ArchetypeType archetype = new ArchetypeType()
                 .name("name-initial")
                 .displayName("some display name")
                 .locality("some locality")

@@ -14,7 +14,7 @@ import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.util.DOMUtil;
 
 /**
@@ -40,7 +40,7 @@ public abstract class Abstract389DsDnTest extends Abstract389DsTest {
 
     @Test
     public void test025SchemaDn() {
-        ResourceAttributeDefinition<?> dnDef = accountDefinition.findAttributeDefinition("dn");
+        ShadowSimpleAttributeDefinition<?> dnDef = accountDefinition.findSimpleAttributeDefinition("dn");
         displayDumpable("DN definition", dnDef);
         PrismAsserts.assertDefinition(dnDef, QNAME_DN, DOMUtil.XSD_STRING, 1, 1);
         assertTrue("dn read", dnDef.canRead());

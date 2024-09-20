@@ -11,14 +11,24 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExec
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.axiom.concepts.CheckedFunction;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.schema.SchemaRegistryState;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerWithFullObjectMapping;
+
+import com.evolveum.midpoint.util.exception.TunnelException;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
-import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocusMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.QTaskMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
@@ -39,11 +49,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionTy
  * @param <OR> type of the owner row
  */
 public class QOperationExecutionMapping<OR extends MObject>
-        extends QContainerMapping<OperationExecutionType, QOperationExecution<OR>, MOperationExecution, OR> {
+        extends QContainerWithFullObjectMapping<OperationExecutionType, QOperationExecution<OR>, MOperationExecution, OR> {
 
     public static final String DEFAULT_ALIAS_NAME = "opex";
 
     private static QOperationExecutionMapping<?> instance;
+
+    private final SchemaRegistryState.DerivationKey<ItemDefinition<?>> derivationKey;
+
+    private final CheckedFunction<SchemaRegistryState, ItemDefinition<?>, SystemException> derivationMapping;
+
+
 
     public static <OR extends MObject> QOperationExecutionMapping<OR> init(
             @NotNull SqaleRepoContext repositoryContext) {
@@ -63,6 +79,9 @@ public class QOperationExecutionMapping<OR extends MObject>
     private QOperationExecutionMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QOperationExecution.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 OperationExecutionType.class, (Class) QOperationExecution.class, repositoryContext);
+
+        this.derivationKey = SchemaRegistryState.derivationKeyFrom(getClass(), "Definition");
+        this.derivationMapping = (registry) -> registry.findObjectDefinitionByCompileTimeClass(ObjectType.class).findItemDefinition(ObjectType.F_OPERATION_EXECUTION);
 
         addRelationResolver(PrismConstants.T_PARENT,
                 // mapping supplier is used to avoid cycles in the initialization code
@@ -105,8 +124,8 @@ public class QOperationExecutionMapping<OR extends MObject>
 
     @Override
     public MOperationExecution insert(
-            OperationExecutionType schemaObject, OR ownerRow, JdbcSession jdbcSession) {
-        MOperationExecution row = initRowObject(schemaObject, ownerRow);
+            OperationExecutionType schemaObject, OR ownerRow, JdbcSession jdbcSession) throws SchemaException {
+        MOperationExecution row = initRowObjectWithFullObject(schemaObject, ownerRow);
 
         row.status = schemaObject.getStatus();
         row.recordType = schemaObject.getRecordType();
@@ -125,7 +144,7 @@ public class QOperationExecutionMapping<OR extends MObject>
     }
 
     @Override
-    public OperationExecutionType toSchemaObject(MOperationExecution row) {
+    public OperationExecutionType toSchemaObjectLegacy(MOperationExecution row) {
         return new OperationExecutionType()
                 .status(row.status)
                 .recordType(row.recordType)
@@ -139,7 +158,7 @@ public class QOperationExecutionMapping<OR extends MObject>
     @Override
     public ResultListRowTransformer<OperationExecutionType, QOperationExecution<OR>, MOperationExecution> createRowTransformer(
             SqlQueryContext<OperationExecutionType, QOperationExecution<OR>, MOperationExecution> sqlQueryContext,
-            JdbcSession jdbcSession) {
+            JdbcSession jdbcSession, Collection<SelectorOptions<GetOperationOptions>> options) {
         Map<UUID, ObjectType> owners = new HashMap<>();
         return new ResultListRowTransformer<>() {
             @Override
@@ -160,15 +179,14 @@ public class QOperationExecutionMapping<OR extends MObject>
                             .fetch();
                     for (Tuple row : result) {
                         UUID oid = Objects.requireNonNull(row.get(o.oid));
-                        ObjectType owner = parseSchemaObject(row.get(o.fullObject), oid.toString(), ObjectType.class);
+                        ObjectType owner = QObjectMapping.getObjectMapping().parseSchemaObject(row.get(o.fullObject), oid.toString(), ObjectType.class);
                         owners.put(oid, owner);
                     }
                 }
             }
 
             @Override
-            public OperationExecutionType transform(Tuple rowTuple,
-                    QOperationExecution<OR> entityPath, Collection<SelectorOptions<GetOperationOptions>> options) {
+            public OperationExecutionType transform(Tuple rowTuple, QOperationExecution<OR> entityPath) {
                 MOperationExecution row = Objects.requireNonNull(rowTuple.get(entityPath));
                 ObjectType object = Objects.requireNonNull(owners.get(row.ownerOid),
                         () -> "Missing owner with OID " + row.ownerOid + " for OperationExecution with ID " + row.cid);
@@ -178,12 +196,48 @@ public class QOperationExecutionMapping<OR extends MObject>
                 if (opexContainer == null) {
                     throw new SystemException("Object " + object + " has no operation execution as expected from " + row);
                 }
+
+
                 PrismContainerValue<OperationExecutionType> pcv = opexContainer.findValue(row.cid);
+
+                // FIXME: This should be resolved better. Use value from parent.
+                if (row.fullObject != null && pcv == null) {
+                    try {
+                        var embedded = (PrismContainerValue<OperationExecutionType>) toSchemaObjectEmbedded(rowTuple, entityPath);
+                        opexContainer.add(embedded);
+                        return embedded.getRealValue();
+                    } catch (SchemaException e) {
+                        throw new TunnelException(e);
+                    }
+                }
+
                 if (pcv == null) {
                     throw new SystemException("Object " + object + " has no operation execution with ID " + row.cid);
+
                 }
+                attachContainerIdPath(pcv.asContainerable(), rowTuple, entityPath);
                 return pcv.asContainerable();
             }
         };
+    }
+
+    @Override
+    protected SchemaRegistryState.DerivationKey<ItemDefinition<?>> definitionDerivationKey() {
+        return derivationKey;
+    }
+
+    @Override
+    protected CheckedFunction<SchemaRegistryState, ItemDefinition<?>, SystemException> definitionDerivation() {
+        return derivationMapping;
+    }
+
+    @Override
+    public ItemPath getItemPath() {
+        return ObjectType.F_OPERATION_EXECUTION;
+    }
+
+    @Override
+    public OrderSpecifier<?> orderSpecifier(QOperationExecution<OR> orqOperationExecution) {
+        return new OrderSpecifier<>(Order.ASC, orqOperationExecution.cid);
     }
 }

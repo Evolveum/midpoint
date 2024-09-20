@@ -1,0 +1,49 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Create a new User object in MidPoint with file data source*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Content-Type: application/xml" \
+-X PATCH http://localhost:8080/midpoint/ws/rest/users/00000000-0000-0000-0000-000000000002 \
+-v \
+--data-binary @./samples/rest/modify-user-assign-role-eu.xml
+----
+
+.*Show* data source example for *"Create a new User object in MidPoint"* | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/modify-user-assign-role-eu.xml[GitHub]
+[%collapsible]
+====
+[source, xml]
+----
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2010-2024 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<objectModification
+    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-3'
+    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+    xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    <itemDelta>
+        <t:modificationType>add</t:modificationType>
+        <t:path>c:assignment</t:path>
+        <t:value>
+                <c:targetRef oid="00000000-0000-0000-0000-000000000008" type="c:RoleType" />
+        </t:value>
+    </itemDelta>
+</objectModification>
+
+----
+====

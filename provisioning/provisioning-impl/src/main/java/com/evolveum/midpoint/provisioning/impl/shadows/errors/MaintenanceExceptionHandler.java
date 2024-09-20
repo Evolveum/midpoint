@@ -10,12 +10,13 @@ package com.evolveum.midpoint.provisioning.impl.shadows.errors;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.schema.util.RawRepoShadow;
+import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.shadows.*;
 import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.AddOperationState;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowFinder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -29,9 +30,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-import static com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManagerMiscUtil.*;
-import static com.evolveum.midpoint.provisioning.util.ProvisioningUtil.selectLiveShadow;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
+import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
 /**
  * @author Martin Lizner
@@ -49,9 +48,9 @@ class MaintenanceExceptionHandler extends ErrorHandler {
     @Autowired private ShadowFinder shadowFinder;
 
     @Override
-    public ShadowType handleGetError(
+    public RepoShadow handleGetError(
             @NotNull ProvisioningContext ctx,
-            @NotNull ShadowType repositoryShadow,
+            @NotNull RepoShadow repositoryShadow,
             @NotNull Exception cause,
             @NotNull OperationResult failedOperationResult,
             @NotNull OperationResult result) {
@@ -64,7 +63,7 @@ class MaintenanceExceptionHandler extends ErrorHandler {
             @NotNull ShadowAddOperation operation,
             @NotNull Exception cause,
             OperationResult failedOperationResult,
-            OperationResult parentResult) throws SchemaException {
+            OperationResult parentResult) throws SchemaException, ConfigurationException {
 
         AddOperationState opState = operation.getOpState();
         ProvisioningContext ctx = operation.getCtx();
@@ -86,15 +85,15 @@ class MaintenanceExceptionHandler extends ErrorHandler {
             LOGGER.trace("Going to find matching shadows using the query:\n{}", query.debugDumpLazily(1));
             List<PrismObject<ShadowType>> matchingShadows = shadowFinder.searchShadows(ctx, query, null, result);
             LOGGER.trace("Found {}: {}", matchingShadows.size(), matchingShadows);
-            ShadowType liveShadow =
-                    asObjectable(
-                            selectLiveShadow(
-                                    matchingShadows,
-                                    DebugUtil.lazy(() -> "when looking by secondary identifier: " + query)));
-            LOGGER.trace("Live shadow found: {}", liveShadow);
+            RawRepoShadow rawLiveShadow =
+                    RawRepoShadow.selectLiveShadow(
+                            matchingShadows,
+                            DebugUtil.lazy(() -> "when looking by secondary identifier: " + query));
+            LOGGER.trace("Live shadow found: {}", rawLiveShadow);
 
-            if (liveShadow != null) {
-                if (ShadowUtil.isExists(liveShadow)) {
+            if (rawLiveShadow != null) {
+                var liveShadow = ctx.adoptRawRepoShadow(rawLiveShadow);
+                if (liveShadow.doesExist()) {
                     LOGGER.trace("Found a live shadow that seems to exist on the resource: {}", liveShadow);
                     status = OperationResultStatus.SUCCESS;
                 } else {
@@ -105,7 +104,9 @@ class MaintenanceExceptionHandler extends ErrorHandler {
                 // TODO shouldn't we do something similar for other cases like this?
                 if (!opState.hasCurrentPendingOperation()) {
                     opState.setCurrentPendingOperation(
-                            findPendingAddOperation(liveShadow));
+                            stateNonNull(
+                                    liveShadow.findPendingAddOperation(),
+                                    "No pending ADD operation in %s", liveShadow));
                 }
             } else {
                 status = OperationResultStatus.IN_PROGRESS;

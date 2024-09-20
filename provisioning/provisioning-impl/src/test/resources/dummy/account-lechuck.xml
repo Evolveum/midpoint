@@ -8,8 +8,6 @@
 
 <shadow oid="c0c010c0-d34d-b44f-f11d-444400009aa9"
     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
     xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <resourceRef oid="ef2bc95b-76e0-59e2-86d6-9999dddddddd" />
@@ -19,14 +17,18 @@
         <icfs:name>lechuck</icfs:name>
         <ri:fullname>LeChuck</ri:fullname>
     </attributes>
-    <association>
-        <name>ri:group</name>
-        <shadowRef oid="c0c010c0-d34d-b44f-f11d-3332eeee0000" type="c:ShadowType"/>
-    </association>
-    <association>
-        <name>ri:priv</name>
-        <shadowRef oid="c0c010c0-d34d-b44f-f11d-3332eeff0000" type="c:ShadowType"/>
-    </association>
+    <associations>
+        <ri:group>
+            <objects>
+                <ri:group oid="c0c010c0-d34d-b44f-f11d-3332eeee0000"/>
+            </objects>
+        </ri:group>
+        <ri:priv>
+            <objects>
+                <ri:priv oid="c0c010c0-d34d-b44f-f11d-3332eeff0000"/>
+            </objects>
+        </ri:priv>
+    </associations>
     <credentials>
         <password>
             <value>

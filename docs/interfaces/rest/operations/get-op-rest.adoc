@@ -1,0 +1,201 @@
+= Get Operation
+:page-nav-title: Get Operation
+:page-display-order: 100
+:page-toc: top
+:page-keywords: [ 'rest', 'get', 'operation' ]
+:page-upkeep-status: green
+
+== Description
+
+Request for data related to a specific object. The information contains the *properties* and *relations*
+of this object as well as metadata and other technical information.
+
+=== Safe Get
+
+HTTP *GET* is a safe operation. The use of GET does not change the state of a web resource.
+GET will never cause a (direct) modification. This is given by the REST architectural style.
+We consider this to be a very good idea and this approach is adopted by midPoint REST API.
+
+However, object retrieval in midPoint can have side effects.
+Maybe midPoint will find out that an account that HTTP GET is trying to retrieve does not exist.
+In that case *midPoint consistency mechanism* may be triggered and it can modify the state of the midPoint objects.
+Therefore, there may be indirect changes in the objects even if GET is used. However,
+those changes are not direct consequence of the GET operation.
+Those are consequence of changed environment, and they are only discovered when GET operation is in progress.
+Those changes would happen anyway, whether GET is used or not. It just may take a bit longer for midPoint to discover that.
+Therefore, we still consider GET to be a safe operation.
+
+If you want to make sure no consistency related change might occur, use the *raw* option set to *true* in your
+get queries. As in this example:
+
+[source, http]
+----
+ http://localhost:8080/midpoint/ws/rest/{endpoint}/{oid}?options=raw
+----
+
+== Request
+
+Use the HTTP GET method with your request.
+
+[source, http]
+----
+GET http://localhost:8080/midpoint/ws/rest/{endpoint}/{oid}
+GET http://localhost:8080/midpoint/ws/rest/self
+----
+
+Additionally, you have to supply header information, and optionally you can also
+specify query options as a parameter of your request.
+
+For more information please have a look at the following sections.
+
+=== Headers
+
+Regarding authorization type, the "Basic" Authorization header should be used.
+
+.Authorization header example replace {Base64EncodedCredentials} with the encoded credentials
+[source, http]
+----
+Authorization: Basic {Base64EncodedCredentials}
+----
+
+To specify the provided content type, please use the "Content-Type" header
+payload in the body:
+
+.Content type header example, other media types are supported as well
+[source, http]
+----
+"Content-Type: application/json"
+----
+
+You might need to specify the accepted type of content in case
+you are interested in a format different from xml (default):
+
+.Accept type header example, other media types are supported as well
+[source, http]
+----
+"Accept: application/json"
+----
+
+.For supported media types please refer to the following section of the documentation
+xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+
+=== Body
+
+The get operation does not need to contain any specific payload data in the body of the
+request.
+
+=== Options and Functions
+
+Example of usage of options:
+
+The *"get"* operations support specifying options influencing the operation execution. You can find the
+supported options in these references:
+
+.Usable options for this type of operation
+link:https://github.com/Evolveum/midpoint/blob/731e408905650d81ecab410f1f1c4f07a0d8795c/infra/schema/src/main/java/com/evolveum/midpoint/schema/GetOperationOptions.java[GetOperationOptionsType]
+
+include::../../rest/operations/raw/options-usage.adoc[]
+
+include::../../rest/operations/raw/operation-prop-search.adoc[]
+
+include::../../rest/concepts/raw/outcome.adoc[]
+
+The response is a set of identity data describing the fetched object. This example
+had some technical information and metadata related to the environment removed before publishing.
+
+.Show Response Example
+[%collapsible]
+====
+[source, json]
+----
+{
+  "user" : {
+    "oid" : "00000000-0000-0000-0000-000000000002",
+    "name" : "administrator",
+    "indestructible" : true,
+    "assignment" : [ {
+      "@id" : 1,
+      "identifier" : "superuserRole",
+      "targetRef" : {
+        "oid" : "00000000-0000-0000-0000-000000000004",
+        "relation" : "org:default",
+        "type" : "c:RoleType"
+      },
+      "activation" : {
+        "effectiveStatus" : "enabled"
+      }
+    }, {
+      "@id" : 2,
+      "identifier" : "archetype",
+      "targetRef" : {
+        "oid" : "00000000-0000-0000-0000-000000000300",
+        "relation" : "org:default",
+        "type" : "c:ArchetypeType"
+      },
+      "activation" : {
+        "effectiveStatus" : "enabled"
+      }
+    } ],
+    "iteration" : 0,
+    "iterationToken" : "",
+    "archetypeRef" : {
+      "oid" : "00000000-0000-0000-0000-000000000300",
+      "relation" : "org:default",
+      "type" : "c:ArchetypeType"
+    },
+    "roleMembershipRef" : [ {
+      "oid" : "00000000-0000-0000-0000-000000000300",
+      "relation" : "org:default",
+      "type" : "c:ArchetypeType"
+    }, {
+      "oid" : "00000000-0000-0000-0000-000000000004",
+      "relation" : "org:default",
+      "type" : "c:RoleType"
+    } ],
+    "credentials" : {
+      "password" : {
+        "value" : {
+          "clearValue" : "5ecr3t"
+      }
+    },
+    "fullName" : "midPoint Administrator",
+    "givenName" : "midPoint",
+    "familyName" : "Administrator"
+  }
+}
+}
+----
+====
+
+== Access Authorization
+
+include::../operations/raw/a-auth.adoc[]
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#getObject+`
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#getSelf+`
+
+== Model Authorization
+
+include::../operations/raw/m-auth.adoc[]
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#get+`
+
+== Examples
+
+include::../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+include::../operations/examples/raw/get-user-administrator.adoc[]
+
+.Additional examples
+1. xref:/midpoint/reference/interfaces/rest/operations/examples/get-user-unique-id/[Get user based on his unique identificator]
+2. xref:/midpoint/reference/interfaces/rest/operations/examples/get-user-self/[Get own profile information]
+
+== See Also
+
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]
+- xref:/midpoint/reference/security/authorization/service/[]

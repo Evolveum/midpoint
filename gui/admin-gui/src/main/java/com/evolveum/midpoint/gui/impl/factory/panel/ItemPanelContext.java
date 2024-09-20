@@ -10,7 +10,8 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.lang3.ClassUtils;
+import com.evolveum.midpoint.util.MiscUtil;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.markup.html.form.Form;
@@ -62,10 +63,6 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper<?, ?>> implemen
         return componentId;
     }
 
-    public PrismContext getPrismContext() {
-        return unwrapWrapperModel().getPrismContext();
-    }
-
     public ItemName getDefinitionName() {
         return unwrapWrapperModel().getItemName();
     }
@@ -80,10 +77,7 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper<?, ?>> implemen
         if (clazz == null) {
             clazz = PrismContext.get().getSchemaRegistry().determineClassForType(unwrapWrapperModel().getTypeName());
         }
-        if (clazz != null && clazz.isPrimitive()) {
-            clazz = (Class<T>) ClassUtils.primitiveToWrapper(clazz);
-        }
-        return clazz;
+        return (Class<T>) MiscUtil.resolvePrimitiveIfNecessary(clazz);
     }
 
     public ItemRealValueModel<T> getRealValueModel() {
@@ -95,7 +89,7 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper<?, ?>> implemen
 //        this.realValueModel = ;
     }
 
-    IModel<? extends PrismValueWrapper<T>> getValueWrapperModel() {
+    public IModel<? extends PrismValueWrapper<T>> getValueWrapperModel() {
         return valueWrapperModel;
     }
 

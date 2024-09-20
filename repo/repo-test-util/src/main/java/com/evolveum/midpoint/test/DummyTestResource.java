@@ -84,4 +84,9 @@ public class DummyTestResource extends TestResource {
             ObjectAlreadyExistsException, InterruptedException, ConnectException, ObjectDoesNotExistException {
         return controller.addAccount(name);
     }
+
+    public DummyAccount addAccount(String name, String fullName) throws ConflictException, FileNotFoundException, SchemaViolationException,
+            ObjectAlreadyExistsException, InterruptedException, ConnectException, ObjectDoesNotExistException {
+        return controller.addAccount(name, fullName);
+    }
 }

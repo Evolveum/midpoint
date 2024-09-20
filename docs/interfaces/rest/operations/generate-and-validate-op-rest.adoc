@@ -1,0 +1,99 @@
+= Generate and Validate Operations
+:page-nav-title: Generate And Validate
+:page-display-order: 220
+:page-toc: top
+:page-keywords: [ 'rest', 'generate', 'validate', 'operation' ]
+:page-upkeep-status: green
+
+== Description
+
+Request to validate or generate a value.
+
+== Request
+
+For the request use the HTTP POST for the request.
+
+.Generate operation
+[source, http]
+----
+POST http://localhost:8080/midpoint/ws/rest/generate
+----
+
+.Validate operation
+[source, http]
+----
+POST http://localhost:8080/midpoint/ws/rest/validate
+----
+
+=== Headers
+
+Regarding authorization type, the "Basic" Authorization header should be used.
+
+.Authorization header example replace {Base64EncodedCredentials} with the encoded credentials
+[source, http]
+----
+Authorization: Basic {Base64EncodedCredentials}
+----
+
+Another header would be the Content-Type Header.
+
+.Content-Type header example, other media types are supported as well
+[source, http]
+----
+"Content-Type: application/json"
+----
+
+You might need to specify the accepted type of content in case
+you are interested in a format different from xml (default)
+
+.Accept type header example, other media types are supported as well
+[source, http]
+----
+"Accept: application/json"
+----
+
+.For supported media types please refer to the following section of the documentation
+xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+
+=== Body
+
+The body should contain a payload consisting of a policyItemDefinition type of object.
+Based on the use case you might need to specify which value policy should be used for the operation
+or which item should be the target of the operation. Please see the examples below.
+
+=== Options
+
+There are no supported operation options for this type of operation.
+
+include::../../rest/concepts/raw/outcome.adoc[]
+
+== Access Authorization
+
+include::../operations/raw/a-auth.adoc[]
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#rpcGenerateValue+`
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#rpcValidateValue+`
+
+== Model Authorization
+
+include::../operations/raw/m-auth.adoc[]
+
+No model authorizations needed in this case.
+
+== Examples
+
+include::../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+include::../../rest/operations/examples/raw/validate-value-rpc.adoc[]
+
+include::../../rest/operations/examples/raw/generate-value-rpc.adoc[]
+
+== See Also
+
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]
+- xref:/midpoint/reference/security/authorization/service/[]

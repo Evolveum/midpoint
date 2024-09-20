@@ -7,13 +7,11 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
 
-import org.apache.wicket.AttributeModifier;
+import com.evolveum.midpoint.gui.impl.page.admin.EnumChoicePanel;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -23,19 +21,9 @@ import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.*;
-import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
-import com.evolveum.midpoint.web.component.MultiCompositedButtonPanel;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * @author lazyman
@@ -55,7 +43,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
         })
 public class PageSystemConfiguration extends PageBase {
 
-    public enum SubPage {
+    public enum SubPage implements TileEnum {
 
         BASIC("fa fa-wrench", PageSystemBasic.class),
 
@@ -75,7 +63,9 @@ public class PageSystemConfiguration extends PageBase {
 
         INTERNALS("fa fa-cogs", PageSystemInternals.class),
 
-        ACCESS_CERTIFICATION("fa fa-certificate", PageAccessCertification.class);
+        ACCESS_CERTIFICATION("fa fa-certificate", PageAccessCertification.class),
+
+        SECRETS_PROVIDERS("fa fa-key", PageSystemSecretsProviders.class);
 
         String icon;
 
@@ -86,6 +76,7 @@ public class PageSystemConfiguration extends PageBase {
             this.page = page;
         }
 
+        @Override
         public String getIcon() {
             return icon;
         }
@@ -111,11 +102,7 @@ public class PageSystemConfiguration extends PageBase {
 
     private static final long serialVersionUID = 1L;
 
-    private static final String DOT_CLASS = PageSystemConfiguration.class.getName() + ".";
-
-    private static final Trace LOGGER = TraceManager.getTrace(PageSystemConfiguration.class);
-
-    private static final String ID_CONTAINER = "container";
+    private static final String ID_CHOICE_PANEL = "choicePanel";
 
     public PageSystemConfiguration() {
         initLayout();
@@ -136,36 +123,33 @@ public class PageSystemConfiguration extends PageBase {
     }
 
     private void initLayout() {
-        List<CompositedIconButtonDto> buttons = Arrays.stream(SubPage.values())
-                .map(s -> createCompositedButton(s.getIcon(), s.getPage())).collect(Collectors.toUnmodifiableList());
-
-        IModel<List<CompositedIconButtonDto>> model = Model.ofList(buttons);
-
-        MultiCompositedButtonPanel panel = new MultiCompositedButtonPanel(ID_CONTAINER, model) {
+        EnumChoicePanel<SubPage> choicePanel = new EnumChoicePanel<>(ID_CHOICE_PANEL, SubPage.class) {
 
             @Override
-            protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSpec, CompiledObjectCollectionView collectionViews, Class<? extends WebPage> page) {
-                navigateToNext(page);
+            protected IModel<String> getTextModel() {
+                return createStringResource("PageSystemConfiguration.choicePanel.text");
+            }
+
+            @Override
+            protected IModel<String> getSubTextModel() {
+                return createStringResource("PageSystemConfiguration.choicePanel.subText");
+            }
+
+            @Override
+            protected void onTemplateChosePerformed(SubPage page, AjaxRequestTarget target) {
+                navigateToNext(page.getPage());
+            }
+
+            @Override
+            protected String getTitleOfEnum(SubPage type) {
+                return getString(type.getPage().getSimpleName() + ".title");
             }
         };
-        panel.add(AttributeModifier.append("class", " row"));
-        add(panel);
+        add(choicePanel);
     }
 
-    private CompositedIconButtonDto createCompositedButton(String icon, Class<? extends WebPage> page) {
-        String title = page.getSimpleName() + ".title";
-
-        CompositedIconButtonDto button = new CompositedIconButtonDto();
-        CompositedIconBuilder builder = new CompositedIconBuilder();
-        builder.setTitle(title);
-        builder.setBasicIcon(icon, IconCssStyle.IN_ROW_STYLE);
-        button.setCompositedIcon(builder.build());
-        DisplayType displayType = new DisplayType();
-        displayType.setLabel(new PolyStringType(title));
-        button.setAdditionalButtonDisplayType(displayType);
-        button.setPage(page);
-
-        return button;
+    @Override
+    protected boolean isContentVisible() {
+        return true;
     }
-
 }

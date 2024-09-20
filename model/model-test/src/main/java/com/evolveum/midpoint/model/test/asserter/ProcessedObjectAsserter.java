@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.test.asserter;
 
+import static com.evolveum.midpoint.prism.Referencable.getOid;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.CORRELATION_RESULTING_OWNER_PATH;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.CORRELATION_SITUATION_PATH;
 
@@ -133,6 +134,13 @@ public class ProcessedObjectAsserter<O extends ObjectType, RA> extends AbstractA
     public ProcessedObjectAsserter<O, RA> assertResult(Consumer<OperationResultAssert> resultAsserter) {
         resultAsserter.accept(
                 new OperationResultAssert(processedObject.getResult()));
+        return this;
+    }
+
+    public ProcessedObjectAsserter<O, RA> assertStructuralArchetypeOid(String expected) {
+        assertThat(getOid(processedObject.toBean().getStructuralArchetypeRef()))
+                .as("structural archetype OID")
+                .isEqualTo(expected);
         return this;
     }
 

@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Set;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -50,6 +52,8 @@ public class PrismReferenceValuePanel<R extends Referencable> extends PrismValue
 
     @Override
     protected Component createDefaultPanel(String id) {
+        PageBase pageBase = getPageBase();
+
         ValueChoosePanel<R> panel = new ValueChoosePanel<R>(id, new ItemRealValueModel<>(getModel())) {
 
             private static final long serialVersionUID = 1L;
@@ -80,7 +84,7 @@ public class PrismReferenceValuePanel<R extends Referencable> extends PrismValue
             protected <O extends ObjectType> void choosePerformed(AjaxRequestTarget target, O object) {
                 super.choosePerformed(target, object);
                 getBaseFormComponent().validate();
-                target.add(getPageBase().getFeedbackPanel());
+                target.add(pageBase.getFeedbackPanel());
                 target.add(getFeedback());
             }
 

@@ -6,13 +6,14 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector.policy;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.api.context.AssociatedPolicyRule;
 
+import com.evolveum.midpoint.prism.delta.builder.S_ValuesEntry;
+import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.repo.common.EvaluatedPolicyStatements;
 import com.evolveum.midpoint.schema.config.PolicyActionConfigItem;
 
 import org.jetbrains.annotations.NotNull;
@@ -26,6 +27,8 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Takes care of updating `policySituation` and triggered rules for focus and assignments.
@@ -47,7 +50,13 @@ class PolicyStateRecorder {
             return;
         }
         O objectNew = elementContext.getObjectNew().asObjectable();
-        ComputationResult cr = compute(rulesToRecord, objectNew.getPolicySituation(), objectNew.getTriggeredPolicyRule());
+
+        EvaluatedPolicyStatements evaluatedPolicyStatements = elementContext.getEvaluatedPolicyStatements();
+
+        ComputationResult cr = compute(
+                rulesToRecord, objectNew.getPolicySituation(),
+                objectNew.getEffectiveMarkRef(),
+                objectNew.getTriggeredPolicyRule());
         if (cr.situationsNeedUpdate) {
             elementContext.addToPendingObjectPolicyStateModifications(
                     PrismContext.get().deltaFor(ObjectType.class)
@@ -64,6 +73,30 @@ class PolicyStateRecorder {
                             .replaceRealValues(cr.newTriggeredRules)
                             .asItemDelta());
         }
+
+        for (AssociatedPolicyRule rule : rulesToRecord) {
+            computeNewMarks(rule, evaluatedPolicyStatements);
+        }
+
+        // apply collected deltas for effective marks (policyStatements + policyRules)
+        if (evaluatedPolicyStatements.isNotEmpty()) {
+            elementContext.addToPendingObjectPolicyStateModifications(
+                    PrismContext.get().deltaFor(ObjectType.class)
+                            .item(ObjectType.F_EFFECTIVE_MARK_REF)
+                            .deleteRealValues(CloneUtil.cloneCollectionMembers(evaluatedPolicyStatements.collectMarksToDelete()))
+                            .addRealValues(CloneUtil.cloneCollectionMembers(evaluatedPolicyStatements.collectMarksToAdd()))
+                            .asItemDelta());
+        }
+
+        // something strange here - probably something forgotten, let's clean up
+        if (evaluatedPolicyStatements.isEmpty()) {
+            elementContext.addToPendingObjectPolicyStateModifications(
+                    PrismContext.get().deltaFor(ObjectType.class)
+                            .item(ObjectType.F_EFFECTIVE_MARK_REF)
+                            .deleteRealValues(CloneUtil.cloneCollectionMembers(objectNew.getEffectiveMarkRef()))
+                            .asItemDelta());
+        }
+
     }
 
     void applyAssignmentState(
@@ -92,9 +125,11 @@ class PolicyStateRecorder {
                 evaluatedAssignment.getOrigin().isBeingDeleted() ? PlusMinusZero.MINUS : evaluatedAssignment.getMode();
 
         Long id = assignmentToMatch.getId();
+        //TODO manual marks not supported for assignments for now
         ComputationResult cr = compute(
                 rulesToRecord,
                 assignmentToCompute.getPolicySituation(),
+                assignmentToCompute.getEffectiveMarkRef(),
                 assignmentToCompute.getTriggeredPolicyRule());
         if (cr.situationsNeedUpdate) {
             focusContext.addToPendingAssignmentPolicyStateModifications(
@@ -116,15 +151,27 @@ class PolicyStateRecorder {
                             .replaceRealValues(cr.newTriggeredRules)
                             .asItemDelta());
         }
+        if (cr.markNeedUpdate) {
+            focusContext.addToPendingAssignmentPolicyStateModifications(
+                    assignmentToMatch,
+                    mode,
+                    PrismContext.get().deltaFor(FocusType.class)
+                            .item(FocusType.F_ASSIGNMENT, id, AssignmentType.F_EFFECTIVE_MARK_REF)
+                            .oldRealValues(CloneUtil.cloneCollectionMembers(cr.oldMarkOid))
+                            .replaceRealValues(CloneUtil.cloneCollectionMembers(cr.newMarkOid))
+                            .asItemDelta());
+        }
     }
 
     private ComputationResult compute(
             @NotNull List<? extends AssociatedPolicyRule> rulesToRecord,
             @NotNull List<String> existingPolicySituation,
+            @NotNull List<ObjectReferenceType> existingMarkOids,
             @NotNull List<EvaluatedPolicyRuleType> existingTriggeredPolicyRule) {
         ComputationResult cr = new ComputationResult();
         for (AssociatedPolicyRule rule : rulesToRecord) {
             cr.newPolicySituations.add(rule.getPolicySituation());
+            cr.newMarkOid.addAll(rule.getPolicyMarkRef());
             PolicyActionConfigItem<RecordPolicyActionType> recordAction = rule.getEnabledAction(RecordPolicyActionType.class);
             assert recordAction != null;
             var rulesStorageStrategy = recordAction.value().getPolicyRules();
@@ -135,19 +182,45 @@ class PolicyStateRecorder {
                         cr.newTriggeredRules, externalizationOptions, null, rule.getNewOwner());
             }
         }
+
         cr.oldPolicySituations.addAll(existingPolicySituation);
         cr.oldTriggeredRules.addAll(existingTriggeredPolicyRule);
+        cr.oldMarkOid.addAll(existingMarkOids);
         cr.situationsNeedUpdate = !Objects.equals(cr.oldPolicySituations, cr.newPolicySituations);
+        cr.markNeedUpdate = compareMarkOids(cr.oldMarkOid, cr.newMarkOid); //TODO might not be needed after assignments supports manual marking
         cr.rulesNeedUpdate = !Objects.equals(cr.oldTriggeredRules, cr.newTriggeredRules);   // hope hashCode is computed well
         return cr;
+    }
+
+    private @NotNull Collection<ObjectReferenceType> computeNewMarks(AssociatedPolicyRule rule, EvaluatedPolicyStatements evaluatedPolicyStatements) {
+        Set<ObjectReferenceType> newMarkRefs = new HashSet<>();
+        for (ObjectReferenceType markFromPolicy : rule.getPolicyMarkRef()) {
+            if (evaluatedPolicyStatements.isExclude(markFromPolicy)) {
+                continue;
+                //we don't want to add effectiveMarkRef if manual policy exclude it
+            }
+            evaluatedPolicyStatements.addMarkRefToAdd(markFromPolicy);
+        }
+        return newMarkRefs;
+    }
+
+    private boolean compareMarkOids(Set<ObjectReferenceType> oldMarkOid, Set<ObjectReferenceType> newMarkOid) {
+        Set<String> oldMarkOids = oldMarkOid.stream().map(ObjectReferenceType::getOid).collect(Collectors.toSet());
+        Set<String> newMarkOids = newMarkOid.stream().map(ObjectReferenceType::getOid).collect(Collectors.toSet());
+        return !Objects.equals(oldMarkOids, newMarkOids);
     }
 
     private static class ComputationResult {
         private final Set<String> oldPolicySituations = new HashSet<>();
         private final Set<String> newPolicySituations = new HashSet<>();
+
+        private final Set<ObjectReferenceType> oldMarkOid = new HashSet<>();
+        private final Set<ObjectReferenceType> newMarkOid = new HashSet<>();
+
         private final Set<EvaluatedPolicyRuleType> oldTriggeredRules = new HashSet<>();
         private final Set<EvaluatedPolicyRuleType> newTriggeredRules = new HashSet<>();
         private boolean situationsNeedUpdate;
         private boolean rulesNeedUpdate;
+        private boolean markNeedUpdate;
     }
 }

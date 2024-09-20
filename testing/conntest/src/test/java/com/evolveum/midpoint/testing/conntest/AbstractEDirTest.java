@@ -32,8 +32,8 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -291,7 +291,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         assertPasswordAllowChange(shadow, null);
         jackAccountOid = shadow.getOid();
 
-        IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
+        IntegrationTestTools.assertAssociationObjectRef(shadow, getAssociationGroupQName(), groupPiratesOid);
 
         assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
@@ -414,7 +414,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
         display("Shadow (model)", shadow);
         accountBarbossaOid = shadow.getOid();
-        Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
+        Collection<ShadowSimpleAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
         String accountBarbossaIcfUid = (String) identifiers.iterator().next().getRealValue();
         assertNotNull("No identifier in " + shadow, accountBarbossaIcfUid);
 
@@ -423,7 +423,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_PASSWORD);
         assertPasswordAllowChange(shadow, null);
 
-        ResourceAttribute<Long> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimestamp"));
+        ShadowSimpleAttribute<Long> createTimestampAttribute = ShadowUtil.getSimpleAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimestamp"));
         assertNotNull("No createTimestamp in " + shadow, createTimestampAttribute);
         Long createTimestamp = createTimestampAttribute.getRealValue();
         // LDAP server may be on a different host. Allow for some clock offset.
@@ -439,9 +439,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, "title");
-        //noinspection unchecked
-        ResourceAttributeDefinition<String> attrDef =
-                (ResourceAttributeDefinition<String>) accountDefinition.findAttributeDefinition(attrQName);
+        ShadowSimpleAttributeDefinition<String> attrDef = accountDefinition.findSimpleAttributeDefinition(attrQName);
         PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
                 ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "Captain");
         delta.addModification(attrDelta);
@@ -554,9 +552,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, "passwordAllowChange");
-        //noinspection unchecked
-        ResourceAttributeDefinition<Boolean> attrDef =
-                (ResourceAttributeDefinition<Boolean>) accountDefinition.findAttributeDefinition(attrQName);
+        ShadowSimpleAttributeDefinition<Boolean> attrDef = accountDefinition.findSimpleAttributeDefinition(attrQName);
         PropertyDelta<Boolean> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
                 ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, Boolean.FALSE);
         delta.addModification(attrDelta);
@@ -614,7 +610,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         String shadowOid = getSingleLinkOid(user);
 
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
-        IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
+        IntegrationTestTools.assertAssociationObjectRef(shadow, getAssociationGroupQName(), groupPiratesOid);
         assertAdministrativeStatus(shadow, ActivationStatusType.DISABLED);
     }
 
@@ -673,7 +669,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
 
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
-        IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
+        IntegrationTestTools.assertAssociationObjectRef(shadow, getAssociationGroupQName(), groupPiratesOid);
     }
 
     @Test
@@ -734,7 +730,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         TestUtil.assertSuccess(result);
 
         orgMeleeIslandOid = org.getOid();
-        Entry entry = assertLdapGroup(GROUP_MELEE_ISLAND_NAME);
+        assertLdapGroup(GROUP_MELEE_ISLAND_NAME);
 
         org = getObject(OrgType.class, orgMeleeIslandOid);
         groupMeleeOid = getSingleLinkOid(org);
@@ -766,7 +762,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 
         assertEDirGroupMember(entry, GROUP_MELEE_ISLAND_NAME);
 
-        IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupMeleeOid);
+        IntegrationTestTools.assertAssociationObjectRef(shadow, getAssociationGroupQName(), groupMeleeOid);
     }
 
     @Test
@@ -784,7 +780,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        Entry entry = assertLdapGroup(GROUP_MELA_NOVA_NAME);
+        assertLdapGroup(GROUP_MELA_NOVA_NAME);
 
         PrismObject<OrgType> org = getObject(OrgType.class, orgMeleeIslandOid);
         String groupMeleeOidAfter = getSingleLinkOid(org);
@@ -847,7 +843,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(getResourceOid(), getAccountObjectClass())
                 .and().item(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS).eq(LockoutStatusType.LOCKED)
                 .build();
-        SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(query, 0, task, result);
+        doSearch(query, 0, task, result);
 
         assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
@@ -971,7 +967,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
     @Override
     protected void assertAccountShadow(PrismObject<ShadowType> shadow, String dn) throws SchemaException, ConfigurationException {
         super.assertAccountShadow(shadow, dn);
-        ResourceAttribute<String> primaryIdAttr = ShadowUtil.getAttribute(shadow, getPrimaryIdentifierAttributeQName());
+        ShadowSimpleAttribute<String> primaryIdAttr = ShadowUtil.getSimpleAttribute(shadow, getPrimaryIdentifierAttributeQName());
         assertNotNull("No primary identifier (" + getPrimaryIdentifierAttributeQName() + " in " + shadow, primaryIdAttr);
         String primaryId = primaryIdAttr.getRealValue();
         assertTrue("Unexpected chars in primary ID: '" + primaryId + "'", primaryId.matches("[a-z0-9]+"));

@@ -11,17 +11,12 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
-import com.evolveum.midpoint.prism.impl.query.OrFilterImpl;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.*;
@@ -29,19 +24,24 @@ import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionVi
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.impl.query.OrFilterImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 public class Search<T extends Serializable> implements Serializable, DebugDumpable {
 
@@ -157,6 +157,7 @@ public class Search<T extends Serializable> implements Serializable, DebugDumpab
         }
         allowedModeList.add(allowedModeType);
     }
+
     public boolean isAdvancedQueryValid(PageBase pageBase) {
         createObjectQuery(pageBase);
         return determineQueryWrapper().getAdvancedError() == null;
@@ -179,22 +180,11 @@ public class Search<T extends Serializable> implements Serializable, DebugDumpab
         axiomQueryWrapper.setDslQuery(dslQuery);
     }
 
-//    private ObjectQuery createAdvancedObjectFilter(PageBase pageBase) throws SchemaException {
-//        SearchBoxModeType searchMode = getSearchMode();
-//        if (SearchBoxModeType.ADVANCED.equals(searchMode)) {
-//            return advancedQueryWrapper.createQuery(getTypeClass(), pageBase, null);
-//        } else if (SearchBoxModeType.AXIOM_QUERY.equals(searchMode)) {
-//            return axiomQueryWrapper.createQuery(getTypeClass(), pageBase, null);
-//        }
-//
-//        return null;
-//    }
-
     public Class<T> getTypeClass() {
         if (SearchBoxModeType.OID.equals(getSearchMode())) {
             return (Class<T>) ObjectType.class;
         }
-        if (type.getValue().getValue() != null){
+        if (type.getValue().getValue() != null) {
             return (Class<T>) WebComponentUtil.qnameToAnyClass(PrismContext.get(), type.getValue().getValue());
         } else if (type.getValueForNull() != null) {
             return (Class<T>) WebComponentUtil.qnameToAnyClass(PrismContext.get(), type.getValueForNull());
@@ -207,9 +197,13 @@ public class Search<T extends Serializable> implements Serializable, DebugDumpab
         StringBuilder sb = new StringBuilder();
 
         Throwable t = ex;
-        while (t != null && t.getMessage() != null) {
-            sb.append(t.getMessage()).append('\n');
-            t = t.getCause();
+        if (t instanceof CommonException commonException && commonException.getUserFriendlyMessage() != null) {
+            sb.append(LocalizationUtil.translateMessage(commonException.getUserFriendlyMessage()));
+        } else {
+            while (t != null && t.getMessage() != null) {
+                sb.append(t.getMessage()).append('\n');
+                t = t.getCause();
+            }
         }
         if (StringUtils.isBlank(sb.toString())) {
             sb.append(PageBase.createStringResourceStatic("SearchPanel.unexpectedQuery").getString());
@@ -217,7 +211,6 @@ public class Search<T extends Serializable> implements Serializable, DebugDumpab
 
         return sb.toString();
     }
-
 
     public ObjectQuery createObjectQuery(PageBase pageBase) {
         return this.createObjectQuery(null, pageBase);
@@ -243,16 +236,9 @@ public class Search<T extends Serializable> implements Serializable, DebugDumpab
             LOGGER.warn("Cannot create query: {}", e.getMessage(), e);
             queryWrapper.setAdvancedError(createErrorMessage(e));
         }
-//        if (query == null) {
-//            if (ObjectReferenceType.class.equals(getTypeClass())) {
-//                query = pageBase.getPrismContext().queryForReferenceOwnedBy(ObjectType.class, null).build();
-//            }
-//            query = pageBase.getPrismContext().queryFor((Class<? extends Containerable>) getTypeClass()).build();
-//        }
 
         ObjectQuery archetypeQuery = evaluateCollectionFilter(pageBase);
         query = mergeQueries(query, archetypeQuery);
-//        }
         query = mergeQueries(query, customizeContentQuery);
         LOGGER.debug("Created query: {}", query);
 
@@ -269,7 +255,7 @@ public class Search<T extends Serializable> implements Serializable, DebugDumpab
             List<ObjectFilter> typeFilters = new ArrayList<>();
             type.getAvailableValues()
                     .forEach(t -> {
-                        Class cl = WebComponentUtil.qnameToClass(pageBase.getPrismContext(), t);
+                        Class cl = WebComponentUtil.qnameToClass(t);
                         typeFilters.add(PrismContext.get().queryFor(cl).type(t).buildFilter());
                     });
             return OrFilterImpl.createOr(typeFilters);
@@ -347,6 +333,7 @@ public class Search<T extends Serializable> implements Serializable, DebugDumpab
         }
         return null;
     }
+
     public AbstractRoleSearchItemWrapper findMemberSearchItem() {
         List<FilterableSearchItemWrapper<?>> items = basicQueryWrapper.getItemsList();
         for (FilterableSearchItemWrapper<?> item : items) {
@@ -504,8 +491,8 @@ public class Search<T extends Serializable> implements Serializable, DebugDumpab
             if (!(searchItemWrapper instanceof PropertySearchItemWrapper)) {
                 continue;
             }
-            if (path.equivalent(((PropertySearchItemWrapper)searchItemWrapper).getPath())) {
-                return (PropertySearchItemWrapper)searchItemWrapper;
+            if (path.equivalent(((PropertySearchItemWrapper) searchItemWrapper).getPath())) {
+                return (PropertySearchItemWrapper) searchItemWrapper;
             }
         }
         return null;
@@ -519,7 +506,7 @@ public class Search<T extends Serializable> implements Serializable, DebugDumpab
             if (!(searchItem instanceof PropertySearchItemWrapper)) {
                 continue;
             }
-            if (path.equivalent(((PropertySearchItemWrapper)searchItem).getPath())) {
+            if (path.equivalent(((PropertySearchItemWrapper) searchItem).getPath())) {
                 return (PropertySearchItemWrapper) searchItem;
             }
         }
@@ -572,10 +559,12 @@ public class Search<T extends Serializable> implements Serializable, DebugDumpab
         return availableFilterTypes;
     }
 
-    /** todo review
+    /**
+     * todo review
      *  temporary decision to fix MID-8734, should be discussed later
      *  saved filters cannot be reloaded from the compiledGuiProfile at the moment, because
      *  GuiProfileCompiler.compileFocusProfile doesn't get the new filter changes while its saving
+     *
      * @param parentPage
      */
     public void reloadSavedFilters(PageAdminLTE parentPage) {

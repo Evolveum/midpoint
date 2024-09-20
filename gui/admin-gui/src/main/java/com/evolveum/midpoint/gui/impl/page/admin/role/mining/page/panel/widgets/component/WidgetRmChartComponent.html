@@ -1,0 +1,33 @@
+<!--
+  ~ Copyright (c) 2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+        <div class="d-flex"> <!-- d-flex flex-wrap pl-2 pr-2 pb-1 -->
+            <div class="d-flex justify-content-center align-items-center">
+                <canvas wicket:id="chartPanel"
+                        class="d-flex flex-wrap m-0 p-0"
+                        style="max-height: 70px !important; max-width: 70px !important;">
+                </canvas>
+                <div style="position: absolute;">
+                    <span wicket:id="chartInnerLabel" style="font-size:15px;padding-top:10px;" class="d-flex"></span>
+                </div>
+            </div>
+
+            <div class="d-flex flex-column justify-content-center pl-2 text-truncate">
+                <span wicket:id="chartValue"
+                        class="d-flex align-items-center mb-1 mt-2 txt-toned text-bold lh-1"
+                        style="font-size:18px;"></span>
+                <div wicket:id="chartTitle"
+                        class="d-flex align-items-center text-muted text-sm text-truncate"
+                        style=""></div>
+            </div>
+
+        </div>
+</wicket:panel>
+</html>

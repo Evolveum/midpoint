@@ -30,6 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OidcResourceServerAu
 
 import jakarta.servlet.ServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -49,6 +50,7 @@ public class OidcResourceServerModuleWebSecurityConfigurer<C extends RemoteModul
     @Autowired private SecurityEnforcer securityEnforcer;
     @Autowired private SecurityContextManager securityContextManager;
     @Autowired TaskManager taskManager;
+    @Autowired private ApplicationContext applicationContext;
 
     public OidcResourceServerModuleWebSecurityConfigurer(OidcAuthenticationModuleType moduleType,
             String sequenceSuffix,
@@ -121,7 +123,8 @@ public class OidcResourceServerModuleWebSecurityConfigurer<C extends RemoteModul
         if (rememberMeServices != null) {
             filter.setRememberMeServices(rememberMeServices);
         }
-        http.authorizeRequests().accessDecisionManager(new MidpointHttpAuthorizationEvaluator(securityEnforcer, securityContextManager, taskManager, model));
+        http.authorizeRequests().accessDecisionManager(new MidpointHttpAuthorizationEvaluator(
+                securityEnforcer, securityContextManager, taskManager, model, applicationContext));
         http.addFilterAt(filter, BasicAuthenticationFilter.class);
 
         http.formLogin().disable()
@@ -130,7 +133,7 @@ public class OidcResourceServerModuleWebSecurityConfigurer<C extends RemoteModul
                 .authenticationEntryPoint(entryPoint)
                 .authenticationTrustResolver(new MidpointAuthenticationTrustResolverImpl());
 
-        SequenceAuditFilter sequenceAuditFilter = getObjectPostProcessor().postProcess(new SequenceAuditFilter());
+        SequenceAuditFilter sequenceAuditFilter = new SequenceAuditFilter();
         sequenceAuditFilter.setRecordOnEndOfChain(false);
         http.addFilterAfter(getObjectPostProcessor().postProcess(sequenceAuditFilter), FilterSecurityInterceptor.class);
     }

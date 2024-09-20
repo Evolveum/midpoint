@@ -1,0 +1,170 @@
+= Ninja
+
+:page-upkeep-status: red
+:page-upkeep-note: Need to update, also for midScale and DB migration
+:page-alias: { "parent" : "/midpoint/tools/" }
+:page-toc: top
+
+[NOTE]
+====
+Since midPoint 4.8. Also in 4.4.6, 4.7.2 and later.
+
+* Commands and options names realigned:
+** All command and option names are kebab cased
+** File output is now `-o, --output`
+** `-O, --overwrite` for all commands
+====
+
+Ninja is a command line tool bundled with midPoint.
+Implemented features are based on "repo-ninja", but code was rewritten from the ground up.
+This tool comes in handy when one needs to export or import objects from/to midPoint.
+Operations can be done on top of repository (DB) layer or through REST API.
+Access through DB layer can be very powerful, especially in cases when UI fails.
+For example when midPoint fails to start because of configuration issue or objects data corruption.
+Another great example is "administrator" user lockout.
+
+Users of this tool need to be aware that using repository layer, access is not validated using
+authorisations, model component is not used during processing and changes are not audited.
+It allows you to obtain or modify data in an otherwise unusable midPoint.
+Ninja also supports some other operations like listing keys from keystore, enforcing objects
+reencryption with new key, DB schema validation, password reset or user unlock.
+
+Ninja can be started using standard `java -jar` or via bundled shell/bat script.
+Bundled shell and bat scripts are located in the midPoint installation directory, e.g. `<midpoint>/bin/ninja.sh`.
+Bundled scripts will automatically fill in path to for xref:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home]
+option `-m` using `MIDPOINT_HOME` environment variable, defaulting to the `<midpoint>/var`.
+
+== Connecting to midPoint
+
+Connection options:
+
+* using `${midpoint.home}`
+* using REST service (not yet implemented)
+
+=== midpoint.home connection
+
+This type of connection initialises repository layer of midPoint and operates on top of the database.
+For all commands that communicate with DB layer `${midpoint.home}` must be specified using `-m <path>` option.
+Ninja will try to read database connection information from `config.xml`.
+This will not work when there's only datasource definition in `config.xml` (no JDBC url/username/password).
+In such chase one have to specify URL (`-U`), username (`-u`) and password (`-p` or `-P`).
+These options can also be used to override JDBC URL, username and password specified in `config.xml`.
+
+With bash, you can provide environment variable `MIDPOINT_HOME` for the `ninja.sh` command with this shortcut:
+
+[source,bash]
+----
+MIDPOINT_HOME=/var/other-mp-home <midpoint>/bin/ninja.sh [general options] [command] [command options]
+----
+
+=== JDBC Driver
+
+Only JDBC driver that is bundled is for PostgreSQL database.
+This means that for other databases, you must provide JDBC driver yourself.
+Most of the time JDBC driver is already present in `<midpoint>/lib` directory.
+However, it will not be picked up automatically, and you must point ninja to it explicitly.
+Example when using `java -jar`:
+
+[source,bash]
+----
+java -Dloader.path=<jdbc_driver_jar_path> -jar ninja.jar [general/connection options] [command] [command options]
+----
+
+If the bundled scripts are used, you can specify the path to the driver with `-j` option, for example:
+
+[source,bash]
+----
+<midpoint>/bin/ninja.sh -j <jdbc_driver_jar_path> [general/connection options] [command] [command options]
+----
+
+== Supported operations
+
+Documentation for supported commands is available xref:./command/index.adoc[here].
+
+== FAQ
+
+=== Can I use ninja from midPoint 4.8.* distribution with deployment running midPoint 4.4.*?
+
+No, ninja 4.8 internally uses repository (DB) implementation from midPoint 4.8
+MidPoint 4.4.* has differences in DB schema compared to midPoint 4.8.
+Technically it is possible to run ninja 4.4.7 against midPoint 4.4.2 for example since DB schema didn't change between these versions.
+However, this is not recommended and not supported.
+
+=== Why raw (`-r`, `--raw`) option is needed when exporting objects?
+
+Raw option will tell ninja to export objects together with their definitions if needed.
+These definitions are used to import objects back to midPoint.
+For more information see xref:./command/export.adoc[].
+
+== Full help
+
+.Full help
+[source]
+----
+$ java -jar target/ninja.jar help
+Usage: java [-Dloader.path=<jdbc_driver_jar_path>] -jar ninja.jar [options] [command] [command options]
+  Options:
+    -B, --batch-mode
+      Run in non-interactive (batch) mode (disables output color).
+      Default: false
+    -c, --charset
+      Charset used for input/output
+      Default: UTF-8
+    -h, --help
+      Print this help
+    -m, --midpoint-home
+      Path to MidPoint home folder. If relative path is specified, it will be translated to absolute path.
+    -p, --password
+      Password for JDBC connection
+    -P, --password-ask
+      Ninja will ask for JDBC connection password
+    --psn-class-name
+      PolyString normalizer class name
+    --psn-lowercase
+      PolyString normalizer lowercase
+    --psn-nfkd
+      PolyString normalizer NFKD. Unicode Normalization Form Compatibility Decomposition (NFKD). This process
+      expands composed characters (e.g. diacritic marks, ligatures, roman numerals). Character components are
+      then processed individually. E.g. ascii7 normalizer will then remove just the diacritic mark, but leave
+      the base letter. Therefore, for a-acute character with NFKD processing the output will be plain "a"
+      character. Without NFKD processing the whole character will be removed.
+    --psn-trim
+      PolyString normalizer trim. Removes whitespace from beginning and end of the string. Trimming is done
+      before any other processing.
+    --psn-trim-whitespace
+      PolyString normalizer trim whitespace
+    -s, --silent
+      No output at all
+      Default: false
+    -U, --url
+      JDBC URL to database. If '-m' option is used URL will be used to connect to JDBC database.
+    -u, --username
+      Username for JDBC connection
+    -v, --verbose
+      Verbose output
+      Default: false
+    -V, --version
+      Version and build description
+
+  Commands:
+
+    import                  Imports objects into MidPoint
+    export                  Exports objects from midPoint
+    delete                  Delete objects from MidPoint
+    count                   Count objects in midPoint repository
+    verify                  Verify objects in midPoint repository
+    keys                    List keys from keystore
+    info                    Shows information about the repository for the provided midPoint home
+    import-audit            Imports audit records into MidPoint
+    export-audit            Exports audit records from MidPoint
+    export-mining           Export of anonymized structure of relationships between roles, users and organizations objects.
+    trace                   Edit trace file
+    download-distribution   Download target midPoint distribution (latest LTS).
+    run-sql                 Run arbitrary SQL scripts
+    upgrade-installation    Upgrade installation
+    upgrade-distribution    Upgrade midPoint distribution and related DB schema
+    upgrade-objects         Upgrade objects
+    pre-upgrade-check       Pre-upgrade check
+    help                    Print this help, or prints help for specific command.
+    initial-objects         Initial objects
+----

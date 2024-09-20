@@ -14,12 +14,14 @@ import com.evolveum.midpoint.web.util.ExpressionValidator;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LambdaModel;
+import org.apache.wicket.util.convert.IConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
@@ -63,14 +65,15 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
             if (formComponent instanceof TextField) {
                 formComponent.add(new AttributeModifier("size", "42"));
             }
-            if (panelCtx.getAjaxEventBehavior() != null) {
-                formComponent.add(panelCtx.getAjaxEventBehavior());
-            }
             formComponent.add(panelCtx.getVisibleEnableBehavior());
             if (panelCtx.getAttributeValuesMap() != null) {
                 panelCtx.getAttributeValuesMap().keySet().stream()
                         .forEach(a -> formComponent.add(AttributeAppender.replace(a, panelCtx.getAttributeValuesMap().get(a))));
             }
+        }
+
+        if (panelCtx.getAjaxEventBehavior() != null) {
+            panel.getBaseFormComponent().add(panelCtx.getAjaxEventBehavior());
         }
 
         ExpressionValidator ev = panelCtx.getExpressionValidator();

@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.intest.mapping;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME;
 
 import static java.util.Collections.singleton;
@@ -15,7 +16,6 @@ import static org.testng.AssertJUnit.assertNotNull;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.nio.charset.StandardCharsets;
-import javax.xml.namespace.QName;
 
 import com.evolveum.icf.dummy.resource.*;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
@@ -37,8 +37,6 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
@@ -152,13 +150,13 @@ public class TestMappingInbound extends AbstractMappingTest {
         TestUtil.assertSuccess(testResult);
 
         ResourceType resourceType = getDummyResourceType(RESOURCE_DUMMY_TEA_GREEN.name);
-        ResourceSchema returnedSchema = ResourceSchemaFactory.getRawSchema(resourceType);
+        ResourceSchema returnedSchema = ResourceSchemaFactory.getBareSchema(resourceType);
         displayDumpable("Parsed resource schema (tea-green)", returnedSchema);
         ResourceObjectDefinition accountDef = getDummyResourceController(RESOURCE_DUMMY_TEA_GREEN.name)
                 .assertDummyResourceSchemaSanityExtended(returnedSchema, resourceType, false,
                         DummyResourceContoller.PIRATE_SCHEMA_NUMBER_OF_DEFINITIONS + 6); // MID-5197
 
-        ResourceAttributeDefinition<?> lockerDef = accountDef.findAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_LOCKER_NAME);
+        ShadowSimpleAttributeDefinition<?> lockerDef = accountDef.findSimpleAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_LOCKER_NAME);
         assertNotNull("No locker attribute definition", lockerDef);
         assertEquals("Wrong locker attribute definition type", ProtectedStringType.COMPLEX_TYPE, lockerDef.getTypeName());
 
@@ -258,9 +256,8 @@ public class TestMappingInbound extends AbstractMappingTest {
 
         getAndCheckMancombAccount();
 
-        PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
-        assertNotNull("User mancomb has disappeared", userMancomb);
-        assertJpegPhoto(UserType.class, userMancomb.getOid(), "rum".getBytes(StandardCharsets.UTF_8), result);
+        assertUserAfter(findUserByUsernameFullRequired(ACCOUNT_MANCOMB_DUMMY_USERNAME))
+                .assertJpegPhoto("rum");
     }
 
     /**
@@ -280,6 +277,8 @@ public class TestMappingInbound extends AbstractMappingTest {
         account.removeAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum");
         account.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "beer");
 
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_TEA_GREEN.oid);
+
         PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         assertNotNull("User mancomb has disappeared", userMancomb);
 
@@ -289,7 +288,8 @@ public class TestMappingInbound extends AbstractMappingTest {
 
         getAndCheckMancombAccount();
 
-        assertJpegPhoto(UserType.class, userMancomb.getOid(), "beer".getBytes(StandardCharsets.UTF_8), result);
+        assertUserAfter(findUserByUsernameFullRequired(ACCOUNT_MANCOMB_DUMMY_USERNAME))
+                .assertJpegPhoto("beer");
     }
 
     /**
@@ -309,20 +309,23 @@ public class TestMappingInbound extends AbstractMappingTest {
         PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         assertNotNull("User mancomb has disappeared", userMancomb);
 
-        ObjectDelta<UserType> delta = deltaFor(UserType.class)
-                .item(UserType.F_JPEG_PHOTO).replaceRealValues(singleton("cherry".getBytes(StandardCharsets.UTF_8)))
-                .asObjectDelta(userMancomb.getOid());
-        executeChanges(delta, executeOptions().reconcile(), task, result);
+        executeChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_JPEG_PHOTO)
+                        .replaceRealValues(singleton("cherry".getBytes(StandardCharsets.UTF_8)))
+                        .asObjectDelta(userMancomb.getOid()),
+                executeOptions().reconcile(),
+                task, result);
 
         then();
 
         assertSuccess(result);
 
-        PrismObject<UserType> userMancombAfter = repositoryService.getObject(UserType.class, userMancomb.getOid(),
-                schemaService.getOperationOptionsBuilder().retrieve().build(), result);
-        display("user mancomb after", userMancombAfter);
-
-        assertJpegPhoto(UserType.class, userMancomb.getOid(), "beer".getBytes(StandardCharsets.UTF_8), result);
+        assertUserAfter(findUserByUsernameFullRequired(ACCOUNT_MANCOMB_DUMMY_USERNAME))
+                .assertJpegPhoto("beer")
+                .extension()
+                .property(PIRACY_LOCKER)
+                .singleValue(); // locker should be kept intact here
     }
 
     /**
@@ -694,8 +697,10 @@ public class TestMappingInbound extends AbstractMappingTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        DummyAccount account = getDummyResource(RESOURCE_DUMMY_TEA_GREEN.name).getAccountByUsername(ACCOUNT_LEELOO_USERNAME);
+        DummyAccount account = getDummyResource(RESOURCE_DUMMY_TEA_GREEN.name).getAccountByName(ACCOUNT_LEELOO_USERNAME);
         account.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI);
+
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_TEA_GREEN.oid);
 
         dummyAuditService.clear();
 
@@ -800,8 +805,10 @@ public class TestMappingInbound extends AbstractMappingTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        DummyAccount account = getDummyResource(RESOURCE_DUMMY_TEA_GREEN.name).getAccountByUsername(ACCOUNT_LEELOO_USERNAME);
+        DummyAccount account = getDummyResource(RESOURCE_DUMMY_TEA_GREEN.name).getAccountByName(ACCOUNT_LEELOO_USERNAME);
         account.replaceAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_PROOF_NAME, ACCOUNT_LEELOO_PROOF_STRANGE);
+
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_TEA_GREEN.oid);
 
         dummyAuditService.clear();
 
@@ -1037,14 +1044,12 @@ public class TestMappingInbound extends AbstractMappingTest {
     }
 
     private void executeImportInBackground(Task task, OperationResult result) throws Exception {
-        modelService.importFromResource(RESOURCE_DUMMY_TEA_GREEN.oid, new QName(MidPointConstants.NS_RI,
-                SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), task, result);
+        modelService.importFromResource(RESOURCE_DUMMY_TEA_GREEN.oid, RI_ACCOUNT_OBJECT_CLASS, task, result);
         waitForTaskFinish(task);
     }
 
     private void executeImportInBackgroundErrorsOk(Task task, OperationResult result) throws Exception {
-        modelService.importFromResource(RESOURCE_DUMMY_TEA_GREEN.oid, new QName(MidPointConstants.NS_RI,
-                SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), task, result);
+        modelService.importFromResource(RESOURCE_DUMMY_TEA_GREEN.oid, RI_ACCOUNT_OBJECT_CLASS, task, result);
         waitForTaskCloseOrSuspend(task.getOid(), 30000);
     }
 
@@ -1061,7 +1066,7 @@ public class TestMappingInbound extends AbstractMappingTest {
     private @NotNull DummyAccount getMancombAccount()
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         DummyAccount account = getDummyResource(RESOURCE_DUMMY_TEA_GREEN.name)
-                .getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+                .getAccountByName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         assertNotNull("No mancomb account", account);
         return account;
     }

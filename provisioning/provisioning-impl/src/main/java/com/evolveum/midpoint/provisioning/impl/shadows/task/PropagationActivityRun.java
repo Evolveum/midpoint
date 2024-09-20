@@ -88,13 +88,13 @@ public final class PropagationActivityRun
 
     @Override
     public boolean processItem(
-            @NotNull ShadowType shadow,
+            @NotNull ShadowType repoShadow,
             @NotNull ItemProcessingRequest<ShadowType> request,
             @NotNull RunningTask workerTask,
             @NotNull OperationResult result)
             throws CommonException {
         try {
-            getActivityHandler().shadowsFacade.propagateOperations(resource, shadow, workerTask, result);
+            getActivityHandler().shadowsFacade.propagateOperations(resource, repoShadow, workerTask, result);
             return true;
         } catch (GenericFrameworkException | EncryptionException e) {
             throw new SystemException("Generic provisioning framework error: " + e.getMessage(), e);

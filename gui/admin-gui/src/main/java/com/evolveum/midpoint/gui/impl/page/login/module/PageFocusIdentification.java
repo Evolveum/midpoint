@@ -15,6 +15,7 @@ import com.github.openjson.JSONObject;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.HiddenField;
 import org.apache.wicket.markup.html.form.RequiredTextField;
@@ -87,10 +88,12 @@ public class PageFocusIdentification extends PageAbstractAuthenticationModule<Fo
     private void initAttributesLayout(MidpointForm<?> form) {
 
         Label attributeNameLabel = new Label(ID_ATTRIBUTE_NAME, resolveAttributeLabel(attributesPathModel));
+        attributeNameLabel.setOutputMarkupId(true);
         form.add(attributeNameLabel);
 
         RequiredTextField<String> attributeValue = new RequiredTextField<>(ID_ATTRIBUTE_VALUE, Model.of());
         attributeValue.setOutputMarkupId(true);
+        attributeValue.add(AttributeAppender.append("aria-labelledby", attributeNameLabel.getMarkupId()));
         attributeValue.add(new AjaxFormComponentUpdatingBehavior("blur") {
             @Override
             protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
@@ -144,12 +147,12 @@ public class PageFocusIdentification extends PageAbstractAuthenticationModule<Fo
     }
 
     @Override
-    protected IModel<String> getLoginPanelTitleModel() {
+    protected IModel<String> getDefaultLoginPanelTitleModel() {
         return createStringResource("PageFocusIdentification.title");
     }
 
     @Override
-    protected IModel<String> getLoginPanelDescriptionModel() {
+    protected IModel<String> getDefaultLoginPanelDescriptionModel() {
         return createStringResource("PageFocusIdentification.description");
     }
 

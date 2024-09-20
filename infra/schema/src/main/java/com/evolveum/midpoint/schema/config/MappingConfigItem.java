@@ -21,11 +21,7 @@ public class MappingConfigItem
     }
 
     public MappingConfigItem(@NotNull MappingType value, @NotNull ConfigurationItemOrigin origin) {
-        super(value, origin);
-    }
-
-    public static MappingConfigItem embedded(@NotNull MappingType bean) {
-        return of(bean, ConfigurationItemOrigin.embedded(bean));
+        super(value, origin, null); // provide parent in the future
     }
 
     public static MappingConfigItem of(@NotNull MappingType bean, @NotNull ConfigurationItemOrigin origin) {
@@ -38,4 +34,8 @@ public class MappingConfigItem
         return new MappingConfigItem(bean, originProvider.origin(bean));
     }
 
+    public boolean hasRangeSpecified() {
+        var target = value().getTarget();
+        return target != null && target.getSet() != null;
+    }
 }

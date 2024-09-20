@@ -31,7 +31,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -42,6 +41,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
+
+import static com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator.EvaluationContext.forModelContext;
 
 /**
  * Contains "construction bean" (ConstructionType) - a definition how to construct a resource object.
@@ -77,11 +78,6 @@ public abstract class ResourceObjectConstruction<
      * Auxiliary OCDs mentioned in the construction bean OR all auxiliary OCDs from rOCD.
      */
     private final List<ResourceObjectDefinition> auxiliaryObjectClassDefinitions = new ArrayList<>();
-
-    /**
-     * Definition for associations.
-     */
-    private PrismContainerDefinition<ShadowAssociationType> associationContainerDefinition;
 
     /**
      * Delta set triple for evaluated constructions. These correspond to tags triple:
@@ -123,7 +119,7 @@ public abstract class ResourceObjectConstruction<
                 if (resolvedResource.warning) {
                     result.recordWarning("The resource could not be found");
                 } else {
-                    result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "The resource could not be found");
+                    result.recordNotApplicable("The resource could not be found");
                 }
                 return null;
             }
@@ -183,18 +179,18 @@ public abstract class ResourceObjectConstruction<
         }
         MappingImpl<PrismPropertyValue<String>, PrismPropertyDefinition<String>> mapping = builder.build();
 
-        getMappingEvaluator().evaluateMapping(mapping, getLensContext(), null, task, result);
+        getMappingEvaluator().evaluateMapping(
+                mapping,
+                forModelContext(getLensContext()),
+                task,
+                result);
 
         return mapping.getOutputTriple();
     }
 
-    @NotNull
-    private MutablePrismPropertyDefinition<String> createTagDefinition() {
-        MutablePrismPropertyDefinition<String> outputDefinition =
-                PrismContext.get().definitionFactory()
-                        .createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME, PrimitiveType.STRING.getQname());
-        outputDefinition.setMaxOccurs(-1);
-        return outputDefinition;
+    private @NotNull PrismPropertyDefinition<String> createTagDefinition() {
+        return PrismContext.get().definitionFactory().newPropertyDefinition(
+                ExpressionConstants.OUTPUT_ELEMENT_NAME, PrimitiveType.STRING.getQname(), 0, -1);
     }
 
     private EC createEvaluatedConstruction(String tag) {
@@ -258,9 +254,9 @@ public abstract class ResourceObjectConstruction<
     <V extends PrismValue, D extends ItemDefinition<?>> MappingBuilder<V, D> initializeMappingBuilder(
             MappingBuilder<V, D> builder,
             ItemPath implicitTargetPath,
-            QName mappingQName,
+            QName targetItemName,
             D outputDefinition,
-            ResourceObjectTypeDefinition assocTargetObjectClassDefinition,
+            ShadowAssociationDefinition associationDefinition,
             Task task) throws SchemaException {
 
         if (!builder.isApplicableToChannel(lensContext.getChannel())) {
@@ -274,16 +270,15 @@ public abstract class ResourceObjectConstruction<
 
         ObjectDeltaObject<AH> focusOdoAbsolute = getFocusOdoAbsolute();
 
-        builder = builder.mappingQName(mappingQName)
+        builder = builder.targetItemName(targetItemName)
                 .mappingKind(MappingKindType.CONSTRUCTION)
                 .implicitTargetPath(implicitTargetPath)
-                .sourceContext(focusOdoAbsolute)
+                .defaultSourceContextIdi(focusOdoAbsolute)
                 .defaultTargetDefinition(outputDefinition)
                 .defaultTargetPath(implicitTargetPath)
                 .originType(originType)
                 .originObject(source)
-                .resourceObjectDefinition(getResourceObjectDefinition())
-                .rootNode(focusOdoAbsolute)
+                .addRootVariableDefinition(focusOdoAbsolute)
                 .addVariableDefinition(ExpressionConstants.VAR_USER, focusOdoAbsolute)
                 .addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdoAbsolute)
                 .addAliasRegistration(ExpressionConstants.VAR_USER, null)
@@ -293,9 +288,9 @@ public abstract class ResourceObjectConstruction<
                 .addVariableDefinition(ExpressionConstants.VAR_THIS_OBJECT,
                         assignmentPath != null ? assignmentPath.getConstructionThisObject() : null, ObjectType.class);
 
-        if (assocTargetObjectClassDefinition != null) {
-            builder = builder.addVariableDefinition(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION,
-                    assocTargetObjectClassDefinition, ResourceObjectTypeDefinition.class);
+        if (associationDefinition != null) {
+            builder = builder.addVariableDefinition(
+                    ExpressionConstants.VAR_ASSOCIATION_DEFINITION, associationDefinition, ShadowReferenceAttributeDefinition.class);
         }
         builder = builder.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, getResource(), ResourceType.class);
         builder = LensUtil.addAssignmentPathVariables(builder, getAssignmentPathVariables());
@@ -491,16 +486,16 @@ public abstract class ResourceObjectConstruction<
         auxiliaryObjectClassDefinitions.add(auxiliaryObjectClassDefinition);
     }
 
-    public ResourceAttributeDefinition<?> findAttributeDefinition(QName attributeName) {
+    public ShadowAttributeDefinition<?, ?, ?, ?> findAttributeDefinition(QName attributeName) {
         if (resourceObjectDefinition == null) {
             throw new IllegalStateException("Construction " + this + " was not evaluated:\n" + this.debugDump());
         }
-        ResourceAttributeDefinition<?> attrDef = resourceObjectDefinition.findAttributeDefinition(attributeName);
-        if (attrDef != null) {
-            return attrDef;
+        var inMain = resourceObjectDefinition.findAttributeDefinition(attributeName);
+        if (inMain != null) {
+            return inMain;
         }
         for (ResourceObjectDefinition auxiliaryObjectClassDefinition : auxiliaryObjectClassDefinitions) {
-            ResourceAttributeDefinition<?> auxAttrDef = auxiliaryObjectClassDefinition.findAttributeDefinition(attributeName);
+            var auxAttrDef = auxiliaryObjectClassDefinition.findAttributeDefinition(attributeName);
             if (auxAttrDef != null) {
                 return auxAttrDef;
             }
@@ -508,30 +503,18 @@ public abstract class ResourceObjectConstruction<
         return null;
     }
 
-    ResourceAssociationDefinition findAssociationDefinition(QName associationName) {
+    @NotNull ShadowAssociationDefinition findAssociationDefinitionRequired(QName associationName, Object errorCtx)
+            throws ConfigurationException {
         if (resourceObjectDefinition == null) {
             throw new IllegalStateException("Construction " + this + " was not evaluated:\n" + this.debugDump());
         }
-        ResourceAssociationDefinition assocDef = resourceObjectDefinition.findAssociationDefinition(associationName);
-        if (assocDef != null) {
-            return assocDef;
+        var inMain = resourceObjectDefinition.findAssociationDefinition(associationName);
+        if (inMain != null) {
+            return inMain;
         }
-        for (ResourceObjectDefinition auxiliaryObjectClassDefinition : auxiliaryObjectClassDefinitions) {
-            ResourceAssociationDefinition auxAssocDef = auxiliaryObjectClassDefinition.findAssociationDefinition(associationName);
-            if (auxAssocDef != null) {
-                return auxAssocDef;
-            }
-        }
-        return null;
-    }
-
-    PrismContainerDefinition<ShadowAssociationType> getAssociationContainerDefinition() {
-        if (associationContainerDefinition == null) {
-            PrismObjectDefinition<ShadowType> shadowDefinition = PrismContext.get().getSchemaRegistry()
-                    .findObjectDefinitionByCompileTimeClass(ShadowType.class);
-            associationContainerDefinition = shadowDefinition.findContainerDefinition(ShadowType.F_ASSOCIATION);
-        }
-        return associationContainerDefinition;
+        throw new ConfigurationException(
+                "Association '%s' not found in schema for resource object %s; as defined in %s".formatted(
+                        associationName, resourceObjectDefinition, errorCtx));
     }
     //endregion
 

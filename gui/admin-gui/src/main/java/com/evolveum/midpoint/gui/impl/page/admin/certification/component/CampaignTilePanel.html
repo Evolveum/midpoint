@@ -1,0 +1,45 @@
+<!--
+  ~ Copyright (c) 2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="d-flex flex-wrap w-100 align-items-center">
+        <div class="d-flex flex-wrap flex-grow-1 justify-content-start" wicket:id="selectTileCheckbox"/>
+        <span class="d-flex flex-wrap flex-grow-1 justify-content-center col-md-5 h-50 align-items-center" wicket:id="status"/>
+        <a class="d-flex flex-wrap flex-grow-1 h-50 ml-2" wicket:id="redirectToTaskButton">
+<!--            <i class="fa fa-spinner fa-spin-pulse"></i>-->
+            <span wicket:id="runningTaskProgressLabel"/>
+        </a>
+        <div wicket:id="menu" class="d-flex flex-grow-1  justify-content-end"/>
+    </div>
+    <div class="font-weight-bold text-truncate w-100 mt-2" wicket:id="title"/>
+    <div class="tile-description mt-2 text-secondary flex-grow-1 info-box-icon w-100" wicket:id="description"/>
+    <div class="w-100 mt-3">
+        <label>
+            <wicket:message key="CampaignTilePanel.progress"/>
+        </label>
+        <div wicket:id="progressBar"/>
+    </div>
+    <div class="d-flex flex-wrap w-100 text-secondary">
+        <div class="d-flex flex-wrap flex-grow-1 justify-content-start" wicket:id="deadline" wicket:message="title:PageCertCampaign.table.deadline"/>
+        <div class="d-flex flex-wrap flex-grow-1 justify-content-end col-md-2" wicket:message="title:PageCertCampaigns.table.stage" >
+            <i class="fa fa-circle-half-stroke mt-1 mr-1"></i>
+            <div wicket:id="stage"/>
+        </div>
+        <div class="d-flex flex-wrap flex-grow-1 justify-content-end col-md-2" wicket:message="title:PageCertCampaign.iteration">
+            <i class="fa fa-rotate-right mt-1 mr-1"></i>
+            <div wicket:id="iteration"/>
+        </div>
+    </div>
+
+    <a class="w-100 mt-3 btn btn-sm" wicket:id="actionButton" />
+    <a class="btn btn-link text-lightblue mt-2" wicket:id="details">
+        <span wicket:id="detailsLabel" />
+    </a>
+</wicket:panel>
+</html>

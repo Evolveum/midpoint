@@ -20,6 +20,7 @@ import java.util.stream.Stream;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.*;
 
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
@@ -42,7 +43,6 @@ import com.evolveum.midpoint.schema.PointInTimeType;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -138,13 +138,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-        // We need to switch off the encryption checks. Some values cannot be encrypted as we do
-        // not have a definition here
-        InternalsConfig.encryptionChecks = false;
-
         super.initSystem(initTask, initResult);
-
-        InternalsConfig.setSanityChecks(true);
 
         addOperatorsObjects(initResult);
     }
@@ -189,7 +183,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         display("Manual Connector", repoConnector);
 
         // Check connector schema
-        IntegrationTestTools.assertConnectorSchemaSanity(repoConnector, prismContext);
+        IntegrationTestTools.assertConnectorSchemaSanity(repoConnector);
     }
 
     @Test
@@ -202,7 +196,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, getResourceOid(),
                 null, result).asObjectable();
 
-        Element resourceXsdSchemaElementBefore = ResourceTypeUtil.getResourceXsdSchema(resourceBefore);
+        Element resourceXsdSchemaElementBefore = ResourceTypeUtil.getResourceXsdSchemaElement(resourceBefore);
         assertResourceSchemaBeforeTest(resourceXsdSchemaElementBefore);
 
         CapabilitiesType capabilities = resourceBefore.getCapabilities();
@@ -223,7 +217,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
         XmlSchemaType xmlSchemaTypeAfter = resourceTypeRepoAfter.getSchema();
         assertNotNull("No schema after test connection", xmlSchemaTypeAfter);
-        Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resourceTypeRepoAfter);
+        Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchemaElement(resourceTypeRepoAfter);
         assertNotNull("No schema after test connection", resourceXsdSchemaElementAfter);
 
         String resourceXml = prismContext.xmlSerializer().serialize(resourceRepoAfter);
@@ -235,7 +229,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertNotNull("No serialNumber", cachingMetadata.getSerialNumber());
 
         Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaTypeAfter);
-        ResourceSchema parsedSchema = ResourceSchemaParser.parse(xsdElement, resourceBefore.toString());
+        ResourceSchema parsedSchema = ResourceSchemaFactory.parseNativeSchemaAsBare(xsdElement);
         assertNotNull("No schema after parsing", parsedSchema);
 
         // schema will be checked in next test
@@ -275,14 +269,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertTrue(ResourceSchemaFactory.hasParsedSchema(resourceType));
 
         // Also test if the utility method returns the same thing
-        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resourceType);
+        BareResourceSchema resourceSchema = ResourceSchemaFactory.getBareSchema(resourceType);
 
         displayDumpable("Parsed resource schema", resourceSchema);
 
-        // Check whether it is reusing the existing schema and not parsing it all over again
-        // Not equals() but == ... we want to really know if exactly the same
-        // object instance is returned
-        assertSame("Broken caching", resourceSchema, ResourceSchemaFactory.getRawSchema(resourceType));
+        assertNativeSchemaCached(resourceSchema, ResourceSchemaFactory.getBareSchema(resourceType));
 
         ResourceObjectClassDefinition accountDef = resourceSchema.findObjectClassDefinition(RESOURCE_ACCOUNT_OBJECTCLASS);
         assertNotNull("Account definition is missing", accountDef);
@@ -292,7 +283,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
         assertEquals("Unexpected number of definitions", getNumberOfAccountAttributeDefinitions(), accountDef.getDefinitions().size());
 
-        ResourceAttributeDefinition<?> usernameDef = accountDef.findAttributeDefinition(ATTR_USERNAME);
+        ShadowSimpleAttributeDefinition<?> usernameDef = accountDef.findSimpleAttributeDefinition(ATTR_USERNAME);
         assertNotNull("No definition for username", usernameDef);
         assertEquals(1, usernameDef.getMaxOccurs());
         assertEquals(1, usernameDef.getMinOccurs());
@@ -300,7 +291,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertTrue("No username update", usernameDef.canModify());
         assertTrue("No username read", usernameDef.canRead());
 
-        ResourceAttributeDefinition<?> fullnameDef = accountDef.findAttributeDefinition(ATTR_FULLNAME);
+        ShadowSimpleAttributeDefinition<?> fullnameDef = accountDef.findSimpleAttributeDefinition(ATTR_FULLNAME);
         assertNotNull("No definition for fullname", fullnameDef);
         assertEquals(1, fullnameDef.getMaxOccurs());
         assertEquals(0, fullnameDef.getMinOccurs());
@@ -382,7 +373,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
                 .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME)
                 .end()
-                .assertNoPassword();
+                .assertNoPasswordIf(isNoPasswordExpected());
         assertAttributeFromCache(shadowRepoAsserter, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
         assertShadowActivationAdministrativeStatusFromCache(shadowRepoAsserter, ActivationStatusType.ENABLED);
 
@@ -403,7 +394,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
                 .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME)
                 .end()
-                .assertNoPassword();
+                .assertNoPasswordIf(isNoPasswordExpected());
         assertAttributeFromCache(shadowProvisioningAsserter, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
         assertShadowActivationAdministrativeStatusFromCache(shadowProvisioningAsserter, ActivationStatusType.ENABLED);
 
@@ -412,6 +403,10 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         CaseType aCase = assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
         ObjectReferenceType targetRef = aCase.getTargetRef();
         assertThat(targetRef).as("case targetRef").isNotNull();
+    }
+
+    private boolean isNoPasswordExpected() {
+        return !InternalsConfig.isShadowCachingOnByDefault() && supportsBackingStore();
     }
 
     @Test
@@ -467,14 +462,16 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         then();
         assertSuccess(result);
 
-        PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
+        PrismObject<ShadowType> shadowRepo = getShadowRepoLegacy(ACCOUNT_WILL_OID);
         display("Repo shadow", shadowRepo);
         assertSinglePendingOperation(shadowRepo, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
         assertAttribute(shadowRepo, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
         assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
         assertNoAttribute(shadowRepo, ATTR_DESCRIPTION_QNAME);
         assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
-        assertNoShadowPassword(shadowRepo);
+        if (isNoPasswordExpected()) {
+            assertNoShadowPassword(shadowRepo);
+        }
         assertShadowExists(shadowRepo, false);
 
         syncServiceMock.assertNoNotifyChange();
@@ -491,7 +488,9 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertAttributeFromCache(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
         assertNoAttribute(shadowProvisioning, ATTR_DESCRIPTION_QNAME);
         assertShadowActivationAdministrativeStatusFromCache(shadowProvisioning, ActivationStatusType.ENABLED);
-        assertNoShadowPassword(shadowProvisioning);
+        if (isNoPasswordExpected()) {
+            assertNoShadowPassword(shadowProvisioning);
+        }
 
         PendingOperationType pendingOperation = assertSinglePendingOperation(shadowProvisioning, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
 
@@ -531,14 +530,16 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertShadowExists(shadowProvisioning, supportsBackingStore());
         assertShadowPassword(shadowProvisioning);
 
-        PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
+        PrismObject<ShadowType> shadowRepo = getShadowRepoLegacy(ACCOUNT_WILL_OID);
         display("Repo shadow", shadowRepo);
         assertSinglePendingOperation(shadowRepo, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
         assertAttribute(shadowRepo, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
         assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
         assertNoAttribute(shadowRepo, ATTR_DESCRIPTION_QNAME);
         assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
-        assertNoShadowPassword(shadowRepo);
+        if (isNoPasswordExpected()) {
+            assertNoShadowPassword(shadowRepo);
+        }
         assertShadowExists(shadowRepo, supportsBackingStore());
     }
 
@@ -573,14 +574,16 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         // TODO
 //        assertShadowPassword(shadowProvisioning);
 
-        PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
+        PrismObject<ShadowType> shadowRepo = getShadowRepoLegacy(ACCOUNT_WILL_OID);
         display("Repo shadow", shadowRepo);
         assertSinglePendingOperation(shadowRepo, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
         assertAttribute(shadowRepo, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
         assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
         assertNoAttribute(shadowRepo, ATTR_DESCRIPTION_QNAME);
         assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
-        assertNoShadowPassword(shadowRepo);
+        if (isNoPasswordExpected()) {
+            assertNoShadowPassword(shadowRepo);
+        }
         assertShadowExists(shadowRepo, supportsBackingStore());
     }
 
@@ -647,7 +650,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
         accountWillCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
 
-        PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
+        PrismObject<ShadowType> shadowRepo = getShadowRepoLegacy(ACCOUNT_WILL_OID);
         display("Repo shadow", shadowRepo);
         assertSinglePendingOperation(shadowRepo,
                 accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
@@ -704,7 +707,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         then();
         assertSuccess(result);
 
-        PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
+        PrismObject<ShadowType> shadowRepo = getShadowRepoLegacy(ACCOUNT_WILL_OID);
         ShadowAsserter.forShadow(shadowRepo, "repo")
                 .display()
                 .pendingOperations()
@@ -755,7 +758,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         then();
         assertSuccess(result);
 
-        PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
+        PrismObject<ShadowType> shadowRepo = getShadowRepoLegacy(ACCOUNT_WILL_OID);
         ShadowAsserter.forShadow(shadowRepo, "repo")
                 .display()
                 .pendingOperations()
@@ -806,7 +809,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         then();
         assertSuccess(result);
 
-        PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
+        PrismObject<ShadowType> shadowRepo = getShadowRepoLegacy(ACCOUNT_WILL_OID);
         ShadowAsserter.forShadow(shadowRepo, "repo")
                 .display()
                 .pendingOperations()
@@ -840,7 +843,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
         // WHEN
         when();
-        provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+        provisioningService.modifyObject(
+                ShadowType.class, delta.getOid(), delta.getModifications(),
                 null, null, task, result);
 
         // THEN
@@ -850,7 +854,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
         accountWillReqestTimestampEnd = clock.currentTimeXMLGregorianCalendar();
 
-        PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
+        PrismObject<ShadowType> shadowRepo = getShadowRepoLegacy(ACCOUNT_WILL_OID);
         ShadowAsserter.forShadow(shadowRepo, "repo")
                 .display()
                 .assertBasicRepoProperties()
@@ -923,7 +927,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         then();
         assertSuccess(result);
 
-        PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
+        PrismObject<ShadowType> shadowRepo = getShadowRepoLegacy(ACCOUNT_WILL_OID);
         ShadowAsserter.forShadow(shadowRepo, "repo")
                 .display()
                 .assertBasicRepoProperties()
@@ -1008,7 +1012,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
         accountWillCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
 
-        PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
+        PrismObject<ShadowType> shadowRepo = getShadowRepoLegacy(ACCOUNT_WILL_OID);
         ShadowAsserter.forShadow(shadowRepo, "repo")
                 .display()
                 .assertBasicRepoProperties()
@@ -1096,7 +1100,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         then();
         assertSuccess(result);
 
-        PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
+        PrismObject<ShadowType> shadowRepo = getShadowRepoLegacy(ACCOUNT_WILL_OID);
         display("Repo shadow", shadowRepo);
         assertSinglePendingOperation(shadowRepo,
                 accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
@@ -1163,7 +1167,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         then();
         assertSuccess(result);
 
-        PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
+        PrismObject<ShadowType> shadowRepo = getShadowRepoLegacy(ACCOUNT_WILL_OID);
         display("Repo shadow", shadowRepo);
         assertSinglePendingOperation(shadowRepo,
                 accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
@@ -1231,7 +1235,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
         accountWillReqestTimestampEnd = clock.currentTimeXMLGregorianCalendar();
 
-        PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
+        PrismObject<ShadowType> shadowRepo = getShadowRepoLegacy(ACCOUNT_WILL_OID);
         display("Repo shadow", shadowRepo);
         assertPendingOperationDeltas(shadowRepo, 2);
         PendingOperationType pendingOperation = findPendingOperation(shadowRepo,
@@ -1316,7 +1320,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
         accountWillSecondReqestTimestampEnd = clock.currentTimeXMLGregorianCalendar();
 
-        PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
+        PrismObject<ShadowType> shadowRepo = getShadowRepoLegacy(ACCOUNT_WILL_OID);
         display("Repo shadow", shadowRepo);
         assertPendingOperationDeltas(shadowRepo, 3);
         PendingOperationType pendingOperation = findPendingOperation(shadowRepo,
@@ -1529,7 +1533,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         then();
         assertSuccess(result);
 
-        PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
+        PrismObject<ShadowType> shadowRepo = getShadowRepoLegacy(ACCOUNT_WILL_OID);
         display("Repo shadow", shadowRepo);
 
         assertPendingOperationDeltas(shadowRepo, 3);
@@ -1615,7 +1619,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         then();
         assertSuccess(result);
 
-        PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
+        PrismObject<ShadowType> shadowRepo = getShadowRepoLegacy(ACCOUNT_WILL_OID);
         display("Repo shadow", shadowRepo);
         assertPendingOperationDeltas(shadowRepo, 3);
 
@@ -1669,7 +1673,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         closeCase(willSecondLastCaseOid);
 
         // Get repo shadow here. Make sure refresh works with this as well.
-        PrismObject<ShadowType> shadowBefore = getShadowRepo(ACCOUNT_WILL_OID);
+        PrismObject<ShadowType> shadowBefore = getShadowRepoLegacy(ACCOUNT_WILL_OID);
         provisioningService.applyDefinition(shadowBefore, task, result);
         display("Shadow before", shadowBefore);
 
@@ -1685,7 +1689,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
         accountWillSecondCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
 
-        PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
+        PrismObject<ShadowType> shadowRepo = getShadowRepoLegacy(ACCOUNT_WILL_OID);
         display("Repo shadow", shadowRepo);
 
         assertPendingOperationDeltas(shadowRepo, 3);
@@ -1777,7 +1781,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         then();
         assertSuccess(result);
 
-        PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
+        PrismObject<ShadowType> shadowRepo = getShadowRepoLegacy(ACCOUNT_WILL_OID);
         ShadowAsserter.forShadow(shadowRepo, "repo")
                 .display()
                 .assertBasicRepoProperties()
@@ -1874,7 +1878,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         then();
         assertSuccess(result);
 
-        PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
+        PrismObject<ShadowType> shadowRepo = getShadowRepoLegacy(ACCOUNT_WILL_OID);
         ShadowAsserter.forShadow(shadowRepo, "repo")
                 .display()
                 .assertBasicRepoProperties()
@@ -1968,7 +1972,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         then();
         assertSuccess(result);
 
-        PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
+        PrismObject<ShadowType> shadowRepo = getShadowRepoLegacy(ACCOUNT_WILL_OID);
         display("Repo shadow", shadowRepo);
         assertPendingOperationDeltas(shadowRepo, 2);
 
@@ -2031,7 +2035,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         then();
         assertSuccess(result);
 
-        PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
+        PrismObject<ShadowType> shadowRepo = getShadowRepoLegacy(ACCOUNT_WILL_OID);
         display("Repo shadow", shadowRepo);
 
         assertPendingOperationDeltas(shadowRepo, 1);
@@ -2107,7 +2111,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
         clock.overrideDuration("PT5M");
 
-        PrismObject<ShadowType> shadowBefore = getShadowRepo(ACCOUNT_WILL_OID);
+        PrismObject<ShadowType> shadowBefore = getShadowRepoLegacy(ACCOUNT_WILL_OID);
         display("Shadow before", shadowBefore);
 
         // WHEN
@@ -2118,7 +2122,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         then();
         assertSuccess(result);
 
-        PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
+        PrismObject<ShadowType> shadowRepo = getShadowRepoLegacy(ACCOUNT_WILL_OID);
         display("Repo shadow", shadowRepo);
 
         assertPendingOperationDeltas(shadowRepo, 0);
@@ -2182,7 +2186,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
         accountWillReqestTimestampEnd = clock.currentTimeXMLGregorianCalendar();
 
-        PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
+        PrismObject<ShadowType> shadowRepo = getShadowRepoLegacy(ACCOUNT_WILL_OID);
         display("Repo shadow", shadowRepo);
         assertPendingOperationDeltas(shadowRepo, 1);
         PendingOperationType pendingOperation = findPendingOperation(shadowRepo,
@@ -2277,7 +2281,9 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertNotNull("no OID", shadowProvisioningFuture.getOid());
         assertShadowName(shadowProvisioningFuture, ACCOUNT_WILL_USERNAME);
         assertShadowDead(shadowProvisioningFuture);
-        assertNoShadowPassword(shadowProvisioningFuture);
+        if (isNoPasswordExpected()) {
+            assertNoShadowPassword(shadowProvisioningFuture);
+        }
     }
 
     /**
@@ -2307,7 +2313,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
         accountWillCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
 
-        PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
+        PrismObject<ShadowType> shadowRepo = getShadowRepoLegacy(ACCOUNT_WILL_OID);
         display("Repo shadow", shadowRepo);
         assertSinglePendingOperation(shadowRepo,
                 accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
@@ -2368,7 +2374,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         then();
         assertSuccess(result);
 
-        PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
+        PrismObject<ShadowType> shadowRepo = getShadowRepoLegacy(ACCOUNT_WILL_OID);
         display("Repo shadow", shadowRepo);
         assertSinglePendingOperation(shadowRepo,
                 accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
@@ -2464,7 +2470,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
                 .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
                 .end()
                 .end()
-                .assertNoPassword();
+                .assertNoPasswordIf(isNoPasswordExpected());
 
         syncServiceMock.assertNoNotifyChange();
         syncServiceMock.assertSingleNotifySuccessOnly();
@@ -2518,7 +2524,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         when("shadow is refreshed");
         OperationResult refreshResult = result.createSubresult("refresh");
         provisioningService.refreshShadow(
-                getShadowRepo(ACCOUNT_BLACK_OID),
+                getShadowRepoLegacy(ACCOUNT_BLACK_OID),
                 null,
                 task,
                 refreshResult);
@@ -2612,10 +2618,6 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         return null;
     }
 
-    protected <T> void assertAttribute(PrismObject<ShadowType> shadow, QName attrName, T... expectedValues) {
-        assertAttribute(shadow.asObjectable(), attrName, expectedValues);
-    }
-
     protected <T> void assertNoAttribute(PrismObject<ShadowType> shadow, QName attrName) {
         assertNoAttribute(shadow.asObjectable(), attrName);
     }
@@ -2661,7 +2663,9 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
     protected void assertShadowPassword(PrismObject<ShadowType> shadow) {
         // pure manual resource should never "read" password
-        assertNoShadowPassword(shadow);
+        if (isNoPasswordExpected()) {
+            assertNoShadowPassword(shadow);
+        }
     }
 
     private void assertManual(AbstractWriteCapabilityType cap) {

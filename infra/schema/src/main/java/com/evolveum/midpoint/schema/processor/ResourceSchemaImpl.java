@@ -6,57 +6,141 @@
  */
 package com.evolveum.midpoint.schema.processor;
 
-import static com.evolveum.midpoint.util.MiscUtil.schemaCheck;
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
-
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.util.DebugUtil;
+
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Definition;
+import com.evolveum.midpoint.prism.Definition.DefinitionBuilder;
 import com.evolveum.midpoint.prism.impl.schema.PrismSchemaImpl;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.processor.NativeObjectClassDefinition.NativeObjectClassDefinitionBuilder;
+import com.evolveum.midpoint.schema.processor.ResourceSchema.ResourceSchemaMutator;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 
-import org.jetbrains.annotations.VisibleForTesting;
+import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Document;
+
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
+import static com.evolveum.midpoint.util.MiscUtil.*;
 
 /**
  * Direct implementation of {@link ResourceSchema} interface.
  *
- * Definitions are stored in {@link PrismSchemaImpl#definitions}.
- * Besides that, it has no own state.
+ * It contains only the "prismified" (refined) object classes and types definitions.
+ * Native definitions were moved out to {@link NativeResourceSchema} objects.
  *
  * @author semancik
  */
-public class ResourceSchemaImpl extends PrismSchemaImpl implements MutableResourceSchema {
+public class ResourceSchemaImpl
+        extends PrismSchemaImpl
+        implements ResourceSchema, ResourceSchemaMutator {
+
+    /** Contains native (non-refined) object class and their items' definitions. Immutable. */
+    @NotNull final NativeResourceSchema nativeSchema;
+
+    /**
+     * All known reference types, native or simulated (modern). Legacy simulated associations are not here.
+     *
+     * Indexed by the local name.
+     * Note that these are not among the definitions, because they are not "prismified".
+     *
+     * The values should be immutable.
+     *
+     * TODO make the collection freezable
+     */
+    @NotNull private final Map<String, AbstractShadowReferenceTypeDefinition> referenceTypeDefinitionMap = new HashMap<>();
 
     private static final LayerType DEFAULT_LAYER = LayerType.MODEL;
 
     @NotNull private final LayerType currentLayer;
 
-    ResourceSchemaImpl() {
-        this(DEFAULT_LAYER);
+    ResourceSchemaImpl(@NotNull NativeResourceSchema nativeSchema) {
+        this(nativeSchema, DEFAULT_LAYER);
     }
 
-    private ResourceSchemaImpl(@NotNull LayerType currentLayer) {
+    ResourceSchemaImpl(@NotNull NativeResourceSchema nativeSchema, @NotNull LayerType currentLayer) {
         super(MidPointConstants.NS_RI);
+        this.nativeSchema = nativeSchema;
         this.currentLayer = currentLayer;
     }
 
-    @VisibleForTesting
     @Override
-    public MutableResourceObjectClassDefinition createObjectClassDefinition(QName typeName) {
-        ResourceObjectClassDefinitionImpl objectClassDef = ResourceObjectClassDefinitionImpl.raw(typeName);
-        add(objectClassDef);
-        return objectClassDef;
+    public @NotNull NativeObjectClassDefinitionBuilder newComplexTypeDefinitionLikeBuilder(String localTypeName) {
+        throw new UnsupportedOperationException("This object cannot be created by parsing XSD or similar means");
     }
 
     @Override
-    public MutableResourceSchema toMutable() {
+    public void add(@NotNull DefinitionBuilder builder) {
+        throw new UnsupportedOperationException("This object cannot be created by parsing XSD or similar means");
+    }
+
+    @Override
+    public void add(@NotNull Definition def) {
+        argCheck(def instanceof ResourceObjectDefinition,
+                "Only resource object definitions can be added to a resource schema: %s", def);
+        super.add(def);
+    }
+
+    @Override
+    public ResourceSchemaMutator mutator() {
         return this;
+    }
+
+    /** We do not want to serialize this schema to XSD. */
+    @Override
+    public @NotNull Document serializeToXsd() throws SchemaException {
+        throw new UnsupportedOperationException("Resource schema cannot be serialized to XSD. Only native schema can.");
+    }
+
+    @Override
+    public @NotNull Document serializeNativeToXsd() throws SchemaException {
+        return nativeSchema.serializeToXsd();
+    }
+
+    void addReferenceTypeDefinition(@NotNull AbstractShadowReferenceTypeDefinition definition)
+            throws ConfigurationException {
+        var existing = referenceTypeDefinitionMap.put(definition.getLocalName(), definition);
+        configCheck(existing == null,
+                "Duplicate definition of reference type %s in %s",
+                definition.getLocalName(), this);
+    }
+
+    private @Nullable AbstractShadowReferenceTypeDefinition getReferenceTypeDefinition(@NotNull String name) {
+        return referenceTypeDefinitionMap.get(name);
+    }
+
+    @Nullable AbstractShadowReferenceTypeDefinition getReferenceTypeDefinition(@NotNull QName name) {
+        return getReferenceTypeDefinition(QNameUtil.getLocalPartCheckingNamespace(name, NS_RI));
+    }
+
+    @NotNull AbstractShadowReferenceTypeDefinition getReferenceTypeDefinitionRequired(@NotNull QName name, Object errorCtx)
+            throws ConfigurationException {
+        return MiscUtil.configNonNull(
+                getReferenceTypeDefinition(QNameUtil.getLocalPartCheckingNamespace(name, NS_RI)),
+                "Unknown reference type '%s' in %s %s", name, this, errorCtx);
+    }
+
+    @NotNull Collection<AbstractShadowReferenceTypeDefinition> getReferenceTypes() {
+        return referenceTypeDefinitionMap.values();
+    }
+
+    @Override
+    protected void extendDebugDump(StringBuilder sb, int indent) {
+        super.extendDebugDump(sb, indent);
+        if (!referenceTypeDefinitionMap.isEmpty()) {
+            sb.append("\n");
+            sb.append(DebugUtil.debugDump(referenceTypeDefinitionMap.values(), indent, false));
+        }
     }
 
     @Override
@@ -89,9 +173,14 @@ public class ResourceSchemaImpl extends PrismSchemaImpl implements MutableResour
 
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     public ResourceSchemaImpl clone() {
-        ResourceSchemaImpl clone = new ResourceSchemaImpl(currentLayer);
-        super.copyContent(clone);
+        ResourceSchemaImpl clone = createEmptyClone(currentLayer);
+        copyContent(clone);
         return clone;
+    }
+
+    private void copyContent(ResourceSchemaImpl target) {
+        super.copyContent(target);
+        target.referenceTypeDefinitionMap.putAll(referenceTypeDefinitionMap);
     }
 
     /**
@@ -99,10 +188,8 @@ public class ResourceSchemaImpl extends PrismSchemaImpl implements MutableResour
      *
      * We have to use this approach because otherwise the internal lookup structures would be hard to fill in correctly.
      */
-    private void copyAllDefinitionsImmutable(LayerType layer, MutableResourceSchema target) {
+    private void copyAllDefinitionsImmutable(LayerType layer, ResourceSchemaMutator target) {
         for (Definition definition : definitions) {
-            stateCheck(definition instanceof ResourceObjectDefinition,
-                    "Non-ResourceObjectDefinition in %s: %s (%s)", this, definition, definition.getClass());
             target.add(((ResourceObjectDefinition) definition).forLayerImmutable(layer));
         }
     }
@@ -115,12 +202,16 @@ public class ResourceSchemaImpl extends PrismSchemaImpl implements MutableResour
 
         assertNoDelayedDefinitionsOnClone();
 
-        ResourceSchemaImpl clone = new ResourceSchemaImpl(layer);
+        ResourceSchemaImpl clone = createEmptyClone(layer);
         copyAllDefinitionsImmutable(layer, clone);
         // TODO what about substitutions?
 
         clone.freeze();
         return clone;
+    }
+
+    @NotNull ResourceSchemaImpl createEmptyClone(@NotNull LayerType layer) {
+        return new ResourceSchemaImpl(nativeSchema, layer);
     }
 
     /** This is just a reminder - here we should put any freezing calls to own properties, should there be any. */
@@ -132,5 +223,16 @@ public class ResourceSchemaImpl extends PrismSchemaImpl implements MutableResour
     @Override
     public @NotNull LayerType getCurrentLayer() {
         return currentLayer;
+    }
+
+    @Override
+    public @NotNull NativeResourceSchema getNativeSchema() {
+        return nativeSchema;
+    }
+
+    @Override
+    public ComplexTypeDefinition findComplexTypeDefinitionByType(@NotNull QName typeName) {
+        // FIXME remove eventually
+        throw new UnsupportedOperationException("Object definitions are no longer CTDs please don't ask for them in this way");
     }
 }

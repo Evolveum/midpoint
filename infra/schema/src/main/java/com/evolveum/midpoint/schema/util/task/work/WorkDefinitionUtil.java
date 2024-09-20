@@ -59,7 +59,13 @@ public class WorkDefinitionUtil {
         addTypedParameters(values, definitions.getRoleMembershipManagement());
         addTypedParameters(values, definitions.getRoleAnalysisClustering());
         addTypedParameters(values, definitions.getRoleAnalysisPatternDetection());
-
+        addTypedParameters(values, definitions.getShadowReclassification());
+        addTypedParameters(values, definitions.getCertificationRemediation());
+        addTypedParameters(values, definitions.getCertificationStartCampaign());
+        addTypedParameters(values, definitions.getCertificationOpenNextStage());
+        addTypedParameters(values, definitions.getCertificationCloseCurrentStage());
+        addTypedParameters(values, definitions.getCertificationReiterateCampaign());
+        addTypedParameters(values, definitions.getRepartitioning());
         addUntypedParameters(values, definitions.getExtension());
         return values;
     }

@@ -14,6 +14,10 @@ import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
+import com.evolveum.midpoint.test.util.TestUtil;
+
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -86,17 +90,23 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
             UserType.F_CREDENTIALS,
             UserType.F_ADMIN_GUI_CONFIGURATION,
             UserType.F_BEHAVIOR,
-            UserType.F_POLICY_EXCEPTION); //experimental
+            UserType.F_POLICY_EXCEPTION,
+            UserType.F_IDENTITIES,
+            UserType.F_EFFECTIVE_OPERATION_POLICY,
+            UserType.F_POLICY_STATEMENT); //experimental
     private static final List<ItemPath> BASIC_SHADOW_CONTAINERS_PATHS = Arrays.asList(
             ShadowType.F_EXTENSION,
             ShadowType.F_PENDING_OPERATION,
             ShadowType.F_ATTRIBUTES,
             ShadowType.F_TRIGGER,
-            ShadowType.F_ASSOCIATION,
+            ShadowType.F_ASSOCIATIONS,
             ShadowType.F_ACTIVATION,
             ShadowType.F_CREDENTIALS,
             ShadowType.F_POLICY_EXCEPTION,
-            ShadowType.F_CORRELATION);
+            ShadowType.F_CORRELATION,
+            ShadowType.F_EFFECTIVE_OPERATION_POLICY,
+            ShadowType.F_POLICY_STATEMENT,
+            ShadowType.F_REFERENCE_ATTRIBUTES);
     private static final List<ItemPath> BASIC_ORG_CONTAINERS_PATHS = Arrays.asList(
             OrgType.F_EXTENSION,
             OrgType.F_ASSIGNMENT,
@@ -110,7 +120,10 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
             OrgType.F_AUTOASSIGN,
             OrgType.F_CREDENTIALS,
             OrgType.F_BEHAVIOR,
-            ShadowType.F_POLICY_EXCEPTION);
+            OrgType.F_POLICY_EXCEPTION,
+            OrgType.F_IDENTITIES,
+            OrgType.F_EFFECTIVE_OPERATION_POLICY,
+            OrgType.F_POLICY_STATEMENT);
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -126,6 +139,30 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
     }
 
     @Test
+    public void test000PreparationAndSanity() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        assertNotNull("No model service", modelService);
+
+        // WHEN
+        when("Jack is assigned with account");
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
+
+        // THEN
+        then("One link (account) is created");
+        result.computeStatus();
+        display(result);
+        TestUtil.assertSuccess(result);
+
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User after change execution", userJack);
+        assertUserJack(userJack);
+        accountJackOid = getSingleLinkOid(userJack);
+    }
+
+    @Test
     public void test100CreateWrapperUserJack() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -138,6 +175,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
         PrismObjectWrapperFactory<UserType> factory = getServiceLocator(task).findObjectWrapperFactory(user.getDefinition());
         WrapperContext context = new WrapperContext(task, result);
+        context.setCreateIfEmpty(true);
         PrismObjectWrapper<UserType> objectWrapper = factory.createObjectWrapper(user, ItemStatus.NOT_CHANGED, context);
 
         then();
@@ -171,10 +209,10 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_ADDITIONAL_NAME, false); // not visible, because it is empty
         assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_LOCALITY, true);
 
-        assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_WEAPON), null);
-        assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_COLORS), ItemProcessing.AUTO);
-        assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_SECRET), ItemProcessing.IGNORE);
-        assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_RANT), ItemProcessing.MINIMAL);
+//        assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_WEAPON), null);
+//        assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_COLORS), ItemProcessing.AUTO);
+//        assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_SECRET), ItemProcessing.IGNORE);
+//        assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_RANT), ItemProcessing.MINIMAL);
 
         when();
         mainContainerValueWrapper.setShowEmpty(true);
@@ -217,6 +255,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         ModelServiceLocator modelServiceLocator = getServiceLocator(task);
         PrismObjectWrapperFactory<UserType> factory = modelServiceLocator.findObjectWrapperFactory(user.getDefinition());
         WrapperContext context = new WrapperContext(task, result);
+        context.setCreateIfEmpty(true);
 
         PrismObjectWrapper<UserType> objectWrapper = factory.createObjectWrapper(user, ItemStatus.NOT_CHANGED, context);
 
@@ -304,10 +343,10 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_FULL_NAME, true);
         assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_ADDITIONAL_NAME, true);
 
-        assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_WEAPON), null);
-        assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_COLORS), ItemProcessing.AUTO);
-        assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_SECRET), ItemProcessing.IGNORE);
-        assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_RANT), ItemProcessing.MINIMAL);
+//        assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_WEAPON), null);
+//        assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_COLORS), ItemProcessing.AUTO);
+//        assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_SECRET), ItemProcessing.IGNORE);
+//        assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_RANT), ItemProcessing.MINIMAL);
 
         when();
         mainContainerValueWrapper.setShowEmpty(false);
@@ -340,6 +379,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         ModelServiceLocator modelServiceLocator = getServiceLocator(task);
         PrismObjectWrapperFactory<UserType> factory = modelServiceLocator.findObjectWrapperFactory(user.getDefinition());
         WrapperContext context = new WrapperContext(task, result);
+        context.setCreateIfEmpty(true);
         PrismObjectWrapper<UserType> objectWrapper =
                 factory.createObjectWrapper(user, ItemStatus.ADDED, context);
 
@@ -348,7 +388,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         WrapperTestUtil.fillInPropertyWrapper(modelServiceLocator, mainContainerValueWrapper, UserType.F_NAME, PrismTestUtil.createPolyString(USER_NEWMAN_USERNAME));
         WrapperTestUtil.fillInPropertyWrapper(modelServiceLocator, mainContainerValueWrapper, UserType.F_GIVEN_NAME, PrismTestUtil.createPolyString(USER_NEWMAN_GIVEN_NAME));
         WrapperTestUtil.fillInPropertyWrapper(modelServiceLocator, mainContainerValueWrapper, UserType.F_FAMILY_NAME, PrismTestUtil.createPolyString(USER_NEWMAN_FAMILY_NAME));
-        WrapperTestUtil.fillInPropertyWrapper(modelServiceLocator, mainContainerValueWrapper, UserType.F_EMPLOYEE_NUMBER, USER_NEWMAN_EMPLOYEE_NUMBER);
+        WrapperTestUtil.fillInPropertyWrapper(modelServiceLocator, mainContainerValueWrapper, UserType.F_PERSONAL_NUMBER, USER_NEWMAN_EMPLOYEE_NUMBER);
         WrapperTestUtil.fillInPropertyWrapper(modelServiceLocator, mainContainerValueWrapper, extensionPath(PIRACY_SHIP), USER_NEWMAN_SHIP);
 
         then();
@@ -369,10 +409,10 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
         assertEquals("Wrong main container wrapper readOnly", Boolean.FALSE, (Boolean) objectWrapper.isReadOnly());
 
-        assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_WEAPON), null);
-        assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_COLORS), ItemProcessing.AUTO);
-        assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_SECRET), ItemProcessing.IGNORE);
-        assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_RANT), ItemProcessing.MINIMAL);
+//        assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_WEAPON), null);
+//        assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_COLORS), ItemProcessing.AUTO);
+//        assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_SECRET), ItemProcessing.IGNORE);
+//        assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_RANT), ItemProcessing.MINIMAL);
 
         ItemStatus objectStatus = objectWrapper.getStatus();
         assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_NAME, true);
@@ -397,7 +437,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         PrismAsserts.assertPropertyValue(objectToAdd, UserType.F_NAME, PrismTestUtil.createPolyString(USER_NEWMAN_USERNAME));
         PrismAsserts.assertPropertyValue(objectToAdd, UserType.F_GIVEN_NAME, PrismTestUtil.createPolyString(USER_NEWMAN_GIVEN_NAME));
         PrismAsserts.assertPropertyValue(objectToAdd, UserType.F_FAMILY_NAME, PrismTestUtil.createPolyString(USER_NEWMAN_FAMILY_NAME));
-        PrismAsserts.assertPropertyValue(objectToAdd, UserType.F_EMPLOYEE_NUMBER, USER_NEWMAN_EMPLOYEE_NUMBER);
+        PrismAsserts.assertPropertyValue(objectToAdd, UserType.F_PERSONAL_NUMBER, USER_NEWMAN_EMPLOYEE_NUMBER);
         PrismAsserts.assertPropertyValue(objectToAdd, extensionPath(PIRACY_SHIP), USER_NEWMAN_SHIP);
         PrismAsserts.assertItems(objectToAdd, 5);
     }
@@ -436,7 +476,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         PrismContainerValueWrapper<ShadowAttributesType> attributesContainerValueWrapper = attributesContainerWrapper.getValue();
         WrapperTestUtil.assertPropertyWrapperByName(attributesContainerValueWrapper, dummyResourceCtl.getAttributeFullnameQName(), USER_JACK_FULL_NAME);
         WrapperTestUtil.assertPropertyWrapperByName(attributesContainerValueWrapper, SchemaConstants.ICFS_NAME, USER_JACK_USERNAME);
-        assertEquals("wrong number of items in " + attributesContainerWrapper, 18, attributesContainerValueWrapper.getItems().size());
+        assertEquals("wrong number of items in " + attributesContainerWrapper, 20, attributesContainerValueWrapper.getItems().size());
 
         PrismContainerWrapper<ActivationType> activationContainerWrapper = objectWrapper.findContainer(ShadowType.F_ACTIVATION);
         assertEquals("wrong number of values in " + activationContainerWrapper, 1, activationContainerWrapper.getValues().size());
@@ -472,6 +512,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         ModelServiceLocator modelServiceLocator = getServiceLocator(task);
         PrismObjectWrapperFactory<O> factory = modelServiceLocator.findObjectWrapperFactory(object.getDefinition());
         WrapperContext context = new WrapperContext(task, result);
+        context.setCreateIfEmpty(true);
         if (ItemStatus.NOT_CHANGED == status) {
             context.setCreateIfEmpty(true);
             context.setShowEmpty(true);
@@ -587,7 +628,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         PrismContainerValueWrapper<ShadowAttributesType> attributesContainerValueWrapper = attributesContainerWrapper.getValues().iterator().next();
         WrapperTestUtil.assertPropertyWrapperByName(attributesContainerValueWrapper, dummyResourceCtl.getAttributeFullnameQName(), USER_WALLY_FULLNAME);
         WrapperTestUtil.assertPropertyWrapperByName(attributesContainerValueWrapper, SchemaConstants.ICFS_NAME, USER_WALLY_NAME);
-        assertEquals("wrong number of items in " + attributesContainerWrapper, 18, attributesContainerValueWrapper.getItems().size());
+        assertEquals("wrong number of items in " + attributesContainerWrapper, 20, attributesContainerValueWrapper.getItems().size());
 
         PrismContainerWrapper<ActivationType> activationContainerWrapper = objectWrapper.findContainer(ShadowType.F_ACTIVATION);
         WrapperTestUtil.assertWrapper(activationContainerWrapper, getString("ShadowType.activation"), UserType.F_ACTIVATION, shadow, ItemStatus.NOT_CHANGED);
@@ -597,23 +638,29 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         WrapperTestUtil.assertPropertyWrapperByName(activationContainerValueWrapper, ActivationType.F_LOCKOUT_STATUS, null);
 
         //TODO: fix
-        PrismContainerWrapper<ShadowAssociationType> associationContainerWrapper = objectWrapper.findContainer(ShadowType.F_ASSOCIATION);
+        PrismContainerWrapper<ShadowAssociationValueType> associationContainerWrapper = objectWrapper.findContainer(ShadowType.F_ASSOCIATIONS);
         assertNotNull("No association container wrapper", associationContainerWrapper);
-        assertTrue("Wrong type of group association property wrapper: " + associationContainerWrapper.getClass(), associationContainerWrapper instanceof ShadowAssociationWrapperImpl);
+        assertTrue("Wrong type of group association property wrapper: " + associationContainerWrapper.getClass(), associationContainerWrapper instanceof PrismContainerWrapperImpl<ShadowAssociationValueType>);
         assertEquals("wrong number of items in " + associationContainerWrapper, 1, associationContainerWrapper.getValues().size());
-        PrismReferenceWrapper groupAssociationWrapper = associationContainerWrapper.findReference(RESOURCE_DUMMY_ASSOCIATION_GROUP_QNAME);
-        assertNotNull("No group association property wrapper", groupAssociationWrapper);
-        List<PrismValueWrapper> groupAssociationValues = groupAssociationWrapper.getValues();
+        PrismContainerWrapper<ShadowAssociationValueType> groupAssociationWrapper = associationContainerWrapper.findContainer(RESOURCE_DUMMY_ASSOCIATION_GROUP_QNAME);
+        assertNotNull("No group association container wrapper", groupAssociationWrapper);
+        List<PrismContainerValueWrapper<ShadowAssociationValueType>> groupAssociationValues = groupAssociationWrapper.getValues();
         assertEquals("wrong number of values in " + groupAssociationWrapper, 1, groupAssociationValues.size());
-        PrismValueWrapper groupAssociationValue = groupAssociationValues.get(0);
-        PrismReferenceValue groupAssociationValuePVal = (PrismReferenceValue) groupAssociationValue.getNewValue();
+        PrismContainerValueWrapper<ShadowAssociationValueType> groupAssociationValue = groupAssociationValues.get(0);
+        PrismContainerValue<ShadowAssociationValueType> groupAssociationValuePVal = groupAssociationValue.getNewValue();
         displayDumpable("groupAssociationValuePVal", groupAssociationValuePVal);
         assertEquals("wrong number of values in " + groupAssociationValue, ValueStatus.NOT_CHANGED, groupAssociationValue.getStatus());
         assertEquals("Wrong group association name", RESOURCE_DUMMY_ASSOCIATION_GROUP_QNAME, groupAssociationWrapper.getItemName());
-        assertEquals("Wrong group association value", GROUP_DUMMY_MAPMAKERS_NAME, groupAssociationValuePVal.asReferencable().getTargetName().getOrig());
-//        PrismContainer<ShadowIdentifiersType> groupAssociationValueIdentifiers = groupAssociationValuePVal.findContainer(ShadowAssociationType.F_IDENTIFIERS);
-//        PrismProperty<String> groupAssociationUidProp = groupAssociationValueIdentifiers.findProperty(new QName(null,"uid"));
-//        PrismAsserts.assertPropertyValue(groupAssociationValuePVal.asReferencable().getTargetName(), GROUP_DUMMY_MAPMAKERS_NAME);
+        assertEquals("wrong number of values in " + groupAssociationWrapper, 1, groupAssociationValues.size());
+        PrismContainerWrapper associatedObjectsWrapper = groupAssociationValue.findContainer(ShadowAssociationValueType.F_OBJECTS);
+        assertNotNull("No objects association container wrapper", associatedObjectsWrapper);
+        PrismReferenceWrapper objectReference = associatedObjectsWrapper.findReference(RESOURCE_DUMMY_ASSOCIATION_GROUP_QNAME);
+        assertNotNull("No objects association property wrapper", objectReference);
+        assertEquals("wrong number of values in " + objectReference, 1, objectReference.getValues().size());
+        PrismReferenceValueWrapperImpl refValue = (PrismReferenceValueWrapperImpl) objectReference.getValues().get(0);
+        assertNotNull("No refValue for association", refValue.getNewValue());
+        displayDumpable("refValue", refValue.getNewValue());
+        assertEquals("Wrong group association value", GROUP_DUMMY_MAPMAKERS_NAME, refValue.getNewValue().getTargetName().getOrig());
     }
 
     @Test

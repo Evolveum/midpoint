@@ -15,6 +15,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.apache.commons.collections4.list.UnmodifiableList;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -110,7 +111,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     }
 
     public List<AuthModule<?>> getAuthModules() {
-        return authModules;
+        return Collections.unmodifiableList(authModules);
     }
 
     public void setAuthModules(List<AuthModule<?>> authModules) {
@@ -118,7 +119,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
             List<AuthModule<?>> modules = new ArrayList<>(this.authModules);
             RemoveUnusedSecurityFilterPublisher.get().publishCustomEvent(modules);
         }
-        this.authModules = authModules;
+        this.authModules = new ArrayList<>(authModules);
     }
 
     public AuthenticationSequenceType getSequence() {
@@ -129,7 +130,6 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         return AuthenticationSequenceTypeUtil.getSequenceIdentifier(sequence);
     }
 
-    @Deprecated
     public void setSequence(AuthenticationSequenceType sequence) {
         this.sequence = sequence;
     }
@@ -721,5 +721,20 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
 
     public void setAlreadyCompiledGui(boolean alreadyCompiledGui) {
         this.alreadyCompiledGui = alreadyCompiledGui;
+    }
+
+    /**
+     * Restart this authentication, so next request start from one module in authentication sequence.
+     */
+    public void restart() {
+        getAuthentications().clear();
+        getAuthorities().clear();
+        principal = null;
+        credential = null;
+        alreadyAudited = false;
+        overLockoutMaxAttempts = false;
+        alreadyCompiledGui = false;
+        archetypeSelected = false;
+        archetypeOid = null;
     }
 }

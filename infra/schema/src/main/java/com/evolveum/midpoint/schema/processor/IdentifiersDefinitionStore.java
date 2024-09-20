@@ -15,6 +15,8 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 
+import org.jetbrains.annotations.VisibleForTesting;
+
 /**
  * Provides information about primary and secondary identifiers.
  */
@@ -32,11 +34,13 @@ public interface IdentifiersDefinitionStore {
      *
      * @return definition of identifier attributes
      */
-    @NotNull Collection<? extends ResourceAttributeDefinition<?>> getPrimaryIdentifiers();
+    @NotNull Collection<? extends ShadowSimpleAttributeDefinition<?>> getPrimaryIdentifiers();
 
-    default @NotNull ResourceAttributeDefinition<?> getPrimaryIdentifierRequired() {
-        Collection<? extends ResourceAttributeDefinition<?>> primaryIdentifiers = getPrimaryIdentifiers();
-        return MiscUtil.extractSingletonRequired(
+    /** Currently, there must be exactly one primary identifier. */
+    default <T> @NotNull ShadowSimpleAttributeDefinition<T> getPrimaryIdentifierRequired() {
+        Collection<? extends ShadowSimpleAttributeDefinition<?>> primaryIdentifiers = getPrimaryIdentifiers();
+        //noinspection unchecked
+        return (ShadowSimpleAttributeDefinition<T>) MiscUtil.extractSingletonRequired(
                 primaryIdentifiers,
                 () -> new IllegalStateException("No primary identifier in " + this),
                 () -> new IllegalStateException("Multiple primary identifiers in " + this + ": " + primaryIdentifiers));
@@ -72,7 +76,18 @@ public interface IdentifiersDefinitionStore {
      *
      * @return definition of secondary identifier attributes
      */
-    @NotNull Collection<? extends ResourceAttributeDefinition<?>> getSecondaryIdentifiers();
+    @NotNull Collection<? extends ShadowSimpleAttributeDefinition<?>> getSecondaryIdentifiers();
+
+    /** In general, there may be more (or zero) secondary identifiers present. But in special cases we may expect just one. */
+    @VisibleForTesting
+    default <T> @NotNull ShadowSimpleAttributeDefinition<T> getSecondaryIdentifierRequired() {
+        Collection<? extends ShadowSimpleAttributeDefinition<?>> secondaryIdentifiers = getSecondaryIdentifiers();
+        //noinspection unchecked
+        return (ShadowSimpleAttributeDefinition<T>) MiscUtil.extractSingletonRequired(
+                secondaryIdentifiers,
+                () -> new IllegalStateException("No secondary identifier in " + this),
+                () -> new IllegalStateException("Multiple secondary identifiers in " + this + ": " + secondaryIdentifiers));
+    }
 
     /**
      * Returns names of secondary identifiers.
@@ -101,8 +116,13 @@ public interface IdentifiersDefinitionStore {
     /**
      * Returns both primary and secondary identifiers.
      */
-    default Collection<? extends ResourceAttributeDefinition<?>> getAllIdentifiers() {
+    default @NotNull Collection<? extends ShadowSimpleAttributeDefinition<?>> getAllIdentifiers() {
         return MiscUtil.unionExtends(
                 getPrimaryIdentifiers(), getSecondaryIdentifiers());
+    }
+
+    default @NotNull Collection<QName> getAllIdentifiersNames() {
+        return MiscUtil.union(
+                getPrimaryIdentifiersNames(), getSecondaryIdentifiersNames());
     }
 }

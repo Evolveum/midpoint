@@ -1,0 +1,38 @@
+{
+  "shadow" : {
+    "oid" : "88519fca-3f4a-44ca-91c8-dc9be5bf3d03",
+    "version" : "0",
+    "name" : "hbarbossa",
+    "resourceRef" : {
+      "oid" : "10000000-0000-0000-0000-000000000003",
+      "type" : "c:ResourceType"
+    },
+    "dead" : false,
+    "synchronizationSituation" : "linked",
+    "synchronizationSituationDescription" : {
+      "situation" : "linked",
+      "channel" : "syncChannel"
+    },
+    "objectClass" : "ri:AccountObjectClass",
+    "attributes" : {
+      "@ns" : "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3",
+      "cn" : "Hector Barbossa",
+      "icfs:name" : "uid=hbarbossa,ou=people,dc=example,dc=com",
+      "sn" : "Barbossa",
+      "uid" : "hbarbossa",
+      "icfs:uid" : "8daaeeae-f0c7-41c9-b258-2a3351aa8876"
+    },
+    "associations" : {
+      "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3#group" : {
+        "objects" : {
+          "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3#default" : {
+            "oid" : "93c53b24-a95a-40a7-bab5-18a1e5528435"
+          }
+        }
+      }
+    },
+    "activation" : {
+      "administrativeStatus" : "enabled"
+    }
+  }
+}

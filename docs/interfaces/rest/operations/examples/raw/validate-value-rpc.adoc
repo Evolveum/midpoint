@@ -1,0 +1,142 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Validate Value on Input Procedure Call*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Accept: application/json" \
+-H "Content-Type: application/json" \
+-X POST http://localhost:8080/midpoint/ws/rest/rpc/validate \
+-v \
+--data-binary @./samples/rest/policy-items-password-validate.json
+----
+
+.*Show* data source example for *"Validate value on input procedure call"* | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/policy-items-password-validate.json[GitHub]
+[%collapsible]
+====
+[source, json]
+----
+{
+  "policyItemsDefinition": {
+    "policyItemDefinition": {
+      "value": "5ecr3t5AbC",
+      "valuePolicyRef" :{
+        "oid": "00000000-0000-0000-0000-000000000003"
+      }
+    }
+  }
+}
+----
+====
+
+The response is an HTTP 200 code in case of success *with* a response body.
+
+
+.Example Output of *"Validate value on input procedure call"* example
+[%collapsible]
+====
+The example is *simplified*, some properties were removed to keep the example output "short". This example *does
+not* contain all possible properties of this object type.
+[source, json]
+----
+{
+  "@ns" : "http://prism.evolveum.com/xml/ns/public/types-3",
+  "object" : {
+    "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/api-types-3#PolicyItemsDefinitionType",
+    "policyItemDefinition" : [ {
+      "valuePolicyRef" : {
+        "@type" : "c:ObjectReferenceType",
+        "oid" : "00000000-0000-0000-0000-000000000003"
+      },
+      "value" : "5ecr3t5AbC",
+      "result" : {
+        "operation" : "validateValue",
+        "status" : "success",
+        "importance" : "normal",
+        "start" : "",
+        "end" : "",
+        "microseconds" : ,
+        "invocationId" : ,
+        "token" : ,
+        "partialResults" : [ {}, {
+          "operation" : "com.evolveum.midpoint.model.api.ModelInteractionService.validateValue.value",
+          "status" : "success",
+          "importance" : "normal",
+          "start" : "",
+          "end" : "",
+          "microseconds" : ,
+          "invocationId" : ,
+          "params" : {
+            "entry" : [ {
+              "@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3",
+              "paramValue" : {
+                "@type" : "xsd:string",
+                "@value" : "5ecr3t5AbC"
+              },
+              "key" : "valueToValidate"
+            } ]
+          },
+          "token" : ,
+          "partialResults" : [ {
+            "operation" : "com.evolveum.midpoint.model.common.stringpolicy.ObjectValuePolicyEvaluator.validateValue",
+            "status" : "success",
+            "importance" : "",
+            "start" : "",
+            "end" : "",
+            "microseconds" : ,
+            "invocationId" : ,
+            "token" : ,
+            "partialResults" : [ {
+              "operation" : "com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor.stringPolicyValidation",
+              "status" : "success",
+              "importance" : "normal",
+              "start" : "",
+              "end" : "",
+              "microseconds" : ,
+              "invocationId" : ,
+              "params" : {
+                "entry" : [ {
+                  "@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3",
+                  "paramValue" : {
+                    "@type" : "xsd:string",
+                    "@value" : "Default Password Policy"
+                  },
+                  "key" : "policyName"
+                } ]
+              },
+              "token" : 1000000000000005240,
+              "partialResults" : [ {}, {
+                "operation" : "Tested limitation: Lowercase characters",
+                "status" : "success",
+                "importance" : "normal",
+                "end" : "",
+                "token" :
+              }, {
+                "operation" : "Tested limitation: Uppercase characters",
+                "status" : "success",
+                "importance" : "normal",
+                "end" : "",
+                "token" :
+              }, {
+                "operation" : "Tested limitation: Numeric characters",
+                "status" : "success",
+                "importance" : "normal",
+                "end" : "",
+                "token" :
+              }, {
+                "operation" : "Tested limitation: Special characters",
+                "status" : "success",
+                "importance" : "normal",
+                "end" : "",
+                "token" :
+              } ]
+            } ]
+          } ]
+        } ]
+      }
+    } ]
+  }
+}
+----
+====

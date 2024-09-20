@@ -11,7 +11,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.password.PasswordPropertyPanel;
 
-import org.apache.commons.lang3.ClassUtils;
+import com.evolveum.midpoint.gui.impl.component.input.DateTimePickerPanel;
+import com.evolveum.midpoint.util.MiscUtil;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -21,12 +23,10 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.web.component.input.DatePanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.input.TriStateComboPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
@@ -107,7 +107,7 @@ public class ACAttributeValuePanel extends BasePanel<ACValueConstructionDto> {
 
         InputPanel panel;
         if (DOMUtil.XSD_DATETIME.equals(valueType)) {
-            panel = new DatePanel(id, new PropertyModel<>(getModel(), baseExpression));
+            panel = DateTimePickerPanel.createByXMLGregorianCalendarModel(id, new PropertyModel<>(getModel(), baseExpression));
         } else if (ProtectedStringType.COMPLEX_TYPE.equals(valueType)) {
             panel = new PasswordPropertyPanel(id, new PropertyModel<>(getModel(), baseExpression));
         } else if (DOMUtil.XSD_BOOLEAN.equals(valueType)) {
@@ -115,12 +115,9 @@ public class ACAttributeValuePanel extends BasePanel<ACValueConstructionDto> {
         } else if (SchemaConstants.T_POLY_STRING_TYPE.equals(valueType)) {
             panel = new TextPanel<>(id, new PropertyModel<>(getModel(), baseExpression + ".orig"), String.class);
         } else {
-            Class type = XsdTypeMapper.getXsdToJavaMapping(valueType);
-            if (type != null && type.isPrimitive()) {
-                type = ClassUtils.primitiveToWrapper(type);
-            }
-            panel = new TextPanel<>(id, new PropertyModel<>(getModel(), baseExpression),
-                    type);
+            Class<?> type = MiscUtil.resolvePrimitiveIfNecessary(
+                    XsdTypeMapper.getXsdToJavaMapping(valueType));
+            panel = new TextPanel<>(id, new PropertyModel<>(getModel(), baseExpression), type);
 
             if (ObjectType.F_NAME.equals(definition.getItemName())) {
                 panel.getBaseFormComponent().setRequired(true);

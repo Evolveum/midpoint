@@ -12,6 +12,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.security.api.ProfileCompilerOptions;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
@@ -153,13 +154,20 @@ public class GuiProfileCompiler {
 
         FocusType focus = principal.getFocus(); // [EP:APSO] DONE, focus is from repository
 
+        //TODO why??
+//        ObjectQuery query = PrismContext.get().queryFor(AssignmentType.class).ownerId(focus.getOid()).and().ownedBy(focus.getClass()).build();
+//        SearchResultList<AssignmentType> assignments = repositoryService.searchContainers(AssignmentType.class, query, null, result);
+//        focus.getAssignment().addAll(assignments.stream()
+//                .map(originalAssignment -> (AssignmentType) originalAssignment.cloneWithoutId())
+//                .toList());
+
         Collection<? extends EvaluatedAssignment> evaluatedAssignments = // [EP:APSO] DONE, see the called method
                 assignmentCollector.collect(focus.asPrismObject(), task, result);
 
         MidpointAuthentication auth = AuthUtil.getMidpointAuthenticationNotRequired();
         AuthenticationChannel channel = auth != null ? auth.getAuthenticationChannel() : null;
 
-        if(!options.isRunAsRunner() && channel != null) {
+        if (!options.isRunAsRunner() && channel != null) {
             @Nullable Authorization additionalAuth = channel.getAdditionalAuthority();
             if (additionalAuth != null) {
                 addAuthorizationToPrincipal(principal, additionalAuth, authorizationTransformer);
@@ -356,7 +364,7 @@ public class GuiProfileCompiler {
         }
 
         if (adminGuiConfiguration.getFeedbackMessagesHook() != null) {
-            composite.setFeedbackMessagesHook(adminGuiConfiguration.getFeedbackMessagesHook().clone());
+            mergeFeedbackMessagesHook(composite, adminGuiConfiguration.getFeedbackMessagesHook());
         }
 
         if (adminGuiConfiguration.getRoleManagement() != null &&
@@ -422,6 +430,19 @@ public class GuiProfileCompiler {
         if (adminGuiConfiguration.getSelfProfilePage() != null) {
             composite.setSelfProfilePage(adminGuiConfigurationMergeManager.mergeObjectDetailsPageConfiguration(
                     adminGuiConfiguration.getSelfProfilePage(), composite.getSelfProfilePage()));
+        }
+    }
+
+    private void mergeFeedbackMessagesHook(CompiledGuiProfile composite, FeedbackMessagesHookType feedbackMessagesHook) {
+        if (composite.getFeedbackMessagesHook() == null) {
+            composite.setFeedbackMessagesHook(feedbackMessagesHook.clone());
+            return;
+        }
+        if (feedbackMessagesHook.getOperationResultHook() != null) {
+            composite.getFeedbackMessagesHook().setOperationResultHook(feedbackMessagesHook.getOperationResultHook());
+        }
+        if (feedbackMessagesHook.getStackTraceVisibility() != null) {
+            composite.getFeedbackMessagesHook().setStackTraceVisibility(feedbackMessagesHook.getStackTraceVisibility());
         }
     }
 
@@ -503,6 +524,10 @@ public class GuiProfileCompiler {
         AccessRequestType ar = composite.getAccessRequest();
         if (accessRequest.getTargetSelection() != null) {
             ar.setTargetSelection(accessRequest.getTargetSelection().clone());
+        }
+
+        if (accessRequest.getRelationSelection() != null) {
+            ar.setRelationSelection(accessRequest.getRelationSelection().clone());
         }
 
         if (accessRequest.getRoleCatalog() != null) {
@@ -638,15 +663,26 @@ public class GuiProfileCompiler {
     }
 
     private void joinResourceDetails(GuiObjectDetailsSetType objectDetailsSet, GuiResourceDetailsPageType newObjectDetails, Optional<GuiResourceDetailsPageType> detailForAllResources, OperationResult result) {
-        objectDetailsSet.getResourceDetailsPage().removeIf(currentDetails -> isTheSameConnectorType(currentDetails, newObjectDetails, result));
+        objectDetailsSet.getResourceDetailsPage().removeIf(currentDetails -> isTheSameConnector(currentDetails, newObjectDetails, result));
+        GuiResourceDetailsPageType added;
         if (!detailForAllResources.isEmpty() && newObjectDetails.getConnectorRef() != null) {
             GuiResourceDetailsPageType merged = adminGuiConfigurationMergeManager.mergeObjectDetailsPageConfiguration(
                     detailForAllResources.get(),
                     newObjectDetails);
             merged.setConnectorRef(newObjectDetails.getConnectorRef().clone());
-            objectDetailsSet.getResourceDetailsPage().add(merged);
+            added = merged;
         } else {
-            objectDetailsSet.getResourceDetailsPage().add(newObjectDetails.clone());
+            added = newObjectDetails.clone();
+        }
+        if (added.getConnectorRef() != null && StringUtils.isEmpty(added.getConnectorRef().getOid())) {
+            @NotNull List<String> refsOid = resolveReferenceIfNeeded(added.getConnectorRef(), result);
+            refsOid.forEach(oid -> {
+                GuiResourceDetailsPageType clone = added.clone();
+                clone.getConnectorRef().setOid(oid);
+                objectDetailsSet.getResourceDetailsPage().add(clone);
+            });
+        } else {
+            objectDetailsSet.getResourceDetailsPage().add(added);
         }
     }
 
@@ -683,34 +719,37 @@ public class GuiProfileCompiler {
         return oldCoords.equals(newCoords);
     }
 
-    private boolean isTheSameConnectorType(GuiResourceDetailsPageType oldConf, GuiResourceDetailsPageType newConf, OperationResult result) {
+    private boolean isTheSameConnector(GuiResourceDetailsPageType oldConf, GuiResourceDetailsPageType newConf, OperationResult result) {
         if (oldConf.getConnectorRef() == null || newConf.getConnectorRef() == null) {
             LOGGER.trace("Cannot join resource details configuration as defined in {} and {}. No connector defined", oldConf, newConf);
             return false;
         }
-        String oldConnectorRef = resolveReferenceIfNeeded(oldConf.getConnectorRef(), result);
-        String newConnctorRef = resolveReferenceIfNeeded(newConf.getConnectorRef(), result);
-        if (oldConnectorRef == null || newConnctorRef == null) {
+        List<String> oldConnectorOids = resolveReferenceIfNeeded(oldConf.getConnectorRef(), result);
+        List<String> newConnectorOids = resolveReferenceIfNeeded(newConf.getConnectorRef(), result);
+        if (oldConnectorOids.isEmpty() || newConnectorOids.isEmpty()) {
             return false;
         }
-        return oldConnectorRef.equals(newConnctorRef);
+        return newConnectorOids.stream().anyMatch(newConnectorOid -> oldConnectorOids.contains(newConnectorOid));
     }
 
-    private String resolveReferenceIfNeeded(ObjectReferenceType reference, OperationResult result) {
+    private @NotNull List<String> resolveReferenceIfNeeded(ObjectReferenceType reference, OperationResult result) {
         if (reference.getOid() != null) {
-            return reference.getOid();
+            return List.of(reference.getOid());
         }
         if (reference.getFilter() == null) {
             LOGGER.debug("Neither filter, nor oid defined in the reference: {}", reference);
-            return null;
+            return List.of();
         }
 
         if (reference.getResolutionTime() == EvaluationTimeType.RUN) {
-            ModelImplUtils.resolveRef(reference.asReferenceValue(), repositoryService,
-                    false, false, EvaluationTimeType.RUN,
-                    "resolving connector reference", false, result);
+            List<String> objects = ModelImplUtils.resolveObjectsFromRef(reference.asReferenceValue(), repositoryService,
+                    EvaluationTimeType.RUN, "resolving connector reference", false, result);
+            if (objects.size() == 1) {
+                reference.asReferenceValue().setOid(objects.get(0));
+            }
+            return objects;
         }
-        return reference.getOid();
+        return List.of();
     }
 
     private void mergeFeature(CompiledGuiProfile composite, UserInterfaceFeatureType newFeature) {

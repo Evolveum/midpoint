@@ -79,7 +79,9 @@ public class ArtemisProvisioningTarget extends AbstractMessagingTarget<ArtemisPr
 
     @Override
     protected void closeBrokerConnection() {
-        clientSessionFactory.close();
+        if (clientSessionFactory != null) {
+            clientSessionFactory.close();
+        }
     }
 
     /**

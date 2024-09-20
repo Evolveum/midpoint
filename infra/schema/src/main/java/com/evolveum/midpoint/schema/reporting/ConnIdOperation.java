@@ -179,7 +179,7 @@ public class ConnIdOperation {
     }
 
     public ConnIdOperationRecordType toOperationRecordBean() {
-        return new ConnIdOperationRecordType(PrismContext.get())
+        return new ConnIdOperationRecordType()
                 .identifier(identifier)
                 .resourceRef(resourceRef)
                 .objectClass(getObjectClassDefName())

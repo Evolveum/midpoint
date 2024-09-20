@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.test.asserter;
 
+import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME;
+
 import static org.testng.AssertJUnit.assertEquals;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
@@ -79,6 +81,16 @@ public class DummyAccountAsserter<R> extends DummyObjectAsserter<DummyAccount,R>
 
     public DummyAccountAsserter<R> assertFullName(String expected) {
         assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, expected);
+        return this;
+    }
+
+    public DummyAccountAsserter<R> assertDescription(String expected) {
+        assertAttribute(DummyAccount.ATTR_DESCRIPTION_NAME, expected);
+        return this;
+    }
+
+    public DummyAccountAsserter<R> assertLocation(String expected) {
+        assertAttribute(DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, expected);
         return this;
     }
 

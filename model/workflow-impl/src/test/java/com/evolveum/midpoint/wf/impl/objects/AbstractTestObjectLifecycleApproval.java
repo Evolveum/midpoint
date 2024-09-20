@@ -8,15 +8,17 @@ package com.evolveum.midpoint.wf.impl.objects;
 
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNull;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+
+import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+
+import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -114,7 +116,8 @@ public abstract class AbstractTestObjectLifecycleApproval extends AbstractWfTest
         display("Pirate owner", getUser(USER_PIRATE_OWNER_OID));
 
         if (approveObjectAdd()) {
-            MetadataType metadata = pirateAfter.asObjectable().getMetadata();
+            var metadata = ValueMetadataTypeUtil.getProcessMetadata(pirateAfter.asObjectable());
+            assertNotNull("No process metadata in " + pirateAfter, metadata);
             assertEquals("Wrong create approver ref",
                     singleton(ObjectTypeUtil.createObjectRef(USER_JUPITER_OID, ObjectTypes.USER).relation(SchemaConstants.ORG_DEFAULT)),
                     new HashSet<>(metadata.getCreateApproverRef()));
@@ -143,7 +146,8 @@ public abstract class AbstractTestObjectLifecycleApproval extends AbstractWfTest
 
         PrismObject<RoleType> roleAfter = getRole(rolePirateOid);
         display("pirate after", roleAfter);
-        MetadataType metadata = roleAfter.asObjectable().getMetadata();
+        var metadata = ValueMetadataTypeUtil.getProcessMetadata(roleAfter.asObjectable());
+        assertNotNull("No process metadata in " + roleAfter, metadata);
         assertEquals("Wrong modify approver ref",
                 singleton(ObjectTypeUtil.createObjectRef(USER_PIRATE_OWNER_OID, ObjectTypes.USER).relation(SchemaConstants.ORG_DEFAULT)),
                 new HashSet<>(metadata.getModifyApproverRef()));

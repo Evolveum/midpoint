@@ -13,14 +13,15 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
-import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.form.TextArea;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscUtil;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertDefinitionDto;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
@@ -50,7 +51,6 @@ public class DefinitionBasicPanel extends BasePanel<CertDefinitionDto> {
     private static final String ID_OUTCOME_STRATEGY = "outcomeStrategy";
     private static final String ID_OUTCOME_STRATEGY_HELP = "outcomeStrategyHelp";
     private static final String ID_STOP_REVIEW_ON = "stopReviewOn";
-
 
     public DefinitionBasicPanel(String id, IModel<CertDefinitionDto> model) {
         super(id, model);

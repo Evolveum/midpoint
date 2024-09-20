@@ -25,6 +25,7 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
@@ -192,7 +193,7 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
                 return metrics.stream().map(m -> {
 
                     BigDecimal value = SimulationMetricValuesTypeUtil.getValue(m);
-                    String storedData = MetricWidgetPanel.formatValue(value, getPrincipal().getLocale());
+                    String storedData = MetricWidgetPanel.formatValue(value, LocalizationUtil.findLocale());
 
                     DashboardWidgetType dw = new DashboardWidgetType();
                     dw.beginData()
@@ -296,7 +297,7 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
 
     private DetailsTableItem createDetailsItemForBuiltInMetric(BuiltInSimulationMetricType identifier, Number value) {
         IModel<String> nameModel = createStringResource("PageSimulationResultObject." + WebComponentUtil.createEnumResourceKey(identifier));
-        IModel<String> valueModel = () -> MetricWidgetPanel.formatValue(value, getPrincipal().getLocale());
+        IModel<String> valueModel = () -> MetricWidgetPanel.formatValue(value, LocalizationUtil.findLocale());
 
         return createDetailsItemForBuiltInMetric(nameModel, valueModel, target -> redirectToProcessedObjects(identifier));
     }
@@ -373,9 +374,11 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
         };
         add(navigation);
 
+        DisplayType displayType = new DisplayType()
+                .label(createStringResource("PageSimulationResult.details").getString())
+                .icon(new IconType().cssClass("nav-icon fa-solid fa-flask"));
         DetailsTablePanel details = new DetailsTablePanel(ID_DETAILS,
-                () -> "fa-solid fa-circle-question",
-                createStringResource("PageSimulationResult.details"),
+                Model.of(displayType),
                 detailsModel);
         add(details);
 
@@ -433,7 +436,8 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
                             return false;
                         }
 
-                        return StringUtils.isNotEmpty(data.getStoredData()) || !metricValues.getObject().isEmpty();
+                        return (StringUtils.isNotEmpty(data.getStoredData()) && !"0".equals(data.getStoredData()))
+                                || !metricValues.getObject().isEmpty();
                     }
 
                     @Override

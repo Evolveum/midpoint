@@ -8,12 +8,16 @@ package com.evolveum.midpoint.gui.impl.component.search.panel;
 
 import java.io.Serial;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.gui.impl.component.form.ReferenceAutocompletePanel;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.TextField;
@@ -21,11 +25,9 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
-import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteReferenceRenderer;
 import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.util.RelationUtil;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
@@ -55,6 +57,27 @@ public class ReferenceValueSearchPopupPanel extends PopoverSearchPopupPanel<Obje
     }
 
     @Override
+    protected void onInitialize() {
+        super.onInitialize();
+
+        MidpointForm midpointForm = getPopoverForm();
+
+        ReferenceAutocompletePanel<ObjectReferenceType> nameField = (ReferenceAutocompletePanel) midpointForm.get(ID_NAME);
+        nameField.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("blur") {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                updateModel(nameField.getModelObject(), midpointForm, target);
+            }
+        });
+
+        nameField.getBaseFormComponent().add(AttributeAppender.append(
+                "aria-label",
+                createStringResource("ReferencePopupPanel.name")));
+    }
+
+    @Override
     protected void customizationPopoverForm(MidpointForm midpointForm) {
         FeedbackAlerts feedback = new FeedbackAlerts(ID_FEEDBACK);
         feedback.setOutputMarkupId(true);
@@ -75,41 +98,31 @@ public class ReferenceValueSearchPopupPanel extends PopoverSearchPopupPanel<Obje
         oidField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         oidField.setOutputMarkupId(true);
         oidField.add(new EnableBehaviour(this::isItemPanelEnabled));
+        oidField.add(AttributeAppender.append("aria-label", createStringResource("ReferencePopupPanel.oid")));
         midpointForm.add(oidField);
 
-        ReferenceAutocomplete nameField = new ReferenceAutocomplete(ID_NAME, Model.of(getModelObject()),
-                new AutoCompleteReferenceRenderer(),
-                getPageBase()) {
-
-            @Serial private static final long serialVersionUID = 1L;
-
+        ReferenceAutocompletePanel<ObjectReferenceType> nameField = new ReferenceAutocompletePanel<>(ID_NAME, Model.of(getModelObject())) {
             @Override
             protected boolean isAllowedNotFoundObjectRef() {
                 return ReferenceValueSearchPopupPanel.this.isAllowedNotFoundObjectRef();
             }
 
             @Override
-            protected <O extends ObjectType> Class<O> getReferenceTargetObjectType() {
-                if (getModelObject() != null && getModelObject().getType() != null) {
-                    return (Class<O>) WebComponentUtil.qnameToClass(PrismContext.get(), getModelObject().getType());
-                }
-                return super.getReferenceTargetObjectType();
-            }
-
-            @Override
-            protected void chooseObjectPerformed(AjaxRequestTarget target) {
+            protected <O extends ObjectType> void choosePerformed(AjaxRequestTarget target, O object) {
                 ReferenceValueSearchPopupPanel.this.chooseObjectPerformed(target);
             }
-        };
-        feedback.setFilter(new ComponentFeedbackMessageFilter(nameField));
-        nameField.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("blur") {
-            @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                updateModel(nameField.getBaseFormComponent().getModelObject(), midpointForm, target);
+            public List<QName> getSupportedTypes() {
+                ObjectReferenceType ref = ReferenceValueSearchPopupPanel.this.getModelObject();
+                if (ref != null && ref.getType() != null) {
+                    return Collections.singletonList(ref.getType());
+                }
+                return Collections.singletonList(ObjectType.COMPLEX_TYPE);
             }
-        });
+        };
+
+        feedback.setFilter(new ComponentFeedbackMessageFilter(nameField));
         nameField.setOutputMarkupId(true);
         nameField.add(new EnableBehaviour(this::isItemPanelEnabled));
         midpointForm.add(nameField);
@@ -132,13 +145,16 @@ public class ReferenceValueSearchPopupPanel extends PopoverSearchPopupPanel<Obje
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                ObjectReferenceType ref = nameField.getAutoCompleteConverter(ObjectReferenceType.class, null)
+                ObjectReferenceType ref = nameField.getConverter()
                         .convertToObject(nameField.getBaseFormComponent().getValue(), WebComponentUtil.getCurrentLocale());
                 updateModel(ref, midpointForm, target);
                 target.add(oidField);
                 target.add(ReferenceValueSearchPopupPanel.this);
             }
         });
+        type.getBaseFormComponent().add(AttributeAppender.append(
+                "aria-label",
+                createStringResource("ReferencePopupPanel.targetType")));
         midpointForm.add(type);
 
         WebMarkupContainer relationContainer = new WebMarkupContainer(ID_RELATION_CONTAINER);
@@ -151,6 +167,9 @@ public class ReferenceValueSearchPopupPanel extends PopoverSearchPopupPanel<Obje
                 Model.ofList(allowedRelations), RelationUtil.getRelationChoicesRenderer(), true);
         relation.setOutputMarkupId(true);
         relation.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        relation.getBaseFormComponent().add(AttributeAppender.append(
+                "aria-label",
+                createStringResource("ReferencePopupPanel.relation")));
         relationContainer.add(relation);
     }
 

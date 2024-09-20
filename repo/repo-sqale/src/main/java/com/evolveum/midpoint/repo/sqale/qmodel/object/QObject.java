@@ -33,7 +33,15 @@ public class QObject<R extends MObject> extends FlexibleRelationalPathBase<R> {
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public static final Class<QObject<MObject>> CLASS = (Class) QObject.class;
 
-    public static final String TABLE_NAME = "m_object";
+    /**
+     * Table name for QObject
+     *
+     * We are using view instead of table here, because partitioning of  m_shadow
+     * prevents us from inheriting from m_object and for backwards compatibility
+     * and parent dereferencing in queries we do not know during emiting SQL queries
+     * we do not know if it is just m_object or m_shadow.
+     */
+    public static final String TABLE_NAME = "m_object_view";
 
     public static final ColumnMetadata OID =
             ColumnMetadata.named("oid").ofType(UuidPath.UUID_TYPE).notNull();

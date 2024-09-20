@@ -46,7 +46,11 @@ public class PrismContainerWrapperModel<C extends Containerable, T extends Conta
     }
 
     PrismContainerWrapperModel(IModel<?> parent, String identifier) {
-        super(parent, null, false);
+        this(parent, identifier, false);
+    }
+
+    PrismContainerWrapperModel(IModel<?> parent, String identifier, boolean fromContainerValue) {
+        super(parent, null, fromContainerValue);
         this.identifier = identifier;
     }
 
@@ -76,16 +80,24 @@ public class PrismContainerWrapperModel<C extends Containerable, T extends Conta
     }
 
     public static <C extends Containerable> PrismContainerWrapperModel<C, C> fromContainerValueWrapper(IModel<PrismContainerValueWrapper<C>> parent) {
-        return new PrismContainerWrapperModel<>(parent, null, true);
+        return new PrismContainerWrapperModel<>(parent, (String) null, true);
     }
 
     public static <C extends Containerable, T extends Containerable> PrismContainerWrapperModel<C, T> fromContainerValueWrapper(IModel<PrismContainerValueWrapper<C>> parent, ItemName path) {
         return new PrismContainerWrapperModel<>(parent, ItemPath.create(path), true);
     }
 
+    public static <C extends Containerable, T extends Containerable> PrismContainerWrapperModel<C, T> fromContainerValueWrapper(IModel<PrismContainerValueWrapper<C>> parent, String containerIdentifier) {
+        return new PrismContainerWrapperModel<>(parent, containerIdentifier, true);
+    }
+
     @Override
     public PrismContainerWrapper<T> getObject() {
         if (identifier != null) {
+            if (isFromContainerValue()) {
+                PrismContainerValueWrapper<C> parentObject = (PrismContainerValueWrapper) getParent().getObject();
+                return parentObject.findContainer(identifier);
+            }
             PrismContainerWrapper<?> parentObject = (PrismContainerWrapper) getParent().getObject();
             return parentObject.findContainer(identifier);
         }

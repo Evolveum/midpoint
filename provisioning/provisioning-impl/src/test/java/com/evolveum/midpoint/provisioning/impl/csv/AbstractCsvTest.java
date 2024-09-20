@@ -111,7 +111,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
         display("CSVFile Connector", connector);
 
         // Check connector schema
-        IntegrationTestTools.assertConnectorSchemaSanity(connector, prismContext);
+        IntegrationTestTools.assertConnectorSchemaSanity(connector);
     }
 
     /**
@@ -135,7 +135,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
                 .getConnectorRef().getOid(), null, result).asObjectable();
         assertNotNull(connector);
         XmlSchemaType xmlSchemaTypeBefore = resourceBefore.getSchema();
-        Element resourceXsdSchemaElementBefore = ResourceTypeUtil.getResourceXsdSchema(resourceBefore);
+        Element resourceXsdSchemaElementBefore = ResourceTypeUtil.getResourceXsdSchemaElement(resourceBefore);
         AssertJUnit.assertNull("Found schema before test connection. Bad test setup?", resourceXsdSchemaElementBefore);
 
         // WHEN
@@ -151,7 +151,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
 
         XmlSchemaType xmlSchemaTypeAfter = resourceTypeRepoAfter.getSchema();
         assertNotNull("No schema after test connection", xmlSchemaTypeAfter);
-        Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resourceTypeRepoAfter);
+        Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchemaElement(resourceTypeRepoAfter);
         assertNotNull("No schema after test connection", resourceXsdSchemaElementAfter);
 
         String resourceXml = prismContext.xmlSerializer().serialize(resourceRepoAfter);
@@ -163,7 +163,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
         assertNotNull("No serialNumber", cachingMetadata.getSerialNumber());
 
         Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaTypeAfter);
-        ResourceSchema parsedSchema = ResourceSchemaParser.parse(xsdElement, resourceBefore.toString());
+        ResourceSchema parsedSchema = ResourceSchemaFactory.parseNativeSchemaAsBare(xsdElement);
         assertNotNull("No schema after parsing", parsedSchema);
 
         // schema will be checked in next test
@@ -184,7 +184,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
         PrismContainerDefinition confContDef = configurationContainer.getDefinition();
         assertNotNull("No configuration container definition", confContDef);
         PrismContainer configurationPropertiesContainer =
-                configurationContainer.findContainer(SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
+                configurationContainer.findContainer(SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME);
         assertNotNull("No configuration properties container", configurationPropertiesContainer);
         PrismContainerDefinition confPropDef = configurationPropertiesContainer.getDefinition();
         assertNotNull("No configuration properties container definition", confPropDef);
@@ -197,32 +197,27 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
         // The returned type should have the schema pre-parsed
         assertTrue(ResourceSchemaFactory.hasParsedSchema(resourceType));
 
-        // Also test if the utility method returns the same thing
-        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resourceType);
+        var completeSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resourceType);
 
-        displayDumpable("Parsed resource schema", resourceSchema);
-        assertNotNull("No resource schema", resourceSchema);
+        displayDumpable("Parsed resource schema", completeSchema);
+        assertNotNull("No resource schema", completeSchema);
 
-        ResourceObjectClassDefinition accountDef = resourceSchema.findObjectClassDefinition(RI_ACCOUNT_OBJECT_CLASS);
+        ResourceObjectClassDefinition accountDef = completeSchema.findObjectClassDefinition(RI_ACCOUNT_OBJECT_CLASS);
         assertNotNull("Account definition is missing", accountDef);
         assertNotNull("Null identifiers in account", accountDef.getPrimaryIdentifiers());
         assertFalse("Empty identifiers in account", accountDef.getPrimaryIdentifiers().isEmpty());
         assertNotNull("No naming attribute in account", accountDef.getNamingAttribute());
-        assertFalse("No nativeObjectClass in account", StringUtils.isEmpty(accountDef.getNativeObjectClass()));
+        assertFalse("No nativeObjectClass in account", StringUtils.isEmpty(accountDef.getNativeObjectClassName()));
 
         assertAccountDefinition(accountDef);
 
-        ResourceAttributeDefinition<?> icfsNameDef = accountDef.findAttributeDefinition(SchemaConstants.ICFS_NAME);
+        ShadowSimpleAttributeDefinition<?> icfsNameDef = accountDef.findSimpleAttributeDefinition(SchemaConstants.ICFS_NAME);
         assertNull("ICFS NAME definition sneaked in", icfsNameDef);
 
-        ResourceAttributeDefinition<?> icfsUidDef = accountDef.findAttributeDefinition(SchemaConstants.ICFS_UID);
+        ShadowSimpleAttributeDefinition<?> icfsUidDef = accountDef.findSimpleAttributeDefinition(SchemaConstants.ICFS_UID);
         assertNull("ICFS UID definition sneaked in", icfsUidDef);
 
-        // Check whether it is reusing the existing schema and not parsing it all over again
-        // Not equals() but == ... we want to really know if exactly the same
-        // object instance is returned
-        assertSame("Broken caching", resourceSchema, ResourceSchemaFactory.getRawSchema(resourceType));
-
+        assertCompleteSchemaCached(completeSchema, ResourceSchemaFactory.getCompleteSchema(resourceType));
     }
 
     protected abstract void assertAccountDefinition(ResourceObjectClassDefinition accountDef);

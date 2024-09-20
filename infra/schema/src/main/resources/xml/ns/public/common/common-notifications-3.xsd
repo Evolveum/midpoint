@@ -184,11 +184,11 @@
             <xsd:documentation>
                 Single language localization for the message template.
                 If `attachmentExpression` is not specified, the one from the default content will be used.
-                If no `attachment` is not specified, the ones from the default content will be used.
+                If no `attachment` is specified, the ones from the default content will be used.
                 This allows for language specific attachments without the need to re-specify the ones that
                 are not language specific.
                 It is also possible to override `attachmentExpression` for language specific one and leave
-                `attachment` empty to use the ones defined in `attachment` element of the default content.
+                out `attachment` to use the ones defined in `attachment` element of the default content.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -1486,6 +1486,18 @@
                         </xsd:annotation>
                     </xsd:element>
                     -->
+                    <xsd:element name="notificationSendingStrategy" type="c:NotificationSendingStrategyType" minOccurs="0"
+                            default="separateNotificationToEachRecipient">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                How to send notification to individual recipients, e.g. one message to all recipients,
+                                or separate message to each one?
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.9</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -2085,6 +2097,43 @@
             -->
         </xsd:sequence>
     </xsd:complexType>
+
+    <xsd:simpleType name="NotificationSendingStrategyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defines how the notification should be generated and sent.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="sameNotificationToAllRecipients">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A notification message is generated once, and sent to all the recipients in the same form.
+                        This strategy doesn't allow customizing the message (e.g., taking locale settings into account)
+                        for individual recipients.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SAME_NOTIFICATION_TO_ALL_RECIPIENTS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="separateNotificationToEachRecipient">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A notification message is generated and sent to every recipient separately, taking individual
+                        recipient settings (e.g., locale) into account.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SEPARATE_NOTIFICATION_TO_EACH_RECIPIENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <!-- region Newer 4.5 message transport schema -->
     <!-- TODO add translation for added displayName-s -->

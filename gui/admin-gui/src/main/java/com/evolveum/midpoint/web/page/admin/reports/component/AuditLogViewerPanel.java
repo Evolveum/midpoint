@@ -37,6 +37,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.GuiChannel;
@@ -134,11 +135,6 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
         PageStorage pageStorage = getPageStorage();
         SelectableBeanContainerDataProvider<AuditEventRecordType> provider = new SelectableBeanContainerDataProvider<AuditEventRecordType>(
                 AuditLogViewerPanel.this, getSearchModel(), null, false) {
-
-            @Override
-            protected PageStorage getPageStorage() {
-                return pageStorage;
-            }
 
             @Override
             protected Integer countObjects(Class<AuditEventRecordType> type, ObjectQuery query,
@@ -306,7 +302,7 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
                         } else {
                             rightBottomIcon = eventType.getDisplay().getIcon().getCssClass();
                         }
-                        iconColor = eventType.getDisplay().getIcon().getColor();
+                        iconColor = GuiDisplayTypeUtil.removeStringAfterSemicolon(eventType.getDisplay().getIcon().getColor());
                     }
                     CompositedIconBuilder iconBuilder = new CompositedIconBuilder();
                     if (defaultIcon != null) {
@@ -332,7 +328,7 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
                             WebComponentUtil.createLocalizedModelForEnum(record.getEventType(), AuditLogViewerPanel.this).getObject();
                     String color = eventType != null && eventType.getDisplay() != null && eventType.getDisplay().getIcon() != null ?
                             eventType.getDisplay().getIcon().getColor() : null;
-                    return Model.of(new DisplayType().label(label).color(color));
+                    return Model.of(new DisplayType().label(label).color(GuiDisplayTypeUtil.removeStringAfterSemicolon(color)));
                 }
 
                 @Override

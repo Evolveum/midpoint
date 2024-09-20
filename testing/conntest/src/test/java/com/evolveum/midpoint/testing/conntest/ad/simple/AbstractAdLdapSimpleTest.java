@@ -22,7 +22,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 
 import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.testing.conntest.ad.AdTestMixin;
@@ -48,14 +48,13 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -339,7 +338,7 @@ public abstract class AbstractAdLdapSimpleTest extends AbstractLdapSynchronizati
         assertAccountShadow(shadow, toAccountDn(ACCOUNT_JACK_SAM_ACCOUNT_NAME, ACCOUNT_JACK_FULL_NAME));
         jackAccountOid = shadow.getOid();
 
-        IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
+        IntegrationTestTools.assertAssociationObjectRef(shadow, getAssociationGroupQName(), groupPiratesOid);
 
         assertAttribute(shadow, "dn", "CN=Jack Sparrow,CN=Users,DC=win,DC=evolveum,DC=com");
         assertAttribute(shadow, "cn", ACCOUNT_JACK_FULL_NAME);
@@ -591,7 +590,7 @@ public abstract class AbstractAdLdapSimpleTest extends AbstractLdapSynchronizati
         PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
         display("Shadow (model)", shadow);
         accountBarbossaOid = shadow.getOid();
-        Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
+        Collection<ShadowSimpleAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
         String accountBarbossaIcfUid = (String) identifiers.iterator().next().getRealValue();
         assertNotNull("No identifier in " + shadow, accountBarbossaIcfUid);
 
@@ -603,7 +602,7 @@ public abstract class AbstractAdLdapSimpleTest extends AbstractLdapSynchronizati
 
         assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
 
-        ResourceAttribute<XMLGregorianCalendar> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimeStamp"));
+        ShadowSimpleAttribute<XMLGregorianCalendar> createTimestampAttribute = ShadowUtil.getSimpleAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimeStamp"));
         assertNotNull("No createTimestamp in " + shadow, createTimestampAttribute);
         XMLGregorianCalendar createTimestamp = createTimestampAttribute.getRealValue();
         // LDAP server may be on a different host. Allow for some clock offset.
@@ -621,7 +620,7 @@ public abstract class AbstractAdLdapSimpleTest extends AbstractLdapSynchronizati
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, "title");
-        ResourceAttributeDefinition<?> attrDef = accountDefinition.findAttributeDefinition(attrQName);
+        ShadowSimpleAttributeDefinition<?> attrDef = accountDefinition.findSimpleAttributeDefinition(attrQName);
         PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
                 ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "Captain");
         delta.addModification(attrDelta);
@@ -655,7 +654,7 @@ public abstract class AbstractAdLdapSimpleTest extends AbstractLdapSynchronizati
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, "showInAdvancedViewOnly");
-        ResourceAttributeDefinition<?> attrDef = accountDefinition.findAttributeDefinition(attrQName);
+        ShadowSimpleAttributeDefinition<?> attrDef = accountDefinition.findSimpleAttributeDefinition(attrQName);
         PropertyDelta<Boolean> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
                 ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, Boolean.TRUE);
         delta.addModification(attrDelta);
@@ -692,7 +691,7 @@ public abstract class AbstractAdLdapSimpleTest extends AbstractLdapSynchronizati
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, "showInAdvancedViewOnly");
-        ResourceAttributeDefinition<?> attrDef = accountDefinition.findAttributeDefinition(attrQName);
+        ShadowSimpleAttributeDefinition<?> attrDef = accountDefinition.findSimpleAttributeDefinition(attrQName);
         PropertyDelta<Boolean> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
                 ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, Boolean.TRUE);
         delta.addModification(attrDelta);
@@ -874,7 +873,7 @@ public abstract class AbstractAdLdapSimpleTest extends AbstractLdapSynchronizati
         String shadowOid = getSingleLinkOid(user);
 
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
-        IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
+        IntegrationTestTools.assertAssociationObjectRef(shadow, getAssociationGroupQName(), groupPiratesOid);
         assertAccountDisabled(shadow);
 
         assertLdapConnectorReasonableInstances();
@@ -967,7 +966,7 @@ public abstract class AbstractAdLdapSimpleTest extends AbstractLdapSynchronizati
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
 
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
-        IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
+        IntegrationTestTools.assertAssociationObjectRef(shadow, getAssociationGroupQName(), groupPiratesOid);
 
         assertLdapConnectorReasonableInstances();
     }
@@ -1128,7 +1127,7 @@ public abstract class AbstractAdLdapSimpleTest extends AbstractLdapSynchronizati
 
         assertLdapGroupMember(entry, GROUP_MELEE_ISLAND_NAME);
 
-        IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupMeleeOid);
+        IntegrationTestTools.assertAssociationObjectRef(shadow, getAssociationGroupQName(), groupMeleeOid);
 
         assertLdapConnectorReasonableInstances();
     }
@@ -1150,7 +1149,7 @@ public abstract class AbstractAdLdapSimpleTest extends AbstractLdapSynchronizati
     @Override
     protected void assertAccountShadow(PrismObject<ShadowType> shadow, String dn) throws SchemaException, ConfigurationException {
         super.assertAccountShadow(shadow, dn);
-        ResourceAttribute<String> primaryIdAttr = ShadowUtil.getAttribute(shadow, getPrimaryIdentifierAttributeQName());
+        ShadowSimpleAttribute<String> primaryIdAttr = ShadowUtil.getSimpleAttribute(shadow, getPrimaryIdentifierAttributeQName());
         assertNotNull("No primary identifier (" + getPrimaryIdentifierAttributeQName() + " in " + shadow, primaryIdAttr);
         String primaryId = primaryIdAttr.getRealValue();
         assertTrue("Unexpected chars in primary ID: '" + primaryId + "'", primaryId.matches("[a-z0-9\\-]+"));
@@ -1250,12 +1249,6 @@ public abstract class AbstractAdLdapSimpleTest extends AbstractLdapSynchronizati
     @SafeVarargs
     public final <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName, T... expectedValues) {
         assertAttribute(shadow, new QName(getResourceNamespace(), attrName), expectedValues);
-    }
-
-    @SafeVarargs
-    public final <T> void assertAttribute(PrismObject<ShadowType> shadow, QName attrQname, T... expectedValues) {
-        List<T> actualValues = ShadowUtil.getAttributeValues(shadow, attrQname);
-        PrismAsserts.assertSets("attribute " + attrQname + " in " + shadow, actualValues, expectedValues);
     }
 
     protected abstract void assertAccountDisabled(PrismObject<ShadowType> shadow);

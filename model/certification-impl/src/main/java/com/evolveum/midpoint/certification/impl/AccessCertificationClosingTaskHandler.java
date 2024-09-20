@@ -6,13 +6,34 @@
  */
 package com.evolveum.midpoint.certification.impl;
 
+import static org.apache.commons.lang3.BooleanUtils.isTrue;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
+import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
+
+import java.util.*;
+import javax.xml.namespace.QName;
+
+import jakarta.annotation.PostConstruct;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.cases.api.CaseManager;
+import com.evolveum.midpoint.cases.api.util.PerformerCommentsFormatter;
 import com.evolveum.midpoint.certification.api.OutcomeUtils;
-import com.evolveum.midpoint.repo.common.SystemObjectCache;
+import com.evolveum.midpoint.model.impl.lens.OperationalDataManager;
+import com.evolveum.midpoint.model.impl.lens.OperationalDataManager.CertificationProcessMetadata;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -23,28 +44,11 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.cases.api.CaseManager;
-import com.evolveum.midpoint.cases.api.util.PerformerCommentsFormatter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import jakarta.annotation.PostConstruct;
-import javax.xml.namespace.QName;
-import java.util.*;
-
-import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
-import static java.util.Collections.emptyList;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * The task handler for writing assignment/object metadata.
@@ -62,6 +66,7 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
     @Autowired private AccCertQueryHelper queryHelper;
     @Autowired private SystemObjectCache objectCache;
     @Autowired private CaseManager caseManager;
+    @Autowired private OperationalDataManager operationalDataManager;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
     private static final Trace LOGGER = TraceManager.getTrace(AccessCertificationClosingTaskHandler.class);
@@ -136,73 +141,87 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
         }
     }
 
-    private void prepareMetadataDeltas(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign,
+    private void prepareMetadataDeltas(
+            AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign,
             RunContext runContext, OperationResult result) {
+
+        var processMetadata = createProcessMetadata(aCase, campaign, runContext, result);
+        if (processMetadata == null) {
+            return;
+        }
+
+        ObjectType object = null;
 
         try {
             // we count progress for each certification case and then for each object updated
             runContext.task.incrementLegacyProgressAndStoreStatisticsIfTimePassed(result);
-        } catch (SchemaException | ObjectNotFoundException e) {
-            throw new SystemException("Unexpected exception while reporting progress/stats: " + e.getMessage(), e);
-        }
 
-        String objectOid = aCase.getObjectRef() != null ? aCase.getObjectRef().getOid() : null;
-        if (objectOid == null) {
-            LOGGER.error("No object OID in certification case {}: skipping metadata recording", aCase);
-            return;
-        }
-        ObjectContext objectCtx = runContext.objectContextMap.get(objectOid);
-        if (objectCtx == null) {
-            QName objectType = defaultIfNull(aCase.getObjectRef().getType(), ObjectType.COMPLEX_TYPE);
-            Class<? extends ObjectType> objectClass = ObjectTypes.getObjectTypeClass(objectType);
-            PrismObject<? extends ObjectType> object;
-            try {
-                object = repositoryService.getObject(objectClass, objectOid, null, result);
-            } catch (ObjectNotFoundException|SchemaException e) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve object {} {} to have its certification metadata updated", e, objectClass.getSimpleName(), objectOid);
+            String objectOid = aCase.getObjectRef() != null ? aCase.getObjectRef().getOid() : null;
+            if (objectOid == null) {
+                LOGGER.error("No object OID in certification case {}: skipping metadata recording", aCase);
                 return;
             }
-            objectCtx = new ObjectContext(object.asObjectable());
-            runContext.objectContextMap.put(object.getOid(), objectCtx);
-        }
-
-        ItemPath pathPrefix;
-        if (aCase instanceof AccessCertificationAssignmentCaseType) {
-            AccessCertificationAssignmentCaseType assignmentCase = (AccessCertificationAssignmentCaseType) aCase;
-            AssignmentType assignment = assignmentCase.getAssignment();
-            if (assignment == null) {
-                LOGGER.error("No assignment/inducement in assignment-related certification case {}: skipping metadata recording", aCase);
-                return;
-            } else if (assignment.getId() == null) {
-                LOGGER.error("Unidentified assignment/inducement in assignment-related certification case {}: {}: skipping metadata recording", aCase, assignment);
-                return;
+            ObjectContext objectCtx = runContext.objectContextMap.get(objectOid);
+            if (objectCtx == null) {
+                QName objectType = defaultIfNull(aCase.getObjectRef().getType(), ObjectType.COMPLEX_TYPE);
+                Class<? extends ObjectType> objectClass = ObjectTypes.getObjectTypeClass(objectType);
+                try {
+                    object = repositoryService.getObject(objectClass, objectOid, null, result).asObjectable();
+                } catch (ObjectNotFoundException | SchemaException e) {
+                    LoggingUtils.logUnexpectedException(LOGGER,
+                            "Couldn't retrieve object {} {} to have its certification metadata updated",
+                            e, objectClass.getSimpleName(), objectOid);
+                    return;
+                }
+                objectCtx = new ObjectContext(object);
+                runContext.objectContextMap.put(object.getOid(), objectCtx);
+            } else {
+                object = objectCtx.object;
             }
-            QName root = Boolean.TRUE.equals(assignmentCase.isIsInducement()) ? AbstractRoleType.F_INDUCEMENT : FocusType.F_ASSIGNMENT;
-            ItemPath assignmentPath = ItemPath.create(root, assignment.getId());
-            if (objectCtx.object.asPrismObject().find(assignmentPath) == null) {
-                LOGGER.debug("Assignment/inducement {} in {} does not exist. It might be already deleted e.g. by remediation.",
-                        assignmentPath, toShortString(objectCtx.object));
-                return;
-            }
-            pathPrefix = assignmentPath.append(AssignmentType.F_METADATA);
-        } else {
-            pathPrefix = ObjectType.F_METADATA;
-        }
 
-        try {
-            objectCtx.modifications.addAll(createMetadataDeltas(aCase, campaign, objectCtx.object.getClass(), pathPrefix, runContext, result));
-        } catch (SchemaException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create certification metadata for {} {}", e, toShortString(objectCtx.object));
+            if (aCase instanceof AccessCertificationAssignmentCaseType assignmentCase) {
+                AssignmentType assignment = assignmentCase.getAssignment();
+                if (assignment == null) {
+                    LOGGER.error("No assignment/inducement in assignment-related certification case {}: "
+                            + "skipping metadata recording", aCase);
+                    return;
+                } else if (assignment.getId() == null) {
+                    LOGGER.error("Unidentified assignment/inducement in assignment-related certification case {}: {}: "
+                            + "skipping metadata recording", aCase, assignment);
+                    return;
+                }
+                var assignmentPath = ItemPath.create(
+                        isTrue(assignmentCase.isIsInducement()) ? AbstractRoleType.F_INDUCEMENT : FocusType.F_ASSIGNMENT,
+                        assignment.getId());
+                //noinspection unchecked
+                var assignmentPcv = (PrismContainerValue<AssignmentType>) objectCtx.object.asPrismObject().find(assignmentPath);
+                if (assignmentPcv == null) {
+                    LOGGER.debug("Assignment/inducement {} in {} does not exist. It might be already deleted e.g. by remediation.",
+                            assignmentPath, object);
+                    return;
+                }
+                objectCtx.modifications.addAll(
+                        operationalDataManager.createAssignmentCertificationMetadataDeltas(
+                                object.getClass(), assignmentPath, assignmentPcv, processMetadata));
+            } else {
+                objectCtx.modifications.addAll(
+                        operationalDataManager.createObjectCertificationMetadataDeltas(
+                                objectCtx.object, processMetadata));
+            }
+        } catch (Exception e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create certification metadata for {} {}", e, object);
+            // continuing with other cases
         }
     }
 
-    private List<ItemDelta<?, ?>> createMetadataDeltas(AccessCertificationCaseType aCase,
-            AccessCertificationCampaignType campaign, Class<? extends ObjectType> objectClass, ItemPath pathPrefix,
-            RunContext runContext, OperationResult result) throws SchemaException {
+    private CertificationProcessMetadata createProcessMetadata(
+            AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign,
+            RunContext runContext, OperationResult result) {
         String outcome = aCase.getOutcome();
         if (OutcomeUtils.isNoneOrNotDecided(outcome)) {
-            return emptyList();
+            return null;
         }
+
         Set<ObjectReferenceType> certifiers = new HashSet<>();
         Set<String> comments = new HashSet<>();
         for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
@@ -219,17 +238,12 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
                 }
             }
         }
-        return prismContext.deltaFor(objectClass)
-                .item(pathPrefix.append(MetadataType.F_CERTIFICATION_FINISHED_TIMESTAMP)).replace(campaign.getEndTimestamp())
-                .item(pathPrefix.append(MetadataType.F_CERTIFICATION_OUTCOME)).replace(outcome)
-                .item(pathPrefix.append(MetadataType.F_CERTIFIER_REF)).replaceRealValues(certifiers)
-                .item(pathPrefix.append(MetadataType.F_CERTIFIER_COMMENT)).replaceRealValues(comments)
-                .asItemDeltas();
+        return new CertificationProcessMetadata(campaign.getEndTimestamp(), outcome, certifiers, comments);
     }
 
     @Override
     public Long heartbeat(Task task) {
-        return null;    // not to reset progress information
+        return null; // not to reset progress information
     }
 
     @Override
@@ -237,7 +251,8 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
         // Do nothing. Everything is fresh already.
     }
 
-    void launch(AccessCertificationCampaignType campaign, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+    void launch(AccessCertificationCampaignType campaign, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException {
 
         LOGGER.debug("Launching closing task handler for campaign {} as asynchronous task", toShortString(campaign));
 
@@ -247,7 +262,7 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
         Task task = taskManager.createTaskInstance();
         task.setHandlerUri(HANDLER_URI);
         task.setName(new PolyStringType("Closing " + campaign.getName()));
-        task.setObjectRef(ObjectTypeUtil.createObjectRef(campaign, prismContext));
+        task.setObjectRef(ObjectTypeUtil.createObjectRef(campaign));
         task.setOwner(repositoryService.getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), null, result));
         task.addArchetypeInformation(SystemObjectsType.ARCHETYPE_CERTIFICATION_TASK.value());
         taskManager.switchToBackground(task, result);

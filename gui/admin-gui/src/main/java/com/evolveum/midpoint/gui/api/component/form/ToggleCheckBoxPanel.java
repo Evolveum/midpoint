@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.api.component.form;
 
+import org.apache.wicket.Component;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.basic.Label;
@@ -24,6 +26,7 @@ public class ToggleCheckBoxPanel extends InputPanel {
 
     private static final String ID_CHECK = "check";
     private static final String ID_LABEL = "label";
+    private static final String ID_TITLE = "title";
     private static final String ID_DESCRIPTION = "description";
 
     private final IModel<Boolean> checkboxModel;
@@ -44,20 +47,37 @@ public class ToggleCheckBoxPanel extends InputPanel {
     protected void onInitialize() {
         super.onInitialize();
 
+        add(AttributeAppender.append("class", getComponentCssClass()));
+
         CheckBox check = new CheckBox(ID_CHECK, checkboxModel);
         check.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         check.setOutputMarkupId(true);
         check.add(new EnableBehaviour(this::isCheckboxEnabled));
         add(check);
 
-        Label label = new Label(ID_LABEL, labelModel);
-        add(label);
+//        Label label = new Label(ID_LABEL, labelModel);
+//        add(label);
+
+        Component titleComponent = getTitleComponent(ID_LABEL);
+        add(titleComponent);
 
         Label description = new Label(ID_DESCRIPTION, descriptionModel);
+        description.setOutputMarkupId(true);
+        description.add(AttributeAppender.append("class", getDescriptionCssClass()));
         add(description);
-
     }
 
+    public String getComponentCssClass() {
+        return "d-flex flex-row gap-3";
+    }
+
+    public String getDescriptionCssClass() {
+        return null;
+    }
+
+    public Component getTitleComponent(String id) {
+        return new Label(id, labelModel);
+    }
 
     public CheckBox getPanelComponent() {
         return (CheckBox) get(ID_CHECK);
@@ -76,7 +96,7 @@ public class ToggleCheckBoxPanel extends InputPanel {
         return true;
     }
 
-    public FormComponent getBaseFormComponent() {
+    public FormComponent<?> getBaseFormComponent() {
         return getPanelComponent();
     }
 

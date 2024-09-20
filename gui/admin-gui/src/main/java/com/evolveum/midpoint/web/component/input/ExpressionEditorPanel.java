@@ -17,7 +17,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
-import org.apache.wicket.markup.html.form.TextArea;
+import com.evolveum.midpoint.gui.api.component.form.TextArea;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
@@ -163,7 +163,7 @@ public class ExpressionEditorPanel extends BasePanel<ExpressionType> {
 
         DropDownChoice<?> policyRef = new DropDownChoice<>(ID_POLICY_REF,
                 new PropertyModel<>(dtoModel, ExpressionTypeDto.F_POLICY_REF),
-                (IModel<List<ObjectReferenceType>>) () -> WebModelServiceUtils.createObjectReferenceList(
+                (IModel<List<ObjectReferenceType>>) () -> WebModelServiceUtils.createObjectReferenceListForType(
                         ValuePolicyType.class, getPageBase(), policyMap), new ObjectReferenceChoiceRenderer(policyMap));
         policyRef.add(new AjaxFormComponentUpdatingBehavior("change") {
 

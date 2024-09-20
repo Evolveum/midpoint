@@ -17,6 +17,7 @@ import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTes
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.test.DummyTestResource;
@@ -493,6 +494,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         getDummyResource().deleteAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
         displayDumpable("dummy resource before", getDummyResource());
 
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_OID);
+
         // WHEN
         when();
         recomputeUser(USER_JACK_OID, task, result);
@@ -528,6 +531,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         getDummyResource(RESOURCE_DUMMY_BEIGE_NAME).deleteAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
         displayDumpable("beige dummy resource before", getDummyResource(RESOURCE_DUMMY_BEIGE_NAME));
+
+        // Actually, the test should work even without invalidating the cache, as (during the processing) the shadow
+        // is tried to be fetched - because credentials are not cached by default. But there is a problem that
+        // the re-creation of the shadow is ordered too late to be executed (in click #5).
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_BEIGE_OID);
 
         // WHEN
         when();
@@ -653,9 +661,13 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         getDummyResource().deleteAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
         displayDumpable("dummy resource before", getDummyResource());
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_OID);
 
         getDummyResource(RESOURCE_DUMMY_BEIGE_NAME).deleteAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
         displayDumpable("beige dummy resource before", getDummyResource(RESOURCE_DUMMY_BEIGE_NAME));
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_BEIGE_OID);
+
+        // For invalidations, see the note in test224.
 
         // WHEN
         when();
@@ -1103,7 +1115,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
                         .assertModifiedExclusive(
                                 UserType.F_NAME,
                                 UserType.F_FULL_NAME,
-                                UserType.F_METADATA)
+                                InfraItemName.METADATA)
                         .assertPolyStringModification(UserType.F_NAME, "jack", toName)
                         .assertPolyStringModification(UserType.F_FULL_NAME, "Jack Sparrow", toFullName)
                     .end()
@@ -1444,7 +1456,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         String accountOid = getLiveLinkRefOid(userJack, RESOURCE_DUMMY_BLUE_OID);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        var accountShadow = getShadowRepo(accountOid);
         assertAccountShadowRepo(accountShadow, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, getDummyResourceType(RESOURCE_DUMMY_BLUE_NAME));
 
         // Check account
@@ -1480,7 +1492,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         String accountOid = getLiveLinkRefOid(userJack, RESOURCE_DUMMY_OID);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        var accountShadow = getShadowRepo(accountOid);
         assertDummyAccountShadowRepo(accountShadow, accountOid, ACCOUNT_JACK_DUMMY_USERNAME);
 
         // Check account

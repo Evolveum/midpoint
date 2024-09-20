@@ -22,6 +22,8 @@ import java.util.function.Function;
 
 import org.identityconnectors.common.logging.Log;
 
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+
 /**
  * Connector for the Dummy Resource, abstract superclass.
  *
@@ -36,11 +38,12 @@ import org.identityconnectors.common.logging.Log;
  * @see DummyResource
  *
  */
-public abstract class AbstractModernObjectDummyConnector extends AbstractObjectDummyConnector implements UpdateDeltaOp, InstanceNameAware {
+public abstract class AbstractModernObjectDummyConnector
+        extends AbstractObjectDummyConnector
+        implements UpdateDeltaOp, InstanceNameAware {
 
     // We want to see if the ICF framework logging works properly
     private static final Log LOG = Log.getLog(AbstractModernObjectDummyConnector.class);
-
 
     private String instanceName;
 
@@ -50,7 +53,8 @@ public abstract class AbstractModernObjectDummyConnector extends AbstractObjectD
     }
 
     @Override
-    public Set<AttributeDelta> updateDelta(final ObjectClass objectClass, final Uid uid, final Set<AttributeDelta> modifications, final OperationOptions options) {
+    public Set<AttributeDelta> updateDelta(
+            ObjectClass objectClass, Uid uid, Set<AttributeDelta> modifications, OperationOptions options) {
         LOG.info("updateDelta::begin {0}", instanceName);
         validate(objectClass);
         validate(uid);
@@ -60,18 +64,18 @@ public abstract class AbstractModernObjectDummyConnector extends AbstractObjectD
 
         try {
 
+            String objectClassName = fromConnIdObjectClass(objectClass);
+
             if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
 
                 final DummyAccount account;
                 if (configuration.isUidBoundToName()) {
-                    account = resource.getAccountByUsername(uid.getUidValue(), false);
-                } else if (configuration.isUidSeparateFromName()) {
-                    account = resource.getAccountById(uid.getUidValue(), false);
+                    account = resource.getAccountByName(uid.getUidValue(), false);
                 } else {
-                    throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+                    account = resource.getAccountById(uid.getUidValue(), false);
                 }
                 if (account == null) {
-                    throw new UnknownUidException("Account with UID "+uid+" does not exist on resource");
+                    throw new UnknownUidException("Account with UID " + uid + " does not exist on resource");
                 }
                 applyModifyMetadata(account, options);
 
@@ -134,7 +138,7 @@ public abstract class AbstractModernObjectDummyConnector extends AbstractObjectD
 
                     } else if (delta.is(OperationalAttributes.LOCK_OUT_NAME)) {
                         assertReplace(delta);
-                        account.setLockout(getBooleanMandatory(delta));
+                        account.setLockoutStatus(getBooleanMandatory(delta));
 
                     } else if (PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME.equalsIgnoreCase(delta.getName())) {
                         applyAuxiliaryObjectClassDelta(account, delta);
@@ -151,10 +155,8 @@ public abstract class AbstractModernObjectDummyConnector extends AbstractObjectD
                 final DummyGroup group;
                 if (configuration.isUidBoundToName()) {
                     group = resource.getGroupByName(uid.getUidValue(), false);
-                } else if (configuration.isUidSeparateFromName()) {
-                    group = resource.getGroupById(uid.getUidValue(), false);
                 } else {
-                    throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+                    group = resource.getGroupById(uid.getUidValue(), false);
                 }
                 if (group == null) {
                     throw new UnknownUidException("Group with UID "+uid+" does not exist on resource");
@@ -198,29 +200,19 @@ public abstract class AbstractModernObjectDummyConnector extends AbstractObjectD
                 }
 
 
-            } else if (objectClass.is(OBJECTCLASS_PRIVILEGE_NAME)) {
+            } else {
 
-                final DummyPrivilege priv;
-                if (configuration.isUidBoundToName()) {
-                    priv = resource.getPrivilegeByName(uid.getUidValue(), false);
-                } else if (configuration.isUidSeparateFromName()) {
-                    priv = resource.getPrivilegeById(uid.getUidValue(), false);
-                } else {
-                    throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
-                }
-                if (priv == null) {
-                    throw new UnknownUidException("Privilege with UID "+uid+" does not exist on resource");
-                }
-                applyModifyMetadata(priv, options);
+                DummyObject dummyObject = findObjectByUidRequired(objectClassName, uid, false);
+                applyModifyMetadata(dummyObject, options);
 
                 for (AttributeDelta delta : modifications) {
                     if (delta.is(Name.NAME)) {
                         assertReplace(delta);
                         String newName = getSingleReplaceValueMandatory(delta, String.class);
-                        boolean doRename = handlePhantomRenames(objectClass, priv, newName);
+                        boolean doRename = handlePhantomRenames(objectClass, dummyObject, newName);
                         if (doRename) {
                             try {
-                                resource.renamePrivilege(priv.getId(), priv.getName(), newName);
+                                resource.renameObject(objectClassName, dummyObject.getId(), dummyObject.getName(), newName);
                             } catch (ObjectDoesNotExistException e) {
                                 throw new org.identityconnectors.framework.common.exceptions.UnknownUidException(e.getMessage(), e);
                             } catch (ObjectAlreadyExistsException e) {
@@ -232,63 +224,16 @@ public abstract class AbstractModernObjectDummyConnector extends AbstractObjectD
                             }
                         }
                     } else if (delta.is(OperationalAttributes.PASSWORD_NAME)) {
-                        throw new InvalidAttributeValueException("Attempt to change password on privilege");
+                        throw new InvalidAttributeValueException("Attempt to change password on " + objectClassName);
 
                     } else if (delta.is(OperationalAttributes.ENABLE_NAME)) {
-                        throw new InvalidAttributeValueException("Attempt to change enable on privilege");
+                        throw new InvalidAttributeValueException("Attempt to change enable on " + objectClassName);
 
                     } else {
-                        applyOrdinaryAttributeDelta(priv, delta, null);
+                        applyOrdinaryAttributeDelta(dummyObject, delta, null);
                     }
                 }
-
-
-            } else if (objectClass.is(OBJECTCLASS_ORG_NAME)) {
-
-                final DummyOrg org;
-                if (configuration.isUidBoundToName()) {
-                    org = resource.getOrgByName(uid.getUidValue(), false);
-                } else if (configuration.isUidSeparateFromName()) {
-                    org = resource.getOrgById(uid.getUidValue(), false);
-                } else {
-                    throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
-                }
-                if (org == null) {
-                    throw new UnknownUidException("Org with UID "+uid+" does not exist on resource");
-                }
-                applyModifyMetadata(org, options);
-
-                for (AttributeDelta delta : modifications) {
-                    if (delta.is(Name.NAME)) {
-                        assertReplace(delta);
-                        String newName = getSingleReplaceValueMandatory(delta, String.class);
-                        try {
-                            resource.renameOrg(org.getId(), org.getName(), newName);
-                        } catch (ObjectDoesNotExistException e) {
-                            throw new org.identityconnectors.framework.common.exceptions.UnknownUidException(e.getMessage(), e);
-                        } catch (ObjectAlreadyExistsException e) {
-                            throw new org.identityconnectors.framework.common.exceptions.AlreadyExistsException(e.getMessage(), e);
-                        }
-                        // We need to change the returned uid here
-                        if (configuration.isUidBoundToName()) {
-                            addUidChange(sideEffectChanges, newName);
-                        }
-                    } else if (delta.is(OperationalAttributes.PASSWORD_NAME)) {
-                        throw new InvalidAttributeValueException("Attempt to change password on org");
-
-                    } else if (delta.is(OperationalAttributes.ENABLE_NAME)) {
-                        throw new InvalidAttributeValueException("Attempt to change enable on org");
-
-                    } else {
-                        applyOrdinaryAttributeDelta(org, delta, null);
-                    }
-                }
-
-
-            } else {
-                throw new ConnectorException("Unknown object class "+objectClass);
             }
-
         } catch (ConnectException e) {
             LOG.info("update::exception "+e);
             throw new ConnectionFailedException(e.getMessage(), e);
@@ -340,9 +285,6 @@ public abstract class AbstractModernObjectDummyConnector extends AbstractObjectD
 
     protected void validateModifications(ObjectClass objectClass, Set<AttributeDelta> modifications) {
         String[] alwaysRequireUpdateOfAttributes = getConfiguration().getAlwaysRequireUpdateOfAttribute();
-        if (alwaysRequireUpdateOfAttributes.length == 0) {
-            return;
-        }
         for (String alwaysRequireUpdateOfAttributeSpec : alwaysRequireUpdateOfAttributes) {
             String[] split = alwaysRequireUpdateOfAttributeSpec.split(":");
             String objectClassName = split[0];
@@ -393,7 +335,8 @@ public abstract class AbstractModernObjectDummyConnector extends AbstractObjectD
         }
     }
 
-    private <T> void applyOrdinaryAttributeDelta(DummyObject dummyObject, AttributeDelta delta, Function<List<T>, List<T>> valuesTransformer) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+    private <T> void applyOrdinaryAttributeDelta(DummyObject dummyObject, AttributeDelta delta, Function<List<T>, List<T>> valuesTransformer)
+            throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
         String attributeName = delta.getName();
         try {
             List<T> replaceValues = getReplaceValues(delta, null);
@@ -401,21 +344,33 @@ public abstract class AbstractModernObjectDummyConnector extends AbstractObjectD
                 if (valuesTransformer != null) {
                     replaceValues = valuesTransformer.apply(replaceValues);
                 }
-                dummyObject.replaceAttributeValues(attributeName, (Collection)replaceValues);
+                if (dummyObject.isLink(attributeName)) {
+                    replaceLinkValues(dummyObject, attributeName, replaceValues);
+                } else {
+                    dummyObject.replaceAttributeValues(attributeName, (Collection) replaceValues);
+                }
             }
             List<T> addValues = getAddValues(delta, null);
             if (addValues != null) {
                 if (valuesTransformer != null) {
                     addValues = valuesTransformer.apply(addValues);
                 }
-                dummyObject.addAttributeValues(attributeName, (Collection)addValues);
+                if (dummyObject.isLink(attributeName)) {
+                    addLinkValues(dummyObject, attributeName, addValues);
+                } else {
+                    dummyObject.addAttributeValues(attributeName, (Collection) addValues);
+                }
             }
             List<T> deleteValues = getRemoveValues(delta, null);
             if (deleteValues != null) {
                 if (valuesTransformer != null) {
                     deleteValues = valuesTransformer.apply(deleteValues);
                 }
-                dummyObject.removeAttributeValues(attributeName, (Collection)deleteValues);
+                if (dummyObject.isLink(attributeName)) {
+                    deleteLinkValues(dummyObject, attributeName, deleteValues);
+                } else {
+                    dummyObject.removeAttributeValues(attributeName, (Collection) deleteValues);
+                }
             }
         } catch (SchemaViolationException e) {
             // Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
@@ -424,7 +379,88 @@ public abstract class AbstractModernObjectDummyConnector extends AbstractObjectD
         } catch (InterruptedException e) {
             throw new OperationTimeoutException(e.getMessage(), e);
         }
+    }
 
+    private void replaceLinkValues(DummyObject dummyObject, String linkName, Collection<?> valuesToReplace)
+            throws ConflictException, FileNotFoundException, SchemaViolationException,
+            InterruptedException, ConnectException {
+        dummyObject.deleteAllLinkValues(linkName);
+        addLinkValues(dummyObject, linkName, valuesToReplace);
+    }
+
+    private void addLinkValues(DummyObject dummyObject, String linkName, Collection<?> valuesToAdd)
+            throws ConflictException, FileNotFoundException, SchemaViolationException,
+            InterruptedException, ConnectException {
+        for (Object valueToAdd : valuesToAdd) {
+            var targetObject = convertReferenceAttributeValueWhenAdding(valueToAdd);
+            dummyObject.addLinkValue(linkName, targetObject);
+        }
+    }
+
+    private void deleteLinkValues(DummyObject dummyObject, String linkName, Collection<?> valuesToDelete)
+            throws SchemaViolationException, ConflictException, FileNotFoundException,
+            InterruptedException, ConnectException {
+        for (Object valueToDelete : valuesToDelete) {
+            for (DummyObject linkedObject : dummyObject.getLinkedObjects(linkName)) {
+                if (objectMatches(linkedObject, valueToDelete)) {
+                    dummyObject.deleteLinkValue(linkName, linkedObject);
+                }
+            }
+        }
+    }
+
+    private boolean objectMatches(DummyObject object, Object value) throws SchemaViolationException {
+        if (!(value instanceof ConnectorObjectReference reference)) {
+            throw new SchemaViolationException("Trying to delete non-reference link value: " + value);
+        }
+        for (var icfAttribute : reference.getValue().getAttributes()) {
+            var attrName = icfAttribute.getName();
+            if (icfAttribute.is(Uid.NAME)) {
+                var currentUidValue = createUid(object).getUidValue();
+                var expectedUidValue = Utils.getAttributeSingleValue(icfAttribute, String.class);
+                if (!Objects.equals(currentUidValue, expectedUidValue)) {
+                    return false;
+                }
+            } else if (icfAttribute.is(Name.NAME)) {
+                var currentName = object.getName();
+                var expectedName = convertIcfName(Utils.getAttributeSingleValue(icfAttribute, String.class));
+                if (!Objects.equals(currentName, expectedName)) {
+                    return false;
+                }
+            } else if (object.isLink(attrName)) {
+                var currentLinkedObjects = object.getLinkedObjects(attrName);
+                var expectedValues = emptyIfNull(icfAttribute.getValue());
+                if (!linkValuesMatch(currentLinkedObjects, expectedValues)) {
+                    return false;
+                }
+            } else {
+                Set<Object> currentValues = new HashSet<>(emptyIfNull(object.getAttributeValues(attrName, Object.class)));
+                Set<Object> expectedValues = new HashSet<>(emptyIfNull(icfAttribute.getValue()));
+                if (!Objects.equals(currentValues, expectedValues)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private boolean linkValuesMatch(Collection<DummyObject> currentLinkedObjects, List<Object> expectedValues)
+            throws SchemaViolationException {
+        var remainingExpectedValues = new ArrayList<>(expectedValues);
+        for (DummyObject currentLinkedObject : currentLinkedObjects) {
+            var matchFound = false;
+            for (Object expectedValue : remainingExpectedValues) {
+                if (objectMatches(currentLinkedObject, expectedValue)) {
+                    matchFound = true;
+                    remainingExpectedValues.remove(expectedValue);
+                    break;
+                }
+            }
+            if (!matchFound) {
+                return false;
+            }
+        }
+        return remainingExpectedValues.isEmpty();
     }
 
     private Boolean getBoolean(AttributeDelta delta) {
@@ -467,17 +503,14 @@ public abstract class AbstractModernObjectDummyConnector extends AbstractObjectD
         return (T) valueToReplace;
     }
 
-    @SuppressWarnings("unchecked")
     private <T> List<T> getReplaceValues(AttributeDelta modification, Class<T> extectedClass) {
         return assertTypes(modification, modification.getValuesToReplace(), "replace", extectedClass);
     }
 
-    @SuppressWarnings("unchecked")
     private <T> List<T> getAddValues(AttributeDelta modification, Class<T> extectedClass) {
         return assertTypes(modification, modification.getValuesToAdd(), "add", extectedClass);
     }
 
-    @SuppressWarnings("unchecked")
     private <T> List<T> getRemoveValues(AttributeDelta modification, Class<T> extectedClass) {
         return assertTypes(modification, modification.getValuesToRemove(), "remove", extectedClass);
     }
@@ -531,6 +564,7 @@ public abstract class AbstractModernObjectDummyConnector extends AbstractObjectD
         for (Object val: values) {
             newValues.add(StringUtils.upperCase((String)val));
         }
+        //noinspection unchecked
         return (List<T>) newValues;
     }
 

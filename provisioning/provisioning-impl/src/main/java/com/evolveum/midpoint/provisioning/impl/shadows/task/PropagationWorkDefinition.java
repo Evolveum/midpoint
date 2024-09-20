@@ -17,6 +17,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.Nullable;
 
 public class PropagationWorkDefinition extends AbstractWorkDefinition {
 
@@ -36,7 +37,7 @@ public class PropagationWorkDefinition extends AbstractWorkDefinition {
     }
 
     @Override
-    public @NotNull AffectedObjectsInformation.ObjectSet getAffectedObjectSetInformation() {
+    public @NotNull AffectedObjectsInformation.ObjectSet getAffectedObjectSetInformation(@Nullable AbstractActivityWorkStateType state) {
         return AffectedObjectsInformation.ObjectSet.resource(
                 new BasicResourceObjectSetType()
                         .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE));

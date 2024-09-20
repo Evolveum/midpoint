@@ -9,17 +9,39 @@ package com.evolveum.midpoint.model.api;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.RestAuthorizationAction;
+import com.evolveum.midpoint.security.enforcer.api.AbstractAuthorizationParameters;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 
+/**
+ * Represents a model-level action (method) that can be authorized.
+ *
+ * Documented in https://docs.evolveum.com/midpoint/reference/security/authorization/configuration/#object-authorization-actions
+ * with additional (developer-level) information here.
+ *
+ * @see RestAuthorizationAction
+ */
 public enum ModelAuthorizationAction implements DisplayableValue<String> {
 
     READ("read", "Read", "READ_HELP"),
     GET("get", "Get", "GET_HELP"),
     SEARCH("search", "Search", "SEARCH_HELP"),
+    SEARCH_BY("searchBy", "Search by", "SEARCH_BY_HELP"), // to be decided
     ADD("add", "Add", "ADD_HELP"),
+
+    /**
+     * Allows the object to be modified. When asked about it (e.g., via {@link SecurityEnforcer#isAuthorized(String,
+     * AuthorizationPhaseType, AbstractAuthorizationParameters, SecurityEnforcer.Options, Task, OperationResult)}),
+     * please make sure that you provide a non-null delta that describes the requested modification.
+     *
+     * A special case is asking whether there is _any_ authorization to modify the object.
+     * In that case, you may provide an empty delta, provided by it is *non-null*.
+     */
     MODIFY("modify", "Modify", "MODIFY_HELP"),
     DELETE("delete", "Delete", "DELETE_HELP"),
     RECOMPUTE("recompute", "Recompute", "RECOMPUTE_HELP"),
@@ -56,6 +78,8 @@ public enum ModelAuthorizationAction implements DisplayableValue<String> {
     @SuppressWarnings("DeprecatedIsStillUsed") @Deprecated // use bulk-3#all
     EXECUTE_SCRIPT("executeScript", "Execute script", "EXECUTE_SCRIPT_HELP"),
     CHANGE_CREDENTIALS("changeCredentials", "Change credentials", "CHANGE_CREDENTIALS_HELP"),
+
+    NOTIFY_CHANGE("notifyChange", "Notify change", "NOTIFY_CHANGE_HELP"),
 
     SUSPEND_TASK("suspendTask", "Suspend task", "SUSPEND_TASK_HELP"),
     RESUME_TASK("resumeTask", "Resume task", "RESUME_TASK_HELP"),
@@ -127,7 +151,8 @@ public enum ModelAuthorizationAction implements DisplayableValue<String> {
     @Experimental
     READ_TRACE("readTrace", "Read trace", "READ_TRACE_HELP");
 
-    public static final String[] AUTZ_ACTIONS_URLS_SEARCH = new String[] { READ.getUrl(),  SEARCH.getUrl() };
+    public static final String[] AUTZ_ACTIONS_URLS_SEARCH = new String[] { READ.getUrl(), SEARCH.getUrl() };
+    public static final String[] AUTZ_ACTIONS_URLS_SEARCH_BY = new String[] { READ.getUrl(), SEARCH.getUrl(), SEARCH_BY.getUrl() };
     public static final String[] AUTZ_ACTIONS_URLS_GET = new String[] { READ.getUrl(),  GET.getUrl() };
     public static final String[] AUTZ_ACTIONS_URLS_ADD = new String[] { ADD.getUrl() };
     public static final String[] AUTZ_ACTIONS_URLS_MODIFY = new String[] { MODIFY.getUrl() };

@@ -22,6 +22,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.query.TypedQuery;
+
 import org.assertj.core.api.Condition;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -56,6 +58,7 @@ public class SearchTest extends BaseSQLRepoTest {
 
     private static final String DESCRIPTION_TO_FIND = "tralala";
     private static final String ARCHETYPE1_OID = "a71e48fe-f6e2-40f4-ab76-b4ad4a0918ad";
+    protected static final String ROLE123_OID = "18ffc76e-2ad6-4fb6-a464-29c73a6d571b";
 
     private String beforeConfigOid;
     private String x00002Oid; // user with 3 assignments
@@ -204,15 +207,15 @@ public class SearchTest extends BaseSQLRepoTest {
         assertEquals("Should find one user", 1, users.size());
         assertEquals("Wrong user name", "atestuserX00003", users.get(0).getName().getOrig());
 
-        PrismReferenceValue r123 = itemFactory().createReferenceValue("r123", RoleType.COMPLEX_TYPE);
+        PrismReferenceValue role123 = itemFactory().createReferenceValue(ROLE123_OID, RoleType.COMPLEX_TYPE);
         query = prismContext.queryFor(UserType.class)
-                .item(UserType.F_ROLE_MEMBERSHIP_REF).ref(r123)
+                .item(UserType.F_ROLE_MEMBERSHIP_REF).ref(role123)
                 .build();
         users = repositoryService.searchObjects(UserType.class, query, null, result);
         assertThatOperationResult(result).isSuccess();
         assertEquals("Should find two users", 2, users.size());
 
-        PrismReferenceValue r123approver = itemFactory().createReferenceValue("r123", RoleType.COMPLEX_TYPE);
+        PrismReferenceValue r123approver = itemFactory().createReferenceValue(ROLE123_OID, RoleType.COMPLEX_TYPE);
         r123approver.setRelation(SchemaConstants.ORG_APPROVER);
         query = prismContext.queryFor(UserType.class)
                 .item(UserType.F_ROLE_MEMBERSHIP_REF).ref(r123approver)
@@ -235,7 +238,7 @@ public class SearchTest extends BaseSQLRepoTest {
         assertEquals("Should find one user", 1, users.size());
         assertEquals("Wrong user name", "atestuserX00003", users.get(0).getName().getOrig());
 
-        PrismReferenceValue r123 = itemFactory().createReferenceValue("r123", RoleType.COMPLEX_TYPE);
+        PrismReferenceValue r123 = itemFactory().createReferenceValue(ROLE123_OID, RoleType.COMPLEX_TYPE);
         query = prismContext.queryFor(UserType.class)
                 .item(UserType.F_DELEGATED_REF).ref(r123)
                 .build();
@@ -378,9 +381,9 @@ public class SearchTest extends BaseSQLRepoTest {
 
     @Test
     public void test320RoleAssignmentSearch() throws Exception {
-        PrismReferenceValue r456 = itemFactory().createReferenceValue("r123", RoleType.COMPLEX_TYPE);
+        PrismReferenceValue r123 = itemFactory().createReferenceValue(ROLE123_OID, RoleType.COMPLEX_TYPE);
         ObjectQuery query = prismContext.queryFor(UserType.class)
-                .item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(r456)
+                .item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(r123)
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
@@ -432,7 +435,7 @@ public class SearchTest extends BaseSQLRepoTest {
 
     @Test
     public void test360RoleAndOrgAssignmentSearch() throws Exception {
-        PrismReferenceValue r123 = itemFactory().createReferenceValue("r123", RoleType.COMPLEX_TYPE);
+        PrismReferenceValue r123 = itemFactory().createReferenceValue(ROLE123_OID, RoleType.COMPLEX_TYPE);
         PrismReferenceValue org = itemFactory().createReferenceValue("00000000-8888-6666-0000-100000000085", OrgType.COMPLEX_TYPE);
         ObjectQuery query = prismContext.queryFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(r123)
@@ -454,11 +457,11 @@ public class SearchTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("search");
         List<PrismObject<RoleType>> roles = repositoryService.searchObjects(RoleType.class, query, null, result);
         assertThatOperationResult(result).isSuccess();
-        assertEquals("Should find two roles", 2, roles.size());
-
-        int judge = roles.get(0).getName().getOrig().startsWith("J") ? 0 : 1;
-        assertEquals("Wrong role1 name", "Judge", roles.get(judge).getName().getOrig());
-        assertEquals("Wrong role2 name", "Admin-owned role", roles.get(1 - judge).getName().getOrig());
+        assertThat(roles).as("roles")
+                .hasSize(3)
+                .map(r -> r.getName().getOrig())
+                .as("role names")
+                .containsExactlyInAnyOrder("Judge", "Admin-owned role", "role123");
     }
 
     @Test
@@ -482,11 +485,11 @@ public class SearchTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("search");
         List<PrismObject<RoleType>> roles = repositoryService.searchObjects(RoleType.class, query, null, result);
         assertThatOperationResult(result).isSuccess();
-        assertEquals("Should find two roles", 2, roles.size());
-
-        int judge = roles.get(0).getName().getOrig().startsWith("J") ? 0 : 1;
-        assertEquals("Wrong role1 name", "Judge", roles.get(judge).getName().getOrig());
-        assertEquals("Wrong role2 name", "Admin-owned role", roles.get(1 - judge).getName().getOrig());
+        assertThat(roles).as("roles")
+                .hasSize(3)
+                .map(r -> r.getName().getOrig())
+                .as("role names")
+                .containsExactlyInAnyOrder("Judge", "Admin-owned role", "role123");
     }
 
     @Test
@@ -1762,6 +1765,110 @@ public class SearchTest extends BaseSQLRepoTest {
         assertEquals("Wrong user name", "atestuserX00002", users.get(0).getName().getOrig());
     }
 
+    /** MID-9427 */
+    @Test
+    public void test981SearchByArchetypeName() throws Exception {
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .item(UserType.F_ARCHETYPE_REF, T_OBJECT_REFERENCE, F_NAME)
+                .eqPoly("archetype1")
+                .build();
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
+        assertThatOperationResult(result).isSuccess();
+        assertThat(users)
+                .as("users found")
+                .hasSize(2)
+                .map(u -> u.getName().getOrig())
+                .as("user names")
+                .containsExactlyInAnyOrder("atestuserX00002", "atestuserX00003");
+
+        // The same but arbitrary assignment holders now
+        var objects = repositoryService.searchObjects(AssignmentHolderType.class, query, null, result);
+        assertThatOperationResult(result).isSuccess();
+        assertThat(objects)
+                .as("objects found")
+                .hasSize(3)
+                .map(u -> u.getName().getOrig())
+                .as("object names")
+                .containsExactlyInAnyOrder("atestuserX00002", "atestuserX00003", "Synchronization: Embedded Test OpenDJ");
+    }
+
+    /** MID-9427 */
+    @Test
+    public void test982SearchByRoleMembershipRefName() throws Exception {
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .item(UserType.F_ROLE_MEMBERSHIP_REF, T_OBJECT_REFERENCE, F_NAME)
+                .eqPoly("role123")
+                .build();
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
+        assertThatOperationResult(result).isSuccess();
+        assertThat(users)
+                .as("users found")
+                .hasSize(2)
+                .map(u -> u.getName().getOrig())
+                .as("user names")
+                .containsExactlyInAnyOrder("atestuserX00002", "atestuserX00003");
+    }
+
+    /** MID-9427 (double @: linkRef/@/resourceRef/@/name) */
+    @Test
+    public void test983SearchByResourceName() throws Exception {
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .item(UserType.F_LINK_REF, T_OBJECT_REFERENCE, ShadowType.F_RESOURCE_REF, T_OBJECT_REFERENCE, F_NAME)
+                .eqPoly("dummy")
+                .build();
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
+        assertThatOperationResult(result).isSuccess();
+        assertThat(users)
+                .as("users found")
+                .hasSize(1)
+                .map(u -> u.getName().getOrig())
+                .as("user names")
+                .containsExactlyInAnyOrder("atestuserX00003");
+    }
+
+    @Test
+    public void test990searchUsingRefSubfilter() throws Exception {
+        OperationResult result = new OperationResult("search");
+        var role = repositoryService.addObject(new RoleType().name("Managed Role").asPrismObject(), null, result);
+        var correctOrgUnit = repositoryService.addObject(new OrgType().name("foo-bar-baz").asPrismObject(), null, result);
+        var incorrectUser = repositoryService.
+                addObject(new UserType()
+                                .name("incorrect-user")
+                                .assignment(new AssignmentType()
+                                        .targetRef(role, RoleType.COMPLEX_TYPE, SchemaConstants.ORG_MANAGER))
+                                .assignment(new AssignmentType()
+                                        .targetRef(correctOrgUnit, OrgType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT)
+                                )
+                                .asPrismObject(),
+                null,result);
+        var correctUser = repositoryService.
+                addObject(new UserType()
+                                .name("correct-user")
+                                .assignment(new AssignmentType()
+                                        .targetRef(role, RoleType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT)
+                                )
+                                .assignment(new AssignmentType()
+                                        .targetRef(correctOrgUnit, OrgType.COMPLEX_TYPE, SchemaConstants.ORG_MANAGER)
+                                )
+                                .asPrismObject(),
+                        null,result);
+
+        var query = TypedQuery.parse(UserType.class,
+                "assignment/targetRef matches (relation = manager and @ matches (. type OrgType and name contains '-'))");
+
+        var users = repositoryService.searchObjects(query.getType(), query.toObjectQuery(), null, result);
+
+        assertThat(users)
+                .as("users found")
+                .hasSize(1)
+                .map(u -> u.getName().getOrig())
+                .containsExactlyInAnyOrder("correct-user");
+
+    }
+
     @Test
     public void test999MultipleOrdersAreSupportedByFluentApiAndRepository() throws SchemaException {
         given("search users query ordered by family and given name");
@@ -1775,8 +1882,9 @@ public class SearchTest extends BaseSQLRepoTest {
 
         then("sorted users are returned");
         assertThatOperationResult(opResult).isSuccess();
-        assertThat(result).hasSize(4);
-        // Various DB can use various order (default NULL ordering for H2 vs PG) so we just check it works
+        // Previous test added two new users
+        assertThat(result).hasSize(6);
+        // Various DB can use various order (PG) so we just check it works
         // without actually checking the order (we do this properly in the Native repo test).
     }
 }

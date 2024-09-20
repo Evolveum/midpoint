@@ -35,7 +35,7 @@ import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.sqale.SqaleRepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
@@ -170,7 +170,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        DummyAccount account = RESOURCE_DUMMY_SOURCE.controller.getDummyResource().getAccountByUsername(MALFORMED_SHADOW_NAME);
+        DummyAccount account = RESOURCE_DUMMY_SOURCE.controller.getDummyResource().getAccountByName(MALFORMED_SHADOW_NAME);
         account.setName(null); // This causes a failure during query execution (not even in the results handler).
         try {
 
@@ -229,7 +229,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // This will cause problem when updating shadow
-        DummyAccount account = RESOURCE_DUMMY_SOURCE.controller.getDummyResource().getAccountByUsername(MALFORMED_SHADOW_NAME);
+        DummyAccount account = RESOURCE_DUMMY_SOURCE.controller.getDummyResource().getAccountByName(MALFORMED_SHADOW_NAME);
         account.replaceAttributeValue(ATTR_NUMBER, "WRONG");
 
         // Other kinds of failures are still disabled, to check last failed object name in case of malformed accounts
@@ -599,7 +599,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                 .beginAttributes()
                 .<ShadowType>end()
                 .asPrismObject();
-        ResourceAttribute<String> nameAttr = RESOURCE_DUMMY_HACKED.controller.createAccountAttribute(SchemaConstants.ICFS_NAME);
+        ShadowSimpleAttribute<String> nameAttr = RESOURCE_DUMMY_HACKED.controller.createAccountAttribute(SchemaConstants.ICFS_NAME);
         nameAttr.setRealValue("hacker");
         hacker.findContainer(ShadowType.F_ATTRIBUTES).getValue().add(nameAttr);
         return hacker;

@@ -16,14 +16,16 @@
   z-index: 1;
   //top: 0;
   right: 0;
-  overflow-x: hidden;
+  //overflow-x: hidden;
   //padding-top: 16px;
   margin: 0;
 
   & a > div > i.fas,
   a > div > i.far,
   a > div > i.fa,
-  a > div > i.fe {
+  a > div > i.fe,
+  a > div > i.fa-solid,
+  a > div > i.fa-regular {
     min-width: 24px;
     text-align: center;
   }
@@ -49,7 +51,7 @@
   & > li.navigation-details {
     list-style: none;
     border-radius: 0.25rem;
-    overflow: hidden;
+    //overflow: hidden;
     //margin: 0px 10px 0px 5px;
 
     &:not(:last-child){

@@ -46,7 +46,21 @@
                                     <td>
                                         <wicket:message key="PageAbout.builtAt"/>
                                     </td>
-                                    <td><span wicket:id="buildTimestamp"/></td>
+                                    <td>
+                                        <span wicket:id="buildTimestamp"/>
+                                        <br/>
+                                        <span wicket:id="officialBuild">
+                                            <i class="fa-regular fa-circle-check color-green"></i>
+                                            <wicket:message key="PageAbout.officialBuild"/>
+                                        </span>
+                                        <span wicket:id="unofficialBuild">
+                                            <i class="fa fa-exclamation-circle color-yellow"></i>
+                                            <wicket:message key="PageAbout.unofficialBuild"/>
+                                        </span>
+                                        <span wicket:id="overlay">
+                                            <wicket:message key="PageAbout.overlay"/>
+                                        </span>
+                                    </td>
                                 </tr>
                             </table>
                         </div>
@@ -68,10 +82,6 @@
                                 <tr>
                                     <td><wicket:message key="PageAbout.repoDiag.implementationDescription" /></td>
                                     <td><span wicket:id="implementationDescription"/></td>
-                                </tr>
-                                <tr>
-                                    <td><wicket:message key="PageAbout.repoDiag.isEmbedded" /></td>
-                                    <td><span wicket:id="isEmbedded"/></td>
                                 </tr>
                                 <tr>
                                     <td><wicket:message key="PageAbout.repoDiag.driverShortName" /></td>
@@ -171,6 +181,7 @@
         <a class="btn btn-default" wicket:id="testRepository"/>
         <a class="btn btn-default" wicket:id="testRepositoryCheckOrgClosure"/>
         <a class="btn btn-default" wicket:id="reindexRepositoryObjects"/>
+        <a class="btn btn-default" wicket:id="repositoryEnablePartitioning"/>
         <a class="btn btn-default" wicket:id="testProvisioning"/>
         <a class="btn btn-default" wicket:id="copyEnvironmentInfo" />
         <a class="btn btn-danger" wicket:id="factoryDefault" />

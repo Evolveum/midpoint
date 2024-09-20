@@ -13,6 +13,27 @@
             <div class="progress-bar" wicket:id="bar"/>
         </wicket:container>
     </div>
-    <div class="text-sm text-secondary" wicket:id="text"/>
+    <div wicket:id="footer"/>
 </wicket:panel>
+
+<wicket:fragment wicket:id="simpleTextFragment">
+    <div wicket:id="text" class="text-sm text-secondary" />
+</wicket:fragment>
+
+<wicket:fragment wicket:id="legendFragment">
+    <div class="d-flex flex-wrap">
+        <div class="d-flex flex-column justify-content-start m-3">
+            <div wicket:id="totalLabel" />
+            <div wicket:id="totalValue" class="d-flex text-lg text-bold justify-content-end" />
+        </div>
+        <div wicket:id="legendItem" class="d-flex flex-column m-3">
+            <div class="d-flex">
+                <i wicket:id="legendItemColor" class="d-flex align-items-center fa fa-circle mr-1 text-sm" />
+                <div wicket:id="legendItemLabel" />
+            </div>
+            <div wicket:id="legendItemValue" class="d-flex text-lg text-bold justify-content-end" />
+        </div>
+    </div>
+</wicket:fragment>
+
 </html>

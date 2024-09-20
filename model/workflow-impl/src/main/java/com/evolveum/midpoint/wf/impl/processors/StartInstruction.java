@@ -17,6 +17,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -54,8 +55,8 @@ public class StartInstruction implements DebugDumpable {
         ObjectReferenceType approvalArchetypeRef = ObjectTypeUtil.createObjectRef(archetypeOid, ObjectTypes.ARCHETYPE);
         aCase.getArchetypeRef().add(approvalArchetypeRef.clone());
         aCase.beginAssignment().targetRef(approvalArchetypeRef).end();
-        aCase.setMetadata(new MetadataType());
-        aCase.getMetadata().setCreateTimestamp(createXMLGregorianCalendar(new Date()));
+        ValueMetadataTypeUtil.getOrCreateStorageMetadata(aCase)
+                .setCreateTimestamp(createXMLGregorianCalendar());
     }
 
     public static StartInstruction create(ChangeProcessor changeProcessor, @NotNull String archetypeOid) {
@@ -160,7 +161,7 @@ public class StartInstruction implements DebugDumpable {
     }
 
     public void setParent(CaseType parent) {
-        aCase.setParentRef(ObjectTypeUtil.createObjectRef(parent, PrismContext.get()));
+        aCase.setParentRef(ObjectTypeUtil.createObjectRef(parent));
     }
     //endregion
 

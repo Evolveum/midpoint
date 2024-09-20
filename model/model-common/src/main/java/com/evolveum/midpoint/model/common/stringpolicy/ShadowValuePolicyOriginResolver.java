@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.common.stringpolicy;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
@@ -23,7 +24,7 @@ public class ShadowValuePolicyOriginResolver extends AbstractValuePolicyOriginRe
 
     @Override
     public ObjectQuery getOwnerQuery() {
-        return getObject().getPrismContext()
+        return PrismContext.get()
                 .queryFor(UserType.class)
                 .item(UserType.F_LINK_REF).ref(getObject().getOid())
                 .build();

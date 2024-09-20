@@ -7,55 +7,81 @@
 
 package com.evolveum.midpoint.common.mining.objects.chunk;
 
-import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
-
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
-public class MiningRoleTypeChunk implements Serializable {
+import com.evolveum.midpoint.common.mining.utils.values.FrequencyItem;
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisObjectStatus;
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
 
-    private final List<String> users;
-    private final List<String> roles;
-    private final String chunkName;
-    double frequency;
-    RoleAnalysisOperationMode roleAnalysisOperationMode;
+import org.jetbrains.annotations.NotNull;
 
-    public void setStatus(RoleAnalysisOperationMode roleAnalysisOperationMode) {
-        this.roleAnalysisOperationMode = roleAnalysisOperationMode;
+/**
+ * The `MiningRoleTypeChunk` class represents a chunk of role analysis data for a specific role. It contains information
+ * about the roles, users, chunk name, frequency, and the role analysis operation mode.
+ */
+public class MiningRoleTypeChunk extends MiningBaseTypeChunk implements Serializable {
+
+    public MiningRoleTypeChunk(
+            @NotNull List<String> roles,
+            @NotNull List<String> users,
+            @NotNull String chunkName,
+            FrequencyItem frequency,
+            @NotNull RoleAnalysisObjectStatus objectStatus) {
+        super(roles, users, chunkName, frequency, objectStatus);
     }
 
-    public MiningRoleTypeChunk(List<String> roles, List<String> users, String chunkName, double frequency,
-            RoleAnalysisOperationMode roleAnalysisOperationMode) {
-        this.roles = new ArrayList<>(roles);
-        this.users = new ArrayList<>(users);
-        this.chunkName = chunkName;
-        this.frequency = frequency;
-        this.roleAnalysisOperationMode = roleAnalysisOperationMode;
+    public MiningRoleTypeChunk(MiningBaseTypeChunk chunk){
+        super(chunk.getMembers(), chunk.getProperties(), chunk.getChunkName(), chunk.getFrequencyItem(), chunk.getObjectStatus());
     }
 
-    public void setFrequency(double frequency) {
-        this.frequency = frequency;
+    public MiningRoleTypeChunk(
+            @NotNull List<String> roles,
+            @NotNull List<String> users,
+            @NotNull String chunkName,
+            FrequencyItem frequency,
+            @NotNull RoleAnalysisOperationMode operationMode) {
+        super(roles, users, chunkName, frequency, new RoleAnalysisObjectStatus(operationMode));
     }
 
-    public RoleAnalysisOperationMode getStatus() {
-        return roleAnalysisOperationMode;
-    }
-
-    public List<String> getRoles() {
+    @Override
+    public List<String> getMembers() {
         return roles;
     }
 
-    public List<String> getUsers() {
+    @Override
+    public List<String> getProperties() {
         return users;
     }
 
-    public String getChunkName() {
-        return chunkName;
+    @Override
+    public boolean isMemberPresent(@NotNull String member) {
+        return roles.contains(member);
     }
 
-    public double getFrequency() {
-        return frequency;
+    @Override
+    public boolean isPropertiesPresent(@NotNull String member) {
+        return users.contains(member);
+    }
+
+    @Override
+    public RoleAnalysisOperationMode getStatus() {
+        return super.getStatus();
+    }
+
+    @Override
+    public RoleAnalysisObjectStatus getObjectStatus() {
+        return objectStatus;
+    }
+
+    @Override
+    public void setObjectStatus(@NotNull RoleAnalysisObjectStatus objectStatus) {
+        super.setObjectStatus(objectStatus);
+    }
+
+    @Override
+    public void setStatus(@NotNull RoleAnalysisOperationMode roleAnalysisOperationMode) {
+        super.setStatus(roleAnalysisOperationMode);
     }
 
 }

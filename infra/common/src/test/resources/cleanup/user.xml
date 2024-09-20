@@ -1,0 +1,89 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        oid="d6793e11-edf0-40e6-aa23-695c2b9fa98a">
+
+    <_metadata>
+        <storage>
+            <createTimestamp>2023-10-13T10:31:51.882+02:00</createTimestamp>
+        </storage>
+    </_metadata>
+
+    <name>user</name>
+
+    <metadata>
+        <requestTimestamp>2024-02-15T12:59:15.453Z</requestTimestamp>
+        <createTimestamp>2024-02-15T12:59:15.468Z</createTimestamp>
+        <createChannel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#init</createChannel>
+    </metadata>
+    <operationExecution id="2">
+        <recordType>simple</recordType>
+        <timestamp>2024-02-15T12:59:15.496Z</timestamp>
+        <operation>
+            <objectDelta>
+                <t:changeType>add</t:changeType>
+                <t:objectType>UserType</t:objectType>
+            </objectDelta>
+            <executionResult>
+                <operation>com.evolveum.midpoint.model.impl.lens.ChangeExecutor.executeDelta</operation>
+                <status>success</status>
+                <importance>normal</importance>
+                <token>1000000000000001473</token>
+            </executionResult>
+            <objectName>administrator</objectName>
+        </operation>
+        <status>success</status>
+        <channel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#init</channel>
+    </operationExecution>
+
+    <credentials>
+        <password>
+            <value>
+                <t:encryptedData>
+                    <t:encryptionMethod>
+                        <t:algorithm>http://www.w3.org/2001/04/xmlenc#aes256-cbc</t:algorithm>
+                    </t:encryptionMethod>
+                    <t:keyInfo>
+                        <t:keyName>HF6JRsNMeJt6alihT44CXKgpe0c=</t:keyName>
+                    </t:keyInfo>
+                    <t:cipherData>
+                        <t:cipherValue>blc5OXO2Z4vJW7o/XXhqZzg/rkwsIOwRBK7KLgMqwcrVcYpeZZOjxzgRgFiNw4IB</t:cipherValue>
+                    </t:cipherData>
+                </t:encryptedData>
+            </value>
+        </password>
+    </credentials>
+
+    <givenName>
+        <_value>Jack</_value>
+        <_metadata>
+            <provenance>
+                <acquisition>
+                    <originRef oid="user" type="ServiceType"/>
+                </acquisition>
+            </provenance>
+        </_metadata>
+        <_metadata>
+            <provenance>
+                <acquisition>
+                    <originRef oid="rest" type="ServiceType"/>
+                </acquisition>
+            </provenance>
+            <storage>
+                <modifierRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+            </storage>
+        </_metadata>
+    </givenName>
+
+    <familyName>Doe</familyName>
+
+    <activation>
+        <disableReason>Custom reason</disableReason>
+    </activation>
+</user>

@@ -6,67 +6,58 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector.credentials;
 
-import static com.evolveum.midpoint.prism.PrismContainerValue.asContainerable;
-import static com.evolveum.midpoint.prism.delta.ChangeType.MODIFY;
-
 import static java.util.Objects.requireNonNull;
+
+import static com.evolveum.midpoint.prism.delta.ChangeType.MODIFY;
 
 import java.util.Collection;
 import java.util.List;
-
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.impl.lens.projector.util.ErrorHandlingUtil;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
+import com.evolveum.midpoint.model.common.stringpolicy.ObjectValuePolicyEvaluator;
+import com.evolveum.midpoint.model.common.stringpolicy.ShadowValuePolicyOriginResolver;
+import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
+import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.*;
-import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.ProjectionMappingSetEvaluator;
+import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.*;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.expression.ConfigurableValuePolicySupplier;
+import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.MappingConfigItem;
 import com.evolveum.midpoint.schema.config.OriginProvider;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.util.LocalizableMessageBuilder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
-import com.evolveum.midpoint.model.common.stringpolicy.ObjectValuePolicyEvaluator;
-import com.evolveum.midpoint.model.common.stringpolicy.ShadowValuePolicyOriginResolver;
-import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
-import com.evolveum.midpoint.model.impl.ModelObjectResolver;
-import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.util.ItemDeltaItem;
-import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.LocalizableMessageBuilder;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -98,19 +89,24 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
             throws ExpressionEvaluationException, ObjectNotFoundException,
             SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-        processProjectionCredentials(context, projectionContext, now, task, result);
-        context.checkConsistenceIfNeeded();
+        try {
+            processProjectionCredentials(context, projectionContext, now, task, result);
+            context.checkConsistenceIfNeeded();
+        } catch (MappingLoader.NotLoadedException e) {
+            // Just like for activation processor.
+            ErrorHandlingUtil.processProjectionNotLoadedException(e, projectionContext);
+        }
 
-        projectionContext.recompute();
-        context.checkConsistenceIfNeeded();
-
-        medic.traceContext(LOGGER, activityDescription, "projection values and credentials of "+projectionContext.getDescription(), false, context, true);
+        medic.traceContext(LOGGER, activityDescription,
+                "projection values and credentials of " + projectionContext.getDescription(),
+                false, context, true);
     }
 
     private <F extends FocusType> void processProjectionCredentials(LensContext<F> context,
             LensProjectionContext projectionContext, XMLGregorianCalendar now, Task task,
             OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
-                    SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            SchemaException, PolicyViolationException, CommunicationException, ConfigurationException,
+            SecurityViolationException, MappingLoader.NotLoadedException {
 
         SecurityPolicyType securityPolicy = determineSecurityPolicy(context, projectionContext);
 
@@ -122,8 +118,10 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
     }
 
     private <F extends FocusType> void processProjectionPasswordMapping(LensContext<F> context,
-            final LensProjectionContext projCtx, final SecurityPolicyType securityPolicy, XMLGregorianCalendar now, Task task, OperationResult result)
-                    throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+            LensProjectionContext projCtx, SecurityPolicyType securityPolicy, XMLGregorianCalendar now,
+            Task task, OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException, MappingLoader.NotLoadedException {
         LensFocusContext<F> focusContext = context.getFocusContext();
 
         PrismObject<F> focusNew = focusContext.getObjectNew();
@@ -201,8 +199,9 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
                         return false;
                     }
 
-                    boolean projectionIsNew = projDelta != null && (projDelta.getChangeType() == ChangeType.ADD
-                            || projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.ADD);
+                    boolean projectionIsNew =
+                            projDelta != null
+                                    && (projDelta.getChangeType() == ChangeType.ADD || projCtx.isSynchronizationDecisionAdd());
 
                     Collection<PrismPropertyValue<ProtectedStringType>> newValues;
                     if (projectionIsNew) {
@@ -282,7 +281,8 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
         params.setNow(now);
         params.setInitializer(internalInitializer);
         params.setProcessor(processor);
-        params.setTargetLoader(new ProjectionMappingLoader<>(projCtx, contextLoader));
+        params.setTargetLoader(new ProjectionMappingLoader(projCtx, contextLoader, projCtx::isPasswordValueLoaded));
+        params.setTargetValueAvailable(projCtx.isPasswordValueLoaded());
         params.setAPrioriTargetObject(shadowNew);
         params.setAPrioriTargetDelta(LensUtil.findAPrioriDelta(context, projCtx));
         params.setTargetContext(projCtx);
@@ -293,9 +293,7 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
         params.setEvaluateCurrent(MappingTimeEval.CURRENT);
         params.setEvaluateWeak(evaluateWeak);
         params.setContext(context);
-        params.setHasFullTargetObject(projCtx.hasFullShadow());
         projectionMappingSetEvaluator.evaluateMappingsToTriples(params, task, result);
-
     }
 
     private <F extends FocusType> boolean isActivated(List<MappingType> outboundMappingBeans, ObjectDelta<F> focusDelta) {
@@ -429,7 +427,8 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
         return new ShadowValuePolicyOriginResolver(accountShadow, modelObjectResolver);
     }
 
-    private <F extends FocusType> void applyMetadata(LensContext<F> context, LensProjectionContext projectionContext,
+    private <F extends FocusType> void applyMetadata(
+            LensContext<F> context, LensProjectionContext projectionContext,
             XMLGregorianCalendar now, Task task) throws SchemaException {
 
         if (projectionContext.isDelete()) {
@@ -450,37 +449,36 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
         }
 
         if (projectionContext.isAdd()) {
-            MetadataType metadataType = operationalDataManager.createCreateMetadata(context, now, task);
-            ContainerDelta<MetadataType> metadataDelta = prismContext.deltaFactory().container()
-                    .createDelta(SchemaConstants.PATH_PASSWORD_METADATA, projectionContext.getObjectDefinition());
-            PrismContainerValue<?> cval = metadataType.asPrismContainerValue();
-            cval.setOriginTypeRecursive(OriginType.OUTBOUND);
-            metadataDelta.addValuesToAdd(metadataType.asPrismContainerValue());
-            projectionContext.swallowToSecondaryDelta(metadataDelta);
+            var metadataToSet = operationalDataManager.createCreateMetadata(context, now, task);
+            metadataToSet.asPrismContainerValue().setOriginTypeRecursive(OriginType.OUTBOUND);
+            projectionContext.swallowToSecondaryDelta(
+                    prismContext.deltaFor(ShadowType.class)
+                            .item(SchemaConstants.PATH_PASSWORD_METADATA)
+                            .add(metadataToSet)
+                            .asItemDelta());
 
         } else if (projectionContext.isModify()) {
-            ContainerDelta<MetadataType> metadataDelta = accountDelta.findContainerDelta(SchemaConstants.PATH_PASSWORD_METADATA);
-            if (metadataDelta == null) {
-                MetadataType currentMetadata = getCurrentPasswordMetadata(projectionContext);
-                Collection<? extends ItemDelta<?,?>> modifyMetadataDeltas = operationalDataManager.createModifyMetadataDeltas(
-                        context, currentMetadata, SchemaConstants.PATH_PASSWORD_METADATA, projectionContext.getObjectTypeClass(),
-                        now, task);
-                for (ItemDelta<?, ?> itemDelta: modifyMetadataDeltas) {
-                    itemDelta.setOriginTypeRecursive(OriginType.OUTBOUND);
-                    projectionContext.swallowToSecondaryDelta(itemDelta);
+            if (!accountDelta.hasItemDelta(SchemaConstants.PATH_PASSWORD_METADATA)) {
+                var deltas = operationalDataManager.createCredentialsModificationRelatedStorageMetadataDeltas(
+                        context,
+                        SchemaConstants.PATH_PASSWORD,
+                        getCurrentPasswordContainerValue(projectionContext),
+                        context.getFocusClass(), now, task);
+
+                for (ItemDelta<?, ?> delta : deltas) {
+                    delta.setOriginTypeRecursive(OriginType.OUTBOUND);
+                    projectionContext.swallowToSecondaryDelta(delta);
                 }
             }
         }
     }
 
-    private MetadataType getCurrentPasswordMetadata(LensProjectionContext projectionContext) {
-        PrismObject<ShadowType> objectCurrent = projectionContext.getObjectCurrent();
-        if (objectCurrent != null) {
-            PrismContainer<MetadataType> metadataContainer = objectCurrent.findContainer(SchemaConstants.PATH_PASSWORD_METADATA);
-            return metadataContainer != null && metadataContainer.hasAnyValue() ?
-                    asContainerable(metadataContainer.getValue()) : null;
-        } else {
+    private AbstractCredentialType getCurrentPasswordContainerValue(LensProjectionContext projectionContext) {
+        var passwordContainer = projectionContext.getObjectCurrentRequired().findContainer(SchemaConstants.PATH_PASSWORD);
+        if (passwordContainer == null || passwordContainer.hasNoValues()) {
             return null;
+        } else {
+            return (AbstractCredentialType) passwordContainer.getRealValue();
         }
     }
 

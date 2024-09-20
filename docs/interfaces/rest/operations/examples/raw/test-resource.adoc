@@ -1,0 +1,42 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Execute the Test Operation for a Resource Object in MidPoint*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Accept: application/json" \
+-X POST http://localhost:8080/midpoint/ws/rest/resources/ef2bc95b-76e0-59e2-86d6-9999cccccccc/test \
+-v
+----
+
+
+The response is an HTTP 200 code in case of success with a response body containing the operation result.
+
+.Example Output of *"Test Resource object"* example
+[%collapsible]
+====
+The example is *simplified*, some properties were removed to keep the example output "short". This example *does
+not* contain all possible properties of this object type.
+[source, json]
+----
+{
+  "@ns" : "http://prism.evolveum.com/xml/ns/public/types-3",
+  "object" : {
+    "@type" : "c:OperationResultType",
+    "operation" : "com.evolveum.midpoint.schema.constants.TestResourceOpNames.test",
+    "status" : "success",
+    "importance" : "normal",
+    "start" : "",
+    "end" : "",
+    "microseconds" :,
+    "invocationId" :,
+    "params" : {
+      "entry" : []
+    },
+    "token" :,
+    "partialResults" : [ {}, {} ]
+  }
+}
+----
+====

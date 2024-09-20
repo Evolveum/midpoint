@@ -14,7 +14,6 @@ import static com.evolveum.midpoint.prism.PrismContainerValue.asContainerables;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.*;
-import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
@@ -25,7 +24,6 @@ import com.evolveum.midpoint.model.impl.lens.ChangeExecutor;
 import com.evolveum.midpoint.model.impl.lens.ConflictDetectedException;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentSpec;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -101,7 +99,6 @@ public class FocusChangeExecution<O extends ObjectType> extends ElementChangeExe
             context.reportProgress(new ProgressInformation(FOCUS_OPERATION, ENTERING));
 
             removeOrHashCredentialsDeltas();
-            applyLastProvisioningTimestamp();
 
             executeDeltaWithConflictResolution(result);
 
@@ -218,7 +215,9 @@ public class FocusChangeExecution<O extends ObjectType> extends ElementChangeExe
         for (AssignmentType assignment : assignments) {
             PrismContainerValue<?> pcv = assignment.asPrismContainerValue();
             PrismContainerValue<?> pcvToFind = assignmentToFind.asPrismContainerValue();
-            if (pcv.representsSameValue(pcvToFind, false) || pcv.equals(pcvToFind, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS)) {
+            if (pcv.representsSameValue(pcvToFind, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS, false)
+                    || pcv.equals(pcvToFind, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS)) {
+
                 // TODO what if ID of the assignment being added is changed in repo? Hopefully it will be not.
                 for (ItemDelta<?, ?> modification : modifications) {
                     ItemPath newParentPath = modification.getParentPath().rest(2);        // killing assignment + ID
@@ -238,27 +237,6 @@ public class FocusChangeExecution<O extends ObjectType> extends ElementChangeExe
             focusDelta = b.credentialsProcessor.transformFocusExecutionDelta(context, focusDelta);
         } catch (EncryptionException e) {
             throw new SystemException(e.getMessage(), e);
-        }
-    }
-
-    private void applyLastProvisioningTimestamp() throws SchemaException, ConfigurationException {
-        if (!context.hasProjectionChange()) {
-            return;
-        }
-        if (focusDelta.isAdd()) {
-
-            PrismObject<O> objectToAdd = focusDelta.getObjectToAdd();
-            PrismContainer<MetadataType> metadataContainer = objectToAdd.findOrCreateContainer(ObjectType.F_METADATA);
-            metadataContainer.getRealValue().setLastProvisioningTimestamp(b.clock.currentTimeXMLGregorianCalendar());
-
-        } else if (focusDelta.isModify()) {
-
-            PropertyDelta<XMLGregorianCalendar> provTimestampDelta = b.prismContext.deltaFactory().property().createModificationReplaceProperty(
-                    ItemPath.create(ObjectType.F_METADATA, MetadataType.F_LAST_PROVISIONING_TIMESTAMP),
-                    context.getFocusContext().getObjectDefinition(),
-                    b.clock.currentTimeXMLGregorianCalendar());
-            focusDelta.addModification(provTimestampDelta);
-
         }
     }
 

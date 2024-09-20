@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.component.data.provider;
 import java.io.Serializable;
 import java.util.*;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 
 import com.evolveum.midpoint.web.component.data.TypedCacheKey;
@@ -70,8 +71,8 @@ public class RepositoryObjectDataProvider<O extends ObjectType>
 
             Collection<SelectorOptions<GetOperationOptions>> options = getOptions();
             Class<O> type = SearchBoxModeType.OID.equals(getSearchModel().getObject().getSearchMode()) ? (Class<O>) ObjectType.class : getType();
-            List<? extends PrismObject<? extends ObjectType>> list = getModelService().searchObjects(type, query, options,
-                    getPageBase().createSimpleTask(OPERATION_SEARCH_OBJECTS), result);
+            List<? extends PrismObject<? extends ObjectType>> list = getModelService().searchObjects(
+                    type, query, options, getPageBase().createSimpleTask(OPERATION_SEARCH_OBJECTS), result);
             for (PrismObject<? extends ObjectType> object : list) {
                 getAvailableData().add(createItem(object, result));
             }
@@ -169,8 +170,8 @@ public class RepositoryObjectDataProvider<O extends ObjectType>
         OperationResult result = new OperationResult(OPERATION_COUNT_OBJECTS);
         try {
             Class<O> type = SearchBoxModeType.OID.equals(getSearchModel().getObject().getSearchMode()) ? (Class<O>) ObjectType.class : getType();
-            count = getModelService().countObjects(type, getQuery(), getOptions(),
-                    getPageBase().createSimpleTask(OPERATION_COUNT_OBJECTS), result);
+            var task = getPageBase().createSimpleTask(OPERATION_COUNT_OBJECTS);
+            count = getModelService().countObjects(type, getQuery(), getOptions(), task, result);
         } catch (Exception ex) {
             result.recordFatalError(getPageBase().createStringResource("ObjectDataProvider.message.countObjects.fatalError").getString(), ex);
         } finally {

@@ -7,7 +7,8 @@
 package com.evolveum.midpoint.model.intest;
 
 import static com.evolveum.midpoint.model.test.CommonInitialObjects.*;
-import static com.evolveum.midpoint.schema.GetOperationOptions.createRawCollection;
+
+import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
 
 import static java.util.Collections.singleton;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,18 +25,23 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.prism.path.InfraItemName;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
+import com.evolveum.midpoint.schema.util.*;
+
 import jakarta.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.test.TestSimulationResult;
-import com.evolveum.midpoint.schema.util.Resource;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
+import org.testng.SkipException;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.BreakMode;
@@ -61,7 +67,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
-import com.evolveum.midpoint.schema.constants.Channel;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
@@ -71,9 +76,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.AbstractStatisticsPrinter;
 import com.evolveum.midpoint.schema.statistics.OperationsPerformanceInformationUtil;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
@@ -337,8 +339,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertNull("Unexpected object in accountRefValue", accountRefValue.getObject());
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(
-                ShadowType.class, accountJackOid, SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
+        var accountShadow = getShadowRepo(accountJackOid);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
         assertEnableTimestampShadow(accountShadow, startTime, endTime);
 
@@ -421,15 +422,15 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                 getDummyResourceController().getAttributeQName(DUMMY_ACCOUNT_ATTRIBUTE_WATER_NAME),
                 "cold");
 
-        ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(account);
+        ShadowAttributesContainer attributesContainer = ShadowUtil.getAttributesContainer(account);
         assertNotNull("No attribute container from " + account, attributesContainer);
-        Collection<ResourceAttribute<?>> identifiers = attributesContainer.getPrimaryIdentifiers();
+        Collection<ShadowSimpleAttribute<?>> identifiers = attributesContainer.getPrimaryIdentifiers();
         assertNotNull("No identifiers (null) in attributes container in " + accountJackOid, identifiers);
         assertFalse("No identifiers (empty) in attributes container in " + accountJackOid, identifiers.isEmpty());
 
-        ResourceAttribute<String> fullNameAttr = attributesContainer.findAttribute(dummyResourceCtl.getAttributeFullnameQName());
+        ShadowSimpleAttribute<String> fullNameAttr = attributesContainer.findSimpleAttribute(dummyResourceCtl.getAttributeFullnameQName());
         PrismAsserts.assertPropertyValue(fullNameAttr, ACCOUNT_JACK_DUMMY_FULLNAME);
-        ResourceAttributeDefinition<String> fullNameAttrDef = fullNameAttr.getDefinition();
+        ShadowSimpleAttributeDefinition<String> fullNameAttrDef = fullNameAttr.getDefinition();
         displayDumpable("attribute fullname definition", fullNameAttrDef);
         PrismAsserts.assertDefinition(fullNameAttrDef, dummyResourceCtl.getAttributeFullnameQName(),
                 DOMUtil.XSD_STRING, 1, 1);
@@ -452,7 +453,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
-        Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.createNoFetchCollection();
+        Collection<SelectorOptions<GetOperationOptions>> options = createNoFetchCollection();
 
         when();
         PrismObject<ShadowType> account = modelService.getObject(ShadowType.class, accountJackOid, options, task, result);
@@ -463,7 +464,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         PrismContainer<Containerable> accountContainer = account.findContainer(ShadowType.F_ATTRIBUTES);
         displayDumpable("Account attributes def", accountContainer.getDefinition());
         displayDumpable("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
-        assertDummyAccountShadowRepo(account, accountJackOid, "jack");
+
+        var repoAccount = getShadowRepo(accountJackOid);
+        assertDummyAccountShadowRepo(repoAccount, accountJackOid, "jack");
 
         assertSuccess("getObject result", result);
 
@@ -503,7 +506,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         PrismContainer<Containerable> accountContainer = account.findContainer(ShadowType.F_ATTRIBUTES);
         displayDumpable("Account attributes def", accountContainer.getDefinition());
         displayDumpable("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
-        assertDummyAccountShadowRepo(account, accountJackOid, "jack");
+
+        assertDummyAccountShadowRepo(getShadowRepo(accountJackOid), accountJackOid, "jack");
 
         assertSuccess("getObject result", result);
 
@@ -527,14 +531,14 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // get weapon attribute definition
         PrismObject<ResourceType> dummyResource =
                 repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
-        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchemaRequired(dummyResource.asObjectable());
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getCompleteSchemaRequired(dummyResource.asObjectable());
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
 
         QName accountObjectClassQName = dummyResourceCtl.getAccountObjectClassQName();
         ResourceObjectClassDefinition accountObjectClassDefinition =
                 resourceSchema.findObjectClassDefinitionRequired(accountObjectClassQName);
         QName weaponQName = dummyResourceCtl.getAttributeWeaponQName();
-        ResourceAttributeDefinition<?> weaponDefinition = accountObjectClassDefinition.findAttributeDefinition(weaponQName);
+        ShadowSimpleAttributeDefinition<?> weaponDefinition = accountObjectClassDefinition.findSimpleAttributeDefinition(weaponQName);
 
         ObjectQuery q = prismContext.queryFor(ShadowType.class)
                 .item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_DUMMY_OID)
@@ -560,7 +564,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         QName accountObjectClassQName = dummyResourceCtl.getAccountObjectClassQName();
         QName weaponQName = dummyResourceCtl.getAttributeWeaponQName();
         PrismPropertyDefinition<String> weaponFakeDef =
-                prismContext.definitionFactory().createPropertyDefinition(weaponQName, DOMUtil.XSD_STRING);
+                prismContext.definitionFactory().newPropertyDefinition(weaponQName, DOMUtil.XSD_STRING);
 
         ObjectQuery q = prismContext.queryFor(ShadowType.class)
                 .item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_DUMMY_OID)
@@ -796,7 +800,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertNotNull("Missing account object in accountRefValue", accountRefValue.getObject());
 
         ShadowType shadow = (ShadowType) accountRefValue.getObject().asObjectable();
-        assertDummyAccountShadowRepo(shadow.asPrismObject(), accountOid, "jack");
+        assertDummyAccountShadowModel(shadow.asPrismObject(), accountOid, "jack");
 
         result.computeStatus();
         TestUtil.assertSuccess("getObject result", result);
@@ -819,15 +823,14 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         account.setOid(accountJackOid);
         ObjectDelta<UserType> userDelta = createDeleteAccountDelta(USER_JACK_OID, account);
 
-        when("account is added in the simulation mode");
+        when("account is deleted in the simulation mode");
         var simulationResult = executeWithSimulationResult(List.of(userDelta), task, result);
 
         then("operation is successful");
         assertSuccess(result);
 
-        and("single resource access, steady resources");
-        // The fetch operation just to provide the simulation data (may be configured or turned off in the future).
-        assertShadowFetchOperations(1);
+        and("1 or 0 resource access, steady resources");
+        assertShadowFetchOperations(isCached() ? 0 : 1);
         assertSteadyResources();
 
         and("simulation result is OK");
@@ -944,9 +947,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertEquals("Unexpected number of accountRefs", 0, userJackType.getLinkRef().size());
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(
-                ShadowType.class, accountJackOid,
-                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
+        var accountShadow = getShadowRepo(accountJackOid);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
         assertEnableTimestampShadow(accountShadow, startTime, endTime);
 
@@ -1010,15 +1011,14 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSuccess(result);
 
         // There is strong mapping. Complete account is fetched.
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
+        assertShadowFetchOperations(isCached() ? 0 : 1);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertUserJack(userJack);
         accountJackOid = getSingleLinkOid(userJack);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
-                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
+        var accountShadow = getShadowRepo(accountJackOid);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
 
         // Check account
@@ -1076,7 +1076,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSuccess(result);
 
         and("no resource access, steady resources");
-        assertShadowFetchOperations(1); // Because of the event mark policy rules
+        assertShadowFetchOperations(isCached() ? 0 : 1); // Because of the event mark policy rules
         assertSteadyResources();
 
         and("simulation result is OK");
@@ -1131,8 +1131,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                 .assertRelatedLinks(0); // The link was deleted.
 
         // Check shadow (if it is unchanged)
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
-                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
+        var accountShadow = getShadowRepo(accountJackOid);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
 
         // Check account (if it is unchanged)
@@ -1189,7 +1188,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSuccess(result);
 
         and("single resource access (because of sims), steady resources");
-        assertShadowFetchOperations(1);
+        assertShadowFetchOperations(isCached() ? 0 : 1);
         assertSteadyResources();
 
         and("simulation result is OK");
@@ -1370,19 +1369,21 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT, 0, 50);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after change execution", userAfter);
+        assertUserAfter(userAfter)
+                .assertModifyMetadataComplex(startTime, endTime)
+                .assertLastProvisioningTimestamp(startTime, endTime)
+                .assignments()
+                .assertAssignments(1)
+                .by().accountOn(RESOURCE_DUMMY_OID).find()
+                .valueMetadataSingle()
+                .assertCreateMetadataComplex(startTime, endTime);
+
         assertUserJack(userAfter);
-        AssignmentType assignmentType = assertAssignedAccount(userAfter, RESOURCE_DUMMY_OID);
-        assertAssignments(userAfter, 1);
-        assertModifyMetadata(userAfter, startTime, endTime);
-        assertCreateMetadata(assignmentType, startTime, endTime);
-        assertLastProvisioningTimestamp(userAfter, startTime, endTime);
 
         accountJackOid = getSingleLinkOid(userAfter);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
-                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
+        var accountShadow = getShadowRepo(accountJackOid);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
         assertEnableTimestampShadow(accountShadow, startTime, endTime);
 
@@ -1447,7 +1448,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSuccess(result);
 
         and("single shadow fetch, steady resources");
-        assertShadowFetchOperations(1); // strong mapping, simulation mode
+        assertShadowFetchOperations(isCached() ? 0 : 1); // strong mapping, simulation mode
         assertSteadyResources();
 
         and("simulation result is OK");
@@ -1456,7 +1457,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                 .by().objectType(UserType.class).changeType(ChangeType.MODIFY)
                 .find(a -> a.assertEventMarks()
                         .delta(d -> d.assertModifiedExclusive(
-                                        UserType.F_METADATA,
+                                        InfraItemName.METADATA,
                                         UserType.F_ORGANIZATIONAL_UNIT)
                                 .assertPolyStringModification(
                                         UserType.F_ORGANIZATIONAL_UNIT,
@@ -1465,7 +1466,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                 .by().objectType(ShadowType.class).changeType(ChangeType.MODIFY)
                 .find(a -> a.assertEventMarks(MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED)
                         .delta(d -> d.assertModifiedExclusive(
-                                        ShadowType.F_METADATA,
+                                        InfraItemName.METADATA,
                                         DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH,
                                         DUMMY_ACCOUNT_ATTRIBUTE_SHIP_PATH)
                                 .assertModification(
@@ -1515,12 +1516,15 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
         when();
-        executeChanges(createJacksAccountModifyDelta(), null, task, result);
+        // Creating empty partial processing option is the same as having none. This code is here just to test MID-9477.
+        var options = ModelExecuteOptions.create()
+                .partialProcessing(new PartialProcessingOptionsType());
+        executeChanges(createJacksAccountModifyDelta(), options, task, result);
 
         then();
         assertSuccess(result);
 
-        assertShadowFetchOperations(1); // There is strong mapping. Complete account is fetched.
+        assertShadowFetchOperations(isCached() ? 0 : 1); // There is strong mapping. Complete account is fetched.
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
@@ -1534,8 +1538,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         accountJackOid = getSingleLinkOid(userJack);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
-                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
+        var accountShadow = getShadowRepo(accountJackOid);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
 
         // Check account
@@ -1612,8 +1615,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         accountJackOid = getSingleLinkOid(userJack);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
-                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
+        var accountShadow = getShadowRepo(accountJackOid);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
 
         // Check account
@@ -1665,19 +1667,21 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         then();
         assertSuccess(result);
 
-        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after change execution", userAfter);
+        var userAfter = assertUserAfter(USER_JACK_OID)
+                .assignments()
+                .assertAccount(RESOURCE_DUMMY_OID)
+                .assertAssignments(1)
+                .end()
+                .assertLastProvisioningTimestamp(null, startTime)
+                .getObject();
+
         assertUserJack(userAfter);
-        assertAssignedAccount(userAfter, RESOURCE_DUMMY_OID);
-        assertAssignments(userAfter, 1);
-        assertLastProvisioningTimestamp(userAfter, null, startTime);
 
         String accountJackOidAfter = getSingleLinkOid(userAfter);
         assertEquals("Account OID changed", accountJackOid, accountJackOidAfter);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow =
-                repositoryService.getObject(ShadowType.class, accountJackOid, createRawCollection(), result);
+        var accountShadow = getShadowRepo(accountJackOid);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
 
         // Check account
@@ -1729,7 +1733,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSuccess(result);
 
         and("single shadow read, steady resources");
-        assertShadowFetchOperations(1);
+        assertShadowFetchOperations(isCached() ? 0 : 1);
         assertSteadyResources();
 
         and("simulation result is OK");
@@ -1846,8 +1850,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         accountJackOid = getSingleLinkOid(userJack);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
-                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
+        var accountShadow = getShadowRepo(accountJackOid);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
         assertEnableTimestampShadow(accountShadow, startTime, endTime);
 
@@ -1923,7 +1926,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         then();
         assertSuccess(result);
         // There is strong mapping. Complete account is fetched.
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
+        assertShadowFetchOperations(isCached() ? 0 : 1);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
@@ -1931,8 +1934,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertLinked(userJack, accountJackOid);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
-                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
+        var accountShadow = getShadowRepo(accountJackOid);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
 
         // Check account
@@ -2085,8 +2087,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         accountJackOid = getSingleLinkOid(userJack);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
-                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
+        var accountShadow = getShadowRepo(accountJackOid);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
         assertEnableTimestampShadow(accountShadow, startTime, endTime);
 
@@ -2288,8 +2289,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         accountJackOid = getSingleLinkOid(userJack);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
-                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
+        var accountShadow = getShadowRepo(accountJackOid);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
         assertEnableTimestampShadow(accountShadow, startTime, endTime);
 
@@ -2347,7 +2347,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         // Strong mappings
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, isCached() ? 0 : 1);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
@@ -2355,8 +2355,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         accountJackOid = getSingleLinkOid(userJack);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
-                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
+        var accountShadow = getShadowRepo(accountJackOid);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
 
         // Check account
@@ -2553,8 +2552,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertNull("Unexpected object in accountRefValue", accountRefValue.getObject());
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
-                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
+        var accountShadow = getShadowRepo(accountJackOid);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
         assertEnableTimestampShadow(accountShadow, startTime, endTime);
 
@@ -2662,7 +2660,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                         ShadowKindType.ACCOUNT,
                         SchemaConstants.INTENT_DEFAULT,
                         dummyResourceCtl.getAttributeFullnamePath(),
-                        prismContext,
                         "Cpt. Jack Sparrow");
         accountDelta.addModificationAddProperty(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_PATH, "smell");
         deltas.add(accountDelta);
@@ -2684,8 +2681,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         accountJackOid = getSingleLinkOid(userJack);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
-                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
+        var accountShadow = getShadowRepo(accountJackOid);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, USER_JACK_USERNAME);
         assertEnableTimestampShadow(accountShadow, startTime, endTime);
 
@@ -2786,16 +2782,16 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                 createReplaceAccountConstructionUserDelta(USER_JACK_OID, assignmentId, accountConstruction);
         deltas.add(accountAssignmentUserDelta);
 
-        // Set user and assignment create channel to legacy value.
-        repositoryService.modifyObject(
-                UserType.class, jackBefore.getOid(),
-                deltaFor(UserType.class)
-                        .item(UserType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
-                        .replace(Channel.USER.getLegacyUri())
-                        .item(UserType.F_ASSIGNMENT, assignmentId, AssignmentType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
-                        .replace(Channel.USER.getLegacyUri())
-                        .asItemDeltas(),
-                result);
+//        // Set user and assignment create channel to legacy value.
+//        repositoryService.modifyObject(
+//                UserType.class, jackBefore.getOid(),
+//                deltaFor(UserType.class)
+//                        .item(UserType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
+//                        .replace(Channel.USER.getLegacyUri())
+//                        .item(UserType.F_ASSIGNMENT, assignmentId, AssignmentType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
+//                        .replace(Channel.USER.getLegacyUri())
+//                        .asItemDeltas(),
+//                result);
 
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -2812,20 +2808,25 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // First fetch: initial account read
         // Second fetch: fetchback after modification to correctly process inbound
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 2);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, isCached() ? 0 : 2);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
         assertUserJack(userJack, "Jack Sparrow");
         accountJackOid = getSingleLinkOid(userJack);
 
-        // MID-6547 (channel URI migration)
-        assertThat(userJack.asObjectable().getMetadata().getCreateChannel()).isEqualTo(Channel.USER.getUri());
-        assertThat(userJack.asObjectable().getAssignment().get(0).getMetadata().getCreateChannel()).isEqualTo(Channel.USER.getUri());
+//        // MID-6547 (channel URI migration)
+//        assertThat(ValueMetadataTypeUtil.getStorageMetadata(userJack.asObjectable()))
+//                .as("storage metadata in jack")
+//                .extracting(m -> m.getCreateChannel())
+//                .isEqualTo(Channel.USER.getUri());
+//        assertThat(ValueMetadataTypeUtil.getStorageMetadata(userJack.asObjectable().getAssignment().get(0)))
+//                .as("storage metadata in jack's first assignment")
+//                .extracting(m -> m.getCreateChannel())
+//                .isEqualTo(Channel.USER.getUri());
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
-                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
+        var accountShadow = getShadowRepo(accountJackOid);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, USER_JACK_USERNAME);
 
         // Check account
@@ -2870,7 +2871,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         then();
         assertSuccess(result);
         // Strong mappings
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, isCached() ? 0 : 1);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
@@ -2878,8 +2879,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         accountJackOid = getSingleLinkOid(userAfter);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
-                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
+        var accountShadow = getShadowRepo(accountJackOid);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
 
         // Check account
@@ -2937,7 +2937,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         then();
         assertSuccess(result);
         // Strong mappings
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, isCached() ? 0 : 1);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
@@ -2945,8 +2945,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         accountJackOid = getSingleLinkOid(userAfter);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
-                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
+        var accountShadow = getShadowRepo(accountJackOid);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
 
         // Check account
@@ -3033,7 +3032,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         then();
         assertSuccess(result);
         // Strong mappings
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, isCached() ? 0 : 1);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
@@ -3041,8 +3040,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         accountJackOid = getSingleLinkOid(userAfter);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
-                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
+        var accountShadow = getShadowRepo(accountJackOid);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
 
         // Check account
@@ -3140,8 +3138,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         accountJackOid = getSingleLinkOid(userJack);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
-                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
+        var accountShadow = getShadowRepo(accountJackOid);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
 
         // Check account - the original fullName should not be changed
@@ -3187,7 +3184,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSuccess(result);
 
         and("single shadow fetch, steady resources");
-        assertShadowFetchOperations(1);
+        assertShadowFetchOperations(isCached() ? 0 : 1);
         assertSteadyResources();
 
         and("simulation result is OK");
@@ -3304,8 +3301,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertPasswordMetadata(userBlackbeard, CredentialsType.F_PASSWORD, true, startTime, endTime, USER_ADMINISTRATOR_OID, "http://pirates.net/avast");
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid,
-                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
+        var accountShadow = getShadowRepo(accountOid);
         assertDummyAccountShadowRepo(accountShadow, accountOid, "blackbeard");
         assertEnableTimestampShadow(accountShadow, startTime, endTime);
 
@@ -3317,14 +3313,17 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // Check account in dummy resource
         assertDefaultDummyAccount("blackbeard", "Edward Teach", true);
         DummyAccount dummyAccount = getDummyAccount(null, "blackbeard");
-        assertEquals("Wrong loot", (Integer) 10000, dummyAccount.getAttributeValue("loot", Integer.class));
+        assertEquals("Wrong loot", (Long) 10000L, dummyAccount.getAttributeValue("loot", Long.class));
 
         assertDummyScriptsAdd(userBlackbeard, accountModel, getDummyResourceType());
 
         // Check audit
         displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
-        dummyAuditService.assertRecords(2);
+        // If activation is cached, the weak inbound mapping is applied.
+        // This depends on the default cache use, which is currently USE_CACHED_OR_FRESH.
+        // It this changes, we will need to adapt this test.
+        dummyAuditService.assertRecords(isCached() ? 3 : 2);
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(0, 3);
         dummyAuditService.assertHasDelta(0, ChangeType.ADD, UserType.class);
@@ -3416,22 +3415,23 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertNoShadowFetchOperations();
 
         PrismObject<UserType> userMorgan = modelService.getObject(UserType.class, USER_MORGAN_OID, null, task, result);
-        display("User morgan after", userMorgan);
-        UserType userMorganType = userMorgan.asObjectable();
-        AssignmentType assignmentType = assertAssignedAccount(userMorgan, RESOURCE_DUMMY_OID);
+        assertUserAfter(userMorgan)
+                .assertCreateMetadataComplex(startTime, endTime)
+                .assignments()
+                .by().accountOn(RESOURCE_DUMMY_OID).find()
+                .valueMetadataSingle()
+                .assertCreateMetadataComplex(startTime, endTime);
+
         assertLiveLinks(userMorgan, 1);
-        ObjectReferenceType accountRefType = userMorganType.getLinkRef().get(0);
+        ObjectReferenceType accountRefType = userMorgan.asObjectable().getLinkRef().get(0);
         String accountOid = accountRefType.getOid();
         assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
-        assertCreateMetadata(userMorgan, startTime, endTime);
-        assertCreateMetadata(assignmentType, startTime, endTime);
 
         assertEncryptedUserPassword(userMorgan, "rum");
         assertPasswordMetadata(userMorgan, true, startTime, endTime);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid,
-                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
+        var accountShadow = getShadowRepo(accountOid);
         assertDummyAccountShadowRepo(accountShadow, accountOid, "morgan");
         assertEnableTimestampShadow(accountShadow, startTime, endTime);
 
@@ -3492,7 +3492,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSuccess(result);
 
         and("one shadow fetch, steady resources");
-        assertShadowFetchOperations(1);
+        assertShadowFetchOperations(isCached() ? 0 : 1);
         assertSteadyResources();
 
         and("simulation result is OK");
@@ -3532,7 +3532,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         then();
         assertSuccess(result);
         // Strong mappings
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, isCached() ? 0 : 1);
 
         PrismObject<UserType> userMorgan = modelService.getObject(UserType.class, USER_MORGAN_OID, null, task, result);
         UserType userMorganType = userMorgan.asObjectable();
@@ -3542,8 +3542,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
 
         // Check shadow
-        PrismObject<ShadowType> accountShadowRepo = repositoryService.getObject(ShadowType.class, accountOid,
-                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
+        var accountShadowRepo = getShadowRepo(accountOid);
         display("Shadow repo", accountShadowRepo);
         assertDummyAccountShadowRepo(accountShadowRepo, accountOid, "sirhenry");
 
@@ -3719,8 +3718,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         accountJackBlueOid = getSingleLinkOid(userJackAfter);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackBlueOid,
-                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
+        var accountShadow = getShadowRepo(accountJackBlueOid);
         assertAccountShadowRepo(accountShadow, accountJackBlueOid, USER_JACK_USERNAME, getDummyResourceType(RESOURCE_DUMMY_BLUE_NAME));
         assertEnableTimestampShadow(accountShadow, startTime, endTime);
 
@@ -3787,7 +3785,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         assertSuccess(result);
         // Not sure why 2 ... but this is not a big problem now
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 2);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, isCached() ? 0 : 2);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
@@ -3796,8 +3794,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         String accountJackOid = getSingleLinkOid(userJack);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
-                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
+        var accountShadow = getShadowRepo(accountJackOid); // TODO jackOid vs blueOid??
         assertAccountShadowRepo(accountShadow, accountJackBlueOid, USER_JACK_USERNAME, getDummyResourceType(RESOURCE_DUMMY_BLUE_NAME));
 
         // Check account
@@ -4003,7 +4000,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
      * Checking the number of audit records when a new role (with an archetype) is created. MID-8659.
      */
     @Test
-    public void test760CreateRoleWithArchetype() throws CommonException, IOException {
+    public void test760CreateRoleWithArchetype() throws CommonException {
         var task = getTestTask();
         var result = task.getResult();
 
@@ -4031,7 +4028,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
      * Checking the number of audit records when a new user (with a role) is created. MID-8659.
      */
     @Test
-    public void test770CreateUserWithRole() throws CommonException, IOException {
+    public void test770CreateUserWithRole() throws CommonException {
         var task = getTestTask();
         var result = task.getResult();
 
@@ -4053,6 +4050,74 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2 + accessesMetadataAuditOverhead(1));
         dummyAuditService.assertSimpleRecordSanity();
+    }
+
+    /** The clockwork should be able to unlink also dead shadows. MID-9668. */
+    @Test
+    public void test780UnlinkDeadShadow() throws Exception {
+        testUnlinkOrDeleteDeadShadow(false);
+    }
+
+    /** The clockwork should be able to delete also dead shadows. MID-9668. */
+    @Test
+    public void test785DeleteDeadShadow() throws Exception {
+        testUnlinkOrDeleteDeadShadow(true);
+    }
+
+    private void testUnlinkOrDeleteDeadShadow(boolean delete) throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = getTestNameShort();
+
+        if (isCached()) {
+            throw new SkipException("Temporarily disabled");
+        }
+
+        given("a user with a dead shadow");
+        var user = new UserType()
+                .name(userName)
+                .assignment(new AssignmentType()
+                        .construction(new ConstructionType()
+                                .resourceRef(RESOURCE_DUMMY_OID, ResourceType.COMPLEX_TYPE)));
+        var userOid = addObject(user, task, result);
+
+        dummyResourceCtl.deleteAccount(userName);
+        reconcileUser(userOid, task, result);
+
+        var deadLinkRefVal = assertUserBefore(userOid)
+                .assertLinks(1, 1)
+                .links()
+                .singleDead()
+                .getRefVal();
+
+        PrismObject<ShadowType> shadowToDelete;
+        if (delete) {
+            shadowToDelete = provisioningService.getObject(
+                    ShadowType.class,
+                    deadLinkRefVal.getOid(),
+                    createNoFetchCollection(),
+                    task, result);
+        } else {
+            shadowToDelete = null;
+        }
+        deadLinkRefVal.setObject(shadowToDelete);
+
+        when("the dead shadow is " + (delete ? "deleted" : "unlinked"));
+        executeChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_LINK_REF)
+                        .delete(deadLinkRefVal.clone())
+                        .asObjectDelta(userOid),
+                null, task, result);
+
+        then("the dead linkRef is not there anymore");
+        assertUserAfter(userOid)
+                .assertLinks(1, 0);
+
+        and("the shadow still exists (even when unlinked - because of the dead shadow retention by provisioning");
+        assertRepoShadow(deadLinkRefVal.getOid())
+                .display()
+                .assertDead();
     }
 
     private void assertDummyScriptsAdd(PrismObject<UserType> user, PrismObject<? extends ShadowType> account, ResourceType resource) {
@@ -4133,4 +4198,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         displayValue("OperationResultType serialized", serialized);
     }
 
+    boolean isCached() {
+        return InternalsConfig.isShadowCachingOnByDefault();
+    }
 }

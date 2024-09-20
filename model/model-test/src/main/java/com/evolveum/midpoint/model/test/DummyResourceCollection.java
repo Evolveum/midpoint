@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.test;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -20,9 +21,12 @@ import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.util.FailableProcessor;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -43,64 +47,89 @@ public class DummyResourceCollection {
             String name, File resourceFile, String resourceOid,
             FailableProcessor<DummyResourceContoller> controllerInitLambda,
             Task task, OperationResult result) throws Exception {
-        return initDummyResourceInternal(name, resourceFile, null, resourceOid, controllerInitLambda, task, result);
+        return initDummyResourceInternal(name, resourceFile, resourceOid, controllerInitLambda, task, result);
     }
 
-    public DummyResourceContoller initDummyResource(
+    public DummyResourceContoller initDummyResourceRepeatable(
             DummyTestResource dummyTestResource, Task task, OperationResult result) throws Exception {
-        dummyTestResource.controller = initDummyResourceInternal(
-                dummyTestResource.name,
-                null,
-                dummyTestResource,
-                dummyTestResource.oid,
-                dummyTestResource.controllerInitLambda,
-                task,
-                result);
+        dummyTestResource.controller = initDummyResourceInternalRepeatable(dummyTestResource, task, result);
         dummyTestResource.reload(result); // May be reloaded also after the test
         return dummyTestResource.controller;
     }
 
     private DummyResourceContoller initDummyResourceInternal(
-            String name, File resourceFile, TestObject<ResourceType> testResource, String resourceOid,
-            FailableProcessor<DummyResourceContoller> controllerInitLambda,
+            String name, File resourceFile, String resourceOid, FailableProcessor<DummyResourceContoller> controllerInitLambda,
             Task task, OperationResult result) throws Exception {
-        if (map.containsKey(name)) {
+        if (isAlreadyInitialized(name)) {
             throw new IllegalArgumentException("Dummy resource " + name + " already initialized");
         }
+        DummyResourceContoller controller = createController(name, controllerInitLambda);
+        initMidPointResource(resourceFile, null, resourceOid, controller, task, result);
+        map.put(name, controller);
+        return controller;
+    }
+
+    private DummyResourceContoller initDummyResourceInternalRepeatable(
+            DummyTestResource testObject,
+            Task task, OperationResult result) throws Exception {
+        var name = testObject.name;
+        var controller = map.get(name);
+        if (controller != null) {
+            initMidPointResource(null, testObject, testObject.oid, controller, task, result);
+            return controller;
+        } else {
+            var newController = createController(name, testObject.controllerInitLambda);
+            initMidPointResource(null, testObject, testObject.oid, newController, task, result);
+            map.put(name, newController);
+            return newController;
+        }
+    }
+
+    private static @NotNull DummyResourceContoller createController(
+            String name, FailableProcessor<DummyResourceContoller> controllerInitLambda) throws Exception {
         DummyResourceContoller controller = DummyResourceContoller.create(name);
         if (controllerInitLambda != null) {
             controllerInitLambda.process(controller);
         } else {
             controller.populateWithDefaultSchema();
         }
+        return controller;
+    }
+
+    private void initMidPointResource(
+            File resourceFile, TestObject<ResourceType> testObject, String resourceOid, DummyResourceContoller controller,
+            Task task, OperationResult result) throws FileNotFoundException, ObjectNotFoundException, SchemaException,
+            SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         // deduplicate, clean up this code (eventually)
         if (resourceFile != null) {
-            LOGGER.info("Importing {}", resourceFile);
+            LOGGER.info("Importing file {}", resourceFile);
             modelService.importObjectsFromFile(resourceFile, null, task, result);
             OperationResult importResult = result.getLastSubresult();
             if (importResult.isError()) {
                 throw new RuntimeException("Error importing " + resourceFile + ": " + importResult.getMessage());
             }
             LOGGER.debug("File {} imported: {}", resourceFile, importResult);
-        } else if (testResource != null) {
-            LOGGER.info("Importing {}", testResource);
-            modelService.importObject(testResource.getFresh(), null, task, result);
+        } else if (testObject != null) {
+            LOGGER.info("Importing test object {}", testObject);
+            modelService.importObject(testObject.getFresh(), null, task, result);
             OperationResult importResult = result.getLastSubresult();
             if (importResult.isError()) {
-                throw new RuntimeException("Error importing " + testResource + ": " + importResult.getMessage());
+                throw new RuntimeException("Error importing " + testObject + ": " + importResult.getMessage());
             }
-            LOGGER.debug("{} imported: {}", testResource, importResult);
+            LOGGER.debug("{} imported: {}", testObject, importResult);
         }
         if (resourceOid != null) {
             PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, resourceOid, null, task, result);
             controller.setResource(resource);
         }
-        map.put(name, controller);
-        return controller;
+    }
+
+    public boolean isAlreadyInitialized(String name) {
+        return map.containsKey(name);
     }
 
     public void initDummyResource(String name, DummyResourceContoller controller) {
-        if (map.containsKey(name)) {
+        if (isAlreadyInitialized(name)) {
             throw new IllegalArgumentException("Dummy resource " + name + " already initialized");
         }
         map.put(name, controller);

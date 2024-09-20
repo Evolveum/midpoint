@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.gui.impl.component;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
@@ -90,9 +89,12 @@ public abstract class BasicMultivalueContainerListPanel<C extends Containerable>
     }
 
     @Override
-    protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc) {
-        PrismContainerValue<C> newParameter = getContainerModel().getObject().getItem().createNewValue();
-        createNewItemContainerValueWrapper(newParameter, getContainerModel().getObject(), target);
+    protected void newItemPerformed(PrismContainerValue<C> value, AjaxRequestTarget target, AssignmentObjectRelation relationSpec, boolean isDuplicate) {
+        PrismContainerValue<C> newValue = value;
+        if (newValue == null) {
+            newValue = getContainerModel().getObject().getItem().createNewValue();
+        }
+        createNewItemContainerValueWrapper(newValue, getContainerModel().getObject(), target);
         refreshTable(target);
     }
 

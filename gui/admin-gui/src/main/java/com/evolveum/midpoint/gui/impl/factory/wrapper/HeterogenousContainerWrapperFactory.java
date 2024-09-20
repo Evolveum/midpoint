@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.factory.wrapper;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import jakarta.annotation.PostConstruct;
@@ -42,10 +43,10 @@ public class HeterogenousContainerWrapperFactory<C extends Containerable> extend
 
     @Override
     protected List<? extends ItemDefinition> getItemDefinitions(PrismContainerWrapper<C> parent, PrismContainerValue<C> value) {
-        return parent.getDefinitions().stream().filter(def -> filterDefinitins(value, def)).collect(Collectors.toList());
+        return parent.getDefinitions().stream().filter(def -> filterDefinitions(value, def)).collect(Collectors.toList());
     }
 
-    private boolean filterDefinitins(PrismContainerValue<C> value, ItemDefinition<?> def) {
+    protected boolean filterDefinitions(PrismContainerValue<C> value, ItemDefinition<?> def) {
         Item<?, ?> child = value.findItem(def.getItemName());
         return (child != null && !child.isEmpty()) || !(def instanceof PrismContainerDefinition);
     }
@@ -55,8 +56,13 @@ public class HeterogenousContainerWrapperFactory<C extends Containerable> extend
      * match single value containers which contains a looot of other conainers, e.g. policy rule, policy action, notification configuration, etc
      */
     @Override
-    public boolean match(ItemDefinition<?> itemDef) {
-        if (itemDef.getTypeClass() != null && itemDef.getTypeClass().isAssignableFrom(CompositeCorrelatorType.class)) {
+    public <C extends Containerable> boolean match(ItemDefinition<?> itemDef, PrismContainerValue<C> parent) {
+        if (itemDef.getTypeClass() != null
+                && (itemDef.getTypeClass().isAssignableFrom(CompositeCorrelatorType.class)
+                || itemDef.getTypeClass().isAssignableFrom(SecretsProvidersType.class)
+                || itemDef.getTypeClass().isAssignableFrom(SchemaHandlingType.class)
+                || itemDef.getTypeClass().isAssignableFrom(AssociatedResourceObjectTypeDefinitionType.class)
+                || itemDef.getTypeClass().isAssignableFrom(ShadowAssociationDefinitionType.class))) {
             return false;
         }
 
@@ -79,6 +85,12 @@ public class HeterogenousContainerWrapperFactory<C extends Containerable> extend
 
         if (!(itemDef instanceof PrismContainerDefinition<?> containerDef)) {
             return false;
+        }
+
+        if (containerDef.isElaborate()
+                && parent.getCompileTimeClass() != null
+                && WebPrismUtil.findContainerValueParent(parent, parent.getCompileTimeClass()) != null) {
+            return true;
         }
 
         if (containerDef.isMultiValue() && isNotPolicyConstraint(containerDef)) {

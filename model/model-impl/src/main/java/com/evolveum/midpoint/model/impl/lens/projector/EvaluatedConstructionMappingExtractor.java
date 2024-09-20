@@ -15,8 +15,8 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 
 @FunctionalInterface
-public interface EvaluatedConstructionMappingExtractor<V extends PrismValue, D extends ItemDefinition, AH extends AssignmentHolderType> {
+public interface EvaluatedConstructionMappingExtractor<V extends PrismValue, D extends ItemDefinition<?>, AH extends AssignmentHolderType> {
 
-    Collection<? extends PrismValueDeltaSetTripleProducer<V,D>> getMappings(EvaluatedResourceObjectConstructionImpl<AH, ?> evaluatedConstruction);
+    Collection<? extends PrismValueDeltaSetTripleProducer<?, ?>> getMappings(EvaluatedResourceObjectConstructionImpl<AH, ?> evaluatedConstruction);
 
 }

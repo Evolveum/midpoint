@@ -1,0 +1,12 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Cases*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Content-Type: application/json" \
+-X PATCH http://localhost:8080/midpoint/ws/rest/cases/3091ccc5-f3f6-4a06-92b5-803afce1ce57 \
+-v \
+--data-binary @./samples/rest/modify-attribute-gen.json
+----

@@ -9,7 +9,9 @@ package com.evolveum.midpoint.testing.story.security;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
-import java.util.Collections;
+import java.util.List;
+
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -152,11 +154,18 @@ public class TestRoleMembers extends AbstractStoryTest {
 
     }
 
-    private ModelContext<UserType> previewUser(String userOid) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private ModelContext<UserType> previewUser(String userOid)
+            throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
+            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
         ObjectDelta<UserType> emptyMancombDelta = deltaFor(UserType.class).asObjectDelta(userOid);
-        ModelContext<UserType> previewContext = modelInteractionService.previewChanges(Collections.singleton(emptyMancombDelta), null, task, result);
+        var options = ModelExecuteOptions.create()
+                .firstClickOnly()
+                .previewPolicyRulesEnforcement()
+                .operationStartPreAuthorized();
+        ModelContext<UserType> previewContext =
+                modelInteractionService.previewChanges(List.of(emptyMancombDelta), options, task, result);
         displayDumpable("Preview context", previewContext);
         result.computeStatus();
         if (!result.isSuccess() && !result.isHandledError() && !result.isWarning()) {

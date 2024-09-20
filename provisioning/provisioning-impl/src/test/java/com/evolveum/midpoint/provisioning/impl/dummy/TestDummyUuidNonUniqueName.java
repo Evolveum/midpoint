@@ -6,18 +6,12 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+import static org.testng.AssertJUnit.*;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 
 import java.io.File;
 import java.util.List;
-
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -27,19 +21,12 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.RunAsCapabilityType;
@@ -116,46 +103,40 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
     }
 
     private void addFettucini(File file, String oid, String expectedFullName) throws Exception {
-        // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
-        PrismObject<ShadowType> account = prismContext.parseObject(file);
-        account.checkConsistence();
+        PrismObject<ShadowType> accountToAdd = prismContext.parseObject(file);
+        accountToAdd.checkConsistence();
 
-        display("Adding shadow", account);
+        display("Adding shadow", accountToAdd);
 
-        // WHEN
-        String addedObjectOid = provisioningService.addObject(account, null, null, task, result);
+        when();
+        String addedObjectOid = provisioningService.addObject(accountToAdd, null, null, task, result);
 
-        // THEN
-        result.computeStatus();
-        display("add object result", result);
-        TestUtil.assertSuccess("addObject has failed (result)", result);
+        then();
+        assertSuccessVerbose(result);
         assertEquals(oid, addedObjectOid);
 
-        account.checkConsistence();
+        accountToAdd.checkConsistence();
 
-        PrismObject<ShadowType> accountRepo = repositoryService.getObject(ShadowType.class, oid, null, result);
-        display("Account repo", accountRepo);
-        ShadowType accountTypeRepo = accountRepo.asObjectable();
-        PrismAsserts.assertEqualsPolyString("Name not equal", ACCOUNT_FETTUCINI_NAME, accountTypeRepo.getName());
-        assertEquals("Wrong kind (repo)", ShadowKindType.ACCOUNT, accountTypeRepo.getKind());
-        assertAttribute(accountRepo, SchemaConstants.ICFS_NAME, ACCOUNT_FETTUCINI_NAME);
-        String icfUid = getIcfUid(accountRepo);
+        String icfUid = assertRepoShadowNew(oid)
+                .display()
+                .assertName(ACCOUNT_FETTUCINI_NAME)
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertCachedOrigValues(SchemaConstants.ICFS_NAME, ACCOUNT_FETTUCINI_NAME)
+                .getIndexedPrimaryIdentifierValueRequired();
 
         syncServiceMock.assertSingleNotifySuccessOnly();
 
-        PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(ShadowType.class,
-                oid, null, task, result);
-        display("Account provisioning", accountProvisioning);
-        ShadowType accountTypeProvisioning = accountProvisioning.asObjectable();
-        display("account from provisioning", accountTypeProvisioning);
-        PrismAsserts.assertEqualsPolyString("Name not equal", ACCOUNT_FETTUCINI_NAME, accountTypeProvisioning.getName());
-        assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, accountTypeProvisioning.getKind());
-        assertAttribute(accountProvisioning, SchemaConstants.ICFS_NAME, ACCOUNT_FETTUCINI_NAME);
-        assertAttribute(accountProvisioning, SchemaConstants.ICFS_UID, icfUid);
+        var accountAfter = provisioningService.getShadow(oid, null, task, result);
+        assertShadowNew(accountAfter)
+                .display()
+                .assertName(ACCOUNT_FETTUCINI_NAME)
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertOrigValues(SchemaConstants.ICFS_NAME, ACCOUNT_FETTUCINI_NAME)
+                .assertOrigValues(SchemaConstants.ICFS_UID, icfUid);
 
         // Check if the account was created in the dummy resource
         DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_FETTUCINI_NAME, icfUid);
@@ -163,16 +144,14 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
         assertEquals("Fullname is wrong", expectedFullName, dummyAccount.getAttributeValue("fullname"));
 
         // Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
-        PrismObject<ShadowType> shadowFromRepo = repositoryService.getObject(ShadowType.class,
-                addedObjectOid, null, result);
-        assertNotNull("Shadow was not created in the repository", shadowFromRepo);
-        displayValue("Repository shadow", shadowFromRepo.debugDump());
+        var repoShadow = getShadowRepo(addedObjectOid);
+        assertNotNull("Shadow was not created in the repository", repoShadow);
+        displayValue("Repository shadow", repoShadow.debugDump());
 
-        ProvisioningTestUtil.checkRepoAccountShadow(shadowFromRepo);
+        ProvisioningTestUtil.checkRepoAccountShadow(repoShadow);
 
-        checkUniqueness(accountProvisioning);
+        // We do not check the uniqueness here, as the icfs:name is not unique here. (That's strange, as it SHOULD be unique.)
         assertSteadyResource();
-
     }
 
     private void searchFettucini(int expectedNumberOfFettucinis) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
@@ -190,7 +169,6 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
     }
 
     private PrismPropertyDefinition<String> getIcfNameDefinition() {
-        return prismContext.definitionFactory().createPropertyDefinition(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING);
+        return prismContext.definitionFactory().newPropertyDefinition(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING);
     }
-
 }

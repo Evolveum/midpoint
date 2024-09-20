@@ -10,7 +10,7 @@ package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -24,7 +24,7 @@ import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.provisioning.impl.CommonBeans;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -96,7 +96,7 @@ class TwoStateRealToSimulatedConverter<N> {
             throws SchemaException {
         LOGGER.trace("Creating attribute for simulated {}: {}", description, simulatingAttributeName);
 
-        ResourceAttribute<S> simulatingAttribute =
+        ShadowSimpleAttribute<S> simulatingAttribute =
                 createEmptySimulatingAttribute(shadow, result);
         if (simulatingAttribute == null) {
             return false; // error already processed
@@ -108,7 +108,7 @@ class TwoStateRealToSimulatedConverter<N> {
     }
 
     private <S> S determineSimulatingAttributeRealValue(N nativeValue,
-            ResourceAttribute<S> simulatingAttribute) {
+            ShadowSimpleAttribute<S> simulatingAttribute) {
 
         if (nativeValue == null || nativePositiveValue.equals(nativeValue)) {
             return getPositiveSimulationValue(simulatingAttribute);
@@ -120,7 +120,7 @@ class TwoStateRealToSimulatedConverter<N> {
     /**
      * Sets simulation attribute value and places the attribute in the shadow.
      */
-    private <S> void setSimulatingAttribute(ResourceAttribute<S> simulatingAttribute, S simulatingAttributeRealValue,
+    private <S> void setSimulatingAttribute(ShadowSimpleAttribute<S> simulatingAttribute, S simulatingAttributeRealValue,
             ShadowType shadow) throws SchemaException {
         LOGGER.trace("Converted activation status value to {}, attribute {}", simulatingAttributeRealValue, simulatingAttribute);
         PrismContainer<?> attributesContainer = shadow.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
@@ -142,12 +142,12 @@ class TwoStateRealToSimulatedConverter<N> {
     <S> PropertyModificationOperation<S> convertDelta(N nativeValue, ShadowType shadow, OperationResult result)
             throws SchemaException {
         PropertyDelta<S> simulatingAttributeDelta;
-        ResourceAttribute<S> simulatingAttribute = createEmptySimulatingAttribute(shadow, result);
+        ShadowSimpleAttribute<S> simulatingAttribute = createEmptySimulatingAttribute(shadow, result);
         if (simulatingAttribute == null) {
             return null;
         }
 
-        ResourceAttributeDefinition<S> def = simulatingAttribute.getDefinition();
+        ShadowSimpleAttributeDefinition<S> def = simulatingAttribute.getDefinition();
         if (nativeValue == null) {
             simulatingAttributeDelta = createActivationPropDelta(def, null);
         } else if (nativePositiveValue.equals(nativeValue)) {
@@ -167,7 +167,7 @@ class TwoStateRealToSimulatedConverter<N> {
         }
     }
 
-    private <S> PropertyDelta<S> createActivationPropDelta(ResourceAttributeDefinition<S> attrDef, S value) {
+    private <S> PropertyDelta<S> createActivationPropDelta(ShadowSimpleAttributeDefinition<S> attrDef, S value) {
         if (isBlank(value)) {
             //noinspection unchecked
             return beans.prismContext.deltaFactory().property()
@@ -179,11 +179,11 @@ class TwoStateRealToSimulatedConverter<N> {
         }
     }
 
-    private <S> ResourceAttribute<S> createEmptySimulatingAttribute(ShadowType shadow,
+    private <S> ShadowSimpleAttribute<S> createEmptySimulatingAttribute(ShadowType shadow,
             OperationResult result) throws SchemaException {
         LOGGER.trace("Name of the simulating attribute for {}: {}", description, simulatingAttributeName);
 
-        ResourceAttributeDefinition<?> attributeDefinition = ctx.findAttributeDefinition(simulatingAttributeName);
+        var attributeDefinition = ctx.<S>findSimpleAttributeDefinition(simulatingAttributeName);
         if (attributeDefinition == null) {
             // Warning is appropriate here. Attribute is defined, but that attribute is not known.
             ResourceType resource = ctx.getResource();
@@ -195,11 +195,10 @@ class TwoStateRealToSimulatedConverter<N> {
             return null;
         }
 
-        //noinspection unchecked
-        return (ResourceAttribute<S>) attributeDefinition.instantiate(simulatingAttributeName);
+        return attributeDefinition.instantiate(simulatingAttributeName);
     }
 
-    private <S> S getPositiveSimulationValue(ResourceAttribute<S> simulatingAttribute) {
+    private <S> S getPositiveSimulationValue(ShadowSimpleAttribute<S> simulatingAttribute) {
         if (simulatedPositiveValues.isEmpty()) {
             return null;
         } else {
@@ -208,7 +207,7 @@ class TwoStateRealToSimulatedConverter<N> {
         }
     }
 
-    private <S> S getNegativeSimulationValue(ResourceAttribute<S> simulatingAttribute) {
+    private <S> S getNegativeSimulationValue(ShadowSimpleAttribute<S> simulatingAttribute) {
         if (simulatedNegativeValues.isEmpty()) {
             return null;
         } else {
@@ -218,8 +217,8 @@ class TwoStateRealToSimulatedConverter<N> {
     }
 
     @NotNull
-    private <T> Class<T> getAttributeValueClass(ResourceAttribute<T> attribute) {
-        ResourceAttributeDefinition<T> attributeDefinition = attribute.getDefinition();
+    private <T> Class<T> getAttributeValueClass(ShadowSimpleAttribute<T> attribute) {
+        ShadowSimpleAttributeDefinition<T> attributeDefinition = attribute.getDefinition();
         Class<?> attributeValueClass = attributeDefinition != null ? attributeDefinition.getTypeClass() : null;
         if (attributeValueClass != null) {
             //noinspection unchecked

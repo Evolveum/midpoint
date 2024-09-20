@@ -1,0 +1,103 @@
+= Search Operation
+:page-nav-title: Search
+:page-display-order: 800
+:page-toc: top
+:page-keywords: [ 'rest', 'search', 'operation' ]
+:page-upkeep-status: green
+
+== Description
+As the name implies, the Search operation is used to search for specific objects. This is done with a filter query. In our case
+we use a query which is specified in the body of the request (rather than a part of the URI itself).
+
+== Request
+
+The request itself is an HTTP POST operation. The URI contains the endpoint {endpoint} which should be used in the search
+and also the */search* keyword.
+
+.Execute the Search request via HTTP POST
+[source, http]
+----
+POST http://localhost:8080/midpoint/ws/rest/{endpoint}/search
+----
+
+=== Headers
+
+Regarding authorization type, the "Basic" Authorization header should be used.
+
+.Authorization header example replace {Base64EncodedCredentials} with the encoded credentials
+[source, http]
+----
+Authorization: Basic {Base64EncodedCredentials}
+----
+
+To specify the provided content type, please use the "Content-Type" header
+payload in the body:
+
+.Content type header example, other media types are supported as well
+[source, http]
+----
+"Content-Type: application/json"
+----
+
+You might need to specify the accepted type of content in case
+you are interested in a format different from xml (default):
+
+.Accept type header example, other media types are supported as well
+[source, http]
+----
+"Accept: application/json"
+----
+
+.For supported media types please refer to the following section of the documentation
+xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+
+=== Body
+
+The body consists of a Query in the form of a QueryType type of objects. Please see an example in the *examples* bellow.
+
+=== Options
+
+The *"Search"* operations support specifying options influencing the operation execution. You can find the
+supported options in these references:
+
+.Usable options for this type of operation
+link:https://github.com/Evolveum/midpoint/blob/731e408905650d81ecab410f1f1c4f07a0d8795c/infra/schema/src/main/java/com/evolveum/midpoint/schema/GetOperationOptions.java[GetOperationOptionsType]
+
+include::../../rest/operations/raw/options-usage.adoc[]
+
+include::../../rest/operations/raw/operation-prop-search.adoc[]
+
+
+include::../../rest/concepts/raw/outcome.adoc[]
+
+== Access Authorization
+
+include::../operations/raw/a-auth.adoc[]
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#searchObjects+`
+
+== Model Authorization
+
+include::../operations/raw/m-auth.adoc[]
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read+`
+
+== Examples
+
+include::../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+include::../../rest/operations/examples/raw/search-all-users.adoc[]
+include::../../rest/operations/examples/raw/search-all.adoc[]
+
+.Other Example Scenarios
+1. xref:/midpoint/reference/interfaces/rest/operations/examples/search-objects-filter.adoc [Get Users with filter query]
+
+== See Also
+
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]
+- xref:/midpoint/reference/security/authorization/service/[]

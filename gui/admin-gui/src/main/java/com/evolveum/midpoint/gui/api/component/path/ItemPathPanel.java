@@ -59,10 +59,11 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 
     private boolean switchToTextFieldEnabled = false;
 
-    public enum ItemPathPanelMode{
+    public enum ItemPathPanelMode {
         NAMESPACE_MODE,
         TEXT_MODE;
     }
+
     private ItemPathPanelMode panelMode = ItemPathPanelMode.NAMESPACE_MODE;
 
     public ItemPathPanel(String id, IModel<ItemPathDto> model) {
@@ -92,15 +93,16 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
     }
 
     @Override
-    protected void onConfigure(){
+    protected void onConfigure() {
         super.onConfigure();
-        if (getModelObject() == null || getModelObject().getItemDef() == null){
+        if (getModelObject() == null || getModelObject().getItemDef() == null) {
             ItemPathSegmentPanel itemPathSegmentPanel = getItemPathSegmentPanel();
-            if (itemPathSegmentPanel != null){
+            if (itemPathSegmentPanel != null) {
                 itemPathSegmentPanel.getBaseFormComponent().getDefaultModel().setObject(null);
             }
         }
     }
+
     private void initLayout() {
         initItemPathPanel();
 
@@ -142,6 +144,14 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
             protected void onUpdateAutoCompletePanel(AjaxRequestTarget target) {
                 ItemPathPanel.this.onUpdate(ItemPathPanel.this.getModelObject());
             }
+
+            @Override
+            public void collectItems(Collection<? extends ItemDefinition> definitions, String input, Map<String, ItemDefinition<?>> toSelect) {
+                boolean isApply = ItemPathPanel.this.collectItems(definitions, input, toSelect);
+                if (!isApply) {
+                    super.collectItems(definitions, input, toSelect);
+                }
+            }
         };
         itemDefPanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         itemDefPanel.setOutputMarkupId(true);
@@ -161,10 +171,7 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 
             @Override
             public boolean isVisible() {
-                if (getModelObject().getParentPath() == null || getModelObject().getParentPath().toItemPath() == null) {
-                    return true;
-                }
-                return (getModelObject().getParentPath().getItemDef() instanceof PrismContainerDefinition);
+                return isPlusButtonVisible();
             }
         });
         plusButton.setOutputMarkupId(true);
@@ -185,15 +192,16 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 
             @Override
             public boolean isVisible() {
-                return getModelObject().getParentPath() != null && getModelObject().getParentPath().toItemPath() != null;
+                return isMinusButtonVisible();
             }
         });
         minusButton.setOutputMarkupId(true);
         namespaceModeContainer.add(minusButton);
 
+        setDefaultItemPath();
         DropDownChoicePanel<QName> namespacePanel = new DropDownChoicePanel<>(ID_NAMESPACE,
-            new PropertyModel<>(getModel(), "objectType"),
-            new ListModel<>(ObjectTypeListUtil.createObjectTypeList()), new QNameObjectTypeChoiceRenderer());
+                new PropertyModel<>(getModel(), "objectType"),
+                new ListModel<>(ObjectTypeListUtil.createObjectTypeList()), new QNameObjectTypeChoiceRenderer());
         namespacePanel.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
 
             private static final long serialVersionUID = 1L;
@@ -211,7 +219,14 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 
             @Override
             public boolean isVisible() {
-                return getModelObject().getParentPath() == null || getModelObject().getParentPath().toItemPath() == null;
+                return isNamespaceVisible()
+                        && (getModelObject().getParentPath() == null
+                        || getModelObject().getParentPath().toItemPath() == null);
+            }
+
+            @Override
+            public boolean isEnabled() {
+                return isNamespaceEnable();
             }
         });
         namespacePanel.setOutputMarkupId(true);
@@ -245,6 +260,17 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 
     }
 
+    public boolean isPlusButtonVisible() {
+        if (getModelObject().getParentPath() == null || getModelObject().getParentPath().toItemPath() == null) {
+            return true;
+        }
+        return (getModelObject().getParentPath().getItemDef() instanceof PrismContainerDefinition);
+    }
+
+    public boolean isMinusButtonVisible() {
+        return getModelObject().getParentPath() != null && getModelObject().getParentPath().toItemPath() != null;
+    }
+
     protected boolean isTextFieldVisible() {
         return switchToTextFieldEnabled && ItemPathPanelMode.TEXT_MODE.equals(panelMode);
     }
@@ -276,6 +302,7 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 ItemPathDto newPath = new ItemPathDto();
+                newPath.setObjectType(getRequaredObjectType());
                 ItemPathPanel.this.getModel().setObject(newPath);
                 target.add(ItemPathPanel.this);
                 onUpdate(newPath);
@@ -283,7 +310,16 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
         };
 
         change.setOutputMarkupId(true);
+        change.add(new VisibleBehaviour(this::isResetButtonVisible));
         itemPathLabel.add(change);
+    }
+
+    protected boolean isResetButtonVisible() {
+        return true;
+    }
+
+    protected QName getRequaredObjectType() {
+        return null;
     }
 
     private void refreshItemPathPanel(ItemPathDto itemPathDto, boolean isAdd, AjaxRequestTarget target) {
@@ -316,17 +352,28 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
     }
 
     private void refreshItemPath(ItemPathDto itemPathDto, AjaxRequestTarget target) {
-
         this.getModel().setObject(itemPathDto);
         target.add(this);
 
         onUpdate(itemPathDto);
     }
 
+    protected boolean setDefaultItemPath() {
+        return true;
+    }
+
+    protected boolean isNamespaceVisible() {
+        return true;
+    }
+
+    protected boolean isNamespaceEnable() {
+        return true;
+    }
+
     private Map<QName, Collection<ItemDefinition<?>>> initNamspaceDefinitionMap() {
         Map<QName, Collection<ItemDefinition<?>>> schemaDefinitionsMap = new HashMap<>();
         if (getModelObject().getObjectType() != null) {
-            Class clazz = WebComponentUtil.qnameToClass(getPageBase().getPrismContext(),
+            Class clazz = WebComponentUtil.qnameToClass(
                     getModelObject().getObjectType());
             if (clazz != null) {
                 PrismObjectDefinition<?> objectDef = getPageBase().getPrismContext().getSchemaRegistry()
@@ -345,17 +392,16 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
         return schemaDefinitionsMap;
     }
 
-
     protected void onUpdate(ItemPathDto itemPathDto) {
 
     }
 
-    protected ItemPathSegmentPanel getItemPathSegmentPanel(){
+    protected ItemPathSegmentPanel getItemPathSegmentPanel() {
         return (ItemPathSegmentPanel) get(ID_ITEM_PATH).get(ID_NAMESPACE_MODE_CONTAINER).get(ID_DEFINITION);
     }
 
-    protected void switchButtonClickPerformed(AjaxRequestTarget target){
-        if (ItemPathPanelMode.TEXT_MODE.equals(panelMode)){
+    protected void switchButtonClickPerformed(AjaxRequestTarget target) {
+        if (ItemPathPanelMode.TEXT_MODE.equals(panelMode)) {
             panelMode = ItemPathPanelMode.NAMESPACE_MODE;
         } else {
             panelMode = ItemPathPanelMode.TEXT_MODE;
@@ -363,11 +409,15 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
         target.add(ItemPathPanel.this);
     }
 
-    public boolean isTextMode(){
+    public boolean collectItems(Collection<? extends ItemDefinition> definitions, String input, Map<String, ItemDefinition<?>> toSelect) {
+        return false;
+    }
+
+    public boolean isTextMode() {
         return ItemPathPanelMode.TEXT_MODE.equals(panelMode);
     }
 
-    protected ItemPathPanelMode getPanelMode(){
+    protected ItemPathPanelMode getPanelMode() {
         return panelMode;
     }
 }

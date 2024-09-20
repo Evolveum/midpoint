@@ -1,0 +1,98 @@
+= Node Type REST Endpoint
+:page-nav-title: Node
+:page-display-order: 2300
+:page-toc: top
+:page-keywords: [ 'rest', 'node', 'endpoint' ]
+:page-upkeep-status: green
+
+== Description
+
+Here we are describing the Node object type in relation to midPoints REST API. The
+Node objects are a part of the REST API web resources.
+
+== Operations And Examples
+
+The Node type endpoint operations and examples.
+
+include::../raw/curl-env-note.adoc[]
+
+For some help regarding the REST examples please see this link:
+
+xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How to use MidPoint REST examples]
+
+
+=== Get Node type Objects
+
+Get operation for fetching a single specific object.
+
+- xref:/midpoint/reference/interfaces/rest/operations/get-op-rest/[Get Operation]
+
+=== Search for Node type Objects
+
+Search operation usable for fetching the full list of objects or a list based on filter.
+
+include::../operations/examples/raw/search-all.adoc[]
+
+- xref:/midpoint/reference/interfaces/rest/operations/search-op-rest/[Search Operation]
+
+=== Modify Node type Objects
+
+- xref:/midpoint/reference/interfaces/rest/operations/modify-op-rest/[Modify Operation]
+
+=== Delete Node type Objects
+
+- xref:/midpoint/reference/interfaces/rest/operations/delete-op-rest/[Delete Operation]
+
+=== Generate and Validate Operations for Node Objects
+
+Operations to generate or validate values.
+
+- xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]
+
+== JSON Example
+
+Example output of information regarding a specific Node object. Metadata is usually a part
+of the output, yet it was removed for the purpose of the example.
+
+.Show JSON Example
+[%collapsible]
+====
+[source, json]
+----
+{
+  "node" : {
+    "oid" : "",
+    "version" : "",
+    "name" : "DefaultNode",
+    "nodeIdentifier" : "DefaultNode",
+    "hostname" : "",
+    "url" : "",
+    "ipAddress" : [  ],
+    "lastCheckInTime" : "",
+    "operationalState" : "up",
+    "clustered" : false,
+    "internalNodeIdentifier" : "",
+    "build" : {
+      "version" : "4.8",
+      "revision" : "v4.8"
+    },
+    "secret" : {},
+    "secretUpdateTimestamp" : "",
+    "taskExecutionLimitations" : {
+      "groupLimitation" : [ {
+        "groupName" : ""
+      }, {
+        "groupName" : "DefaultNode"
+      }, {
+        "groupName" : "*",
+        "limit" : 0
+      } ]
+    }
+  }
+}
+----
+====
+
+== See Also
+- xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
+- xref:/midpoint/reference/interfaces/rest/concepts/authentication/[Authentication]

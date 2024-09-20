@@ -11,12 +11,16 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ObjectClassWrapper;
+import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -24,8 +28,11 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -49,17 +56,44 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
             protected List<ObjectClassWrapper> load() {
                 List<ObjectClassWrapper> list = new ArrayList<>();
 
-                ResourceSchema schema = getResourceSchema(getObjectWrapper(), getPageBase());
+                ResourceType resourceType = new ResourceType().name("test");
+                PrismObject<ResourceType> currentResource;
+                try {
+                    currentResource = getObjectWrapper().getObjectApplyDelta();
+                } catch (CommonException e) {
+                    throw new RuntimeException(e);
+                }
+                WebPrismUtil.cleanupEmptyContainers(currentResource);
+                resourceType.connectorRef(currentResource.asObjectable().getConnectorRef())
+                        .connectorConfiguration(currentResource.asObjectable().getConnectorConfiguration());
+                OperationResult result = new OperationResult("bla");
+                @Nullable ResourceSchema schemaForConnector = getPageBase().getModelService().fetchSchema(resourceType.asPrismObject(), result);
 
-                if (schema == null) {
+                if (schemaForConnector == null){
                     return list;
                 }
 
-                for(ResourceObjectClassDefinition definition: schema.getObjectClassDefinitions()){
+                for(ResourceObjectClassDefinition definition: schemaForConnector.getObjectClassDefinitions()){
                     list.add(new ObjectClassWrapper(definition));
                 }
 
                 Collections.sort(list);
+
+                ResourceSchema currentSchema = getResourceSchema(getObjectWrapper(), getPageBase());
+
+                if (currentSchema == null) {
+                    return list;
+                }
+
+                currentSchema.getObjectTypeDefinitions().forEach(objectTypeDef -> {
+                    list.forEach(objectClassWrapper -> {
+                        if (QNameUtil.match(objectClassWrapper.getObjectClassName(), objectTypeDef.getObjectClassName())) {
+                            objectClassWrapper.setEnabled(false);
+                            objectClassWrapper.setSelected(true);
+                        }
+                    });
+                });
+
 
                 return list;
             }
@@ -70,8 +104,10 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
         ResourceSchema schema = null;
         OperationResult result = new OperationResult(OPERATION_FETCH_SCHEMA);
         try {
-            schema = pageBase.getModelService().fetchSchema(objectWrapper.getObjectApplyDelta(), result);
-        } catch (SchemaException | RuntimeException e) {
+            PrismObject<ResourceType> resource = objectWrapper.getObjectApplyDelta();
+            WebPrismUtil.cleanupEmptyContainers(resource);
+            schema = pageBase.getModelService().fetchSchema(resource, result);
+        } catch (CommonException | RuntimeException e) {
             result.recordFatalError("Cannot load schema object classes, " + e.getMessage());
             result.computeStatus();
             pageBase.showResult(result);
@@ -79,8 +115,10 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
         return schema;
     }
 
-    public ResourceSchema getRefinedSchema() throws SchemaException, ConfigurationException {
-        return ResourceSchemaFactory.getCompleteSchema(getObjectWrapperModel().getObject().getObjectOld().asObjectable());
+    public CompleteResourceSchema getRefinedSchema() throws SchemaException, ConfigurationException {
+        @NotNull ResourceType resource = getObjectWrapperModel().getObject().getObjectOld().asObjectable().clone();
+        WebPrismUtil.cleanupEmptyContainers(resource.asPrismContainer());
+        return ResourceSchemaFactory.getCompleteSchema(resource);
     }
 
     @Override
@@ -94,7 +132,8 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
         PrismObject<ResourceType> resource = getPrismObject();
         PrismReference connector = resource.findReference(ResourceType.F_CONNECTOR_REF);
         String connectorOid = connector != null ? connector.getOid() : null;
-        return getModelServiceLocator().getCompiledGuiProfile().findResourceDetailsConfiguration(connectorOid);
+        GuiResourceDetailsPageType resourceDetailsConfiguration = getModelServiceLocator().getCompiledGuiProfile().findResourceDetailsConfiguration(connectorOid);
+        return applyArchetypePolicy(resourceDetailsConfiguration);
     }
 
     public IModel<List<ObjectClassWrapper>> getObjectClassesModel() {
@@ -138,6 +177,24 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
         return objectTypes.iterator().next();
     }
 
+    public ResourceObjectTypeDefinition getObjectTypeDefinition(ShadowKindType kind, String intent) {
+        ResourceSchema resourceSchema = getResourceSchemaOrNothing();
+        if (resourceSchema == null) {
+            return null;
+        }
+
+        if (StringUtils.isEmpty(intent)) {
+            return getDefaultObjectType(kind);
+        }
+
+        ResourceObjectTypeDefinition defaultObjectType = resourceSchema.getObjectTypeDefinition(kind, intent);
+        if (defaultObjectType == null) {
+            return getDefaultObjectType(kind);
+        }
+
+        return defaultObjectType;
+    }
+
     public List<? extends ResourceObjectTypeDefinition> getResourceObjectTypesDefinitions(ShadowKindType kind) {
         ResourceSchema resourceSchema = getResourceSchemaOrNothing();
 
@@ -146,10 +203,6 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
         }
 
         return resourceSchema.getObjectTypeDefinitions(kind);
-//        return resourceSchema.getObjectTypeDefinitions(kind)
-//                .stream()
-//                .map(ResourceObjectDefinition::getDefinitionBean)
-//                .collect(Collectors.toList());
     }
 
     public QName getDefaultObjectClass() {

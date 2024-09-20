@@ -6,15 +6,16 @@
  */
 package com.evolveum.midpoint.gui.api.factory.wrapper;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
-import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.model.api.MetadataItemProcessingSpec;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -48,7 +49,7 @@ public class WrapperContext {
     private ResourceShadowCoordinates coordinates;
 
     //Association related attributes
-    private Collection<ResourceAssociationDefinition> resourceAssociationDefinitions;
+    private Collection<? extends ShadowReferenceAttributeDefinition> shadowAssociationDefinitions;
 
     //used e.g. for metadata - opertionsla attributes but want to create wrappers for them
     private boolean createOperational;
@@ -65,10 +66,21 @@ public class WrapperContext {
      private List<? extends ContainerPanelConfigurationType> detailsPageTypeConfiguration;
     private Collection<VirtualContainersSpecificationType> virtualContainers = new ArrayList<>();
 
+    private ItemSecurityConstraints securityConstraints;
+
     private MappingDirection attributeMappingType;
     private boolean configureMappingType;
 
     private boolean isShowedByWizard;
+
+    private boolean isDeprecatedItemAllowed = false;
+
+    /**
+     * usually virtual containers are created only whtn the whole object wrapper is created
+     * however, there are situations, when we need to create those virtual containers even
+     * when a concrete container wrapper is beeing created.
+     */
+    private boolean forceCreateVirtualContainers;
 
     public WrapperContext(Task task, OperationResult result) {
         this.task = task;
@@ -123,12 +135,12 @@ public class WrapperContext {
         this.resource = resource;
     }
 
-    public Collection<ResourceAssociationDefinition> getRefinedAssociationDefinitions() {
-        return resourceAssociationDefinitions;
+    public Collection<? extends ShadowReferenceAttributeDefinition> getRefinedAssociationDefinitions() {
+        return shadowAssociationDefinitions;
     }
 
-    public void setRefinedAssociationDefinitions(Collection<ResourceAssociationDefinition> resourceAssociationDefinitions) {
-        this.resourceAssociationDefinitions = resourceAssociationDefinitions;
+    public void setRefinedAssociationDefinitions(Collection<? extends ShadowReferenceAttributeDefinition> shadowAssociationDefinitions) {
+        this.shadowAssociationDefinitions = shadowAssociationDefinitions;
     }
 
     public void setCoordinates(ResourceShadowCoordinates coordinates) {
@@ -179,12 +191,12 @@ public class WrapperContext {
         this.metadataItemProcessingSpec = metadataItemProcessingSpec;
     }
 
-    public boolean isProcessMetadataFor(ItemPath path) throws SchemaException {
+    public boolean isProcessMetadataFor(ItemWrapper<?,?> wrapper) throws SchemaException {
         if (metadataItemProcessingSpec == null) {
             return false;
         }
 
-        return metadataItemProcessingSpec.isFullProcessing(path);
+        return metadataItemProcessingSpec.isFullProcessing(wrapper.getPath(), wrapper);
     }
 
     public PrismObject<?> getObject() {
@@ -280,6 +292,31 @@ public class WrapperContext {
         return isShowedByWizard;
     }
 
+    public boolean isDeprecatedItemAllowed() {
+        return isDeprecatedItemAllowed;
+    }
+
+    public void setDeprecatedItemAllowed(boolean deprecatedItemAllowed) {
+        isDeprecatedItemAllowed = deprecatedItemAllowed;
+    }
+
+    public void forceCreateVirtualContainer(List<VirtualContainersSpecificationType> virtualContainers) {
+        this.virtualContainers.addAll(virtualContainers);
+        this.forceCreateVirtualContainers = true;
+    }
+
+    public boolean isForceCreateVirtualContainers() {
+        return forceCreateVirtualContainers;
+    }
+
+    public void setSecurityConstraints(ItemSecurityConstraints securityConstraints) {
+        this.securityConstraints = securityConstraints;
+    }
+
+    public ItemSecurityConstraints getSecurityConstraints() {
+        return securityConstraints;
+    }
+
     public WrapperContext clone() {
         WrapperContext ctx = new WrapperContext(task,result);
         ctx.setAuthzPhase(authzPhase);
@@ -299,6 +336,8 @@ public class WrapperContext {
         ctx.setAttributeMappingType(attributeMappingType);
         ctx.setConfigureMappingType(configureMappingType);
         ctx.setShowedByWizard(isShowedByWizard);
+        ctx.setSecurityConstraints(securityConstraints);
         return ctx;
     }
+
 }

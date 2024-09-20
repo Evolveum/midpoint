@@ -51,33 +51,37 @@ public abstract class AbstractRestServiceInitializer extends AbstractGuiIntegrat
 
     public static final File USER_ADMINISTRATOR_FILE = new File(BASE_REPO_DIR, "user-administrator.xml");
     public static final String USER_ADMINISTRATOR_USERNAME = "administrator";
-    public static final String USER_ADMINISTRATOR_PASSWORD = "5ecr3t";
+    public static final String USER_ADMINISTRATOR_PASSWORD = "Test5ecr3t";
 
     // No authorization
     public static final File USER_NOBODY_FILE = new File(BASE_REPO_DIR, "user-nobody.xml");
     public static final String USER_NOBODY_OID = "ffb9729c-d48b-11e4-9720-001e8c717e5b";
     public static final String USER_NOBODY_USERNAME = "nobody";
-    public static final String USER_NOBODY_PASSWORD = "nopassword";
+    public static final String USER_NOBODY_PASSWORD = "N0pa55word";
 
     // REST authorization only
     public static final File USER_CYCLOPS_FILE = new File(BASE_REPO_DIR, "user-cyclops.xml");
     public static final String USER_CYCLOPS_OID = "6020bb52-d48e-11e4-9eaf-001e8c717e5b";
     public static final String USER_CYCLOPS_USERNAME = "cyclops";
-    public static final String USER_CYCLOPS_PASSWORD = "cyclopassword";
+    public static final String USER_CYCLOPS_PASSWORD = "Cycl0pa55word";
 
     // REST and reader authorization
     public static final File USER_SOMEBODY_FILE = new File(BASE_REPO_DIR, "user-somebody.xml");
     public static final String USER_SOMEBODY_OID = "a5f3e3c8-d48b-11e4-8d88-001e8c717e5b";
     public static final String USER_SOMEBODY_USERNAME = "somebody";
-    public static final String USER_SOMEBODY_PASSWORD = "somepassword";
+    public static final String USER_SOMEBODY_PASSWORD = "S0m3pa55word";
 
     // other
     public static final File USER_JACK_FILE = new File(BASE_REPO_DIR, "user-jack.xml");
     public static final String USER_JACK_OID = "229487cb-59b6-490b-879d-7a6d925dd08c";
+    public static final File USER_REST_LIMITED_FILE = new File(BASE_REPO_DIR, "user-rest-limited.xml");
+    public static final String USER_REST_LIMITED_NAME = "rest-limited";
+    public static final String USER_REST_LIMITED_PASSWORD = "r3stL1m1t3d";
 
     public static final File ROLE_SUPERUSER_FILE = new File(BASE_REPO_DIR, "role-superuser.xml");
     public static final File ROLE_ENDUSER_FILE = new File(BASE_REPO_DIR, "role-enduser.xml");
     public static final File ROLE_REST_FILE = new File(BASE_REPO_DIR, "role-rest.xml");
+    public static final File ROLE_REST_LIMITED_FILE = new File(BASE_REPO_DIR, "role-rest-limited.xml");
     public static final File ROLE_READER_FILE = new File(BASE_REPO_DIR, "role-reader.xml");
 
     public static final File SYSTEM_CONFIGURATION_FILE = new File(BASE_REPO_DIR, "system-configuration.xml");
@@ -88,6 +92,12 @@ public abstract class AbstractRestServiceInitializer extends AbstractGuiIntegrat
     public static final File VALUE_POLICY_SECURITY_ANSWER = new File(BASE_REPO_DIR, "value-policy-security-answer.xml");
     public static final File SECURITY_POLICY = new File(BASE_REPO_DIR, "security-policy.xml");
     public static final File SECURITY_POLICY_NO_HISTORY = new File(BASE_REPO_DIR, "security-policy-no-history.xml");
+
+    public static final File ROLE_META_APPROVAL = new File(BASE_REPO_DIR, "role-meta-approval.xml");
+    public static final String ROLE_META_APPROVAL_OID = "31bf8340-8130-47b8-ada3-cdd4ffeb17a8";
+
+    public static final File ROLE_TO_APPROVE = new File(BASE_REPO_DIR, "role-to-approve.xml");
+    public static final String ROLE_TO_APPROVE_OID = "665f225c-40f1-4499-b2be-73a06dfa4c95";
 
     @Autowired
     private ProvisioningService provisioning;
@@ -131,8 +141,8 @@ public abstract class AbstractRestServiceInitializer extends AbstractGuiIntegrat
     }
 
     protected void assertStatus(Response response, int expStatus) {
-        assertEquals("Expected " + expStatus + " but got " + response.getStatus(), expStatus,
-                response.getStatus());
+        assertEquals("Expected " + expStatus + " but got " + response.getStatus() + ": " + response.getStatusInfo().getReasonPhrase(),
+                expStatus, response.getStatus());
     }
 
     public PrismContext getPrismContext() {

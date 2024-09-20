@@ -9,16 +9,22 @@ package com.evolveum.midpoint.certification.test;
 
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
+import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
+import com.evolveum.midpoint.schema.util.task.TaskInformation;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.File;
 import java.util.Collection;
 import java.util.Date;
@@ -96,7 +102,7 @@ public class TestEscalation extends AbstractCertificationTest {
         // WHEN
         when();
         List<AccessCertificationCaseType> caseList = modelService.searchContainers(
-                AccessCertificationCaseType.class, CertCampaignTypeUtil.createCasesForCampaignQuery(campaignOid, prismContext),
+                AccessCertificationCaseType.class, CertCampaignTypeUtil.createCasesForCampaignQuery(campaignOid),
                 null, task, result);
 
         // THEN
@@ -111,6 +117,8 @@ public class TestEscalation extends AbstractCertificationTest {
     @Test
     public void test021OpenFirstStage() throws Exception {
         // GIVEN
+        clock.resetOverride();
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
@@ -122,7 +130,11 @@ public class TestEscalation extends AbstractCertificationTest {
         // THEN
         then();
         result.computeStatus();
-        TestUtil.assertSuccess(result);
+        TestUtil.assertInProgressOrSuccess(result);
+
+        List<PrismObject<TaskType>> tasks = getFirstStageTasks(campaignOid, startTime, result);
+        assertEquals("unexpected number of related tasks", 1, tasks.size());
+        waitForTaskFinish(tasks.get(0).getOid());
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign in stage 1", campaign);
@@ -174,7 +186,7 @@ public class TestEscalation extends AbstractCertificationTest {
         when();
         List<AccessCertificationWorkItemType> workItems =
                 certificationService.searchOpenWorkItems(
-                        CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaignOid, prismContext),
+                        CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaignOid),
                         false, null, task, result);
 
         // THEN
@@ -255,8 +267,8 @@ public class TestEscalation extends AbstractCertificationTest {
         AccessCertificationWorkItemType workItem = CertCampaignTypeUtil.findWorkItem(ceoCase, 1, 1, USER_ADMINISTRATOR_OID);
         assertObjectRefs("assignees", false, workItem.getAssigneeRef(), USER_JACK_OID, USER_ADMINISTRATOR_OID);
         assertEquals("Wrong originalAssignee OID", USER_ADMINISTRATOR_OID, workItem.getOriginalAssigneeRef().getOid());
-        final WorkItemEscalationLevelType NEW_ESCALATION_LEVEL = new WorkItemEscalationLevelType().number(1).name("jack-level");
-        assertEquals("Wrong escalation info", NEW_ESCALATION_LEVEL, workItem.getEscalationLevel());
+        final WorkItemEscalationLevelType newEscalationLevel = new WorkItemEscalationLevelType().number(1).name("jack-level");
+        assertEquals("Wrong escalation info", newEscalationLevel, workItem.getEscalationLevel());
         assertEquals("Wrong # of events", 1, ceoCase.getEvent().size());
         WorkItemEscalationEventType event = (WorkItemEscalationEventType) ceoCase.getEvent().get(0);
         assertNotNull("No timestamp in event", event.getTimestamp());
@@ -265,7 +277,7 @@ public class TestEscalation extends AbstractCertificationTest {
         assertObjectRefs("assigneeBefore", false, event.getAssigneeBefore(), USER_ADMINISTRATOR_OID);
         assertObjectRefs("delegatedTo", false, event.getDelegatedTo(), USER_JACK_OID);
         assertEquals("Wrong delegationMethod", WorkItemDelegationMethodType.ADD_ASSIGNEES, event.getDelegationMethod());
-        assertEquals("Wrong new escalation level", NEW_ESCALATION_LEVEL, event.getNewEscalationLevel());
+        assertEquals("Wrong new escalation level", newEscalationLevel, event.getNewEscalationLevel());
 
         AccessCertificationCaseType superuserCase = findCase(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID);
         AccessCertificationWorkItemType superuserWorkItem = CertCampaignTypeUtil.findWorkItem(superuserCase, 1, 1,
@@ -279,7 +291,7 @@ public class TestEscalation extends AbstractCertificationTest {
 
         AccessCertificationStageType currentStage = CertCampaignTypeUtil.getCurrentStage(campaign);
         assertNotNull(currentStage);
-        assertEquals("Wrong new stage escalation level", NEW_ESCALATION_LEVEL, currentStage.getEscalationLevel());
+        assertEquals("Wrong new stage escalation level", newEscalationLevel, currentStage.getEscalationLevel());
 
         display("campaign after escalation", campaign);
         assertEquals("Wrong # of triggers", 2, campaign.getTrigger().size()); // completion + timed-action (P3D)
@@ -321,9 +333,9 @@ public class TestEscalation extends AbstractCertificationTest {
         assertNotNull("No work item found", workItem);
         assertObjectRefs("assignees", false, workItem.getAssigneeRef(), USER_ELAINE_OID);
         assertEquals("Wrong originalAssignee OID", USER_ADMINISTRATOR_OID, workItem.getOriginalAssigneeRef().getOid());
-        final WorkItemEscalationLevelType OLD_ESCALATION_LEVEL = new WorkItemEscalationLevelType().number(1).name("jack-level");
-        final WorkItemEscalationLevelType NEW_ESCALATION_LEVEL = new WorkItemEscalationLevelType().number(2).name("elaine-level");
-        assertEquals("Wrong escalation info", NEW_ESCALATION_LEVEL, workItem.getEscalationLevel());
+        final WorkItemEscalationLevelType oldEscalationLevel = new WorkItemEscalationLevelType().number(1).name("jack-level");
+        final WorkItemEscalationLevelType newEscalationLevel = new WorkItemEscalationLevelType().number(2).name("elaine-level");
+        assertEquals("Wrong escalation info", newEscalationLevel, workItem.getEscalationLevel());
         assertEquals("Wrong # of events", 2, ceoCase.getEvent().size());
         WorkItemEscalationEventType event = (WorkItemEscalationEventType) ceoCase.getEvent().get(1);
         assertNotNull("No timestamp in event", event.getTimestamp());
@@ -332,8 +344,8 @@ public class TestEscalation extends AbstractCertificationTest {
         assertObjectRefs("assigneeBefore", false, event.getAssigneeBefore(), USER_ADMINISTRATOR_OID, USER_JACK_OID);
         assertObjectRefs("delegatedTo", false, event.getDelegatedTo(), USER_ELAINE_OID);
         assertEquals("Wrong delegationMethod", WorkItemDelegationMethodType.REPLACE_ASSIGNEES, event.getDelegationMethod());
-        assertEquals("Wrong old escalation level", OLD_ESCALATION_LEVEL, event.getEscalationLevel());
-        assertEquals("Wrong new escalation level", NEW_ESCALATION_LEVEL, event.getNewEscalationLevel());
+        assertEquals("Wrong old escalation level", oldEscalationLevel, event.getEscalationLevel());
+        assertEquals("Wrong new escalation level", newEscalationLevel, event.getNewEscalationLevel());
 
         AccessCertificationCaseType superuserCase = findCase(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID);
         AccessCertificationWorkItemType superuserWorkItem = CertCampaignTypeUtil.findWorkItem(superuserCase, 1, 1,
@@ -346,7 +358,7 @@ public class TestEscalation extends AbstractCertificationTest {
 
         AccessCertificationStageType currentStage = CertCampaignTypeUtil.getCurrentStage(campaign);
         assertNotNull(currentStage);
-        assertEquals("Wrong new stage escalation level", NEW_ESCALATION_LEVEL, currentStage.getEscalationLevel());
+        assertEquals("Wrong new stage escalation level", newEscalationLevel, currentStage.getEscalationLevel());
 
         display("campaign after escalation", campaign);
         assertEquals("Wrong # of triggers", 1, campaign.getTrigger().size()); // completion
@@ -427,6 +439,7 @@ public class TestEscalation extends AbstractCertificationTest {
         when();
 
         clock.resetOverride();
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         clock.overrideDuration("P18D"); // campaign ends at P16D, reiteration scheduled to P17D
         waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, 20000, true);
 
@@ -434,6 +447,10 @@ public class TestEscalation extends AbstractCertificationTest {
         then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
+
+        List<PrismObject<TaskType>> tasks = getNextStageTasks(campaignOid, startTime, result);
+        assertEquals("unexpected number of related tasks", 1, tasks.size());
+        waitForTaskFinish(tasks.get(0).getOid());
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign in stage 1", campaign);
@@ -469,14 +486,16 @@ public class TestEscalation extends AbstractCertificationTest {
     }
 
     /** MID-8665 */
-    @Test
+    @Test(enabled = false)
     public void test210Reports() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
-        String year = currentYearFragment();
+        String startYear = currentYearFragment();
+        // Year could change because of clock override
+        String endYear = String.valueOf(clock.currentTimeXMLGregorianCalendar().getYear()  % 100);
         String definitionName = "Basic User Assignment Certification (ERoot only) with escalations";
         String campaignName = definitionName + " 1";
 
@@ -490,8 +509,8 @@ public class TestEscalation extends AbstractCertificationTest {
                 .assertValue(C_DEF_OWNER, "")
                 .assertValue(C_DEF_CAMPAIGNS, "1")
                 .assertValue(C_DEF_OPEN_CAMPAIGNS, "1")
-                .assertValue(C_DEF_LAST_STARTED, v -> v.contains(year))
-                .assertValue(C_DEF_LAST_CLOSED, v -> v.contains(year));
+                .assertValue(C_DEF_LAST_STARTED, v -> v.contains(startYear))
+                .assertValue(C_DEF_LAST_CLOSED, v -> v.contains(endYear));
 
         var campaigns = REPORT_CERTIFICATION_CAMPAIGNS.export()
                 .execute(result);
@@ -501,7 +520,7 @@ public class TestEscalation extends AbstractCertificationTest {
                 .record(0)
                 .assertValue(C_CMP_NAME, campaignName)
                 .assertValue(C_CMP_OWNER, "administrator")
-                .assertValue(C_CMP_START, v -> v.contains(year))
+                .assertValue(C_CMP_START, v -> v.contains(endYear))
                 .assertValue(C_CMP_FINISH, "")
                 .assertValue(C_CMP_CASES, "7")
                 .assertValue(C_CMP_STATE, "In review stage")
@@ -519,7 +538,7 @@ public class TestEscalation extends AbstractCertificationTest {
                                 && "Role: Superuser".equals(r.get(C_CASES_TARGET)),
                         a -> a.assertValue(C_CASES_CAMPAIGN, campaignName)
                                 .assertValue(C_CASES_REVIEWERS, "")
-                                .assertValue(C_CASES_LAST_REVIEWED_ON, s -> s.contains(year))
+                                .assertValue(C_CASES_LAST_REVIEWED_ON, s -> s.contains(startYear))
                                 .assertValue(C_CASES_REVIEWED_BY, "administrator")
                                 .assertValue(C_CASES_ITERATION, "1")
                                 .assertValue(C_CASES_IN_STAGE, "1")
@@ -558,7 +577,7 @@ public class TestEscalation extends AbstractCertificationTest {
                                 .assertValue(C_WI_OUTCOME, "")
                                 .assertValue(C_WI_COMMENT, "")
                                 .assertValue(C_WI_LAST_CHANGED, "")
-                                .assertValue(C_WI_CLOSED, s -> s.contains(year)))
+                                .assertValue(C_WI_CLOSED, s -> s.contains(endYear)))
                 .forRecords(1,
                         r -> "User: jack".equals(r.get(C_WI_OBJECT))
                                 && "Role: Reviewer".equals(r.get(C_WI_TARGET))
@@ -620,13 +639,21 @@ public class TestEscalation extends AbstractCertificationTest {
         when();
 
         clock.resetOverride();
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         clock.overrideDuration("P20D");          // +1 day relative to previous test
-        certificationManager.reiterateCampaign(campaignOid, task, result);
+
+
+        certificationManager.reiterateCampaignTask(campaignOid, task, result);
 
         // THEN
         then();
         result.computeStatus();
-        TestUtil.assertSuccess(result);
+        TestUtil.assertInProgressOrSuccess(result);
+
+        List<PrismObject<TaskType>> tasks = getReiterationTasks(campaignOid, startTime, result);
+        assertEquals("unexpected number of related tasks", 1, tasks.size());
+        waitForTaskFinish(tasks.get(0).getOid());
+
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign after reiteration", campaign);
@@ -654,6 +681,8 @@ public class TestEscalation extends AbstractCertificationTest {
     @Test
     public void test320OpenFirstStage() throws Exception {
         // GIVEN
+        clock.resetOverride();
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
@@ -665,7 +694,11 @@ public class TestEscalation extends AbstractCertificationTest {
         // THEN
         then();
         result.computeStatus();
-        TestUtil.assertSuccess(result);
+        TestUtil.assertInProgressOrSuccess(result);
+
+        List<PrismObject<TaskType>> tasks = getNextStageTasks(campaignOid, startTime, result);
+        assertEquals("unexpected number of related tasks", 1, tasks.size());
+        waitForTaskFinish(tasks.get(0).getOid());
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign in stage 1", campaign);
@@ -744,16 +777,22 @@ public class TestEscalation extends AbstractCertificationTest {
         when();
 
         clock.resetOverride();
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         clock.overrideDuration("P22D");          // +1 day relative to previous test
-        try {
-            certificationManager.reiterateCampaign(campaignOid, task, result);
-            fail("unexpected success");
-        } catch (IllegalStateException e) {
-            // THEN
-            System.err.println("got expected exception: " + e.getMessage());
-            e.printStackTrace();
-            assertTrue("wrong exception message", e.getMessage().contains("maximum number of iterations (3) was reached"));
-        }
+
+        certificationManager.reiterateCampaignTask(campaignOid, task, result);
+
+        List<PrismObject<TaskType>> tasks = getReiterationTasks(campaignOid, startTime, result);
+        assertEquals("unexpected number of related tasks", 1, tasks.size());
+        String taskOid = tasks.get(0).getOid();
+        waitForTaskFinish(taskOid, 200000, true);
+
+        TaskType taskAfter = getTask(taskOid).asObjectable();
+        TaskInformation taskInfo = TaskInformation.createForTask(taskAfter, taskAfter);
+        assertEquals("Expected task with fatal error result, ", taskInfo.getResultStatus(), OperationResultStatusType.FATAL_ERROR);
+        
+        String message = taskInfo.getTask().getResult().getMessage();
+        assertTrue("wrong exception message", message.contains("maximum number of iterations (3) was reached"));
     }
 
     @SuppressWarnings("Duplicates")

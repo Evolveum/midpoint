@@ -14,12 +14,17 @@ import javax.xml.namespace.QName;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
@@ -27,9 +32,7 @@ import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
-import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
-import com.evolveum.midpoint.gui.api.component.PendingOperationPanel;
+import com.evolveum.midpoint.gui.api.component.*;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
@@ -37,6 +40,7 @@ import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
@@ -53,7 +57,9 @@ import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
-import com.evolveum.midpoint.gui.impl.prism.panel.ShadowPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.shadow.ShadowAssociationsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.shadow.ShadowBasicPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.TitleWithMarks;
 import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.*;
@@ -67,6 +73,7 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -82,9 +89,8 @@ import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.model.PrismContainerValueWrapperModel;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
-import com.evolveum.midpoint.web.session.PageStorage;
-import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -133,20 +139,16 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
 
                     @Override
                     protected ISelectableDataProvider<PrismContainerValueWrapper<ShadowType>> createProvider() {
-                        return new ProjectionsListProvider(FocusProjectionsPanel.this, getSearchModel(), loadShadowModel()) {
-                            @Override
-                            protected PageStorage getPageStorage() {
-                                PageStorage storage = getSession().getSessionStorage().getPageStorageMap().get(SessionStorage.KEY_FOCUS_PROJECTION_TABLE);
-                                if (storage == null) {
-                                    storage = getSession().getSessionStorage().initPageStorage(SessionStorage.KEY_FOCUS_PROJECTION_TABLE);
-                                }
-                                return storage;
-                            }
-                        };
+                        return new ProjectionsListProvider(FocusProjectionsPanel.this, getSearchModel(), loadShadowModel());
                     }
 
                     @Override
-                    protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation) {
+                    protected boolean isDuplicationSupported() {
+                        return false;
+                    }
+
+                    @Override
+                    protected void newItemPerformed(PrismContainerValue<ShadowType> value, AjaxRequestTarget target, AssignmentObjectRelation relation, boolean isDuplicate) {
                         List<QName> supportedTypes = List.of(ResourceType.COMPLEX_TYPE);
                         PageBase pageBase = FocusProjectionsPanel.this.getPageBase();
                         ObjectBrowserPanel<ResourceType> resourceSelectionPanel = new ObjectBrowserPanel<>(
@@ -268,6 +270,11 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                         refreshDeadMessage(target);
                         super.refreshTable(target);
                     }
+
+                    @Override
+                    protected String getKeyOfTitleForNewObjectButton() {
+                        return "FocusProjectionsPanel.newObject";
+                    }
                 };
         multivalueContainerListPanel.setItemDetailsVisible(false);
         add(multivalueContainerListPanel);
@@ -294,6 +301,38 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                 target.add(getPageBase().getFeedbackPanel());
             }
 
+            @Override
+            protected Component createComponent(String componentId, IModel<String> labelModel, IModel<PrismContainerValueWrapper<ShadowType>> rowModel) {
+                return new TitleWithMarks(componentId, labelModel, createRealMarksList(rowModel)) {
+
+                    @Override
+                    protected AbstractLink createTitleLinkComponent(String id) {
+                        return new AjaxLink<>(id) {
+
+                            @Override
+                            public void onClick(AjaxRequestTarget target) {
+                                onClickPerformed(target, rowModel);
+                            }
+                        };
+                    }
+                };
+            }
+        };
+    }
+
+    private IModel<String> createRealMarksList(IModel<PrismContainerValueWrapper<ShadowType>> rowModel) {
+        return new LoadableDetachableModel<>() {
+
+            @Override
+            protected String load() {
+                ShadowType shadow = rowModel.getObject().getRealValue();
+                if (shadow == null) {
+                    return "";
+                }
+
+                List<ObjectReferenceType> refs = shadow.getEffectiveMarkRef();
+                return WebComponentUtil.createMarkList(refs, getPageBase());
+            }
         };
     }
 
@@ -405,12 +444,31 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
                         ContainerPanelConfigurationType config = getBasicShadowPanelConfiguration(getModelObject().getRealValue());
-                        return new ShadowPanel(panelId, getParentModel(getModel()), config);
+                        return new ShadowBasicPanel(panelId, getParentModel(getModel()), config);
                     }
                 });
+                if (isAssociationsVisible(getParentModel(getModel()))) {
+                    tabs.add(new PanelTab(createStringResource("ShadowType.associations")) {
+                        @Override
+                        public WebMarkupContainer createPanel(String panelId) {
+                            return new ShadowAssociationsPanel(
+                                    panelId,
+                                    PrismContainerValueWrapperModel.fromContainerValueWrapper(getModel(), ShadowType.F_ASSOCIATIONS),
+                                    getParentModel(getModel()));
+                        }
+                    });
+                }
                 return tabs;
             }
         };
+    }
+
+    private boolean isAssociationsVisible(IModel<ShadowWrapper> shadowWrapperModel) {
+        ShadowType shadowType = shadowWrapperModel.getObject().getObjectOld().asObjectable();
+        return ProvisioningObjectsUtil.isAssociationSupported(
+                shadowType,
+                () -> WebModelServiceUtils.loadResource(shadowWrapperModel.getObject(), getPageBase()));
+
     }
 
     private ContainerPanelConfigurationType getBasicShadowPanelConfiguration(ShadowType shadowType) {
@@ -478,7 +536,99 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
             }
         });
 
+        columns.add(new AbstractColumn<>(Model.of("")) {
+
+            @Override
+            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<ShadowType>>> item, String id, IModel<PrismContainerValueWrapper<ShadowType>> model) {
+                item.add(new BadgeListPanel(id, createBadgeListModel(model)));
+            }
+        });
         return columns;
+    }
+
+    private IModel<List<Badge>> createBadgeListModel(IModel<PrismContainerValueWrapper<ShadowType>> model) {
+        return new LoadableDetachableModel<>() {
+
+            @Override
+            protected List<Badge> load() {
+                PrismContainerValueWrapper<ShadowType> wrapper = model.getObject();
+                ShadowType shadow = wrapper.getRealValue();
+
+                if (shadow == null) {
+                    return List.of();
+                }
+
+                List<Badge> badges = new ArrayList<>();
+
+                ActivationType activation = shadow.getActivation();
+                if (activation != null && Objects.equals(activation.getAdministrativeStatus(), ActivationStatusType.DISABLED)) {
+                    badges.add(createDisabledBadge(activation));
+                }
+
+                badges.addAll(createTriggerBadges(shadow));
+
+                if (shadow.getPurpose() != null && shadow.getPurpose() != ShadowPurposeType.REGULAR) {
+                    badges.add(new Badge(Badge.State.INFO.getCss(), LocalizationUtil.translateEnum(shadow.getPurpose())));
+                }
+
+                return badges;
+            }
+        };
+    }
+
+    private List<Badge> createTriggerBadges(ShadowType shadow) {
+        List<Badge> badges = new ArrayList<>();
+
+        Map<String, List<TriggerType>> triggersMap = shadow.getTrigger().stream()
+                .collect(Collectors.groupingBy(TriggerType::getHandlerUri));
+
+        List<String> handlerUris = new ArrayList<>(triggersMap.keySet());
+        handlerUris.sort(Comparator.naturalOrder());
+
+        for (String handlerUri : handlerUris) {
+            String tooltip = triggersMap.get(handlerUri).stream()
+                    .filter(t -> t.getTimestamp() != null)
+                    .map(TriggerType::getTimestamp)
+                    .map(t -> t.toGregorianCalendar().getTime())
+                    .sorted()
+                    .map(t -> WebComponentUtil.formatDate(t))
+                    .collect(Collectors.joining(", \n"));
+
+            badges.add(
+                    new Badge(
+                            Badge.State.PRIMARY.getCss(),
+                            GuiStyleConstants.CLASS_TRIGGER_ICON,
+                            WebComponentUtil.translateTriggerUri(handlerUri, getPageBase()),
+                            tooltip));
+        }
+
+        return badges;
+    }
+
+    private Badge createDisabledBadge(ActivationType activation) {
+        String text;
+        if (activation.getDisableReason() != null) {
+            SchemaConstants.ModelDisableReason reason = SchemaConstants.ModelDisableReason.fromUriRelaxed(activation.getDisableReason());
+            text = reason != null ?
+                    LocalizationUtil.translateEnum(reason) :
+                    QNameUtil.uriToQName(activation.getDisableReason()).getLocalPart();
+        } else {
+            text = LocalizationUtil.translateEnum(ActivationStatusType.DISABLED);
+        }
+
+        String tooltip;
+        if (activation.getDisableTimestamp() != null) {
+            tooltip = getString(
+                    "FocusProjectionsPanel.disableReason", WebComponentUtil.formatDate(activation.getDisableTimestamp()), text);
+        } else {
+            tooltip = getString("FocusProjectionsPanel.disableReasonNoDate");
+        }
+
+        return new Badge(
+                Badge.State.SECONDARY.getCss(),
+                null,
+                text,
+                tooltip);
     }
 
     private IModel<String> loadObjectTypeDisplayNameModel(IModel<PrismContainerValueWrapper<ShadowType>> shadowModel) {
@@ -761,9 +911,17 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
             return;
         }
 
+//        ActivationStatusType status = enabled ? ActivationStatusType.ENABLED : ActivationStatusType.DISABLED;
+
         int markedToChangeActivation = 0;
         for (PrismContainerValueWrapper<ShadowType> account : accounts) {
             try {
+
+//                ObjectDelta<ShadowType> delta = getPrismContext().deltaFor(ShadowType.class)
+//                        .item(ItemPath.create(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS)).replace(status)
+//                        .asObjectDelta(account.getRealValue().getOid());
+
+                // old code
                 PrismContainerWrapper<ActivationType> activation = account
                         .findContainer(ShadowType.F_ACTIVATION);
                 if (activation == null) {

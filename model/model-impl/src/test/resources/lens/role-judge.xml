@@ -129,7 +129,7 @@
             </expression>
         </condition>
     </assignment>
-    <inducement>
+    <inducement id="100">
         <construction>
             <resourceRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType"/>
             <kind>account</kind>

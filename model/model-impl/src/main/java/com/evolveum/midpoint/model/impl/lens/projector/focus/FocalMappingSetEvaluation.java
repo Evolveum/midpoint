@@ -7,6 +7,21 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus;
 
+import static com.evolveum.midpoint.model.impl.lens.LensUtil.getAprioriItemDelta;
+import static com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator.EvaluationContext.forModelContext;
+import static com.evolveum.midpoint.repo.common.expression.ExpressionUtil.getPath;
+import static com.evolveum.midpoint.util.DebugUtil.debugDumpLazily;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
+import jakarta.xml.bind.JAXBElement;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.model.api.context.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
@@ -19,10 +34,8 @@ import com.evolveum.midpoint.model.impl.lens.projector.mappings.NextRecompute;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.TargetObjectSpecification;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.DeltaSetTripleUtil;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.expression.ConfigurableValuePolicySupplier;
 import com.evolveum.midpoint.repo.common.expression.ConsolidationValueMetadataComputer;
@@ -39,19 +52,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import jakarta.xml.bind.JAXBElement;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.model.impl.lens.LensUtil.getAprioriItemDelta;
-import static com.evolveum.midpoint.repo.common.expression.ExpressionUtil.getPath;
-import static com.evolveum.midpoint.util.DebugUtil.debugDumpLazily;
 
 /**
  * Evaluates a set of focus -> focus mappings.
@@ -81,7 +81,7 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
 
     private final ModelBeans beans;
 
-    private final LensContext<F> context;
+    @NotNull private final LensContext<F> context;
 
     /**
      * Prepared evaluation requests: filtered by phase and (optionally) sorted on dependencies.
@@ -101,7 +101,7 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
      */
     private final boolean doingChaining;
 
-    private final PathKeyedMap<DeltaSetTriple<ItemValueWithOrigin<?, ?>>> outputTripleMap = new PathKeyedMap<>();
+    private final DeltaSetTripleIvwoMap outputTripleMap = new DeltaSetTripleIvwoMap();
 
     /**
      * Customizes triples produced by mappings before they are aggregated into overall triple map.
@@ -161,7 +161,7 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
             return;
         }
 
-        beans.mappingEvaluator.evaluateMapping(mapping, context, env.task, result);
+        beans.mappingEvaluator.evaluateMapping(mapping, forModelContext(context), env.task, result);
         if (!mapping.isEnabled()) { // We could check this right after mapping is created. But this seems a bit cleaner.
             return;
         }
@@ -286,8 +286,6 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
         variables.put(ExpressionConstants.VAR_OPERATION, context.getFocusContext().getOperation().getValue(), String.class);
         variables.put(ExpressionConstants.VAR_SOURCE, originObject, ObjectType.class);
 
-        PrismContext prismContext = beans.prismContext;
-
         TypedValue<PrismObject<T>> defaultTargetContext = new TypedValue<>(targetContext);
         Collection<V> targetValues =
                 ExpressionUtil.computeTargetValues(
@@ -301,14 +299,15 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
 
         MappingSpecificationType specification = new MappingSpecificationType()
                 .mappingName(mappingBean.getName())
-                .definitionObjectRef(ObjectTypeUtil.createObjectRef(originObject, prismContext))
+                .definitionObjectRef(ObjectTypeUtil.createObjectRef(originObject))
                 .assignmentId(createAssignmentId(assignmentPathVariables));
+        // object type is not applicable here (as this is not a resource mapping)
 
         MappingBuilder<V, D> mappingBuilder = // [EP:M:FM] DONE
                 beans.mappingFactory.<V, D>createMappingBuilder(mappingBean, request.getMappingOrigin(), contextDesc)
-                        .sourceContext(focusOdo)
+                        .defaultSourceContextIdi(focusOdo)
                         .defaultSource(defaultSource)
-                        .targetContext(targetContext.getDefinition())
+                        .targetContextDefinition(targetContext.getDefinition())
                         .variablesFrom(variables)
                         .variablesFrom(LensUtil.getAssignmentPathVariablesMap(assignmentPathVariables))
                         .originalTargetValues(targetValues)
@@ -316,7 +315,7 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
                         .originType(OriginType.USER_POLICY)
                         .originObject(originObject)
                         .valuePolicySupplier(valuePolicySupplier)
-                        .rootNode(focusOdo)
+                        .addRootVariableDefinition(focusOdo)
                         .mappingPreExpression(request.getMappingPreExpression()) // Used to populate auto-assign assignments
                         .mappingSpecification(specification)
                         .now(now);
@@ -357,11 +356,8 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
         if (outputPath != null) {
             DeltaSetTriple<ItemValueWithOrigin<V, D>> rawOutputTriple = ItemValueWithOrigin.createOutputTriple(mapping);
             LOGGER.trace("Raw output triple for {}:\n{}", mapping, debugDumpLazily(rawOutputTriple));
-            // TODO fix this hack
-            //noinspection unchecked,rawtypes
-            DeltaSetTriple<ItemValueWithOrigin<?, ?>> customizedOutputTriple =
-                    (DeltaSetTriple) customizeOutputTriple(rawOutputTriple, mapping, request);
-            DeltaSetTripleUtil.putIntoOutputTripleMap(outputTripleMap, outputPath, customizedOutputTriple);
+            DeltaSetTriple<ItemValueWithOrigin<V, D>> customizedOutputTriple = customizeOutputTriple(rawOutputTriple, mapping, request);
+            outputTripleMap.putOrMerge(outputPath, customizedOutputTriple);
         }
     }
 
@@ -385,7 +381,7 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
     private ObjectDeltaObject<F> getUpdatedFocusOdo(
             LensContext<F> context,
             ObjectDeltaObject<F> focusOdo,
-            PathKeyedMap<DeltaSetTriple<ItemValueWithOrigin<?, ?>>> outputTripleMap,
+            DeltaSetTripleIvwoMap outputTripleMap,
             FocalMappingEvaluationRequest<?, ?> evaluationRequest,
             String contextDesc,
             OperationResult result)
@@ -401,7 +397,7 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
 
     private void updateSource(LensContext<F> context, ObjectDeltaObject<F> focusOdo,
             Holder<ObjectDeltaObject<F>> focusOdoClonedHolder,
-            PathKeyedMap<DeltaSetTriple<ItemValueWithOrigin<?, ?>>> outputTripleMap, String contextDesc,
+            DeltaSetTripleIvwoMap outputTripleMap, String contextDesc,
             VariableBindingDefinitionType source, OperationResult result) throws ExpressionEvaluationException,
             SchemaException, ConfigurationException, ObjectNotFoundException,
             CommunicationException, SecurityViolationException {
@@ -429,7 +425,7 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
         ItemDefinition<?> itemDefinition = getObjectDefinition(focusClass).findItemDefinition(path);
 
         ConsolidationValueMetadataComputer valueMetadataComputer = LensMetadataUtil.createValueMetadataConsolidationComputer(
-                path, context, beans, env, result);
+                path, itemDefinition, context, beans, env, result);
 
         // TODO not much sure about the parameters
         //noinspection unchecked,rawtypes
@@ -440,8 +436,7 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
                     .aprioriItemDelta(getAprioriItemDelta(focusOdo.getObjectDelta(), path))
                     .itemDeltaExists(context.primaryFocusItemDeltaExists(path))
                     .itemContainer(focusOdo.getNewObject()) // covers existingItem
-                    .valueMatcher(null)
-                    .comparator(null)
+                    .equalsChecker(null)
                     .addUnchangedValues(false) // todo
                     .addUnchangedValuesExceptForNormalMappings(true) // todo
                     .existingItemKnown(true)
@@ -475,7 +470,7 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
         void accept(MappingImpl<?, ?> mapping, FocalMappingEvaluationRequest<?, ?> request);
     }
 
-    PathKeyedMap<DeltaSetTriple<ItemValueWithOrigin<?, ?>>> getOutputTripleMap() {
+    DeltaSetTripleIvwoMap getOutputTripleMap() {
         return outputTripleMap;
     }
 

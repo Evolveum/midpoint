@@ -9,17 +9,15 @@ package com.evolveum.midpoint.model.api.correlation;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationSituationType.*;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.api.correlator.CandidateOwner;
-import com.evolveum.midpoint.model.api.correlator.CandidateOwnersMap;
+import com.evolveum.midpoint.model.api.correlator.CandidateOwners;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -32,19 +30,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectOwnerO
  *
  * TODO find a better name
  */
-public class CompleteCorrelationResult implements Serializable, DebugDumpable {
-
-    /** What is the result of the correlation? */
-    @NotNull private final CorrelationSituationType situation;
-
-    /** The correlated owner. Non-null if and only if {@link #situation} is {@link CorrelationSituationType#EXISTING_OWNER}. */
-    @Nullable private final ObjectType owner;
+public class CompleteCorrelationResult extends AbstractCorrelationResult<ObjectType> {
 
     /** May be null when the result is fetched from the shadow. */
-    @Nullable private final CandidateOwnersMap candidateOwnersMap;
+    @Nullable private final CandidateOwners candidateOwners;
 
     /**
-     * Options for the operator to select from. Derived from {@link #candidateOwnersMap}.
+     * Options for the operator to select from. Derived from {@link #candidateOwners}.
      *
      * Typically present when {@link CorrelationSituationType#UNCERTAIN} but (as an auxiliary information)
      * may be present also for {@link CorrelationSituationType#EXISTING_OWNER}.
@@ -59,34 +51,33 @@ public class CompleteCorrelationResult implements Serializable, DebugDumpable {
     private CompleteCorrelationResult(
             @NotNull CorrelationSituationType situation,
             @Nullable ObjectType owner,
-            @Nullable CandidateOwnersMap candidateOwnersMap,
+            @Nullable CandidateOwners candidateOwners,
             @Nullable ResourceObjectOwnerOptionsType ownerOptions,
             @Nullable CorrelationErrorDetails errorDetails) {
-        this.situation = situation;
-        this.owner = owner;
-        this.candidateOwnersMap = candidateOwnersMap;
+        super(situation, owner);
+        this.candidateOwners = candidateOwners;
         this.ownerOptions = ownerOptions;
         this.errorDetails = errorDetails;
     }
 
     public static CompleteCorrelationResult existingOwner(
             @NotNull ObjectType owner,
-            @Nullable CandidateOwnersMap candidateOwnersMap,
+            @Nullable CandidateOwners candidateOwners,
             @Nullable ResourceObjectOwnerOptionsType optionsBean) {
         return new CompleteCorrelationResult(
-                EXISTING_OWNER, owner, candidateOwnersMap, optionsBean, null);
+                EXISTING_OWNER, owner, candidateOwners, optionsBean, null);
     }
 
     public static CompleteCorrelationResult noOwner() {
         return new CompleteCorrelationResult(
-                NO_OWNER, null, new CandidateOwnersMap(), null, null);
+                NO_OWNER, null, new CandidateOwners(), null, null);
     }
 
     public static CompleteCorrelationResult uncertain(
-            @NotNull CandidateOwnersMap candidateOwnersMap,
+            @NotNull CandidateOwners candidateOwners,
             @NotNull ResourceObjectOwnerOptionsType optionsBean) {
         return new CompleteCorrelationResult(
-                UNCERTAIN, null, candidateOwnersMap, optionsBean, null);
+                UNCERTAIN, null, candidateOwners, optionsBean, null);
     }
 
     public static CompleteCorrelationResult error(@NotNull Throwable t) {
@@ -94,16 +85,8 @@ public class CompleteCorrelationResult implements Serializable, DebugDumpable {
                 ERROR, null, null, null, CorrelationErrorDetails.forThrowable(t));
     }
 
-    public @NotNull CorrelationSituationType getSituation() {
-        return situation;
-    }
-
-    public @Nullable ObjectType getOwner() {
-        return owner;
-    }
-
-    public @Nullable CandidateOwnersMap getCandidateOwnersMap() {
-        return candidateOwnersMap;
+    public @Nullable CandidateOwners getCandidateOwnersMap() {
+        return candidateOwners;
     }
 
     public @Nullable ResourceObjectOwnerOptionsType getOwnerOptions() {
@@ -183,13 +166,13 @@ public class CompleteCorrelationResult implements Serializable, DebugDumpable {
      */
     @Experimental
     public <F extends ObjectType> @NotNull List<F> getAllCandidates(@NotNull Class<F> focusType) {
-        if (candidateOwnersMap == null) {
+        if (candidateOwners == null) {
             throw new UnsupportedOperationException(
                     "Cannot get all candidates from incomplete correlation result (e.g., retrieved from the shadow)");
         }
         //noinspection unchecked
-        return candidateOwnersMap.values().stream()
-                .map(CandidateOwner::getObject)
+        return candidateOwners.values().stream()
+                .map(CandidateOwner::getValue)
                 .filter(candidate -> focusType.isAssignableFrom(candidate.getClass()))
                 .map(candidate -> (F) candidate)
                 .collect(Collectors.toList());

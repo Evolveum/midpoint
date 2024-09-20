@@ -8,29 +8,24 @@ package com.evolveum.midpoint.provisioning.impl.dummy;
 
 import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_QNAME;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.createDetitleDelta;
-import static com.evolveum.midpoint.test.IntegrationTestTools.createEntitleDelta;
-
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 
 import com.evolveum.midpoint.prism.PrismConstants;
-import org.apache.commons.lang3.StringUtils;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyGroup;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -63,24 +58,24 @@ public class TestDummyCaseIgnore extends TestDummy {
     }
 
     @Override
-    protected String getWillRepoIcfName() {
+    protected String getWillRepoIcfNameNorm() {
         return "will";
     }
 
-    @Override
-    protected String getMurrayRepoIcfName() {
-        return StringUtils.lowerCase(super.getMurrayRepoIcfName());
-    }
-
-    @Override
-    protected String getBlackbeardRepoIcfName() {
-        return StringUtils.lowerCase(super.getBlackbeardRepoIcfName());
-    }
-
-    @Override
-    protected String getDrakeRepoIcfName() {
-        return StringUtils.lowerCase(super.getDrakeRepoIcfName());
-    }
+//    @Override
+//    protected String getMurrayRepoIcfName() {
+//        return StringUtils.lowerCase(super.getMurrayRepoIcfName());
+//    }
+//
+//    @Override
+//    protected String getBlackbeardRepoIcfName() {
+//        return StringUtils.lowerCase(super.getBlackbeardRepoIcfName());
+//    }
+//
+//    @Override
+//    protected String getDrakeRepoIcfName() {
+//        return StringUtils.lowerCase(super.getDrakeRepoIcfName());
+//    }
 
     @Override
     protected MatchingRule<String> getUidMatchingRule() {
@@ -96,14 +91,14 @@ public class TestDummyCaseIgnore extends TestDummy {
     public void test175SearchUidCase() throws Exception {
         testSearchIterativeSingleAttrFilter(
                 SchemaConstants.ICFS_UID, "wIlL", null, true,
-                transformNameFromResource("Will"));
+                getWillNameOnResource());
     }
 
     @Test
     public void test176SearchUidCaseNoFetch() throws Exception {
         testSearchIterativeSingleAttrFilter(
                 SchemaConstants.ICFS_UID, "wIlL", GetOperationOptions.createNoFetch(), false,
-                transformNameFromResource("Will"));
+                getWillNameOnResource());
     }
 
     /**
@@ -119,7 +114,7 @@ public class TestDummyCaseIgnore extends TestDummy {
 
         syncServiceMock.reset();
 
-        ObjectDelta<ShadowType> delta = createEntitleDelta(ACCOUNT_WILL_OID, DUMMY_ENTITLEMENT_GROUP_QNAME, GROUP_PIRATES_OID);
+        var delta = createEntitleDelta(ACCOUNT_WILL_OID, DUMMY_ENTITLEMENT_GROUP_QNAME, GROUP_PIRATES_OID);
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
@@ -138,9 +133,9 @@ public class TestDummyCaseIgnore extends TestDummy {
 
         syncServiceMock.assertSingleNotifySuccessOnly();
 
-        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
+        var shadow = provisioningService.getShadow(ACCOUNT_WILL_OID, null, task, result);
         display("Shadow after", shadow);
-        assertEntitlementGroup(shadow, GROUP_PIRATES_OID);
+        assertGroupAssociation(shadow, GROUP_PIRATES_OID);
 
         assertSteadyResource();
     }
@@ -190,7 +185,7 @@ public class TestDummyCaseIgnore extends TestDummy {
 
         syncServiceMock.reset();
 
-        ObjectDelta<ShadowType> delta = createEntitleDelta(ACCOUNT_WILL_OID, DUMMY_ENTITLEMENT_GROUP_QNAME, GROUP_PIRATES_OID);
+        var delta = createEntitleDelta(ACCOUNT_WILL_OID, DUMMY_ENTITLEMENT_GROUP_QNAME, GROUP_PIRATES_OID);
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
@@ -209,9 +204,9 @@ public class TestDummyCaseIgnore extends TestDummy {
 
         syncServiceMock.assertSingleNotifySuccessOnly();
 
-        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
+        var shadow = provisioningService.getShadow(ACCOUNT_WILL_OID, null, task, result);
         display("Shadow after", shadow);
-        assertEntitlementGroup(shadow, GROUP_PIRATES_OID);
+        assertGroupAssociation(shadow, GROUP_PIRATES_OID);
 
         assertSteadyResource();
     }

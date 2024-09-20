@@ -10,6 +10,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.model.api.BulkActionExecutionOptions;
 import com.evolveum.midpoint.model.impl.scripting.BulkActionsExecutor;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
 import com.evolveum.midpoint.model.api.context.EvaluatedStateTrigger;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRuleEvaluationContext;
@@ -41,6 +42,7 @@ import jakarta.xml.bind.JAXBElement;
 
 import java.util.*;
 
+import static com.evolveum.midpoint.schema.config.ConfigurationItem.configItem;
 import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_OBJECT;
 import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_RULE_EVALUATION_CONTEXT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType.ASSIGNMENT_STATE;
@@ -123,7 +125,7 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
         }
         if (constraint.getFilter() != null) {
             ObjectFilter filter =
-                    prismContext.getQueryConverter().parseFilter(constraint.getFilter(), object.asObjectable().getClass());
+                    prismContext.getQueryConverter().parseFilter(constraint.getFilter(), object.getDefinition());
             if (!filter.match(object.getValue(), matchingRuleRegistry)) {
                 return List.of();
             }
@@ -135,9 +137,10 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
             ExecutionContext resultingContext;
             resultingContext =
                     bulkActionsExecutor.execute(
-                            ExecuteScriptConfigItem.of(
+                            configItem(
                                     constraint.getExecuteScript(),
-                                    ctx.policyRule.getRuleOrigin().toApproximate()),
+                                    ctx.policyRule.getRuleOrigin().toApproximate(),
+                                    ExecuteScriptConfigItem.class), // TODO provide parent here
                             variables,
                             BulkActionExecutionOptions.create()
                                     .withPrivileged()

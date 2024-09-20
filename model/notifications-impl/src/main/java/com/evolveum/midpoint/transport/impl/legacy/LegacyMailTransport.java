@@ -6,15 +6,15 @@
  */
 package com.evolveum.midpoint.transport.impl.legacy;
 
+import static com.evolveum.midpoint.transport.impl.TransportUtil.filterBlankMailRecipients;
 import static com.evolveum.midpoint.transport.impl.TransportUtil.formatToFileOld;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
+
+import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 
 import jakarta.activation.DataHandler;
 import jakarta.activation.DataSource;
@@ -37,7 +37,7 @@ import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.SendingContext;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
 import com.evolveum.midpoint.notifications.api.transports.TransportSupport;
-import com.evolveum.midpoint.notifications.impl.util.MimeTypeUtil;
+import com.evolveum.midpoint.common.MimeTypeUtil;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -83,22 +83,22 @@ public class LegacyMailTransport implements Transport<GeneralTransportConfigurat
         SystemConfigurationType systemConfiguration =
                 TransportUtil.getSystemConfiguration(cacheRepositoryService, new OperationResult("dummy"));
 
-        if (systemConfiguration == null || systemConfiguration.getNotificationConfiguration() == null
-                || systemConfiguration.getNotificationConfiguration().getMail() == null) {
+        MailConfigurationType mailConfigurationBean =
+                SystemConfigurationTypeUtil.getLegacyMailTransportConfiguration(systemConfiguration);
+
+        if (mailConfigurationBean == null) {
             String msg = "No notifications are configured. Mail notification to " + mailMessage.getTo() + " will not be sent.";
             LOGGER.warn(msg);
             result.recordWarning(msg);
             return;
         }
 
-        MailConfigurationType mailConfigurationType = systemConfiguration.getNotificationConfiguration().getMail();
-
-        String logToFile = mailConfigurationType.getLogToFile();
+        String logToFile = mailConfigurationBean.getLogToFile();
         if (logToFile != null) {
             TransportUtil.logToFile(logToFile, formatToFileOld(mailMessage), LOGGER);
         }
-        String redirectToFile = mailConfigurationType.getRedirectToFile();
-        int optionsForFilteringRecipient = TransportUtil.optionsForFilteringRecipient(mailConfigurationType);
+        String redirectToFile = mailConfigurationBean.getRedirectToFile();
+        int optionsForFilteringRecipient = TransportUtil.optionsForFilteringRecipient(mailConfigurationBean);
 
         List<String> allowedRecipientTo = new ArrayList<>();
         List<String> forbiddenRecipientTo = new ArrayList<>();
@@ -110,13 +110,13 @@ public class LegacyMailTransport implements Transport<GeneralTransportConfigurat
         var task = ctx.task();
         if (optionsForFilteringRecipient != 0) {
             TransportUtil.validateRecipient(allowedRecipientTo, forbiddenRecipientTo,
-                    mailMessage.getTo(), mailConfigurationType, task, result,
+                    mailMessage.getTo(), mailConfigurationBean, task, result,
                     expressionFactory, ctx.expressionProfile(), LOGGER);
             TransportUtil.validateRecipient(allowedRecipientCc, forbiddenRecipientCc,
-                    mailMessage.getCc(), mailConfigurationType, task, result,
+                    mailMessage.getCc(), mailConfigurationBean, task, result,
                     expressionFactory, ctx.expressionProfile(), LOGGER);
             TransportUtil.validateRecipient(allowedRecipientBcc, forbiddenRecipientBcc,
-                    mailMessage.getBcc(), mailConfigurationType, task, result,
+                    mailMessage.getBcc(), mailConfigurationBean, task, result,
                     expressionFactory, ctx.expressionProfile(), LOGGER);
 
             if (redirectToFile != null) {
@@ -143,8 +143,18 @@ public class LegacyMailTransport implements Transport<GeneralTransportConfigurat
             return;
         }
 
-        if (mailConfigurationType.getServer().isEmpty()) {
+        if (mailConfigurationBean.getServer().isEmpty()) {
             String msg = "Mail server(s) are not defined, mail notification to " + mailMessage.getTo() + " will not be sent.";
+            LOGGER.warn(msg);
+            result.recordWarning(msg);
+            return;
+        }
+
+        Collection<String> actualTo = filterBlankMailRecipients(mailMessage.getTo(), "to", mailMessage.getSubject());
+        Collection<String> actualCc = filterBlankMailRecipients(mailMessage.getCc(), "cc", mailMessage.getSubject());
+        Collection<String> actualBcc = filterBlankMailRecipients(mailMessage.getBcc(), "bcc", mailMessage.getSubject());
+        if (actualTo.isEmpty() && actualCc.isEmpty() && actualBcc.isEmpty()) {
+            String msg = "No recipients found after excluding blank ones; the message will not be sent";
             LOGGER.warn(msg);
             result.recordWarning(msg);
             return;
@@ -152,9 +162,9 @@ public class LegacyMailTransport implements Transport<GeneralTransportConfigurat
 
         long start = System.currentTimeMillis();
 
-        String defaultFrom = mailConfigurationType.getDefaultFrom() != null ? mailConfigurationType.getDefaultFrom() : "nobody@nowhere.org";
+        String defaultFrom = mailConfigurationBean.getDefaultFrom() != null ? mailConfigurationBean.getDefaultFrom() : "nobody@nowhere.org";
 
-        for (MailServerConfigurationType mailServerConfigurationType : mailConfigurationType.getServer()) {
+        for (MailServerConfigurationType mailServerConfigurationType : mailConfigurationBean.getServer()) {
 
             OperationResult resultForServer = result.createSubresult(DOT_CLASS + "send.forServer");
             final String host = mailServerConfigurationType.getHost();
@@ -186,7 +196,7 @@ public class LegacyMailTransport implements Transport<GeneralTransportConfigurat
             properties.put("mail.smtp.ssl.enable", "" + sslEnabled);
             properties.put("mail.smtp.starttls.enable", "" + starttlsEnable);
             properties.put("mail.smtp.starttls.required", "" + starttlsRequired);
-            if (Boolean.TRUE.equals(mailConfigurationType.isDebug())) {
+            if (Boolean.TRUE.equals(mailConfigurationBean.isDebug())) {
                 properties.put("mail.debug", "true");
             }
 
@@ -209,13 +219,13 @@ public class LegacyMailTransport implements Transport<GeneralTransportConfigurat
                 String from = mailMessage.getFrom() != null ? mailMessage.getFrom() : defaultFrom;
                 mimeMessage.setFrom(new InternetAddress(from));
 
-                for (String recipient : mailMessage.getTo()) {
+                for (String recipient : actualTo) {
                     mimeMessage.addRecipient(jakarta.mail.Message.RecipientType.TO, new InternetAddress(recipient));
                 }
-                for (String recipientCc : mailMessage.getCc()) {
+                for (String recipientCc : actualCc) {
                     mimeMessage.addRecipient(jakarta.mail.Message.RecipientType.CC, new InternetAddress(recipientCc));
                 }
-                for (String recipientBcc : mailMessage.getBcc()) {
+                for (String recipientBcc : actualBcc) {
                     mimeMessage.addRecipient(jakarta.mail.Message.RecipientType.BCC, new InternetAddress(recipientBcc));
                 }
                 mimeMessage.setSubject(mailMessage.getSubject(), StandardCharsets.UTF_8.name());
@@ -270,7 +280,7 @@ public class LegacyMailTransport implements Transport<GeneralTransportConfigurat
                         }
 
                         if (!fileName.contains(".")) {
-                            fileName += MimeTypeUtil.getDefaultExt(attachment.getContentType());
+                            fileName += MimeTypeUtil.getExtension(attachment.getContentType());
                         }
                         attachmentBody.setFileName(fileName);
                         if (!StringUtils.isBlank(attachment.getContentId())) {
@@ -292,7 +302,7 @@ public class LegacyMailTransport implements Transport<GeneralTransportConfigurat
                             try {
                                 password = protector.decryptString(passwordProtected);
                             } catch (EncryptionException e) {
-                                String msg = "Couldn't send mail message to " + mailMessage.getTo() + " via " + host + ", because the plaintext password value couldn't be obtained. Trying another mail server, if there is any.";
+                                String msg = "Couldn't send mail message to " + actualTo + " via " + host + ", because the plaintext password value couldn't be obtained. Trying another mail server, if there is any.";
                                 LoggingUtils.logException(LOGGER, msg, e);
                                 resultForServer.recordFatalError(msg, e);
                                 continue;
@@ -303,7 +313,7 @@ public class LegacyMailTransport implements Transport<GeneralTransportConfigurat
                         t.connect();
                     }
                     t.sendMessage(mimeMessage, mimeMessage.getAllRecipients());
-                    LOGGER.debug("Message sent successfully to " + mailMessage.getTo() + " via server " + host + ".");
+                    LOGGER.debug("Message sent successfully to " + actualTo + " via server " + host + ".");
                     resultForServer.recordSuccess();
                     result.recordSuccess();
                     long duration = System.currentTimeMillis() - start;
@@ -312,14 +322,14 @@ public class LegacyMailTransport implements Transport<GeneralTransportConfigurat
                 }
                 return;
             } catch (MessagingException e) {
-                String msg = "Couldn't send mail message to " + mailMessage.getTo() + " via " + host + ", trying another mail server, if there is any";
+                String msg = "Couldn't send mail message to " + actualTo + " via " + host + ", trying another mail server, if there is any";
                 LoggingUtils.logException(LOGGER, msg, e);
                 resultForServer.recordFatalError(msg, e);
                 task.recordStateMessage("Error sending notification mail via " + host);
             }
         }
-        LOGGER.warn("No more mail servers to try, mail notification to " + mailMessage.getTo() + " will not be sent.");
-        result.recordWarning("Mail notification to " + mailMessage.getTo() + " could not be sent.");
+        LOGGER.warn("No more mail servers to try, mail notification to " + actualTo + " will not be sent.");
+        result.recordWarning("Mail notification to " + actualTo + " could not be sent.");
         task.recordNotificationOperation(NAME, false, System.currentTimeMillis() - start);
     }
 

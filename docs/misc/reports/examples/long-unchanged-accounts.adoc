@@ -1,0 +1,47 @@
+= Collection report: Long Unchanged Accounts
+:page-nav-title: Long Unchanged Accounts
+:page-wiki-name: Example of new report: Long Unchanged Accounts
+:page-wiki-id: 52003078
+:page-wiki-metadata-create-user: lskublik
+:page-wiki-metadata-create-date: 2020-08-18T14:55:17.864+02:00
+:page-wiki-metadata-modify-user: lskublik
+:page-wiki-metadata-modify-date: 2020-08-18T15:06:44.581+02:00
+:page-upkeep-status: yellow
+:page-upkeep-note: check TODO's after sampleRef is fully in prod remove links
+
+Please see xref:/midpoint/reference/misc/reports/configuration/#new-report[Report configuration] for basic information about configuration variables.
+
+
+== Example Use-case
+
+We need to create a report of users which account attributes have not changed for some time.
+
+
+== Configuration
+
+The configuration consists of an object collection and report definition.
+
+//TODO check after sampleRef is fully in prod
+.*Object collection XML*
+[%collapsible]
+====
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/objectCollection/last-sync-resource-accounts.xml[Git]
+
+sampleRef::samples/objectCollection/last-sync-resource-accounts.xml[]
+====
+
+//TODO check after sampleRef is fully in prod
+.*Report XML*
+[%collapsible]
+====
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/reports/unchanged-accounts.xml[Git]
+
+sampleRef::samples/reports/unchanged-accounts.xml[]
+====
+
+== See Also
+
+- xref:/midpoint/reference/misc/reports/examples/[Report Examples]
+- xref:/midpoint/reference/misc/reports/configuration/[Report Configuration]
+- xref:/midpoint/reference/misc/reports/configuration/collection-report.adoc[Collection Based Reports]
+- xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[Dashboard Based Reports]

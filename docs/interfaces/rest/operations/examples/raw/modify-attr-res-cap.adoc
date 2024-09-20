@@ -1,0 +1,22 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Show* data source example for *"Modify resource capability"* | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/modify-attribute-resource.json[GitHub]
+[%collapsible]
+====
+[source, json]
+----
+{
+  "objectModification": {
+    "itemDelta": {
+      "modificationType": "replace",
+      "path": "capabilities/configured/delete/enabled/",
+      "value": false
+    }
+  }
+}
+----
+====
+
+The response is an HTTP 204 code in case of success *without* a response body.
+

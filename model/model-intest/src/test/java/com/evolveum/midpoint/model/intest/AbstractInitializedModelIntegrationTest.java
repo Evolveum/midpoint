@@ -19,8 +19,10 @@ import java.util.Collections;
 import java.util.List;
 
 import com.evolveum.midpoint.model.impl.sync.tasks.imp.ImportFromResourceLauncher;
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.util.RawRepoShadow;
 import com.evolveum.midpoint.tools.testng.UnusedTestElement;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -32,7 +34,6 @@ import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
 import com.evolveum.midpoint.model.intest.util.CheckingProgressListener;
-import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.model.test.ProfilingModelInspectorManager;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -185,7 +186,6 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
         resourceDummySchemaless = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_SCHEMALESS_FILENAME, RESOURCE_DUMMY_SCHEMALESS_OID, initTask, initResult);
         resourceDummySchemalessType = resourceDummySchemaless.asObjectable();
 
-
         postInitDummyResouce();
 
         dummyResourceCtl.addAccount(ACCOUNT_HERMAN_DUMMY_USERNAME, "Herman Toothrot", "Monkey Island");
@@ -264,6 +264,8 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
         // Archetypes
         repoAddObjectFromFile(ARCHETYPE_APPROVAL_CASE_FILE, initResult);
 
+        repoAdd(CommonInitialObjects.SERVICE_ORIGIN_INTERNAL, initResult);
+
     }
 
     protected ConflictResolutionActionType getDefaultConflictResolutionAction() {
@@ -337,11 +339,11 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
         assertUserJack(user, USER_JACK_USERNAME, fullName, givenName, familyName, locality);
     }
 
-    protected void assertDummyAccountShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username) throws SchemaException, ConfigurationException {
+    protected void assertDummyAccountShadowRepo(RawRepoShadow accountShadow, String oid, String username) throws SchemaException, ConfigurationException {
         assertAccountShadowRepo(accountShadow, oid, username, dummyResourceCtl.getResource().asObjectable());
     }
 
-    protected void assertDummyGroupShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username) throws SchemaException, ConfigurationException {
+    protected void assertDummyGroupShadowRepo(RawRepoShadow accountShadow, String oid, String username) throws SchemaException, ConfigurationException {
         assertShadowRepo(accountShadow, oid, username, dummyResourceCtl.getResourceType(), RI_GROUP_OBJECT_CLASS);
     }
 

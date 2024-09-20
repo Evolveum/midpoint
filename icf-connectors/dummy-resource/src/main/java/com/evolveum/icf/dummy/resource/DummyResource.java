@@ -6,23 +6,23 @@
  */
 package com.evolveum.icf.dummy.resource;
 
+import static com.evolveum.midpoint.util.MiscUtil.*;
+
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.util.*;
-import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
-import com.evolveum.midpoint.util.exception.SystemException;
-
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Resource for use with dummy ICF connector.
@@ -57,21 +57,6 @@ import org.jetbrains.annotations.NotNull;
  */
 public class DummyResource implements DebugDumpable {
 
-    /**
-     * Externally visible UID is derived from (bound to) the NAME attribute.
-     */
-    public static final String UID_MODE_NAME = "name";
-
-    /**
-     * Externally visible UID is the same as internal ID and is generated as random UUID.
-     */
-    public static final String UID_MODE_UUID = "uuid";
-
-    /**
-     * Externally visible UID is the same as internal ID and is provided by the creator of the dummy objects.
-     */
-    public static final String UID_MODE_EXTERNAL = "external";
-
     private static final Trace LOGGER = TraceManager.getTrace(DummyResource.class);
     private static final Random RND = new Random();
 
@@ -80,33 +65,57 @@ public class DummyResource implements DebugDumpable {
     public static final String ATTRIBUTE_CONNECTOR_CONFIGURATION_TO_STRING = "connectorConfigurationToString";
 
     private String instanceName;
-    private final Map<String,DummyObject> allObjects;
-    private final Map<String,DummyAccount> accounts;
-    private final Map<String,DummyGroup> groups;
-    private final Map<String,DummyPrivilege> privileges;
-    private final Map<String,DummyOrg> orgs;
-    private final List<ScriptHistoryEntry> scriptHistory;
-    private DummyObjectClass accountObjectClass;
-    private DummyObjectClass groupObjectClass;
-    private DummyObjectClass privilegeObjectClass;
-    private DummyObjectClass orgObjectClass;
-    private final Map<String,DummyObjectClass> auxiliaryObjectClassMap = new HashMap<>();
-    private DummySyncStyle syncStyle;
-    private final List<DummyDelta> deltas;
+
+    /** Contains all objects that reside on this resource. */
+    private final AllObjects allObjects = new AllObjects();
+
+    /** Stores all objects, indexed by the object class name. */
+    private final Map<String, ObjectStore<?>> objectStoreMap = new ConcurrentHashMap<>();
+
+    /** Stores all links, indexed by the link class name. */
+    private final Map<String, LinkStore> linkStoreMap = new ConcurrentHashMap<>();
+
+    // Specific stores for the respective standard object types.
+    private final ObjectStore<DummyAccount> accountStore =
+            new ObjectStore<>(DummyAccount.class, DummyAccount.OBJECT_CLASS_NAME, DummyObjectClass.standard());
+    private final ObjectStore<DummyGroup> groupStore =
+            new ObjectStore<>(DummyGroup.class, DummyGroup.OBJECT_CLASS_NAME, DummyObjectClass.standard());
+    private final ObjectStore<DummyPrivilege> privilegeStore =
+            new ObjectStore<>(DummyPrivilege.class, DummyPrivilege.OBJECT_CLASS_NAME, DummyObjectClass.standard());
+    private final ObjectStore<DummyOrg> orgStore =
+            new ObjectStore<>(DummyOrg.class, DummyOrg.OBJECT_CLASS_NAME, DummyObjectClass.standard());
+
+    private final Map<String, DummyObjectClass> auxiliaryObjectClassMap = new ConcurrentHashMap<>();
+    private final Map<String, LinkClassDefinition> linkClassDefinitionMap = new ConcurrentHashMap<>();
+
+    private final List<ScriptHistoryEntry> scriptHistory = new ArrayList<>();
+    private DummySyncStyle syncStyle = DummySyncStyle.NONE;
+    private final List<DummyDelta> deltas = Collections.synchronizedList(new ArrayList<>());
     private final AtomicInteger latestSyncToken = new AtomicInteger(0);
     private boolean tolerateDuplicateValues = false;
+
+    /** If enabled, generates {@link DummyAccount#ATTR_INTERNAL_ID} when object (of any type) is added. */
     private boolean generateDefaultValues = false;
+
+    /** Should be the object name unique within the class of objects (account, group, ...)? */
     private boolean enforceUniqueName = true;
+
     private boolean enforceSchema = true;
-    private boolean caseIgnoreId = false;
+
+    /** Is the object name case-insensitive? */
+    private boolean caseIgnoreName = false;
+
     private boolean caseIgnoreValues = false;
     private int connectionCount = 0;
     private int writeOperationCount = 0;
     private int groupMembersReadCount = 0;
+
+    /** Names of objects that this connector rejects to add, with "Already exists" exception. */
     private Collection<String> forbiddenNames;
-    private int operationDelayOffset = 0;
-    private int operationDelayRange = 0;
-    private boolean syncSearchHandlerStart = false;
+
+    private int operationDelayOffset;
+    private int operationDelayRange;
+    private boolean syncSearchHandlerStart;
 
     /**
      * There is a monster that loves to eat cookies.
@@ -136,7 +145,7 @@ public class DummyResource implements DebugDumpable {
     private BreakMode modifyBreakMode = BreakMode.NONE;
     private BreakMode deleteBreakMode = BreakMode.NONE;
 
-    private boolean blockOperations = false;
+    private boolean blockOperations;
 
     /** simulates volatile behavior (on create) */
     private boolean generateAccountDescriptionOnCreate = false;
@@ -152,10 +161,7 @@ public class DummyResource implements DebugDumpable {
     private String uselessString;
     private String uselessGuardedString;
 
-    /**
-     * Either {@link #UID_MODE_NAME}, {@link #UID_MODE_UUID}, or {@link #UID_MODE_EXTERNAL}.
-     */
-    private String uidMode;
+    @NotNull private UidMode uidMode = UidMode.NAME;
 
     /** Support for LDAP-like hierarchical object structures. */
     private final HierarchySupport hierarchySupport = new HierarchySupport(this);
@@ -163,18 +169,7 @@ public class DummyResource implements DebugDumpable {
     private static final Map<String, DummyResource> INSTANCES = new HashMap<>();
 
     private DummyResource() {
-        allObjects = Collections.synchronizedMap(new LinkedHashMap<>());
-        accounts = Collections.synchronizedMap(new LinkedHashMap<>());
-        groups = Collections.synchronizedMap(new LinkedHashMap<>());
-        privileges = Collections.synchronizedMap(new LinkedHashMap<>());
-        orgs = Collections.synchronizedMap(new LinkedHashMap<>());
-        scriptHistory = new ArrayList<>();
-        accountObjectClass = new DummyObjectClass();
-        groupObjectClass = new DummyObjectClass();
-        privilegeObjectClass = new DummyObjectClass();
-        orgObjectClass = new DummyObjectClass();
-        syncStyle = DummySyncStyle.NONE;
-        deltas = Collections.synchronizedList(new ArrayList<>());
+        reset();
     }
 
     /**
@@ -182,10 +177,13 @@ public class DummyResource implements DebugDumpable {
      */
     public synchronized void reset() {
         clear();
-        accountObjectClass = new DummyObjectClass();
-        groupObjectClass = new DummyObjectClass();
-        privilegeObjectClass = new DummyObjectClass();
-        orgObjectClass = new DummyObjectClass();
+
+        resetObjectStores();
+        linkStoreMap.clear();
+
+        auxiliaryObjectClassMap.clear();
+        linkClassDefinitionMap.clear();
+
         syncStyle = DummySyncStyle.NONE;
         operationDelayOffset = 0;
         operationDelayRange = 0;
@@ -194,15 +192,27 @@ public class DummyResource implements DebugDumpable {
         resetBreakMode();
     }
 
+    private void resetObjectStores() {
+        objectStoreMap.clear(); // removes all custom object classes
+        resetAndAddObjectStore(accountStore);
+        resetAndAddObjectStore(groupStore);
+        resetAndAddObjectStore(privilegeStore);
+        resetAndAddObjectStore(orgStore);
+    }
+
+    private void resetAndAddObjectStore(ObjectStore<?> store) {
+        store.reset();
+        objectStoreMap.put(store.getObjectClassName(), store);
+    }
+
     /**
      * Clears the content but not the schema and settings.
      */
     public synchronized void clear() {
         allObjects.clear();
-        accounts.clear();
-        groups.clear();
-        privileges.clear();
-        orgs.clear();
+        objectStoreMap.values().forEach(store -> store.clear());
+        linkStoreMap.values().forEach(store -> store.clear());
+
         scriptHistory.clear();
         deltas.clear();
         latestSyncToken.set(0);
@@ -214,7 +224,7 @@ public class DummyResource implements DebugDumpable {
         return getInstance(null);
     }
 
-    public static DummyResource getInstance(String instanceName) {
+    public static @NotNull DummyResource getInstance(String instanceName) {
         DummyResource instance = INSTANCES.get(instanceName);
         if (instance == null) {
             instance = new DummyResource();
@@ -313,12 +323,12 @@ public class DummyResource implements DebugDumpable {
         this.uselessGuardedString = uselessGuardedString;
     }
 
-    public boolean isCaseIgnoreId() {
-        return caseIgnoreId;
+    public boolean isCaseIgnoreName() {
+        return caseIgnoreName;
     }
 
-    public void setCaseIgnoreId(boolean caseIgnoreId) {
-        this.caseIgnoreId = caseIgnoreId;
+    public void setCaseIgnoreName(boolean caseIgnoreName) {
+        this.caseIgnoreName = caseIgnoreName;
     }
 
     boolean isCaseIgnoreValues() {
@@ -369,12 +379,12 @@ public class DummyResource implements DebugDumpable {
         this.monsterization = monsterization;
     }
 
-    public String getUidMode() {
+    public @NotNull UidMode getUidMode() {
         return uidMode;
     }
 
-    public void setUidMode(String uidMode) {
-        this.uidMode = uidMode;
+    public void setUidMode(UidMode uidMode) {
+        this.uidMode = Objects.requireNonNull(uidMode);
     }
 
     public void setHierarchicalObjectsEnabled(boolean value) {
@@ -424,27 +434,42 @@ public class DummyResource implements DebugDumpable {
         traceOperation("groupMembersRead", groupMembersReadCount);
     }
 
-    public DummyObjectClass getAccountObjectClass()
-            throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
-        breakIt(schemaBreakMode, "schema");
-        delayOperation();
-        return accountObjectClass;
+    public boolean isSchemaBroken() {
+        return schemaBreakMode != BreakMode.NONE;
     }
 
-    DummyObjectClass getAccountObjectClassNoExceptions() {
-        return accountObjectClass;
+    public void applySchemaBreakMode()
+            throws ConflictException, FileNotFoundException, SchemaViolationException, ConnectException, InterruptedException {
+        breakIt(schemaBreakMode, "schema");
+        delayOperation();
+    }
+
+    public DummyObjectClass getAccountObjectClass() {
+        return accountStore.getObjectClass();
     }
 
     public DummyObjectClass getGroupObjectClass() {
-        return groupObjectClass;
+        return groupStore.getObjectClass();
     }
 
     public DummyObjectClass getPrivilegeObjectClass() {
-        return privilegeObjectClass;
+        return privilegeStore.getObjectClass();
     }
 
     public DummyObjectClass getOrgObjectClass() {
-        return orgObjectClass;
+        return orgStore.getObjectClass();
+    }
+
+    public @NotNull Collection<DummyObjectClassInfo> getStructuralObjectClasses() {
+        return objectStoreMap.entrySet().stream()
+                .map(e -> new DummyObjectClassInfo(e.getKey(), e.getValue().getObjectClass()))
+                .toList();
+    }
+
+    public @NotNull Collection<DummyObjectClassInfo> getAuxiliaryObjectClasses() {
+        return auxiliaryObjectClassMap.entrySet().stream()
+                .map(e -> new DummyObjectClassInfo(e.getKey(), e.getValue()))
+                .toList();
     }
 
     public Map<String,DummyObjectClass> getAuxiliaryObjectClassMap() {
@@ -455,8 +480,21 @@ public class DummyResource implements DebugDumpable {
         auxiliaryObjectClassMap.put(name, objectClass);
     }
 
-    public int getNumberOfObjectclasses() {
-        return 4 + auxiliaryObjectClassMap.size();
+    public synchronized void addStructuralObjectClass(String name, DummyObjectClass objectClass) {
+        stateCheck(!objectStoreMap.containsKey(name), "Structural object class %s already exists", name);
+        objectStoreMap.put(name, new ObjectStore<>(DummyGenericObject.class, name, objectClass));
+    }
+
+    public int getNumberOfObjectClasses() {
+        return objectStoreMap.size() + auxiliaryObjectClassMap.size();
+    }
+
+    public Collection<? extends DummyObject> listObjects(String objectClassName)
+            throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+        checkBlockOperations();
+        breakIt(getBreakMode, "get");
+        delayOperation();
+        return getObjectStore(objectClassName).getObjects();
     }
 
     public Collection<DummyAccount> listAccounts()
@@ -464,10 +502,10 @@ public class DummyResource implements DebugDumpable {
         checkBlockOperations();
         breakIt(getBreakMode, "get");
         delayOperation();
-        return accounts.values();
+        return accountStore.getObjects();
     }
 
-    private <T extends DummyObject> T getObjectByName(Map<String,T> map, String name, boolean checkBreak)
+    private <T extends DummyObject> T getObjectByName(ObjectStore<T> store, String name, boolean checkBreak)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         if (!enforceUniqueName) {
             throw new IllegalStateException("Attempt to search object by name while resource is in non-unique name mode");
@@ -477,51 +515,65 @@ public class DummyResource implements DebugDumpable {
         if (checkBreak) {
             breakIt(getBreakMode, "get");
         }
-        return map.get(normalize(name));
+        return store.getObject(normalizeName(name));
     }
 
-    public DummyAccount getAccountByUsername(String username)
+    public DummyObject getObjectByName(String objectClassName, String objectName)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
-        return getObjectByName(accounts, username, true);
+        return getObjectByName(objectClassName, objectName, true);
     }
 
-    public DummyAccount getAccountByUsername(String username, boolean checkBreak)
+    public DummyObject getObjectByName(String objectClassName, String objectName, boolean checkBreak)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
-        return getObjectByName(accounts, username, checkBreak);
+        return getObjectByName(getObjectStore(objectClassName), objectName, checkBreak);
+    }
+
+    public DummyAccount getAccountByName(String name)
+            throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+        return getObjectByName(accountStore, name, true);
+    }
+
+    public DummyAccount getAccountByName(String username, boolean checkBreak)
+            throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+        return getObjectByName(accountStore, username, checkBreak);
     }
 
     public DummyGroup getGroupByName(String name)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
-        return getObjectByName(groups, name, true);
+        return getObjectByName(groupStore, name, true);
     }
 
     public DummyGroup getGroupByName(String name, boolean checkBreak)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
-        return getObjectByName(groups, name, checkBreak);
+        return getObjectByName(groupStore, name, checkBreak);
     }
 
+    // Please do not put any specific functionality here. Not all accesses are through this method.
     public DummyPrivilege getPrivilegeByName(String name)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
-        return getObjectByName(privileges, name, true);
+        return getObjectByName(privilegeStore, name, true);
     }
 
+    // Please do not put any specific functionality here. Not all accesses are through this method.
     public DummyPrivilege getPrivilegeByName(String name, boolean checkBreak)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
-        return getObjectByName(privileges, name, checkBreak);
+        return getObjectByName(privilegeStore, name, checkBreak);
     }
 
+    // Please do not put any specific functionality here. Not all accesses are through this method.
     public DummyOrg getOrgByName(String name)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
-        return getObjectByName(orgs, name, true);
+        return getObjectByName(orgStore, name, true);
     }
 
     boolean containsOrg(String normalizedName) {
-        return orgs.containsKey(normalizedName);
+        return orgStore.containsObject(normalizedName);
     }
 
+    // Please do not put any specific functionality here. Not all accesses are through this method.
     public DummyOrg getOrgByName(String name, boolean checkBreak)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
-        return getObjectByName(orgs, name, checkBreak);
+        return getObjectByName(orgStore, name, checkBreak);
     }
 
     private <T extends DummyObject> T getObjectById(Class<T> expectedClass, String id, boolean checkBreak)
@@ -542,44 +594,62 @@ public class DummyResource implements DebugDumpable {
         return (T)dummyObject;
     }
 
+    // Please do not put any specific functionality here. Not all accesses are through this method.
     public DummyAccount getAccountById(String id)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         return getObjectById(DummyAccount.class, id, true);
     }
 
+    // Please do not put any specific functionality here. Not all accesses are through this method.
     public DummyAccount getAccountById(String id, boolean checkBreak)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         return getObjectById(DummyAccount.class, id, checkBreak);
     }
 
+    // Please do not put any specific functionality here. Not all accesses are through this method.
     public DummyGroup getGroupById(String id)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         return getObjectById(DummyGroup.class, id, true);
     }
 
+    // Please do not put any specific functionality here. Not all accesses are through this method.
     public DummyGroup getGroupById(String id, boolean checkBreak)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         return getObjectById(DummyGroup.class, id, checkBreak);
     }
 
+    // Please do not put any specific functionality here. Not all accesses are through this method.
     public DummyPrivilege getPrivilegeById(String id)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         return getObjectById(DummyPrivilege.class, id, true);
     }
 
+    // Please do not put any specific functionality here. Not all accesses are through this method.
     public DummyPrivilege getPrivilegeById(String id, boolean checkBreak)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         return getObjectById(DummyPrivilege.class, id, checkBreak);
     }
 
+    // Please do not put any specific functionality here. Not all accesses are through this method.
     public DummyOrg getOrgById(String id)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         return getObjectById(DummyOrg.class, id, true);
     }
 
+    // Please do not put any specific functionality here. Not all accesses are through this method.
     public DummyOrg getOrgById(String id, boolean checkBreak)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         return getObjectById(DummyOrg.class, id, checkBreak);
+    }
+
+    public DummyObject getObjectById(String id)
+            throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+        return getObjectById(id, true);
+    }
+
+    public DummyObject getObjectById(String id, boolean checkBreak)
+            throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+        return getObjectById(DummyObject.class, id, checkBreak);
     }
 
     public Collection<DummyGroup> listGroups()
@@ -587,7 +657,7 @@ public class DummyResource implements DebugDumpable {
         checkBlockOperations();
         breakIt(getBreakMode, "get");
         delayOperation();
-        return groups.values();
+        return groupStore.getObjects();
     }
 
     public Collection<DummyPrivilege> listPrivileges()
@@ -595,7 +665,7 @@ public class DummyResource implements DebugDumpable {
         checkBlockOperations();
         breakIt(getBreakMode, "get");
         delayOperation();
-        return privileges.values();
+        return privilegeStore.getObjects();
     }
 
     public Collection<DummyOrg> listOrgs()
@@ -603,14 +673,30 @@ public class DummyResource implements DebugDumpable {
         checkBlockOperations();
         breakIt(getBreakMode, "get");
         delayOperation();
-        return orgs.values();
+        return orgStore.getObjects();
     }
 
     Stream<DummyObject> getAllObjectsStream() {
-        return allObjects.values().stream();
+        return allObjects.stream();
     }
 
-    private synchronized <T extends DummyObject> String addObject(Map<String,T> map, T newObject)
+    public synchronized void addLinkValue(
+            @NotNull String linkClassName, @NotNull DummyObject first, @NotNull DummyObject second) {
+        // todo breaking, recording, etc
+
+        getLinkStore(linkClassName)
+                .addLink(first, second);
+    }
+
+    public synchronized void deleteLinkValue(
+            @NotNull String linkClassName, @NotNull DummyObject first, @NotNull DummyObject second) {
+        // todo breaking, recording, etc
+
+        getLinkStore(linkClassName)
+                .deleteLink(first, second);
+    }
+
+    private synchronized <T extends DummyObject> String addObject(ObjectStore<T> store, T objectToAdd)
             throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException,
             ConflictException, InterruptedException, ObjectDoesNotExistException {
         checkBlockOperations();
@@ -618,61 +704,117 @@ public class DummyResource implements DebugDumpable {
         breakIt(addBreakMode, "add");
         delayOperation();
 
-        Class<? extends DummyObject> type = newObject.getClass();
-        String normalName = normalize(newObject.getName());
-        if (normalName != null && forbiddenNames != null && forbiddenNames.contains(normalName)) {
-            throw new ObjectAlreadyExistsException(normalName + " is forbidden to use as an object name");
-        }
-
-        if (UID_MODE_EXTERNAL.equals(uidMode)) {
-            if (newObject.getId() == null) {
-                throw new IllegalStateException("Cannot add object with no ID when UID mode is 'external'");
-            }
-            if (allObjects.containsKey(newObject.getId())) {
-                throw new IllegalStateException("ID "+newObject.getId()+" already exists (when adding "+ type.getSimpleName()+" with identifier "+normalName+")");
-            }
-        } else {
-            String newId = UUID.randomUUID().toString();
-            newObject.setId(newId);
-            if (allObjects.containsKey(newId)) {
-                throw new IllegalStateException("The hell is frozen over. The impossible has happened. ID "+newId+" already exists ("+ type.getSimpleName()+" with identifier "+normalName+")");
-            }
-        }
+        Class<? extends DummyObject> type = objectToAdd.getClass();
 
         // This is "resource-generated" attribute, used to simulate resources which - by default - generate attributes
-        // which we need to sync.
+        // which we need to sync. Intentionally before "setResource" to avoid spurious sync deltas.
         if (generateDefaultValues) {
-            newObject.addAttributeValue(DummyAccount.ATTR_INTERNAL_ID, new Random().nextInt());
+            objectToAdd.addAttributeValue(DummyAccount.ATTR_INTERNAL_ID, new Random().nextInt());
         }
+
+        objectToAdd.setPresentOnResource(this);
+
+        String normalizedName = objectToAdd.getNormalizedName(); // requires the object being on the resource already
+        if (normalizedName != null && forbiddenNames != null && forbiddenNames.contains(normalizedName)) {
+            throw new ObjectAlreadyExistsException(normalizedName + " is forbidden to use as an object name");
+        }
+
+        checkOrGenerateObjectId(objectToAdd);
+
+        updateNormalizedHierarchicalName(objectToAdd);
+        hierarchySupport.checkHasContainingOrg(objectToAdd.getName());
 
         String mapKey;
         if (enforceUniqueName) {
-            mapKey = normalName;
+            mapKey = normalizedName;
         } else {
-            mapKey = newObject.getId();
+            mapKey = objectToAdd.getId();
         }
 
-        if (map.containsKey(mapKey)) {
+        if (store.containsObject(mapKey)) {
             throw new ObjectAlreadyExistsException(type.getSimpleName() + " with name/id '" + mapKey + "' already exists");
         }
+        store.putObject(mapKey, objectToAdd);
 
-        updateNormalizedHierarchicalName(newObject);
-        hierarchySupport.checkHasContainingOrg(newObject.getName());
-
-        newObject.setResource(this);
-        map.put(mapKey, newObject);
-        allObjects.put(newObject.getId(), newObject);
+        allObjects.put(objectToAdd);
 
         if (syncStyle != DummySyncStyle.NONE) {
-            int syncToken = nextSyncToken();
-            DummyDelta delta = new DummyDelta(syncToken, type, newObject.getId(), newObject.getName(), DummyDeltaType.ADD);
-            deltas.add(delta);
+            deltas.add(
+                    new DummyDelta(nextSyncToken(), type, objectToAdd.getObjectClassName(),
+                            objectToAdd.getId(), objectToAdd.getName(), DummyDeltaType.ADD));
         }
 
-        return newObject.getName();
+        return objectToAdd.getName();
     }
 
-    private synchronized <T extends DummyObject> void deleteObjectByName(Class<T> type, Map<String,T> map, String name)
+    private <T extends DummyObject> void checkOrGenerateObjectId(T objectToAdd) {
+        if (uidMode == UidMode.EXTERNAL) {
+            String id = objectToAdd.getId();
+            if (id == null) {
+                throw new IllegalStateException("Cannot add object with no ID when UID mode is 'external'");
+            }
+            if (allObjects.containsId(id)) {
+                throw new IllegalStateException(
+                        "ID %s already exists (when adding %s with identifier %s)".formatted(
+                                id, objectToAdd.getClass().getSimpleName(), objectToAdd.getNormalizedName()));
+            }
+        } else {
+            String randomId = UUID.randomUUID().toString();
+            objectToAdd.setId(randomId);
+            if (allObjects.containsId(randomId)) {
+                throw new IllegalStateException(
+                        "The hell is frozen over. The impossible has happened. ID %s already exists (%s with identifier %s)"
+                                .formatted(randomId, objectToAdd.getClass().getSimpleName(), objectToAdd.getNormalizedName()));
+            }
+        }
+    }
+
+    public synchronized <T extends DummyObject> void deleteObjectByName(String objectClassName, String name)
+            throws ObjectDoesNotExistException, ConnectException, FileNotFoundException, SchemaViolationException,
+            ConflictException, InterruptedException {
+        if (DummyAccount.OBJECT_CLASS_NAME.equals(objectClassName)) {
+            deleteAccountByName(name);
+        } else if (DummyGroup.OBJECT_CLASS_NAME.equals(objectClassName)) {
+            deleteGroupByName(name);
+        } else if (DummyPrivilege.OBJECT_CLASS_NAME.equals(objectClassName)) {
+            deletePrivilegeByName(name);
+        } else if (DummyOrg.OBJECT_CLASS_NAME.equals(objectClassName)) {
+            deleteOrgByName(name);
+        } else {
+            //noinspection unchecked
+            T object = (T) getObjectByName(objectClassName, name);
+            //noinspection unchecked
+            Class<T> clazz = (Class<T>) object.getClass();
+            ObjectStore<T> objectStore = getObjectStore(object);
+            deleteObjectByName(clazz, objectStore, name);
+        }
+    }
+
+    public synchronized <T extends DummyObject> void deleteObjectById(String objectClassName, String id)
+            throws ObjectDoesNotExistException, ConnectException, FileNotFoundException, SchemaViolationException,
+            ConflictException, InterruptedException {
+        if (DummyAccount.OBJECT_CLASS_NAME.equals(objectClassName)) {
+            deleteAccountById(id);
+        } else if (DummyGroup.OBJECT_CLASS_NAME.equals(objectClassName)) {
+            deleteGroupById(id);
+        } else if (DummyPrivilege.OBJECT_CLASS_NAME.equals(objectClassName)) {
+            deletePrivilegeById(id);
+        } else if (DummyOrg.OBJECT_CLASS_NAME.equals(objectClassName)) {
+            deleteOrgById(id);
+        } else {
+            //noinspection unchecked
+            T object = (T) getObjectById(DummyObject.class, id, false);
+            if (object == null) {
+                throw new ObjectDoesNotExistException("Object with id '" + id + "' does not exist");
+            }
+            //noinspection unchecked
+            Class<T> clazz = (Class<T>) object.getClass();
+            ObjectStore<T> objectStore = getObjectStore(object);
+            deleteObjectById(clazz, objectStore, id);
+        }
+    }
+
+    private synchronized <T extends DummyObject> void deleteObjectByName(Class<T> type, ObjectStore<T> store, String name)
             throws ObjectDoesNotExistException, ConnectException, FileNotFoundException, SchemaViolationException,
             ConflictException, InterruptedException {
         checkBlockOperations();
@@ -680,54 +822,56 @@ public class DummyResource implements DebugDumpable {
         breakIt(deleteBreakMode, "delete");
         delayOperation();
 
-        String normalName = normalize(name);
+        String normalName = normalizeName(name);
         T existingObject;
 
         if (!enforceUniqueName) {
             throw new IllegalStateException("Whoops! got into deleteObjectByName without enforceUniqueName");
         }
 
-        if (map.containsKey(normalName)) {
-            existingObject = map.get(normalName);
+        if (store.containsObject(normalName)) {
+            existingObject = store.getObject(normalName);
             hierarchySupport.checkNoContainedObjects(existingObject);
-            map.remove(normalName);
+            store.removeObject(normalName);
             allObjects.remove(existingObject.getId());
         } else {
             throw new ObjectDoesNotExistException(type.getSimpleName() + " with name '" + normalName + "' does not exist");
         }
 
+        existingObject.setNotPresentOnResource();
+
         if (syncStyle != DummySyncStyle.NONE) {
-            int syncToken = nextSyncToken();
-            DummyDelta delta = new DummyDelta(syncToken, type, existingObject.getId(), name, DummyDeltaType.DELETE);
-            deltas.add(delta);
+            deltas.add(
+                    new DummyDelta(nextSyncToken(), type, existingObject.getObjectClassName(),
+                            existingObject.getId(), name, DummyDeltaType.DELETE));
         }
     }
 
     public void deleteAccountById(String id)
             throws ConnectException, FileNotFoundException, ObjectDoesNotExistException, SchemaViolationException,
             ConflictException, InterruptedException {
-        deleteObjectById(DummyAccount.class, accounts, id);
+        deleteObjectById(DummyAccount.class, accountStore, id);
     }
 
     public void deleteGroupById(String id)
             throws ConnectException, FileNotFoundException, ObjectDoesNotExistException, SchemaViolationException,
             ConflictException, InterruptedException {
-        deleteObjectById(DummyGroup.class, groups, id);
+        deleteObjectById(DummyGroup.class, groupStore, id);
     }
 
     public void deletePrivilegeById(String id)
             throws ConnectException, FileNotFoundException, ObjectDoesNotExistException, SchemaViolationException,
             ConflictException, InterruptedException {
-        deleteObjectById(DummyPrivilege.class, privileges, id);
+        deleteObjectById(DummyPrivilege.class, privilegeStore, id);
     }
 
     public void deleteOrgById(String id)
             throws ConnectException, FileNotFoundException, ObjectDoesNotExistException, SchemaViolationException,
             ConflictException, InterruptedException {
-        deleteObjectById(DummyOrg.class, orgs, id);
+        deleteObjectById(DummyOrg.class, orgStore, id);
     }
 
-    private synchronized <T extends DummyObject> void deleteObjectById(Class<T> type, Map<String,T> map, String id)
+    private synchronized <T extends DummyObject> void deleteObjectById(Class<T> type, ObjectStore<T> store, String id)
             throws ObjectDoesNotExistException, ConnectException, FileNotFoundException, SchemaViolationException,
             ConflictException, InterruptedException {
         checkBlockOperations();
@@ -743,7 +887,7 @@ public class DummyResource implements DebugDumpable {
             throw new IllegalStateException("Arrrr! Wanted "+type+" with ID "+id+" but got "+object+" instead");
         }
         hierarchySupport.checkNoContainedObjects(object);
-        String normalName = normalize(object.getName());
+        String normalName = normalizeName(object.getName());
 
         allObjects.remove(id);
 
@@ -754,21 +898,21 @@ public class DummyResource implements DebugDumpable {
             mapKey = id;
         }
 
-        if (map.containsKey(mapKey)) {
-            map.remove(mapKey);
+        if (store.containsObject(mapKey)) {
+            store.removeObject(mapKey);
         } else {
             throw new ObjectDoesNotExistException(type.getSimpleName() + " with name/id '" + mapKey + "' does not exist");
         }
 
         if (syncStyle != DummySyncStyle.NONE) {
             int syncToken = nextSyncToken();
-            DummyDelta delta = new DummyDelta(syncToken, type, id, object.getName(), DummyDeltaType.DELETE);
-            deltas.add(delta);
+            deltas.add(
+                    new DummyDelta(syncToken, type, object.getObjectClassName(), id, object.getName(), DummyDeltaType.DELETE));
         }
     }
 
     private synchronized <T extends DummyObject> void renameObject(
-            Class<T> type, Map<String,T> map, String id, String oldName, String newName)
+            ObjectStore<T> store, String id, String oldName, String newName)
             throws ObjectDoesNotExistException, ObjectAlreadyExistsException, ConnectException, FileNotFoundException,
             SchemaViolationException, ConflictException, InterruptedException {
         checkBlockOperations();
@@ -780,7 +924,7 @@ public class DummyResource implements DebugDumpable {
 
         T existingObject;
         if (enforceUniqueName) {
-            existingObject = updateSpecificObjectMap(map, type, normalize(oldName), normalize(newName));
+            existingObject = store.renameObject(normalizeName(oldName), normalizeName(newName));
         } else {
             //noinspection unchecked
             existingObject = (T) allObjects.get(id);
@@ -792,61 +936,60 @@ public class DummyResource implements DebugDumpable {
         }
     }
 
-    <T extends DummyObject> @NotNull Map<String, T> getSpecificObjectMap(@NotNull T object) {
-        if (object instanceof DummyAccount) {
-            //noinspection unchecked
-            return (Map<String, T>) accounts;
-        } else if (object instanceof DummyGroup) {
-            //noinspection unchecked
-            return (Map<String, T>) groups;
-        } else if (object instanceof DummyPrivilege) {
-            //noinspection unchecked
-            return (Map<String, T>) privileges;
-        } else if (object instanceof DummyOrg) {
-            //noinspection unchecked
-            return (Map<String, T>) orgs;
-        } else {
-            throw new IllegalStateException("Unsupported object type: " + object.getClass());
-        }
+    <T extends DummyObject> @NotNull ObjectStore<T> getObjectStore(@NotNull T object) {
+        //noinspection unchecked
+        return (ObjectStore<T>) stateNonNull(
+                objectStoreMap.get(object.getObjectClassName()),
+                "No object store for " + object);
     }
 
-    static <T extends DummyObject> @NotNull T updateSpecificObjectMap(
-            Map<String, T> map, Class<T> type, String oldNormName, String newNormName)
-            throws ObjectDoesNotExistException, ObjectAlreadyExistsException {
-        T existingObject = map.get(oldNormName);
-        if (existingObject == null) {
-            throw new ObjectDoesNotExistException(
-                    "Cannot rename, " + type.getSimpleName() + " with name '" + oldNormName + "' does not exist");
+    @NotNull ObjectStore<?> getObjectStore(@NotNull String objectClassName) {
+        return stateNonNull(
+                objectStoreMap.get(objectClassName),
+                "No object store for " + objectClassName);
+    }
+
+    public String addObject(DummyObject objectToAdd)
+            throws ConflictException, FileNotFoundException, ObjectDoesNotExistException, SchemaViolationException,
+            ObjectAlreadyExistsException, InterruptedException, ConnectException {
+        // We do this testing to call appropriate method for accounts, groups, etc, as there is specific functionality there.
+        if (objectToAdd instanceof DummyAccount account) {
+            return addAccount(account);
+        } else if (objectToAdd instanceof DummyGroup group) {
+            return addGroup(group);
+        } else if (objectToAdd instanceof DummyPrivilege privilege) {
+            return addPrivilege(privilege);
+        } else if (objectToAdd instanceof DummyOrg org) {
+            return addOrg(org);
+        } else {
+            return addObject(
+                    getObjectStore(objectToAdd), objectToAdd);
         }
-        if (map.containsKey(newNormName)) {
-            throw new ObjectAlreadyExistsException(
-                    "Cannot rename, " + type.getSimpleName() + " with name '" + newNormName + "' already exists");
-        }
-        map.put(newNormName, existingObject);
-        map.remove(oldNormName);
-        return existingObject;
     }
 
     public String addAccount(DummyAccount newAccount)
             throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException,
             ConflictException, InterruptedException, ObjectDoesNotExistException {
+
+        // This is to test the attribute volatility: the resource does a kind of magic beyond simply storing the objects.
         if (generateAccountDescriptionOnCreate && newAccount.getAttributeValue(DummyAccount.ATTR_DESCRIPTION_NAME) == null) {
             newAccount.addAttributeValue(DummyAccount.ATTR_DESCRIPTION_NAME, "Description of " + newAccount.getName());
         }
-        return addObject(accounts, newAccount);
+
+        return addObject(accountStore, newAccount);
     }
 
     public void deleteAccountByName(String id)
             throws ObjectDoesNotExistException, ConnectException, FileNotFoundException, SchemaViolationException,
             ConflictException, InterruptedException {
-        deleteObjectByName(DummyAccount.class, accounts, id);
+        deleteObjectByName(DummyAccount.class, accountStore, id);
     }
 
     public void renameAccount(String id, String oldUsername, String newUsername)
             throws ObjectDoesNotExistException, ObjectAlreadyExistsException, ConnectException, FileNotFoundException,
             SchemaViolationException, ConflictException, InterruptedException {
-        renameObject(DummyAccount.class, accounts, id, oldUsername, newUsername);
-        for (DummyGroup group : groups.values()) {
+        renameObject(accountStore, id, oldUsername, newUsername);
+        for (DummyGroup group : groupStore.getObjects()) {
             if (group.containsMember(oldUsername)) {
                 group.removeMember(oldUsername);
                 group.addMember(newUsername);
@@ -868,64 +1011,70 @@ public class DummyResource implements DebugDumpable {
     public String addGroup(DummyGroup newGroup)
             throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException,
             ConflictException, InterruptedException, ObjectDoesNotExistException {
-        return addObject(groups, newGroup);
+        return addObject(groupStore, newGroup);
     }
 
     public void deleteGroupByName(String id)
             throws ObjectDoesNotExistException, ConnectException, FileNotFoundException, SchemaViolationException,
             ConflictException, InterruptedException {
-        deleteObjectByName(DummyGroup.class, groups, id);
+        deleteObjectByName(DummyGroup.class, groupStore, id);
     }
 
     public void renameGroup(String id, String oldName, String newName)
             throws ObjectDoesNotExistException, ObjectAlreadyExistsException, ConnectException, FileNotFoundException,
             SchemaViolationException, ConflictException, InterruptedException {
-        renameObject(DummyGroup.class, groups, id, oldName, newName);
+        renameObject(groupStore, id, oldName, newName);
     }
 
     @SuppressWarnings("UnusedReturnValue")
     public String addPrivilege(DummyPrivilege newGroup)
             throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException,
             ConflictException, InterruptedException, ObjectDoesNotExistException {
-        return addObject(privileges, newGroup);
+        return addObject(privilegeStore, newGroup);
     }
 
     public void deletePrivilegeByName(String id)
             throws ObjectDoesNotExistException, ConnectException, FileNotFoundException, SchemaViolationException,
             ConflictException, InterruptedException {
-        deleteObjectByName(DummyPrivilege.class, privileges, id);
+        deleteObjectByName(DummyPrivilege.class, privilegeStore, id);
     }
 
     public void renamePrivilege(String id, String oldName, String newName)
             throws ObjectDoesNotExistException, ObjectAlreadyExistsException, ConnectException, FileNotFoundException,
             SchemaViolationException, ConflictException, InterruptedException {
-        renameObject(DummyPrivilege.class, privileges, id, oldName, newName);
+        renameObject(privilegeStore, id, oldName, newName);
+    }
+
+    public void renameObject(String objectClassName, String id, String oldName, String newName)
+            throws ObjectDoesNotExistException, ObjectAlreadyExistsException, ConnectException, FileNotFoundException,
+            SchemaViolationException, ConflictException, InterruptedException {
+        renameObject(getObjectStore(objectClassName), id, oldName, newName);
     }
 
     @SuppressWarnings("UnusedReturnValue")
     public String addOrg(DummyOrg newGroup)
             throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException,
             ConflictException, InterruptedException, ObjectDoesNotExistException {
-        return addObject(orgs, newGroup);
+        return addObject(orgStore, newGroup);
     }
 
     public void deleteOrgByName(String id)
             throws ObjectDoesNotExistException, ConnectException, FileNotFoundException, SchemaViolationException,
             ConflictException, InterruptedException {
-        deleteObjectByName(DummyOrg.class, orgs, id);
+        deleteObjectByName(DummyOrg.class, orgStore, id);
     }
 
     public void renameOrg(String id, String oldName, String newName)
             throws ObjectDoesNotExistException, ObjectAlreadyExistsException, ConnectException, FileNotFoundException,
             SchemaViolationException, ConflictException, InterruptedException {
-        renameObject(DummyOrg.class, orgs, id, oldName, newName);
+        renameObject(orgStore, id, oldName, newName);
     }
 
     <T> void recordModify(DummyObject dObject, String attributeName, Collection<T> valuesAdded, Collection<T> valuesDeleted, Collection<T> valuesReplaced) {
         recordWriteOperation("modify");
         if (syncStyle != DummySyncStyle.NONE) {
-            int syncToken = nextSyncToken();
-            DummyDelta delta = new DummyDelta(syncToken, dObject.getClass(), dObject.getId(), dObject.getName(), DummyDeltaType.MODIFY);
+            DummyDelta delta = new DummyDelta(nextSyncToken(), dObject.getClass(), dObject.getObjectClassName(),
+                    dObject.getId(), dObject.getName(), DummyDeltaType.MODIFY);
             delta.setAttributeName(attributeName);
             //noinspection unchecked
             delta.setValuesAdded((Collection<Object>) valuesAdded);
@@ -983,16 +1132,18 @@ public class DummyResource implements DebugDumpable {
      * majority of basic test cases.
      */
     public void populateWithDefaultSchema() {
+        var accountObjectClass = accountStore.getObjectClass();
         accountObjectClass.clear();
         accountObjectClass.addAttributeDefinition(DummyAccount.ATTR_FULLNAME_NAME, String.class, true, false);
-        accountObjectClass.addAttributeDefinition(DummyAccount.ATTR_INTERNAL_ID, String.class, false, false);
+        accountObjectClass.addAttributeDefinition(DummyAccount.ATTR_INTERNAL_ID, Integer.class, false, false);
         accountObjectClass.addAttributeDefinition(DummyAccount.ATTR_DESCRIPTION_NAME, String.class, false, false);
         accountObjectClass.addAttributeDefinition(DummyAccount.ATTR_INTERESTS_NAME, String.class, false, true);
         accountObjectClass.addAttributeDefinition(DummyAccount.ATTR_PRIVILEGES_NAME, String.class, false, true);
+        var groupObjectClass = groupStore.getObjectClass();
         groupObjectClass.clear();
         groupObjectClass.addAttributeDefinition(DummyGroup.ATTR_MEMBERS_NAME, String.class, false, true);
-        privilegeObjectClass.clear();
-        orgObjectClass.clear();
+        privilegeStore.getObjectClass().clear();
+        orgStore.getObjectClass().clear();
     }
 
     public DummySyncStyle getSyncStyle() {
@@ -1011,11 +1162,11 @@ public class DummyResource implements DebugDumpable {
         return latestSyncToken.get();
     }
 
-    String normalize(String id) {
-        if (caseIgnoreId) {
-            return StringUtils.lowerCase(id);
+    String normalizeName(String name) {
+        if (caseIgnoreName) {
+            return StringUtils.lowerCase(name);
         } else {
-            return id;
+            return name;
         }
     }
 
@@ -1048,8 +1199,9 @@ public class DummyResource implements DebugDumpable {
     }
 
     public void recordEmptyDeltaForAccountByUsername(String accountUsername, DummyDeltaType deltaType) throws InterruptedException, FileNotFoundException, ConnectException, SchemaViolationException, ConflictException {
-        DummyAccount account = getAccountByUsername(accountUsername);
-        DummyDelta delta = new DummyDelta(nextSyncToken(), account.getClass(), account.getId(), account.getName(), deltaType);
+        DummyAccount account = getAccountByName(accountUsername);
+        DummyDelta delta = new DummyDelta(nextSyncToken(), account.getClass(),
+                account.getObjectClassName(), account.getId(), account.getName(), deltaType);
         // No delta details here, no addeded/removed attributes, nothing
         deltas.add(delta);
     }
@@ -1166,47 +1318,131 @@ public class DummyResource implements DebugDumpable {
 
     @Override
     public String debugDump(int indent) {
-        StringBuilder sb = new StringBuilder(toString());
-        DebugUtil.indentDebugDump(sb, indent);
-        sb.append("\nAccounts:");
-        for (Entry<String, DummyAccount> entry: accounts.entrySet()) {
-            sb.append("\n  ");
-            sb.append(entry.getKey());
-            sb.append(": ");
-            sb.append(entry.getValue());
-        }
-        sb.append("\nGroups:");
-        for (Entry<String, DummyGroup> entry: groups.entrySet()) {
-            sb.append("\n  ");
-            sb.append(entry.getKey());
-            sb.append(": ");
-            sb.append(entry.getValue());
-        }
-        sb.append("\nPrivileges:");
-        for (Entry<String, DummyPrivilege> entry: privileges.entrySet()) {
-            sb.append("\n  ");
-            sb.append(entry.getKey());
-            sb.append(": ");
-            sb.append(entry.getValue());
-        }
-        sb.append("\nOrgs:");
-        for (Entry<String, DummyOrg> entry: orgs.entrySet()) {
-            sb.append("\n  ");
-            sb.append(entry.getKey());
-            sb.append(": ");
-            sb.append(entry.getValue());
-        }
-        sb.append("\nDeltas:");
-        for (DummyDelta delta: deltas) {
-            sb.append("\n  ");
-            sb.append(delta);
-        }
-        sb.append("\nLatest token:").append(latestSyncToken.get());
+        StringBuilder sb = DebugUtil.createTitleStringBuilder(toString(), indent);
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabelLn(sb, "Objects", objectStoreMap, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "Links", linkStoreMap, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "Deltas", deltas, indent + 1);
+        DebugUtil.debugDumpWithLabelToString(sb, "Latest token", latestSyncToken, indent + 1);
         return sb.toString();
     }
 
     @Override
     public String toString() {
-        return "DummyResource("+instanceName+": "+accounts.size()+" accounts, "+groups.size()+" groups, "+privileges.size()+" privileges, "+orgs.size()+" orgs)";
+        int a = accountStore.size();
+        int g = groupStore.size();
+        int p = privilegeStore.size();
+        int o = orgStore.size();
+        int other = allObjects.size() - a - g - p - o;
+        return "DummyResource(" + instanceName + ": "
+                + a + " accounts, " + g + " groups, " + p + " privileges, " + o + " orgs, " + other + " other objects)";
+    }
+
+    public @NotNull DummyObjectClass getStructuralObjectClass(@NotNull String objectClassName) {
+        var store = stateNonNull(
+                objectStoreMap.get(objectClassName),
+                "Unknown object class %s", objectClassName);
+        return store.getObjectClass();
+    }
+
+    public synchronized void addLinkClassDef(LinkClassDefinition linkClassDefinition) {
+        String name = linkClassDefinition.getName();
+
+        stateCheck(!linkClassDefinitionMap.containsKey(name), "Link class %s already exists", name);
+        linkClassDefinitionMap.put(name, linkClassDefinition);
+
+        // Put the links into respective object classes (for both participants).
+        for (LinkDefinition linkDefinition : linkClassDefinition.getLinkDefinitions()) {
+            if (linkDefinition.isVisible()) {
+                for (String objectClassName : linkDefinition.getObjectClassNames()) {
+                    getStructuralObjectClass(objectClassName)
+                            .addLinkDefinition(linkDefinition);
+                }
+            }
+        }
+
+        linkStoreMap.put(name, new LinkStore(linkClassDefinition));
+    }
+
+    private LinkStore getLinkStore(String linkClassName) {
+        return argNonNull(
+                linkStoreMap.get(linkClassName),
+                "No store for link class %s", linkClassName);
+    }
+
+    public LinkDefinition getLinkDefinition(String objectClassName, String linkName) {
+        return argNonNull(
+                getStructuralObjectClass(objectClassName)
+                        .getLinkDefinition(linkName),
+                "No link '%s' definition in object class '%s'", linkName, objectClassName);
+    }
+
+    Collection<DummyObject> getLinkedObjects(DummyObject dummyObject, String linkName) {
+        String objectClassName = dummyObject.getObjectClassName();
+        LinkDefinition linkDef = getLinkDefinition(objectClassName, linkName);
+        stateCheck(linkDef != null, "No link definition for %s.%s", objectClassName, linkName);
+        stateCheck(linkDef.isVisible(), "Link %s.%s is not visible", objectClassName, linkName);
+        return getLinkStore(linkDef.getLinkClassName())
+                .getLinkedObjects(dummyObject, linkDef);
+    }
+
+    /** Creates correctly typed object. */
+    public DummyObject newObject(@NotNull String objectClassName) {
+        return switch (objectClassName) {
+            case DummyAccount.OBJECT_CLASS_NAME -> new DummyAccount();
+            case DummyGroup.OBJECT_CLASS_NAME -> new DummyGroup();
+            case DummyPrivilege.OBJECT_CLASS_NAME -> new DummyPrivilege();
+            case DummyOrg.OBJECT_CLASS_NAME -> new DummyOrg();
+            default -> new DummyGenericObject(objectClassName);
+        };
+    }
+
+    /** Special class so we can control all update/delete operations. */
+    private class AllObjects {
+
+        /** Indexed by {@link DummyObject#id}. */
+        private final Map<String, DummyObject> map = Collections.synchronizedMap(new LinkedHashMap<>());
+
+        void clear() {
+            map.clear();
+        }
+
+        DummyObject get(String id) {
+            return map.get(id);
+        }
+
+        Stream<DummyObject> stream() {
+            return map.values().stream();
+        }
+
+        void put(DummyObject object) {
+            map.put(object.getId(), object);
+        }
+
+        boolean containsId(String id) {
+            return map.containsKey(id);
+        }
+
+        void remove(String id) throws ConflictException, FileNotFoundException, ObjectDoesNotExistException,
+                SchemaViolationException, InterruptedException, ConnectException {
+            var deletedObject = map.remove(id);
+            if (deletedObject != null) {
+                Set<DummyObject> cascadeTo = new HashSet<>();
+                for (LinkStore linkStore : linkStoreMap.values()) {
+                    cascadeTo.addAll(linkStore.removeLinksFor(deletedObject));
+                }
+                for (DummyObject objectToDelete : cascadeTo) {
+                    if (containsId(objectToDelete.getId())) { // could be deleted via other links
+                        //noinspection unchecked,rawtypes
+                        deleteObjectById(
+                                (Class) objectToDelete.getClass(), getObjectStore(objectToDelete), objectToDelete.getId());
+                    }
+                }
+            }
+        }
+
+        int size() {
+            return map.size();
+        }
     }
 }

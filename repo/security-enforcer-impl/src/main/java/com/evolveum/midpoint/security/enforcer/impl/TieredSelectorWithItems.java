@@ -11,6 +11,8 @@ import com.evolveum.midpoint.schema.selector.spec.ParentClause;
 import com.evolveum.midpoint.security.enforcer.impl.prism.PrismEntityCoverageInformation;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -90,7 +92,7 @@ public class TieredSelectorWithItems {
                 continue;
             }
             SelectorWithItems base =
-                    SelectorWithItems.of(objectSelector, autz.getItems(), autz.getExceptItems(), evaluation.getDesc());
+                    SelectorWithItems.of(objectSelector, autz.getItems(), autz.getExceptItems(), evaluation.getDesc(), autz.isExceptMetadata());
             TieredSelectorWithItems tiered = base.asTieredSelectors(value.asObjectable().getClass());
             if (tiered != null) {
                 selectorsWithItems.add(tiered);
@@ -115,12 +117,21 @@ public class TieredSelectorWithItems {
         return selectorWithItems.getNegatives();
     }
 
+
+    public boolean isExceptMetadata() {
+        return selectorWithItems.isExceptMetadata();
+    }
+
     @Override
     public String toString() {
         return getClass().getSimpleName() + "{" +
                 "selector=" + selectorWithItems +
                 ", link=" + linkToChild +
                 '}';
+    }
+
+    boolean hasOverlapWith(@NotNull Class<? extends ObjectType> requiredType) {
+        return selectorWithItems.hasOverlapWith(requiredType);
     }
 
     /**
