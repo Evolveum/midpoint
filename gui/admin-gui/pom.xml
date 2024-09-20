@@ -241,11 +241,6 @@
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>repo-cache</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>task-quartz-impl</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>

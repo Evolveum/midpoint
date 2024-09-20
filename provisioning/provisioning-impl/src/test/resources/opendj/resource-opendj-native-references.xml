@@ -31,6 +31,7 @@
             <icfcldap:vlvSortAttribute>entryUUID</icfcldap:vlvSortAttribute>
             <icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
             <icfcldap:operationalAttributes>createTimestamp</icfcldap:operationalAttributes>
+            <icfcldap:operationalAttributes>isMemberOf</icfcldap:operationalAttributes>
             <icfcldap:languageTagAttributes>description</icfcldap:languageTagAttributes> <!-- MID-5210 -->
             <icfcldap:managedAssociationPairs>"inetOrgPerson"+isMemberOf -# "groupOfUniqueNames"+uniqueMember</icfcldap:managedAssociationPairs>
             <icfcldap:useTreeDelete>auto</icfcldap:useTreeDelete>
@@ -246,7 +247,7 @@
                 </objectType>
                 <association>
                     <ref>ri:group</ref>
-                    <sourceAttributeRef>ri:groups</sourceAttributeRef>
+                    <sourceAttributeRef>ri:group</sourceAttributeRef>
                     <!--<displayName>LDAP Group Membership</displayName>-->
                 </association>
             </subject>

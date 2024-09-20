@@ -449,7 +449,13 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
                         }
 
                         MarksOfObjectListPopupPanel popup = new MarksOfObjectListPopupPanel(
-                                getPageBase().getMainPopupBodyId(), focusModel);
+                                getPageBase().getMainPopupBodyId(), focusModel) {
+
+                            @Override
+                            protected void onSave(AjaxRequestTarget target) {
+                                refreshTable(target);
+                            }
+                        };
 
                         getPageBase().showMainPopup(popup, target);
                     }

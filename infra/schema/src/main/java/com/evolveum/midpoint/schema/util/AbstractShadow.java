@@ -283,7 +283,7 @@ public interface AbstractShadow extends ShadowLikeValue, ShortDumpable, DebugDum
         return ShadowUtil.getAttributeValues(getPrismObject(), attrName);
     }
 
-    default <T> @Nullable T getAttributeValue(QName attrName) {
+    default <T> @Nullable T getAttributeRealValue(QName attrName) {
         return MiscUtil.extractSingleton(getAttributeRealValues(attrName));
     }
 

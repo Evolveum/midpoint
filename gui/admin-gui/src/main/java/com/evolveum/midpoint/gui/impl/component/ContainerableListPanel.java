@@ -11,17 +11,6 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
-
-import com.evolveum.midpoint.gui.impl.component.table.ChartedHeaderDto;
-import com.evolveum.midpoint.gui.impl.component.table.WidgetTableChartedHeader;
-import com.evolveum.midpoint.prism.impl.query.ObjectPagingImpl;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.web.component.data.mining.RoleAnalysisCollapsableTablePanel;
-
-import com.evolveum.wicket.chartjs.ChartConfiguration;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -49,7 +38,9 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.data.column.ConfigurableExpressionColumn;
@@ -61,18 +52,22 @@ import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.component.search.SearchableItemsDefinitions;
 import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
+import com.evolveum.midpoint.gui.impl.component.table.ChartedHeaderDto;
+import com.evolveum.midpoint.gui.impl.component.table.WidgetTableChartedHeader;
 import com.evolveum.midpoint.gui.impl.component.table.WidgetTableHeader;
 import com.evolveum.midpoint.gui.impl.page.admin.report.PageReport;
 import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.impl.query.ObjectPagingImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
@@ -86,6 +81,7 @@ import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ContainerableNameColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
+import com.evolveum.midpoint.web.component.data.mining.RoleAnalysisCollapsableTablePanel;
 import com.evolveum.midpoint.web.component.input.validator.NotNullValidator;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
@@ -99,6 +95,7 @@ import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
 import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.wicket.chartjs.ChartConfiguration;
 
 /**
  * @param <C> the container of displayed objects in table
@@ -131,9 +128,14 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
     private ContainerPanelConfigurationType config;
 
-    // TODO this should be "false" - or the other way around, container panel should by default be too "smart" and read
-    //  page params and all kinds of stuff from everywhere just because we expect that it's used on page listing "main" objects...
-    private boolean useObjectCollectionInSearch = true;
+    /**
+     * Currently this is a switch to turn of the collection view loading from page urls and other places.
+     * Eg. for usages in popups that have nothing to do with underlying page
+     *
+     * TODO this should be "false" - or the other way around, container panel should by default be too "smart" and read
+     *  page params and all kinds of stuff from everywhere just because we expect that it's used on page listing "main" objects...
+     */
+    private boolean useCollectionView = true;
 
     /**
      * @param defaultType specifies type of the object that will be selected by default. It can be changed.
@@ -247,17 +249,17 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
     /**
      * This is to avoid using the object collection in search defined in page as it's loaded automagically.
-     * E.g. on popup where we want to do complete different search - without {@link #useObjectCollectionInSearch}
+     * E.g. on popup where we want to do complete different search - without {@link #useCollectionView}
      * qual false, search builder will load collection from underlying page no matter what.
      *
-     * @param useObjectCollectionInSearch
+     * @param useCollectionView
      */
-    public void setUseObjectCollectionInSearch(boolean useObjectCollectionInSearch) {
-        this.useObjectCollectionInSearch = useObjectCollectionInSearch;
+    public void setUseCollectionView(boolean useCollectionView) {
+        this.useCollectionView = useCollectionView;
     }
 
     private Search createSearch() {
-        CompiledObjectCollectionView objectCollectionView = useObjectCollectionInSearch ? getObjectCollectionView() : null;
+        CompiledObjectCollectionView objectCollectionView = useCollectionView ? getObjectCollectionView() : null;
 
         SearchBuilder searchBuilder = new SearchBuilder(getType())
                 .collectionView(objectCollectionView)
@@ -1217,9 +1219,9 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     }
 
     protected boolean isCollectionViewPanel() {
-        return isCollectionViewPanelForCompiledView() || isCollectionViewPanelForWidget()
+        return useCollectionView && (isCollectionViewPanelForCompiledView() || isCollectionViewPanelForWidget()
                 || defaultCollectionExists() || getCompiledCollectionViewFromPanelConfiguration() != null
-                || getObjectCollectionView() != null;
+                || getObjectCollectionView() != null);
     }
 
     protected boolean defaultCollectionExists() {

@@ -493,6 +493,12 @@ public class NormalizationAwareResourceAttributeDefinition<T>
         return true;
     }
 
+    @Override
+    public @NotNull T convertStringValueToPolyString(@NotNull String stringValue) throws SchemaException {
+        return adoptRealValues(List.of(stringValue))
+                .get(0);
+    }
+
     public @NotNull List<T> adoptRealValues(@NotNull Collection<?> realValues) throws SchemaException {
         List<T> rv = new ArrayList<>(realValues.size());
         if (isSwitchedFromStringToPolyString()) {
