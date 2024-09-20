@@ -19,6 +19,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -124,7 +126,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
         Task task = getTestTask();
 
         ObjectDelta<?> delta = deltaFor(UserType.class)
-                .item(UserType.F_NAME).replace("admin")
+                .item(UserType.F_NAME).replace(new PolyString("admin"))
                 .asObjectDelta(USER_ADMINISTRATOR_OID);
 
         /// WHEN
@@ -149,7 +151,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
         ass1.setTargetRef(createObjectRef(ROLE_SUPERUSER_OID, ROLE));
 
         ObjectDelta<?> delta = deltaFor(UserType.class)
-                .item(UserType.F_NAME).replace("admin")
+                .item(UserType.F_NAME).replace(new PolyString("admin"))
                 .item(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS).replace(ActivationStatusType.ENABLED)
                 .item(UserType.F_ASSIGNMENT, 1, AssignmentType.F_TARGET_REF).replace(createObjectRef("123", ROLE).asReferenceValue())
                 .item(UserType.F_ASSIGNMENT, 1, AssignmentType.F_DESCRIPTION).add("suspicious")
@@ -201,7 +203,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
         act1.setAdministrativeStatus(ActivationStatusType.DISABLED);
 
         ObjectDelta<?> delta = deltaFor(UserType.class)
-                .item(UserType.F_NAME).replace("admin")
+                .item(UserType.F_NAME).replace(new PolyString("admin"))
                 .item(UserType.F_ACTIVATION).replace(act1)
                 .item(UserType.F_ASSIGNMENT).replace(ass1)
                 .asObjectDelta(USER_ADMINISTRATOR_OID);
@@ -228,7 +230,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
         ass2.setId(99999L);
 
         ObjectDelta<?> delta = deltaFor(UserType.class)
-                .item(UserType.F_NAME).replace("admin")
+                .item(UserType.F_NAME).replace(new PolyString("admin"))
                 .item(UserType.F_ASSIGNMENT).delete(ass1, ass2)
                 .asObjectDelta(USER_ADMINISTRATOR_OID);
 

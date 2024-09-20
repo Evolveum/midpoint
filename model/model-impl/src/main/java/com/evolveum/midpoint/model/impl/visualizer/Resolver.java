@@ -36,6 +36,7 @@ import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
 import java.util.List;
+import java.util.Objects;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchReadOnlyCollection;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
@@ -134,11 +135,11 @@ public class Resolver {
                 // If delta contains them, we need to preserve definitions from item delta.
                 boolean isLegacyDelta = DeltaConvertor.isLegacyDelta(itemDelta);
 
-                // If delta is legacy delta (type was removed), we want to keep "finctional" runtime definition, so nobody will try
+                // If delta is legacy delta (type was removed), we want to keep "functional" runtime definition, so nobody will try
                 // to convert it to any sensible value during visualisation, since we can not reason about it contents
                 if (objectDefinition != null && !managedByProvisioning && !isLegacyDelta) {
                     ItemDefinition<?> def = objectDefinition.findItemDefinition(itemDelta.getPath());
-                    if (def != null) {
+                    if (def != null && !Objects.equals(def, itemDelta.getDefinition())) {
                         itemDelta.applyDefinition(def);
                     }
                 }
