@@ -195,9 +195,9 @@ public class FactoryResetHelper {
         final List<ObjectTypes> head = Arrays.asList(SHADOW, USER, ROLE, ORG, SERVICE);
 
         final List<ObjectTypes> tail = Arrays.asList(
-                RESOURCE, CONNECTOR, MARK, OBJECT_TEMPLATE, OBJECT_COLLECTION, SECURITY_POLICY, PASSWORD_POLICY);
+                RESOURCE, CONNECTOR, MARK, OBJECT_TEMPLATE, OBJECT_COLLECTION, SECURITY_POLICY, PASSWORD_POLICY, ARCHETYPE);
 
-        return createSortedTypes(head, tail, Arrays.asList(NODE, ARCHETYPE, SYSTEM_CONFIGURATION));
+        return createSortedTypes(head, tail, Arrays.asList(NODE, SYSTEM_CONFIGURATION));
     }
 
     private List<ObjectTypes> createSortedTypes(List<ObjectTypes> head, List<ObjectTypes> tail, List<ObjectTypes> skip) {
