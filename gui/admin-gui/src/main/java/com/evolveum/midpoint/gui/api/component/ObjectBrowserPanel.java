@@ -255,7 +255,7 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
             }
         };
         listPanel.setOutputMarkupId(true);
-        listPanel.setUseObjectCollectionInSearch(useObjectCollectionSearch);
+        listPanel.setUseCollectionView(useObjectCollectionSearch);
 
         return listPanel;
     }
