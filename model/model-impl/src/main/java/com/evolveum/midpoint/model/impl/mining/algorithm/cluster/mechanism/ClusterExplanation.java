@@ -95,7 +95,8 @@ public class ClusterExplanation implements Serializable {
                     continue;
                 }
                 ItemPath itemPath = itemPathType.getItemPath();
-                if (ruleIdentifiers.contains(itemPath) && analysis.getDensity() == 100) {
+                boolean isRuleItemPath = containRuleItemPath(ruleIdentifiers, itemPath);
+                if (isRuleItemPath && analysis.getDensity() == 100) {
                     List<RoleAnalysisAttributeStatistics> attributeStatisticsList = analysis.getAttributeStatistics();
                     if (attributeStatisticsList.size() == 1) {
                         RoleAnalysisAttributeStatistics attributeStatistic = attributeStatisticsList.get(0);
@@ -114,7 +115,7 @@ public class ClusterExplanation implements Serializable {
                         } else {
                             if (value.isEmpty()) {
                                 candidateName = "unknown";
-                            }else {
+                            } else {
                                 candidateName = itemPath + "-" + value;
                             }
                         }
@@ -157,6 +158,15 @@ public class ClusterExplanation implements Serializable {
         }
 
         return candidateNames.size() == 1 ? candidateNames.iterator().next() : null;
+    }
+
+    private static boolean containRuleItemPath(@NotNull Set<ItemPath> ruleIdentifiers, ItemPath itemPath) {
+        for (ItemPath ruleIdentifier : ruleIdentifiers) {
+            if (ruleIdentifier.equivalent(itemPath)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static @NotNull Set<ItemPath> extractRuleIdentifiers(@NotNull List<ClusteringAttributeRuleType> matchingRule) {
