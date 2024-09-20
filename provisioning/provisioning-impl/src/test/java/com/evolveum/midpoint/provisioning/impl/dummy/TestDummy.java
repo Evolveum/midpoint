@@ -446,7 +446,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
             if (shadow.getName().getOrig().equals("meathook")) {
                 meathookAccountOid = object.getOid();
-                Long loot = shadow.getAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_LOOT_QNAME);
+                Long loot = shadow.getAttributeRealValue(DUMMY_ACCOUNT_ATTRIBUTE_LOOT_QNAME);
                 assertNotNull(loot);
                 assertEquals("Wrong meathook's loot", 666L, (long) loot);
             }
