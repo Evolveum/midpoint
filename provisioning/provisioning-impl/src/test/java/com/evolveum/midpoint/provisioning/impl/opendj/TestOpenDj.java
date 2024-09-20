@@ -1213,6 +1213,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
             display("Found object", shadow);
 
+            var aShadow = AbstractShadow.of(shadow);
+
             assertNotNull(shadow.getOid());
             assertNotNull(shadow.getName());
             assertEquals(OBJECT_CLASS_INETORGPERSON_QNAME, shadow.getObjectClass());
@@ -1222,12 +1224,19 @@ public class TestOpenDj extends AbstractOpenDjTest {
             String idSecondaryVal = getAttributeValue(shadow, getSecondaryIdentifierQName());
             assertNotNull("No secondary (" + getSecondaryIdentifierQName().getLocalPart() + ")", idSecondaryVal);
             assertEquals("Wrong shadow name", idSecondaryVal.toLowerCase(), shadow.getName().getOrig().toLowerCase());
-            assertNotNull("Missing LDAP uid", getAttributeValue(shadow, new QName(NS_RI, "uid")));
-            assertNotNull("Missing LDAP cn", getAttributeValue(shadow, new QName(NS_RI, "cn")));
-            assertNotNull("Missing LDAP sn", getAttributeValue(shadow, new QName(NS_RI, "sn")));
+            var uid = aShadow.getAttributeRealValue(QNAME_UID);
+            assertNotNull("Missing LDAP uid", uid);
+            assertNotNull("Missing LDAP cn", aShadow.getAttributeRealValue(QNAME_CN));
+            assertNotNull("Missing LDAP sn", aShadow.getAttributeRealValue(QNAME_SN));
             assertNotNull("Missing activation", shadow.getActivation());
             assertNotNull("Missing activation status", shadow.getActivation().getAdministrativeStatus());
             assertEquals("Not enabled", ActivationStatusType.ENABLED, shadow.getActivation().getAdministrativeStatus());
+
+            if ("jgibbs".equals(uid)) {
+                assertShadow(shadow, "jgibbs")
+                        .associations()
+                        .assertValuesCount(1);
+            }
             return true;
         };
 
@@ -1240,7 +1249,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertEquals("Unexpected number of shadows", 9, objects.size());
 
         // The extra shadow is a group shadow
-        assertShadows(11);
+        assertShadows(hasNativeReferences() ? 10 : 11);
 
         // Bad things may happen, so let's check if the shadow is still there and that is has the same OID
         provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
@@ -1279,7 +1288,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertEquals("Unexpected number of shadows", 3, objects.size());
 
         // The extra shadow is a group shadow
-        assertShadows(11);
+        assertShadows(hasNativeReferences() ? 10 : 11);
 
         // Bad things may happen, so let's check if the shadow is still there and that is has the same OID
         provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
@@ -1318,7 +1327,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertEquals("Unexpected number of shadows", 3, objects.size());
 
         // The extra shadow is a group shadow
-        assertShadows(11);
+        assertShadows(hasNativeReferences() ? 10 : 11);
 
         // Bad things may happen, so let's check if the shadow is still there and that is has the same OID
         provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
