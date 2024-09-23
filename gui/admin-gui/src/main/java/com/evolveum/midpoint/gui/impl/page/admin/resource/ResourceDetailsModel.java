@@ -14,7 +14,6 @@ import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ObjectClassWrapper;
-import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -115,10 +114,10 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
         return schema;
     }
 
-    public CompleteResourceSchema getRefinedSchema() throws SchemaException, ConfigurationException {
+    public BareResourceSchema getRefinedSchema() throws SchemaException, ConfigurationException {
         @NotNull ResourceType resource = getObjectWrapperModel().getObject().getObjectOld().asObjectable().clone();
         WebPrismUtil.cleanupEmptyContainers(resource.asPrismContainer());
-        return ResourceSchemaFactory.getCompleteSchema(resource);
+        return getPageBase().getModelService().fetchSchema(resource.asPrismContainer(), new OperationResult(OPERATION_FETCH_SCHEMA));
     }
 
     @Override
