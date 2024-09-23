@@ -63,6 +63,11 @@ public class CertCampaignSummaryPanel extends ObjectVerticalSummaryPanel<AccessC
                                 getModelObject(), null, getPageBase()));
                     }
                 });
+                list.add(new DetailsTableItem(createStringResource("PageCaseWorkItems.table.openTimestamp"),
+                        () -> {
+                            XMLGregorianCalendar data = getModelObject().getStartTimestamp();
+                            return WebComponentUtil.getLocalizedDate(data, WebComponentUtil.getShortDateTimeFormat(getPageBase()));
+                        }));
                 list.add(new DetailsTableItem(createStringResource("PageCertDefinition.numberOfStages"),
                         () -> "" + getModelObject().getStageDefinition().size()));
                 AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(getModelObject());

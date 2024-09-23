@@ -100,6 +100,11 @@ public class ReviewersStatisticsPanel extends BasePanel {
                 chartPanel.setOutputMarkupId(true);
                 return chartPanel;
             }
+
+            @Override
+            protected boolean isLabelClickable() {
+                return true;
+            }
         };
     }
 
