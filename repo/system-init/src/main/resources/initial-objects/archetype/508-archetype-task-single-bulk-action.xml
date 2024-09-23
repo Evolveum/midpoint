@@ -5,17 +5,22 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <archetype oid="00000000-0000-0000-0000-000000000508"
-           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-           xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
-    <name>Single action task</name>
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
+    <name>Single bulk action task</name>
     <archetypePolicy>
         <display>
-            <label>Single action task</label>
-            <pluralLabel>
-                <orig>Single action tasks</orig>
+            <label>
+                <orig>Single bulk action task</orig>
                 <translation>
-                    <key>SingleActionTasks.title</key>
+                    <key>SingleBulkActionTask.label</key>
+                </translation>
+            </label>
+            <pluralLabel>
+                <orig>Single bulk action tasks</orig>
+                <translation>
+                    <key>SingleBulkActionTasks.title</key>
                 </translation>
             </pluralLabel>
             <icon>
@@ -49,7 +54,7 @@
                     <container id="7">
                         <identifier>bulk-action</identifier>
                         <display>
-                            <label>SingleActionTask.action</label>
+                            <label>SingleBulkActionTask.bulkAction</label>
                         </display>
                         <item id="8">
                             <c:path>extension/scext:executeScript</c:path>
