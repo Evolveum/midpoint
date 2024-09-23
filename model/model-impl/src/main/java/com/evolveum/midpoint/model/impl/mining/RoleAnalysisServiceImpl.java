@@ -1054,8 +1054,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             candidateRolesIds.add(detectedPattern.getIdentifier());
         }
 
-//        resolveUserModeChunkPattern(basicChunk, miningRoleTypeChunks, detectedPatternsRoles, candidateRolesIds, miningUserTypeChunks, detectedPatternsUsers);
-        resolveRoleModeChunkPattern(basicChunk, miningRoleTypeChunks, detectedPatternsRoles, candidateRolesIds, miningUserTypeChunks, detectedPatternsUsers);
+        resolveTablePatternChunk(processMode, basicChunk, miningRoleTypeChunks, detectedPatternsRoles, candidateRolesIds, miningUserTypeChunks, detectedPatternsUsers);
+
         int size = detectedPatternsUsers.size();
 
         IntStream.range(0, size).forEach(i -> {
@@ -2215,7 +2215,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull QName complexType) {
 
         //TODO remove later. It temporary disable role attribute analysis
-        if(complexType == RoleType.COMPLEX_TYPE) {
+        if (complexType == RoleType.COMPLEX_TYPE) {
             return null;
         }
 
@@ -2276,8 +2276,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 //        }
 
 //        Map<String, RoleAnalysisAttributeDef> attributeMap = createAttributeMap();
-
-
 
 //        for (AnalysisAttributeRuleType rule : analysisAttributeRule) {
 //            if (!rule.getPropertyType().equals(complexType)) {

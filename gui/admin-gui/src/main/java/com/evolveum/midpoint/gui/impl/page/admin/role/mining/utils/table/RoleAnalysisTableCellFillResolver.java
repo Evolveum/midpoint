@@ -83,6 +83,7 @@ public class RoleAnalysisTableCellFillResolver {
 
         T rowModelObject = rowModel.getObject();
         FrequencyItem frequencyItem = rowModelObject.getFrequencyItem();
+        //TODO i think there is a bug (100 fq) check it
         double frequency = frequencyItem.getFrequency();
         boolean isInclude = rowModelObject.getStatus().isInclude();
 
@@ -293,86 +294,6 @@ public class RoleAnalysisTableCellFillResolver {
         return false;
     }
 
-    /**
-     * Initialize detection patterns for user-based analysis table.
-     *
-     * @param users The list of user models.
-     * @param roles The list of role models.
-     * @param detectedPatterns The detected pattern.
-     * @param minFrequency The minimum frequency threshold.
-     * @param maxFrequency The maximum frequency threshold.
-     */
-    //TODO remove
-    public static void initUserBasedDetectionPattern(
-            @NotNull PageBase pageBase,
-            @NotNull List<MiningUserTypeChunk> users,
-            @NotNull List<MiningRoleTypeChunk> roles,
-            @NotNull List<DetectedPattern> detectedPatterns,
-            double minFrequency,
-            double maxFrequency,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
-
-        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
-
-        List<List<String>> detectedPatternsRoles = new ArrayList<>();
-        List<List<String>> detectedPatternsUsers = new ArrayList<>();
-        List<String> candidateRolesIds = new ArrayList<>();
-        detectedPatterns.forEach(detectedPattern -> {
-            detectedPatternsRoles.add(new ArrayList<>(detectedPattern.getRoles()));
-            detectedPatternsUsers.add(new ArrayList<>(detectedPattern.getUsers()));
-            candidateRolesIds.add(detectedPattern.getIdentifier());
-        });
-
-        for (MiningRoleTypeChunk role : roles) {
-            FrequencyItem frequencyItem = role.getFrequencyItem();
-            double frequency = frequencyItem.getFrequency();
-
-            IntStream.range(0, detectedPatternsRoles.size()).forEach(i -> {
-                List<String> detectedPatternsRole = detectedPatternsRoles.get(i);
-                List<String> chunkRoles = role.getRoles();
-                if (new HashSet<>(detectedPatternsRole).containsAll(chunkRoles)) {
-                    RoleAnalysisObjectStatus objectStatus = role.getObjectStatus();
-                    objectStatus.setRoleAnalysisOperationMode(RoleAnalysisOperationMode.INCLUDE);
-                    objectStatus.addContainerId(candidateRolesIds.get(i));
-                    detectedPatternsRole.removeAll(chunkRoles);
-                } else if (minFrequency > frequency && frequency < maxFrequency && !role.getStatus().isInclude()) {
-                    role.setStatus(RoleAnalysisOperationMode.DISABLE);
-                } else if (!role.getStatus().isInclude()) {
-                    role.setStatus(RoleAnalysisOperationMode.EXCLUDE);
-                }
-            });
-        }
-
-        for (MiningUserTypeChunk user : users) {
-            IntStream.range(0, detectedPatternsUsers.size()).forEach(i -> {
-                List<String> detectedPatternsUser = detectedPatternsUsers.get(i);
-                List<String> chunkUsers = user.getUsers();
-                if (new HashSet<>(detectedPatternsUser).containsAll(chunkUsers)) {
-                    RoleAnalysisObjectStatus objectStatus = user.getObjectStatus();
-                    objectStatus.setRoleAnalysisOperationMode(RoleAnalysisOperationMode.INCLUDE);
-                    objectStatus.addContainerId(candidateRolesIds.get(i));
-                    detectedPatternsUser.removeAll(chunkUsers);
-                } else if (!user.getStatus().isInclude()) {
-                    user.setStatus(RoleAnalysisOperationMode.EXCLUDE);
-                }
-            });
-        }
-
-        int size = detectedPatternsUsers.size();
-
-        IntStream.range(0, size).forEach(i -> {
-            List<String> detectedPatternRoles = detectedPatternsRoles.get(i);
-            List<String> detectedPatternUsers = detectedPatternsUsers.get(i);
-            String candidateRoleId = candidateRolesIds.get(i);
-            addAdditionalObject(
-                    roleAnalysisService, candidateRoleId, detectedPatternUsers, detectedPatternRoles, users,
-                    roles,
-                    task,
-                    result, pageBase);
-        });
-    }
-
     public static void refreshCells(
             @NotNull RoleAnalysisProcessModeType processMode,
             @NotNull List<MiningUserTypeChunk> users,
@@ -382,10 +303,6 @@ public class RoleAnalysisTableCellFillResolver {
 
         if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
 
-            for (MiningUserTypeChunk user : users) {
-                user.setStatus(RoleAnalysisOperationMode.EXCLUDE);
-            }
-
             for (MiningRoleTypeChunk role : roles) {
                 FrequencyItem frequencyItem = role.getFrequencyItem();
                 double frequency = frequencyItem.getFrequency();
@@ -394,6 +311,10 @@ public class RoleAnalysisTableCellFillResolver {
                 } else {
                     role.setStatus(RoleAnalysisOperationMode.EXCLUDE);
                 }
+            }
+
+            for (MiningUserTypeChunk user : users) {
+                user.setStatus(RoleAnalysisOperationMode.EXCLUDE);
             }
         } else {
             for (MiningUserTypeChunk user : users) {
@@ -408,159 +329,6 @@ public class RoleAnalysisTableCellFillResolver {
 
             for (MiningRoleTypeChunk role : roles) {
                 role.setStatus(RoleAnalysisOperationMode.EXCLUDE);
-            }
-        }
-    }
-
-    /**
-     * Initialize detection patterns for role-based analysis table.
-     *
-     * @param users The list of user models.
-     * @param roles The list of role models.
-     * @param detectedPatterns The detected pattern.
-     * @param minFrequency The minimum frequency threshold.
-     * @param maxFrequency The maximum frequency threshold.
-     */
-
-    //TODO remove
-    public static void initRoleBasedDetectionPattern(
-            @NotNull PageBase pageBase,
-            @NotNull List<MiningUserTypeChunk> users,
-            @NotNull List<MiningRoleTypeChunk> roles,
-            @NotNull List<DetectedPattern> detectedPatterns,
-            double minFrequency,
-            double maxFrequency,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
-
-        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
-
-        List<List<String>> detectedPatternsRoles = new ArrayList<>();
-        List<List<String>> detectedPatternsUsers = new ArrayList<>();
-        List<String> candidateRolesIds = new ArrayList<>();
-        detectedPatterns.forEach(detectedPattern -> {
-            detectedPatternsRoles.add(new ArrayList<>(detectedPattern.getRoles()));
-            detectedPatternsUsers.add(new ArrayList<>(detectedPattern.getUsers()));
-            candidateRolesIds.add(detectedPattern.getIdentifier());
-        });
-
-        for (MiningUserTypeChunk user : users) {
-            FrequencyItem frequencyItem = user.getFrequencyItem();
-            double frequency = frequencyItem.getFrequency();
-
-            IntStream.range(0, detectedPatternsUsers.size()).forEach(i -> {
-                List<String> detectedPatternsUser = detectedPatternsUsers.get(i);
-                List<String> chunkUsers = user.getUsers();
-                if (new HashSet<>(detectedPatternsUser).containsAll(chunkUsers)) {
-                    RoleAnalysisObjectStatus objectStatus = user.getObjectStatus();
-                    objectStatus.setRoleAnalysisOperationMode(RoleAnalysisOperationMode.INCLUDE);
-                    objectStatus.addContainerId(candidateRolesIds.get(i));
-                    detectedPatternsUser.removeAll(chunkUsers);
-                } else if (minFrequency > frequency && frequency < maxFrequency && !user.getStatus().isInclude()) {
-                    user.setStatus(RoleAnalysisOperationMode.DISABLE);
-                } else if (!user.getStatus().isInclude()) {
-                    user.setStatus(RoleAnalysisOperationMode.EXCLUDE);
-                }
-            });
-        }
-
-        for (MiningRoleTypeChunk role : roles) {
-            IntStream.range(0, detectedPatternsRoles.size()).forEach(i -> {
-                List<String> detectedPatternsRole = detectedPatternsRoles.get(i);
-                List<String> chunkRoles = role.getRoles();
-                if (new HashSet<>(detectedPatternsRole).containsAll(chunkRoles)) {
-                    RoleAnalysisObjectStatus objectStatus = role.getObjectStatus();
-                    objectStatus.setRoleAnalysisOperationMode(RoleAnalysisOperationMode.INCLUDE);
-                    objectStatus.addContainerId(candidateRolesIds.get(i));
-                    detectedPatternsRole.removeAll(chunkRoles);
-                } else if (!role.getStatus().isInclude()) {
-                    role.setStatus(RoleAnalysisOperationMode.EXCLUDE);
-                }
-            });
-        }
-
-        int size = detectedPatternsUsers.size();
-
-        IntStream.range(0, size).forEach(i -> {
-            List<String> detectedPatternRoles = detectedPatternsRoles.get(i);
-            List<String> detectedPatternUsers = detectedPatternsUsers.get(i);
-            String candidateRoleId = candidateRolesIds.get(i);
-            addAdditionalObject(
-                    roleAnalysisService, candidateRoleId, detectedPatternUsers, detectedPatternRoles, users,
-                    roles,
-                    task,
-                    result, pageBase);
-        });
-    }
-
-    private static void addAdditionalObject(
-            @NotNull RoleAnalysisService roleAnalysisService,
-            String candidateRoleId,
-            @NotNull List<String> detectedPatternUsers,
-            @NotNull List<String> detectedPatternRoles,
-            @NotNull List<MiningUserTypeChunk> users,
-            @NotNull List<MiningRoleTypeChunk> roles,
-            @NotNull Task task,
-            @NotNull OperationResult result,
-            @NotNull PageBase pageBase) {
-
-        RoleAnalysisObjectStatus roleAnalysisObjectStatus = new RoleAnalysisObjectStatus(RoleAnalysisOperationMode.INCLUDE);
-        roleAnalysisObjectStatus.setContainerId(Collections.singleton(candidateRoleId));
-
-        if (!detectedPatternRoles.isEmpty()) {
-            Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
-            ListMultimap<String, String> mappedMembers = roleAnalysisService.extractUserTypeMembers(
-                    userExistCache, null, new HashSet<>(detectedPatternRoles), task, result);
-
-            for (String detectedPatternRole : detectedPatternRoles) {
-                List<String> properties = new ArrayList<>(mappedMembers.get(detectedPatternRole));
-                PrismObject<RoleType> roleTypeObject = roleAnalysisService.getRoleTypeObject(detectedPatternRole, task, result);
-                String chunkName = "Unknown";
-                String iconColor = null;
-                if (roleTypeObject != null) {
-                    chunkName = roleTypeObject.getName().toString();
-                    iconColor = roleAnalysisService.resolveFocusObjectIconColor(roleTypeObject.asObjectable(), task, result);
-                }
-
-                MiningRoleTypeChunk miningRoleTypeChunk = new MiningRoleTypeChunk(
-                        Collections.singletonList(detectedPatternRole),
-                        properties,
-                        chunkName,
-                        new FrequencyItem(100.0),
-                        roleAnalysisObjectStatus);
-                if (iconColor != null) {
-                    miningRoleTypeChunk.setIconColor(iconColor);
-                }
-                roles.add(miningRoleTypeChunk);
-            }
-
-        }
-
-        if (!detectedPatternUsers.isEmpty()) {
-            for (String detectedPatternUser : detectedPatternUsers) {
-                PrismObject<UserType> userTypeObject = WebModelServiceUtils.loadObject(UserType.class, detectedPatternUser, pageBase, task, result);
-//                        roleAnalysisService.getUserTypeObject(detectedPatternUser, task, result);
-                List<String> properties = new ArrayList<>();
-                String chunkName = "Unknown";
-                String iconColor = null;
-                if (userTypeObject != null) {
-                    chunkName = userTypeObject.getName().toString();
-                    properties = getRolesOidAssignment(userTypeObject.asObjectable());
-                    iconColor = roleAnalysisService.resolveFocusObjectIconColor(userTypeObject.asObjectable(), task, result);
-                }
-
-                MiningUserTypeChunk miningUserTypeChunk = new MiningUserTypeChunk(
-                        Collections.singletonList(detectedPatternUser),
-                        properties,
-                        chunkName,
-                        new FrequencyItem(100.0),
-                        roleAnalysisObjectStatus);
-
-                if (iconColor != null) {
-                    miningUserTypeChunk.setIconColor(iconColor);
-                }
-
-                users.add(miningUserTypeChunk);
             }
         }
     }

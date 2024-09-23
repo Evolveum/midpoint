@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.model.impl.mining;
 
+import com.evolveum.midpoint.common.mining.objects.chunk.MiningBaseTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
@@ -71,13 +72,41 @@ public class RoleAnalysisServiceUtils {
         return recomputeSessionStatistic;
     }
 
-    protected static void resolveUserModeChunkPattern(
+    //TODO check it and think about better impl solution
+    protected static void resolveTablePatternChunk(
+            RoleAnalysisProcessModeType processMode,
             MiningOperationChunk basicChunk,
             @NotNull List<MiningRoleTypeChunk> miningRoleTypeChunks,
             List<List<String>> detectedPatternsRoles,
             List<String> candidateRolesIds,
             List<MiningUserTypeChunk> miningUserTypeChunks,
             List<List<String>> detectedPatternsUsers) {
+
+        if (processMode == RoleAnalysisProcessModeType.ROLE) {
+            resolveRoleModeChunkPattern(basicChunk,
+                    miningRoleTypeChunks,
+                    detectedPatternsRoles,
+                    candidateRolesIds,
+                    miningUserTypeChunks,
+                    detectedPatternsUsers);
+        } else {
+            resolveUserModeChunkPattern(basicChunk,
+                    miningRoleTypeChunks,
+                    detectedPatternsRoles,
+                    candidateRolesIds,
+                    miningUserTypeChunks,
+                    detectedPatternsUsers);
+        }
+    }
+
+    private static void resolveUserModeChunkPattern(
+            MiningOperationChunk basicChunk,
+            @NotNull List<MiningRoleTypeChunk> miningRoleTypeChunks,
+            List<List<String>> detectedPatternsRoles,
+            List<String> candidateRolesIds,
+            List<MiningUserTypeChunk> miningUserTypeChunks,
+            List<List<String>> detectedPatternsUsers) {
+
         for (MiningRoleTypeChunk role : miningRoleTypeChunks) {
             FrequencyItem frequencyItem = role.getFrequencyItem();
             double frequency = frequencyItem.getFrequency();
@@ -85,17 +114,7 @@ public class RoleAnalysisServiceUtils {
             for (int i = 0; i < detectedPatternsRoles.size(); i++) {
                 List<String> detectedPatternsRole = detectedPatternsRoles.get(i);
                 List<String> chunkRoles = role.getRoles();
-                if (new HashSet<>(detectedPatternsRole).containsAll(chunkRoles)) {
-                    RoleAnalysisObjectStatus objectStatus = role.getObjectStatus();
-                    objectStatus.setRoleAnalysisOperationMode(RoleAnalysisOperationMode.INCLUDE);
-                    objectStatus.addContainerId(candidateRolesIds.get(i));
-                    detectedPatternsRole.removeAll(chunkRoles);
-                } else if (basicChunk.getMinFrequency() > frequency && frequency < basicChunk.getMaxFrequency()
-                        && !role.getStatus().isInclude()) {
-                    role.setStatus(RoleAnalysisOperationMode.DISABLE);
-                } else if (!role.getStatus().isInclude()) {
-                    role.setStatus(RoleAnalysisOperationMode.EXCLUDE);
-                }
+                resolvePatternChunk(basicChunk, candidateRolesIds, role, detectedPatternsRole, chunkRoles, i, frequency);
             }
         }
 
@@ -103,19 +122,12 @@ public class RoleAnalysisServiceUtils {
             for (int i = 0; i < detectedPatternsUsers.size(); i++) {
                 List<String> detectedPatternsUser = detectedPatternsUsers.get(i);
                 List<String> chunkUsers = user.getUsers();
-                if (new HashSet<>(detectedPatternsUser).containsAll(chunkUsers)) {
-                    RoleAnalysisObjectStatus objectStatus = user.getObjectStatus();
-                    objectStatus.setRoleAnalysisOperationMode(RoleAnalysisOperationMode.INCLUDE);
-                    objectStatus.addContainerId(candidateRolesIds.get(i));
-                    detectedPatternsUser.removeAll(chunkUsers);
-                } else if (!user.getStatus().isInclude()) {
-                    user.setStatus(RoleAnalysisOperationMode.EXCLUDE);
-                }
+                resolveMemberPatternChunk(candidateRolesIds, user, detectedPatternsUser, chunkUsers, i);
             }
         }
     }
 
-    protected static void resolveRoleModeChunkPattern(
+    private static void resolveRoleModeChunkPattern(
             MiningOperationChunk basicChunk,
             @NotNull List<MiningRoleTypeChunk> miningRoleTypeChunks,
             List<List<String>> detectedPatternsRoles,
@@ -129,17 +141,7 @@ public class RoleAnalysisServiceUtils {
             for (int i = 0; i < detectedPatternsUsers.size(); i++) {
                 List<String> detectedPatternsUser = detectedPatternsUsers.get(i);
                 List<String> chunkUsers = user.getUsers();
-                if (new HashSet<>(detectedPatternsUser).containsAll(chunkUsers)) {
-                    RoleAnalysisObjectStatus objectStatus = user.getObjectStatus();
-                    objectStatus.setRoleAnalysisOperationMode(RoleAnalysisOperationMode.INCLUDE);
-                    objectStatus.addContainerId(candidateRolesIds.get(i));
-                    detectedPatternsUser.removeAll(chunkUsers);
-                } else if (basicChunk.getMinFrequency() > frequency && frequency < basicChunk.getMaxFrequency()
-                        && !user.getStatus().isInclude()) {
-                    user.setStatus(RoleAnalysisOperationMode.DISABLE);
-                } else if (!user.getStatus().isInclude()) {
-                    user.setStatus(RoleAnalysisOperationMode.EXCLUDE);
-                }
+                resolvePatternChunk(basicChunk, candidateRolesIds, user, detectedPatternsUser, chunkUsers, i, frequency);
             }
         }
 
@@ -147,15 +149,44 @@ public class RoleAnalysisServiceUtils {
             for (int i = 0; i < detectedPatternsRoles.size(); i++) {
                 List<String> detectedPatternsRole = detectedPatternsRoles.get(i);
                 List<String> chunkRoles = role.getRoles();
-                if (new HashSet<>(detectedPatternsRole).containsAll(chunkRoles)) {
-                    RoleAnalysisObjectStatus objectStatus = role.getObjectStatus();
-                    objectStatus.setRoleAnalysisOperationMode(RoleAnalysisOperationMode.INCLUDE);
-                    objectStatus.addContainerId(candidateRolesIds.get(i));
-                    detectedPatternsRole.removeAll(chunkRoles);
-                } else if (!role.getStatus().isInclude()) {
-                    role.setStatus(RoleAnalysisOperationMode.EXCLUDE);
-                }
+                resolveMemberPatternChunk(candidateRolesIds, role, detectedPatternsRole, chunkRoles, i);
             }
+        }
+    }
+
+    private static void resolveMemberPatternChunk(
+            List<String> candidateRolesIds,
+            MiningBaseTypeChunk memberChunk,
+            List<String> detectedPatternsMembers,
+            List<String> chunkMembers,
+            int i) {
+        if (new HashSet<>(detectedPatternsMembers).containsAll(chunkMembers)) {
+            RoleAnalysisObjectStatus objectStatus = memberChunk.getObjectStatus();
+            objectStatus.setRoleAnalysisOperationMode(RoleAnalysisOperationMode.INCLUDE);
+            objectStatus.addContainerId(candidateRolesIds.get(i));
+            detectedPatternsMembers.removeAll(chunkMembers);
+        } else if (!memberChunk.getStatus().isInclude()) {
+            memberChunk.setStatus(RoleAnalysisOperationMode.EXCLUDE);
+        }
+    }
+
+    private static void resolvePatternChunk(MiningOperationChunk basicChunk,
+            List<String> candidateRolesIds,
+            MiningBaseTypeChunk chunk,
+            List<String> detectedPatternsMembers,
+            List<String> chunkMembers,
+            int i,
+            double frequency) {
+        if (new HashSet<>(detectedPatternsMembers).containsAll(chunkMembers)) {
+            RoleAnalysisObjectStatus objectStatus = chunk.getObjectStatus();
+            objectStatus.setRoleAnalysisOperationMode(RoleAnalysisOperationMode.INCLUDE);
+            objectStatus.addContainerId(candidateRolesIds.get(i));
+            detectedPatternsMembers.removeAll(chunkMembers);
+        } else if (basicChunk.getMinFrequency() > frequency && frequency < basicChunk.getMaxFrequency()
+                && !chunk.getStatus().isInclude()) {
+            chunk.setStatus(RoleAnalysisOperationMode.DISABLE);
+        } else if (!chunk.getStatus().isInclude()) {
+            chunk.setStatus(RoleAnalysisOperationMode.EXCLUDE);
         }
     }
 
