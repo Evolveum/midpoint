@@ -17,8 +17,18 @@
     </assignment>
     <archetypePolicy>
         <display>
-            <label>Event Mark</label>
-            <pluralLabel>Event Marks</pluralLabel>
+            <label>
+                <orig>Event mark</orig>
+                <translation>
+                    <key>EventMark.label</key>
+                </translation>
+            </label>
+            <pluralLabel>
+                <orig>Event marks</orig>
+                <translation>
+                    <key>EventMarks.pluralLabel</key>
+                </translation>
+            </pluralLabel>
             <icon>
                 <cssClass>fa fa-tag</cssClass>
                 <color>green</color>

@@ -12,7 +12,12 @@
     <archetypeType>auxiliary</archetypeType>
     <archetypePolicy>
         <display>
-            <label>Refresh shadows task</label>
+            <label>
+                <orig>Refresh shadows task</orig>
+                <translation>
+                    <key>RefreshShadowsTask.label</key>
+                </translation>
+            </label>
             <pluralLabel>
                 <orig>Refresh shadows tasks</orig>
                 <translation>

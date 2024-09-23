@@ -5,12 +5,17 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <archetype oid="00000000-0000-0000-0000-000000000520"
-           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Certification-related task</name>
     <archetypePolicy>
         <display>
-            <label>Certification-related task</label>
+            <label>
+                <orig>Certification-related task</orig>
+                <translation>
+                    <key>CertificationRelatedTask.label</key>
+                </translation>
+            </label>
             <pluralLabel>
                 <orig>Certification-related tasks</orig>
                 <translation>
@@ -22,7 +27,20 @@
                 <color>green</color>
             </icon>
         </display>
-        <!-- no configuration, specific configuration in children -->
+        <!-- no configuration yet -->
+        <adminGuiConfiguration>
+            <objectDetails>
+                <type>TaskType</type>
+                <panel id="1">
+                    <identifier>activity</identifier>
+                    <visibility>hidden</visibility>
+                </panel>
+                <panel id="2">
+                    <identifier>taskBasic</identifier>
+                    <default>true</default>
+                </panel>
+            </objectDetails>
+        </adminGuiConfiguration>
     </archetypePolicy>
     <assignment id="3">
         <identifier>holderType</identifier>

@@ -121,22 +121,27 @@
                 <name>roleColumn</name>
                 <path>assignment</path>
                 <display>
-                    <label>Role</label>
+                    <label>
+                        <orig>Role</orig>
+                        <translation>
+                            <key>reportUserList.roleColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <export>
                     <expression>
                         <script>
                             <code>
                                 if (input != null){
-                                    roles = report.resolveRoles(input);
-                                    if (roles.isEmpty()) {
-                                        return null;
-                                    }
-                                    list = new ArrayList();
-                                    for (role in roles) {
-                                        list.add(role.getName());
-                                    }
-                                    return list;
+                                roles = report.resolveRoles(input);
+                                if (roles.isEmpty()) {
+                                return null;
+                                }
+                                list = new ArrayList();
+                                for (role in roles) {
+                                list.add(role.getName());
+                                }
+                                return list;
                                 }
                             </code>
                         </script>
@@ -148,22 +153,27 @@
                 <name>orgColumn</name>
                 <path>assignment</path>
                 <display>
-                    <label>Organization</label>
+                    <label>
+                        <orig>Organization</orig>
+                        <translation>
+                            <key>reportUserList.orgColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <export>
                     <expression>
                         <script>
                             <code>
                                 if (input != null){
-                                    orgs = report.resolveOrgs(input);
-                                    if (orgs.isEmpty()) {
-                                        return null;
-                                    }
-                                    list = new ArrayList();
-                                    for (org in orgs) {
-                                        list.add(org.getName());
-                                    }
-                                    return list;
+                                orgs = report.resolveOrgs(input);
+                                if (orgs.isEmpty()) {
+                                return null;
+                                }
+                                list = new ArrayList();
+                                for (org in orgs) {
+                                list.add(org.getName());
+                                }
+                                return list;
                                 }
                             </code>
                         </script>
@@ -175,7 +185,12 @@
                 <name>accountColumn</name>
                 <path>linkRef</path>
                 <display>
-                    <label>Account</label>
+                    <label>
+                        <orig>Account</orig>
+                        <translation>
+                            <key>reportUserList.accountColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <export>
                     <expression>
@@ -186,13 +201,13 @@
                                 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
                                 if (input != null){
-                                    list = new ArrayList();
-                                    for (linkRef in input){
-                                        shadow = midpoint.getObject(ShadowType.class, linkRef.getOid(),
-                                        SelectorOptions.createCollection(GetOperationOptions.createNoFetch().resolveNames(true)));
-                                        list.add(shadow.getName().getOrig() + "(Resource: " + shadow.getResourceRef().getTargetName()?.getOrig() + ")");
-                                    }
-                                    return list;
+                                list = new ArrayList();
+                                for (linkRef in input){
+                                shadow = midpoint.getObject(ShadowType.class, linkRef.getOid(),
+                                SelectorOptions.createCollection(GetOperationOptions.createNoFetch().resolveNames(true)));
+                                list.add(shadow.getName().getOrig() + "(Resource: " + shadow.getResourceRef().getTargetName()?.getOrig() + ")");
+                                }
+                                return list;
                                 }
                             </code>
                         </script>

@@ -18,7 +18,12 @@
     </description>
     <archetypePolicy>
         <display>
-            <label>Application</label>
+            <label>
+                <orig>Application</orig>
+                <translation>
+                    <key>Application.label</key>
+                </translation>
+            </label>
             <pluralLabel>
                 <orig>Applications</orig>
                 <translation>
@@ -36,7 +41,12 @@
                     <identifier>projections</identifier>
                     <panelType>projections</panelType>
                     <display>
-                        <label>Application.panel.projections</label>
+                        <label>
+                            <orig>Inventory records</orig>
+                            <translation>
+                                <key>Application.panel.projections</key>
+                            </translation>
+                        </label>
                     </display>
                 </panel>
                 <panel id="4">
@@ -73,7 +83,12 @@
                 <panel id="9">
                     <identifier>governance</identifier>
                     <display>
-                        <label>GovernanceCardsPanel.label</label>
+                        <label>
+                            <orig>Governance</orig>
+                            <translation>
+                                <key>GovernanceCardsPanel.label</key>
+                            </translation>
+                        </label>
                         <icon>
                             <cssClass>fa fa-users</cssClass>
                         </icon>
@@ -84,7 +99,12 @@
                 <panel id="15">
                     <identifier>classifications</identifier>
                     <display>
-                        <label>Classifications</label>
+                        <label>
+                            <orig>Classifications</orig>
+                            <translation>
+                                <key>classifications.panel.label</key>
+                            </translation>
+                        </label>
                         <tooltip>Information classifications (labels)</tooltip>
                         <icon>
                             <cssClass>fa fa-tags</cssClass>
@@ -100,8 +120,8 @@
                             <filter>
                                 <q:text>targetRef/@/archetypeRef matches ( oid = "00000000-0000-0000-0000-000000000330" )</q:text>
                             </filter>
-<!--                            <collectionRef oid="00000000-0000-0000-0000-000000000330" type="c:ArchetypeType">
-                            </collectionRef> -->
+                            <!--                            <collectionRef oid="00000000-0000-0000-0000-000000000330" type="c:ArchetypeType">
+                                                        </collectionRef> -->
                         </collection>
                     </listView>
                 </panel>
@@ -113,7 +133,12 @@
                     <identifier>resourceEntitlementsTopLevel</identifier>
                     <panelType>constructionInducements</panelType>
                     <display>
-                        <label>Application.panel.constructionInducements</label>
+                        <label>
+                            <orig>Construction inducements</orig>
+                            <translation>
+                                <key>Application.panel.constructionInducements</key>
+                            </translation>
+                        </label>
                     </display>
                     <displayOrder>115</displayOrder>
                 </panel>
@@ -121,7 +146,12 @@
                     <identifier>applicationRoles</identifier>
                     <panelType>inducedBy</panelType>
                     <display>
-                        <label>Application.panel.inducedBy</label>
+                        <label>
+                            <orig>Application roles</orig>
+                            <translation>
+                                <key>Application.panel.inducedBy</key>
+                            </translation>
+                        </label>
                     </display>
                     <listView>
                         <identifier>applicationRoles</identifier>
