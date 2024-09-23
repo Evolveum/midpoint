@@ -6,16 +6,20 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_GROUP_OBJECT_CLASS;
+
+import static com.evolveum.midpoint.test.util.MidPointTestConstants.*;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
-import static com.evolveum.midpoint.test.util.MidPointTestConstants.RI_GROUP;
-import static com.evolveum.midpoint.test.util.MidPointTestConstants.RI_PRIV;
 
 import java.io.File;
 
-import com.evolveum.midpoint.schema.internals.InternalsConfig;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -32,7 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
- * Tests various scenarios involving multiple object types (intents).
+ * Tests various scenarios involving multiple object types (intents) as well as multiple association types.
  *
  * See also `TestIntent` in `model-intest` module.
  */
@@ -41,6 +45,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 public class TestDummyIntents extends AbstractDummyTest {
 
     public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "dummy-intents");
+
+    private static final ItemName RI_ORG = ItemName.from(SchemaConstants.NS_RI, "org");
+    private static final ItemName RI_INTERNAL_GROUP = ItemName.from(SchemaConstants.NS_RI, "internalGroup");
+    private static final ItemName RI_EXTERNAL_GROUP = ItemName.from(SchemaConstants.NS_RI, "externalGroup");
 
     private static final DummyTestResource RESOURCE_DUMMY_NO_DEFAULT_ACCOUNT = new DummyTestResource(
             TEST_DIR, "resource-no-default-account.xml", "ae8a1129-1e81-4097-a1cf-6dacfc03e5ff",
@@ -51,6 +59,13 @@ public class TestDummyIntents extends AbstractDummyTest {
     private static final DummyTestResource RESOURCE_DUMMY_WITH_DEFAULT_ACCOUNT = new DummyTestResource(
             TEST_DIR, "resource-with-default-account.xml", "744fadc5-d868-485c-b452-0d1727c5c1eb",
             "with-default-account");
+    private static final DummyTestResource RESOURCE_DUMMY_ASSOCIATIONS = new DummyTestResource(
+            TEST_DIR, "resource-associations.xml", "a19a5fc7-b78d-497c-b5d9-0d388f140f22",
+            "associations", c -> {
+        c.populateWithDefaultSchema();
+        c.addAttrDef(c.getDummyResource().getAccountObjectClass(),
+                "organizations", String.class, false, false);
+    });
 
     private static final String INTENT_MAIN = "main";
 
@@ -61,6 +76,8 @@ public class TestDummyIntents extends AbstractDummyTest {
         initResource(RESOURCE_DUMMY_NO_DEFAULT_ACCOUNT, initTask, initResult);
         initResource(RESOURCE_DUMMY_NO_DEFAULT_ACCOUNT_FIXED, initTask, initResult);
         initResource(RESOURCE_DUMMY_WITH_DEFAULT_ACCOUNT, initTask, initResult);
+
+        RESOURCE_DUMMY_ASSOCIATIONS.initAndTest(this, initTask, initResult);
     }
 
     private void initResource(DummyTestResource resource, Task initTask, OperationResult initResult) throws Exception {
@@ -168,5 +185,72 @@ public class TestDummyIntents extends AbstractDummyTest {
         for (var shadow : shadows) {
             repositoryService.deleteObject(ShadowType.class, shadow.getOid(), result);
         }
+    }
+
+    /** Tests `createTargetObjectsFilter` methods; MID-10023. */
+    @Test
+    public void test200TargetObjectFilters() throws Exception {
+        var schema = Resource.of(RESOURCE_DUMMY_ASSOCIATIONS.get()).getCompleteSchemaRequired();
+        var accountDef = schema.getObjectTypeDefinitionRequired(ResourceObjectTypeIdentification.ACCOUNT_DEFAULT);
+        var groupDef = schema.findObjectClassDefinitionRequired(RI_GROUP_OBJECT_CLASS);
+        var privDef = schema.findObjectClassDefinitionRequired(RI_CUSTOM_PRIVILEGE_OBJECT_CLASS);
+        var orgDef = schema.findObjectClassDefinitionRequired(RI_CUSTOM_ORG_OBJECT_CLASS);
+
+        var prefix = "resourceRef matches (oid = '" + RESOURCE_DUMMY_ASSOCIATIONS.oid + "' and targetType = ResourceType)";
+
+        // Filters for reference attributes refer only to the resource object and the object class.
+
+        assertShadowFilter(
+                "'group' ref attr target filter",
+                accountDef
+                        .findReferenceAttributeDefinitionRequired(RI_GROUP)
+                        .createTargetObjectsFilter(),
+                groupDef,
+                prefix + " and objectClass = 'ri:GroupObjectClass'");
+
+        assertShadowFilter(
+                "'priv' ref attr target filter",
+                accountDef
+                        .findReferenceAttributeDefinitionRequired(RI_PRIV)
+                        .createTargetObjectsFilter(),
+                privDef,
+                prefix + " and objectClass = 'ri:CustomprivilegeObjectClass'");
+
+        assertShadowFilter(
+                "'org' ref attr target filter",
+                accountDef
+                        .findReferenceAttributeDefinitionRequired(RI_ORG)
+                        .createTargetObjectsFilter(),
+                orgDef,
+                prefix + " and objectClass = 'ri:CustomorgObjectClass'");
+
+        // Filters for associations may refer to kinds and intents as well.
+
+        assertShadowFilter(
+                "'internalGroup' association target filter",
+                accountDef
+                        .findAssociationDefinitionRequired(RI_INTERNAL_GROUP)
+                        .createTargetObjectsFilter(),
+                groupDef,
+                prefix + " and objectClass = 'ri:GroupObjectClass' "
+                        + "and ((kind = 'entitlement' and intent = 'application-group') "
+                        + "or (kind = 'entitlement' and intent = 'basic-group'))");
+
+        assertShadowFilter(
+                "'externalGroup' association target filter",
+                accountDef
+                        .findAssociationDefinitionRequired(RI_EXTERNAL_GROUP)
+                        .createTargetObjectsFilter(),
+                groupDef,
+                prefix + " and objectClass = 'ri:GroupObjectClass' "
+                        + "and kind = 'entitlement' and intent = 'external-group'");
+
+        assertShadowFilter(
+                "'priv' association target filter",
+                accountDef
+                        .findAssociationDefinitionRequired(RI_PRIV)
+                        .createTargetObjectsFilter(),
+                privDef,
+                prefix + " and objectClass = 'ri:CustomprivilegeObjectClass'");
     }
 }

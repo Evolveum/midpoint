@@ -93,13 +93,25 @@ public interface ShadowReferenceAttributeDefinition
                 .anyMatch(participantType -> participantType.matches(potentialTarget));
     }
 
-    // FIXME fix this method
+    /**
+     * Currently, this returns resource-oriented query: multiple kind/intent combinations are ignored, and object class
+     * is used as the filter. See the TO DO comment below.
+     */
     default @NotNull ObjectFilter createTargetObjectsFilter() {
-        var resourceOid = stateNonNull(getRepresentativeTargetObjectDefinition().getResourceOid(), "No resource OID in %s", this);
+        var resourceOid = getResourceOid();
         var targetParticipantTypes = getTargetParticipantTypes();
         assertCheck(!targetParticipantTypes.isEmpty(), "No object type definitions (already checked)");
         var firstObjectType = targetParticipantTypes.iterator().next().getTypeIdentification();
-        if (targetParticipantTypes.size() > 1 || firstObjectType == null) {
+        if (targetParticipantTypes.size() == 1 && firstObjectType != null) {
+            return PrismContext.get().queryFor(ShadowType.class)
+                    .item(ShadowType.F_RESOURCE_REF).ref(resourceOid, ResourceType.COMPLEX_TYPE)
+                    .and().item(ShadowType.F_KIND).eq(firstObjectType.getKind())
+                    .and().item(ShadowType.F_INTENT).eq(firstObjectType.getIntent())
+                    .buildFilter();
+        } else {
+            // TODO If there are multiple object types, then the filter is for the whole class.
+            //  This is OK if we want to search on the resource, and filter the data afterwards.
+            //  However, it is not OK if we want to search in the repository, as we are able to filter by kind/intent there.
             var objectClassNames = targetParticipantTypes.stream()
                     .map(def -> def.getObjectDefinition().getObjectClassName())
                     .collect(Collectors.toSet());
@@ -110,12 +122,6 @@ public interface ShadowReferenceAttributeDefinition
             return PrismContext.get().queryFor(ShadowType.class)
                     .item(ShadowType.F_RESOURCE_REF).ref(resourceOid, ResourceType.COMPLEX_TYPE)
                     .and().item(ShadowType.F_OBJECT_CLASS).eq(objectClassName)
-                    .buildFilter();
-        } else {
-            return PrismContext.get().queryFor(ShadowType.class)
-                    .item(ShadowType.F_RESOURCE_REF).ref(resourceOid, ResourceType.COMPLEX_TYPE)
-                    .and().item(ShadowType.F_KIND).eq(firstObjectType.getKind())
-                    .and().item(ShadowType.F_INTENT).eq(firstObjectType.getIntent())
                     .buildFilter();
         }
     }
@@ -137,8 +143,10 @@ public interface ShadowReferenceAttributeDefinition
     /** Very poorly defined method; TODO reconsider. */
     boolean isEntitlement();
 
-    default String getResourceOid() {
-        return getRepresentativeTargetObjectDefinition().getResourceOid();
+    default @NotNull String getResourceOid() {
+        return stateNonNull(
+                getRepresentativeTargetObjectDefinition().getResourceOid(),
+                "No resource OID in %s", this);
     }
 
     @NotNull ShadowReferenceAttributeDefinition clone();

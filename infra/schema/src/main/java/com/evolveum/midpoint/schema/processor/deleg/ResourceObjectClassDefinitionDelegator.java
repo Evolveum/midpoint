@@ -64,7 +64,7 @@ public interface ResourceObjectClassDefinitionDelegator extends ResourceObjectDe
     }
 
     @Override
-    default @NotNull ObjectQuery createShadowSearchQuery(String resourceOid) throws SchemaException {
+    default @NotNull ObjectQuery createShadowSearchQuery(String resourceOid) {
         return delegate().createShadowSearchQuery(resourceOid);
     }
 

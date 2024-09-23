@@ -84,7 +84,7 @@ public interface ResourceObjectClassDefinition
     /**
      * Creates a query for obtaining shadows related to this object class.
      */
-    default @NotNull ObjectQuery createShadowSearchQuery(String resourceOid) throws SchemaException {
+    default @NotNull ObjectQuery createShadowSearchQuery(String resourceOid) {
         return ObjectQueryUtil.createResourceAndObjectClassQuery(resourceOid, getTypeName());
     }
 

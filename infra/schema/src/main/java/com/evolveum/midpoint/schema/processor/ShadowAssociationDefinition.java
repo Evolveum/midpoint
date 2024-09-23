@@ -8,9 +8,14 @@
 package com.evolveum.midpoint.schema.processor;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
+
+import com.evolveum.midpoint.util.MiscUtil;
 
 import com.google.common.collect.Multimap;
 import org.jetbrains.annotations.NotNull;
@@ -25,6 +30,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.Nullable;
+
+import static com.evolveum.midpoint.util.MiscUtil.assertCheck;
 
 /**
  * Definition of a {@link ShadowAssociation}, e.g., `ri:group`.
@@ -50,6 +57,22 @@ public interface ShadowAssociationDefinition
     @NotNull Multimap<QName, ShadowRelationParticipantType> getObjectParticipants();
 
     /**
+     * Provides information on acceptable types of shadows participating in this association as (the one) object.
+     *
+     * Fails if there are no or multiple objects.
+     *
+     * @see #getObjectParticipants()
+     */
+    default @NotNull Collection<ShadowRelationParticipantType> getObjectParticipant() {
+        var objectParticipantsMap = getObjectParticipants();
+        var objectName = MiscUtil.extractSingletonRequired(
+                objectParticipantsMap.keySet(),
+                () -> new IllegalStateException("Multiple object participants in " + this + ": " + objectParticipantsMap.keySet()),
+                () -> new IllegalStateException("No object participants in " + this));
+        return getObjectParticipants().get(objectName);
+    }
+
+    /**
      * Returns the name(s) of participant(s) playing the role of association object:
      *
      * - Exactly one for simple associations.
@@ -68,16 +91,54 @@ public interface ShadowAssociationDefinition
     /**
      * Creates a filter that provides all shadows eligible as the target value for this association.
      *
-     * FIXME resolve limitations:
-     *  - single object class is allowed for given association
-     *  - if multiple object types are there, then the filter is for the whole class
-     *  - if type type is the default object type, then it's used as such (even if the whole OC should be returned)
+     * Returns repository-oriented filter: if there are multiple object types, there will be a disjunction (OR) clause.
      *
-     * TODO are these immediate targets (associated objects, if present), or the "final" targets?
+     * For complex associations, a filter for association data objects is returned.
      */
     default ObjectFilter createTargetObjectsFilter() {
-        // FIXME remove this hack!
-        return getReferenceAttributeDefinition().createTargetObjectsFilter();
+        var resourceOid = getResourceOid();
+        if (isComplex()) {
+            // This is a preliminary implementation
+            return getAssociationDataObjectDefinition()
+                    .createShadowSearchQuery(resourceOid)
+                    .getFilter();
+        } else {
+            var targetParticipantTypes = getObjectParticipant();
+            assertCheck(!targetParticipantTypes.isEmpty(), "No object type definitions (already checked)");
+            var objectClassNames = targetParticipantTypes.stream()
+                    .map(def -> def.getObjectDefinition().getObjectClassName())
+                    .collect(Collectors.toSet());
+            var objectClassName = MiscUtil.extractSingletonRequired(
+                    objectClassNames,
+                    () -> new UnsupportedOperationException("Multiple object class names in " + this),
+                    () -> new IllegalStateException("No object class names in " + this));
+            S_FilterExit builder = PrismContext.get().queryFor(ShadowType.class)
+                    .item(ShadowType.F_RESOURCE_REF).ref(resourceOid, ResourceType.COMPLEX_TYPE)
+                    .and().item(ShadowType.F_OBJECT_CLASS).eq(objectClassName);
+            var containsWholeClass = targetParticipantTypes.stream()
+                    .anyMatch(participantType -> participantType.isWholeClass());
+            if (containsWholeClass || targetParticipantTypes.isEmpty()) {
+                // No type restrictions
+            } else if (targetParticipantTypes.size() == 1) {
+                // Single type restriction -> flat conjunction
+                var typeId = Objects.requireNonNull(targetParticipantTypes.iterator().next().getTypeIdentification());
+                builder = builder
+                        .and().item(ShadowType.F_KIND).eq(typeId.getKind())
+                        .and().item(ShadowType.F_INTENT).eq(typeId.getIntent());
+            } else {
+                builder = builder.and().block();
+                for (var targetParticipantType : targetParticipantTypes) {
+                    var typeId = Objects.requireNonNull(targetParticipantType.getTypeIdentification());
+                    builder = builder.or() // this OR at the beginning seems to be benign
+                            .block()
+                            .item(ShadowType.F_KIND).eq(typeId.getKind())
+                            .and().item(ShadowType.F_INTENT).eq(typeId.getIntent())
+                            .endBlock();
+                }
+                builder = builder.endBlock();
+            }
+            return builder.buildFilter();
+        }
     }
 
     /** TODO reconsider this: which definition should we provide as the representative one? There can be many. */
@@ -113,7 +174,7 @@ public interface ShadowAssociationDefinition
 
     boolean isEntitlement();
 
-    default String getResourceOid() {
+    default @NotNull String getResourceOid() {
         return getReferenceAttributeDefinition().getResourceOid();
     }
 
