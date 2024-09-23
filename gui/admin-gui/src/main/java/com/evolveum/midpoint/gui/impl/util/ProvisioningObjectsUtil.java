@@ -297,14 +297,14 @@ public class ProvisioningObjectsUtil {
         if (oc == null) {
             return null;
         }
-        var shadowAssociationDefinitions = oc.getReferenceAttributeDefinitions();
+        var shadowAssociationDefinitions = oc.getAssociationDefinitions();
 
         List<ObjectFilter> filters = new ArrayList<>();
-        for (ShadowReferenceAttributeDefinition shadowReferenceAttributeDefinition : shadowAssociationDefinitions) {
-            if (association != null && !shadowReferenceAttributeDefinition.getItemName().equivalent(association)) {
+        for (ShadowAssociationDefinition shadowAssociationDefinition : shadowAssociationDefinitions) {
+            if (association != null && !shadowAssociationDefinition.getItemName().equivalent(association)) {
                 continue;
             }
-            ObjectFilter filter = shadowReferenceAttributeDefinition.createTargetObjectsFilter();
+            ObjectFilter filter = shadowAssociationDefinition.createTargetObjectsFilter();
             filters.add(filter);
         }
         PrismContext prismContext = PrismContext.get();
