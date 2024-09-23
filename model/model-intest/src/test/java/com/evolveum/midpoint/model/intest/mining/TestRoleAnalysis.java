@@ -25,6 +25,7 @@ import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.TestTask;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNull;
 
 /**
  * Role analysis tests (role mining and outlier detection).
@@ -50,13 +51,13 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
     public static final File TEST_DIR = new File("src/test/resources/mining/");
 
     public static final Integer FINAL_TASK_STAGE = 7;
+    public static final Integer LOADING_DATA_TASK_STAGE = 1;
 
     //RBAC generated data
     private static final File TEST_DIR_USERS_FILE = new File(TEST_DIR, "import/users.xml");
     private static final File TEST_DIR_ORGS_FILE = new File(TEST_DIR, "import/orgs.xml");
     private static final File TEST_DIR_ROLES_FILE = new File(TEST_DIR, "import/roles.xml");
     private static final File TEST_DIR_ARCHETYPES_FILE = new File(TEST_DIR, "import/archetypes.xml");
-
 
     // Role mining org attribute rule
     private static final String SESSION_ROLE_MINING_1_OID = "32e52e85-d871-4a24-8fa3-31f301bfc58e";
@@ -73,6 +74,14 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
     private static final TestTask TASK_ROLE_ANALYSIS_PROCESS_SESSION_ROLE_MINING_ROLE_MODE_1 =
             new TestTask(TEST_DIR, "task/task-role-analysis-process-session-role-mode-1.xml",
                     "813b8407-adb0-4575-b40c-35e06573c20e");
+
+    // Role mining indirect mode
+    private static final String SESSION_ROLE_MINING_INDIRECT_1_OID = "7eb32d16-b0d5-4149-834d-4a80872db920";
+    private static final TestObject<RoleAnalysisSessionType> SESSION_ROLE_MINING_INDIRECT_1 = TestObject.file(
+            TEST_DIR, "session/session-role-mining-indirect-1.xml", SESSION_ROLE_MINING_INDIRECT_1_OID);
+    private static final TestTask TASK_ROLE_ANALYSIS_PROCESS_SESSION_ROLE_MINING_INDIRECT_1 =
+            new TestTask(TEST_DIR, "task/task-role-analysis-process-session-indirect-1.xml",
+                    "67aae68a-dc30-4df1-bfc8-de42b9aee9d6");
 
     // Outlier org attribute rule (partial analysis - not outlier cluster excluded)
     private static final String SESSION_OUTLIER_PART_1_OID = "6cd71dab-993a-4dea-aeb4-b8bdcad81ddc";
@@ -101,16 +110,15 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
             initTestObjects(initTask, initResult,
                     SESSION_ROLE_MINING_1,
                     SESSION_ROLE_MINING_ROLE_MODE_1,
+                    SESSION_ROLE_MINING_INDIRECT_1,
                     SESSION_OUTLIER_PART_1,
                     SESSION_OUTLIER_FULL_1);
         }
     }
 
     /**
-     * Test case for role mining process. Runs the role mining session defined
-     * in {@code session-role-mining-1.xml} and verifies the task progress and expected result.
-     *
-     * @throws Exception if any error occurs during the test execution
+     * Test role mining session defined in {@code session-role-mining-1.xml}.
+     * - user-based, grouped by org assignment
      */
     @Test
     public void test010RoleAnalysisSessionRoleMining1() throws Exception {
@@ -132,10 +140,8 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
     }
 
     /**
-     * Test case for role mining process. Runs the role mining session defined
-     * in {@code session-role-mining-role-mode-1.xml} and verifies the task progress and expected result.
-     *
-     * @throws Exception if any error occurs during the test execution
+     * Test role mining session defined in {@code session-role-mining-role-mode-1.xml}.
+     * - role-based, no grouping
      */
     @Test
     public void test020RoleAnalysisSessionRoleMiningRoleMode1() throws Exception {
@@ -156,11 +162,39 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
         );
     }
 
+
     /**
-     * Test case for partial outlier detection process (clustering_noise analysis is excluded). Runs the outlier session
-     * defined in {@code session-outlier-part-1.xml} and verifies the task progress and expected result.
-     *
-     * @throws Exception if any error occurs during the test execution
+     * Test role mining session defined in {@code session-role-mining-indirect-1.xml}.
+     * - user-based, indirect
+     * - no data is analyzed because it hasn't been recomputed
+     */
+    @Test
+    public void test025RoleAnalysisSessionRoleMiningNoDataInIndirectMode1() throws Exception {
+        skipIfNotNativeRepository();
+
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        String sessionId = SESSION_ROLE_MINING_INDIRECT_1_OID;
+
+        when("task is run");
+
+        TASK_ROLE_ANALYSIS_PROCESS_SESSION_ROLE_MINING_INDIRECT_1.init(this, task, result);
+        TASK_ROLE_ANALYSIS_PROCESS_SESSION_ROLE_MINING_INDIRECT_1.rerunTaskWithinTimeout(result, DEFAULT_TIMEOUT);
+
+        then("task is OK and result is empty");
+        TASK_ROLE_ANALYSIS_PROCESS_SESSION_ROLE_MINING_INDIRECT_1
+                .assertAfter()
+                .display()
+                .assertProgress(LOADING_DATA_TASK_STAGE);
+
+        RoleAnalysisSessionType session = getSession(sessionId);
+        assertNull(session.getSessionStatistic());
+        assertObjects(RoleAnalysisClusterType.class, buildClustersQuery(sessionId), 0);
+    }
+
+    /**
+     * Test outlier detection session defined in {@code session-outlier-part-1.xml}.
+     * - analyzes only in-cluster outliers
      */
     @Test
     public void test030RoleAnalysisSessionOutlierPart1() throws Exception {
@@ -179,13 +213,13 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
                 TASK_ROLE_ANALYSIS_PROCESS_SESSION_OUTLIER_PART_1,
                 expectedResult
         );
+
     }
 
     /**
-     * Test case for full outlier detection process. Runs the outlier session
-     * defined in {@code session-outlier-full-1.xml} and verifies the task progress and expected result.
-     *
-     * @throws Exception if any error occurs during the test execution
+     * Test outlier detection session defined in {@code session-outlier-full-1.xml}.
+     * - detailed analysis
+     * - analyzes both in-cluster and out-cluster outliers
      */
     @Test
     public void test040RoleAnalysisSessionOutlierFull1() throws Exception {
