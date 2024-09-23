@@ -93,6 +93,11 @@ public class RelatedTasksPanel extends BasePanel {
             protected Component createRightSideBoxComponent(String id, StatisticBoxDto<TaskType> statisticObject) {
                 return createRightSideTaskComponent(id, statisticObject.getStatisticObject());
             }
+
+            @Override
+            protected boolean isLabelClickable() {
+                return true;
+            }
         };
     }
 
