@@ -16,7 +16,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.basic.AssociationDefinitionWrapper;
 
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
-import com.evolveum.midpoint.schema.processor.BareResourceSchema;
+import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -96,7 +96,7 @@ public abstract class ChoiceAssociationPopupPanel extends SimplePopupable {
                 List<Tile<AssociationDefinitionWrapper>> list = new ArrayList<>();
                 associations.forEach(associationWrapper -> {
                     try {
-                        BareResourceSchema resourceSchema = resourceDetailsModel.getRefinedSchema();
+                        CompleteResourceSchema resourceSchema = resourceDetailsModel.getRefinedSchema();
                         AssociationDefinitionWrapper defWrapper = new AssociationDefinitionWrapper(associationWrapper, resourceSchema);
                         String title = GuiDisplayNameUtil.getDisplayName(associationWrapper.getRealValue(), true);
                         if (title == null) {

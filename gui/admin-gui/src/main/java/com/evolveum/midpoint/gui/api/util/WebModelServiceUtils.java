@@ -66,7 +66,7 @@ public class WebModelServiceUtils {
     private static final Trace LOGGER = TraceManager.getTrace(WebModelServiceUtils.class);
 
     private static final String DOT_CLASS = WebModelServiceUtils.class.getName() + ".";
-    private static final String OPERATION_LOAD_OBJECT = DOT_CLASS + "loadObject";
+    public static final String OPERATION_LOAD_OBJECT = DOT_CLASS + "loadObject";
     private static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
     private static final String OPERATION_SEARCH_OBJECTS = DOT_CLASS + "searchObjects";
     private static final String OPERATION_SEARCH_CONTAINERS = DOT_CLASS + "searchContainers";

@@ -5,18 +5,23 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <archetype oid="00000000-0000-0000-0000-000000000509"
-           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-           xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-           xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
-    <name>Iterative action task</name>
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
+        xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
+    <name>Iterative bulk action task</name>
     <archetypePolicy>
         <display>
-            <label>Iterative action task</label>
-            <pluralLabel>
-                <orig>Iterative action tasks</orig>
+            <label>
+                <orig>Iterative bulk action task</orig>
                 <translation>
-                    <key>IterativeActionTasks.title</key>
+                    <key>IterativeBulkActionTask.label</key>
+                </translation>
+            </label>
+            <pluralLabel>
+                <orig>Iterative bulk action tasks</orig>
+                <translation>
+                    <key>IterativeBulkActionTasks.title</key>
                 </translation>
             </pluralLabel>
             <icon>
@@ -70,7 +75,7 @@
                     <container id="12">
                         <identifier>objects-to-process</identifier>
                         <display>
-                            <label>IterativeActionTask.objectsToProcess</label>
+                            <label>IterativeBulkActionTask.objectsToProcess</label>
                         </display>
                         <item id="14">
                             <c:path>extension/mext:objectType</c:path>
@@ -88,7 +93,7 @@
                     <container id="13">
                         <identifier>bulk-action</identifier>
                         <display>
-                            <label>IterativeActionTask.action</label>
+                            <label>IterativeBulkActionTask.bulkAction</label>
                         </display>
                         <item id="18">
                             <c:path>extension/scext:executeScript</c:path>

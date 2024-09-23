@@ -6,7 +6,7 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <archetype oid="00000000-0000-0000-0000-000000000701"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Object mark</name>
     <description>Denotes marks for objects and assignments. Replaces legacy policy situations.</description>
     <assignment id="1">
@@ -18,8 +18,18 @@
     <archetypeType>structural</archetypeType>
     <archetypePolicy>
         <display>
-            <label>Object Mark</label>
-            <pluralLabel>Object Marks</pluralLabel>
+            <label>
+                <orig>Object mark</orig>
+                <translation>
+                    <key>ObjectMark.label</key>
+                </translation>
+            </label>
+            <pluralLabel>
+                <orig>Object marks</orig>
+                <translation>
+                    <key>ObjectMarks.pluralLabel</key>
+                </translation>
+            </pluralLabel>
             <icon>
                 <cssClass>fa fa-tag</cssClass>
                 <color>blue</color>
@@ -30,7 +40,12 @@
                 <panel id="3">
                     <identifier>shadowMarksList</identifier>
                     <display>
-                        <label>Marked shadows</label>
+                        <label>
+                            <orig>Marked shadows</orig>
+                            <translation>
+                                <key>MarkedShadows.label</key>
+                            </translation>
+                        </label>
                     </display>
                     <applicableForOperation>modify</applicableForOperation>
                     <panelType>markedShadowList</panelType>

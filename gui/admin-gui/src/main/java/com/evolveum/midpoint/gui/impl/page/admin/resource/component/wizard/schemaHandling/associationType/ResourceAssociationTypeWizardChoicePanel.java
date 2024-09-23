@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType;
 
 import com.evolveum.midpoint.gui.impl.util.AssociationChildWrapperUtil;
-import com.evolveum.midpoint.schema.processor.BareResourceSchema;
+import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -126,7 +126,7 @@ public abstract class ResourceAssociationTypeWizardChoicePanel
 
         if (!objectTypes.isEmpty()) {
             try {
-                BareResourceSchema schema = getAssignmentHolderDetailsModel().getRefinedSchema();
+                CompleteResourceSchema schema = getAssignmentHolderDetailsModel().getRefinedSchema();
                 return StringUtils.join(
                         objectTypes.stream()
                                 .map(objectType ->

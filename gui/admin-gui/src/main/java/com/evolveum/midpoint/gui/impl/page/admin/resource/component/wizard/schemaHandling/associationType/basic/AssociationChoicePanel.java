@@ -11,11 +11,12 @@ import java.util.List;
 import java.util.Optional;
 
 import com.evolveum.midpoint.gui.impl.component.data.provider.ListDataProvider;
+import com.evolveum.midpoint.gui.impl.component.tile.AssociationTilePanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardBasicPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.AssociationsListView;
-import com.evolveum.midpoint.schema.processor.BareResourceSchema;
+import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
 
 import com.evolveum.midpoint.schema.processor.ShadowReferenceParticipantRole;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -24,7 +25,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -61,7 +65,7 @@ public abstract class AssociationChoicePanel
                 List<Tile<AssociationDefinitionWrapper>> list = new ArrayList<>();
 
                 try {
-                    BareResourceSchema resourceSchema = getAssignmentHolderDetailsModel().getRefinedSchema();
+                    CompleteResourceSchema resourceSchema = getAssignmentHolderDetailsModel().getRefinedSchema();
 
                     resourceSchema.getObjectTypeDefinitions().forEach(objectTypeDef ->
                             objectTypeDef.getReferenceAttributeDefinitions().forEach(
