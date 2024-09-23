@@ -9,10 +9,15 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismReferenceWrapperColumn;
+import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -25,6 +30,8 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.wicket.model.Model;
 
 /**
  * @author lskublik
@@ -43,6 +50,47 @@ public class MarkingTable extends AbstractWizardTable<ShadowMarkingConfiguration
 
         columns.add(new CheckBoxHeaderColumn<>());
 
+        columns.add(new IconColumn<>(Model.of()) {
+
+            @Override
+            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<ShadowMarkingConfigurationType>>> cellItem, String componentId, IModel<PrismContainerValueWrapper<ShadowMarkingConfigurationType>> rowModel) {
+                super.populateItem(cellItem, componentId, rowModel);
+                cellItem.add(AttributeAppender.append("class", "text-center"));
+            }
+
+            @Override
+            protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<ShadowMarkingConfigurationType>> rowModel) {
+                PrismContainerValueWrapper<ShadowMarkingConfigurationType> marking = rowModel.getObject();
+                ShadowMarkingConfigurationType markingType = marking.getRealValue();
+
+                List<ResourceObjectPatternType> patterns = markingType.getPattern();
+                if (!patterns.isEmpty()) {
+                    String tooltip = null;
+                    if (patterns.size() == 1 && patterns.get(0).getFilter() != null) {
+                        tooltip = LocalizationUtil.translate("MarkingTable.filter", new Object[] { patterns.get(0).getFilter().getText() });
+                    } else if (patterns.stream().anyMatch(pattern -> pattern.getFilter() != null)) {
+                        tooltip = LocalizationUtil.translate(
+                                "MarkingTable.filters",
+                                new Object[] { patterns.stream().filter(pattern -> pattern.getFilter() != null).count() });
+                    }
+
+                    if (tooltip != null) {
+                        return new DisplayType()
+                                .tooltip(tooltip)
+                                .beginIcon()
+                                .cssClass("fa fa-filter text-info")
+                                .end();
+                    }
+                }
+                return new DisplayType();
+            }
+
+            @Override
+            public String getCssClass() {
+                return "px-0";
+            }
+        });
+
         IModel<PrismContainerDefinition<ShadowMarkingConfigurationType>> markingDef = getMarkingDefinition();
         columns.add(new PrismReferenceWrapperColumn<>(
                 markingDef,
@@ -54,20 +102,6 @@ public class MarkingTable extends AbstractWizardTable<ShadowMarkingConfiguration
                 return "col-8";
             }
         });
-
-//        columns.add(new PrismPropertyWrapperColumn<ShadowMarkingConfigurationType, String>(
-//                markingDef,
-//                ItemPath.create(
-//                        ShadowMarkingConfigurationType.F_PATTERN,
-//                        ResourceObjectPatternType.F_FILTER),
-//                AbstractItemWrapperColumn.ColumnType.VALUE,
-//                getPageBase()) {
-//
-//            @Override
-//            public String getCssClass() {
-//                return "col-6";
-//            }
-//        });
 
         columns.add(new PrismPropertyWrapperColumn<ShadowMarkingConfigurationType, String>(
                 markingDef,

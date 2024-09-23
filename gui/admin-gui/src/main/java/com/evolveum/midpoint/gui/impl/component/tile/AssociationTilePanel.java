@@ -14,7 +14,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schem
 
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
 
-import com.evolveum.midpoint.schema.processor.BareResourceSchema;
+import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -122,7 +122,7 @@ public abstract class AssociationTilePanel<T extends Tile<AssociationDefinitionW
                         new Object[]{participant.getObjectClass().getLocalPart()});
             }
 
-            BareResourceSchema schemaResource = resourceDetailsModel.getRefinedSchema();
+            CompleteResourceSchema schemaResource = resourceDetailsModel.getRefinedSchema();
             ResourceObjectTypeDefinition def;
             if (StringUtils.isNotEmpty(participant.getIntent())) {
                 def = schemaResource.getObjectTypeDefinition(participant.getKind(), participant.getIntent());
