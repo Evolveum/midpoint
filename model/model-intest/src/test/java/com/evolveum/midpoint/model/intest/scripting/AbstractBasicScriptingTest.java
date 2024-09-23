@@ -730,7 +730,8 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
             // Old repo throws UnsupportedOperationException, new repo throws SystemException
             // (not a problem, for now)
             displayExpectedException(e);
-            assertThat(e).hasMessageContaining("previewChanges is not supported in raw mode");
+            assertThat(e)
+                    .hasMessageContaining("Raw operation execution is not supported in non-persistent execution mode");
         }
     }
 
