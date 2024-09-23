@@ -203,7 +203,7 @@ public class GuiDisplayTypeUtil {
         }
 
         if (!PolyStringUtils.isEmpty(displayType.getSingularLabel()) || !PolyStringUtils.isEmpty(displayType.getLabel())) {
-            PolyStringType label = !PolyStringUtils.isEmpty(displayType.getSingularLabel()) ?
+            PolyStringType label = displayType.getSingularLabel() != null ?
                     displayType.getSingularLabel() : displayType.getLabel();
 
             String name = LocalizationUtil.translatePolyString(label);
