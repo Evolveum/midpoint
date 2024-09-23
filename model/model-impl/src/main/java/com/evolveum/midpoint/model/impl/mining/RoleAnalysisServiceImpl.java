@@ -2213,6 +2213,12 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     public @Nullable List<RoleAnalysisAttributeDef> resolveAnalysisAttributes(
             @NotNull RoleAnalysisSessionType session,
             @NotNull QName complexType) {
+
+        //TODO remove later. It temporary disable role attribute analysis
+        if(complexType == RoleType.COMPLEX_TYPE) {
+            return null;
+        }
+
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
         if (analysisOption == null) {
             return null;

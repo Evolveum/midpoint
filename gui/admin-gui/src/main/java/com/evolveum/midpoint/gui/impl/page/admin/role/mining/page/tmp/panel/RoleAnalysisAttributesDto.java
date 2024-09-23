@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,7 +15,7 @@ import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisSimpleModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public class RoleAnalysisAttributesDto {
+public class RoleAnalysisAttributesDto implements Serializable {
 
     public static final String F_ATTRIBUTES_MODEL = "attributesModel";
     public static final String F_CHART_MODEL = "chartModel";
