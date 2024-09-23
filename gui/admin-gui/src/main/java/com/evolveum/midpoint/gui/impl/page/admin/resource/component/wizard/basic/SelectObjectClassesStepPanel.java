@@ -15,7 +15,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
+import com.evolveum.midpoint.schema.processor.BareResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -54,7 +54,6 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
@@ -93,7 +92,7 @@ public class SelectObjectClassesStepPanel extends AbstractWizardStepPanel<Resour
                                     XmlSchemaType.F_GENERATION_CONSTRAINTS,
                                     SchemaGenerationConstraintsType.F_GENERATE_OBJECT_CLASS));
                     if (generationConstraints != null) {
-                        CompleteResourceSchema schema = getDetailsModel().getRefinedSchema();
+                        BareResourceSchema schema = getDetailsModel().getRefinedSchema();
                         List<ResourceObjectTypeDefinition> objectTypes = new ArrayList<>();
                         if (schema != null) {
                             objectTypes.addAll(schema.getObjectTypeDefinitions());

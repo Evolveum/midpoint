@@ -8,7 +8,7 @@ import com.evolveum.midpoint.gui.impl.util.AssociationChildWrapperUtil;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
+import com.evolveum.midpoint.schema.processor.BareResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -44,7 +44,7 @@ public class SubjectAssociationStepPanel extends ParticipantAssociationStepPanel
 
     @Override
     protected List<ResourceObjectTypeDefinition> getListOfSupportedObjectTypeDef() throws SchemaException, ConfigurationException {
-        CompleteResourceSchema schema = getDetailsModel().getRefinedSchema();
+        BareResourceSchema schema = getDetailsModel().getRefinedSchema();
         ItemName refAttributeName = AssociationChildWrapperUtil.getRef(getValueModel().getObject(), true);
 
         return schema.getObjectTypeDefinitions().stream()

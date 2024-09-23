@@ -10,12 +10,9 @@ package com.evolveum.midpoint.gui.impl.util;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
-import com.evolveum.midpoint.gui.impl.component.tile.Tile;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.basic.AssociationDefinitionWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.model.api.util.ResourceUtils;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -47,7 +44,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -754,7 +750,7 @@ public class ProvisioningObjectsUtil {
     }
 
     public static List<ShadowReferenceAttributeDefinition> getShadowReferenceAttributeDefinitions(
-            CompleteResourceSchema resourceSchema) {
+            BareResourceSchema resourceSchema) {
         List<ShadowReferenceAttributeDefinition> list = new ArrayList<>();
         resourceSchema.getObjectTypeDefinitions().forEach(objectTypeDef ->
                 objectTypeDef.getReferenceAttributeDefinitions().forEach(
