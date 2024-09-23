@@ -492,8 +492,12 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         analysisClusterStatisticType.setMembershipMean(clusterStatistics.getMembershipMean());
         analysisClusterStatisticType.setMembershipRange(clusterStatistics.getMembershipRange().clone());
         //TODO consider update
-        analysisClusterStatisticType.setRoleAttributeAnalysisResult(clusterStatistics.getRoleAttributeAnalysisResult().clone());
-        analysisClusterStatisticType.setUserAttributeAnalysisResult(clusterStatistics.getUserAttributeAnalysisResult().clone());
+        if (clusterStatistics.getRoleAttributeAnalysisResult() != null) {
+            analysisClusterStatisticType.setRoleAttributeAnalysisResult(clusterStatistics.getRoleAttributeAnalysisResult().clone());
+        }
+        if (clusterStatistics.getUserAttributeAnalysisResult() != null) {
+            analysisClusterStatisticType.setUserAttributeAnalysisResult(clusterStatistics.getUserAttributeAnalysisResult().clone());
+        }
         return analysisClusterStatisticType;
     }
 
