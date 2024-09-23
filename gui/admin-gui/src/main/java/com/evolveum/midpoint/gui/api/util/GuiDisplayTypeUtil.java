@@ -30,6 +30,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.WordUtils;
 import org.apache.wicket.model.IModel;
 
 import javax.xml.namespace.QName;
@@ -191,7 +192,7 @@ public class GuiDisplayTypeUtil {
         return createSimpleObjectRelationDisplayType(pageBase, defaultTitleKey, typeTitle, relationTitle);
     }
 
-    public static DisplayType getNewObjectDisplayTypeFromCollectionView(CompiledObjectCollectionView view, PageBase pageBase) {
+    public static DisplayType getNewObjectDisplayTypeFromCollectionView(CompiledObjectCollectionView view) {
         DisplayType displayType = view != null ? view.getDisplay() : null;
         if (displayType == null) {
             displayType = createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green", "");
@@ -204,10 +205,12 @@ public class GuiDisplayTypeUtil {
         if (!PolyStringUtils.isEmpty(displayType.getSingularLabel()) || !PolyStringUtils.isEmpty(displayType.getLabel())) {
             PolyStringType label = !PolyStringUtils.isEmpty(displayType.getSingularLabel()) ?
                     displayType.getSingularLabel() : displayType.getLabel();
-            String sb = pageBase.createStringResource("MainObjectListPanel.newObject").getString()
-                    + " "
-                    + label.getOrig().toLowerCase();
-            displayType.setTooltip(WebComponentUtil.createPolyFromOrigString(sb));
+
+            String name = LocalizationUtil.translatePolyString(label);
+
+            String tooltip = LocalizationUtil.translate("MainObjectListPanel.newObjectWithName", new Object[]{ WordUtils.uncapitalize(name) });
+
+            displayType.setTooltip(WebComponentUtil.createPolyFromOrigString(tooltip));
         }
         return view != null ? view.getDisplay() : null;
     }
