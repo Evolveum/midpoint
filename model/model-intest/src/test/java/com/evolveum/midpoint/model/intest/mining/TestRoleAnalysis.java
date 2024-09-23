@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.intest.mining;
 
 import java.io.File;
 import java.util.List;
+import java.util.stream.Stream;
 
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -37,13 +38,15 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
     private record RoleMiningResult(
             Integer processedObjectCount,
             Integer clusterCount,
-            Double meanDensity
+            Double meanDensity,
+            Integer reduction
     ) {}
 
     private record OutlierDetectionResult(
             Integer processedObjectCount,
             Integer innerOutlierCount,
-            Integer outerOutlierCount
+            Integer outerOutlierCount,
+            Double maxOutlierConfidence
     ) {}
 
     private static final long DEFAULT_TIMEOUT = 600_000;
@@ -125,11 +128,13 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
         Integer expectedObjectsCount = 1063;
         Integer expectedClusterCount = 18;
         Double expectedMeanDensity = 89.36643749031973;
+        Integer expectedReduction = 5797;
 
         RoleMiningResult expectedResult = new RoleMiningResult(
                 expectedObjectsCount,
                 expectedClusterCount,
-                expectedMeanDensity
+                expectedMeanDensity,
+                expectedReduction
         );
 
         runRoleMiningTest(
@@ -148,11 +153,13 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
         Integer expectedObjectsCount = 166;
         Integer expectedClusterCount = 12;
         Double expectedMeanDensity = 97.93252608203476;
+        Integer expectedReduction = 15002;
 
         RoleMiningResult expectedResult = new RoleMiningResult(
                 expectedObjectsCount,
                 expectedClusterCount,
-                expectedMeanDensity
+                expectedMeanDensity,
+                expectedReduction
         );
 
         runRoleMiningTest(
@@ -188,6 +195,7 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
                 .assertProgress(LOADING_DATA_TASK_STAGE);
 
         RoleAnalysisSessionType session = getSession(sessionId);
+
         assertNull(session.getSessionStatistic());
         assertObjects(RoleAnalysisClusterType.class, buildClustersQuery(sessionId), 0);
     }
@@ -201,11 +209,13 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
         Integer expectedObjectsCount = 1063;
         Integer expectedInnerOutlierCount = 12;
         Integer expectedOuterOutlierCount = 0;
+        Double expectedTopOutlierConfidence = 88.02794672430142;
 
         OutlierDetectionResult expectedResult = new OutlierDetectionResult(
                 expectedObjectsCount,
                 expectedInnerOutlierCount,
-                expectedOuterOutlierCount
+                expectedOuterOutlierCount,
+                expectedTopOutlierConfidence
         );
 
         runOutlierDetectionTest(
@@ -226,11 +236,13 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
         Integer expectedObjectsCount = 1063;
         Integer expectedInnerOutlierCount = 12;
         Integer expectedOuterOutlierCount = 157;
+        Double expectedTopOutlierConfidence = 91.98523742118653;
 
         OutlierDetectionResult expectedResult = new OutlierDetectionResult(
                 expectedObjectsCount,
                 expectedInnerOutlierCount,
-                expectedOuterOutlierCount
+                expectedOuterOutlierCount,
+                expectedTopOutlierConfidence
         );
 
         runOutlierDetectionTest(
@@ -258,10 +270,17 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
         RoleAnalysisSessionType session = getSession(sessionId);
         RoleAnalysisSessionStatisticType sessionStatistic = session.getSessionStatistic();
 
+        List<RoleAnalysisClusterType> clusters = getClusters(sessionId);
+        Integer actualReduction = clusters
+                .stream()
+                .mapToInt(cluster -> cluster.getClusterStatistics().getDetectedReductionMetric().intValue())
+                .sum();
+
         RoleMiningResult actualResult = new RoleMiningResult(
                 sessionStatistic.getProcessedObjectCount(),
                 sessionStatistic.getClusterCount(),
-                sessionStatistic.getMeanDensity()
+                sessionStatistic.getMeanDensity(),
+                actualReduction
         );
 
         assertEquals(expectedResult, actualResult);
@@ -286,10 +305,19 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
         RoleAnalysisSessionType session = getSession(sessionId);
         RoleAnalysisSessionStatisticType sessionStatistic = session.getSessionStatistic();
 
+        var innerOutliers = getOutliers(sessionId, OutlierClusterCategoryType.INNER_OUTLIER);
+        var outerOutliers = getOutliers(sessionId, OutlierClusterCategoryType.OUTER_OUTLIER);
+
+        Double actualTopOutlierConfidence = Stream.concat(innerOutliers.stream(), outerOutliers.stream())
+                .map(RoleAnalysisOutlierType::getOverallConfidence)
+                .reduce(Double::max)
+                .orElseThrow();
+
         OutlierDetectionResult actualResult = new OutlierDetectionResult(
                 sessionStatistic.getProcessedObjectCount(),
-                getOutlierCount(sessionId, OutlierClusterCategoryType.INNER_OUTLIER),
-                getOutlierCount(sessionId, OutlierClusterCategoryType.OUTER_OUTLIER)
+                innerOutliers.size(),
+                outerOutliers.size(),
+                actualTopOutlierConfidence
         );
 
         assertEquals(expectedResult, actualResult);
@@ -306,10 +334,19 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
                 .build();
     }
 
-    private Integer getOutlierCount(String sessionOid, OutlierClusterCategoryType category) {
+    private List<RoleAnalysisClusterType> getClusters(String sessionOid) throws Exception {
+        Task task = createTask("get clusters");
+        ObjectQuery query = buildClustersQuery(sessionOid);
+        return modelService
+                .searchObjects(RoleAnalysisClusterType.class, query, null, task, task.getResult())
+                .stream()
+                .map(result -> result.asObjectable())
+                .toList();
+    }
+
+    private List<RoleAnalysisOutlierType> getOutliers(String sessionOid, OutlierClusterCategoryType category) {
         Task task = createTask("get outliers");
-        List<RoleAnalysisOutlierType> outliers = roleAnalysisService.getSessionOutliers(sessionOid, category, task, task.getResult());
-        return outliers.size();
+        return roleAnalysisService.getSessionOutliers(sessionOid, category, task, task.getResult());
     }
 
 }
