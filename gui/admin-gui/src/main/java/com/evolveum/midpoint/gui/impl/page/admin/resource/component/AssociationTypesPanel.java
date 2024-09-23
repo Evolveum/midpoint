@@ -21,7 +21,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.processor.BareResourceSchema;
+import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -116,7 +116,7 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
             AjaxRequestTarget target,
             boolean isDuplicate) {
         try {
-            BareResourceSchema resourceSchema = getObjectDetailsModels().getRefinedSchema();
+            CompleteResourceSchema resourceSchema = getObjectDetailsModels().getRefinedSchema();
             List<ShadowReferenceAttributeDefinition> assocDefs = ProvisioningObjectsUtil.getShadowReferenceAttributeDefinitions(resourceSchema);
 
             if (assocDefs.isEmpty()) {
