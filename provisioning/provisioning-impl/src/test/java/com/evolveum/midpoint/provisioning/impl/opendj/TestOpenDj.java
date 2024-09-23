@@ -9,6 +9,8 @@ package com.evolveum.midpoint.provisioning.impl.opendj;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_PASSWORD;
 
+import static com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification.ACCOUNT_DEFAULT;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
@@ -118,6 +120,10 @@ public class TestOpenDj extends AbstractOpenDjTest {
     private static final File RESOURCE_OPENDJ_NO_CREATE_FILE = new File(TEST_DIR, "resource-opendj-no-create.xml");
     private static final File RESOURCE_OPENDJ_NO_DELETE_FILE = new File(TEST_DIR, "resource-opendj-no-delete.xml");
     private static final File RESOURCE_OPENDJ_NO_UPDATE_FILE = new File(TEST_DIR, "resource-opendj-no-update.xml");
+
+    private static final String INTENT_LDAP_GROUP = "ldapGroup";
+    private static final ResourceObjectTypeIdentification TYPE_LDAP_GROUP =
+            ResourceObjectTypeIdentification.of(ShadowKindType.ENTITLEMENT, INTENT_LDAP_GROUP);
 
     private String groupSailorOid;
 
@@ -512,7 +518,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertThat(accountTypeDef.getTypeDefinition().getKind()).as("kind").isEqualTo(ShadowKindType.ACCOUNT);
         assertThat(accountTypeDef.getTypeDefinition().getIntent()).as("intent").isEqualTo("default");
 
-        var groupAssocDef = accountTypeDef.findAssociationDefinitionRequired(new QName(NS_RI, "group"));
+        var groupAssocDef = accountTypeDef.findAssociationDefinitionRequired(RI_GROUP);
         assertThat(groupAssocDef.canRead()).as("group association read").isTrue();
         assertThat(groupAssocDef.canAdd()).as("group association add").isTrue();
         assertThat(groupAssocDef.canModify()).as("group association modify").isTrue();
@@ -2678,7 +2684,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(
-                RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, "ldapGroup");
+                RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, INTENT_LDAP_GROUP);
         displayDumpable("query", query);
 
         when();
@@ -2758,7 +2764,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(
-                RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, "ldapGroup");
+                RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, INTENT_LDAP_GROUP);
         displayDumpable("query", query);
 
         when();
@@ -3219,6 +3225,53 @@ public class TestOpenDj extends AbstractOpenDjTest {
                 ou: sub""");
     }
 
+    /** Checks adding a membership for a group that no longer exists. Correct exception should be returned. MID-10015. */
+    @Test(enabled=false) // MID-10015
+    public void test500AddingNonExistingGroupMembership() throws CommonException {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        var accountName = "a-" + getTestNameShort();
+        var accountDn = "uid=" + accountName + ",ou=People,dc=example,dc=com";
+
+        var groupName = "g-" + getTestNameShort();
+        var groupDn = "cn=" + groupName + ",ou=Groups,dc=example,dc=com";
+
+        given("group exists on the resource");
+        var groupShadow = Resource.of(resource)
+                .shadow(TYPE_LDAP_GROUP)
+                .withSimpleAttribute(QNAME_DN, groupDn)
+                .asPrismObject();
+        var groupOid = provisioningService.addObject(groupShadow, null, null, task, result);
+
+        and("account exists on the resource (not in the group)");
+        var accountShadow = Resource.of(resource)
+                .shadow(ACCOUNT_DEFAULT)
+                .withSimpleAttribute(QNAME_DN, accountDn)
+                .withSimpleAttribute(QNAME_CN, accountName)
+                .withSimpleAttribute(QNAME_SN, accountName)
+                .asPrismObject();
+        var accountOid = provisioningService.addObject(accountShadow, null, null, task, result);
+
+        and("group is deleted (on the resource)");
+        openDJController.delete(groupDn);
+
+        when("account is entitled with group membership");
+        try {
+            provisioningService.modifyObject(
+                    ShadowType.class,
+                    accountOid,
+                    createEntitleDelta(accountOid, RI_GROUP, groupOid)
+                            .getModifications(),
+                    null, null, task, result);
+        } catch (Exception e) {
+            assertExpectedException(e);
+            if (e instanceof ObjectNotFoundException objectNotFoundException) {
+                fail("We need to distinguish between group and account not found. But we got: " + objectNotFoundException);
+            }
+        }
+    }
+
     @Test
     public void test701ConfiguredCapabilityNoRead() throws Exception {
         Task task = getTestTask();
@@ -3490,7 +3543,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     }
 
     /**
-     * Look insite OpenDJ logs to check for clues of undesirable behavior.
+     * Look inside OpenDJ logs to check for clues of undesirable behavior.
      * MID-7091
      */
     @Test
@@ -3541,7 +3594,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
                         ShadowType.class, objectOid, createNoFetchCollection(), getTestTask(), getTestOperationResult()));
         var accountDef = Resource.of(resource)
                 .getCompleteSchemaRequired()
-                .getObjectTypeDefinitionRequired(ResourceObjectTypeIdentification.ACCOUNT_DEFAULT);
+                .getObjectTypeDefinitionRequired(ACCOUNT_DEFAULT);
         var assocDef = accountDef.findAssociationDefinitionRequired(assocName);
         return Resource.of(resource).deltaFor(accountDef.getObjectClassName())
                 .item(ShadowType.F_ASSOCIATIONS, assocName)
