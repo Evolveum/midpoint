@@ -594,13 +594,12 @@ public class RoleAnalysisAlgorithmUtils {
         List<RoleAnalysisAttributeDef> roleAnalysisAttributeDef = roleAnalysisService
                 .resolveAnalysisAttributes(session, RoleType.COMPLEX_TYPE);
 
-        if (userAnalysisAttributeDef == null || roleAnalysisAttributeDef == null) {
+        if (userAnalysisAttributeDef == null && roleAnalysisAttributeDef == null) {
             return detectedPatterns;
         }
 
         roleAnalysisService.resolveDetectedPatternsAttributesCached(detectedPatterns, userExistCache, roleExistCache,
-                attributeAnalysisCache, roleAnalysisAttributeDef, userAnalysisAttributeDef, task, result
-        );
+                attributeAnalysisCache, roleAnalysisAttributeDef, userAnalysisAttributeDef, task, result);
 
         return detectedPatterns;
     }
