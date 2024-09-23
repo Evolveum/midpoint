@@ -100,6 +100,10 @@ public class ShadowRelationParticipantType implements Serializable {
         }
     }
 
+    public boolean isWholeClass() {
+        return typeIdentification == null;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {

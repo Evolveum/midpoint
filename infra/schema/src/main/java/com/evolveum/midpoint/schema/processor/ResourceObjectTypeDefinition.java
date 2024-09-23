@@ -32,7 +32,7 @@ public interface ResourceObjectTypeDefinition
         extends ResourceObjectDefinition {
 
     @Override
-    default @NotNull ObjectQuery createShadowSearchQuery(String resourceOid) throws SchemaException {
+    default @NotNull ObjectQuery createShadowSearchQuery(String resourceOid) {
         return ObjectQueryUtil.createResourceAndKindIntent(resourceOid, getKind(), getIntent());
     }
 
