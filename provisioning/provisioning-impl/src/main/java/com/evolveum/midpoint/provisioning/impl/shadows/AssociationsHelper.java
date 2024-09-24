@@ -11,6 +11,10 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.provisioning.impl.RepoShadow;
+
+import com.evolveum.midpoint.util.exception.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -29,9 +33,6 @@ import com.evolveum.midpoint.schema.util.ShadowReferenceAttributesCollection;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -56,7 +57,7 @@ class AssociationsHelper {
      */
     void provideObjectsIdentifiersToSubject(
             ProvisioningContext ctx, ResourceObjectShadow objectToAdd, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException {
+            throws SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException {
         provideObjectsIdentifiersToAssociations(
                 ctx,
                 ShadowAssociationsCollection.ofShadow(objectToAdd.getBean()),
@@ -78,7 +79,7 @@ class AssociationsHelper {
             Collection<? extends ItemDelta<?, ?>> modifications,
             String desc,
             OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException {
+            throws SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException {
         for (ItemDelta<?, ?> modification : modifications) {
             provideObjectsIdentifiersToAssociations(
                     ctx,
@@ -97,7 +98,8 @@ class AssociationsHelper {
             ProvisioningContext ctx,
             ShadowAssociationsCollection associationsCollection,
             String desc,
-            OperationResult result) throws SchemaException, ObjectNotFoundException, ConfigurationException {
+            OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException {
 
         for (var iterableAssocValue : associationsCollection.getAllIterableValues()) {
             var assocValue = iterableAssocValue.associationValue();
@@ -110,7 +112,8 @@ class AssociationsHelper {
             ProvisioningContext ctx,
             ShadowReferenceAttributesCollection referenceAttributesCollection,
             String desc,
-            OperationResult result) throws SchemaException, ObjectNotFoundException, ConfigurationException {
+            OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException {
 
         for (var iterableRefAttrValue : referenceAttributesCollection.getAllIterableValues()) {
             var refAttrValue = iterableRefAttrValue.value();
@@ -127,8 +130,16 @@ class AssociationsHelper {
                                     iterableRefAttrValue, desc));
 
             try {
-                refAttrValue.setShadow(
-                        shadowFinder.getRepoShadow(ctx, objectOid, result));
+                RepoShadow repoShadow = shadowFinder.getRepoShadow(ctx, objectOid, result);
+                try {
+                    ctx.spawnForDefinition(repoShadow.getObjectDefinition())
+                            .computeAndUpdateEffectiveMarksAndPolicies(repoShadow, EXISTING, result);
+                } catch (CommunicationException | SecurityViolationException e) {
+                    throw new SystemException(
+                            "Couldn't compute effective marks and policies for %s: %s".formatted(repoShadow, e.getMessage()),
+                            e);
+                }
+                refAttrValue.setShadow(repoShadow);
             } catch (ObjectNotFoundException e) {
                 throw e.wrap("Couldn't resolve object reference OID %s in %s".formatted(objectOid, desc));
             }
@@ -198,7 +209,7 @@ class AssociationsHelper {
             @NotNull ShadowType shadow,
             @NotNull ResourceObjectDefinition definition,
             @NotNull OperationResult result)
-            throws SchemaException, ConfigurationException {
+            throws SchemaException {
 
         var attributesContainer = ShadowUtil.getAttributesContainerRequired(shadow);
         var referenceAttributes = attributesContainer.getReferenceAttributes();
@@ -267,7 +278,7 @@ class AssociationsHelper {
             @NotNull ShadowReferenceAttributeValue refAttrValue,
             @NotNull ShadowAssociationDefinition assocDef,
             @NotNull OperationResult result)
-            throws SchemaException, ConfigurationException {
+            throws SchemaException {
 
         LOGGER.trace("Considering conversion of reference attribute value {} into {}", refAttrValue, assocDef);
 

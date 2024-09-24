@@ -1,0 +1,36 @@
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!-- When using, #OID#, #NAME#, #ASSOCIATION_NAME#, and #GROUP# must be provided. -->
+
+<role oid="#OID#"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <name>#NAME#</name>
+    <inducement>
+        <construction>
+            <resourceRef oid="1c77ef70-61de-4666-8221-5edbb426b000"/>
+            <kind>account</kind>
+            <intent>default</intent>
+            <association id="3">
+                <ref>ri:#ASSOCIATION_NAME#</ref>
+                <outbound>
+                    <name>association-for-group-2</name>
+                    <strength>strong</strength>
+                    <expression>
+                        <value xsi:type="ShadowAssociationValueType">
+                            <objects>
+                                <ri:group oid="#GROUP#"/>
+                            </objects>
+                        </value>
+                    </expression>
+                </outbound>
+            </association>
+        </construction>
+    </inducement>
+</role>

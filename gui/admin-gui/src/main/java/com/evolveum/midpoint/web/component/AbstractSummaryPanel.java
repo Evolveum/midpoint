@@ -252,7 +252,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         IModel<String> labelModel;
         if (titleModel != null) {
             labelModel = titleModel;
-        } else if (titleModel != null) {
+        } else if (getTitlePropertyName() != null) {
             labelModel = createLabelModel(titlePropertyName, configurationPropertyName);
         } else {
             labelModel = Model.of(" ");
