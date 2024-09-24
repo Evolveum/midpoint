@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sqale.func;
 
+import static java.util.Collections.emptyList;
 import static java.util.Comparator.comparing;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -85,6 +86,9 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     private String user1Oid; // typical object
     private String task1Oid; // task has more item type variability
     private String shadow1Oid; // ditto
+
+    private String shadow2Oid; // ditto
+
     private String service1Oid; // object with integer item
     private String accessCertificationCampaign1Oid;
     private UUID accCertCampaign1Case2ObjectOid;
@@ -93,6 +97,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     public void initObjects() throws Exception {
         OperationResult result = createOperationResult();
         var resouceOid = UUID.randomUUID().toString();
+        var resouce2Oid = UUID.randomUUID().toString();
+
         user1Oid = repositoryService.addObject(
                 new UserType().name("user-1").asPrismObject(),
                 null, result);
@@ -105,6 +111,14 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                         .objectClass(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS)
                         .asPrismObject(),
                 null, result);
+
+        shadow1Oid = repositoryService.addObject(
+                new ShadowType().name("shadow-1")
+                        .resourceRef(resouce2Oid, ResourceType.COMPLEX_TYPE)
+                        .objectClass(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS)
+                        .asPrismObject(),
+                null, result);
+
         service1Oid = repositoryService.addObject(
                 new ServiceType().name("service-1").asPrismObject(),
                 null, result);
@@ -3548,6 +3562,62 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         TestUtil.assertSuccess(result);
         var shadowFromRepoAfter = repositoryService.getObject(ShadowType.class, shadowOid, null, result);
         assertProtectedAttributeValue(shadowFromRepoAfter, attrPath, valueToUpdate);
+    }
+
+    @Test(description = "MID-9754")
+    public void test550reindexShadowsWithSameAttributeNameDifferentType() throws Exception {
+
+        OperationResult result = createOperationResult();
+
+        ItemName attrName = new ItemName(NS_RI, "conflicting");
+        ItemPath attrPath = ItemPath.create(ShadowType.F_ATTRIBUTES, attrName);
+
+
+        given("a shadow with string attribute `conflicting`");
+        ShadowType stringBased = new ShadowType().name(getTestNameShort())
+                .resourceRef(UUID.randomUUID().toString(), ResourceType.COMPLEX_TYPE)
+                .objectClass(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS)
+                .kind(ShadowKindType.ACCOUNT)
+                .intent("intent");
+        //noinspection RedundantTypeArguments // actually, it is needed because of ambiguity resolution
+        new ShadowAttributesHelper(stringBased)
+                .<String>set(attrName, DOMUtil.XSD_STRING, 0, 1, "jack");
+        var stringBasedOid = repositoryService.addObject(stringBased.asPrismObject(), null, result);
+
+
+        given("and a shadow with int attribute `conflicting`");
+        ShadowType intBased = new ShadowType().name(getTestNameShort())
+                .resourceRef(UUID.randomUUID().toString(), ResourceType.COMPLEX_TYPE)
+                .objectClass(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS)
+                .kind(ShadowKindType.ACCOUNT)
+                .intent("intent");
+        //noinspection RedundantTypeArguments // actually, it is needed because of ambiguity resolution
+        new ShadowAttributesHelper(intBased)
+                .<Integer>setOne(attrName, DOMUtil.XSD_INT, 0, 1, 100);
+        var intBasedOid = repositoryService.addObject(intBased.asPrismObject(), null, result);
+
+        then("attributes read from repository are of correct respective types");
+        checkShadowCorrectness(attrPath, stringBasedOid, intBasedOid, result);
+
+        when("shadows are reindexed");
+        repositoryService.modifyObject(ShadowType.class, stringBasedOid, emptyList(),
+                RepoModifyOptions.createForceReindex(), result);
+        repositoryService.modifyObject(ShadowType.class, intBasedOid, emptyList(),
+                RepoModifyOptions.createForceReindex(), result);
+
+        then("attributes read from repository are of correct respective types");
+        checkShadowCorrectness(attrPath, stringBasedOid, intBasedOid, result);
+    }
+
+    private void checkShadowCorrectness(ItemPath attrPath, String stringBasedOid, String intBasedOid, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        var stringBasedAfter = repositoryService.getObject(ShadowType.class, stringBasedOid, null, result);
+        var intBasedAfter = repositoryService.getObject(ShadowType.class, intBasedOid, null, result);
+        assertThat(stringBasedAfter.getAllValues(attrPath))
+                .isNotEmpty()
+                .allMatch(v -> v.getRealValue() instanceof String, "string shadow contains strings");
+        assertThat(intBasedAfter.getAllValues(attrPath))
+                .isNotEmpty()
+                .allMatch(v -> v.getRealValue() instanceof Integer, "int shadow contains integers");
     }
 
     private static void assertProtectedAttributeValue(
