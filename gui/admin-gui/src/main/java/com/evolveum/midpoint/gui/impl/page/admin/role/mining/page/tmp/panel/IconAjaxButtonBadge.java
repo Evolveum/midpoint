@@ -109,7 +109,7 @@ public class IconAjaxButtonBadge extends BasePanel<RoleAnalysisAttributeAnalysis
     }
 
     protected String getLabelCssClass() {
-        return " pill-label";
+        return " text-truncate pill-label";
     }
 
 }
