@@ -128,6 +128,9 @@ public class ClusteringAttributeSelectorPanel extends InputPanel {
 
     private void updateModelWithRules(Collection<ClusteringAttributeRuleType> refs, AjaxRequestTarget target) {
         int attributeRulesCount = refs.size();
+        if(attributeRulesCount == 0) {
+            return;
+        }
         double weightPerAttribute = 1.0 / attributeRulesCount;
         weightPerAttribute = roundUpTwoDecimal(weightPerAttribute);
 
