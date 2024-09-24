@@ -12,12 +12,11 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
@@ -94,36 +93,17 @@ public interface ShadowReferenceAttributeDefinition
     }
 
     /**
-     * Currently, this returns resource-oriented query: multiple kind/intent combinations are ignored, and object class
-     * is used as the filter. See the TO DO comment below.
+     * Returns a filter that provides all shadows eligible as the target value for this reference attribute.
+     *
+     * If `resourceSafe` is `true`, the filter is safe for the execution on the resource, i.e., it does not contain
+     * multiple values for kind and intent. The filtering by object class is used in such cases; that requires post-processing
+     * of returned values that filters out those shadows that do not match those kind/intent values.
+     *
+     * Note that currently provisioning module require at most one kind/intent even with `noFetch` option being present.
      */
-    default @NotNull ObjectFilter createTargetObjectsFilter() {
-        var resourceOid = getResourceOid();
-        var targetParticipantTypes = getTargetParticipantTypes();
-        assertCheck(!targetParticipantTypes.isEmpty(), "No object type definitions (already checked)");
-        var firstObjectType = targetParticipantTypes.iterator().next().getTypeIdentification();
-        if (targetParticipantTypes.size() == 1 && firstObjectType != null) {
-            return PrismContext.get().queryFor(ShadowType.class)
-                    .item(ShadowType.F_RESOURCE_REF).ref(resourceOid, ResourceType.COMPLEX_TYPE)
-                    .and().item(ShadowType.F_KIND).eq(firstObjectType.getKind())
-                    .and().item(ShadowType.F_INTENT).eq(firstObjectType.getIntent())
-                    .buildFilter();
-        } else {
-            // TODO If there are multiple object types, then the filter is for the whole class.
-            //  This is OK if we want to search on the resource, and filter the data afterwards.
-            //  However, it is not OK if we want to search in the repository, as we are able to filter by kind/intent there.
-            var objectClassNames = targetParticipantTypes.stream()
-                    .map(def -> def.getObjectDefinition().getObjectClassName())
-                    .collect(Collectors.toSet());
-            var objectClassName = MiscUtil.extractSingletonRequired(
-                    objectClassNames,
-                    () -> new UnsupportedOperationException("Multiple object class names in " + this),
-                    () -> new IllegalStateException("No object class names in " + this));
-            return PrismContext.get().queryFor(ShadowType.class)
-                    .item(ShadowType.F_RESOURCE_REF).ref(resourceOid, ResourceType.COMPLEX_TYPE)
-                    .and().item(ShadowType.F_OBJECT_CLASS).eq(objectClassName)
-                    .buildFilter();
-        }
+    default @NotNull ObjectFilter createTargetObjectsFilter(boolean resourceSafe) {
+        return ObjectQueryUtil.createObjectTypesFilter(
+                getResourceOid(), getTargetParticipantTypes(), resourceSafe, this);
     }
 
     /** TODO reconsider this: which definition should we provide as the representative one? There can be many. */

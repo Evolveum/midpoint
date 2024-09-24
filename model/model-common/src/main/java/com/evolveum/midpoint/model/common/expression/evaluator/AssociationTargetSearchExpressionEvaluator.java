@@ -99,7 +99,7 @@ class AssociationTargetSearchExpressionEvaluator
                 query.setFilter(
                         prismContext.queryFactory()
                                 .createAnd(
-                                        outputDefinition.createTargetObjectsFilter(),
+                                        outputDefinition.createTargetObjectsFilter(true),
                                         query.getFilter()));
                 return query;
             }

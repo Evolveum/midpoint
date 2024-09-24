@@ -304,7 +304,7 @@ public class ProvisioningObjectsUtil {
             if (association != null && !shadowAssociationDefinition.getItemName().equivalent(association)) {
                 continue;
             }
-            ObjectFilter filter = shadowAssociationDefinition.createTargetObjectsFilter();
+            ObjectFilter filter = shadowAssociationDefinition.createTargetObjectsFilter(true);
             filters.add(filter);
         }
         PrismContext prismContext = PrismContext.get();
@@ -315,7 +315,7 @@ public class ProvisioningObjectsUtil {
     public static ObjectFilter createAssociationShadowRefFilter(
             ShadowReferenceAttributeDefinition shadowReferenceAttributeDefinition,
             PrismContext prismContext, String resourceOid) {
-        return shadowReferenceAttributeDefinition.createTargetObjectsFilter();
+        return shadowReferenceAttributeDefinition.createTargetObjectsFilter(true);
     }
 
     public static ItemVisibility checkShadowActivationAndPasswordVisibility(ItemWrapper<?, ?> itemWrapper,
