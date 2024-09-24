@@ -14,10 +14,15 @@ import java.util.Locale;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FeedbackMessagesHookType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -189,7 +194,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
                 showHideAll(true, target);
             }
         };
-        showAll.add(new VisibleBehaviour(() -> !OperationResultPanel.this.getModelObject().isShowMore()));
+        showAll.add(new VisibleBehaviour(() -> isShowDetails() && !OperationResultPanel.this.getModelObject().isShowMore()));
         box.add(showAll);
 
         AjaxLink<String> hideAll = new AjaxLink<>(ID_HIDE_ALL) {
@@ -200,7 +205,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
                 showHideAll(false, target);
             }
         };
-        hideAll.add(new VisibleBehaviour(() -> OperationResultPanel.this.getModelObject().isShowMore()));
+        hideAll.add(new VisibleBehaviour(() -> isShowDetails() && OperationResultPanel.this.getModelObject().isShowMore()));
         box.add(hideAll);
 
         AjaxLink<String> close = new AjaxLink<>("close") {
@@ -229,7 +234,19 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
             }
 
         });
-        downloadXml.add(new VisibleBehaviour(() -> getModelObject().isParent()));
+        downloadXml.add(new VisibleBehaviour(() -> {
+            if (!getModelObject().isParent()) {
+                return false;
+            }
+
+            CompiledGuiProfile profile = WebComponentUtil.getCompiledGuiProfile();
+            if (profile == null || profile.getFeedbackMessagesHook() == null) {
+                return true;
+            }
+
+            FeedbackMessagesHookType hook = profile.getFeedbackMessagesHook();
+            return BooleanUtils.isNotTrue(hook.getDisableOperationResultDownload());
+        }));
         downloadXml.setDeleteAfterDownload(true);
         box.add(downloadXml);
     }
@@ -245,6 +262,23 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
         }
     }
 
+    private String createDefaultUserFriendlyMessage() {
+        OpResult result = getModel().getObject();
+
+
+        return getString("OperationResultPanel.userFriendlyDefault", LocalizationUtil.translateEnum(result.getStatus()));
+    }
+
+    private boolean showOnlyUserFriendlyMessages() {
+        CompiledGuiProfile profile = WebComponentUtil.getCompiledGuiProfile();
+        if (profile == null || profile.getFeedbackMessagesHook() == null) {
+            return false;
+        }
+
+        FeedbackMessagesHookType hook = profile.getFeedbackMessagesHook();
+        return BooleanUtils.isTrue(hook.isShowOnlyUserFriendlyMessages());
+    }
+
     private WebMarkupContainer createMessage() {
         Label messageLabel = new Label(ID_MESSAGE_LABEL, (IModel<String>) () -> {
             OpResult result = OperationResultPanel.this.getModel().getObject();
@@ -254,6 +288,10 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
             String msg = null;
             if (result.getUserFriendlyMessage() != null) {
                 msg = LocalizationUtil.translateMessage(result.getUserFriendlyMessage());
+            }
+
+            if (showOnlyUserFriendlyMessages()) {
+                return StringUtils.isNotBlank(msg) ? msg : createDefaultUserFriendlyMessage();
             }
 
             if (StringUtils.isNotBlank(msg)) {
@@ -286,10 +324,24 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
         return message;
     }
 
+    private boolean isShowDetails() {
+        if (!getModelObject().isParent()) {
+            return true;
+        }
+
+        CompiledGuiProfile profile = WebComponentUtil.getCompiledGuiProfile();
+        if (profile == null || profile.getFeedbackMessagesHook() == null) {
+            return true;
+        }
+
+        FeedbackMessagesHookType hook = profile.getFeedbackMessagesHook();
+        return BooleanUtils.isNotTrue(hook.isDisplayOnlyTopLevelOperationResult());
+    }
+
     private void initDetails(WebMarkupContainer box) {
         final WebMarkupContainer details = new WebMarkupContainer("details", getModel());
         details.setOutputMarkupId(true);
-        details.add(new VisibleBehaviour(() -> getModelObject().isShowMore()));
+        details.add(new VisibleBehaviour(() -> isShowDetails() && getModelObject().isShowMore()));
         box.add(details);
 
         DetailsPanel operation = new DetailsPanel("operation", createStringResource("FeedbackAlertMessageDetails.operation"));
