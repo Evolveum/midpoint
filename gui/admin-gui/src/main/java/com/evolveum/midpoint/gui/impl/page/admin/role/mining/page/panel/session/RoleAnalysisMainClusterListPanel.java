@@ -771,7 +771,7 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
         return basicTable;
     }
 
-    private static void onAttributeAnalysisClickPerform(
+    private void onAttributeAnalysisClickPerform(
             @NotNull AjaxRequestTarget target,
             @NotNull Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
             @NotNull IModel<SelectableBean<RoleAnalysisClusterType>> model) {
@@ -805,7 +805,7 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
                     @Override
                     protected RoleAnalysisAttributesDto load() {
                         return RoleAnalysisAttributesDto.loadFromCluster(
-                                "RoleAnalysis.aspect.overview.page.title.clustering.attribute.analysis",
+                                createStringResource("RoleAnalysis.aspect.overview.page.title.clustering.attribute.analysis").getString(),
                                 model.getObject().getValue());
                     }
                 };

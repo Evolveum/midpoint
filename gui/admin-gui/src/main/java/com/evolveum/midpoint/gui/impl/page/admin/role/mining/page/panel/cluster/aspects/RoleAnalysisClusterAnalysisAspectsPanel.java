@@ -124,7 +124,8 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
                 @Override
                 protected RoleAnalysisAttributesDto load() {
                     return RoleAnalysisAttributesDto.loadFromCluster(
-                            "RoleAnalysis.aspect.overview.page.title.clustering.attribute.analysis",
+                            createStringResource("RoleAnalysis.aspect.overview.page.title.clustering.attribute.analysis")
+                                    .getString(),
                             getObjectDetailsModels().getObjectType());
                 }
             };

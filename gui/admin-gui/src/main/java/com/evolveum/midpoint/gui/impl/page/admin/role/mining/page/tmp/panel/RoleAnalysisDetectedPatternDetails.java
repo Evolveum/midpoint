@@ -76,6 +76,7 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
     protected boolean isWidgetsPanelVisible() {
         return true;
     }
+
     protected String getCssClassForHeaderItemsContainer() {
         return "row";
     }
@@ -224,7 +225,7 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
     }
 
     protected String getCardTitle() {
-        return "RoleAnalysisDetectedPatternDetails.panel.title";
+        return createStringResource("RoleAnalysisDetectedPatternDetails.panel.title").getString();
     }
 
     protected String getCssClassForStatisticsPanel() {
