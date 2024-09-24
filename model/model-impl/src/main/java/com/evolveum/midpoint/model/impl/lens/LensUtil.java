@@ -777,8 +777,8 @@ public class LensUtil {
             return;
         }
 
-        if (SequentialValueExpressionEvaluator.isAdvanceSequenceSafe(context)) {
-            LOGGER.trace("We're in safe mode, sequences don't have to be reclaimed");
+        if (context.isSimulation()) {
+            LOGGER.trace("We're in simulation mode, sequences don't have to be reclaimed");
             return;
         }
 

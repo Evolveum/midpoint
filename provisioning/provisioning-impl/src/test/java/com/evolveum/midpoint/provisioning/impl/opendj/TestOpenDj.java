@@ -9,6 +9,8 @@ package com.evolveum.midpoint.provisioning.impl.opendj;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_PASSWORD;
 
+import static com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification.ACCOUNT_DEFAULT;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
@@ -118,6 +120,10 @@ public class TestOpenDj extends AbstractOpenDjTest {
     private static final File RESOURCE_OPENDJ_NO_CREATE_FILE = new File(TEST_DIR, "resource-opendj-no-create.xml");
     private static final File RESOURCE_OPENDJ_NO_DELETE_FILE = new File(TEST_DIR, "resource-opendj-no-delete.xml");
     private static final File RESOURCE_OPENDJ_NO_UPDATE_FILE = new File(TEST_DIR, "resource-opendj-no-update.xml");
+
+    private static final String INTENT_LDAP_GROUP = "ldapGroup";
+    private static final ResourceObjectTypeIdentification TYPE_LDAP_GROUP =
+            ResourceObjectTypeIdentification.of(ShadowKindType.ENTITLEMENT, INTENT_LDAP_GROUP);
 
     private String groupSailorOid;
 
@@ -512,7 +518,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertThat(accountTypeDef.getTypeDefinition().getKind()).as("kind").isEqualTo(ShadowKindType.ACCOUNT);
         assertThat(accountTypeDef.getTypeDefinition().getIntent()).as("intent").isEqualTo("default");
 
-        var groupAssocDef = accountTypeDef.findAssociationDefinitionRequired(new QName(NS_RI, "group"));
+        var groupAssocDef = accountTypeDef.findAssociationDefinitionRequired(RI_GROUP);
         assertThat(groupAssocDef.canRead()).as("group association read").isTrue();
         assertThat(groupAssocDef.canAdd()).as("group association add").isTrue();
         assertThat(groupAssocDef.canModify()).as("group association modify").isTrue();
@@ -1213,6 +1219,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
             display("Found object", shadow);
 
+            var aShadow = AbstractShadow.of(shadow);
+
             assertNotNull(shadow.getOid());
             assertNotNull(shadow.getName());
             assertEquals(OBJECT_CLASS_INETORGPERSON_QNAME, shadow.getObjectClass());
@@ -1222,12 +1230,19 @@ public class TestOpenDj extends AbstractOpenDjTest {
             String idSecondaryVal = getAttributeValue(shadow, getSecondaryIdentifierQName());
             assertNotNull("No secondary (" + getSecondaryIdentifierQName().getLocalPart() + ")", idSecondaryVal);
             assertEquals("Wrong shadow name", idSecondaryVal.toLowerCase(), shadow.getName().getOrig().toLowerCase());
-            assertNotNull("Missing LDAP uid", getAttributeValue(shadow, new QName(NS_RI, "uid")));
-            assertNotNull("Missing LDAP cn", getAttributeValue(shadow, new QName(NS_RI, "cn")));
-            assertNotNull("Missing LDAP sn", getAttributeValue(shadow, new QName(NS_RI, "sn")));
+            var uid = aShadow.getAttributeRealValue(QNAME_UID);
+            assertNotNull("Missing LDAP uid", uid);
+            assertNotNull("Missing LDAP cn", aShadow.getAttributeRealValue(QNAME_CN));
+            assertNotNull("Missing LDAP sn", aShadow.getAttributeRealValue(QNAME_SN));
             assertNotNull("Missing activation", shadow.getActivation());
             assertNotNull("Missing activation status", shadow.getActivation().getAdministrativeStatus());
             assertEquals("Not enabled", ActivationStatusType.ENABLED, shadow.getActivation().getAdministrativeStatus());
+
+            if ("jgibbs".equals(uid)) {
+                assertShadow(shadow, "jgibbs")
+                        .associations()
+                        .assertValuesCount(1);
+            }
             return true;
         };
 
@@ -1240,7 +1255,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertEquals("Unexpected number of shadows", 9, objects.size());
 
         // The extra shadow is a group shadow
-        assertShadows(11);
+        assertShadows(hasNativeReferences() ? 10 : 11);
 
         // Bad things may happen, so let's check if the shadow is still there and that is has the same OID
         provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
@@ -1279,7 +1294,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertEquals("Unexpected number of shadows", 3, objects.size());
 
         // The extra shadow is a group shadow
-        assertShadows(11);
+        assertShadows(hasNativeReferences() ? 10 : 11);
 
         // Bad things may happen, so let's check if the shadow is still there and that is has the same OID
         provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
@@ -1318,7 +1333,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertEquals("Unexpected number of shadows", 3, objects.size());
 
         // The extra shadow is a group shadow
-        assertShadows(11);
+        assertShadows(hasNativeReferences() ? 10 : 11);
 
         // Bad things may happen, so let's check if the shadow is still there and that is has the same OID
         provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
@@ -2631,7 +2646,11 @@ public class TestOpenDj extends AbstractOpenDjTest {
         Entry groupEntry = openDJController.fetchEntry(GROUP_SWASHBUCKLERS_DN_NORM);
         display("LDAP group", groupEntry);
         assertNotNull("No LDAP group entry", groupEntry);
-        openDJController.assertNoUniqueMember(groupEntry, ACCOUNT_MORGAN_DN);
+        if (!hasNativeReferences()) {
+            openDJController.assertNoUniqueMember(groupEntry, ACCOUNT_MORGAN_DN);
+        } else {
+            // currently, there's no referential integrity set up on this OpenDJ, so the membership is still there
+        }
 
         assertShadows(21);
     }
@@ -2665,7 +2684,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(
-                RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, "ldapGroup");
+                RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, INTENT_LDAP_GROUP);
         displayDumpable("query", query);
 
         when();
@@ -2745,7 +2764,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(
-                RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, "ldapGroup");
+                RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, INTENT_LDAP_GROUP);
         displayDumpable("query", query);
 
         when();
@@ -3206,6 +3225,53 @@ public class TestOpenDj extends AbstractOpenDjTest {
                 ou: sub""");
     }
 
+    /** Checks adding a membership for a group that no longer exists. Correct exception should be returned. MID-10015. */
+    @Test(enabled=false) // MID-10015
+    public void test500AddingNonExistingGroupMembership() throws CommonException {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        var accountName = "a-" + getTestNameShort();
+        var accountDn = "uid=" + accountName + ",ou=People,dc=example,dc=com";
+
+        var groupName = "g-" + getTestNameShort();
+        var groupDn = "cn=" + groupName + ",ou=Groups,dc=example,dc=com";
+
+        given("group exists on the resource");
+        var groupShadow = Resource.of(resource)
+                .shadow(TYPE_LDAP_GROUP)
+                .withSimpleAttribute(QNAME_DN, groupDn)
+                .asPrismObject();
+        var groupOid = provisioningService.addObject(groupShadow, null, null, task, result);
+
+        and("account exists on the resource (not in the group)");
+        var accountShadow = Resource.of(resource)
+                .shadow(ACCOUNT_DEFAULT)
+                .withSimpleAttribute(QNAME_DN, accountDn)
+                .withSimpleAttribute(QNAME_CN, accountName)
+                .withSimpleAttribute(QNAME_SN, accountName)
+                .asPrismObject();
+        var accountOid = provisioningService.addObject(accountShadow, null, null, task, result);
+
+        and("group is deleted (on the resource)");
+        openDJController.delete(groupDn);
+
+        when("account is entitled with group membership");
+        try {
+            provisioningService.modifyObject(
+                    ShadowType.class,
+                    accountOid,
+                    createEntitleDelta(accountOid, RI_GROUP, groupOid)
+                            .getModifications(),
+                    null, null, task, result);
+        } catch (Exception e) {
+            assertExpectedException(e);
+            if (e instanceof ObjectNotFoundException objectNotFoundException) {
+                fail("We need to distinguish between group and account not found. But we got: " + objectNotFoundException);
+            }
+        }
+    }
+
     @Test
     public void test701ConfiguredCapabilityNoRead() throws Exception {
         Task task = getTestTask();
@@ -3477,7 +3543,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     }
 
     /**
-     * Look insite OpenDJ logs to check for clues of undesirable behavior.
+     * Look inside OpenDJ logs to check for clues of undesirable behavior.
      * MID-7091
      */
     @Test
@@ -3528,7 +3594,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
                         ShadowType.class, objectOid, createNoFetchCollection(), getTestTask(), getTestOperationResult()));
         var accountDef = Resource.of(resource)
                 .getCompleteSchemaRequired()
-                .getObjectTypeDefinitionRequired(ResourceObjectTypeIdentification.ACCOUNT_DEFAULT);
+                .getObjectTypeDefinitionRequired(ACCOUNT_DEFAULT);
         var assocDef = accountDef.findAssociationDefinitionRequired(assocName);
         return Resource.of(resource).deltaFor(accountDef.getObjectClassName())
                 .item(ShadowType.F_ASSOCIATIONS, assocName)

@@ -189,7 +189,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     }
 
     private CompositedIcon createCompositedIcon(CompiledObjectCollectionView collectionView) {
-        DisplayType display = GuiDisplayTypeUtil.getNewObjectDisplayTypeFromCollectionView(collectionView, getPageBase());
+        DisplayType display = GuiDisplayTypeUtil.getNewObjectDisplayTypeFromCollectionView(collectionView);
         CompositedIconBuilder builder = new CompositedIconBuilder();
 
         PolyStringType tooltip = display != null ? display.getTooltip() : null;
@@ -336,7 +336,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     private DisplayType getNewObjectButtonStandardDisplayType() {
         if (isCollectionViewPanelForCompiledView()) {
             CompiledObjectCollectionView view = getObjectCollectionView();
-            return GuiDisplayTypeUtil.getNewObjectDisplayTypeFromCollectionView(view, getPageBase());
+            return GuiDisplayTypeUtil.getNewObjectDisplayTypeFromCollectionView(view);
         }
 
         String title = getTitleForNewObjectButton();
@@ -648,7 +648,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                         MarksOfObjectListPopupPanel popup = new MarksOfObjectListPopupPanel(
                                 getPageBase().getMainPopupBodyId(), focusModel) {
                             @Override
-                            protected void refreshTable(AjaxRequestTarget target) {
+                            protected void onSave(AjaxRequestTarget target) {
                                 MainObjectListPanel.this.refreshTable(target);
                             }
                         };

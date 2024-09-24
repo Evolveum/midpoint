@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector.policy;
 
+import static com.evolveum.midpoint.model.api.ModelExecuteOptions.isPreviewPolicyRulesEnforcement;
 import static com.evolveum.midpoint.model.api.util.EvaluatedPolicyRuleUtil.MessageKind.NORMAL;
 import static com.evolveum.midpoint.model.api.util.EvaluatedPolicyRuleUtil.extractMessages;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPolicyRulesStorageStrategyType.FULL;
@@ -76,11 +77,15 @@ class PolicyRuleEnforcer<O extends ObjectType> {
         computeEnforcementForAssignmentRules();
         // TODO projection rules
 
-        if (context.isPreview()) {
+        if (isEnforcementPreviewMode()) {
             enforceInPreviewMode();
         } else {
             enforceInRegularMode();
         }
+    }
+
+    private boolean isEnforcementPreviewMode() {
+        return context.isLegacyPreview() || isPreviewPolicyRulesEnforcement(context.getOptions());
     }
 
     private void enforceInPreviewMode() {
@@ -154,6 +159,9 @@ class PolicyRuleEnforcer<O extends ObjectType> {
 
     private void enforceThresholds()
             throws ThresholdPolicyViolationException, ConfigurationException {
+        if (isEnforcementPreviewMode()) {
+            return; // preview should be already recorded
+        }
         LensFocusContext<O> focusContext = context.getFocusContext();
         if (focusContext != null) {
             for (EvaluatedPolicyRule policyRule : focusContext.getObjectPolicyRules()) {

@@ -1519,9 +1519,12 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
 
         ModelExecuteOptions options = executeOptions()
                 .executeImmediatelyAfterApproval(immediate)
-                .partialProcessing(new PartialProcessingOptionsType().approvals(PROCESS));
-        ModelContext<ObjectType> modelContext = modelInteractionService
-                .previewChanges(singleton(primaryDelta), options, task, result);
+                .partialProcessing(new PartialProcessingOptionsType().approvals(PROCESS))
+                .firstClickOnly()
+                .previewPolicyRulesEnforcement();
+
+        ModelContext<ObjectType> modelContext =
+                modelInteractionService.previewChanges(List.of(primaryDelta), options, task, result);
 
         List<ApprovalSchemaExecutionInformationType> approvalInfo = modelContext.getHookPreviewResults(ApprovalSchemaExecutionInformationType.class);
         PolicyRuleEnforcerPreviewOutputType enforceInfo = modelContext.getPolicyRuleEnforcerPreviewOutput();
@@ -1538,11 +1541,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         assertEquals("Wrong # of schema execution information pieces", also24 ? 5 : 4, approvalInfo.size());
         assertNotNull("No enforcement preview output", enforceInfo);
         List<EvaluatedPolicyRuleType> enforcementRules = enforceInfo.getRule();
-        if (also24) {
-            assertEquals("Wrong # of enforcement rules", 1, enforcementRules.size());
-        } else {
-            assertEquals("Wrong # of enforcement rules", 0, enforcementRules.size());
-        }
+        assertEquals("Wrong # of enforcement rules", also24 ? 1 : 0, enforcementRules.size());
 
         // shortcuts
         final String l1 = USER_LEAD21.oid, l2 = USER_LEAD22.oid, l3 = USER_LEAD23.oid, l4 = USER_LEAD24.oid;

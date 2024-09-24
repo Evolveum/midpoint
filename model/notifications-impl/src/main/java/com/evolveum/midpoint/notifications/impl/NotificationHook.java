@@ -62,12 +62,12 @@ public class NotificationHook implements ChangeHook {
     }
 
     @Override
-    public <O extends ObjectType> HookOperationMode invoke(
+    public <O extends ObjectType> @NotNull HookOperationMode invoke(
             @NotNull ModelContext<O> context, @NotNull Task task, @NotNull OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(OP_INVOKE);
         try {
-            if (context.isPreview() || context.isSimulation()) {
-                result.recordNotApplicable("preview/simulation mode");
+            if (context.isSimulation()) {
+                result.recordNotApplicable("simulation (or legacy preview) mode");
                 return HookOperationMode.FOREGROUND;
             }
             if (context.getState() != ModelState.FINAL) {
@@ -91,10 +91,10 @@ public class NotificationHook implements ChangeHook {
 
             return HookOperationMode.FOREGROUND;
         } catch (Throwable t) {
-            result.recordFatalError(t);
+            result.recordException(t);
             throw t;
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
         }
     }
 

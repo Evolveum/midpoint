@@ -9,15 +9,9 @@ package com.evolveum.midpoint.gui.api.component.result;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
-
-import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
-import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FeedbackMessagesHookType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -33,21 +27,26 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
-import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FeedbackMessagesHookType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
 
 /**
  * @author katkav
@@ -66,6 +65,8 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
     private static final String ID_SHOW_ALL = "showAll";
     private static final String ID_HIDE_ALL = "hideAll";
     private static final String ID_ERROR_STACK_TRACE = "errorStackTrace";
+    private static final String ID_DETAILS = "details";
+    private static final String ID_DETAILS_CONTAINER = "detailsContainer";
 
     static final String OPERATION_RESOURCE_KEY_PREFIX = "operation.";
 
@@ -189,7 +190,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
                 showHideAll(true, target);
             }
         };
-        showAll.add(new VisibleBehaviour(() -> !OperationResultPanel.this.getModelObject().isShowMore()));
+        showAll.add(new VisibleBehaviour(() -> isDisplayOnlyTopLevel() && !OperationResultPanel.this.getModelObject().isShowMore()));
         box.add(showAll);
 
         AjaxLink<String> hideAll = new AjaxLink<>(ID_HIDE_ALL) {
@@ -200,7 +201,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
                 showHideAll(false, target);
             }
         };
-        hideAll.add(new VisibleBehaviour(() -> OperationResultPanel.this.getModelObject().isShowMore()));
+        hideAll.add(new VisibleBehaviour(() -> isDisplayOnlyTopLevel() && OperationResultPanel.this.getModelObject().isShowMore()));
         box.add(hideAll);
 
         AjaxLink<String> close = new AjaxLink<>("close") {
@@ -213,23 +214,38 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
         };
         box.add(close);
 
-        DownloadLink downloadXml = new DownloadLink("downloadXml", new IModel<>() {
-            private static final long serialVersionUID = 1L;
+        IModel<File> downloadFileModel = new LoadableModel<>(false) {
 
             @Override
-            public File getObject() {
+            protected File load() {
                 String home = getMidpointConfiguration().getMidpointHome();
-                File f = new File(home, "result");
+
+                File f = new File(home + "/export", "result-" + System.currentTimeMillis() + ".xml");
+
                 try (DataOutputStream dos = new DataOutputStream(new FileOutputStream(f))) {
                     dos.writeBytes(OperationResultPanel.this.getModel().getObject().getXml());
                 } catch (IOException e) {
                     LOGGER.error("Could not download result: {}", e.getMessage(), e);
                 }
+
                 return f;
             }
+        };
 
-        });
-        downloadXml.add(new VisibleBehaviour(() -> getModelObject().isParent()));
+        DownloadLink downloadXml = new DownloadLink("downloadXml", downloadFileModel);
+        downloadXml.add(new VisibleBehaviour(() -> {
+            if (!getModelObject().isParent()) {
+                return false;
+            }
+
+            CompiledGuiProfile profile = WebComponentUtil.getCompiledGuiProfile();
+            if (profile == null || profile.getFeedbackMessagesHook() == null) {
+                return true;
+            }
+
+            FeedbackMessagesHookType hook = profile.getFeedbackMessagesHook();
+            return BooleanUtils.isNotTrue(hook.getDisableOperationResultDownload());
+        }));
         downloadXml.setDeleteAfterDownload(true);
         box.add(downloadXml);
     }
@@ -245,6 +261,22 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
         }
     }
 
+    private String createDefaultUserFriendlyMessage() {
+        OpResult result = getModel().getObject();
+
+        return getString("OperationResultPanel.userFriendlyDefault", LocalizationUtil.translateEnum(result.getStatus()));
+    }
+
+    private boolean isShowOnlyUserFriendlyMessages() {
+        CompiledGuiProfile profile = WebComponentUtil.getCompiledGuiProfile();
+        if (profile == null || profile.getFeedbackMessagesHook() == null) {
+            return false;
+        }
+
+        FeedbackMessagesHookType hook = profile.getFeedbackMessagesHook();
+        return BooleanUtils.isTrue(hook.isShowOnlyUserFriendlyMessages());
+    }
+
     private WebMarkupContainer createMessage() {
         Label messageLabel = new Label(ID_MESSAGE_LABEL, (IModel<String>) () -> {
             OpResult result = OperationResultPanel.this.getModel().getObject();
@@ -254,6 +286,10 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
             String msg = null;
             if (result.getUserFriendlyMessage() != null) {
                 msg = LocalizationUtil.translateMessage(result.getUserFriendlyMessage());
+            }
+
+            if (isShowOnlyUserFriendlyMessages()) {
+                return StringUtils.isNotBlank(msg) ? msg : createDefaultUserFriendlyMessage();
             }
 
             if (StringUtils.isNotBlank(msg)) {
@@ -286,11 +322,31 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
         return message;
     }
 
+    private boolean isDisplayOnlyTopLevel() {
+        if (!getModelObject().isParent()) {
+            return true;
+        }
+
+        CompiledGuiProfile profile = WebComponentUtil.getCompiledGuiProfile();
+        if (profile == null || profile.getFeedbackMessagesHook() == null) {
+            return true;
+        }
+
+        FeedbackMessagesHookType hook = profile.getFeedbackMessagesHook();
+        return BooleanUtils.isNotTrue(hook.isDisplayOnlyTopLevelOperationResult());
+    }
+
     private void initDetails(WebMarkupContainer box) {
-        final WebMarkupContainer details = new WebMarkupContainer("details", getModel());
-        details.setOutputMarkupId(true);
-        details.add(new VisibleBehaviour(() -> getModelObject().isShowMore()));
-        box.add(details);
+        final IModel<List<OpResult>> subresultsModel = createSubresultsModel(getModel());
+
+        final WebMarkupContainer detailsContainer = new WebMarkupContainer(ID_DETAILS_CONTAINER, getModel());
+        detailsContainer.setOutputMarkupId(true);
+        detailsContainer.add(new VisibleBehaviour(() -> isDisplayOnlyTopLevel() && getModelObject().isShowMore() && !subresultsModel.getObject().isEmpty()));
+        box.add(detailsContainer);
+
+        final WebMarkupContainer details = new WebMarkupContainer(ID_DETAILS);
+        details.add(new VisibleBehaviour(() -> !isShowOnlyUserFriendlyMessages()));
+        detailsContainer.add(details);
 
         DetailsPanel operation = new DetailsPanel("operation", createStringResource("FeedbackAlertMessageDetails.operation"));
         details.add(operation);
@@ -322,7 +378,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 
         initError(details);
 
-        ListView<OpResult> subresults = new ListView<>("subresults", createSubresultsModel(getModel())) {
+        ListView<OpResult> subresults = new ListView<>("subresults", subresultsModel) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -334,7 +390,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
             }
         };
         subresults.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(getModelObject().getSubresults())));
-        details.add(subresults);
+        detailsContainer.add(subresults);
     }
 
     private void initParams(WebMarkupContainer details) {

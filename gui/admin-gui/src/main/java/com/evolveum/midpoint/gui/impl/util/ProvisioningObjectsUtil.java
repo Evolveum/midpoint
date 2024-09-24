@@ -58,6 +58,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
+import org.jetbrains.annotations.Nullable;
+
 import javax.xml.namespace.QName;
 
 /**
@@ -292,28 +294,28 @@ public class ProvisioningObjectsUtil {
     }
 
     public static ObjectFilter getShadowTypeFilterForAssociation(ResourceObjectDefinition oc, ItemName association) {
-        PrismContext prismContext = PrismContext.get();
-        ObjectQuery query = prismContext.queryFactory().createQuery();
         if (oc == null) {
             return null;
         }
-        var shadowAssociationDefinitions = oc.getReferenceAttributeDefinitions();
+        var shadowAssociationDefinitions = oc.getAssociationDefinitions();
 
-        for (ShadowReferenceAttributeDefinition shadowReferenceAttributeDefinition : shadowAssociationDefinitions) {
-            if (association != null && !shadowReferenceAttributeDefinition.getItemName().equivalent(association)) {
+        List<ObjectFilter> filters = new ArrayList<>();
+        for (ShadowAssociationDefinition shadowAssociationDefinition : shadowAssociationDefinitions) {
+            if (association != null && !shadowAssociationDefinition.getItemName().equivalent(association)) {
                 continue;
             }
-            ObjectFilter filter = shadowReferenceAttributeDefinition.createTargetObjectsFilter();
-            query.setFilter(filter);        // TODO this overwrites existing filter (created in previous cycle iteration)... is it OK? [med]
+            ObjectFilter filter = shadowAssociationDefinition.createTargetObjectsFilter(true);
+            filters.add(filter);
         }
-        return query.getFilter();
+        PrismContext prismContext = PrismContext.get();
+        return prismContext.queryFactory().createOr(filters);
     }
 
     /** Creates a filter that provides all shadows eligible as the target value for this association. */
     public static ObjectFilter createAssociationShadowRefFilter(
             ShadowReferenceAttributeDefinition shadowReferenceAttributeDefinition,
             PrismContext prismContext, String resourceOid) {
-        return shadowReferenceAttributeDefinition.createTargetObjectsFilter();
+        return shadowReferenceAttributeDefinition.createTargetObjectsFilter(true);
     }
 
     public static ItemVisibility checkShadowActivationAndPasswordVisibility(ItemWrapper<?, ?> itemWrapper,
@@ -764,5 +766,41 @@ public class ProvisioningObjectsUtil {
                             list.add(associationDef);
                         }));
         return list;
+    }
+
+    @Nullable
+    public static ItemName getAssociationForConstructionAndShadow(@NotNull ConstructionType construction, @NotNull ShadowType shadow, PageBase pageBase) {
+        if (construction.getAssociation() != null
+                && construction.getAssociation().size() == 1
+                && construction.getAssociation().get(0).getRef() != null) {
+            return construction.getAssociation().get(0).getRef().getItemPath().lastName();
+        }
+
+        ResourceObjectDefinition objectDef = null;
+        try {
+            objectDef = getResourceObjectDefinition(construction, pageBase);
+        } catch (CommonException e) {
+            LOGGER.debug("Couldn't find ResourceObjectDefinition for construction " + construction);
+        }
+        if (objectDef == null) {
+            return null;
+        }
+
+        List<? extends ShadowAssociationDefinition> associationDefs = objectDef.getAssociationDefinitions().stream()
+                .filter(assocDef -> assocDef.getObjectParticipants().values().stream()
+                        .anyMatch(participant -> participant.matches(shadow)))
+                .toList();
+
+        if (associationDefs.isEmpty()) {
+            LOGGER.debug("Couldn't find association definition for shadow " + shadow + " in " + objectDef);
+            return null;
+        }
+
+        if (associationDefs.size() > 1) {
+            LOGGER.debug("Couldn't find one association definition for shadow " + shadow + " found: " + associationDefs);
+            return null;
+        }
+
+        return associationDefs.get(0).getItemName();
     }
 }

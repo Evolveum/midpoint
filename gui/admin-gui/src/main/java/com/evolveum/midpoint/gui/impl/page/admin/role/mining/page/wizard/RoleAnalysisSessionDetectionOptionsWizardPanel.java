@@ -28,11 +28,6 @@ public class RoleAnalysisSessionDetectionOptionsWizardPanel extends AbstractForm
     }
 
     @Override
-    protected void onInitialize() {
-        super.onInitialize();
-    }
-
-    @Override
     protected String getPanelType() {
         return WORK_PANEL_TYPE;
     }
@@ -83,6 +78,8 @@ public class RoleAnalysisSessionDetectionOptionsWizardPanel extends AbstractForm
         return containerWrapperModel;
     }
 
+    @SuppressWarnings("rawtypes")
+    @Override
     protected boolean checkMandatory(ItemWrapper itemWrapper) {
         ItemName itemName = itemWrapper.getItemName();
         if (itemName.equivalent(RoleAnalysisDetectionOptionType.F_MIN_ROLES_OCCUPANCY)
@@ -102,18 +99,13 @@ public class RoleAnalysisSessionDetectionOptionsWizardPanel extends AbstractForm
         return wrapper -> {
             ItemName itemName = wrapper.getItemName();
 
-            if (itemName.equivalent(RoleAnalysisDetectionOptionType.F_MIN_ROLES_OCCUPANCY)
-                    || itemName.equivalent(RoleAnalysisDetectionOptionType.F_MIN_USER_OCCUPANCY)) {
-
-                if (isOutlierSession) {
-                    return ItemVisibility.HIDDEN;
-                }
+            if ((itemName.equivalent(RoleAnalysisDetectionOptionType.F_MIN_ROLES_OCCUPANCY)
+                    || itemName.equivalent(RoleAnalysisDetectionOptionType.F_MIN_USER_OCCUPANCY)) && isOutlierSession) {
+                return ItemVisibility.HIDDEN;
             }
 
-            if (itemName.equivalent(RoleAnalysisDetectionOptionType.F_SENSITIVITY)) {
-                if (!isOutlierSession) {
-                    return ItemVisibility.HIDDEN;
-                }
+            if (itemName.equivalent(RoleAnalysisDetectionOptionType.F_SENSITIVITY) && !isOutlierSession) {
+                return ItemVisibility.HIDDEN;
             }
 
             return ItemVisibility.AUTO;

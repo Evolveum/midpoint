@@ -83,7 +83,7 @@ public class SequentialValueExpressionEvaluator<V extends PrismValue, D extends 
             return alreadyObtainedValue;
         } else {
             long freshValue;
-            if (!isAdvanceSequenceSafe()) {
+            if (!ctx.isSimulation()) {
                 freshValue = repositoryService.advanceSequence(sequenceOid, result);
             } else {
                 SequenceType seq =
@@ -97,16 +97,6 @@ public class SequentialValueExpressionEvaluator<V extends PrismValue, D extends 
 
             return freshValue;
         }
-    }
-
-    private static boolean isAdvanceSequenceSafe() {
-        return isAdvanceSequenceSafe(
-                ModelExpressionThreadLocalHolder.getLensContextRequired());
-    }
-
-    public static boolean isAdvanceSequenceSafe(ModelContext<?> context) {
-        return ModelExecuteOptions.isAdvanceSequenceSafe(
-                context.getOptions());
     }
 
     @NotNull

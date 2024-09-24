@@ -7,15 +7,23 @@
 
 package com.evolveum.midpoint.schema.util;
 
+import static com.evolveum.midpoint.util.MiscUtil.assertCheck;
+
 import static java.util.Collections.singleton;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.impl.query.ObjectQueryImpl;
+
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowRelationParticipantType;
 
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.mutable.MutableBoolean;
@@ -127,8 +135,7 @@ public class ObjectQueryUtil {
                 .and().item(ShadowType.F_OBJECT_CLASS).eq(objectClass);
     }
 
-    public static @NotNull ObjectQuery createResourceAndKindIntent(String resourceOid, ShadowKindType kind, String intent)
-            throws SchemaException {
+    public static @NotNull ObjectQuery createResourceAndKindIntent(String resourceOid, ShadowKindType kind, String intent) {
         return PrismContext.get().queryFactory().createQuery(
                 createResourceAndKindIntentFilter(resourceOid, kind, intent));
     }
@@ -739,5 +746,58 @@ public class ObjectQueryUtil {
         } else {
             return PrismContext.get().queryFactory().createQuery();
         }
+    }
+
+    /**
+     * Creates a filter that matches target objects for given reference or association definition.
+     *
+     * For internal use by reference and association definitions.
+     *
+     * @see ShadowReferenceAttributeDefinition#createTargetObjectsFilter(boolean)
+     * @see ShadowAssociationDefinition#createTargetObjectsFilter(boolean)
+     */
+    public static @NotNull ObjectFilter createObjectTypesFilter(
+            @NotNull String resourceOid,
+            @NotNull Collection<ShadowRelationParticipantType> targetParticipantTypes,
+            boolean executableOnResource,
+            Object errorCtx) {
+        assertCheck(!targetParticipantTypes.isEmpty(), "No object type definitions");
+
+        var objectClassNames = targetParticipantTypes.stream()
+                .map(def -> def.getObjectDefinition().getObjectClassName())
+                .collect(Collectors.toSet());
+        var objectClassName = MiscUtil.extractSingletonRequired(
+                objectClassNames,
+                () -> new UnsupportedOperationException("Multiple object class names in " + errorCtx),
+                () -> new IllegalStateException("No object class names in " + errorCtx));
+
+        S_FilterExit builder = PrismContext.get().queryFor(ShadowType.class)
+                .item(ShadowType.F_RESOURCE_REF).ref(resourceOid, ResourceType.COMPLEX_TYPE)
+                .and().item(ShadowType.F_OBJECT_CLASS).eq(objectClassName);
+        var containsWholeClass = targetParticipantTypes.stream()
+                .anyMatch(participantType -> participantType.isWholeClass());
+        if (containsWholeClass || targetParticipantTypes.isEmpty()) {
+            // No type restrictions
+        } else if (targetParticipantTypes.size() == 1) {
+            // Single type restriction -> flat conjunction
+            var typeId = Objects.requireNonNull(targetParticipantTypes.iterator().next().getTypeIdentification());
+            builder = builder
+                    .and().item(ShadowType.F_KIND).eq(typeId.getKind())
+                    .and().item(ShadowType.F_INTENT).eq(typeId.getIntent());
+        } else if (executableOnResource) {
+            // There are multiple types, but we cannot use them -> so we'll provide no type restrictions
+        } else {
+            builder = builder.and().block();
+            for (var targetParticipantType : targetParticipantTypes) {
+                var typeId = Objects.requireNonNull(targetParticipantType.getTypeIdentification());
+                builder = builder.or() // this OR at the beginning seems to be benign
+                        .block()
+                        .item(ShadowType.F_KIND).eq(typeId.getKind())
+                        .and().item(ShadowType.F_INTENT).eq(typeId.getIntent())
+                        .endBlock();
+            }
+            builder = builder.endBlock();
+        }
+        return builder.buildFilter();
     }
 }

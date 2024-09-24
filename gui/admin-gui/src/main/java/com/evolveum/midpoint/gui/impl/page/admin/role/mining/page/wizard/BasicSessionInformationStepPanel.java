@@ -8,9 +8,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.visit.ClassVisitFilter;
@@ -25,6 +24,8 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author lskublik
@@ -43,6 +44,7 @@ public class BasicSessionInformationStepPanel extends AbstractFormWizardStepPane
         super(model);
     }
 
+    @SuppressWarnings("rawtypes")
     @Override
     protected IModel<? extends PrismContainerWrapper> getContainerFormModel() {
         IModel<? extends PrismContainerWrapper> containerFormModel = super.getContainerFormModel();
@@ -60,9 +62,9 @@ public class BasicSessionInformationStepPanel extends AbstractFormWizardStepPane
     @Override
     protected ItemVisibilityHandler getVisibilityHandler() {
         return wrapper -> {
-            if (wrapper.getItemName().equals(RoleAnalysisSessionType.F_NAME)
-                    || wrapper.getItemName().equals(RoleAnalysisSessionType.F_DOCUMENTATION)
-                    || wrapper.getItemName().equivalent(RoleAnalysisSessionType.F_DESCRIPTION)) {
+            if (wrapper.getItemName().equals(ObjectType.F_NAME)
+                    || wrapper.getItemName().equals(ObjectType.F_DOCUMENTATION)
+                    || wrapper.getItemName().equivalent(ObjectType.F_DESCRIPTION)) {
                 return ItemVisibility.AUTO;
             }
 
@@ -78,7 +80,7 @@ public class BasicSessionInformationStepPanel extends AbstractFormWizardStepPane
         }, new ClassVisitFilter(Form.class) {
             @Override
             public boolean visitObject(Object object) {
-                return super.visitObject(object) && "mainForm".equals(((Form) object).getId());
+                return super.visitObject(object) && "mainForm".equals(((Form<?>) object).getId());
             }
         });
         super.onBeforeRender();
@@ -108,8 +110,10 @@ public class BasicSessionInformationStepPanel extends AbstractFormWizardStepPane
         return createStringResource("PageRoleAnalysisSession.wizard.step.basicInformation.subText");
     }
 
-    protected boolean checkMandatory(ItemWrapper itemWrapper) {
-        if (itemWrapper.getItemName().equals(RoleAnalysisSessionType.F_NAME)) {
+    @SuppressWarnings("rawtypes")
+    @Override
+    protected boolean checkMandatory(@NotNull ItemWrapper itemWrapper) {
+        if (itemWrapper.getItemName().equals(ObjectType.F_NAME)) {
             return true;
         }
         return itemWrapper.isMandatory();
@@ -120,13 +124,4 @@ public class BasicSessionInformationStepPanel extends AbstractFormWizardStepPane
         return true;
     }
 
-    @Override
-    protected void onSubmitPerformed(AjaxRequestTarget target) {
-        super.onSubmitPerformed(target);
-    }
-
-    @Override
-    public VisibleEnableBehaviour getBackBehaviour() {
-        return super.getBackBehaviour();
-    }
 }

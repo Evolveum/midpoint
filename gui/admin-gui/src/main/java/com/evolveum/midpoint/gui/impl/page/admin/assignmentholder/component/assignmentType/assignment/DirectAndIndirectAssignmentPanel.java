@@ -260,7 +260,10 @@ public class DirectAndIndirectAssignmentPanel<AH extends AssignmentHolderType> e
     private ModelExecuteOptions createPreviewAssignmentsOptions() {
         ModelExecuteOptions options = getPageBase()
                 .executeOptions()
-                .evaluateAllAssignmentRelationsOnRecompute();
+                .evaluateAllAssignmentRelationsOnRecompute()
+                .firstClickOnly()
+                .previewPolicyRulesEnforcement()
+                .operationStartPreAuthorized();
         options.getOrCreatePartialProcessing().outbound(PartialProcessingTypeType.SKIP);
         return options;
     }

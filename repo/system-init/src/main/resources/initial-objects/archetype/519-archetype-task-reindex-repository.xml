@@ -12,7 +12,12 @@
     <archetypeType>auxiliary</archetypeType>
     <archetypePolicy>
         <display>
-            <label>Reindex repository task</label>
+            <label>
+                <orig>Reindex repository task</orig>
+                <translation>
+                    <key>ReindexRepositoryTask.label</key>
+                </translation>
+            </label>
             <pluralLabel>
                 <orig>Reindex repository task</orig>
                 <translation>

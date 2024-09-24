@@ -242,6 +242,12 @@ public class SearchableItemsDefinitions {
                 ItemPath.create(PrismItemDefinitionType.F_MULTIVALUE),
                 ItemPath.create(PrismItemDefinitionType.F_INDEXED)
         ));
+
+        SEARCHABLE_OBJECTS.put(GuiObjectListViewType.class, Arrays.asList(
+                ItemPath.create(GuiObjectListViewType.F_TYPE),
+                ItemPath.create(GuiObjectListViewType.F_IDENTIFIER),
+                ItemPath.create(GuiObjectListViewType.F_DISPLAY, DisplayType.F_LABEL)
+        ));
     }
 
     static {

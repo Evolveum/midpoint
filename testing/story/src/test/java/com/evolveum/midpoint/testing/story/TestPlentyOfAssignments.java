@@ -246,7 +246,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         // WHEN
         when();
 
-        ModelContext<ObjectType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+        modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
 
         // THEN
         then();

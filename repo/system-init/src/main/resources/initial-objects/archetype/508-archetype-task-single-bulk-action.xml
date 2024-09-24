@@ -5,13 +5,18 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <archetype oid="00000000-0000-0000-0000-000000000508"
-           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-           xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
     <name>Single action task</name>
     <archetypePolicy>
         <display>
-            <label>Single action task</label>
+            <label>
+                <orig>Single action task</orig>
+                <translation>
+                    <key>SingleActionTask.title</key>
+                </translation>
+            </label>
             <pluralLabel>
                 <orig>Single action tasks</orig>
                 <translation>

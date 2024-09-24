@@ -252,7 +252,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     @NotNull private final List<LensProjectionContext> conflictingProjectionContexts = new ArrayList<>();
 
     /** Denotes (legacy) "preview changes" mode. */
-    private transient boolean preview;
+    private transient boolean legacyPreview;
 
     private transient Map<String, Collection<? extends Containerable>> hookPreviewResultsMap;
 
@@ -1707,12 +1707,12 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     }
 
     @Override
-    public boolean isPreview() {
-        return preview;
+    public boolean isLegacyPreview() {
+        return legacyPreview;
     }
 
-    public void setPreview(boolean preview) {
-        this.preview = preview;
+    void setLegacyPreview() {
+        this.legacyPreview = true;
     }
 
     /**

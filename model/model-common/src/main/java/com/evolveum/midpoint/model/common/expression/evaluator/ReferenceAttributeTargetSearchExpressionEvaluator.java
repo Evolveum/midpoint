@@ -90,7 +90,7 @@ class ReferenceAttributeTargetSearchExpressionEvaluator
                 query.setFilter(
                         prismContext.queryFactory()
                                 .createAnd(
-                                        outputDefinition.createTargetObjectsFilter(),
+                                        outputDefinition.createTargetObjectsFilter(true),
                                         query.getFilter()));
                 return query;
             }
@@ -117,15 +117,6 @@ class ReferenceAttributeTargetSearchExpressionEvaluator
             protected boolean isAcceptable(@NotNull PrismObject<ShadowType> object) {
                 // FIXME do additional filtering for the targets (if there are multiple types for them)
                 return ShadowUtil.isNotDead(object.asObjectable());
-            }
-
-            /**
-             * Create on demand used in AssociationTargetSearch would fail
-             * @return false
-             */
-            @Override
-            protected boolean isCreateOnDemandSafe() {
-                return false;
             }
         };
     }

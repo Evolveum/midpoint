@@ -250,11 +250,6 @@ public class ResourceObjectClassDefinitionImpl
     }
 
     @Override
-    public @NotNull ObjectQuery createShadowSearchQuery(String resourceOid) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public String getHumanReadableName() {
         if (getDisplayName() != null) {
             return getDisplayName();

@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl.controller;
 
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
@@ -435,6 +437,12 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             LensContext<? extends ObjectType> context, ModelExecuteOptions options, Task task, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
+
+        if (ModelExecuteOptions.isOperationStartPreAuthorized(options)) {
+            argCheck(!task.isExecutionFullyPersistent(), "operationStartPreAuthorized option can be used only for simulations");
+            return;
+        }
+
         List<String> relevantActions = List.of(
                 ModelAuthorizationAction.ADD.getUrl(),
                 ModelAuthorizationAction.MODIFY.getUrl(),
@@ -452,18 +460,22 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             if (!securityEnforcer.hasAnyAllowAuthorization(relevantActions, phase)) {
                 throw new SecurityViolationException("Not authorized to request execution of changes");
             }
-            PartialProcessingOptionsType partialProcessing = ModelExecuteOptions.getPartialProcessing(options);
+            var partialProcessing = ModelExecuteOptions.getPartialProcessing(options);
             if (partialProcessing != null) {
-                // TODO Note that the information about the object may be incomplete (orgs, tenants, roles) or even missing.
-                //  See MID-9454, MID-9477.
-                LensFocusContext<? extends ObjectType> focusContext = context.getFocusContext();
-                var autzParams =
-                        focusContext != null ?
-                                AuthorizationParameters.Builder.buildObject(focusContext.getObjectAny()) :
-                                AuthorizationParameters.EMPTY;
-                securityEnforcer.authorize(
-                        ModelAuthorizationAction.PARTIAL_EXECUTION.getUrl(),
-                        phase, autzParams, task, result);
+                if (task.isExecutionFullyPersistent()) {
+                    // TODO Note that the information about the object may be incomplete (orgs, tenants, roles) or even missing.
+                    //  See MID-9454, MID-9477.
+                    LensFocusContext<? extends ObjectType> focusContext = context.getFocusContext();
+                    var autzParams =
+                            focusContext != null ?
+                                    AuthorizationParameters.Builder.buildObject(focusContext.getObjectAny()) :
+                                    AuthorizationParameters.EMPTY;
+                    securityEnforcer.authorize(
+                            ModelAuthorizationAction.PARTIAL_EXECUTION.getUrl(),
+                            phase, autzParams, task, result);
+                } else {
+                    LOGGER.trace("Partial processing is automatically authorized for simulation/preview mode");
+                }
             }
         } catch (Throwable t) {
             result.recordException(t);

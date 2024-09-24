@@ -26,6 +26,7 @@ public interface ChangeHook {
 
     /**
      * Generic method to be implemented by the hook. It is invoked by the Model Clockwork at these occasions:
+     *
      *  - after PRIMARY state has been entered,
      *  - after SECONDARY state has been entered, and
      *  - after each of secondary-state waves has been executed (i.e. with the state of SECONDARY for all except
@@ -41,7 +42,9 @@ public interface ChangeHook {
      *   - ERROR, if the hook encountered an error which prevents model operation from continuing
      *     (this case is currently not defined very well)
      */
-    <O extends ObjectType> HookOperationMode invoke(@NotNull ModelContext<O> context, @NotNull Task task, @NotNull OperationResult result) throws PolicyViolationException;
+    <O extends ObjectType> @NotNull HookOperationMode invoke(
+            @NotNull ModelContext<O> context, @NotNull Task task, @NotNull OperationResult result)
+            throws PolicyViolationException;
 
     /**
      * This method is invoked by the clockwork when an exception occurs.

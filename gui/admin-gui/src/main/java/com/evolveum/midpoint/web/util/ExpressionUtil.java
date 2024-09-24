@@ -10,7 +10,6 @@ import java.util.*;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowAssociationsUtil;
 
 import jakarta.xml.bind.JAXBElement;
@@ -452,7 +451,7 @@ public class ExpressionUtil {
     }
 
     @NotNull
-    public static List<ObjectReferenceType> getShadowRefValue(ExpressionType expressionType, PrismContext prismContext) {
+    public static List<ObjectReferenceType> getShadowRefValue(ExpressionType expressionType) {
         List<ObjectReferenceType> rv = new ArrayList<>();
         if (expressionType != null) {
             for (var associationValue : getAssociationList(expressionType)) {
@@ -520,33 +519,21 @@ public class ExpressionUtil {
         return Collections.unmodifiableList(rv);
     }
 
-    public static void addShadowRefEvaluatorValue(ExpressionType expression, String oid) {
+    public static void addShadowRefEvaluatorValue(ExpressionType expression) {
+        expression.getExpressionEvaluator().add(
+                new JAXBElement<>(SchemaConstants.C_VALUE, ShadowAssociationValueType.class,
+                        new ShadowAssociationValueType()));
+    }
+
+    public static void addShadowRefEvaluatorValue(ExpressionType expression, ItemName associationName, String oid) {
         if (StringUtils.isNotEmpty(oid)) {
             expression.getExpressionEvaluator().add(
                     new JAXBElement<>(SchemaConstants.C_VALUE, ShadowAssociationValueType.class,
                             ShadowAssociationsUtil.createSingleRefRawValue(
-                                    ItemName.from("", "TODO"), // FIXME provide association name here
+                                    associationName,
                                     oid)));
         } else {
-            expression.getExpressionEvaluator().add(
-                    new JAXBElement<>(SchemaConstants.C_VALUE, ShadowAssociationValueType.class,
-                            new ShadowAssociationValueType()));
-        }
-    }
-
-    public static void updateShadowRefEvaluatorValue(ExpressionType expression, List<ObjectReferenceType> values) {
-        if (expression == null) {
-            expression = new ExpressionType();      // TODO ??? this is thrown away
-        }
-        removeEvaluatorByName(expression, SchemaConstantsGenerated.C_VALUE);
-        for (ObjectReferenceType value : values) {
-            expression.expressionEvaluator(
-                    new JAXBElement<>(
-                            SchemaConstantsGenerated.C_VALUE,
-                            ShadowAssociationValueType.class,
-                            ShadowAssociationsUtil.createSingleRefRawValue(
-                                    ItemName.from("", "TODO"), // FIXME provide association name here
-                                    value)));
+            addShadowRefEvaluatorValue(expression);
         }
     }
 

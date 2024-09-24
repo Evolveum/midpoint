@@ -142,6 +142,13 @@ public class Resource {
         return resourceBean.toString();
     }
 
+    public @NotNull ShadowBuilder shadow(@NotNull ResourceObjectTypeIdentification identification)
+            throws SchemaException, ConfigurationException {
+        return ShadowBuilder.withDefinition(
+                        getCompleteSchemaRequired().getObjectTypeDefinitionRequired(identification))
+                .onResource(getOid());
+    }
+
     // TODO move to a better place
     public static class ResourceItemDefinitionResolver implements ItemDefinitionResolver {
 

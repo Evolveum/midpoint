@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import javax.xml.namespace.QName;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -53,7 +54,9 @@ public class ClockworkHookHelper {
      * - BACKGROUND, if any hook reported switching to background; otherwise
      * - FOREGROUND (if all hooks reported finishing on foreground)
      */
-    HookOperationMode invokeHooks(LensContext<?> context, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    @NotNull HookOperationMode invokeHooks(LensContext<?> context, Task task, OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
         // TODO: following two parts should be merged together in later versions
 
         // Execute configured scripting hooks
@@ -168,7 +171,7 @@ public class ClockworkHookHelper {
         LOGGER.trace("Finished evaluation of {}", shortDesc);
     }
 
-    <F extends ObjectType> void invokePreview(LensContext<F> context, Task task, OperationResult result) {
+    public <F extends ObjectType> void invokePreview(LensContext<F> context, Task task, OperationResult result) {
         if (hookRegistry != null) {
             for (ChangeHook hook : hookRegistry.getAllChangeHooks()) {
                 hook.invokePreview(context, task, result);

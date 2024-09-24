@@ -1608,11 +1608,13 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
                 .addRealValues(roleAssignments(newRoleOids))
                 .asObjectDelta(user.getOid());
 
-        ModelExecuteOptions options = ModelExecuteOptions.create()
+        var options = ModelExecuteOptions.create()
+                .firstClickOnly()
                 .partialProcessing(new PartialProcessingOptionsType()
                         .inbound(SKIP)
                         .projection(SKIP))
-                .ignoreAssignmentPruning();
+                .ignoreAssignmentPruning()
+                .previewPolicyRulesEnforcement();
 
         ModelContext<UserType> ctx = modelInteractionService.previewChanges(List.of(delta), options, task, result);
 
@@ -1712,7 +1714,10 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
         // WHEN
         when();
-        ModelContext<ObjectType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+        var options = ModelExecuteOptions.create()
+                .firstClickOnly()
+                .previewPolicyRulesEnforcement();
+        ModelContext<ObjectType> modelContext = modelInteractionService.previewChanges(List.of(delta), options, task, result);
 
         // THEN
         then();

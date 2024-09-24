@@ -118,7 +118,7 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
     public CompleteResourceSchema getRefinedSchema() throws SchemaException, ConfigurationException {
         @NotNull ResourceType resource = getObjectWrapperModel().getObject().getObjectOld().asObjectable().clone();
         WebPrismUtil.cleanupEmptyContainers(resource.asPrismContainer());
-        return ResourceSchemaFactory.getCompleteSchema(resource);
+        return ResourceSchemaFactory.getCompleteSchema(resource, LayerType.PRESENTATION);
     }
 
     @Override

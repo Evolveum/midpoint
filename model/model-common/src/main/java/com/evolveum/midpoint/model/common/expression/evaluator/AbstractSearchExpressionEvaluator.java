@@ -530,33 +530,19 @@ public abstract class AbstractSearchExpressionEvaluator<
             LOGGER.debug("Creating object on demand from {}: {}", vtCtx, newObject);
             LOGGER.trace("Creating object on demand:\n{}", newObject.debugDumpLazily(1));
 
-            ObjectDelta<O> addDelta = newObject.createAddDelta();
-            Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(addDelta);
-
-            if (isCreateOnDemandSafe()) {
-                try {
-                    ModelContext<O> context = modelInteractionService.previewChanges(deltas, null, getTask(), result);
-                    ModelElementContext<O> focusContext = context.getFocusContext();
-                    return focusContext.getObjectNew();
-                } catch (Exception ex) {
-                    throw new ExpressionEvaluationException(ex.getMessage(), ex);
-                }
-            }
-
             Collection<ObjectDeltaOperation<? extends ObjectType>> executedChanges;
             try {
-                executedChanges = modelService.executeChanges(deltas, null, getTask(), result);
+                ObjectDelta<O> addDelta = newObject.createAddDelta();
+                // If running in the simulation mode, the executeChanges method below will not have any persistent effects.
+                // If running in the legacy preview mode, the task execution mode is set to SIMULATION anyway.
+                // So, we don't need to call previewChanges here. Execute is always OK.
+                executedChanges = modelService.executeChanges(List.of(addDelta), null, getTask(), result);
             } catch (CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
                 throw new ExpressionEvaluationException(e.getMessage(), e);
             }
 
             ObjectDeltaOperation<O> deltaOperation = ObjectDeltaOperation.findAddDelta(executedChanges, newObject);
             return deltaOperation != null ? deltaOperation.getObjectDelta().getObjectToAdd() : null;
-        }
-
-        protected boolean isCreateOnDemandSafe() {
-            return ModelExecuteOptions.isCreateOnDemandSafe(
-                    ModelExpressionThreadLocalHolder.getLensContextRequired().getOptions());
         }
 
         private Task getTask() {

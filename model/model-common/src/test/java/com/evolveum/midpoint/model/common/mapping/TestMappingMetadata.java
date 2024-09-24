@@ -1206,7 +1206,7 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
             }
 
             @Override
-            public boolean isPreview() {
+            public boolean isLegacyPreview() {
                 return false;
             }
 

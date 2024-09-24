@@ -170,15 +170,6 @@ it was removed for the purpose of the example.
 							"panelType": "constructionInducements"
 						},
 						{
-							"@id": 12,
-							"identifier": "inducedEntitlementsTopLevel",
-							"display": {
-								"label": "AbstractRoleMainPanel.inducedEntitlements"
-							},
-							"displayOrder": 116,
-							"panelType": "inducedEntitlements"
-						},
-						{
 							"@id": 13,
 							"identifier": "applicationRoles",
 							"display": {
