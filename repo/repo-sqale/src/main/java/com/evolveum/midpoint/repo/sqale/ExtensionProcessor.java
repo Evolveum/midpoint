@@ -26,6 +26,8 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
+import static com.evolveum.midpoint.repo.sqale.jsonb.JsonbUtils.toRealValue;
+
 public class ExtensionProcessor {
 
     private final SqaleRepoContext repositoryContext;
@@ -233,11 +235,11 @@ public class ExtensionProcessor {
                 if (item.isEmpty()) {
                     switch (mapping.cardinality) {
                         case SCALAR:
-                            item.setRealValue(attribute.getValue());
+                            item.setRealValue(toRealValue(attribute.getValue(), definition.getTypeName(), repositoryContext));
                             break;
                         case ARRAY:
                             List<?> value = (List<?>) attribute.getValue();
-                            item.setRealValues(value.toArray());
+                            item.setRealValues(value.stream().map(v -> toRealValue(v, definition.getTypeName(), repositoryContext)).toArray());
                             break;
                         default:
                             throw new IllegalStateException("");
