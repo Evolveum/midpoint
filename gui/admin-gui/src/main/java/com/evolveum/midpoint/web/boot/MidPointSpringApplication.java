@@ -235,7 +235,9 @@ public class MidPointSpringApplication extends AbstractSpringBootApplication {
             serverFactory.addErrorPages(new ErrorPage(HttpStatus.GONE, "/error/410"));
             serverFactory.addErrorPages(new ErrorPage(HttpStatus.INTERNAL_SERVER_ERROR, "/error"));
 
-            Session session = new Session();
+            // We should create new session object, but rather use existing (merged configuration
+            // Session session = new Session();
+            Session session = serverFactory.getSession();
             session.setTimeout(sessionTimeout);
             serverFactory.setSession(session);
 
