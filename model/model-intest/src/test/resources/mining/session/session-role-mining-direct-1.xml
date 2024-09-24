@@ -49,7 +49,7 @@
                 <propertyType>c:RoleType</propertyType>
             </analysisAttributeRule>
         </analysisAttributeSetting>
-        <isIndirect>true</isIndirect>
+        <isIndirect>false</isIndirect>
         <detailedAnalysis>false</detailedAnalysis>
     </userModeOptions>
     <defaultDetectionOption>

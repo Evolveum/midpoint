@@ -26,7 +26,6 @@ import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.TestTask;
 
 import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNull;
 
 /**
  * Role analysis tests (role mining and outlier detection).
@@ -56,7 +55,11 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
     public static final Integer FINAL_TASK_STAGE = 7;
     public static final Integer LOADING_DATA_TASK_STAGE = 1;
 
-    //RBAC generated data
+    // RBAC generated data
+    // - -m /path/to/midpoint generate-rbac-data --import --transform --role-multiplier 5 --users-count 400 --archetype-role-enabled --archetype-user-enabled --user-division "10:10:20:20:20:10:10" --forget-noise 10 -op 30 -om 5 -oj 5 -oz 5 -oe 5 -an 5
+    // - Recompute users (in order to test indirect mode): Server task -> Recomputation tasks -> Type: User
+    // - download from UI and clean up to reduce file size (remove _metadata, operationExecution, description, ...)
+    // - manually remove administrator user and role from the xml
     private static final File TEST_DIR_USERS_FILE = new File(TEST_DIR, "import/users.xml");
     private static final File TEST_DIR_ORGS_FILE = new File(TEST_DIR, "import/orgs.xml");
     private static final File TEST_DIR_ROLES_FILE = new File(TEST_DIR, "import/roles.xml");
@@ -78,12 +81,12 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
             new TestTask(TEST_DIR, "task/task-role-analysis-process-session-role-mode-1.xml",
                     "813b8407-adb0-4575-b40c-35e06573c20e");
 
-    // Role mining indirect mode
-    private static final String SESSION_ROLE_MINING_INDIRECT_1_OID = "7eb32d16-b0d5-4149-834d-4a80872db920";
-    private static final TestObject<RoleAnalysisSessionType> SESSION_ROLE_MINING_INDIRECT_1 = TestObject.file(
-            TEST_DIR, "session/session-role-mining-indirect-1.xml", SESSION_ROLE_MINING_INDIRECT_1_OID);
-    private static final TestTask TASK_ROLE_ANALYSIS_PROCESS_SESSION_ROLE_MINING_INDIRECT_1 =
-            new TestTask(TEST_DIR, "task/task-role-analysis-process-session-indirect-1.xml",
+    // Role mining direct mode
+    private static final String SESSION_ROLE_MINING_DIRECT_1_OID = "7eb32d16-b0d5-4149-834d-4a80872db920";
+    private static final TestObject<RoleAnalysisSessionType> SESSION_ROLE_MINING_DIRECT_1 = TestObject.file(
+            TEST_DIR, "session/session-role-mining-direct-1.xml", SESSION_ROLE_MINING_DIRECT_1_OID);
+    private static final TestTask TASK_ROLE_ANALYSIS_PROCESS_SESSION_ROLE_MINING_DIRECT_1 =
+            new TestTask(TEST_DIR, "task/task-role-analysis-process-session-direct-1.xml",
                     "67aae68a-dc30-4df1-bfc8-de42b9aee9d6");
 
     // Outlier org attribute rule (partial analysis - not outlier cluster excluded)
@@ -113,7 +116,7 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
             initTestObjects(initTask, initResult,
                     SESSION_ROLE_MINING_1,
                     SESSION_ROLE_MINING_ROLE_MODE_1,
-                    SESSION_ROLE_MINING_INDIRECT_1,
+                    SESSION_ROLE_MINING_DIRECT_1,
                     SESSION_OUTLIER_PART_1,
                     SESSION_OUTLIER_FULL_1);
         }
@@ -125,10 +128,10 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test010RoleAnalysisSessionRoleMining1() throws Exception {
-        Integer expectedObjectsCount = 1063;
-        Integer expectedClusterCount = 18;
-        Double expectedMeanDensity = 89.36643749031973;
-        Integer expectedReduction = 5797;
+        Integer expectedObjectsCount = 410;
+        Integer expectedClusterCount = 6;
+        Double expectedMeanDensity = 93.67271227874105;
+        Integer expectedReduction = 856;
 
         RoleMiningResult expectedResult = new RoleMiningResult(
                 expectedObjectsCount,
@@ -150,10 +153,10 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test020RoleAnalysisSessionRoleMiningRoleMode1() throws Exception {
-        Integer expectedObjectsCount = 166;
-        Integer expectedClusterCount = 12;
-        Double expectedMeanDensity = 97.93252608203476;
-        Integer expectedReduction = 15002;
+        Integer expectedObjectsCount = 180;
+        Integer expectedClusterCount = 9;
+        Double expectedMeanDensity = 92.7953838627898;
+        Integer expectedReduction = 3133;
 
         RoleMiningResult expectedResult = new RoleMiningResult(
                 expectedObjectsCount,
@@ -169,35 +172,29 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
         );
     }
 
-
     /**
-     * Test role mining session defined in {@code session-role-mining-indirect-1.xml}.
-     * - user-based, indirect
-     * - no data is analyzed because it hasn't been recomputed
+     * Test role mining session defined in {@code session-role-mining-direct-1.xml}.
+     * - user-based, direct mode
      */
     @Test
-    public void test025RoleAnalysisSessionRoleMiningNoDataInIndirectMode1() throws Exception {
-        skipIfNotNativeRepository();
+    public void test025RoleAnalysisSessionRoleMiningDirectMode() throws Exception {
+        Integer expectedObjectsCount = 410;
+        Integer expectedClusterCount = 6;
+        Double expectedMeanDensity = 93.67271227874105;
+        Integer expectedReduction = 856;
 
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-        String sessionId = SESSION_ROLE_MINING_INDIRECT_1_OID;
+        RoleMiningResult expectedResult = new RoleMiningResult(
+                expectedObjectsCount,
+                expectedClusterCount,
+                expectedMeanDensity,
+                expectedReduction
+        );
 
-        when("task is run");
-
-        TASK_ROLE_ANALYSIS_PROCESS_SESSION_ROLE_MINING_INDIRECT_1.init(this, task, result);
-        TASK_ROLE_ANALYSIS_PROCESS_SESSION_ROLE_MINING_INDIRECT_1.rerunTaskWithinTimeout(result, DEFAULT_TIMEOUT);
-
-        then("task is OK and result is empty");
-        TASK_ROLE_ANALYSIS_PROCESS_SESSION_ROLE_MINING_INDIRECT_1
-                .assertAfter()
-                .display()
-                .assertProgress(LOADING_DATA_TASK_STAGE);
-
-        RoleAnalysisSessionType session = getSession(sessionId);
-
-        assertNull(session.getSessionStatistic());
-        assertObjects(RoleAnalysisClusterType.class, buildClustersQuery(sessionId), 0);
+        runRoleMiningTest(
+                SESSION_ROLE_MINING_DIRECT_1_OID,
+                TASK_ROLE_ANALYSIS_PROCESS_SESSION_ROLE_MINING_DIRECT_1,
+                expectedResult
+        );
     }
 
     /**
@@ -206,10 +203,10 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test030RoleAnalysisSessionOutlierPart1() throws Exception {
-        Integer expectedObjectsCount = 1063;
-        Integer expectedInnerOutlierCount = 12;
+        Integer expectedObjectsCount = 410;
+        Integer expectedInnerOutlierCount = 9;
         Integer expectedOuterOutlierCount = 0;
-        Double expectedTopOutlierConfidence = 88.02794672430142;
+        Double expectedTopOutlierConfidence = 84.42238530607281;
 
         OutlierDetectionResult expectedResult = new OutlierDetectionResult(
                 expectedObjectsCount,
@@ -233,10 +230,10 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test040RoleAnalysisSessionOutlierFull1() throws Exception {
-        Integer expectedObjectsCount = 1063;
-        Integer expectedInnerOutlierCount = 12;
-        Integer expectedOuterOutlierCount = 157;
-        Double expectedTopOutlierConfidence = 91.98523742118653;
+        Integer expectedObjectsCount = 410;
+        Integer expectedInnerOutlierCount = 9;
+        Integer expectedOuterOutlierCount = 241;
+        Double expectedTopOutlierConfidence = 84.42238530607281;
 
         OutlierDetectionResult expectedResult = new OutlierDetectionResult(
                 expectedObjectsCount,

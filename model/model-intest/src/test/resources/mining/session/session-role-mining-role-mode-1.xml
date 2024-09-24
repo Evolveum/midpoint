@@ -16,7 +16,7 @@
         <minMembersCount>10</minMembersCount>
         <propertiesRange>
             <min>5.0</min>
-            <max>1000.0</max>
+            <max>1061.0</max>
         </propertiesRange>
         <minPropertiesOverlap>5</minPropertiesOverlap>
         <clusteringAttributeSetting>
