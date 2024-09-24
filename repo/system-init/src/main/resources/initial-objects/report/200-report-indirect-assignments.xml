@@ -89,7 +89,6 @@
                             <key>reportIndirectAssignments.userColumn.label</key>
                         </translation>
                     </label>
-                    <label>User</label>
                 </display>
                 <export>
                     <expression>
@@ -169,7 +168,6 @@
                             <key>reportIndirectAssignments.allPathColumn.label</key>
                         </translation>
                     </label>
-                    <label>Path</label>
                 </display>
                 <previousColumn>relation</previousColumn>
                 <export>

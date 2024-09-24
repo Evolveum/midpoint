@@ -127,8 +127,7 @@ public class ObjectQueryUtil {
                 .and().item(ShadowType.F_OBJECT_CLASS).eq(objectClass);
     }
 
-    public static @NotNull ObjectQuery createResourceAndKindIntent(String resourceOid, ShadowKindType kind, String intent)
-            throws SchemaException {
+    public static @NotNull ObjectQuery createResourceAndKindIntent(String resourceOid, ShadowKindType kind, String intent) {
         return PrismContext.get().queryFactory().createQuery(
                 createResourceAndKindIntentFilter(resourceOid, kind, intent));
     }

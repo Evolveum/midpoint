@@ -167,7 +167,6 @@
                             <key>reportCertificationCases.reviewedByColumn.label</key>
                         </translation>
                     </label>
-                    <label>Reviewed by</label>
                 </display>
                 <previousColumn>lastReviewedOn</previousColumn>
                 <export>

@@ -8,6 +8,7 @@ package com.evolveum.midpoint.test;
 
 import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.serializeFilter;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 import static com.evolveum.midpoint.test.IntegrationTestTools.LOGGER;
 
@@ -1847,6 +1848,20 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             if (!(expectedClass.isAssignableFrom(filter.getClass()))) {
                 Assert.fail("Expected that filter is of class " + expectedClass.getName() + ", but it was " + filter);
             }
+        }
+    }
+
+    protected void assertShadowFilter(
+            String description,
+            @NotNull ObjectFilter filter,
+            @NotNull ResourceObjectDefinition definition,
+            @NotNull String expectedAsString)
+            throws SchemaException {
+        var serialized = serializeFilter(filter);
+        displayValue(description, serialized);
+        var expectedFilter = prismContext.createQueryParser().parseFilter(definition.toPrismObjectDefinition(), expectedAsString);
+        if (!filter.equals(expectedFilter, false)) {
+            fail("Unexpected filter, expected " + expectedFilter + ", but was " + filter);
         }
     }
 

@@ -1939,7 +1939,14 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="ref" type="xsd:QName" minOccurs="0">
-                <!-- TODO docs [not useful for subjects] -->
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If the association has more than one object, this property points to the one which we define here.
+
+                        Unnecessary for simple associations.
+                        Please leave undefined for subject definitions.
+                    </xsd:documentation>
+                </xsd:annotation>
             </xsd:element>
             <xsd:element name="objectType" type="tns:ResourceObjectTypeIdentificationType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
