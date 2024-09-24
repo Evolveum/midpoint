@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Map;
 
 import com.evolveum.icf.dummy.resource.DummyObject;
 import com.evolveum.midpoint.model.intest.TestEntitlements;
@@ -47,6 +48,7 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCol
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ENTITLEMENT;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -65,6 +67,9 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
     private static final File TEST_DIR = new File("src/test/resources/associations");
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
+
+    private static final String ROLE_INDUCING_GROUP_TEMPLATE = "role-inducing-group-template.xml";
+    private static final String ROLE_INDUCING_GROUP_TEMPLATE_2 = "role-inducing-group-template-2.xml";
 
     private static final String NS_HR = "http://midpoint.evolveum.com/xml/ns/samples/hr";
     private static final String NS_DMS = "http://midpoint.evolveum.com/xml/ns/samples/dms";
@@ -109,10 +114,14 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
     private static final String ROLE_TESTERS_NAME = "testers";
     private static final String ROLE_OPERATORS_NAME = "operators";
 
+    private static final ItemName RI_APP_GROUP = ItemName.from(NS_RI, "appGroup");
+    private static final ItemName RI_GENERIC_GROUP = ItemName.from(NS_RI, "genericGroup");
+
     private static DummyHrScenarioExtended hrScenario;
     private static DummyDmsScenario dmsScenario;
     private static DummyDmsScenario dmsScenarioNonTolerant;
     private static DummyAdTrivialScenario adScenario;
+    private static DummyAdTrivialScenario adTwoGroupTypesScenario;
 
     private static final DummyTestResource RESOURCE_DUMMY_HR = new DummyTestResource(
             TEST_DIR, "resource-dummy-hr.xml", "ded54130-8ce5-4c8d-ac30-c3bf4fc82337", "hr",
@@ -131,6 +140,11 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
             TEST_DIR, "resource-dummy-ad.xml", "a817af1e-a1ef-4dcf-aab4-04e266c93e74", "ad",
             c -> adScenario = DummyAdTrivialScenario.on(c).initialize());
 
+    private static final DummyTestResource RESOURCE_DUMMY_AD_TWO_GROUP_TYPES = new DummyTestResource(
+            TEST_DIR, "resource-dummy-ad-two-group-types.xml", "1c77ef70-61de-4666-8221-5edbb426b000",
+            "ad-two-group-types",
+            c -> adTwoGroupTypesScenario = DummyAdTrivialScenario.on(c).initialize());
+
     private static final TestObject<ArchetypeType> ARCHETYPE_PERSON = TestObject.file(
             TEST_DIR, "archetype-person.xml", "184a5aa5-3e28-46c7-b9ed-a1dabaacc11d");
     private static final TestObject<ArchetypeType> ARCHETYPE_COST_CENTER = TestObject.file(
@@ -141,6 +155,10 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
             TEST_DIR, "archetype-document-non-tolerant.xml", "737dc161-2df6-45b3-8201-036745f9e51a");
     private static final TestObject<ArchetypeType> ARCHETYPE_AD_ROLE = TestObject.file(
             TEST_DIR, "archetype-ad-role.xml", "5200a309-554d-46c7-a551-b8a4fdc26a18");
+    private static final TestObject<ArchetypeType> ARCHETYPE_APP_ROLE = TestObject.file(
+            TEST_DIR, "archetype-app-role.xml", "79d020a0-6cc5-4f47-8525-548ebd930b4a");
+    private static final TestObject<ArchetypeType> ARCHETYPE_GENERIC_AD_ROLE = TestObject.file(
+            TEST_DIR, "archetype-generic-ad-role.xml", "ba9ae6c7-362b-41d4-b713-3a0040945b0c");
 
     private final ZonedDateTime sciencesContractFrom = ZonedDateTime.now();
 
@@ -189,9 +207,11 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
 
         CommonInitialObjects.addMarks(this, initTask, initResult);
 
+        repoAdd(CommonInitialObjects.SERVICE_ORIGIN_INTERNAL, initResult);
+
         initTestObjects(initTask, initResult,
                 ARCHETYPE_PERSON, ARCHETYPE_COST_CENTER, ARCHETYPE_DOCUMENT, ARCHETYPE_DOCUMENT_NON_TOLERANT,
-                ARCHETYPE_AD_ROLE);
+                ARCHETYPE_AD_ROLE, ARCHETYPE_APP_ROLE, ARCHETYPE_GENERIC_AD_ROLE);
 
         // The subresult is created to avoid failing on benign warnings from the above objects' initialization
         var subResult = initResult.createSubresult("initializeResources");
@@ -209,6 +229,8 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
             RESOURCE_DUMMY_AD.initAndTest(this, initTask, subResult);
             createCommonAdObjects();
             importGroups(subResult);
+
+            RESOURCE_DUMMY_AD_TWO_GROUP_TYPES.initAndTest(this, initTask, subResult);
         } finally {
             subResult.close();
         }
@@ -1127,6 +1149,135 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .associations()
                 .association(DummyAdTrivialScenario.Account.LinkNames.GROUP.q())
                 .assertShadowOids(scenario.groupShadowOid());
+    }
+
+    /** Testing whether we can induce the group membership explicitly (the legacy way). MID-9994. */
+    @Test
+    public void test380InducingGroupMembershipExplicitly() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = "user-" + getTestNameShort();
+        var roleName = "role-" + getTestNameShort();
+        var groupName = "group-" + getTestNameShort();
+
+        given("group on the resource, marked as managed");
+        adScenario.group.add(groupName);
+        var groupShadowOid = findShadowRequest()
+                .withResource(RESOURCE_DUMMY_AD.getObjectable())
+                .withWholeObjectClass(adScenario.group.getObjectClassName().xsd())
+                .withNameValue(groupName)
+                .findRequired(task, result)
+                .getOidRequired();
+        markShadow(groupShadowOid, MARK_MANAGED.oid, task, result);
+
+        and("role inducing that group membership");
+        var roleOid = "f8a613d0-feb3-4a8f-bc69-c9515ab3c3d4";
+        TestObject<RoleType> role = TestObject.templateFile(
+                TEST_DIR, ROLE_INDUCING_GROUP_TEMPLATE, roleOid,
+                Map.of("#OID#", roleOid, "#NAME#", roleName, "#GROUP#", groupShadowOid));
+        role.init(this, task, result);
+
+        when("role is assigned to a user");
+        var user = new UserType()
+                .name(userName)
+                .assignment(role.assignmentTo());
+        addObject(user, task, result);
+
+        then("user has the group membership");
+        assertSuccess(result);
+        assertUserAfter(user.getOid())
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .singleLink()
+                .resolveTarget()
+                .display()
+                .associations()
+                .association(DummyAdTrivialScenario.Account.LinkNames.GROUP.q())
+                .assertShadowOids(groupShadowOid);
+
+        // Clean-up objects, to avoid synchronization of no-owner managed group (causes problems here: addFocus, no mappings)
+        deleteObject(UserType.class, user.getOid(), task, result);
+        deleteObject(RoleType.class, roleOid, task, result);
+        deleteObject(ShadowType.class, groupShadowOid, task, result);
+    }
+
+    /** Testing whether we can induce the group membership explicitly (the legacy way) - for two association types. MID-9994. */
+    @Test
+    public void test385InducingGroupMembershipExplicitlyForTwoGroupTypes() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = "user-" + getTestNameShort();
+        var appRoleName = "app-role-" + getTestNameShort();
+        var genericRoleName = "generic-role-" + getTestNameShort();
+        var appGroupName = "app-group-" + getTestNameShort();
+        var genericGroupName = "generic-group-" + getTestNameShort();
+
+        given("groups on the resource, marked as managed");
+        adTwoGroupTypesScenario.group.add(appGroupName)
+                .addAttributeValue(DummyAdTrivialScenario.Group.AttributeNames.TYPE.local(), "application");
+        adTwoGroupTypesScenario.group.add(genericGroupName)
+                .addAttributeValue(DummyAdTrivialScenario.Group.AttributeNames.TYPE.local(), "generic");
+        var appGroupShadowOid = findShadowRequest()
+                .withResource(RESOURCE_DUMMY_AD_TWO_GROUP_TYPES.getObjectable())
+                .withWholeObjectClass(adTwoGroupTypesScenario.group.getObjectClassName().xsd())
+                .withNameValue(appGroupName)
+                .findRequired(task, result)
+                .getOidRequired();
+        markShadow(appGroupShadowOid, MARK_MANAGED.oid, task, result);
+        var genericGroupShadowOid = findShadowRequest()
+                .withResource(RESOURCE_DUMMY_AD_TWO_GROUP_TYPES.getObjectable())
+                .withWholeObjectClass(adTwoGroupTypesScenario.group.getObjectClassName().xsd())
+                .withNameValue(genericGroupName)
+                .findRequired(task, result)
+                .getOidRequired();
+        markShadow(genericGroupShadowOid, MARK_MANAGED.oid, task, result);
+
+        and("role inducing app group membership");
+        var appRoleOid = "94a565ef-7724-40b8-92d0-20d84aca62cf";
+        TestObject<RoleType> appRole = TestObject.templateFile(
+                TEST_DIR, ROLE_INDUCING_GROUP_TEMPLATE_2, appRoleOid,
+                Map.of("#OID#", appRoleOid,
+                        "#NAME#", appRoleName,
+                        "#ASSOCIATION_NAME#", "appGroup",
+                        "#GROUP#", appGroupShadowOid));
+        appRole.init(this, task, result);
+
+        and("role inducing generic group membership");
+        var genericRoleOid = "ad8b95b2-9f1b-45dc-ac4a-0e3bbcb46905";
+        TestObject<RoleType> genericRole = TestObject.templateFile(
+                TEST_DIR, ROLE_INDUCING_GROUP_TEMPLATE_2, genericRoleOid,
+                Map.of("#OID#", genericRoleOid,
+                        "#NAME#", genericRoleName,
+                        "#ASSOCIATION_NAME#", "genericGroup",
+                        "#GROUP#", genericGroupShadowOid));
+        genericRole.init(this, task, result);
+
+        when("roles are assigned to a user");
+        var user = new UserType()
+                .name(userName)
+                .assignment(appRole.assignmentTo())
+                .assignment(genericRole.assignmentTo());
+        addObject(user, task, result);
+
+        then("user has the group memberships");
+        assertSuccess(result);
+        assertUserAfter(user.getOid())
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .singleLink()
+                .resolveTarget()
+                .display()
+                .associations()
+                .association(RI_APP_GROUP)
+                .assertShadowOids(appGroupShadowOid)
+                .end()
+                .association(RI_GENERIC_GROUP)
+                .assertShadowOids(genericGroupShadowOid);
+
+        // Clean-up objects, to avoid synchronization of no-owner managed group (causes problems here: addFocus, no mappings)
+        deleteObject(UserType.class, user.getOid(), task, result);
+        deleteObject(RoleType.class, appRoleOid, task, result);
+        deleteObject(ShadowType.class, appGroupShadowOid, task, result);
+        deleteObject(RoleType.class, genericRoleOid, task, result);
+        deleteObject(ShadowType.class, genericGroupShadowOid, task, result);
     }
 
     /**
