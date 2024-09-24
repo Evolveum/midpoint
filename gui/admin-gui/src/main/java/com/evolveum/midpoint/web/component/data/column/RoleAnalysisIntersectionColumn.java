@@ -36,7 +36,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.operation.DebugLabel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.operation.DetailedPatternSelectionPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.operation.PatternStatistics;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableCellFillResolver;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools;
@@ -195,9 +195,9 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
                 RoleAnalysisObjectDto roleAnalysis = getModel().getObject();
                 RoleAnalysisChunkAction chunkAction = roleAnalysis.getChunkAction();
                 if (chunkAction.equals(RoleAnalysisChunkAction.DETAILS_DETECTION)) {
-                    DebugLabel debugLabel = createDebugLabelPanel(
+                    DetailedPatternSelectionPanel detailedPatternSelectionPanel = createDebugLabelPanel(
                             userChunk.getMembers(), roleChunk.getProperties(), roleAnalysis);
-                    getPageBase().showMainPopup(debugLabel, ajaxRequestTarget);
+                    getPageBase().showMainPopup(detailedPatternSelectionPanel, ajaxRequestTarget);
                 } else {
                     //todo this is wrong, tbd whats with temporary detected patterns?
                     PatternStatistics<A> statistics = new PatternStatistics<>(roleAnalysis,
@@ -217,8 +217,8 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
     }
 
     @NotNull
-    private DebugLabel createDebugLabelPanel(List<String> members, List<String> mustMeet, RoleAnalysisObjectDto roleAnalysisObjectDto) {
-        DebugLabel debugLabel = new DebugLabel(getPageBase().getMainPopupBodyId(), () -> new PatternStatistics<>(
+    private DetailedPatternSelectionPanel createDebugLabelPanel(List<String> members, List<String> mustMeet, RoleAnalysisObjectDto roleAnalysisObjectDto) {
+        DetailedPatternSelectionPanel detailedPatternSelectionPanel = new DetailedPatternSelectionPanel(getPageBase().getMainPopupBodyId(), () -> new PatternStatistics<>(
                 roleAnalysisObjectDto, members, mustMeet, getPageBase())) {
 
             @Override
@@ -236,8 +236,8 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
             }
 
         };
-        debugLabel.setOutputMarkupId(true);
-        return debugLabel;
+        detailedPatternSelectionPanel.setOutputMarkupId(true);
+        return detailedPatternSelectionPanel;
     }
 
     private void chunkActionSelectorBehavior(
