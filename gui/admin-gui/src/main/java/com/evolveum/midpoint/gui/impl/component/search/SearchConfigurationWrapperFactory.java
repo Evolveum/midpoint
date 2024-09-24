@@ -24,6 +24,7 @@ public class SearchConfigurationWrapperFactory {
 
     static {
         factories.add(new AvailableMarkItemWrapperFactory());
+        factories.add(new QNameWithoutNamespaceItemWrapperFactory());
         factories.add(new ProcessedObjectTypeItemWrapperFactory());
         factories.add(new DeadShadowSearchItemWrapperFactory());
         factories.add(new ChoicesSearchItemWrapperFactory());
