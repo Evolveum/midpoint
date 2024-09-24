@@ -133,15 +133,15 @@
                         <script>
                             <code>
                                 if (input != null){
-                                roles = report.resolveRoles(input);
-                                if (roles.isEmpty()) {
-                                return null;
-                                }
-                                list = new ArrayList();
-                                for (role in roles) {
-                                list.add(role.getName());
-                                }
-                                return list;
+                                    roles = report.resolveRoles(input);
+                                    if (roles.isEmpty()) {
+                                        return null;
+                                    }
+                                    list = new ArrayList();
+                                    for (role in roles) {
+                                        list.add(role.getName());
+                                    }
+                                    return list;
                                 }
                             </code>
                         </script>
@@ -165,15 +165,15 @@
                         <script>
                             <code>
                                 if (input != null){
-                                orgs = report.resolveOrgs(input);
-                                if (orgs.isEmpty()) {
-                                return null;
-                                }
-                                list = new ArrayList();
-                                for (org in orgs) {
-                                list.add(org.getName());
-                                }
-                                return list;
+                                    orgs = report.resolveOrgs(input);
+                                    if (orgs.isEmpty()) {
+                                        return null;
+                                    }
+                                    list = new ArrayList();
+                                    for (org in orgs) {
+                                        list.add(org.getName());
+                                    }
+                                    return list;
                                 }
                             </code>
                         </script>
@@ -201,11 +201,11 @@
                                 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
                                 if (input != null){
-                                list = new ArrayList();
-                                for (linkRef in input){
-                                shadow = midpoint.getObject(ShadowType.class, linkRef.getOid(),
-                                SelectorOptions.createCollection(GetOperationOptions.createNoFetch().resolveNames(true)));
-                                list.add(shadow.getName().getOrig() + "(Resource: " + shadow.getResourceRef().getTargetName()?.getOrig() + ")");
+                                    list = new ArrayList();
+                                    for (linkRef in input){
+                                    shadow = midpoint.getObject(ShadowType.class, linkRef.getOid(),
+                                    SelectorOptions.createCollection(GetOperationOptions.createNoFetch().resolveNames(true)));
+                                    list.add(shadow.getName().getOrig() + "(Resource: " + shadow.getResourceRef().getTargetName()?.getOrig() + ")");
                                 }
                                 return list;
                                 }

@@ -91,7 +91,7 @@
                     <container id="8">
                         <identifier>dashboard</identifier>
                         <display>
-                            <label>Dashboard
+                            <label>
                                 <orig>Dashboard</orig>
                                 <translation>
                                     <key>dashboard.panel.label</key>

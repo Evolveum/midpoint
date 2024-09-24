@@ -1609,6 +1609,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>UserInterfaceFeatureType.identifier</a:displayName>
+                        <a:displayOrder>10</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1622,6 +1623,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>UserInterfaceFeatureType.description</a:displayName>
+                        <a:displayOrder>20</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1676,6 +1678,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.0</a:since>
+                        <a:displayOrder>30</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -2078,6 +2081,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>GuiObjectListViewType.type</a:displayName>
+                                <a:displayOrder>40</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -2131,6 +2135,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+    <xsd:element name="guiObjectListView" type="tns:GuiObjectListViewType"/>
 
     <xsd:complexType name="GuiListDataProviderType">
         <xsd:annotation>
@@ -3569,6 +3574,7 @@
                             <xsd:appinfo>
                                 <a:displayName>ConfigurableUserDashboardType.configurableDashboardRef</a:displayName>
                                 <a:objectReferenceTargetType>tns:DashboardType</a:objectReferenceTargetType>
+                                <a:displayOrder>40</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -3906,6 +3912,7 @@
                                 <xsd:appinfo>
                                     <a:since>4.0</a:since>
                                     <a:displayName>CollectionSpecificationType.collectionRef</a:displayName>
+                                    <a:displayOrder>10</a:displayOrder>
                                 </xsd:appinfo>
                             </xsd:annotation>
                         </xsd:element>

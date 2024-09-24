@@ -27,20 +27,7 @@
                 <color>green</color>
             </icon>
         </display>
-        <!-- no configuration yet -->
-        <adminGuiConfiguration>
-            <objectDetails>
-                <type>TaskType</type>
-                <panel id="1">
-                    <identifier>activity</identifier>
-                    <visibility>hidden</visibility>
-                </panel>
-                <panel id="2">
-                    <identifier>taskBasic</identifier>
-                    <default>true</default>
-                </panel>
-            </objectDetails>
-        </adminGuiConfiguration>
+        <!-- no configuration, specific configuration in children -->
     </archetypePolicy>
     <assignment id="3">
         <identifier>holderType</identifier>

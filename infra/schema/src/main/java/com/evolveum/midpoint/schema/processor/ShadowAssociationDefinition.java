@@ -8,13 +8,11 @@
 package com.evolveum.midpoint.schema.processor;
 
 import java.util.*;
-import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 
 import com.google.common.collect.Multimap;
@@ -30,8 +28,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.Nullable;
-
-import static com.evolveum.midpoint.util.MiscUtil.assertCheck;
 
 /**
  * Definition of a {@link ShadowAssociation}, e.g., `ri:group`.
@@ -91,11 +87,11 @@ public interface ShadowAssociationDefinition
     /**
      * Creates a filter that provides all shadows eligible as the target value for this association.
      *
-     * Returns repository-oriented filter: if there are multiple object types, there will be a disjunction (OR) clause.
-     *
      * For complex associations, a filter for association data objects is returned.
+     *
+     * @see ShadowReferenceAttributeDefinition#createTargetObjectsFilter(boolean)
      */
-    default ObjectFilter createTargetObjectsFilter() {
+    default ObjectFilter createTargetObjectsFilter(boolean resourceSafe) {
         var resourceOid = getResourceOid();
         if (isComplex()) {
             // This is a preliminary implementation
@@ -103,41 +99,7 @@ public interface ShadowAssociationDefinition
                     .createShadowSearchQuery(resourceOid)
                     .getFilter();
         } else {
-            var targetParticipantTypes = getObjectParticipant();
-            assertCheck(!targetParticipantTypes.isEmpty(), "No object type definitions (already checked)");
-            var objectClassNames = targetParticipantTypes.stream()
-                    .map(def -> def.getObjectDefinition().getObjectClassName())
-                    .collect(Collectors.toSet());
-            var objectClassName = MiscUtil.extractSingletonRequired(
-                    objectClassNames,
-                    () -> new UnsupportedOperationException("Multiple object class names in " + this),
-                    () -> new IllegalStateException("No object class names in " + this));
-            S_FilterExit builder = PrismContext.get().queryFor(ShadowType.class)
-                    .item(ShadowType.F_RESOURCE_REF).ref(resourceOid, ResourceType.COMPLEX_TYPE)
-                    .and().item(ShadowType.F_OBJECT_CLASS).eq(objectClassName);
-            var containsWholeClass = targetParticipantTypes.stream()
-                    .anyMatch(participantType -> participantType.isWholeClass());
-            if (containsWholeClass || targetParticipantTypes.isEmpty()) {
-                // No type restrictions
-            } else if (targetParticipantTypes.size() == 1) {
-                // Single type restriction -> flat conjunction
-                var typeId = Objects.requireNonNull(targetParticipantTypes.iterator().next().getTypeIdentification());
-                builder = builder
-                        .and().item(ShadowType.F_KIND).eq(typeId.getKind())
-                        .and().item(ShadowType.F_INTENT).eq(typeId.getIntent());
-            } else {
-                builder = builder.and().block();
-                for (var targetParticipantType : targetParticipantTypes) {
-                    var typeId = Objects.requireNonNull(targetParticipantType.getTypeIdentification());
-                    builder = builder.or() // this OR at the beginning seems to be benign
-                            .block()
-                            .item(ShadowType.F_KIND).eq(typeId.getKind())
-                            .and().item(ShadowType.F_INTENT).eq(typeId.getIntent())
-                            .endBlock();
-                }
-                builder = builder.endBlock();
-            }
-            return builder.buildFilter();
+            return ObjectQueryUtil.createObjectTypesFilter(resourceOid, getObjectParticipant(), resourceSafe, this);
         }
     }
 

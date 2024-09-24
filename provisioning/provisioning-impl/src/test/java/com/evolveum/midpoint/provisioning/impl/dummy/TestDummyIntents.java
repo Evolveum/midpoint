@@ -201,55 +201,104 @@ public class TestDummyIntents extends AbstractDummyTest {
         // Filters for reference attributes refer only to the resource object and the object class.
 
         assertShadowFilter(
-                "'group' ref attr target filter",
+                "'group' ref attr target filter (exact)",
                 accountDef
                         .findReferenceAttributeDefinitionRequired(RI_GROUP)
-                        .createTargetObjectsFilter(),
+                        .createTargetObjectsFilter(false),
                 groupDef,
                 prefix + " and objectClass = 'ri:GroupObjectClass'");
 
         assertShadowFilter(
-                "'priv' ref attr target filter",
+                "'group' ref attr target filter (resource-safe)",
+                accountDef
+                        .findReferenceAttributeDefinitionRequired(RI_GROUP)
+                        .createTargetObjectsFilter(true),
+                groupDef,
+                prefix + " and objectClass = 'ri:GroupObjectClass'");
+
+        assertShadowFilter(
+                "'priv' ref attr target filter (exact)",
                 accountDef
                         .findReferenceAttributeDefinitionRequired(RI_PRIV)
-                        .createTargetObjectsFilter(),
+                        .createTargetObjectsFilter(false),
                 privDef,
                 prefix + " and objectClass = 'ri:CustomprivilegeObjectClass'");
 
         assertShadowFilter(
-                "'org' ref attr target filter",
+                "'priv' ref attr target filter (resource-safe)",
+                accountDef
+                        .findReferenceAttributeDefinitionRequired(RI_PRIV)
+                        .createTargetObjectsFilter(true),
+                privDef,
+                prefix + " and objectClass = 'ri:CustomprivilegeObjectClass'");
+
+        assertShadowFilter(
+                "'org' ref attr target filter (exact)",
                 accountDef
                         .findReferenceAttributeDefinitionRequired(RI_ORG)
-                        .createTargetObjectsFilter(),
+                        .createTargetObjectsFilter(false),
+                orgDef,
+                prefix + " and objectClass = 'ri:CustomorgObjectClass'");
+
+        assertShadowFilter(
+                "'org' ref attr target filter (resource-safe)",
+                accountDef
+                        .findReferenceAttributeDefinitionRequired(RI_ORG)
+                        .createTargetObjectsFilter(true),
                 orgDef,
                 prefix + " and objectClass = 'ri:CustomorgObjectClass'");
 
         // Filters for associations may refer to kinds and intents as well.
 
         assertShadowFilter(
-                "'internalGroup' association target filter",
+                "'internalGroup' association target filter (exact)",
                 accountDef
                         .findAssociationDefinitionRequired(RI_INTERNAL_GROUP)
-                        .createTargetObjectsFilter(),
+                        .createTargetObjectsFilter(false),
                 groupDef,
                 prefix + " and objectClass = 'ri:GroupObjectClass' "
                         + "and ((kind = 'entitlement' and intent = 'application-group') "
                         + "or (kind = 'entitlement' and intent = 'basic-group'))");
 
         assertShadowFilter(
-                "'externalGroup' association target filter",
+                "'internalGroup' association target filter (resource-safe)",
+                accountDef
+                        .findAssociationDefinitionRequired(RI_INTERNAL_GROUP)
+                        .createTargetObjectsFilter(true),
+                groupDef,
+                prefix + " and objectClass = 'ri:GroupObjectClass'");
+
+        assertShadowFilter(
+                "'externalGroup' association target filter (exact)",
                 accountDef
                         .findAssociationDefinitionRequired(RI_EXTERNAL_GROUP)
-                        .createTargetObjectsFilter(),
+                        .createTargetObjectsFilter(false),
                 groupDef,
                 prefix + " and objectClass = 'ri:GroupObjectClass' "
                         + "and kind = 'entitlement' and intent = 'external-group'");
 
         assertShadowFilter(
-                "'priv' association target filter",
+                "'externalGroup' association target filter (resource-safe)",
+                accountDef
+                        .findAssociationDefinitionRequired(RI_EXTERNAL_GROUP)
+                        .createTargetObjectsFilter(true),
+                groupDef,
+                prefix + " and objectClass = 'ri:GroupObjectClass' "
+                        + "and kind = 'entitlement' and intent = 'external-group'");
+
+        assertShadowFilter(
+                "'priv' association target filter (exact)",
                 accountDef
                         .findAssociationDefinitionRequired(RI_PRIV)
-                        .createTargetObjectsFilter(),
+                        .createTargetObjectsFilter(false),
+                privDef,
+                prefix + " and objectClass = 'ri:CustomprivilegeObjectClass'");
+
+        assertShadowFilter(
+                "'priv' association target filter (resource-safe)",
+                accountDef
+                        .findAssociationDefinitionRequired(RI_PRIV)
+                        .createTargetObjectsFilter(true),
                 privDef,
                 prefix + " and objectClass = 'ri:CustomprivilegeObjectClass'");
     }
