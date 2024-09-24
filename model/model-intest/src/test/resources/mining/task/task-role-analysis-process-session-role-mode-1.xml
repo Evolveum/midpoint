@@ -1,0 +1,20 @@
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="813b8407-adb0-4575-b40c-35e06573c20e">
+    <name>task-role-analysis-process-session-role-mode-1</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>runnable</executionState>
+    <activity>
+        <work>
+            <roleAnalysisClustering>
+                <sessionRef oid="96632490-60be-42b1-b054-f0ac8ae04df3"/>
+            </roleAnalysisClustering>
+        </work>
+    </activity>
+</task>

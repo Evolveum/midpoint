@@ -29,7 +29,7 @@ public class CaseEventImpl extends CaseManagementEventImpl implements CaseEvent 
     }
 
     @Override
-    protected String getCaseOrItemOutcome() {
+    public String getCaseOrItemOutcome() {
         return aCase.getOutcome();
     }
 

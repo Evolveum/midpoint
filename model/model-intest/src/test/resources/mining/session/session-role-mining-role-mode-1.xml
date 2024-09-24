@@ -1,0 +1,57 @@
+<roleAnalysisSession xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        oid="96632490-60be-42b1-b054-f0ac8ae04df3"
+        version="7">
+    <name>role_mining_role_mode</name>
+    <iteration>0</iteration>
+    <iterationToken/>
+    <analysisOption>
+        <analysisProcedureType>role_mining</analysisProcedureType>
+        <processMode>role</processMode>
+        <analysisCategory>advanced</analysisCategory>
+    </analysisOption>
+    <roleModeOptions>
+        <similarityThreshold>80.0</similarityThreshold>
+        <minMembersCount>10</minMembersCount>
+        <propertiesRange>
+            <min>5.0</min>
+            <max>1061.0</max>
+        </propertiesRange>
+        <minPropertiesOverlap>5</minPropertiesOverlap>
+        <clusteringAttributeSetting>
+        </clusteringAttributeSetting>
+        <analysisAttributeSetting>
+            <analysisAttributeRule xsi:type="c:AnalysisAttributeRuleType">
+                <attributeIdentifier>title</attributeIdentifier>
+                <propertyType>c:UserType</propertyType>
+            </analysisAttributeRule>
+            <analysisAttributeRule xsi:type="c:AnalysisAttributeRuleType">
+                <attributeIdentifier>archetype ref</attributeIdentifier>
+                <propertyType>c:UserType</propertyType>
+            </analysisAttributeRule>
+            <analysisAttributeRule xsi:type="c:AnalysisAttributeRuleType">
+                <attributeIdentifier>locality</attributeIdentifier>
+                <propertyType>c:UserType</propertyType>
+            </analysisAttributeRule>
+            <analysisAttributeRule xsi:type="c:AnalysisAttributeRuleType">
+                <attributeIdentifier>org assignment</attributeIdentifier>
+                <propertyType>c:UserType</propertyType>
+            </analysisAttributeRule>
+            <analysisAttributeRule xsi:type="c:AnalysisAttributeRuleType">
+                <attributeIdentifier>archetype ref</attributeIdentifier>
+                <propertyType>c:RoleType</propertyType>
+            </analysisAttributeRule>
+        </analysisAttributeSetting>
+        <isIndirect>false</isIndirect>
+        <detailedAnalysis>false</detailedAnalysis>
+    </roleModeOptions>
+    <defaultDetectionOption>
+        <minRolesOccupancy>5</minRolesOccupancy>
+        <minUserOccupancy>5</minUserOccupancy>
+        <frequencyRange>
+            <min>10.0</min>
+            <max>100.0</max>
+        </frequencyRange>
+    </defaultDetectionOption>
+</roleAnalysisSession>
