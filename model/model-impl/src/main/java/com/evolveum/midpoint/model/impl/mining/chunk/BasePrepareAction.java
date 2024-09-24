@@ -68,18 +68,29 @@ public abstract class BasePrepareAction implements MiningStructure {
             }
         }
 
+        Set<ItemPath> appliedPaths = new HashSet<>();
+        for (RoleAnalysisAttributeDef roleAnalysisAttributeDef : itemDef) {
+            appliedPaths.add(roleAnalysisAttributeDef.getPath());
+        }
+
         //TODO this is incorrect, remove after decision
         ItemPath path = ItemPath.create(UserType.F_NAME);
-        RoleAnalysisAttributeDef roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, false, UserType.class);
-        itemDef.add(roleAnalysisAttributeDef);
+        if(!containItemPath(appliedPaths, path)) {
+            RoleAnalysisAttributeDef roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, false, UserType.class);
+            itemDef.add(roleAnalysisAttributeDef);
+        }
 
         path = ItemPath.create(UserType.F_ASSIGNMENT);
-        roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, true, null);
-        itemDef.add(roleAnalysisAttributeDef);
+        if(!containItemPath(appliedPaths, path)) {
+            RoleAnalysisAttributeDef roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, true, null);
+            itemDef.add(roleAnalysisAttributeDef);
+        }
 
-        path = ItemPath.create(UserType.F_ARCHETYPE_REF);
-        roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, false, ArchetypeType.class);
-        itemDef.add(roleAnalysisAttributeDef);
+        if(!containItemPath(appliedPaths, path)) {
+            path = ItemPath.create(UserType.F_ARCHETYPE_REF);
+            RoleAnalysisAttributeDef roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, false, ArchetypeType.class);
+            itemDef.add(roleAnalysisAttributeDef);
+        }
 
         return new RoleAnalysisCacheOption(itemDef);
     }
@@ -95,20 +106,40 @@ public abstract class BasePrepareAction implements MiningStructure {
             }
         }
 
+        Set<ItemPath> appliedPaths = new HashSet<>();
+        for (RoleAnalysisAttributeDef roleAnalysisAttributeDef : itemDef) {
+            appliedPaths.add(roleAnalysisAttributeDef.getPath());
+        }
+
         //TODO this is incorrect, remove after decision
         ItemPath path = ItemPath.create(RoleType.F_NAME);
-        RoleAnalysisAttributeDef roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, false, RoleType.class);
-        itemDef.add(roleAnalysisAttributeDef);
+        if(!containItemPath(appliedPaths, path)) {
+            RoleAnalysisAttributeDef roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, false, RoleType.class);
+            itemDef.add(roleAnalysisAttributeDef);
+        }
 
         path = ItemPath.create(RoleType.F_LIFECYCLE_STATE);
-        roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, false, RoleType.class);
-        itemDef.add(roleAnalysisAttributeDef);
+        if(!containItemPath(appliedPaths, path)) {
+            RoleAnalysisAttributeDef roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, false, RoleType.class);
+            itemDef.add(roleAnalysisAttributeDef);
+        }
 
         path = ItemPath.create(RoleType.F_ARCHETYPE_REF);
-        roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, false, ArchetypeType.class);
-        itemDef.add(roleAnalysisAttributeDef);
+        if(!containItemPath(appliedPaths, path)) {
+            RoleAnalysisAttributeDef roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, false, ArchetypeType.class);
+            itemDef.add(roleAnalysisAttributeDef);
+        }
 
         return new RoleAnalysisCacheOption(itemDef);
+    }
+
+    private boolean containItemPath(@NotNull Set<ItemPath> appliedPaths, ItemPath path) {
+        for (ItemPath appliedPath : appliedPaths) {
+            if(appliedPath.equivalent(path)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
