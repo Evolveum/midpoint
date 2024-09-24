@@ -130,6 +130,11 @@ public class ReviewersStatisticsPanel extends BasePanel {
                 AccessCertificationCampaignType campaign = model.getObjectType();
                 List<ObjectReferenceType> reviewers = CertMiscUtil.loadCampaignReviewers(campaign.getOid(),
                         ReviewersStatisticsPanel.this.getPageBase());
+                reviewers = reviewers.stream().sorted((r1, r2) -> {
+                    long r1ItemsCount = getNotDecidedItemsCount(r1);
+                    long r2ItemsCount = getNotDecidedItemsCount(r2);
+                    return Long.compare(r2ItemsCount, r1ItemsCount);
+                }).toList();
                 if (restricted) {
                     realReviewersCount = reviewers.size();
                     reviewers.stream().limit(MAX_REVIEWERS).forEach(r -> list.add(createReviewerStatisticBoxDto(r)));
@@ -139,6 +144,16 @@ public class ReviewersStatisticsPanel extends BasePanel {
                 return list;
             }
         };
+    }
+
+    private long getNotDecidedItemsCount(ObjectReferenceType reviewerRef) {
+        String campaignOid = model.getObjectType().getOid();
+        PrismObject<FocusType> reviewer = WebModelServiceUtils.loadObject(reviewerRef, getPageBase());
+        if (reviewer == null) {
+            return 0;
+        }
+        MidPointPrincipal principal = MidPointPrincipal.create(reviewer.asObjectable());
+        return CertMiscUtil.countOpenCertItems(Collections.singletonList(campaignOid), principal, true, getPageBase());
     }
 
     private boolean reviewersCountExceedsLimit() {

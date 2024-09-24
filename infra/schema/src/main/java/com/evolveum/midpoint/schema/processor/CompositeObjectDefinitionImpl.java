@@ -742,7 +742,7 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
-    public @NotNull ObjectQuery createShadowSearchQuery(String resourceOid) throws SchemaException {
+    public @NotNull ObjectQuery createShadowSearchQuery(String resourceOid) {
         return structuralDefinition.createShadowSearchQuery(resourceOid);
     }
 

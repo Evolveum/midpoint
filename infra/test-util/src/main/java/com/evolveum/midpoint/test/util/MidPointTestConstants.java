@@ -58,4 +58,7 @@ public class MidPointTestConstants {
 
     public static final ItemName RI_GROUP = ItemName.from(SchemaConstants.NS_RI, "group");
     public static final ItemName RI_PRIV = ItemName.from(SchemaConstants.NS_RI, "priv");
+
+    public static final ItemName RI_CUSTOM_PRIVILEGE_OBJECT_CLASS = new ItemName(MidPointConstants.NS_RI, "CustomprivilegeObjectClass");
+    public static final ItemName RI_CUSTOM_ORG_OBJECT_CLASS = new ItemName(MidPointConstants.NS_RI, "CustomorgObjectClass");
 }

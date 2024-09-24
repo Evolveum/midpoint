@@ -326,7 +326,7 @@ public interface ResourceObjectDefinition
      * - a combination of resource OID + object class name, or
      * - a combination of resource OID + kind + intent.
      */
-    @NotNull ObjectQuery createShadowSearchQuery(String resourceOid) throws SchemaException;
+    @NotNull ObjectQuery createShadowSearchQuery(String resourceOid);
 
     // TODO why are all three methods below named "createBlankShadow", but only the 3rd one adds the kind/intent?
     //  The reason is that the first two are called from the context where there should be no kind/intent present.
