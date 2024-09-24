@@ -56,7 +56,6 @@ public class FlexibleLabelModel<C extends Containerable> implements IModel<Strin
 
     public FlexibleLabelModel(IModel<C> model, ItemPath path, ModelServiceLocator serviceLocator, GuiFlexibleLabelType configuration) {
         Validate.notNull(model, "Containerable model must not be null.");
-        Validate.notNull(path, "Item path must not be null.");
 
         this.model = model;
         this.path = path;
@@ -92,6 +91,10 @@ public class FlexibleLabelModel<C extends Containerable> implements IModel<Strin
     }
 
     private String getDefaultValue() {
+        if (path == null) {
+            return "";
+        }
+
         C object = model.getObject();
         if (object == null) {
             return "";
