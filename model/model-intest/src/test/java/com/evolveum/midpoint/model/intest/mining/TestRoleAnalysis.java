@@ -60,6 +60,7 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
     // - Recompute users (in order to test indirect mode): Server task -> Recomputation tasks -> Type: User
     // - download from UI and clean up to reduce file size (remove _metadata, operationExecution, description, ...)
     // - manually remove administrator user and role from the xml
+    // - convert tabs to spaces in xml files in order to pass checkstyle
     private static final File TEST_DIR_USERS_FILE = new File(TEST_DIR, "import/users.xml");
     private static final File TEST_DIR_ORGS_FILE = new File(TEST_DIR, "import/orgs.xml");
     private static final File TEST_DIR_ROLES_FILE = new File(TEST_DIR, "import/roles.xml");
