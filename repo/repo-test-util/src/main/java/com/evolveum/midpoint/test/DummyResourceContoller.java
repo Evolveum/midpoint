@@ -483,13 +483,11 @@ public class DummyResourceContoller extends AbstractResourceController {
         return RI_ACCOUNT_OBJECT_CLASS;
     }
 
-    public DummyObjectClass getAccountObjectClass()
-            throws ConflictException, FileNotFoundException, SchemaViolationException, InterruptedException, ConnectException {
+    public DummyObjectClass getAccountObjectClass() {
         return dummyResource.getAccountObjectClass();
     }
 
-    public DummyObjectClass getGroupObjectClass()
-            throws ConflictException, FileNotFoundException, SchemaViolationException, InterruptedException, ConnectException {
+    public DummyObjectClass getGroupObjectClass() {
         return dummyResource.getGroupObjectClass();
     }
 

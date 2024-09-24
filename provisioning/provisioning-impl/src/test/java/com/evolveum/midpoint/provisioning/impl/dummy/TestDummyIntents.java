@@ -302,4 +302,21 @@ public class TestDummyIntents extends AbstractDummyTest {
                 privDef,
                 prefix + " and objectClass = 'ri:CustomprivilegeObjectClass'");
     }
+
+    /** Checking the schema for simple association values. */
+    @Test
+    public void test210AssociationSchema() throws CommonException {
+        var assocDef = Resource.of(RESOURCE_DUMMY_ASSOCIATIONS.get())
+                .getCompleteSchemaRequired()
+                .getObjectTypeDefinitionRequired(ResourceObjectTypeIdentification.ACCOUNT_DEFAULT)
+                .findAssociationDefinitionRequired(RI_INTERNAL_GROUP);
+
+        displayDumpable("association definition", assocDef);
+        displayDumpable("association value CTD", assocDef.getComplexTypeDefinition());
+        displayValue("participants", assocDef.getObjectParticipantNames());
+
+        assertThat(assocDef.getObjectParticipantNames())
+                .as("object participant names")
+                .containsExactly(RI_GROUP);
+    }
 }

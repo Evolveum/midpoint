@@ -10,6 +10,7 @@ package com.evolveum.midpoint.model.intest.associations;
 import static com.evolveum.icf.dummy.resource.LinkClassDefinition.LinkClassDefinitionBuilder.aLinkClassDefinition;
 import static com.evolveum.icf.dummy.resource.LinkClassDefinition.Participant.ParticipantBuilder.aParticipant;
 import static com.evolveum.midpoint.test.AttrName.icfsName;
+import static com.evolveum.midpoint.test.AttrName.ri;
 import static com.evolveum.midpoint.test.ObjectClassName.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -68,6 +69,7 @@ public class DummyAdTrivialScenario extends AbstractDummyScenario {
 
         public static class AttributeNames {
             public static final AttrName NAME = icfsName();
+            public static final AttrName TYPE = ri("type");
         }
 
         public static class LinkNames {
@@ -77,6 +79,8 @@ public class DummyAdTrivialScenario extends AbstractDummyScenario {
 
         void initialize() {
             // Group class already exists
+            controller.addAttrDef(
+                    controller.getGroupObjectClass(), AttributeNames.TYPE.local(), String.class, false, false);
         }
 
         @Override

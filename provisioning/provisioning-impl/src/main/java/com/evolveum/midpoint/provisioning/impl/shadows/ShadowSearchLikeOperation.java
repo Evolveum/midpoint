@@ -238,9 +238,9 @@ class ShadowSearchLikeOperation {
 
     /** Flattens "AND" structure to primitive conjuncts. */
     private List<ObjectFilter> getAllConjuncts(@NotNull ObjectFilter filter) {
-        if (filter instanceof AndFilter) {
+        if (filter instanceof AndFilter andFilter) {
             List<ObjectFilter> conjuncts = new ArrayList<>();
-            for (ObjectFilter condition : ((AndFilter) filter).getConditions()) {
+            for (ObjectFilter condition : andFilter.getConditions()) {
                 conjuncts.addAll(getAllConjuncts(condition));
             }
             return conjuncts;
@@ -250,12 +250,12 @@ class ShadowSearchLikeOperation {
     }
 
     private boolean isEvaluatedOnResource(ObjectFilter filter) {
-        if (filter instanceof PropertyValueFilter) {
-            ItemPath path = ((PropertyValueFilter<?>) filter).getPath();
+        if (filter instanceof PropertyValueFilter<?> propertyValueFilter) {
+            ItemPath path = propertyValueFilter.getPath();
             return path.startsWith(ShadowType.F_ATTRIBUTES)
                     || path.startsWith(ShadowType.F_ACTIVATION); // TODO but not all of these! (this is approx how it was before 4.7)
-        } else if (filter instanceof LogicalFilter) {
-            return ((LogicalFilter) filter).getConditions().stream()
+        } else if (filter instanceof LogicalFilter logicalFilter) {
+            return logicalFilter.getConditions().stream()
                     .allMatch(this::isEvaluatedOnResource);
         } else {
             return false;
@@ -264,14 +264,14 @@ class ShadowSearchLikeOperation {
 
     /** Returns true if this filter can be safely ignored, as it was already processed. */
     private boolean wasAlreadyProcessed(ObjectFilter filter) {
-        if (filter instanceof PropertyValueFilter) {
-            ItemPath path = ((PropertyValueFilter<?>) filter).getPath();
+        if (filter instanceof PropertyValueFilter<?> propertyValueFilter) {
+            ItemPath path = propertyValueFilter.getPath();
             return path.equivalent(ShadowType.F_OBJECT_CLASS)
                     || path.equivalent(ShadowType.F_AUXILIARY_OBJECT_CLASS) // TODO also this one?
                     || path.equivalent(ShadowType.F_KIND)
                     || path.equivalent(ShadowType.F_INTENT);
-        } else if (filter instanceof RefFilter) {
-            ItemPath path = ((RefFilter) filter).getPath();
+        } else if (filter instanceof RefFilter refFilter) {
+            ItemPath path = refFilter.getPath();
             return path.equivalent(ShadowType.F_RESOURCE_REF);
         } else {
             return false;
@@ -371,20 +371,20 @@ class ShadowSearchLikeOperation {
     private void unwrapAndThrowSearchingTunnelException(TunnelException e) throws ObjectNotFoundException, SchemaException,
             CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         Throwable cause = e.getCause();
-        if (cause instanceof ObjectNotFoundException) {
-            throw (ObjectNotFoundException) cause;
-        } else if (cause instanceof SchemaException) {
-            throw (SchemaException) cause;
-        } else if (cause instanceof CommunicationException) {
-            throw (CommunicationException) cause;
-        } else if (cause instanceof ConfigurationException) {
-            throw (ConfigurationException) cause;
-        } else if (cause instanceof SecurityViolationException) {
-            throw (SecurityViolationException) cause;
-        } else if (cause instanceof ExpressionEvaluationException) {
-            throw (ExpressionEvaluationException) cause;
-        } else if (cause instanceof RuntimeException) {
-            throw (RuntimeException) cause;
+        if (cause instanceof ObjectNotFoundException objectNotFoundException) {
+            throw objectNotFoundException;
+        } else if (cause instanceof SchemaException schemaException) {
+            throw schemaException;
+        } else if (cause instanceof CommunicationException communicationException) {
+            throw communicationException;
+        } else if (cause instanceof ConfigurationException configurationException) {
+            throw configurationException;
+        } else if (cause instanceof SecurityViolationException securityViolationException) {
+            throw securityViolationException;
+        } else if (cause instanceof ExpressionEvaluationException expressionEvaluationException) {
+            throw expressionEvaluationException;
+        } else if (cause instanceof RuntimeException runtimeException) {
+            throw runtimeException;
         } else {
             throw new SystemException(cause.getMessage(), cause);
         }
