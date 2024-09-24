@@ -420,9 +420,9 @@
 
                         def aCase = object as AccessCertificationCaseType
                         aCase.workItem
-                        .findAll { stageNumber == null || it.stageNumber == stageNumber }
-                        .findAll { iteration == null || CertCampaignTypeUtil.norm(iteration) == iteration }
-                        .collect()
+                            .findAll { stageNumber == null || it.stageNumber == stageNumber }
+                            .findAll { iteration == null || CertCampaignTypeUtil.norm(iteration) == iteration }
+                            .collect()
                     </code>
                 </script>
             </expression>

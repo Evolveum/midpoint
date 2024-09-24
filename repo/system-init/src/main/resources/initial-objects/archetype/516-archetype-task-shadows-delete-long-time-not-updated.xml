@@ -104,7 +104,7 @@
 
                             String description = midpoint.describeResourceObjectSet(task?.activity?.work?.shadowCleanup?.shadows)
                             if(StringUtils.isNotEmpty(description)) {
-                            return name + ': ' + description
+                                return name + ': ' + description
                             }
 
                             return name

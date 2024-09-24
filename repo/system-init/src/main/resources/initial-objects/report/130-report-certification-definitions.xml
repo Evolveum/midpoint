@@ -125,12 +125,12 @@
                         import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType
 
                         midpoint.searchObjects(
-                        AccessCertificationCampaignType.class,
-                        prismContext.queryFor(AccessCertificationCampaignType.class)
-                        .item(AccessCertificationCampaignType.F_DEFINITION_REF)
-                        .ref(object.oid)
-                        .build() as ObjectQuery,
-                        null)
+                            AccessCertificationCampaignType.class,
+                            prismContext.queryFor(AccessCertificationCampaignType.class)
+                                .item(AccessCertificationCampaignType.F_DEFINITION_REF)
+                                .ref(object.oid)
+                                .build() as ObjectQuery,
+                            null)
                     </code>
                 </script>
             </expression>

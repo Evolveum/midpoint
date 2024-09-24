@@ -850,9 +850,10 @@
                     </icon>
                 </display>
                 <refreshInterval>30</refreshInterval>
+                <applicableForOperation>modify</applicableForOperation>
                 <type>TaskType</type>
                 <collection>
-                    <collectionRef oid="00000000-0000-0000-0002-000000000008" relation="org:default" type="c:ObjectCollectionType"/>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000520" relation="org:default" type="c:ArchetypeType"/>
                 </collection>
             </objectCollectionView>
             <objectCollectionView id="70">
@@ -895,7 +896,7 @@
             </objectCollectionView>
             <objectCollectionView id="75">
                 <identifier>application-role</identifier>
-                <applicableForOperation>add</applicableForOperation>
+                <displayOrder>180</displayOrder>
                 <type>RoleType</type>
                 <collection>
                     <collectionRef oid="00000000-0000-0000-0000-000000000328" relation="org:default" type="c:ArchetypeType"/>
@@ -903,7 +904,7 @@
             </objectCollectionView>
             <objectCollectionView id="76">
                 <identifier>business-role</identifier>
-                <applicableForOperation>add</applicableForOperation>
+                <displayOrder>190</displayOrder>
                 <type>RoleType</type>
                 <collection>
                     <collectionRef oid="00000000-0000-0000-0000-000000000321" relation="org:default" type="c:ArchetypeType"/>
@@ -911,14 +912,6 @@
             </objectCollectionView>
             <objectCollectionView id="77">
                 <identifier>application</identifier>
-                <display>
-                    <label>
-                        <orig>Applications</orig>
-                        <translation>
-                            <key>Application.panel.applications</key>
-                        </translation>
-                    </label>
-                </display>
                 <type>ServiceType</type>
                 <collection>
                     <collectionRef oid="00000000-0000-0000-0000-000000000329" relation="org:default" type="c:ArchetypeType"/>
@@ -1044,54 +1037,6 @@
                 <type>ResourceType</type>
                 <collection>
                     <collectionRef oid="00000000-0000-0000-0001-000000000340" relation="org:default" type="c:ObjectCollectionType">
-                    </collectionRef>
-                </collection>
-            </objectCollectionView>
-            <objectCollectionView id="98"> <!-- TODO: change id as needed -->
-                <identifier>application-roles-view</identifier>
-                <display>
-                    <label>
-                        <orig>Application roles</orig>
-                        <translation>
-                            <key>applicationRole.pluralLabel</key>
-                        </translation>
-                    </label>
-                    <singularLabel>
-                        <orig>Application role</orig>
-                        <translation>
-                            <key>applicationRole.label</key>
-                        </translation>
-                    </singularLabel>
-                    <tooltip>Application roles</tooltip>
-                </display>
-                <displayOrder>180</displayOrder>
-                <type>RoleType</type>
-                <collection>
-                    <collectionRef oid="00000000-0000-0000-0000-000000000328" relation="org:default" type="c:ArchetypeType">
-                    </collectionRef>
-                </collection>
-            </objectCollectionView>
-            <objectCollectionView id="99"> <!-- TODO: change id as needed -->
-                <identifier>business-roles-view</identifier>
-                <display>
-                    <label>
-                        <orig>Business roles</orig>
-                        <translation>
-                            <key>businessRole.pluralLabel</key>
-                        </translation>
-                    </label>
-                    <singularLabel>
-                        <orig>Business role</orig>
-                        <translation>
-                            <key>businessRole.label</key>
-                        </translation>
-                    </singularLabel>
-                    <tooltip>Business roles</tooltip>
-                </display>
-                <displayOrder>190</displayOrder>
-                <type>RoleType</type>
-                <collection>
-                    <collectionRef oid="00000000-0000-0000-0000-000000000321" relation="org:default" type="c:ArchetypeType">
                     </collectionRef>
                 </collection>
             </objectCollectionView>
@@ -1413,6 +1358,10 @@
                         </item>
                         <item id="137">
                             <path>schemaHandling/objectType/default</path>
+                            <visibility>visible</visibility>
+                        </item>
+                        <item id="268">
+                            <path>schemaHandling/objectType/lifecycleState</path>
                             <visibility>visible</visibility>
                         </item>
                     </container>

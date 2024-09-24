@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <org oid="020e866e-a5ac-40bb-8644-24525203bb03">
+        <name>Security officers</name>
+    </org>
+
+    <org oid="2e734ccb-c924-4388-b0a8-b02b461389fd">
+        <name>Contractors</name>
+    </org>
+
+    <org oid="2f59f927-d1c5-4a61-93c6-6662041257af">
+        <name>Regular</name>
+    </org>
+
+    <org oid="7ad7d97e-0326-401f-8cfd-36e6c8dddd58">
+        <name>Sales</name>
+    </org>
+
+    <org oid="95feba24-bd40-45d4-b9ea-9b074b454c1b">
+        <name>Managers</name>
+    </org>
+
+    <org oid="9685e38d-df23-4d8b-9c2c-24d634c45adb">
+        <name>Semi-regular</name>
+    </org>
+
+    <org oid="ab51f75b-8afd-4599-ba8f-b246b477d03d">
+        <name>Irregular</name>
+    </org>
+
+</objects>

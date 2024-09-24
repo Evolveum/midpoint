@@ -1863,6 +1863,10 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         if (!filter.equals(expectedFilter, false)) {
             fail("Unexpected filter, expected " + expectedFilter + ", but was " + filter);
         }
+        var serializedFilter = prismContext.createQueryParser().parseFilter(definition.toPrismObjectDefinition(), serialized);
+        if (!expectedFilter.equals(serializedFilter, false)) {
+            fail("Unexpected serialized filter, expected " + expectedFilter + ", but was " + serializedFilter);
+        }
     }
 
     protected void assertSyncToken(String syncTaskOid, Object expectedValue) throws ObjectNotFoundException, SchemaException {

@@ -1,0 +1,63 @@
+<roleAnalysisSession xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        oid="32e52e85-d871-4a24-8fa3-31f301bfc58e"
+        version="7">
+    <name>role_mining_org_assignment</name>
+    <iteration>0</iteration>
+    <iterationToken/>
+    <analysisOption>
+        <analysisProcedureType>role_mining</analysisProcedureType>
+        <processMode>user</processMode>
+        <analysisCategory>advanced</analysisCategory>
+    </analysisOption>
+    <userModeOptions>
+        <similarityThreshold>80.0</similarityThreshold>
+        <minMembersCount>10</minMembersCount>
+        <propertiesRange>
+            <min>5.0</min>
+            <max>249.0</max>
+        </propertiesRange>
+        <minPropertiesOverlap>5</minPropertiesOverlap>
+        <clusteringAttributeSetting>
+            <clusteringAttributeRule xsi:type="c:ClusteringAttributeRuleType">
+                <attributeIdentifier>org assignment</attributeIdentifier>
+                <isMultiValue>true</isMultiValue>
+                <similarity>100.0</similarity>
+                <weight>1.0</weight>
+            </clusteringAttributeRule>
+        </clusteringAttributeSetting>
+        <analysisAttributeSetting>
+            <analysisAttributeRule xsi:type="c:AnalysisAttributeRuleType">
+                <attributeIdentifier>title</attributeIdentifier>
+                <propertyType>c:UserType</propertyType>
+            </analysisAttributeRule>
+            <analysisAttributeRule xsi:type="c:AnalysisAttributeRuleType">
+                <attributeIdentifier>archetype ref</attributeIdentifier>
+                <propertyType>c:UserType</propertyType>
+            </analysisAttributeRule>
+            <analysisAttributeRule xsi:type="c:AnalysisAttributeRuleType">
+                <attributeIdentifier>locality</attributeIdentifier>
+                <propertyType>c:UserType</propertyType>
+            </analysisAttributeRule>
+            <analysisAttributeRule xsi:type="c:AnalysisAttributeRuleType">
+                <attributeIdentifier>org assignment</attributeIdentifier>
+                <propertyType>c:UserType</propertyType>
+            </analysisAttributeRule>
+            <analysisAttributeRule xsi:type="c:AnalysisAttributeRuleType">
+                <attributeIdentifier>archetype ref</attributeIdentifier>
+                <propertyType>c:RoleType</propertyType>
+            </analysisAttributeRule>
+        </analysisAttributeSetting>
+        <isIndirect>true</isIndirect>
+        <detailedAnalysis>false</detailedAnalysis>
+    </userModeOptions>
+    <defaultDetectionOption>
+        <minRolesOccupancy>5</minRolesOccupancy>
+        <minUserOccupancy>5</minUserOccupancy>
+        <frequencyRange>
+            <min>10.0</min>
+            <max>100.0</max>
+        </frequencyRange>
+    </defaultDetectionOption>
+</roleAnalysisSession>

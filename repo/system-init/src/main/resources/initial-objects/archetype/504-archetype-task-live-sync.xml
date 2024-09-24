@@ -147,7 +147,7 @@
 
                             String description = midpoint.describeResourceObjectSet(task?.activity?.work?.liveSynchronization?.resourceObjects)
                             if(StringUtils.isNotEmpty(description)) {
-                            return name + ': ' + description
+                                return name + ': ' + description
                             }
 
                             return name
