@@ -16,8 +16,6 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
 /**
  * Same as {@link TestOpenDj} but with native references provided by LDAP connector.
- *
- * Does not work yet.
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
