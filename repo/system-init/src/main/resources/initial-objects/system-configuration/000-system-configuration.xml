@@ -912,14 +912,6 @@
             </objectCollectionView>
             <objectCollectionView id="77">
                 <identifier>application</identifier>
-                <display>
-                    <label>
-                        <orig>Applications</orig>
-                        <translation>
-                            <key>Application.panel.applications</key>
-                        </translation>
-                    </label>
-                </display>
                 <type>ServiceType</type>
                 <collection>
                     <collectionRef oid="00000000-0000-0000-0000-000000000329" relation="org:default" type="c:ArchetypeType"/>
