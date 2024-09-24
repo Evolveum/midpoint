@@ -731,8 +731,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         public final <V> ShadowAttributesHelper setOne(
                 QName attributeName, QName type, int minOccurrence, int maxOccurrence,
                 V value) throws SchemaException {
-            var def = attrsDefinition.mutator().createPropertyDefinition(attributeName, type, minOccurrence, maxOccurrence);
-            def.mutator().setDynamic(true); // MID-2119 (reconsider)
+            attrsDefinition.createPropertyDefinition(attributeName, type, minOccurrence, maxOccurrence);
             addExtensionValue(attributesContainer, attributeName.getLocalPart(), value);
             return this;
         }

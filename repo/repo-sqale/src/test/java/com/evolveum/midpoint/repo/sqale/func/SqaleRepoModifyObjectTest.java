@@ -17,10 +17,13 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 
 import org.assertj.core.api.Assertions;
@@ -3400,7 +3403,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
 
         given("a shadow with string attribute `conflicting`");
-        ShadowType stringBased = new ShadowType().name(getTestNameShort())
+        ShadowType stringBased = new ShadowType().name("stringShadow")
                 .resourceRef(UUID.randomUUID().toString(), ResourceType.COMPLEX_TYPE)
                 .objectClass(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS)
                 .kind(ShadowKindType.ACCOUNT)
@@ -3412,38 +3415,42 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
 
         given("and a shadow with int attribute `conflicting`");
-        ShadowType intBased = new ShadowType().name(getTestNameShort())
+        ShadowType dateBased = new ShadowType().name("dateShadow")
                 .resourceRef(UUID.randomUUID().toString(), ResourceType.COMPLEX_TYPE)
                 .objectClass(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS)
                 .kind(ShadowKindType.ACCOUNT)
                 .intent("intent");
         //noinspection RedundantTypeArguments // actually, it is needed because of ambiguity resolution
-        new ShadowAttributesHelper(intBased)
-                .<Integer>setOne(attrName, DOMUtil.XSD_INT, 0, 1, 100);
-        var intBasedOid = repositoryService.addObject(intBased.asPrismObject(), null, result);
+        new ShadowAttributesHelper(dateBased)
+                .<XMLGregorianCalendar>setOne(attrName, DOMUtil.XSD_DATETIME, 0, 1, XmlTypeConverter.createXMLGregorianCalendar());
+        var dateBasedOid = repositoryService.addObject(dateBased.asPrismObject(), null, result);
 
         then("attributes read from repository are of correct respective types");
-        checkShadowCorrectness(attrPath, stringBasedOid, intBasedOid, result);
+        checkShadowCorrectness(attrPath, stringBasedOid, dateBasedOid, result);
 
         when("shadows are reindexed");
         repositoryService.modifyObject(ShadowType.class, stringBasedOid, Collections.emptyList(),
                 RepoModifyOptions.createForceReindex(), result);
-        repositoryService.modifyObject(ShadowType.class, intBasedOid, Collections.emptyList(),
+        repositoryService.modifyObject(ShadowType.class, dateBasedOid, Collections.emptyList(),
                 RepoModifyOptions.createForceReindex(), result);
 
         then("attributes read from repository are of correct respective types");
-        checkShadowCorrectness(attrPath, stringBasedOid, intBasedOid, result);
+        checkShadowCorrectness(attrPath, stringBasedOid, dateBasedOid, result);
     }
 
-    private void checkShadowCorrectness(ItemPath attrPath, String stringBasedOid, String intBasedOid, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        var stringBasedAfter = repositoryService.getObject(ShadowType.class, stringBasedOid, null, result);
-        var intBasedAfter = repositoryService.getObject(ShadowType.class, intBasedOid, null, result);
+    private void checkShadowCorrectness(ItemPath attrPath, String stringBasedOid, String dateBasedOid, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        var stringBasedAfter = repositoryService.getObject(ShadowType.class, stringBasedOid, GetOperationOptions.createRawCollection(), result);
+        var dateBasedAfter = repositoryService.getObject(ShadowType.class, dateBasedOid, GetOperationOptions.createRawCollection(), result);
         assertThat(stringBasedAfter.getAllValues(attrPath))
                 .isNotEmpty()
-                .allMatch(v -> v.getRealValue() instanceof String, "string shadow contains strings");
-        assertThat(intBasedAfter.getAllValues(attrPath))
+                .allMatch(v -> {
+                    return v.getRealValue() instanceof String;
+                }, "string shadow contains strings");
+        assertThat(dateBasedAfter.getAllValues(attrPath))
                 .isNotEmpty()
-                .allMatch(v -> v.getRealValue() instanceof Integer, "int shadow contains integers");
+                .allMatch(v -> {
+                    return v.getRealValue() instanceof XMLGregorianCalendar;
+                    }, "date shadow contains date");
     }
 
     @Test
