@@ -199,14 +199,14 @@
                             <objectVariableMode>prismReference</objectVariableMode>
                             <code>
                                 if (!data?.segmentTargets) {
-                                return "?"
+                                    return "?"
                                 }
 
                                 def segLen = data.segmentTargets.size()
                                 if (segLen == 1) {
-                                return 'Direct'
+                                    return 'Direct'
                                 } else {
-                                return data.segmentTargets[segLen - 2]?.name?.orig
+                                    return data.segmentTargets[segLen - 2]?.name?.orig
                                 }
                             </code>
                         </script>
