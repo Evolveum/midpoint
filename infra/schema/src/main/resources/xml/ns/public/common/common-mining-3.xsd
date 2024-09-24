@@ -1236,6 +1236,9 @@
                             It allows for configuration of settings related to attribute analysis within the analysis process.
                         </p>
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AnalysisAttributeSettingType.userAnalysisAttributeSetting</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
 

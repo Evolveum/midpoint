@@ -122,6 +122,11 @@ public class ClusteringRoleAnalysisSessionOptionWizardPanel extends AbstractForm
     }
 
     @Override
+    protected boolean isShowEmptyButtonVisible() {
+        return false;
+    }
+
+    @Override
     protected String getPanelType() {
         return WORK_PANEL_TYPE;
     }

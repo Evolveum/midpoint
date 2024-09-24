@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -74,7 +76,11 @@ public class PrismContainerHeaderPanel<C extends Containerable, PCW extends Pris
             }
         };
         expandCollapseButton.setOutputMarkupId(true);
+        expandCollapseButton.add(new VisibleBehaviour(this::isExpandedButtonVisible));
         add(expandCollapseButton);
+    }
+    protected boolean isExpandedButtonVisible() {
+        return true;
     }
 
     protected void onExpandClick(AjaxRequestTarget target) {
