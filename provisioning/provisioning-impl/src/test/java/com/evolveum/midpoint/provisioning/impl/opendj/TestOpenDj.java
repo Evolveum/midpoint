@@ -2266,7 +2266,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         assertProvisioningShadowNew(GROUP_SWASHBUCKLERS_OID)
                 .assertName(GROUP_SWASHBUCKLERS_DN_ORIG)
-                .assertOrigValues(GROUP_MEMBER_ATTR_QNAME); // should be no values for members attribute
+                .assertOrigValues(GROUP_UNIQUE_MEMBER_ATTR_QNAME); // should be no values for members attribute
 
         Entry ldapEntry = openDJController.searchAndAssertByEntryUuid(uid);
         display("LDAP group", ldapEntry);
@@ -2393,7 +2393,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         String uid = assertShadowNew(provisioningShadow.asObjectable())
                 .assertName(GROUP_SWASHBUCKLERS_DN_ORIG)
                 .attributes()
-                .assertNoSimpleAttribute(GROUP_MEMBER_ATTR_QNAME)
+                .assertNoSimpleAttribute(GROUP_UNIQUE_MEMBER_ATTR_QNAME)
                 .getSimpleAttributeValue(getPrimaryIdentifierQName());
 
         assertThat(uid).as("uid").isNotNull();
@@ -2747,7 +2747,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertProvisioningShadowNew(GROUP_SPECIALISTS_OID)
                 .assertName(GROUP_SPECIALISTS_DN_ORIG)
                 .attributes()
-                .assertNoSimpleAttribute(GROUP_MEMBER_ATTR_QNAME);
+                .assertNoSimpleAttribute(GROUP_UNIQUE_MEMBER_ATTR_QNAME);
 
         Entry ldapEntry = openDJController.searchAndAssertByEntryUuid(uid);
         display("LDAP group", ldapEntry);
@@ -3270,6 +3270,60 @@ public class TestOpenDj extends AbstractOpenDjTest {
                 fail("We need to distinguish between group and account not found. But we got: " + objectNotFoundException);
             }
         }
+    }
+
+    /** Tests renaming a group (especially using native references). MID-9938. */
+    @Test(enabled = false) // MID-9938
+    public void test510RenamingGroup() throws CommonException {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        var accountName = "a-" + getTestNameShort();
+        var accountDn = "uid=" + accountName + ",ou=People,dc=example,dc=com";
+
+        var groupName = "g-" + getTestNameShort();
+        var groupDn = "cn=" + groupName + ",ou=Groups,dc=example,dc=com";
+        var groupDnNew = "cn=" + groupName + "-new,ou=Groups,dc=example,dc=com";
+
+        given("account + group exist on the resource");
+        var accountShadow = Resource.of(resource)
+                .shadow(ACCOUNT_DEFAULT)
+                .withSimpleAttribute(QNAME_DN, accountDn)
+                .withSimpleAttribute(QNAME_CN, accountName)
+                .withSimpleAttribute(QNAME_SN, accountName)
+                .asAbstractShadow();
+        var accountOid = provisioningService.addObject(accountShadow.getPrismObject(), null, null, task, result);
+
+        var groupShadow = Resource.of(resource)
+                .shadow(TYPE_LDAP_GROUP)
+                .withSimpleAttribute(QNAME_DN, groupDn)
+                .asAbstractShadow();
+        var groupOid = provisioningService.addObject(groupShadow.getPrismObject(), null, null, task, result);
+
+        provisioningService.modifyObject(
+                ShadowType.class,
+                accountOid,
+                createEntitleDelta(accountOid, RI_GROUP, groupOid)
+                        .getModifications(),
+                null, null, task, result);
+
+        when("group is renamed");
+        provisioningService.modifyObject(
+                ShadowType.class,
+                groupOid,
+                Resource.of(resource)
+                        .deltaFor(groupShadow.getObjectClass())
+                        .item(PATH_DN)
+                        .replace(groupDnNew)
+                        .asItemDeltas(),
+                null, null, task, result);
+
+        then("all is OK");
+        assertSuccess(result);
+        var groupAfter = provisioningService.getShadow(groupOid, null, task, result);
+        assertShadowAfter(groupAfter.getPrismObject())
+                .attributes()
+                .assertValue(QNAME_DN, groupDnNew);
     }
 
     @Test

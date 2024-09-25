@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<archetype
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="79d020a0-6cc5-4f47-8525-548ebd930b4a">
+    <name>app-role</name>
+    <documentation>
+        Role bound to an application group on AD with two group types.
+    </documentation>
+    <inducement>
+        <documentation>
+            This induces the account on AD resource.
+            The associations will be provisioned thanks to the association type configuration in the resource definition.
+        </documentation>
+        <construction>
+            <resourceRef oid="1c77ef70-61de-4666-8221-5edbb426b000"/>
+            <kind>account</kind>
+            <intent>default</intent>
+        </construction>
+        <order>2</order>
+    </inducement>
+</archetype>

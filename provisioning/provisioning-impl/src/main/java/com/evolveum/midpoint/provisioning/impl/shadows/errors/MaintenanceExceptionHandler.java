@@ -171,8 +171,8 @@ class MaintenanceExceptionHandler extends ErrorHandler {
     protected void throwException(@Nullable ShadowProvisioningOperation<?> operation, Exception cause, OperationResult result)
             throws MaintenanceException {
         recordCompletionError(operation, cause, result);
-        if (cause instanceof MaintenanceException) {
-            throw (MaintenanceException)cause;
+        if (cause instanceof MaintenanceException maintenanceException) {
+            throw maintenanceException;
         } else {
             throw new MaintenanceException(cause.getMessage(), cause);
         }

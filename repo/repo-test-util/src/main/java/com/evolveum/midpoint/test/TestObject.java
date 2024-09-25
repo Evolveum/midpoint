@@ -9,7 +9,9 @@ package com.evolveum.midpoint.test;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.UUID;
 
 import com.evolveum.axiom.concepts.Lazy;
@@ -65,6 +67,17 @@ public class TestObject<T extends ObjectType> {
 
     public static <T extends ObjectType> TestObject<T> file(@NotNull File dir, @NotNull String name) {
         return file(dir, name, null);
+    }
+
+    public static <T extends ObjectType> TestObject<T> templateFile(
+            @NotNull File dir, @NotNull String name, String oid, @NotNull Map<String, String> replacements) throws IOException {
+        var content = String.join("\n", Files.readAllLines(new File(dir, name).toPath()));
+        for (var entry : replacements.entrySet()) {
+            content = content.replace(entry.getKey(), entry.getValue());
+        }
+        return new TestObject<>(
+                new InMemoryTestObjectSource(name, content),
+                oid);
     }
 
     public static <T extends ObjectType> TestObject<T> file(@NotNull File dir, @NotNull String name, String oid) {
@@ -315,6 +328,11 @@ public class TestObject<T extends ObjectType> {
             } catch (SchemaException e) {
                 throw SystemException.unexpected(e, "when serializing test object " + description);
             }
+        }
+
+        InMemoryTestObjectSource(@NotNull String description, @NotNull String string) {
+            this.description = description;
+            this.string = string;
         }
 
         @Override
