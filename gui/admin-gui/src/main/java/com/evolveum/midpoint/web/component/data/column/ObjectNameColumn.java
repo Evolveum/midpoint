@@ -72,12 +72,7 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractNameColumn<S
             @Override
             protected String load() {
                 O object = bean.getValue();
-                if (object == null) {
-                    return null;
-                }
-
-                List<ObjectReferenceType> refs = object.getEffectiveMarkRef();
-                return WebComponentUtil.createMarkList(refs, getPageBase());
+                return WebComponentUtil.createMarkList(object, getPageBase());
             }
         };
     }

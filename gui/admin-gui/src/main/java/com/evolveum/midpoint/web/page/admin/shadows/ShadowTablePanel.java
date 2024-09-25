@@ -330,19 +330,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
                     @Override
                     protected String load() {
                         ShadowType shadow = rowModel.getObject().getValue();
-                        if (shadow == null) {
-                            return null;
-                        }
-
-                        List<ObjectReferenceType> refs = shadow.getEffectiveMarkRef();
-                        Object[] marks = refs.stream()
-                                .filter(MarkTypeUtil::isEffective) // TODO reconsider if really needed
-                                .map(ref -> WebModelServiceUtils.loadObject(ref, getPageBase()))
-                                .filter(mark -> mark != null)
-                                .map(mark -> WebComponentUtil.getDisplayNameOrName(mark))
-                                .toArray();
-
-                        return StringUtils.joinWith(", ", marks);
+                        return WebComponentUtil.createMarkList(shadow, getPageBase());
                     }
                 };
                 return new TitleWithMarks(componentId, labelModel, marks) {
