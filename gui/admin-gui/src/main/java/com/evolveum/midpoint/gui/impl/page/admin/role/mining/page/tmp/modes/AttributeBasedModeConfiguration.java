@@ -35,13 +35,13 @@ public class AttributeBasedModeConfiguration extends AbstractRoleAnalysisConfigu
     @Override
     public void updateConfiguration() {
         RangeType propertyRange = createPropertyRange();
-        ClusteringAttributeSettingType clusteringSetting = createClusteringSetting();
+//        ClusteringAttributeSettingType clusteringSetting = createClusteringSetting();
 
         updatePrimaryOptions(null,
                 false,
                 propertyRange,
                 getDefaultAnalysisAttributes(),
-                clusteringSetting,
+                null,
                 80.0,
                 5,
                 5,
