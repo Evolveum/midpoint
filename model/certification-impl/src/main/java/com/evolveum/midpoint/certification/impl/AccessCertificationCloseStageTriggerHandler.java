@@ -27,6 +27,7 @@ import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REVIEW_STAGE;
 
 @Component
@@ -63,7 +64,7 @@ public class AccessCertificationCloseStageTriggerHandler implements SingleTrigge
                 return;
             }
 
-            int currentStageNumber = campaign.getStageNumber();
+            int currentStageNumber = or0(campaign.getStageNumber());
             certificationManager.closeCurrentStage(campaign.getOid(), task, result);
             if (currentStageNumber < CertCampaignTypeUtil.getNumberOfStages(campaign)) {
                 LOGGER.info("Automatically opening next stage of {}", ObjectTypeUtil.toShortString(campaign));

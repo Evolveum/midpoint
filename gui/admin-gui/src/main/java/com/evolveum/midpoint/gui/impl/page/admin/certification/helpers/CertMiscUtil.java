@@ -57,6 +57,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
 
 import static java.util.Collections.singleton;
@@ -89,7 +90,7 @@ public class CertMiscUtil {
 
             @Override
             protected List<ProgressBar> load() {
-                int currentStage = campaign.getStageNumber();
+                int currentStage = or0(campaign.getStageNumber());
                 int currentIteration = campaign.getIteration();
 
                 OperationResult result = new OperationResult(OPERATION_COUNT_WORK_ITEMS_PROGRESS);
@@ -169,7 +170,7 @@ public class CertMiscUtil {
 
             @Override
             protected List<ProgressBar> load() {
-                int currentStage = campaign.getStageNumber();
+                int currentStage = or0(campaign.getStageNumber());
                 int currentIteration = campaign.getIteration();
 
                 OperationResult result = new OperationResult(OPERATION_COUNT_CASES_PROGRESS);
@@ -352,7 +353,7 @@ public class CertMiscUtil {
                     return "";
                 }
                 AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaign);
-                int stageNumber = stage != null ? stage.getNumber() : 0;
+                int stageNumber = stage != null ? or0(stage.getNumber()) : 0;
                 int numberOfStages = CertCampaignTypeUtil.getNumberOfStages(campaign);
                 return stageNumber + "/" + numberOfStages;
             }

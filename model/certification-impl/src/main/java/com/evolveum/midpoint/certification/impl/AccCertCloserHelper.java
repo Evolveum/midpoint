@@ -37,6 +37,7 @@ import static com.evolveum.midpoint.certification.api.OutcomeUtils.toUri;
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
 import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortStringLazy;
+import static com.evolveum.midpoint.util.MiscUtil.or0;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_CLOSE_TIMESTAMP;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.REVIEW_STAGE_DONE;
@@ -174,9 +175,9 @@ public class AccCertCloserHelper {
                 continue;
             }
             LOGGER.trace("Updating current outcome for case {}", caseId);
-            AccessCertificationResponseType newStageOutcome = computationHelper.computeOutcomeForStage(aCase, campaign, campaign.getStageNumber());
+            AccessCertificationResponseType newStageOutcome = computationHelper.computeOutcomeForStage(aCase, campaign, or0(campaign.getStageNumber()));
             String newStageOutcomeUri = toUri(newStageOutcome);
-            String newOverallOutcomeUri = toUri(computationHelper.computeOverallOutcome(aCase, campaign, campaign.getStageNumber(), newStageOutcome));
+            String newOverallOutcomeUri = toUri(computationHelper.computeOverallOutcome(aCase, campaign, or0(campaign.getStageNumber()), newStageOutcome));
             List<ItemDelta<?, ?>> deltas = new ArrayList<>(
                     prismContext.deltaFor(AccessCertificationCampaignType.class)
                             .item(F_CASE, caseId, F_CURRENT_STAGE_OUTCOME).replace(newStageOutcomeUri)
@@ -184,7 +185,7 @@ public class AccCertCloserHelper {
                             .item(F_CASE, caseId, F_EVENT).add(
                                     new StageCompletionEventType()
                                             .timestamp(clock.currentTimeXMLGregorianCalendar())
-                                            .stageNumber(campaign.getStageNumber())
+                                            .stageNumber(or0(campaign.getStageNumber()))
                                             .iteration(campaign.getIteration())
                                             .outcome(newStageOutcomeUri))
                             .asItemDeltas());
@@ -201,7 +202,7 @@ public class AccCertCloserHelper {
 
     private ItemDelta<?, ?> createStageEndTimeDelta(AccessCertificationCampaignType campaign, XMLGregorianCalendar now)
             throws SchemaException {
-        AccessCertificationStageType stage = CertCampaignTypeUtil.findStage(campaign, campaign.getStageNumber());
+        AccessCertificationStageType stage = CertCampaignTypeUtil.findStage(campaign, or0(campaign.getStageNumber()));
         Long stageId = stage.asPrismContainerValue().getId();
         assert stageId != null;
         return prismContext.deltaFor(AccessCertificationCampaignType.class)

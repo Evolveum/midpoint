@@ -30,6 +30,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+
 public class DefinitionStagesPanel extends BasePanel<List<StageDefinitionDto>> {
 
     private static final String ID_TAB_PANEL = "tabPanel";
@@ -197,9 +199,9 @@ public class DefinitionStagesPanel extends BasePanel<List<StageDefinitionDto>> {
 
     private StageDefinitionDto createNewStageDefinitionDto(){
         try {
-            AccessCertificationStageDefinitionType def = new AccessCertificationStageDefinitionType(parentPage.getPrismContext());
+            AccessCertificationStageDefinitionType def = new AccessCertificationStageDefinitionType();
             def.setNumber(getModel().getObject().size() + 1);
-            def.setName(DEFAULT_STAGE_NAME_PREFIX + def.getNumber());
+            def.setName(DEFAULT_STAGE_NAME_PREFIX + or0(def.getNumber()));
             return new StageDefinitionDto(def, parentPage);
         } catch (SchemaException e) {
             throw new IllegalStateException(e);

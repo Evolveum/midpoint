@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sql;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
@@ -541,7 +543,7 @@ public class CertificationTest extends BaseSQLRepoTest {
 
     private void addUnansweredActiveCases(List<AccessCertificationCaseType> expectedCases, List<AccessCertificationCaseType> caseList, AccessCertificationCampaignType campaign) {
         for (AccessCertificationCaseType aCase : caseList) {
-            if (aCase.getStageNumber() != campaign.getStageNumber()) {
+            if (or0(aCase.getStageNumber()) != or0(campaign.getStageNumber())) {
                 continue;
             }
             if (campaign.getState() != IN_REVIEW_STAGE) {

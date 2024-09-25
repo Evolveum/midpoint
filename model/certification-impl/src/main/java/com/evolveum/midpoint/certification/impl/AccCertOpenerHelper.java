@@ -218,7 +218,7 @@ public class AccCertOpenerHelper {
     void openNextStage(AccessCertificationCampaignType campaign, CertificationHandler handler, Task task,
             OperationResult result) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         boolean skipEmptyStages = norm(campaign.getIteration()) > 1;        // TODO make configurable
-        int requestedStageNumber = campaign.getStageNumber() + 1;
+        int requestedStageNumber = or0(campaign.getStageNumber()) + 1;
         for (;;) {
             OpeningContext openingContext = new OpeningContext();
             AccessCertificationStageType stage = createStage(campaign, requestedStageNumber);
@@ -242,8 +242,8 @@ public class AccCertOpenerHelper {
             OpeningContext openingContext, final Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException {
 
-        int stageNumber = campaign.getStageNumber();
-        int newStageNumber = stage.getNumber();
+        int stageNumber = or0(campaign.getStageNumber());
+        int newStageNumber = or0(stage.getNumber());
 
         LOGGER.trace("getDeltasForStageOpen starting; campaign = {}, stage number = {}, new stage number = {}, iteration = {}",
                 ObjectTypeUtil.toShortStringLazy(campaign), stageNumber, newStageNumber, norm(campaign.getIteration()));
@@ -421,10 +421,10 @@ public class AccCertOpenerHelper {
             ModificationsToExecute modifications, OpeningContext openingContext,
             Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
-        int stageToBe = stage.getNumber();
+        int stageToBe = or0(stage.getNumber());
         int iteration = norm(campaign.getIteration());
         LOGGER.trace("Updating cases in {}; current stage = {}, stageToBe = {}, iteration = {}", toShortStringLazy(campaign),
-                campaign.getStageNumber(), stageToBe, iteration);
+                or0(campaign.getStageNumber()), stageToBe, iteration);
         List<AccessCertificationCaseType> caseList = queryHelper.getAllCurrentIterationCases(campaign.getOid(), iteration, result);
 
         AccessCertificationReviewerSpecificationType reviewerSpec =
@@ -480,10 +480,10 @@ public class AccCertOpenerHelper {
 
         List<ItemDelta<?,?>> itemDeltaList = new ArrayList<>();
 
-        itemDeltaList.add(updateHelper.createStageNumberDelta(newStage.getNumber()));
+        itemDeltaList.add(updateHelper.createStageNumberDelta(or0(newStage.getNumber())));
         itemDeltaList.add(updateHelper.createStateDelta(IN_REVIEW_STAGE));
 
-        boolean campaignJustStarted = campaign.getStageNumber() == 0;
+        boolean campaignJustStarted = or0(campaign.getStageNumber()) == 0;
         if (campaignJustStarted) {
             itemDeltaList.add(updateHelper.createStartTimeDelta(clock.currentTimeXMLGregorianCalendar()));
         }
@@ -492,7 +492,7 @@ public class AccCertOpenerHelper {
         if (stageDeadline != null) {
             // auto-closing and notifications triggers
             final AccessCertificationStageDefinitionType stageDef =
-                    CertCampaignTypeUtil.findStageDefinition(campaign, newStage.getNumber());
+                    CertCampaignTypeUtil.findStageDefinition(campaign, or0(newStage.getNumber()));
             List<TriggerType> triggers = new ArrayList<>();
 
             // pseudo-random ID so this trigger will not be deleted by trigger task handler (if this code itself is executed as part of previous trigger firing)
@@ -530,7 +530,7 @@ public class AccCertOpenerHelper {
         stage.setNumber(requestedStageNumber);
         stage.setStartTimestamp(clock.currentTimeXMLGregorianCalendar());
 
-        AccessCertificationStageDefinitionType stageDef = CertCampaignTypeUtil.findStageDefinition(campaign, stage.getNumber());
+        AccessCertificationStageDefinitionType stageDef = CertCampaignTypeUtil.findStageDefinition(campaign, or0(stage.getNumber()));
         XMLGregorianCalendar deadline = computeDeadline(stage.getStartTimestamp(), stageDef.getDuration(), stageDef.getDeadlineRounding());
         stage.setDeadline(deadline);
 
@@ -564,14 +564,14 @@ public class AccCertOpenerHelper {
             OperationResult result) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         // notifications
         final AccessCertificationCampaignType campaign = generalHelper.getCampaign(campaignOid, null, task, result);
-        if (campaign.getStageNumber() == 1) {
+        if (or0(campaign.getStageNumber()) == 1) {
             eventHelper.onCampaignStart(campaign, task, result);
         }
         eventHelper.onCampaignStageStart(campaign, task, result);
 
         updateHelper.notifyReviewers(campaign, false, task, result);
 
-        if (newStage.getNumber() == 1 && norm(campaign.getIteration()) == 1 && campaign.getDefinitionRef() != null) {
+        if (or0(newStage.getNumber()) == 1 && norm(campaign.getIteration()) == 1 && campaign.getDefinitionRef() != null) {
             List<ItemDelta<?,?>> deltas = prismContext.deltaFor(AccessCertificationDefinitionType.class)
                     .item(F_LAST_CAMPAIGN_STARTED_TIMESTAMP).replace(clock.currentTimeXMLGregorianCalendar())
                     .asItemDeltas();

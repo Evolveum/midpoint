@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
 import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
+import static com.evolveum.midpoint.util.MiscUtil.or0;
 
 import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -124,7 +125,7 @@ public class CertCaseOrWorkItemDto extends Selectable<CertCaseOrWorkItemDto> imp
 
     public Integer getCampaignStageNumber() {
         AccessCertificationCampaignType campaign = getCampaign();
-        return campaign != null ? campaign.getStageNumber() : null;      // numbers after # of stages should not occur, as there are no cases in these stages
+        return campaign != null ? or0(campaign.getStageNumber()) : null;      // numbers after # of stages should not occur, as there are no cases in these stages
     }
 
     public Integer getCampaignStageCount() {
@@ -143,7 +144,7 @@ public class CertCaseOrWorkItemDto extends Selectable<CertCaseOrWorkItemDto> imp
         if (campaign == null) {
             return null;
         }
-        int stageNumber = campaign.getStageNumber();
+        int stageNumber = or0(campaign.getStageNumber());
         if (stageNumber <= 0 || stageNumber > CertCampaignTypeUtil.getNumberOfStages(campaign)) {
             return null;
         }

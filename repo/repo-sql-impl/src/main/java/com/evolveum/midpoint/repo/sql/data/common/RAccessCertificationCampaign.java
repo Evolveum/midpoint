@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
+import static com.evolveum.midpoint.util.MiscUtil.or0;
 
 import java.util.HashSet;
 import java.util.List;
@@ -193,6 +194,6 @@ public class RAccessCertificationCampaign extends RObject {
         repo.setEnd(jaxb.getEndTimestamp());
         repo.setState(RUtil.getRepoEnumValue(jaxb.getState(), RAccessCertificationCampaignState.class));
         repo.setIteration(norm(jaxb.getIteration()));
-        repo.setStageNumber(jaxb.getStageNumber());
+        repo.setStageNumber(or0(jaxb.getStageNumber()));
     }
 }

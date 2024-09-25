@@ -27,6 +27,7 @@ import static com.evolveum.midpoint.certification.api.OutcomeUtils.fromUri;
 import static com.evolveum.midpoint.certification.api.OutcomeUtils.normalizeToNonNull;
 import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortStringLazy;
+import static com.evolveum.midpoint.util.MiscUtil.or0;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseOutcomeStrategyType.ALL_MUST_ACCEPT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseOutcomeStrategyType.ONE_ACCEPT_ACCEPTS;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
@@ -85,7 +86,7 @@ public class AccCertResponseComputationHelper {
                 rv = getOverallOutcomeStrategy(campaign).getOutcomesToStopOn();
             }
         }
-        LOGGER.trace("Outcomes to stop on for campaign {}, stage {}: {}", toShortStringLazy(campaign), campaign.getStageNumber(), rv);
+        LOGGER.trace("Outcomes to stop on for campaign {}, stage {}: {}", toShortStringLazy(campaign), or0(campaign.getStageNumber()), rv);
         return rv;
     }
 

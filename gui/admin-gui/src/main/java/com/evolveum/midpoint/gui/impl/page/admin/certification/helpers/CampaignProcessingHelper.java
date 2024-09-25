@@ -44,6 +44,7 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
 
 public class CampaignProcessingHelper implements Serializable {
 
@@ -233,7 +234,7 @@ public class CampaignProcessingHelper implements Serializable {
         AccessCertificationStageType currentStage = CertCampaignTypeUtil.getCurrentStage(campaign);
         XMLGregorianCalendar end;
         Boolean stageLevelInfo;
-        if (campaign.getStageNumber() == 0) {
+        if (or0(campaign.getStageNumber()) == 0) {
             end = campaign.getEndTimestamp();            // quite useless, as "end" denotes real campaign end
             stageLevelInfo = false;
         } else if (currentStage != null) {
@@ -275,7 +276,7 @@ public class CampaignProcessingHelper implements Serializable {
     public static XMLGregorianCalendar computeDeadline(AccessCertificationCampaignType campaign, PageBase page) {
         AccessCertificationStageType currentStage = CertCampaignTypeUtil.getCurrentStage(campaign);
         XMLGregorianCalendar end;
-        if (campaign.getStageNumber() == 0) {
+        if (or0(campaign.getStageNumber()) == 0) {
             end = campaign.getEndTimestamp();            // quite useless, as "end" denotes real campaign end
         } else if (currentStage != null) {
             end = currentStage.getDeadline();

@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.accesscert;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.F_ACTIVATION;
 
@@ -204,7 +205,7 @@ public class QAccessCertificationCaseMapping
         row.remediedTimestamp = MiscUtil.asInstant(acase.getRemediedTimestamp());
         row.currentStageDeadline = MiscUtil.asInstant(acase.getCurrentStageDeadline());
         row.currentStageCreateTimestamp = MiscUtil.asInstant(acase.getCurrentStageCreateTimestamp());
-        row.stageNumber = acase.getStageNumber();
+        row.stageNumber = or0(acase.getStageNumber());
         setReference(acase.getTargetRef(),
                 o -> row.targetRefTargetOid = o,
                 t -> row.targetRefTargetType = t,
