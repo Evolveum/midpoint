@@ -254,7 +254,8 @@ public class AdvancedClustering implements Clusterable {
             return ClusteringMode.BALANCED;
         } else {
 
-            if(analysisProcedureType.equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)){
+            if(analysisProcedureType.equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)
+            || analysisCategory.equals(RoleAnalysisCategoryType.ATTRIBUTE_BASED)) {
                 return ClusteringMode.BALANCED_RULES_OUTLIER;
             }
 

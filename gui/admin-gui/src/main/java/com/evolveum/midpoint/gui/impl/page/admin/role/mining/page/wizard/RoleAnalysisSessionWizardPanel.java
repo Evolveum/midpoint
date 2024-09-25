@@ -236,8 +236,32 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
 
         if (!analysisCategory.equals(RoleAnalysisCategoryType.ADVANCED)) {
 //                    || analysisCategory.equals(RoleAnalysisCategoryType.STANDARD)
+
+            if(analysisCategory.equals(RoleAnalysisCategoryType.ATTRIBUTE_BASED)){
+                steps.add(new FilteringRoleAnalysisSessionOptionWizardPanel(getHelper().getDetailsModel()) {
+
+                    @Override
+                    protected void onExitPerformed(AjaxRequestTarget target) {
+                        RoleAnalysisSessionWizardPanel.this.onExitPerformed();
+                    }
+                });
+
+                steps.add(new ClusteringRoleAnalysisSessionOptionWizardPanel(getHelper().getDetailsModel()) {
+
+                    @Override
+                    protected void onExitPerformed(AjaxRequestTarget target) {
+                        RoleAnalysisSessionWizardPanel.this.onExitPerformed();
+                    }
+
+                    @Override
+                    protected void onSubmitPerformed(AjaxRequestTarget target) {
+                        finalSubmitPerform(target, taskType);
+                    }
+                });
+            }
             return steps;
         }
+
 
         steps.add(new FilteringRoleAnalysisSessionOptionWizardPanel(getHelper().getDetailsModel()) {
 

@@ -20,6 +20,12 @@ import org.jetbrains.annotations.NotNull;
 
 public enum AnalysisCategoryMode implements TileEnum {
 
+    BIRTHRIGHT_ROLE("fa fa-briefcase",
+            "RoleAnalysisCategoryType.BIRTHRIGHT_ROLE.description",
+            RoleAnalysisProcessModeType.ROLE),
+    ATTRIBUTE_BASED("fa fa-tags",
+            "RoleAnalysisCategoryType.ATTRIBUTE_BASED.description",
+            RoleAnalysisProcessModeType.USER),
     BALANCED_COVERAGE("fa fa-balance-scale",
             "RoleAnalysisCategoryType.BALANCED_COVERAGE.description",
             null),
@@ -29,9 +35,6 @@ public enum AnalysisCategoryMode implements TileEnum {
     DEPARTMENT("fa fa-building",
             "RoleAnalysisCategoryType.DEPARTMENT.description",
             RoleAnalysisProcessModeType.USER),
-    BIRTHRIGHT_ROLE("fa fa-briefcase",
-            "RoleAnalysisCategoryType.BIRTHRIGHT_ROLE.description",
-            RoleAnalysisProcessModeType.ROLE),
     OUTLIERS_DEPARTMENT("fa fa-wrench",
             "RoleAnalysisCategoryType.OUTLIER_DEPARTMENT.description",
             RoleAnalysisProcessModeType.USER),
@@ -77,6 +80,7 @@ public enum AnalysisCategoryMode implements TileEnum {
             case EXACT_ACCESS_SIMILARITY ->
                     new ExactSimilarityModeConfiguration(service, session, task, result).updateConfiguration();
             case DEPARTMENT -> new DepartmentModeConfiguration(service, session, task, result).updateConfiguration();
+            case ATTRIBUTE_BASED -> new AttributeBasedModeConfiguration(service, session, task, result).updateConfiguration();
             case ROLE_MINING_ADVANCED ->
                     new AdvancedModeConfiguration(service, session, task, result).updateConfiguration();
             case OUTLIER_DETECTION_ADVANCED ->
@@ -124,6 +128,7 @@ public enum AnalysisCategoryMode implements TileEnum {
     public RoleAnalysisCategoryType resolveCategoryMode() {
         return switch (this) {
             case BIRTHRIGHT_ROLE -> RoleAnalysisCategoryType.BIRTHRIGHT;
+            case ATTRIBUTE_BASED -> RoleAnalysisCategoryType.ATTRIBUTE_BASED;
             case BALANCED_COVERAGE -> RoleAnalysisCategoryType.BALANCED;
             case EXACT_ACCESS_SIMILARITY -> RoleAnalysisCategoryType.EXACT;
             case DEPARTMENT -> RoleAnalysisCategoryType.DEPARTMENT;
@@ -144,6 +149,7 @@ public enum AnalysisCategoryMode implements TileEnum {
             case EXACT -> EXACT_ACCESS_SIMILARITY;
             case EXPLORATION -> null;
             case DEPARTMENT -> DEPARTMENT;
+            case ATTRIBUTE_BASED -> ATTRIBUTE_BASED;
             case ADVANCED -> processMode == RoleAnalysisProcedureType.ROLE_MINING ? ROLE_MINING_ADVANCED : OUTLIER_DETECTION_ADVANCED;
             case OUTLIERS_DEPARTMENT -> OUTLIERS_DEPARTMENT;
         };

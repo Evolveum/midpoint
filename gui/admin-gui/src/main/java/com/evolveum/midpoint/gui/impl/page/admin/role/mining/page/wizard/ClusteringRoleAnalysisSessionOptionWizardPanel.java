@@ -95,7 +95,8 @@ public class ClusteringRoleAnalysisSessionOptionWizardPanel extends AbstractForm
 
             if (itemName.equals(AbstractAnalysisSessionOptionType.F_QUERY)
                     || itemName.equals(AbstractAnalysisSessionOptionType.F_IS_INDIRECT)
-                    || itemName.equals(AbstractAnalysisSessionOptionType.F_PROPERTIES_RANGE)) {
+                    || itemName.equals(AbstractAnalysisSessionOptionType.F_PROPERTIES_RANGE)
+                    || itemName.equals(AbstractAnalysisSessionOptionType.F_MAX_DISTANCE)) {
                 return ItemVisibility.HIDDEN;
             }
 
