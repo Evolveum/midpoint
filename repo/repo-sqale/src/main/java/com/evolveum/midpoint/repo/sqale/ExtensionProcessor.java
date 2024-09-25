@@ -253,6 +253,8 @@ public class ExtensionProcessor {
                         default:
                             throw new IllegalStateException("");
                     }
+                } else {
+                    item.getValues();
                 }
                 if (item.isIncomplete() && (item.getDefinition() == null || !item.getDefinition().isIndexOnly())) {
                     // Item was not fully serialized / probably indexOnly item.
