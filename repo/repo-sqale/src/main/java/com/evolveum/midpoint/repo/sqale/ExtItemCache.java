@@ -6,11 +6,16 @@
  */
 package com.evolveum.midpoint.repo.sqale;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,6 +34,8 @@ public class ExtItemCache {
 
     private final Map<Integer, MExtItem> idToExtItem = new ConcurrentHashMap<>();
     private final Map<MExtItem.Key, MExtItem> keyToExtItem = new ConcurrentHashMap<>();
+
+    private final Multimap<String, MExtItem> nameToExtItem = HashMultimap.create();
 
     // WARNING: Each .get() creates new connection, always use in try-with-resource block!
     private Supplier<JdbcSession> jdbcSessionSupplier;
@@ -63,6 +70,8 @@ public class ExtItemCache {
     private void updateMaps(MExtItem row) {
         idToExtItem.put(row.id, row);
         keyToExtItem.put(row.key(), row);
+        nameToExtItem.put(row.itemName, row);
+
     }
 
     public synchronized @NotNull MExtItem resolveExtensionItem(@NotNull MExtItem.Key extItemKey) {
@@ -152,5 +161,12 @@ public class ExtItemCache {
         }
 
         return keyToExtItem.get(extItemKey);
+    }
+
+    public Collection<MExtItem> findConflictingExtensions(MExtItem extItemInfo) {
+        var conflicting = new ArrayList<>(nameToExtItem.get(extItemInfo.itemName));
+        // Remove self from conflicting, all other items are conflicting
+        conflicting.remove(extItemInfo);
+        return conflicting;
     }
 }

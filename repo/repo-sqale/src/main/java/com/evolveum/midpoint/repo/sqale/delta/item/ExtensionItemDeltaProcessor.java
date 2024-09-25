@@ -62,9 +62,9 @@ public class ExtensionItemDeltaProcessor implements ItemDeltaProcessor {
         // If the extension is single value (and we know it now), we should proceed with deletion of
         // multivalue variant and vice-versa. This variants may be introduced during raw import
         // or changes in multiplicity of extension definition or resource definition.
-        String extItemId = reverseCardinality(extItemInfo.item);
-        if (extItemId != null) {
-            context.deleteItem(extItemId);
+        var conflicting = context.repositoryContext().findConflictingExtensionItem(extItemInfo);
+        for (var c : conflicting) {
+            context.deleteItem(c.getId());
         }
 
         if (realValues == null || realValues.isEmpty()) {
