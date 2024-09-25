@@ -19,6 +19,8 @@ import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+
 public class StageDefinitionDto implements Serializable {
 
     public static final String F_NUMBER = "number";
@@ -48,7 +50,7 @@ public class StageDefinitionDto implements Serializable {
 
     public StageDefinitionDto(AccessCertificationStageDefinitionType stageDefObj, ModelServiceLocator modelServiceLocator) throws SchemaException {
         if (stageDefObj != null) {
-            setNumber(stageDefObj.getNumber());
+            setNumber(or0(stageDefObj.getNumber()));
             setName(stageDefObj.getName());
             setDescription(stageDefObj.getDescription());
             if (stageDefObj.getDuration() != null) {

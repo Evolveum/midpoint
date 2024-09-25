@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.repo.sql.data.common.container;
 
 import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
+import static com.evolveum.midpoint.util.MiscUtil.or0;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -332,7 +333,7 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         rCase.setRemediedTimestamp(case1.getRemediedTimestamp());
         rCase.setCurrentStageOutcome(case1.getCurrentStageOutcome());
         rCase.setIteration(norm(case1.getIteration()));
-        rCase.setStageNumber(case1.getStageNumber());
+        rCase.setStageNumber(or0(case1.getStageNumber()));
         rCase.setOutcome(case1.getOutcome());
         //noinspection unchecked
         PrismContainerValue<AccessCertificationCaseType> cvalue = case1.asPrismContainerValue();

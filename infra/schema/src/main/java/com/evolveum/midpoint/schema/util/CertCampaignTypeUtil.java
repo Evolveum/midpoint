@@ -23,6 +23,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REMEDIATION;
 import static java.util.stream.Collectors.toList;
@@ -31,7 +32,7 @@ public class CertCampaignTypeUtil {
 
     public static AccessCertificationStageType getCurrentStage(AccessCertificationCampaignType campaign) {
         for (AccessCertificationStageType stage : campaign.getStage()) {
-            if (stage.getNumber() == campaign.getStageNumber() && norm(stage.getIteration()) == norm(campaign.getIteration())) {
+            if (or0(stage.getNumber()) == or0(campaign.getStageNumber()) && norm(stage.getIteration()) == norm(campaign.getIteration())) {
                 return stage;
             }
         }
@@ -40,13 +41,13 @@ public class CertCampaignTypeUtil {
 
     @NotNull
     public static AccessCertificationStageDefinitionType getCurrentStageDefinition(AccessCertificationCampaignType campaign) {
-        return findStageDefinition(campaign, campaign.getStageNumber());
+        return findStageDefinition(campaign, or0(campaign.getStageNumber()));
     }
 
     @NotNull
     public static AccessCertificationStageDefinitionType findStageDefinition(AccessCertificationCampaignType campaign, int stageNumber) {
         for (AccessCertificationStageDefinitionType stage : campaign.getStageDefinition()) {
-            if (stage.getNumber() == stageNumber) {
+            if (or0(stage.getNumber()) == stageNumber) {
                 return stage;
             }
         }
@@ -56,7 +57,7 @@ public class CertCampaignTypeUtil {
     @NotNull
     public static AccessCertificationStageType findStage(AccessCertificationCampaignType campaign, int stageNumber) {
         for (AccessCertificationStageType stage : campaign.getStage()) {
-            if (stage.getNumber() == stageNumber && norm(stage.getIteration()) == norm(campaign.getIteration())) {
+            if (or0(stage.getNumber()) == stageNumber && norm(stage.getIteration()) == norm(campaign.getIteration())) {
                 return stage;
             }
         }
@@ -112,7 +113,7 @@ public class CertCampaignTypeUtil {
 
     @SuppressWarnings("unused")
     public static boolean isCampaignClosed(AccessCertificationCampaignType campaign) {
-        int currentStage = campaign.getStageNumber();
+        int currentStage = or0(campaign.getStageNumber());
         int stages = getNumberOfStages(campaign);
         return CLOSED.equals(campaign.getState()) || currentStage > stages;
     }
@@ -122,7 +123,7 @@ public class CertCampaignTypeUtil {
         int count = stages.size();
         boolean[] numberPresent = new boolean[count];
         for (AccessCertificationStageDefinitionType stage : stages) {
-            int num = stage.getNumber();
+            int num = or0(stage.getNumber());
             if (num < 1 || num > count) {
                 throw new IllegalStateException("Invalid stage number: " + num + " (stage count: " + count +")");
             }
@@ -141,12 +142,12 @@ public class CertCampaignTypeUtil {
 
     // expects that the currentStageNumber is reasonable
     public static AccessCertificationStageType findCurrentStage(AccessCertificationCampaignType campaign) {
-        return findStage(campaign, campaign.getStageNumber());
+        return findStage(campaign, or0(campaign.getStageNumber()));
     }
 
     // active cases = cases that are to be responded to in this stage
     @SuppressWarnings("unused")         // used e.g. by campaigns report
-    public static int getActiveCases(List<AccessCertificationCaseType> caseList, int campaignStageNumber, AccessCertificationCampaignStateType state) {
+    public static int getActiveCases(List<AccessCertificationCaseType> caseList, Integer campaignStageNumber, AccessCertificationCampaignStateType state) {
         int open = 0;
         for (AccessCertificationCaseType aCase : caseList) {
             if (aCase.getReviewFinishedTimestamp() == null) {
@@ -163,12 +164,12 @@ public class CertCampaignTypeUtil {
 
     public static float getCasesCompletedPercentageCurrStageCurrIteration(AccessCertificationCampaignType campaign) {
         return getCasesCompletedPercentage(campaign.getCase(),
-                accountForClosingStates(campaign.getStageNumber(), campaign.getState()), norm(campaign.getIteration()));
+                accountForClosingStates(or0(campaign.getStageNumber()), campaign.getState()), norm(campaign.getIteration()));
     }
 
     public static float getCasesCompletedPercentageCurrStageAllIterations(AccessCertificationCampaignType campaign) {
         return getCasesCompletedPercentage(campaign.getCase(),
-                accountForClosingStates(campaign.getStageNumber(), campaign.getState()), null);
+                accountForClosingStates(or0(campaign.getStageNumber()), campaign.getState()), null);
     }
 
     public static float getCasesCompletedPercentageAllStagesCurrIteration(AccessCertificationCampaignType campaign) {
@@ -236,11 +237,11 @@ public class CertCampaignTypeUtil {
     }
 
     public static float getCasesDecidedPercentageCurrStageCurrIteration(AccessCertificationCampaignType campaign) {
-        return getCasesDecidedPercentage(campaign.getCase(), campaign.getStageNumber(), norm(campaign.getIteration()), campaign.getState());
+        return getCasesDecidedPercentage(campaign.getCase(), or0(campaign.getStageNumber()), norm(campaign.getIteration()), campaign.getState());
     }
 
     public static float getCasesDecidedPercentageCurrStageAllIterations(AccessCertificationCampaignType campaign) {
-        return getCasesDecidedPercentage(campaign.getCase(), campaign.getStageNumber(), null, campaign.getState());
+        return getCasesDecidedPercentage(campaign.getCase(), or0(campaign.getStageNumber()), null, campaign.getState());
     }
 
     public static float getCasesDecidedPercentageAllStagesCurrIteration(AccessCertificationCampaignType campaign) {
@@ -272,7 +273,7 @@ public class CertCampaignTypeUtil {
         if (iteration != null && iteration != norm(aCase.getIteration())) {
             return false;
         }
-        return stage == null || stage == aCase.getStageNumber()
+        return stage == null || or0(stage) == or0(aCase.getStageNumber())
                 || !CertCampaignTypeUtil.getCompletedStageEvents(aCase, stage, iteration).isEmpty();
     }
 
@@ -288,12 +289,12 @@ public class CertCampaignTypeUtil {
 
     public static float getWorkItemsCompletedPercentageCurrStageCurrIteration(AccessCertificationCampaignType campaign) {
         return getWorkItemsCompletedPercentage(campaign.getCase(),
-                accountForClosingStates(campaign.getStageNumber(), campaign.getState()), norm(campaign.getIteration()));
+                accountForClosingStates(or0(campaign.getStageNumber()), campaign.getState()), norm(campaign.getIteration()));
     }
 
     public static float getWorkItemsCompletedPercentageCurrStageAllIterations(AccessCertificationCampaignType campaign) {
         return getWorkItemsCompletedPercentage(campaign.getCase(),
-                accountForClosingStates(campaign.getStageNumber(), campaign.getState()), null);
+                accountForClosingStates(or0(campaign.getStageNumber()), campaign.getState()), null);
     }
 
     public static float getWorkItemsCompletedPercentageAllStagesCurrIteration(AccessCertificationCampaignType campaign) {
@@ -352,7 +353,7 @@ public class CertCampaignTypeUtil {
     @SuppressWarnings("unused")  // used by certification cases report
     public @NotNull static List<ObjectReferenceType> getCurrentlyAssignedReviewers(@NotNull AccessCertificationCaseType aCase) {
         List<ObjectReferenceType> rv = new ArrayList<>();
-        aCase.getWorkItem().forEach(workItem -> rv.addAll(getCurrentlyAssignedReviewers(workItem, aCase.getStageNumber())));
+        aCase.getWorkItem().forEach(workItem -> rv.addAll(getCurrentlyAssignedReviewers(workItem, or0(aCase.getStageNumber()))));
         return rv;
     }
 
@@ -481,7 +482,7 @@ public class CertCampaignTypeUtil {
     public static Set<ObjectReferenceType> getCurrentReviewers(AccessCertificationCaseType aCase) {
         return aCase.getWorkItem().stream()
                 // TODO check also with campaign stage?
-                .filter(wi -> wi.getStageNumber() == aCase.getStageNumber())
+                .filter(wi -> or0(wi.getStageNumber()) == or0(aCase.getStageNumber()))
                 .flatMap(wi -> wi.getAssigneeRef().stream())
                 .collect(Collectors.toSet());
     }

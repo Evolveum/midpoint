@@ -18,6 +18,8 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+
 public class CampaignStateHelper implements Serializable {
 
     @Serial private static final long serialVersionUID = 1L;
@@ -187,7 +189,7 @@ public class CampaignStateHelper implements Serializable {
 
     public CampaignStateHelper(AccessCertificationCampaignType campaign) {
         this.campaignState = campaign.getState();
-        this.stageNumber = campaign.getStageNumber();
+        this.stageNumber = or0(campaign.getStageNumber());
         this.stageDefinitionSize = campaign.getStageDefinition().size();
 //        this.campaign = campaign;
     }

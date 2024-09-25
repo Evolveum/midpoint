@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.certification.impl;
 
 import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
+import static com.evolveum.midpoint.util.MiscUtil.or0;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.*;
 
 import java.util.*;
@@ -237,7 +238,7 @@ public class CertificationManagerImpl implements CertificationManager {
                     ModelAuthorizationAction.OPEN_CERTIFICATION_CAMPAIGN_REVIEW_STAGE.getUrl(), null,
                     AuthorizationParameters.Builder.buildObject(campaign.asPrismObject()), task, result);
 
-            final int currentStageNumber = campaign.getStageNumber();
+            final int currentStageNumber = or0(campaign.getStageNumber());
             final int stages = CertCampaignTypeUtil.getNumberOfStages(campaign);
             final AccessCertificationCampaignStateType state = campaign.getState();
             LOGGER.trace("openNextStage: iteration={}, currentStageNumber={}, stages={}, state={}", norm(campaign.getIteration()), currentStageNumber, stages, state);
@@ -290,7 +291,7 @@ public class CertificationManagerImpl implements CertificationManager {
                     ModelAuthorizationAction.CLOSE_CERTIFICATION_CAMPAIGN_REVIEW_STAGE.getUrl(), null,
                     AuthorizationParameters.Builder.buildObject(campaign.asPrismObject()), task, result);
 
-            final int currentStageNumber = campaign.getStageNumber();
+            final int currentStageNumber = or0(campaign.getStageNumber());
             final int stages = CertCampaignTypeUtil.getNumberOfStages(campaign);
             final AccessCertificationCampaignStateType state = campaign.getState();
             LOGGER.trace("closeCurrentStage: currentStageNumber={}, stages={}, state={}", currentStageNumber, stages, state);
@@ -350,7 +351,7 @@ public class CertificationManagerImpl implements CertificationManager {
                     ModelAuthorizationAction.OPEN_CERTIFICATION_CAMPAIGN_REVIEW_STAGE.getUrl(), null,
                     AuthorizationParameters.Builder.buildObject(campaign.asPrismObject()), task, result);
 
-            if (campaign.getStageNumber() == 0 && norm(campaign.getIteration()) == 1) {
+            if (or0(campaign.getStageNumber()) == 0 && norm(campaign.getIteration()) == 1) {
                 launcher.startCampaignTask(campaign, result);
             } else {
                 launcher.openNextStageCampaignTask(campaign, result);
@@ -410,7 +411,7 @@ public class CertificationManagerImpl implements CertificationManager {
                     ModelAuthorizationAction.CLOSE_CERTIFICATION_CAMPAIGN_REVIEW_STAGE.getUrl(), null,
                     AuthorizationParameters.Builder.buildObject(campaign.asPrismObject()), task, result);
 
-            final int currentStageNumber = campaign.getStageNumber();
+            final int currentStageNumber = or0(campaign.getStageNumber());
             final int stages = CertCampaignTypeUtil.getNumberOfStages(campaign);
             final AccessCertificationCampaignStateType state = campaign.getState();
             LOGGER.trace("closeCurrentStage: currentStageNumber={}, stages={}, state={}", currentStageNumber, stages, state);
@@ -451,7 +452,7 @@ public class CertificationManagerImpl implements CertificationManager {
                     ModelAuthorizationAction.START_CERTIFICATION_REMEDIATION.getUrl(), null,
                     AuthorizationParameters.Builder.buildObject(campaign.asPrismObject()), task, result);
 
-            final int currentStageNumber = campaign.getStageNumber();
+            final int currentStageNumber = or0(campaign.getStageNumber());
             final int lastStageNumber = CertCampaignTypeUtil.getNumberOfStages(campaign);
             final AccessCertificationCampaignStateType state = campaign.getState();
             LOGGER.trace("startRemediation: currentStageNumber={}, stages={}, state={}", currentStageNumber, lastStageNumber, state);
@@ -630,7 +631,7 @@ public class CertificationManagerImpl implements CertificationManager {
                 throw new SystemException("Unexpected exception while getting campaign object: " + e.getMessage(), e);
             }
 
-            Integer stage = currentStageOnly ? campaign.getStageNumber() : null;
+            Integer stage = currentStageOnly ? or0(campaign.getStageNumber()) : null;
 
             AccessCertificationCasesStatisticsType stat = new AccessCertificationCasesStatisticsType();
 

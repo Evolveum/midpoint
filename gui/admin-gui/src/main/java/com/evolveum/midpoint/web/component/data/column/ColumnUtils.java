@@ -8,6 +8,7 @@ package com.evolveum.midpoint.web.component.data.column;
 
 import static com.evolveum.midpoint.gui.api.page.PageAdminLTE.createStringResourceStatic;
 import static com.evolveum.midpoint.gui.impl.util.DetailsPageUtil.dispatchToObjectDetailsPage;
+import static com.evolveum.midpoint.util.MiscUtil.or0;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -1207,7 +1208,7 @@ public class ColumnUtils {
                    IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
                AccessCertificationCaseType certItem = unwrapRowModel(rowModel);
                AccessCertificationCampaignType campaign = CertCampaignTypeUtil.getCampaign(certItem);
-               int currentStageNumber = campaign.getStageNumber();
+               int currentStageNumber = or0(campaign.getStageNumber());
                if (currentStageNumber == stageNumber) {
                    return OutcomeUtils.fromUri(certItem.getCurrentStageOutcome());
                }
@@ -1305,7 +1306,7 @@ public class ColumnUtils {
                 public IModel<List<ObjectReferenceType>> extractDataModel(
                         IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
                     AccessCertificationCaseType certCase = CertCampaignTypeUtil.getCase(unwrapRowModel(rowModel));
-                    return () -> CertCampaignTypeUtil.getCurrentlyAssignedReviewers(unwrapRowModel(rowModel), certCase.getStageNumber());
+                    return () -> CertCampaignTypeUtil.getCurrentlyAssignedReviewers(unwrapRowModel(rowModel), or0(certCase.getStageNumber()));
                 }
             });
         }

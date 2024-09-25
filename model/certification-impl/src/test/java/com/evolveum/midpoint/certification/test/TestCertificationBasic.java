@@ -8,6 +8,8 @@ package com.evolveum.midpoint.certification.test;
 
 import static com.evolveum.midpoint.model.test.CommonInitialObjects.*;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+
 import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.*;
 
@@ -811,7 +813,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
 
         campaign = getCampaignWithCases(campaignOid);
         assertEquals("wrong campaign state", CLOSED, campaign.getState());
-        assertEquals("wrong campaign stage", 2, campaign.getStageNumber());
+        assertEquals("wrong campaign stage", 2, or0(campaign.getStageNumber()));
         assertDefinitionAndOwner(campaign, certificationDefinition, USER_BOB_OID);
         assertApproximateTime("end time", new Date(), campaign.getEndTimestamp());
         assertEquals("wrong # of stages", 1, campaign.getStage().size());

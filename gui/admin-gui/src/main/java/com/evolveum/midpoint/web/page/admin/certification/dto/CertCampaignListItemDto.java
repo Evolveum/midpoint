@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
 import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
+import static com.evolveum.midpoint.util.MiscUtil.or0;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -66,7 +67,7 @@ public class CertCampaignListItemDto extends Selectable<CertCampaignListItemDto>
     }
 
     public Integer getCurrentStageNumber() {
-        int currentStage = campaign.getStageNumber();
+        int currentStage = or0(campaign.getStageNumber());
         if (AccessCertificationCampaignStateType.IN_REVIEW_STAGE.equals(campaign.getState()) ||
                 AccessCertificationCampaignStateType.REVIEW_STAGE_DONE.equals(campaign.getState())) {
             return currentStage;
@@ -88,7 +89,7 @@ public class CertCampaignListItemDto extends Selectable<CertCampaignListItemDto>
         AccessCertificationStageType currentStage = CertCampaignTypeUtil.getCurrentStage(campaign);
         XMLGregorianCalendar end;
         Boolean stageLevelInfo;
-        if (campaign.getStageNumber() == 0) {
+        if (or0(campaign.getStageNumber()) == 0) {
             end = campaign.getEndTimestamp();            // quite useless, as "end" denotes real campaign end
             stageLevelInfo = false;
         } else if (currentStage != null) {

@@ -33,6 +33,8 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+
 public class CertCampaignSummaryPanel extends ObjectVerticalSummaryPanel<AccessCertificationCampaignType> {
 
     public CertCampaignSummaryPanel(String id, IModel<AccessCertificationCampaignType> model) {
@@ -125,7 +127,7 @@ public class CertCampaignSummaryPanel extends ObjectVerticalSummaryPanel<AccessC
     }
 
     private String resolveCurrentStateName() {
-        int stageNumber = getModelObject().getStageNumber();
+        int stageNumber = or0(getModelObject().getStageNumber());
         AccessCertificationCampaignStateType state = getModelObject().getState();
         switch (state) {
             case CREATED:

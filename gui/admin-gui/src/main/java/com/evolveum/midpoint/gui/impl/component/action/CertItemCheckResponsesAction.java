@@ -26,6 +26,8 @@ import org.apache.wicket.model.Model;
 
 import java.util.List;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+
 @ActionType(
         identifier = "certItemHistory",
         applicableForType = AccessCertificationWorkItemType.class,
@@ -56,7 +58,7 @@ public class CertItemCheckResponsesAction extends AbstractGuiAction<AccessCertif
         if (campaign == null) {
             return;
         }
-        int currentStageNumber = campaign.getStageNumber();
+        int currentStageNumber = or0(campaign.getStageNumber());
 
         PrismContainerValueWrapper<AccessCertificationCaseType> caseWrapper =
                 new PrismContainerValueWrapperImpl<>(null, certCase.asPrismContainerValue(), ValueStatus.NOT_CHANGED);

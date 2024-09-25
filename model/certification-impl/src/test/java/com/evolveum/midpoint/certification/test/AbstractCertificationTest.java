@@ -10,6 +10,8 @@ import static com.evolveum.midpoint.model.test.CommonInitialObjects.*;
 
 import static com.evolveum.midpoint.util.MiscUtil.extractSingleton;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
@@ -400,9 +402,9 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
         assertNull("Unexpected end time", campaign.getEndTimestamp());
         assertEquals("wrong # of defined stages", definition.getStageDefinition().size(), campaign.getStageDefinition().size());
         assertEquals("wrong # of stages", expectedStages, campaign.getStage().size());
-        AccessCertificationStageType stage = campaign.getStage().stream().filter(s -> norm(s.getIteration()) == iteration && s.getNumber() == 1).findFirst().orElse(null);
+        AccessCertificationStageType stage = campaign.getStage().stream().filter(s -> norm(s.getIteration()) == iteration && or0(s.getNumber()) == 1).findFirst().orElse(null);
         assertNotNull("No stage #1 for current iteration", stage);
-        assertEquals("wrong stage #", 1, stage.getNumber());
+        assertEquals("wrong stage #", 1, or0(stage.getNumber()));
         assertApproximateTime("stage 1 start", expectedStartTime, stage.getStartTimestamp());
         assertNotNull("stage 1 deadline", stage.getDeadline());       // too lazy to compute exact datetime
         assertNull("unexpected stage 1 end", stage.getEndTimestamp());
@@ -432,7 +434,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
         assertEquals("wrong # of defined stages", definition.getStageDefinition().size(), campaign.getStageDefinition().size());
         assertEquals("wrong # of stages", expectedStages, campaign.getStage().size());
         AccessCertificationStageType stage = CertCampaignTypeUtil.findStage(campaign, stageNumber);
-        assertEquals("wrong stage #", stageNumber, stage.getNumber());
+        assertEquals("wrong stage #", stageNumber, or0(stage.getNumber()));
         assertApproximateTime("stage start", new Date(), stage.getStartTimestamp());
         assertNotNull("stage deadline", stage.getDeadline());       // too lazy to compute exact datetime
         assertNull("unexpected stage end", stage.getEndTimestamp());
@@ -445,7 +447,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 
     protected void assertStateAndStage(AccessCertificationCampaignType campaign, AccessCertificationCampaignStateType state, int stage) {
         assertEquals("Unexpected campaign state", state, campaign.getState());
-        assertEquals("Unexpected stage number", stage, campaign.getStageNumber());
+        assertEquals("Unexpected stage number", stage, or0(campaign.getStageNumber()));
     }
 
     protected void assertIteration(AccessCertificationCampaignType campaign, int iteration) {
@@ -467,7 +469,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
     protected void assertCaseReviewers(AccessCertificationCaseType _case, AccessCertificationResponseType currentStageOutcome,
             int currentStage, List<String> reviewerOidList) {
         assertEquals("wrong current stage outcome for " + _case, OutcomeUtils.toUri(currentStageOutcome), _case.getCurrentStageOutcome());
-        assertEquals("wrong current stage number for " + _case, currentStage, _case.getStageNumber());
+        assertEquals("wrong current stage number for " + _case, currentStage, or0(_case.getStageNumber()));
         Set<String> realReviewerOids = CertCampaignTypeUtil.getCurrentReviewers(_case).stream().map(ref -> ref.getOid()).collect(Collectors.toSet());
         assertEquals("wrong reviewer oids for " + _case, new HashSet<>(reviewerOidList), realReviewerOids);
     }
@@ -486,7 +488,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
         }
         List<AccessCertificationWorkItemType> workItems = aCase.getWorkItem().stream()
                 .filter(wi -> ObjectTypeUtil.containsOid(wi.getAssigneeRef(), realReviewerOid))
-                .filter(wi -> wi.getStageNumber() == aCase.getStageNumber())
+                .filter(wi -> or0(wi.getStageNumber()) == or0(aCase.getStageNumber()))
                 .filter(wi -> norm(wi.getIteration()) == norm(aCase.getIteration()))
                 .toList();
         assertEquals("Wrong # of current work items for " + realReviewerOid + " in " + aCase, 1, workItems.size());
@@ -603,7 +605,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 
     protected void assertCurrentState(AccessCertificationCaseType _case, AccessCertificationResponseType aggregatedResponse, int currentResponseStage) {
         assertEquals("wrong current response", OutcomeUtils.toUri(aggregatedResponse), _case.getCurrentStageOutcome());
-        assertEquals("wrong current response stage number", currentResponseStage, _case.getStageNumber());
+        assertEquals("wrong current response stage number", currentResponseStage, or0(_case.getStageNumber()));
     }
 
     protected void assertWorkItemsCount(AccessCertificationCaseType _case, int count) {
@@ -659,13 +661,13 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
         assertEquals("wrong # of stages", expectedStages, campaign.getStage().size());
         AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaign);
         assertNotNull(stage);
-        assertEquals("wrong stage #", stageNumber, stage.getNumber());
+        assertEquals("wrong stage #", stageNumber, or0(stage.getNumber()));
         assertEquals("wrong stage iteration #", iteration, norm(stage.getIteration()));
         assertApproximateTime("stage start", new Date(), stage.getStartTimestamp());
         assertApproximateTime("stage end", new Date(), stage.getStartTimestamp());
 
         for (AccessCertificationCaseType aCase : campaign.getCase()) {
-            if (aCase.getStageNumber() != stageNumber || norm(aCase.getIteration()) != iteration) {
+            if (or0(aCase.getStageNumber()) != stageNumber || norm(aCase.getIteration()) != iteration) {
                 continue;
             }
             checkCaseOutcomesSanity(aCase, campaign, stageNumber);

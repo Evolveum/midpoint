@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.notifications.impl.events;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REVIEW_STAGE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.REVIEW_STAGE_DONE;
 
@@ -69,7 +70,7 @@ public abstract class AccessCertificationEventImpl extends BaseEventImpl impleme
         if (campaign.getState() != IN_REVIEW_STAGE && campaign.getState() != REVIEW_STAGE_DONE) {
             return null;
         }
-        return CertCampaignTypeUtil.findStageDefinition(campaign, campaign.getStageNumber());
+        return CertCampaignTypeUtil.findStageDefinition(campaign, or0(campaign.getStageNumber()));
     }
 
     @Override
