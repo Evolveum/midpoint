@@ -1269,7 +1269,11 @@ However, the authorizations and the admin GUI configuration work together in sev
 E.g. end-users and administrators, both have the `basic` panel in the profile visible, but the attributes which are seen by end-users or administrators might differ.
 
 == Feedback Messages Hook
-Feedback messages hook configures operation result shown in GUI. Contains elements 'operationResultHook' and 'stackTraceVisibility'.
+
+Feedback messages hook configures how operation results are displayed in GUI.
+Contains elements 'operationResultHook' and 'stackTraceVisibility'.
+
+It can also be used to change what's displayed in operation results via options `showOnlyUserFriendlyMessages`, `disableOperationResultDownload` and `displayOnlyTopLevelOperationResult`.
 
 === Operation Result Hook
 'operationResultHook' attribute allows operation result preprocessing before it's shown in GUI.
