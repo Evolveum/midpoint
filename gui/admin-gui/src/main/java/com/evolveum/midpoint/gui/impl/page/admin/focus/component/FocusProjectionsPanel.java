@@ -326,12 +326,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
             @Override
             protected String load() {
                 ShadowType shadow = rowModel.getObject().getRealValue();
-                if (shadow == null) {
-                    return "";
-                }
-
-                List<ObjectReferenceType> refs = shadow.getEffectiveMarkRef();
-                return WebComponentUtil.createMarkList(refs, getPageBase());
+                return WebComponentUtil.createMarkList(shadow, getPageBase());
             }
         };
     }

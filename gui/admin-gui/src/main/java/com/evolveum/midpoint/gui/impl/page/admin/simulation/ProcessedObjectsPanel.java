@@ -270,11 +270,6 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
             return null;
         }
 
-//        if (!ShadowType.class.equals(obj.getType())) {
-//            // we don't currently support marking other objects - only shadows
-//            return null;
-//        }
-
         PageBase page = getPageBase();
         Task task = page.getPageTask();
 
@@ -284,15 +279,7 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
             return null;
         }
 
-        List<ObjectReferenceType> refs = shadow.asObjectable().getEffectiveMarkRef();
-        Object[] marks = refs.stream()
-                .filter(MarkTypeUtil::isEffective) // TODO reconsider if really needed
-                .map(ref -> WebModelServiceUtils.loadObject(ref, getPageBase()))
-                .filter(mark -> mark != null)
-                .map(mark -> WebComponentUtil.getDisplayNameOrName(mark))
-                .toArray();
-
-        return StringUtils.joinWith(", ", marks);
+        return WebComponentUtil.createMarkList(shadow.asObjectable(), getPageBase());
     }
 
     private String createProcessedObjectDescription(ProcessedObject<?> obj) {

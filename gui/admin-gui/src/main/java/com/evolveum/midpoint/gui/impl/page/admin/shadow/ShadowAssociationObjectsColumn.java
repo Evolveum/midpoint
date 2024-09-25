@@ -111,12 +111,7 @@ public class ShadowAssociationObjectsColumn extends PrismContainerWrapperColumn<
                 }
 
                 ObjectType shadowBean = shadow.getRealValue();
-                if (shadowBean == null) {
-                    return "";
-                }
-
-                List<ObjectReferenceType> refs = shadowBean.getEffectiveMarkRef();
-                return WebComponentUtil.createMarkList(refs, getPageBase());
+                return WebComponentUtil.createMarkList(shadowBean, getPageBase());
             }
         };
     }
