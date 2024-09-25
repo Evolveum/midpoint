@@ -155,6 +155,18 @@ public class ProjectionChangeExecution<O extends ObjectType> extends ElementChan
             result.computeStatus();
             result.recordNotApplicableIfUnknown();
 
+        } catch (ObjectNotFoundException e) {
+
+            if (!ShadowType.class.equals(e.getType())) {
+                LOGGER.trace("Non-shadow 'object not found' exception occurred for {}, rethrowing: {}", projCtx, e.getMessage());
+                throw e;
+            }
+
+            // The shadow may be gone. This can occur especially when shadow caching is used. Let's just record it.
+            // The consistency mechanism hopefully took care of the rest.
+            recordProjectionExecutionExceptionAsGone(e);
+            result.recordException(e);
+
         } catch (ObjectAlreadyExistsException e) {
 
             // This exception is quite special. We have to decide how bad this really is.
@@ -251,6 +263,11 @@ public class ProjectionChangeExecution<O extends ObjectType> extends ElementChan
     private void recordProjectionExecutionException(Throwable e) {
         LOGGER.error("Error executing changes for {}: {}", projCtx.toHumanReadableString(), e.getMessage(), e);
         projCtx.setBroken();
+    }
+
+    private void recordProjectionExecutionExceptionAsGone(Throwable e) {
+        LOGGER.error("Error executing changes for {}: {}", projCtx.toHumanReadableString(), e.getMessage(), e);
+        projCtx.markGone();
     }
 
     private boolean shouldExecute() {
