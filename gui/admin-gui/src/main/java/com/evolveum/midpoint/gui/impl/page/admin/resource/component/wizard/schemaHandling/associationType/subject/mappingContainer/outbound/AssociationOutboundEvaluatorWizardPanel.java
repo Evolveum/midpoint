@@ -21,6 +21,8 @@ import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssociationSynchronizationExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 
+import org.apache.wicket.model.IModel;
+
 /**
  * @author lskublik
  */
@@ -60,6 +62,14 @@ public class AssociationOutboundEvaluatorWizardPanel extends AbstractWizardChoic
             protected void onExitPerformed(AjaxRequestTarget target) {
                 super.onExitPerformed(target);
                 AssociationOutboundEvaluatorWizardPanel.this.onExitPerformed(target);
+            }
+
+            @Override
+            protected IModel<String> getExitLabel() {
+                if(getHelper().getExitLabel() != null) {
+                    return getHelper().getExitLabel();
+                }
+                return super.getExitLabel();
             }
         };
     }

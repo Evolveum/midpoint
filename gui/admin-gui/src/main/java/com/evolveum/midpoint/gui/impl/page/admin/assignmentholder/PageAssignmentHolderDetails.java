@@ -21,6 +21,7 @@ import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -345,10 +346,27 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
     }
 
     protected <C extends Containerable, P extends AbstractWizardPanel<C, AHDM>> P showWizard(
+            AjaxRequestTarget target,
+            ItemPath pathToValue,
+            Class<P> clazz,
+            IModel<String> exitLabel) {
+        return showWizard(null, target, pathToValue, clazz, exitLabel);
+    }
+
+    protected <C extends Containerable, P extends AbstractWizardPanel<C, AHDM>> P showWizard(
             PrismContainerValue<C> newValue,
             AjaxRequestTarget target,
             ItemPath pathToValue,
             Class<P> clazz) {
+        return showWizard(newValue, target, pathToValue, clazz, null);
+    }
+
+    protected <C extends Containerable, P extends AbstractWizardPanel<C, AHDM>> P showWizard(
+            PrismContainerValue<C> newValue,
+            AjaxRequestTarget target,
+            ItemPath pathToValue,
+            Class<P> clazz,
+            IModel<String> exitLabel) {
 
         setShowedByWizard(true);
         getObjectDetailsModels().saveDeltas();
@@ -411,7 +429,11 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
 
         try {
             Constructor<P> constructor = clazz.getConstructor(String.class, WizardPanelHelper.class);
-            P wizard = constructor.newInstance(ID_WIZARD, createContainerWizardHelper(valueModel));
+
+            WizardPanelHelper<C, AHDM> helper = createContainerWizardHelper(valueModel);
+            helper.setExitLabel(exitLabel);
+
+            P wizard = constructor.newInstance(ID_WIZARD, helper);
             wizard.setOutputMarkupId(true);
             fragment.add(wizard);
             target.add(fragment);

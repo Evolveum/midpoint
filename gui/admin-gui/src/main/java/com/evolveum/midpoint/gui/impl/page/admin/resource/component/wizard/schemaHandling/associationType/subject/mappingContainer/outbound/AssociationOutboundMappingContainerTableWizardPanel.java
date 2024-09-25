@@ -76,4 +76,12 @@ public class AssociationOutboundMappingContainerTableWizardPanel extends Abstrac
     protected void onTileClick(AjaxRequestTarget target, MappingTile modelObject) {
 
     }
+
+    @Override
+    protected IModel<String> getExitLabel() {
+        if(getHelper().getExitLabel() != null) {
+            return getHelper().getExitLabel();
+        }
+        return super.getExitLabel();
+    }
 }
