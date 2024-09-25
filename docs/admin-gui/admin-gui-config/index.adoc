@@ -849,28 +849,41 @@ Panels applicable only for resources (detail page):
 |===
 | Panel | Identifier
 
-| Resource accounts
-| `resourceAccounts`
-
-
-| Connector
-| `resourceConnector`
-
-
 | Resource details
 | `resourceDetails`
 
+| Connector configuration
+| `resourceConnectorConfiguration`
+
+| Resource tasks
+| `resourceTasks`
+
+| Resource accounts
+| `resourceAccounts`
 
 | Resource entitlements
 | `resourceEntitlement`
 
-
 | Resource generics
 | `resourceGenerics`
 
+| Resource objects
+| `resourceUncategorized`
 
-| Resource tasks
-| `resourceTasks`
+| Schema handling
+| `schemaHandling`
+
+| Object types
+| `resourceObjectTypes`
+
+| Association types
+| `associationTypes`
+
+| Connector statistics
+| `resourceConnector`
+
+| Schema
+| `resourceSchema`
 
 |===
 
