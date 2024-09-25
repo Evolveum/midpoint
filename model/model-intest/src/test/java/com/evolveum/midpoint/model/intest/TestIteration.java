@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.test.DummyTestResource;
 
 import com.evolveum.midpoint.test.TestObject;
@@ -414,7 +415,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
         PrismObject<UserType> userDeWatt = createUser(USER_DEWATT_NAME, "Augustus DeWatt", true);
         addObject(userDeWatt);
-        String userDeWattkOid = userDeWatt.getOid();
+        String userDeWattOid = userDeWatt.getOid();
 
         var accountDeWatt = createAccount(getDummyResourceObject(RESOURCE_DUMMY_PINK_NAME), ACCOUNT_DEWATT_NAME, true);
         addAttributeToShadow(
@@ -424,8 +425,8 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         // precondition
         assertDummyAccount(RESOURCE_DUMMY_PINK_NAME, ACCOUNT_DEWATT_NAME, "Augustus DeWatt", true);
 
-        ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(userDeWattkOid,
-                RESOURCE_DUMMY_PINK_OID, null, true);
+        var accountAssignmentUserDelta =
+                createAccountAssignmentUserDelta(userDeWattOid, RESOURCE_DUMMY_PINK_OID, null, true);
 
         dummyAuditService.clear();
 
@@ -438,9 +439,9 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        PrismObject<UserType> userDeWattAfter = getUser(userDeWattkOid);
+        PrismObject<UserType> userDeWattAfter = getUser(userDeWattOid);
         display("User after change execution", userDeWattAfter);
-        assertUser(userDeWattAfter, userDeWattkOid, USER_DEWATT_NAME, "Augustus DeWatt", null, null);
+        assertUser(userDeWattAfter, userDeWattOid, USER_DEWATT_NAME, "Augustus DeWatt", null, null);
         assertLiveLinks(userDeWattAfter, 1);
         assertAccount(userDeWattAfter, RESOURCE_DUMMY_PINK_OID);
 
@@ -461,7 +462,10 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
         // Check audit
         displayDumpable("Audit", dummyAuditService);
-        dummyAuditService.assertRecords(2);
+        // When caching is enabled, the weak credentials mapping gets executed in wave 1, providing a generated password
+        // along with a separate audit record. Actually, there is little we can do about this; it is inherently nondeterministic
+        // behavior of inbound mappings.
+        dummyAuditService.assertRecords(InternalsConfig.isShadowCachingOnByDefault() ? 3 : 2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(3);
