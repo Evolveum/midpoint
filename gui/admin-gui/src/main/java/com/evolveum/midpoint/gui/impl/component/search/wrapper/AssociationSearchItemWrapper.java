@@ -37,7 +37,9 @@ public class AssociationSearchItemWrapper extends ChoicesSearchItemWrapper<ItemN
         }
         List<? extends ShadowAssociationDefinition> associations = objectDefinition.getAssociationDefinitions();
         List<DisplayableValue<ItemName>> values = new ArrayList<>();
-        associations.forEach(association -> values.add(
+        associations.stream()
+                .filter(association -> !association.isComplex())
+                .forEach(association -> values.add(
                 new SearchValue<>(
                         association.getItemName(),
                         GuiDisplayNameUtil.getDisplayName(association.getModernAssociationTypeDefinitionBean()))));
