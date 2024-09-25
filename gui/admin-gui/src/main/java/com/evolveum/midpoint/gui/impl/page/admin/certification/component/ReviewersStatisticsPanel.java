@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -68,6 +69,7 @@ public class ReviewersStatisticsPanel extends BasePanel {
     //as a default, sorting of the reviewers is done by the percentage of not decided items
     //can be switched to the number of not decided items
     private IModel<Boolean> percentageSortingModel = Model.of(true);
+    private StatisticListBoxPanel<ObjectReferenceType> reviewersPopupPanel;
 
     public ReviewersStatisticsPanel(String id, CertificationDetailsModel model) {
         super(id);
@@ -84,7 +86,7 @@ public class ReviewersStatisticsPanel extends BasePanel {
 
     private StatisticListBoxPanel<ObjectReferenceType> initReviewersPanel(String id, boolean allowViewAll) {
         LoadableDetachableModel<List<StatisticBoxDto<ObjectReferenceType>>> reviewersModel = getReviewersModel(allowViewAll);
-        return new StatisticListBoxPanel<>(id,
+        StatisticListBoxPanel<ObjectReferenceType> panel = new StatisticListBoxPanel<>(id,
                 getReviewersPanelDisplayModel(reviewersModel.getObject().size()), reviewersModel) {
             @Serial private static final long serialVersionUID = 1L;
 
@@ -154,12 +156,16 @@ public class ReviewersStatisticsPanel extends BasePanel {
                     protected void itemSelected(AjaxRequestTarget target, IModel<Toggle<Boolean>> item) {
                         super.itemSelected(target, item);
                         percentageSortingModel.setObject(item.getObject().getValue());
-//                        reviewersModel.detach();
+
                         target.add(ReviewersStatisticsPanel.this);
+                        if (reviewersPopupPanel != null && reviewersPopupPanel.isVisible()) {
+                            target.add(reviewersPopupPanel);
+                        }
                     }
                 };
             }
         };
+        return panel;
     }
 
     private DoughnutChartConfiguration getReviewerProgressChartConfig(ObjectReferenceType reviewerRef) {
@@ -291,7 +297,8 @@ public class ReviewersStatisticsPanel extends BasePanel {
     }
 
     private void showAllReviewersPerformed(AjaxRequestTarget target) {
-        getPageBase().showMainPopup(initReviewersPanel(getPageBase().getMainPopupBodyId(), false), target);
+        reviewersPopupPanel = initReviewersPanel(getPageBase().getMainPopupBodyId(), false);
+        getPageBase().showMainPopup(reviewersPopupPanel, target);
     }
 
 }
