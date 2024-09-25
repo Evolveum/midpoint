@@ -102,7 +102,7 @@ public class ConstructionAssociationPanel extends BasePanel<PrismContainerWrappe
             protected List<ShadowReferenceAttributeDefinition> load() {
                 ConstructionType construction = getModelObject().getItem().getRealValue();
 
-                return ProvisioningObjectsUtil.getRefinedAssociationDefinition(resourceModel.getObject().asObjectable(), construction.getKind(),
+                return ProvisioningObjectsUtil.getReferenceAssociationDefinition(resourceModel.getObject().asObjectable(), construction.getKind(),
                         construction.getIntent());
             }
         };

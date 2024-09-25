@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -79,6 +80,11 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
             "resource-dummy-lemon.xml", "10000000-0000-0000-0000-000000000504", "lemon",
             DummyResourceContoller::extendSchemaPirate);
 
+    /** Has both inbound and outbound mappings. */
+    private static final DummyTestResource RESOURCE_DUMMY_BIDIRECTIONAL = new DummyTestResource(TEST_DIR,
+            "resource-dummy-bidirectional.xml", "40a0478a-42fe-43b5-b3c4-6b98c77a40e7", "bidirectional",
+            DummyResourceContoller::extendSchemaPirate);
+
     /** For various ad-hoc purposes. */
     private static final DummyTestResource RESOURCE_DUMMY_MISC = new DummyTestResource(TEST_DIR,
             "resource-dummy-misc.xml", "6b71a242-2306-4bbc-a46e-9444c2f74823", "misc",
@@ -106,6 +112,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         RESOURCE_DUMMY_LEMON.initAndTest(this, initTask, initResult);
         RESOURCE_DUMMY_MISC.initAndTest(this, initTask, initResult);
+        RESOURCE_DUMMY_BIDIRECTIONAL.initAndTest(this, initTask, initResult);
 
         // Elaine is in inconsistent state. Account attributes do not match the mappings.
         // We do not want that here, as it would add noise to preview operations.
@@ -1672,8 +1679,8 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-        ObjectDelta<UserType> userDelta = createModifyUserReplaceDelta(USER_ELAINE_OID, UserType.F_FULL_NAME,
-                PrismTestUtil.createPolyString("Elaine Threepwood"));
+        ObjectDelta<UserType> userDelta =
+                createModifyUserReplaceDelta(USER_ELAINE_OID, UserType.F_FULL_NAME, PolyString.fromOrig("Elaine Threepwood"));
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
         display("Input deltas: ", deltas);
 
@@ -1695,7 +1702,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ObjectDelta<UserType> userPrimaryDelta = focusContext.getPrimaryDelta();
         assertNotNull("No focus primary delta: " + userPrimaryDelta, userPrimaryDelta);
         PrismAsserts.assertModifications(userPrimaryDelta, 1);
-        PrismAsserts.assertPropertyReplace(userPrimaryDelta, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Elaine Threepwood"));
+        PrismAsserts.assertPropertyReplace(userPrimaryDelta, UserType.F_FULL_NAME, PolyString.fromOrig("Elaine Threepwood"));
 
         ObjectDelta<UserType> userSecondaryDelta = focusContext.getSummarySecondaryDelta();
         assertSideEffectiveDeltasOnly("focus secondary delta", userSecondaryDelta);
@@ -1757,8 +1764,8 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-        ObjectDelta<UserType> userDelta = createModifyUserReplaceDelta(USER_ELAINE_OID, UserType.F_FULL_NAME,
-                PrismTestUtil.createPolyString("Elaine Threepwood"));
+        ObjectDelta<UserType> userDelta =
+                createModifyUserReplaceDelta(USER_ELAINE_OID, UserType.F_FULL_NAME, PolyString.fromOrig("Elaine Threepwood"));
         ObjectDelta<ShadowType> accountDelta = createModifyAccountShadowReplaceAttributeDelta(
                 ACCOUNT_SHADOW_ELAINE_DUMMY_OID, getDummyResourceObject(),
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Elaine LeChuck");
@@ -1787,7 +1794,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ObjectDelta<UserType> userPrimaryDelta = focusContext.getPrimaryDelta();
         assertNotNull("No focus primary delta: " + userPrimaryDelta, userPrimaryDelta);
         PrismAsserts.assertModifications(userPrimaryDelta, 1);
-        PrismAsserts.assertPropertyReplace(userPrimaryDelta, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Elaine Threepwood"));
+        PrismAsserts.assertPropertyReplace(userPrimaryDelta, UserType.F_FULL_NAME, PolyString.fromOrig("Elaine Threepwood"));
 
         ObjectDelta<UserType> userSecondaryDelta = focusContext.getSummarySecondaryDelta();
         assertSideEffectiveDeltasOnly("focus secondary delta", userSecondaryDelta);
@@ -2212,7 +2219,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
      * The fix was to replace previewChanges by simulations.
      */
     @Test
-    public void test760PreviewArchival() throws CommonException, IOException {
+    public void test760PreviewArchival() throws CommonException {
         var task = getTestTask();
         var result = task.getResult();
         var userName = getTestNameShort();
@@ -2242,6 +2249,71 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                 .extracting(projCtx -> projCtx.getSynchronizationPolicyDecision())
                 .as("sync policy decision")
                 .isEqualTo(SynchronizationPolicyDecision.DELETE);
+    }
+
+    /**
+     * Tests the situation when a new account is created (in simulation), and then its loading is required in second wave
+     * because of strong inbound mappings.
+     *
+     * MID-10039
+     */
+    @Test
+    public void test770CreatingAccountWithStrongInboundsForNewUser() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = getTestNameShort();
+
+        given("user with assigned 'account/default' on bidirectional resource (in memory)");
+        var user = new UserType()
+                .name(userName)
+                .assignment(RESOURCE_DUMMY_BIDIRECTIONAL.assignmentWithConstructionOf(ACCOUNT, INTENT_DEFAULT));
+
+        when("user is added (in preview mode)");
+        var modelContext = previewChanges(user.asPrismObject().createAddDelta(), null, task, result);
+
+        then("there is a single projection context with ADD decision");
+        displayDumpable("model context", modelContext);
+        assertThat(modelContext.getProjectionContexts())
+                .as("projection contexts")
+                .singleElement()
+                .extracting(projCtx -> projCtx.getSynchronizationPolicyDecision())
+                .as("sync decision")
+                .isEqualTo(SynchronizationPolicyDecision.ADD);
+    }
+
+    /**
+     * As {@link #test770CreatingAccountWithStrongInboundsForNewUser()} but having the user already in the repository.
+     *
+     * MID-10039
+     */
+    @Test
+    public void test780CreatingAccountWithStrongInboundsForExistingUser() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = getTestNameShort();
+
+        given("user in repo");
+        var user = new UserType()
+                .name(userName);
+        var userOid = addObject(user, task, result);
+
+        when("assignment of 'account/default' on bidirectional resource  is added (in preview mode)");
+        var modelContext =
+                previewChanges(
+                        deltaFor(UserType.class)
+                                .item(UserType.F_ASSIGNMENT)
+                                .add(RESOURCE_DUMMY_BIDIRECTIONAL.assignmentWithConstructionOf(ACCOUNT, INTENT_DEFAULT))
+                                .asObjectDelta(userOid),
+                        null, task, result);
+
+        then("there is a single projection context with ADD decision");
+        displayDumpable("model context", modelContext);
+        assertThat(modelContext.getProjectionContexts())
+                .as("projection contexts")
+                .singleElement()
+                .extracting(projCtx -> projCtx.getSynchronizationPolicyDecision())
+                .as("sync decision")
+                .isEqualTo(SynchronizationPolicyDecision.ADD);
     }
 
     private record Checkers(

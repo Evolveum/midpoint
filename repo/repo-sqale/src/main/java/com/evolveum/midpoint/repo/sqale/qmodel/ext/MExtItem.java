@@ -103,4 +103,21 @@ public class MExtItem {
                 ", cardinality=" + cardinality +
                 '}';
     }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+
+        MExtItem mExtItem = (MExtItem) o;
+
+        return id.equals(mExtItem.id);
+    }
 }

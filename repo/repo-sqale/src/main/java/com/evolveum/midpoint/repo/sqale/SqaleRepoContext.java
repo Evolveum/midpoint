@@ -266,4 +266,12 @@ public class SqaleRepoContext extends SqlRepoContext {
             throw new SystemException("Unexpected schema exception", e);
         }
     }
+
+    public Collection<ExtensionProcessor.ExtItemInfo> findConflictingExtensionItem(ExtensionProcessor.ExtItemInfo extItemInfo) {
+        return extItemCache.findConflictingExtensions(extItemInfo.item).stream().map(v -> {
+            var ret = new ExtensionProcessor.ExtItemInfo();
+            ret.item = v;
+            return ret;
+        }).toList();
+    }
 }

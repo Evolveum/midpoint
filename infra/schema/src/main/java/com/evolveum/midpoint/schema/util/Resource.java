@@ -160,6 +160,7 @@ public class Resource {
 
         @Override
         public ItemDefinition<?> findItemDefinition(@NotNull Class<? extends Containerable> type, @NotNull ItemPath itemPath) {
+            // TODO support associations as well
             if (!ShadowType.class.isAssignableFrom(type)
                     || !itemPath.startsWith(ShadowType.F_ATTRIBUTES)
                     || itemPath.size() != 2) {
@@ -169,7 +170,7 @@ public class Resource {
             if (attrName == null) {
                 return null;
             } else {
-                return definition.findSimpleAttributeDefinition(attrName);
+                return (ItemDefinition<?>) definition.findAttributeDefinition(attrName);
             }
         }
     }
