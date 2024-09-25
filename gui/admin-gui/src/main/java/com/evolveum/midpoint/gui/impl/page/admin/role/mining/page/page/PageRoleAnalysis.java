@@ -223,6 +223,7 @@ public class PageRoleAnalysis extends PageAdmin {
         infoForm.add(roleAnalysisInfoPanel);
     }
 
+    //TODO localizations
     private void loadPatternModel(
             @NotNull List<DetectedPattern> topPatterns,
             int allUserOwnedRoleAssignments,
@@ -240,7 +241,7 @@ public class PageRoleAnalysis extends PageAdmin {
             String formattedItemConfidence = String.format("%.1f", itemsConfidence);
             String description =
                     relationsMetric +
-                            "x relationships with a confidence of  " +
+                            "x relationships with a attribute score of  " +
                             formattedItemConfidence + "%";
 
             String patternName = pageBase.createStringResource(

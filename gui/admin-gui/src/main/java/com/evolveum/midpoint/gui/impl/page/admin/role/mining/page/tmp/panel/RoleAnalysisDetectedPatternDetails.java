@@ -116,11 +116,12 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
         reductionLabel.setOutputMarkupId(true);
         headerItems.add(reductionLabel);
 
+        //TODO localizations
         InfoBoxModel infoBoxModelConfidence = new InfoBoxModel(GuiStyleConstants.THUMBS_UP,
-                "Confidence",
+                "Attribute score",
                 confidence.getObject(),
                 pattern.getItemsConfidence(),
-                "Confidence of the suggested role");
+                "Attribute score of the suggested role");
 
         RoleAnalysisInfoBox confidenceLabel = new RoleAnalysisInfoBox(headerItems.newChildId(), Model.of(infoBoxModelConfidence)) {
 

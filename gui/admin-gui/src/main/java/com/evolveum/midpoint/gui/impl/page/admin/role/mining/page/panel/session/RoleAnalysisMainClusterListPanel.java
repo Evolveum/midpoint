@@ -588,13 +588,13 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
                                 @Contract(pure = true)
                                 @Override
                                 public @NotNull String getIconCssClass() {
-                                    return "fa fa-arrow-down text-danger";
+                                    return "fa fa-arrow-down text-success";
                                 }
 
                                 @Contract(pure = true)
                                 @Override
                                 protected @NotNull String getLabelComponentCssClass() {
-                                    return "ml-1 text-danger";
+                                    return "ml-1 text-success";
                                 }
 
                                 @Override
