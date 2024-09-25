@@ -26,4 +26,9 @@ public class TestReconTaskMultiNode extends TestReconTask {
     TestObject<TaskType> getReconciliationTask() {
         return TASK_RECONCILIATION_MULTINODE;
     }
+
+    @Override
+    boolean isMultiNode() {
+        return true;
+    }
 }
