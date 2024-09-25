@@ -22,6 +22,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.impl.component.input.converter.DateConverter;
 import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
 import com.evolveum.midpoint.model.api.trigger.TriggerHandler;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.web.component.util.*;
 import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 
@@ -2508,13 +2509,13 @@ public final class WebComponentUtil {
         if (objectType == null || objectType.getKind() == null) {
             return GuiStyleConstants.CLASS_CIRCLE_FULL;
         }
-        if (objectType.getKind() == ShadowKindType.ACCOUNT){
+        if (objectType.getKind() == ShadowKindType.ACCOUNT) {
             return GuiStyleConstants.CLASS_SHADOW_ICON_ACCOUNT;
         }
-        if (objectType.getKind() == ShadowKindType.ENTITLEMENT){
+        if (objectType.getKind() == ShadowKindType.ENTITLEMENT) {
             return GuiStyleConstants.CLASS_SHADOW_ICON_ENTITLEMENT;
         }
-        if (objectType.getKind() == ShadowKindType.GENERIC){
+        if (objectType.getKind() == ShadowKindType.GENERIC) {
             return GuiStyleConstants.CLASS_SHADOW_ICON_GENERIC;
         }
         return GuiStyleConstants.CLASS_CIRCLE_FULL;
@@ -4190,7 +4191,7 @@ public final class WebComponentUtil {
 
     public static Component createPhotoOrDefaultImagePanel(String id, IResource photo, IconType defaultIcon) {
         if (photo != null) {
-            return new NonCachingImage(id, photo)  {
+            return new NonCachingImage(id, photo) {
                 @Serial private static final long serialVersionUID = 1L;
 
                 @Override
@@ -4222,6 +4223,37 @@ public final class WebComponentUtil {
                 .toArray();
 
         return StringUtils.joinWith(", ", marks);
+    }
+
+    public static <O extends ObjectType> String createMarkList(O object, PageBase page) {
+        if (object == null) {
+            return null;
+        }
+
+        List<AbstractMap.SimpleEntry<PrismObject, String>> marks = new ArrayList<>();
+
+        marks.addAll(object.getPolicyStatement().stream()
+                .filter(statement -> statement != null && statement.getMarkRef() != null && !statement.getMarkRef().asReferenceValue().isEmpty())
+                .filter(statement -> statement.getType() == PolicyStatementTypeType.APPLY)
+                .map(statement -> new AbstractMap.SimpleEntry<PrismObject, String>(
+                        WebModelServiceUtils.loadObject(statement.getMarkRef(), page),
+                        statement.getLifecycleState()))
+                .filter(pair -> pair.getKey() != null).toList());
+
+        marks.addAll(object.getEffectiveMarkRef().stream()
+                .filter(ref -> ref != null && !ref.asReferenceValue().isEmpty())
+                .filter(MarkTypeUtil::isEffective) // TODO reconsider if really needed
+                .filter(ref -> marks.stream().noneMatch(pair -> pair.getKey().getOid().equals(ref.getOid())))
+                .map(ref -> WebModelServiceUtils.loadObject(ref, page))
+                .filter(mark -> mark != null)
+                .map(mark -> new AbstractMap.SimpleEntry<PrismObject, String>(mark, null))
+                .toList());
+
+        return marks.stream()
+                .map(pair -> WebComponentUtil.getDisplayNameOrName(pair.getKey())
+                        + (((pair.getValue() != null && !SchemaConstants.LIFECYCLE_ACTIVE.equals(pair.getValue())) ?
+                        (" (" + com.evolveum.midpoint.gui.api.util.LocalizationUtil.translateLifecycleState(pair.getValue(), page) + ")") : "")))
+                .collect(Collectors.joining(", "));
     }
 
     public static String translateTriggerUri(String uri, ModelServiceLocator locator) {

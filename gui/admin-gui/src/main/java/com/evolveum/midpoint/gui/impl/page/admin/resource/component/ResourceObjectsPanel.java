@@ -396,8 +396,10 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
                     public void onClick(AjaxRequestTarget target) {
                         try {
                             Method method = PageResource.class.getMethod(
-                                    "showAssociationTypeWizard", AjaxRequestTarget.class);
-                            method.invoke(getObjectDetailsModels().getPageResource(), target);
+                                    "showAssociationTypeWizard", AjaxRequestTarget.class, IModel.class);
+                            method.invoke(getObjectDetailsModels().getPageResource(),
+                                    target,
+                                    createStringResource("ResourceObjectsPanel.associationWizard.exitLabel." + getKind()));
                         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
                             LOGGER.error("Couldn't invoke method showAssociationTypeWizard in PageResource class");
                         }
@@ -571,8 +573,12 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
     private void showAssociationWizard(ShadowAssociationTypeDefinitionType association, String methodName, ItemPath path, AjaxRequestTarget target) {
         try {
             Method method = PageResource.class.getMethod(
-                    methodName, AjaxRequestTarget.class, ItemPath.class, ShadowAssociationTypeDefinitionType.class);
-            method.invoke(getObjectDetailsModels().getPageResource(), target, path, association);
+                    methodName, AjaxRequestTarget.class, ItemPath.class, ShadowAssociationTypeDefinitionType.class, IModel.class);
+            method.invoke(getObjectDetailsModels().getPageResource(),
+                    target,
+                    path,
+                    association,
+                    createStringResource("ResourceObjectsPanel.associationWizard.exitLabel." + getKind()));
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             LOGGER.error("Couldn't invoke method " + methodName + " in PageResource class");
         }

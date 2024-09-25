@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
 
 /**
  * Event related to given certification case.
@@ -63,7 +64,7 @@ public class CertReviewEventImpl extends AccessCertificationEventImpl implements
     public Collection<AccessCertificationCaseType> getCasesAwaitingResponseFromActualReviewer() {
         List<AccessCertificationCaseType> rv = new ArrayList<>();
         for (AccessCertificationCaseType aCase : cases) {
-            if (awaitsResponseFrom(aCase, actualReviewer.getOid(), campaign.getStageNumber())) {
+            if (awaitsResponseFrom(aCase, actualReviewer.getOid(), or0(campaign.getStageNumber()))) {
                 rv.add(aCase);
             }
         }

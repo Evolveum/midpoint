@@ -438,12 +438,7 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
 
             @Override
             protected String load() {
-                if (shadowBean == null) {
-                    return "";
-                }
-
-                List<ObjectReferenceType> refs = shadowBean.getEffectiveMarkRef();
-                return WebComponentUtil.createMarkList(refs, getPageBase());
+                return WebComponentUtil.createMarkList(shadowBean, getPageBase());
             }
         };
     }

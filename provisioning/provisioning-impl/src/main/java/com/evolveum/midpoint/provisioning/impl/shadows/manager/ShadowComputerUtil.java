@@ -100,8 +100,10 @@ class ShadowComputerUtil {
         } else {
             // This may be a reference pointing to an object that does not exist on the resource.
             // For fetched subjects, it can happen e.g. as described in TestDummy.test226WillNonsensePrivilege.
-            // TODO what about objects that are being stored in the repository?
-            LOGGER.warn("No-OID reference found: {} in {}", refAttrValue, ctx);
+            // For objects being stored in repository, this may happen when the shadow is initially created.
+            // But it's updated shortly afterwards, so it's not a big deal.
+            // TODO resolve eventually
+            LOGGER.trace("No-OID reference found: {} in {}", refAttrValue, ctx);
             return null;
         }
     }

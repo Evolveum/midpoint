@@ -20,6 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssociationSynchroni
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.IModel;
 
 /**
  * @author lskublik
@@ -66,6 +67,14 @@ public class AssociationInboundEvaluatorWizardPanel extends AbstractWizardChoice
             protected void onExitPerformed(AjaxRequestTarget target) {
                 super.onExitPerformed(target);
                 AssociationInboundEvaluatorWizardPanel.this.onExitPerformed(target);
+            }
+
+            @Override
+            protected IModel<String> getExitLabel() {
+                if(getHelper().getExitLabel() != null) {
+                    return getHelper().getExitLabel();
+                }
+                return super.getExitLabel();
             }
         };
     }

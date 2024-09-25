@@ -42,6 +42,8 @@ import java.util.*;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+
 public class ReviewersStatisticsPanel extends BasePanel {
 
     @Serial private static final long serialVersionUID = 1L;
@@ -251,7 +253,7 @@ public class ReviewersStatisticsPanel extends BasePanel {
         OperationResult result = new OperationResult(OPERATION_LOAD_CERT_ITEMS);
         AccessCertificationCampaignType campaign = model.getObjectType();
         Integer iteration = CertCampaignTypeUtil.norm(campaign.getIteration());
-        Integer stage = CertCampaignTypeUtil.accountForClosingStates(campaign.getStageNumber(), campaign.getState());
+        Integer stage = CertCampaignTypeUtil.accountForClosingStates(or0(campaign.getStageNumber()), campaign.getState());
         ObjectQuery query = getPrismContext().queryFor(AccessCertificationWorkItemType.class)
                 .exists(PrismConstants.T_PARENT)
                 .ownerId(campaign.getOid())

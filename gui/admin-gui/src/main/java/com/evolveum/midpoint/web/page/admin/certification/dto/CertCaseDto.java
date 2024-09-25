@@ -22,6 +22,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+
 /**
  * DTO for displaying cases as part of certification campaign information.
  * Aggregates more decisions.
@@ -54,7 +56,7 @@ public class CertCaseDto extends CertCaseOrWorkItemDto {
             }
             for (ObjectReferenceType assigneeRef : workItem.getAssigneeRef()) {
                 if (workItem.getCloseTimestamp() == null
-                        && java.util.Objects.equals(workItem.getStageNumber(), _case.getStageNumber())) {
+                        && java.util.Objects.equals(workItem.getStageNumber(), or0(_case.getStageNumber()))) {
                     currentReviewers.add(getName(assigneeRef, page, names, task, result));
                 }
             }
@@ -112,7 +114,7 @@ public class CertCaseDto extends CertCaseOrWorkItemDto {
 
     @SuppressWarnings("unused")
     public Integer getCurrentResponseStageNumber() {
-        return getCertCase().getStageNumber();
+        return or0(getCertCase().getStageNumber());
     }
 
 }

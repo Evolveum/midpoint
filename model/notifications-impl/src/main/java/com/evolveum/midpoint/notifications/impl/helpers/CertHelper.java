@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
+import static com.evolveum.midpoint.util.MiscUtil.or0;
 
 @Component
 public class CertHelper {
@@ -66,7 +67,7 @@ public class CertHelper {
     }
 
     private String formatStage(AccessCertificationCampaignType campaign) {
-        String rv = campaign.getStageNumber() + "/" + CertCampaignTypeUtil.getNumberOfStages(campaign);
+        String rv = or0(campaign.getStageNumber()) + "/" + CertCampaignTypeUtil.getNumberOfStages(campaign);
 
         AccessCertificationStageType stage = CertCampaignTypeUtil.findCurrentStage(campaign);
         if (StringUtils.isNotEmpty(stage.getName())) {
@@ -79,7 +80,7 @@ public class CertHelper {
         if (campaign.getState() == AccessCertificationCampaignStateType.IN_REMEDIATION) {
             return "remediation stage";
         } else {
-            return "stage " + campaign.getStageNumber() + "/" + CertCampaignTypeUtil.getNumberOfStages(campaign);
+            return "stage " + or0(campaign.getStageNumber()) + "/" + CertCampaignTypeUtil.getNumberOfStages(campaign);
         }
     }
 

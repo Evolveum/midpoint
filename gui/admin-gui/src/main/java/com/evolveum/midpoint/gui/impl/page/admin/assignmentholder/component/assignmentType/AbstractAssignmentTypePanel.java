@@ -262,8 +262,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
                     return null;
                 }
 
-                List<ObjectReferenceType> refs = target.asObjectable().getEffectiveMarkRef();
-                return WebComponentUtil.createMarkList(refs, getPageBase());
+                return WebComponentUtil.createMarkList(target.asObjectable(), getPageBase());
             }
         };
     }

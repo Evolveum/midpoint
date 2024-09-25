@@ -10,6 +10,7 @@ package com.evolveum.midpoint.certification.impl.task;
 import static com.evolveum.midpoint.certification.api.OutcomeUtils.fromUri;
 import static com.evolveum.midpoint.certification.api.OutcomeUtils.normalizeToNull;
 import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
+import static com.evolveum.midpoint.util.MiscUtil.or0;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAccessCertificationDefinitionType.F_LAST_CAMPAIGN_STARTED_TIMESTAMP;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REVIEW_STAGE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_STAGE;
@@ -92,7 +93,7 @@ public abstract class AccessCertificationStageManagementRun<
         handler = getActivityHandler().getCertificationManager().findCertificationHandler(campaign);
 
         iteration = norm(campaign.getIteration());
-        stageToBe = campaign.getStageNumber() + 1;
+        stageToBe = or0(campaign.getStageNumber()) + 1;
 
         stage = createStage();
         reviewerSpec = reviewersHelper.findReviewersSpecification(campaign, stageToBe);
@@ -150,10 +151,10 @@ public abstract class AccessCertificationStageManagementRun<
 
         List<ItemDelta<?,?>> itemDeltaList = new ArrayList<>();
 
-        itemDeltaList.add(updateHelper.createStageNumberDelta(newStage.getNumber()));
+        itemDeltaList.add(updateHelper.createStageNumberDelta(or0(newStage.getNumber())));
         itemDeltaList.add(updateHelper.createStateDelta(IN_REVIEW_STAGE));
 
-        boolean campaignJustStarted = campaign.getStageNumber() == 0;
+        boolean campaignJustStarted = or0(campaign.getStageNumber()) == 0;
         if (campaignJustStarted) {
             itemDeltaList.add(updateHelper.createStartTimeDelta(getActivityHandler().getModelBeans().clock.currentTimeXMLGregorianCalendar()));
         }
@@ -162,7 +163,7 @@ public abstract class AccessCertificationStageManagementRun<
         if (stageDeadline != null) {
             // auto-closing and notifications triggers
             final AccessCertificationStageDefinitionType stageDef =
-                    CertCampaignTypeUtil.findStageDefinition(campaign, newStage.getNumber());
+                    CertCampaignTypeUtil.findStageDefinition(campaign, or0(newStage.getNumber()));
             List<TriggerType> triggers = new ArrayList<>();
 
             // pseudo-random ID so this trigger will not be deleted by trigger task handler (if this code itself is executed as part of previous trigger firing)
@@ -200,7 +201,7 @@ public abstract class AccessCertificationStageManagementRun<
         stage.setNumber(stageToBe);
         stage.setStartTimestamp(getActivityHandler().getModelBeans().clock.currentTimeXMLGregorianCalendar());
 
-        AccessCertificationStageDefinitionType stageDef = CertCampaignTypeUtil.findStageDefinition(campaign, stage.getNumber());
+        AccessCertificationStageDefinitionType stageDef = CertCampaignTypeUtil.findStageDefinition(campaign, or0(stage.getNumber()));
         XMLGregorianCalendar deadline = computeDeadline(stage.getStartTimestamp(), stageDef.getDuration(), stageDef.getDeadlineRounding());
         stage.setDeadline(deadline);
 
