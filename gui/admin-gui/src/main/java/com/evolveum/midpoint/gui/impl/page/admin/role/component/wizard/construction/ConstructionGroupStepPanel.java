@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
@@ -112,7 +113,8 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
     }
 
     private boolean nonExistAssociations() {
-        List<ShadowReferenceAttributeDefinition> associations = ProvisioningObjectsUtil.getRefinedAssociationDefinition(getValueModel().getObject().getRealValue(), getPageBase());
+        List<ShadowAssociationDefinition> associations = ProvisioningObjectsUtil.getReferenceAssociationDefinition(getValueModel().getObject().getRealValue(), getPageBase());
+        associations.removeIf(ShadowAssociationDefinition::isComplex);
         return associations.isEmpty();
     }
 
@@ -164,12 +166,20 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
 
         ShadowType shadow = value.getValue();
         if (value.isSelected()) {
+            ShadowAssociationDefinition assoDef = ProvisioningObjectsUtil.getRefinedAssociationDefinition(
+                    getAssociationRef().getValue(), getValueModel().getObject().getRealValue(), getPageBase());
+            ItemName associationAttribute = null;
+            if (assoDef != null) {
+                associationAttribute = assoDef.getReferenceAttributeDefinition().getItemName();
+            }
             selectedItems.getObject().add(
                     new AssociationWrapper(
                             shadow.getOid(),
                             WebComponentUtil.getDisplayNameOrName(shadow.asPrismObject()),
                             getAssociationRef().getValue(),
-                            getAssociationRef().getLabel()));
+                            getAssociationRef().getLabel(),
+                            associationAttribute)
+                            );
         } else {
             selectedItems.getObject().removeIf(
                     association -> association.oid.equals(shadow.getOid())
@@ -272,7 +282,7 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
                                     ItemPath.create(ResourceObjectAssociationType.F_OUTBOUND, MappingType.F_EXPRESSION));
                     ExpressionUtil.addShadowRefEvaluatorValue(
                             expression.getValue().getRealValue(),
-                            item.associationName,
+                            item.associationAttribute,
                             item.oid);
 
                 } catch (SchemaException e) {
@@ -354,14 +364,20 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
         private final String oid;
         private final String name;
         private final ItemName associationName;
+        private final ItemName associationAttribute;
 
         private final String associationDisplayName;
 
-        private AssociationWrapper(String oid, String name, ItemName associationName, String associationDisplayName) {
+        private AssociationWrapper(String oid, String name, ItemName associationName, String associationDisplayName, ItemName associationAttribute) {
             this.oid = oid;
             this.name = name;
             this.associationName = associationName;
             this.associationDisplayName = associationDisplayName;
+
+            if (associationAttribute == null) {
+                associationAttribute = associationName;
+            }
+            this.associationAttribute = associationAttribute;
         }
 
         @Override
