@@ -61,6 +61,8 @@ public class StatisticListBoxPanel<T> extends BasePanel<List<StatisticBoxDto<T>>
     }
 
     private void initLayout() {
+        setOutputMarkupId(true);
+
         WebMarkupContainer titleIcon = new WebMarkupContainer(ID_TITLE_ICON);
         String iconCssClass = GuiDisplayTypeUtil.getIconCssClass(boxDisplayModel.getObject());
         titleIcon.add(AttributeAppender.append("class", iconCssClass));

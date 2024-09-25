@@ -48,6 +48,8 @@ public class StatisticBoxPanel<T> extends BasePanel<StatisticBoxDto<T>> {
     }
 
     private void initLayout() {
+        setOutputMarkupId(true);
+
         StatisticBoxDto<T> statisticObject = getModelObject();
 
         Component image = WebComponentUtil.createPhotoOrDefaultImagePanel(ID_IMAGE, statisticObject.getMessageImageResource(),
