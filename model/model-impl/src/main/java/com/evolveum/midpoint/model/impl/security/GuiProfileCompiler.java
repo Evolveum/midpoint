@@ -271,7 +271,7 @@ public class GuiProfileCompiler {
 
 
         if (adminGuiConfiguration.getFeedbackMessagesHook() != null) {
-            composite.setFeedbackMessagesHook(adminGuiConfiguration.getFeedbackMessagesHook().clone());
+            mergeFeedbackMessagesHook(composite, adminGuiConfiguration.getFeedbackMessagesHook());
         }
 
         if (adminGuiConfiguration.getRoleManagement() != null &&
@@ -305,6 +305,28 @@ public class GuiProfileCompiler {
                 composite.getApprovals().setExpandRolesOnPreview(
                         adminGuiConfiguration.getApprovals().isExpandRolesOnPreview());
             }
+        }
+    }
+
+    private void mergeFeedbackMessagesHook(CompiledGuiProfile composite, FeedbackMessagesHookType feedbackMessagesHook) {
+        if (composite.getFeedbackMessagesHook() == null) {
+            composite.setFeedbackMessagesHook(feedbackMessagesHook.clone());
+            return;
+        }
+        if (feedbackMessagesHook.getOperationResultHook() != null) {
+            composite.getFeedbackMessagesHook().setOperationResultHook(feedbackMessagesHook.getOperationResultHook());
+        }
+        if (feedbackMessagesHook.getStackTraceVisibility() != null) {
+            composite.getFeedbackMessagesHook().setStackTraceVisibility(feedbackMessagesHook.getStackTraceVisibility());
+        }
+        if (feedbackMessagesHook.isDisableOperationResultDownload() != null) {
+            composite.getFeedbackMessagesHook().setDisableOperationResultDownload(feedbackMessagesHook.isDisableOperationResultDownload());
+        }
+        if (feedbackMessagesHook.isShowOnlyUserFriendlyMessages() != null) {
+            composite.getFeedbackMessagesHook().setShowOnlyUserFriendlyMessages(feedbackMessagesHook.isShowOnlyUserFriendlyMessages());
+        }
+        if (feedbackMessagesHook.isDisplayOnlyTopLevelOperationResult() != null) {
+            composite.getFeedbackMessagesHook().setDisplayOnlyTopLevelOperationResult(feedbackMessagesHook.isDisplayOnlyTopLevelOperationResult());
         }
     }
 

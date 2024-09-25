@@ -11,6 +11,9 @@ import java.util.Date;
 
 import com.evolveum.midpoint.web.application.Url;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FeedbackMessagesHookType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -105,17 +108,13 @@ public class PageError extends PageBase {
         Label labelLabel = new Label(ID_LABEL, errorLabel);
         add(labelLabel);
 
-        final IModel<String> message = new IModel<String>() {
-
-            @Override
-            public String getObject() {
-                if (exClass == null) {
-                    return null;
-                }
-
-                SimpleDateFormat df = new SimpleDateFormat();
-                return df.format(new Date()) + "\t" + exClass + ": " + exMessage;
+        final IModel<String> message = () -> {
+            if (exClass == null || !isStackTraceVisible()) {
+                return null;
             }
+
+            SimpleDateFormat df = new SimpleDateFormat();
+            return df.format(new Date()) + "\t" + exClass + ": " + exMessage;
         };
 
         Label label = new Label(ID_MESSAGE, message);
@@ -176,6 +175,30 @@ public class PageError extends PageBase {
         super.renderHead(response);
 
         response.render(OnDomReadyHeaderItem.forScript("$('div.content-wrapper').css('margin-left', '0');"));
+    }
+
+    private boolean isStackTraceVisible() {
+        UserInterfaceElementVisibilityType stackTraceVisibility = null;
+
+
+        FeedbackMessagesHookType feedbackConfig = getCompiledGuiProfile().getFeedbackMessagesHook();
+        if (feedbackConfig != null) {
+            stackTraceVisibility = feedbackConfig.getStackTraceVisibility();
+        }
+
+        if (stackTraceVisibility == null) {
+            stackTraceVisibility = UserInterfaceElementVisibilityType.VISIBLE;
+        }
+
+        if (stackTraceVisibility == UserInterfaceElementVisibilityType.VISIBLE) {
+            return true;
+        }
+
+        if (stackTraceVisibility == UserInterfaceElementVisibilityType.HIDDEN) {
+            return false;
+        }
+
+        return true;
     }
 
     @Override

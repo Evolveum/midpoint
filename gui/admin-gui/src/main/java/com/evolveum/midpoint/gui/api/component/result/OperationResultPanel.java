@@ -14,7 +14,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FeedbackMessagesHookType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
+
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -61,6 +68,8 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
     private static final String ID_SHOW_ALL = "showAll";
     private static final String ID_HIDE_ALL = "hideAll";
     private static final String ID_ERROR_STACK_TRACE = "errorStackTrace";
+    private static final String ID_DETAILS = "details";
+    private static final String ID_DETAILS_CONTAINER = "detailsContainer";
 
     static final String OPERATION_RESOURCE_KEY_PREFIX = "operation.";
 
@@ -204,7 +213,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 
             @Override
             public boolean isVisible() {
-                return !OperationResultPanel.this.getModelObject().isShowMore();
+                return isDisplayOnlyTopLevel() && !OperationResultPanel.this.getModelObject().isShowMore();
             }
         });
 
@@ -223,7 +232,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 
             @Override
             public boolean isVisible() {
-                return OperationResultPanel.this.getModelObject().isShowMore();
+                return isDisplayOnlyTopLevel() && OperationResultPanel.this.getModelObject().isShowMore();
             }
         });
 
@@ -257,7 +266,19 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
             }
 
         });
-        downloadXml.add(new VisibleBehaviour(() -> getModelObject().isParent()));
+        downloadXml.add(new VisibleBehaviour(() -> {
+            if (!getModelObject().isParent()) {
+                return false;
+            }
+
+            CompiledGuiProfile profile = getPageBase().getCompiledGuiProfile();
+            if (profile == null || profile.getFeedbackMessagesHook() == null) {
+                return true;
+            }
+
+            FeedbackMessagesHookType hook = profile.getFeedbackMessagesHook();
+            return BooleanUtils.isNotTrue(hook.isDisableOperationResultDownload());
+        }));
         downloadXml.setDeleteAfterDownload(true);
         box.add(downloadXml);
     }
@@ -265,6 +286,24 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
     public void close(AjaxRequestTarget target) {
         this.setVisible(false);
         target.add(this);
+    }
+
+    private String createDefaultUserFriendlyMessage() {
+        OpResult result = getModel().getObject();
+
+        return getString(
+                "OperationResultPanel.userFriendlyDefault",
+                getPageBase().createStringResource(result.getStatus()).getString());
+    }
+
+    private boolean isShowOnlyUserFriendlyMessages() {
+        CompiledGuiProfile profile = getPageBase().getCompiledGuiProfile();
+        if (profile == null || profile.getFeedbackMessagesHook() == null) {
+            return false;
+        }
+
+        FeedbackMessagesHookType hook = profile.getFeedbackMessagesHook();
+        return BooleanUtils.isTrue(hook.isShowOnlyUserFriendlyMessages());
     }
 
     private Label createMessage() {
@@ -281,6 +320,10 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
                 Locale locale = page.getSession().getLocale();
 
                 msg = service.translate(result.getUserFriendlyMessage(), locale);
+            }
+
+            if (isShowOnlyUserFriendlyMessages()) {
+                return StringUtils.isNotBlank(msg) ? msg : createDefaultUserFriendlyMessage();
             }
 
             if (StringUtils.isNotBlank(msg)) {
@@ -300,20 +343,34 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
         return message;
     }
 
-    private void initDetails(WebMarkupContainer box) {
+    private boolean isDisplayOnlyTopLevel() {
+        if (!getModelObject().isParent()) {
+            return true;
+        }
 
-        final WebMarkupContainer details = new WebMarkupContainer("details", getModel());
-        details.setOutputMarkupId(true);
-        details.add(new VisibleEnableBehaviour() {
+        CompiledGuiProfile profile = getPageBase().getCompiledGuiProfile();
+        if (profile == null || profile.getFeedbackMessagesHook() == null) {
+            return true;
+        }
+
+        FeedbackMessagesHookType hook = profile.getFeedbackMessagesHook();
+        return BooleanUtils.isNotTrue(hook.isDisplayOnlyTopLevelOperationResult());
+    }
+
+    private void initDetails(WebMarkupContainer box) {
+        final IModel<List<OpResult>> subresultsModel = createSubresultsModel(getModel());
+
+        final WebMarkupContainer detailsContainer = new WebMarkupContainer(ID_DETAILS_CONTAINER, getModel());
+        detailsContainer.setOutputMarkupId(true);
+        detailsContainer.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible() {
-                return getModel().getObject().isShowMore();
+                return isDisplayOnlyTopLevel() && getModel().getObject().isShowMore() && !subresultsModel.getObject().isEmpty();
             }
         });
-
-        box.add(details);
+        box.add(detailsContainer);
 
         WebMarkupContainer operationPanel = new WebMarkupContainer("type");
         operationPanel.setOutputMarkupId(true);
@@ -325,12 +382,16 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
                 return getLabelCss(getModel());
             }
         }, " "));
-        details.add(operationPanel);
+        detailsContainer.add(operationPanel);
+
+        final WebMarkupContainer details = new WebMarkupContainer(ID_DETAILS);
+        details.add(new VisibleBehaviour(() -> !isShowOnlyUserFriendlyMessages()));
+        operationPanel.add(details);
 
         Label operationLabel = new Label("operationLabel",
                 createStringResource("FeedbackAlertMessageDetails.operation"));
         operationLabel.setOutputMarkupId(true);
-        operationPanel.add(operationLabel);
+        details.add(operationLabel);
 
         Label operation = new Label("operation", new LoadableModel<Object>() {
             private static final long serialVersionUID = 1L;
@@ -344,7 +405,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
             }
         });
         operation.setOutputMarkupId(true);
-        operationPanel.add(operation);
+        details.add(operation);
 
         Label count = new Label("countLabel", createStringResource("FeedbackAlertMessageDetails.count"));
         count.add(new VisibleEnableBehaviour() {
@@ -356,8 +417,8 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
                 return result.getCount() > 1;
             }
         });
-        operationPanel.add(count);
-        operationPanel.add(initCountPanel(getModel()));
+        details.add(count);
+        details.add(initCountPanel(getModel()));
 
         Label message = new Label("resultMessage",
                 new PropertyModel<String>(getModel(), "message").getObject());// PageBase.new
@@ -374,7 +435,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
             }
         });
 
-        operationPanel.add(message);
+        details.add(message);
 
         Label messageLabel = new Label("messageLabel", createStringResource("FeedbackAlertMessageDetails.message"));
         messageLabel.setOutputMarkupId(true);
@@ -388,11 +449,34 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
             }
         });
 
-        operationPanel.add(messageLabel);
+        details.add(messageLabel);
 
-        initParams(operationPanel, getModel());
-        initContexts(operationPanel, getModel());
-        initError(operationPanel, getModel());
+        initParams(details, getModel());
+        initContexts(details, getModel());
+        initError(details, getModel());
+
+        ListView<OpResult> subresults = new ListView<OpResult>("subresults", subresultsModel) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void populateItem(final ListItem<OpResult> item) {
+                Panel subresult = new OperationResultPanel("subresult", item.getModel());
+                subresult.add(new VisibleBehaviour(() -> item.getModel() != null && item.getModelObject() != null));
+                subresult.setOutputMarkupId(true);
+                item.add(subresult);
+            }
+        };
+        subresults.setOutputMarkupId(true);
+        subresults.add(new VisibleEnableBehaviour() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                return CollectionUtils.isNotEmpty(subresultsModel.getObject());
+            }
+        });
+
+        operationPanel.add(subresults);
     }
 
     private void initParams(WebMarkupContainer operationContent, final IModel<OpResult> model) {
@@ -430,30 +514,6 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
         });
 
         operationContent.add(params);
-
-        ListView<OpResult> subresults = new ListView<OpResult>("subresults", createSubresultsModel(model)) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void populateItem(final ListItem<OpResult> item) {
-                Panel subresult = new OperationResultPanel("subresult", item.getModel());
-                subresult.add(new VisibleBehaviour(() -> item.getModel() != null && item.getModelObject() != null));
-                subresult.setOutputMarkupId(true);
-                item.add(subresult);
-            }
-        };
-        subresults.setOutputMarkupId(true);
-        subresults.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return CollectionUtils.isNotEmpty(model.getObject().getSubresults());
-            }
-        });
-
-        operationContent.add(subresults);
-
     }
 
     private void initContexts(WebMarkupContainer operationContent, final IModel<OpResult> model) {
@@ -576,6 +636,28 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
         });
         return count;
 
+    }
+
+    private boolean isStackTraceVisible() {
+        UserInterfaceElementVisibilityType stackTraceVisibility = null;
+        FeedbackMessagesHookType feedbackConfig = getPageBase().getCompiledGuiProfile().getFeedbackMessagesHook();
+        if (feedbackConfig != null) {
+            stackTraceVisibility = feedbackConfig.getStackTraceVisibility();
+        }
+
+        if (stackTraceVisibility == null) {
+            stackTraceVisibility = UserInterfaceElementVisibilityType.VISIBLE;
+        }
+
+        if (stackTraceVisibility == UserInterfaceElementVisibilityType.VISIBLE) {
+            return true;
+        }
+
+        if (stackTraceVisibility == UserInterfaceElementVisibilityType.HIDDEN) {
+            return false;
+        }
+
+        return true;
     }
 
     private void showHideAll(final boolean show, AjaxRequestTarget target) {
