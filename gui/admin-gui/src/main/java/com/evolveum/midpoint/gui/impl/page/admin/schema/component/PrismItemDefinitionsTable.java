@@ -62,6 +62,8 @@ public class PrismItemDefinitionsTable extends AbstractWizardTable<PrismItemDefi
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismItemDefinitionsTable.class);
 
+    private static final String COLUMN_CSS = "mp-w-sm-2 mp-w-md-1 text-nowrap";
+
     private enum Type {
         PROPERTY,
         REFERENCE,
@@ -241,14 +243,21 @@ public class PrismItemDefinitionsTable extends AbstractWizardTable<PrismItemDefi
                         AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase()){
                     @Override
                     public String getCssClass() {
-                        return "mp-w-sm-2 mp-w-md-1 text-nowrap";
+                        return COLUMN_CSS;
+                    }
+                },
+                new PrismPropertyWrapperColumn<>(defModel, PrismItemDefinitionType.F_MULTIVALUE,
+                        AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase()){
+                    @Override
+                    public String getCssClass() {
+                        return COLUMN_CSS;
                     }
                 },
                 new PrismPropertyWrapperColumn<>(defModel, PrismItemDefinitionType.F_INDEXED,
                         AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase()){
                     @Override
                     public String getCssClass() {
-                        return "mp-w-sm-2 mp-w-md-1 text-nowrap";
+                        return COLUMN_CSS;
                     }
                 }
         );

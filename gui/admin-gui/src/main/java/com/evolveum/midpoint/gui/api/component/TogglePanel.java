@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.api.component;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
 
@@ -29,7 +30,7 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
  */
 public class TogglePanel<O extends Serializable> extends BasePanel<List<Toggle<O>>> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_BUTTONS = "buttons";
     private static final String ID_BUTTON = "button";
@@ -53,7 +54,9 @@ public class TogglePanel<O extends Serializable> extends BasePanel<List<Toggle<O
 
             @Override
             protected void populateItem(ListItem<Toggle<O>> item) {
-                AjaxLink button = new AjaxLink<>(ID_BUTTON) {
+                AjaxLink<Void> button = new AjaxLink<>(ID_BUTTON) {
+                    @Serial private static final long serialVersionUID = 1L;
+
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         itemSelected(target, item.getModel());
@@ -61,6 +64,9 @@ public class TogglePanel<O extends Serializable> extends BasePanel<List<Toggle<O
                 };
                 button.add(AttributeAppender.append("class", () -> item.getModelObject().isActive() ? "active" : null));
                 button.add(AttributeAppender.replace("aria-pressed", () -> item.getModelObject().isActive() ? "true" : "false"));
+                button.add(AttributeAppender.append("title",
+                        () -> getString(item.getModelObject().getTitle(), null, item.getModelObject().getTitle())));
+
                 item.add(button);
 
                 Component content = createButtonContent(ID_CONTENT, item.getModel());
@@ -88,6 +94,10 @@ public class TogglePanel<O extends Serializable> extends BasePanel<List<Toggle<O
         defaultButtonContent.add(badge);
 
         return defaultButtonContent;
+    }
+
+    protected boolean showTitle() {
+        return false;
     }
 
     protected void itemSelected(AjaxRequestTarget target, IModel<Toggle<O>> item) {

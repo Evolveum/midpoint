@@ -8,8 +8,15 @@
 package com.evolveum.midpoint.gui.impl.page.admin.certification.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.Toggle;
+import com.evolveum.midpoint.gui.api.component.TogglePanel;
+import com.evolveum.midpoint.gui.api.component.form.SwitchBoxPanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
+import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.CertificationDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscUtil;
 import com.evolveum.midpoint.prism.PrismConstants;
@@ -21,6 +28,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.wicket.chartjs.ChartConfiguration;
 import com.evolveum.wicket.chartjs.ChartJsPanel;
@@ -29,6 +38,7 @@ import com.evolveum.wicket.chartjs.DoughnutChartConfiguration;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.ComponentTag;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
@@ -55,6 +65,10 @@ public class ReviewersStatisticsPanel extends BasePanel {
     private int realReviewersCount;
     private CertificationDetailsModel model;
 
+    //as a default, sorting of the reviewers is done by the percentage of not decided items
+    //can be switched to the number of not decided items
+    private IModel<Boolean> percentageSortingModel = Model.of(true);
+
     public ReviewersStatisticsPanel(String id, CertificationDetailsModel model) {
         super(id);
         this.model = model;
@@ -63,11 +77,13 @@ public class ReviewersStatisticsPanel extends BasePanel {
     @Override
     protected void onInitialize() {
         super.onInitialize();
+
+        setOutputMarkupId(true);
         add(initReviewersPanel(ID_REVIEWERS, true));
     }
 
     private StatisticListBoxPanel<ObjectReferenceType> initReviewersPanel(String id, boolean allowViewAll) {
-        IModel<List<StatisticBoxDto<ObjectReferenceType>>> reviewersModel = getReviewersModel(allowViewAll);
+        LoadableDetachableModel<List<StatisticBoxDto<ObjectReferenceType>>> reviewersModel = getReviewersModel(allowViewAll);
         return new StatisticListBoxPanel<>(id,
                 getReviewersPanelDisplayModel(reviewersModel.getObject().size()), reviewersModel) {
             @Serial private static final long serialVersionUID = 1L;
@@ -105,6 +121,44 @@ public class ReviewersStatisticsPanel extends BasePanel {
             protected boolean isLabelClickable() {
                 return true;
             }
+
+            @Override
+            protected Component createRightSideHeaderComponent(String id) {
+                IModel<List<Toggle<Boolean>>> items = new LoadableModel<>(false) {
+
+                    @Override
+                    protected List<Toggle<Boolean>> load() {
+
+                        List<Toggle<Boolean>> list = new ArrayList<>();
+
+                        Toggle<Boolean> percentage = new Toggle<>("fa fa-solid fa-percent", "",
+                                "ReviewersStatisticsPanel.toggle.sortByPercentage");
+                        percentage.setActive(Boolean.TRUE.equals(percentageSortingModel.getObject()));
+                        percentage.setValue(true);
+                        list.add(percentage);
+
+                        Toggle<Boolean> countable = new Toggle<>("fa fa-solid fa-arrow-down-9-1", "",
+                                "ReviewersStatisticsPanel.toggle.sortByCount");
+                        countable.setActive(Boolean.FALSE.equals(percentageSortingModel.getObject()));
+                        countable.setValue(false);
+                        list.add(countable);
+
+                        return list;
+                    }
+                };
+                return new TogglePanel<>(id, items) {
+
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected void itemSelected(AjaxRequestTarget target, IModel<Toggle<Boolean>> item) {
+                        super.itemSelected(target, item);
+                        percentageSortingModel.setObject(item.getObject().getValue());
+//                        reviewersModel.detach();
+                        target.add(ReviewersStatisticsPanel.this);
+                    }
+                };
+            }
         };
     }
 
@@ -131,9 +185,9 @@ public class ReviewersStatisticsPanel extends BasePanel {
                 List<ObjectReferenceType> reviewers = CertMiscUtil.loadCampaignReviewers(campaign.getOid(),
                         ReviewersStatisticsPanel.this.getPageBase());
                 reviewers = reviewers.stream().sorted((r1, r2) -> {
-                    long r1ItemsCount = getNotDecidedItemsCount(r1);
-                    long r2ItemsCount = getNotDecidedItemsCount(r2);
-                    return Long.compare(r2ItemsCount, r1ItemsCount);
+                    float r1ItemsPercent = getNotDecidedItems(r1);
+                    float r2ItemsPercent = getNotDecidedItems(r2);
+                    return Float.compare(r2ItemsPercent, r1ItemsPercent);
                 }).toList();
                 if (restricted) {
                     realReviewersCount = reviewers.size();
@@ -146,14 +200,21 @@ public class ReviewersStatisticsPanel extends BasePanel {
         };
     }
 
-    private long getNotDecidedItemsCount(ObjectReferenceType reviewerRef) {
+    private float getNotDecidedItems(ObjectReferenceType reviewerRef) {
         String campaignOid = model.getObjectType().getOid();
         PrismObject<FocusType> reviewer = WebModelServiceUtils.loadObject(reviewerRef, getPageBase());
         if (reviewer == null) {
             return 0;
         }
         MidPointPrincipal principal = MidPointPrincipal.create(reviewer.asObjectable());
-        return CertMiscUtil.countOpenCertItems(Collections.singletonList(campaignOid), principal, true, getPageBase());
+        long notDecidedItemsCount = CertMiscUtil.countOpenCertItems(Collections.singletonList(campaignOid), principal,
+                true, getPageBase());
+        if (Boolean.FALSE.equals(percentageSortingModel.getObject())) {
+            return notDecidedItemsCount;
+        }
+        long allOpenItemsCount = CertMiscUtil.countOpenCertItems(Collections.singletonList(campaignOid), principal,
+                false, getPageBase());
+        return allOpenItemsCount == 0 ? 0 : (float) notDecidedItemsCount / allOpenItemsCount * 100;
     }
 
     private boolean reviewersCountExceedsLimit() {

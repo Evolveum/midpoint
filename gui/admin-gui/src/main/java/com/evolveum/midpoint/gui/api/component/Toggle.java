@@ -18,6 +18,8 @@ public class Toggle<T extends Serializable> implements Serializable {
 
     private String label;
 
+    private String title;
+
     private String badge;
 
     private String badgeCss;
@@ -29,6 +31,12 @@ public class Toggle<T extends Serializable> implements Serializable {
     public Toggle(String iconCss, String label) {
         this.iconCss = iconCss;
         this.label = label;
+    }
+
+    public Toggle(String iconCss, String label, String title) {
+        this.iconCss = iconCss;
+        this.label = label;
+        this.title = title;
     }
 
     public String getIconCss() {
@@ -77,5 +85,13 @@ public class Toggle<T extends Serializable> implements Serializable {
 
     public void setBadgeCss(String badgeCss) {
         this.badgeCss = badgeCss;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 }

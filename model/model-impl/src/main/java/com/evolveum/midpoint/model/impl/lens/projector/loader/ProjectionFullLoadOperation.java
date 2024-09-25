@@ -10,6 +10,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.loader;
 import static com.evolveum.midpoint.model.impl.lens.LensUtil.getExportType;
 import static com.evolveum.midpoint.schema.result.OperationResult.DEFAULT;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRefWithFullObject;
+import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
 import java.util.Collection;
 import java.util.Objects;
@@ -92,6 +93,18 @@ class ProjectionFullLoadOperation {
                     result.addReturn(DEFAULT, "too early");
                     return;
                 }
+            }
+
+            if (projCtx.getLensContext().isSimulation() && projCtx.isAdd()) {
+                var newObject = stateNonNull(
+                        projCtx.getObjectNew(), "No new object with ADD sync decision? In %s", projCtx);
+                var currentAsObject = newObject.clone();
+                var currentAsObjectable = currentAsObject.asObjectable();
+                projCtx.setCurrentObject(currentAsObject);
+                currentAsObjectable.setExists(true);
+                projCtx.determineFullShadowFlag(currentAsObjectable);
+                result.addReturn(DEFAULT, "simulation, object being added");
+                return;
             }
 
             var options = createOptions();
