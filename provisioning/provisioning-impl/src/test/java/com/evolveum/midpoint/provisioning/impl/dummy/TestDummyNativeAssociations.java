@@ -127,7 +127,13 @@ public class TestDummyNativeAssociations extends TestDummy {
                 .collect(Collectors.toSet());
     }
 
-    /** Tests the treatment of reference values without object class information (currently disabled). */
+    void createAccountAndGroup(String accountName, String groupName) throws Exception {
+        var account = dummyResourceCtl.addAccount(accountName);
+        var group = dummyResourceCtl.addGroup(groupName);
+        dummyScenario.groupMembership.add(account, group);
+    }
+
+    /** Tests the treatment of reference values without object class information. */
     @Test
     public void test980UnclassifiedReferenceValues() throws Exception {
         var task = getTestTask();
