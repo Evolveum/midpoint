@@ -96,8 +96,7 @@ public class MidpointResponse extends Response {
         if (StringUtils.isEmpty(url)) {
             return true;
         }
-
-        String applicationUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
+        String applicationUrl = ServletUriComponentsBuilder.fromContextPath(this.getRequest()).build().toUriString();
         if (StringUtils.isEmpty(applicationUrl)) {
             return true;
         }
