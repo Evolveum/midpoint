@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.focus;
 import java.time.Duration;
 import java.util.*;
 
+import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 
 import org.apache.commons.lang3.StringUtils;
@@ -239,7 +240,12 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
     }
 
     @Override
-    public void finishProcessing(AjaxRequestTarget target, boolean returningFromAsync, OperationResult result) {
+    public void finishProcessing(
+            AjaxRequestTarget target,
+            boolean returningFromAsync,
+            String processedObjectOid,
+            Class<? extends ObjectType> processedObjectType,
+            OperationResult result) {
         if (previewRequested) {
             finishPreviewProcessing(target, result);
             return;
@@ -262,7 +268,9 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
         }
 
         if ((isSaveInBackground() || !isKeepDisplayingResults()) && canExitPage) {
-            showResult(result);
+            OpResult op = showResult(result);
+            op.setProcessedObjectOid(processedObjectOid);
+            op.setProcessedObjectType(processedObjectType);
             navigateAction();
         } else {
             getProgressPanel().manageButtons(target, returningFromAsync, canContinueEditing);

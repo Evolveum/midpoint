@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -69,7 +70,6 @@ public class ProgressPanel extends BasePanel {
     private final ExecuteChangeOptionsDto executeOptions;
 
     private final ProgressReportingAwarePage progressAwarePage;
-
 
     public ProgressPanel(String id, ExecuteChangeOptionsDto options, ProgressReportingAwarePage progressAwarePage) {
         super(id);
@@ -395,7 +395,14 @@ public class ProgressPanel extends BasePanel {
                         return;
                     }
 
-                    progressAwarePage.finishProcessing(target, true, asyncOperationResult);
+                    ObjectDeltaOperation<? extends ObjectType> focusDelta = ObjectDeltaOperation.findFocusDeltaInCollection(reporter.getObjectDeltaOperation());
+                    String processedObjectOid = null;
+                    Class<? extends ObjectType> processedObjectType = null;
+                    if (focusDelta != null && focusDelta.getObjectDelta() != null) {
+                        processedObjectOid = focusDelta.getOid();
+                        processedObjectType = focusDelta.getObjectDelta().getObjectTypeClass();
+                    }
+                    progressAwarePage.finishProcessing(target, true, processedObjectOid, processedObjectType, asyncOperationResult);
 
                     stopRefreshingProgressPanel(target);
                     reporter.setAsyncOperationResult(null);
@@ -453,5 +460,4 @@ public class ProgressPanel extends BasePanel {
 
         hideButton(target, ID_ABORT);
     }
-
 }
