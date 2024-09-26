@@ -804,7 +804,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
                 .assertCachedOrigValues(ATTR_USERNAME_QNAME, USER_WILL_NAME)
                 .assertCachedOrigValues(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME)
                 .assertCachedOrigValues(ATTR_DESCRIPTION_QNAME)
-                .assertNoPassword()
+                .assertNoPasswordIf(!isCaching())
                 .getObject();
 
         assertSinglePendingOperation(repoShadowObj, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
@@ -855,7 +855,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
                 .assertCachedOrigValues(ATTR_USERNAME_QNAME, USER_WILL_NAME)
                 .assertCachedOrigValues(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME)
                 .assertCachedOrigValues(ATTR_DESCRIPTION_QNAME)
-                .assertNoPassword()
+                .assertNoPasswordIf(!isCaching())
                 .getObject();
 
         assertSinglePendingOperation(repoShadowObj, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
@@ -2076,7 +2076,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
                 .display()
                 .assertCachedOrigValues(ATTR_USERNAME_QNAME, USER_WILL_NAME)
                 .assertCachedOrigValues(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME)
-                .assertNoPassword()
+                .assertNoPasswordIf(!isCaching())
                 .getObject();
 
         var pendingOperation = assertSinglePendingOperation(
@@ -2213,7 +2213,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
                 .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
                 .end()
-                .assertNoPassword();
+                .assertNoPasswordIf(!isCaching());
         assertAttributeFromCache(shadowRepoAsserter, ATTR_FULLNAME_QNAME, expectedFullName);
         assertShadowActivationAdministrativeStatusFromCache(shadowRepoAsserter.getObject(), ActivationStatusType.ENABLED);
 
@@ -2224,7 +2224,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
                 .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
                 .end()
-                .assertNoPassword()
+                .assertNoPasswordIf(!isCaching())
                 .pendingOperations()
                 .singleOperation()
                 .assertRequestTimestamp(accountWillReqestTimestampStart, accountWillReqestTimestampEnd)
@@ -2287,7 +2287,9 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
                 .assertCachedOrigValues(ATTR_FULLNAME_QNAME, USER_JACK_FULL_NAME);
         assertShadowActivationAdministrativeStatusFromCache(repoShadowObj, ActivationStatusType.ENABLED);
         assertShadowExists(repoShadowObj, false);
-        assertNoShadowPassword(repoShadowObj);
+        if (!isCaching()) {
+            assertNoShadowPassword(repoShadowObj);
+        }
 
         PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
                 accountJackOid, null, task, result);
@@ -2300,7 +2302,9 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         assertAttributeFromCache(shadowModel, ATTR_FULLNAME_QNAME, USER_JACK_FULL_NAME);
         assertShadowActivationAdministrativeStatusFromCache(shadowModel, ActivationStatusType.ENABLED);
         assertShadowExists(shadowModel, false);
-        assertNoShadowPassword(shadowModel);
+        if (!isCaching()) {
+            assertNoShadowPassword(shadowModel);
+        }
 
         assertSinglePendingOperation(shadowModel, accountJackReqestTimestampStart, accountJackReqestTimestampEnd);
 
@@ -2431,8 +2435,10 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     }
 
     protected void assertShadowPassword(PrismObject<ShadowType> shadow) {
-        // pure manual resource should never "read" password
-        assertNoShadowPassword(shadow);
+        // pure manual resource should never "read" password, except for caching
+        if (!isCaching()) {
+            assertNoShadowPassword(shadow);
+        }
     }
 
     private void assertManual(AbstractWriteCapabilityType cap) {
@@ -2501,5 +2507,9 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
                 requestStart, requestEnd,
                 getExpectedExecutionStatus(executionStage), getExpectedResultStatus(executionStage),
                 null, null);
+    }
+
+    protected boolean isCaching() {
+        return InternalsConfig.isShadowCachingOnByDefault();
     }
 }
