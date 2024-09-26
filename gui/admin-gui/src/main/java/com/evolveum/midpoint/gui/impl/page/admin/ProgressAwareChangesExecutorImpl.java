@@ -106,7 +106,14 @@ public class ProgressAwareChangesExecutorImpl implements ObjectChangeExecutor {
         }
 
         if (!reporter.isAsynchronousExecution()) {
-            progressAwarePage.finishProcessing(target, reporter.isAsynchronousExecution(), result);
+            ObjectDeltaOperation<? extends ObjectType> focusDelta = ObjectDeltaOperation.findFocusDeltaInCollection(reporter.getObjectDeltaOperation());
+            String processedObjectOid = null;
+            Class<? extends ObjectType> processedObjectType = null;
+            if (focusDelta != null && focusDelta.getObjectDelta() != null) {
+                processedObjectOid = focusDelta.getOid();
+                processedObjectType = focusDelta.getObjectDelta().getObjectTypeClass();
+            }
+            progressAwarePage.finishProcessing(target, reporter.isAsynchronousExecution(), processedObjectOid, processedObjectType, result);
         }
 
         return reporter.getObjectDeltaOperation();
@@ -213,7 +220,7 @@ public class ProgressAwareChangesExecutorImpl implements ObjectChangeExecutor {
             result.computeStatusIfUnknown();
         }
 
-        progressAwarePage.finishProcessing(target,true, result);
+        progressAwarePage.finishProcessing(target,true, null, null, result);
         return null;
     }
 }

@@ -164,6 +164,10 @@ public class ObjectDeltaOperation<O extends ObjectType> implements DebugDumpable
 
     public static ObjectDeltaOperation<? extends ObjectType> findFocusDeltaInCollection(
             Collection<ObjectDeltaOperation<? extends ObjectType>> odos) {
+        if (odos == null) {
+            return null;
+        }
+
         for (ObjectDeltaOperation<? extends ObjectType> odo : odos) {
             Class<? extends ObjectType> objectTypeClass = odo.getObjectDelta().getObjectTypeClass();
             if (!ShadowType.class.equals(objectTypeClass)) {
