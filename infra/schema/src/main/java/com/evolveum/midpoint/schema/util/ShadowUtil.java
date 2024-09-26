@@ -1389,7 +1389,8 @@ public class ShadowUtil {
         var cachingMetadata = shadow.asObjectable().getCachingMetadata();
         if (cachingMetadata == null) {
             var contentDescription =
-                    requireNonNullElseGet(contentDescriptionOverride, () -> shadow.asObjectable().getContentDescription());
+                    contentDescriptionOverride != null ?
+                            contentDescriptionOverride : shadow.asObjectable().getContentDescription();
             if (contentDescription == ShadowContentDescriptionType.FROM_REPOSITORY) {
                 return ItemCachedStatus.NO_SHADOW_CACHING_METADATA;
             } else {

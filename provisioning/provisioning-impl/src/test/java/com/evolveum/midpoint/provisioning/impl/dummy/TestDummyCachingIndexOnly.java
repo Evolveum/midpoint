@@ -8,7 +8,14 @@
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
 
+import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -16,6 +23,8 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+
+import javax.xml.namespace.QName;
 
 public class TestDummyCachingIndexOnly extends TestDummyCaching {
 
@@ -32,7 +41,21 @@ public class TestDummyCachingIndexOnly extends TestDummyCaching {
 
     @Override
     protected boolean isWeaponIndexOnly() {
-        return true;
+        return !isNativeRepository(); // in native repo, all attributes are technically index-only, and all are fetched by default
+    }
+
+    @Override
+    protected @NotNull Collection<? extends QName> getCachedAccountAttributes() throws SchemaException, ConfigurationException {
+        var all = new ArrayList<>(getCachedAccountAttributesWithIndexOnly());
+        if (isWeaponIndexOnly()) {
+            all.remove(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_QNAME);
+        }
+        return all;
+    }
+
+    @Override
+    protected @NotNull Collection<? extends QName> getCachedAccountAttributesWithIndexOnly() throws SchemaException, ConfigurationException {
+        return getAccountDefaultDefinition().getAttributeNames();
     }
 
     @Override
