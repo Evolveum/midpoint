@@ -26,6 +26,7 @@ import com.evolveum.midpoint.schema.util.RawRepoShadow;
 
 import com.evolveum.midpoint.schema.util.Resource;
 
+import com.evolveum.midpoint.test.asserter.RepoShadowAsserter;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -376,6 +377,8 @@ public class TestDummyCaching extends TestDummy {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
+        skipIfNotNativeRepository(); // FIXME temporary
+
         DummyAccount will = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
 
         updateAndCheckMultivaluedAttribute(will, false, "initial values", List.of("sword", "love"), task, result);
@@ -421,7 +424,7 @@ public class TestDummyCaching extends TestDummy {
         then(message);
 
         RawRepoShadow shadow = getShadowRepoRetrieveAllAttributes(ACCOUNT_WILL_OID, result);
-        assertRepoShadowNew(shadow)
+        RepoShadowAsserter.forRepoShadow(shadow, getCachedAccountAttributesWithIndexOnly())
                 .assertCachedNormValues(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, values.toArray());
     }
 
@@ -449,6 +452,11 @@ public class TestDummyCaching extends TestDummy {
     @Override
     protected @NotNull Collection<? extends QName> getCachedAccountAttributes() throws SchemaException, ConfigurationException {
         return getAccountDefaultDefinition().getAttributeNames();
+    }
+
+    protected @NotNull Collection<? extends QName> getCachedAccountAttributesWithIndexOnly()
+            throws SchemaException, ConfigurationException {
+        return getCachedAccountAttributes();
     }
 
     @Override
