@@ -27,6 +27,8 @@ import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.wicket.chartjs.ChartData;
+import com.evolveum.wicket.chartjs.ChartDataset;
 import com.evolveum.wicket.chartjs.DoughnutChartConfiguration;
 
 import org.apache.wicket.Component;
@@ -63,6 +65,7 @@ public class ReviewersStatisticsPanel extends BasePanel {
     private IModel<Boolean> percentageSortingModel = Model.of(true);
     private StatisticListBoxPanel<ObjectReferenceType> reviewersPopupPanel;
 
+    private List<StatisticBoxDto<ObjectReferenceType>> sortedReviewerList = new ArrayList<>();
     public ReviewersStatisticsPanel(String id, CertificationDetailsModel model) {
         super(id);
         this.model = model;
@@ -97,7 +100,7 @@ public class ReviewersStatisticsPanel extends BasePanel {
             @Override
             protected Component createRightSideBoxComponent(String id, StatisticBoxDto<ObjectReferenceType> statisticObject) {
                 ObjectReferenceType reviewerRef = statisticObject.getStatisticObject();
-                DoughnutChartConfiguration chartConfig = getReviewerProgressChartConfig(reviewerRef);
+                DoughnutChartConfiguration chartConfig = getReviewerProgressChartConfig(reviewerRef, reviewersStatisticModel);
 
                 ChartedHeaderDto<DoughnutChartConfiguration> infoDto = new ChartedHeaderDto<>(chartConfig,
                         createStatisticBoxLabel(statisticObject.getStatisticObject(), reviewersStatisticModel), "",
@@ -180,15 +183,43 @@ public class ReviewersStatisticsPanel extends BasePanel {
         };
     }
 
-    private DoughnutChartConfiguration getReviewerProgressChartConfig(ObjectReferenceType reviewerRef) {
-        PrismObject<FocusType> reviewer = WebModelServiceUtils.loadObject(reviewerRef, getPageBase());
-        if (reviewer == null) {
-            return null;
+    private DoughnutChartConfiguration getReviewerProgressChartConfig(ObjectReferenceType reviewerRef,
+            IModel<HashMap<ObjectReferenceType, ReviewerStatisticDto>> reviewersStatisticModel ) {
+        ReviewerStatisticDto reviewerStatisticDto = reviewersStatisticModel.getObject().get(reviewerRef);
+        DoughnutChartConfiguration config = new DoughnutChartConfiguration();
+
+        ChartData chartData = new ChartData();
+        ChartDataset dataset = new ChartDataset();
+//        dataset.setLabel("Not decided");
+
+        dataset.setFill(true);
+
+        long notDecidedCertItemsCount = reviewerStatisticDto.getOpenNotDecidedItemsCount();
+        long allOpenCertItemsCount = reviewerStatisticDto.getAllOpenItemsCount();
+        long decidedCertItemsCount = allOpenCertItemsCount - notDecidedCertItemsCount;
+
+        dataset.addData(decidedCertItemsCount);
+        dataset.addBackgroudColor(getChartBackgroundColor(reviewerStatisticDto.getOpenDecidedItemsPercentage()));
+
+        dataset.addData(notDecidedCertItemsCount);
+        dataset.addBackgroudColor("grey");
+
+        chartData.addDataset(dataset);
+
+        config.setData(chartData);
+        return config;
+    }
+
+    private String getChartBackgroundColor(float decidedItemsPercentage) {
+        if (decidedItemsPercentage == 100) {
+            return "green";
+        } else if (decidedItemsPercentage > 50) {
+            return "blue";
+        } if (decidedItemsPercentage > 25) {
+            return "yellow";
+        } else {
+            return "red";
         }
-        AccessCertificationCampaignType campaign = model.getObjectType();
-        MidPointPrincipal principal = MidPointPrincipal.create(reviewer.asObjectable());
-        return CertMiscUtil.createDoughnutChartConfigForCampaigns(
-                Collections.singletonList(campaign.getOid()), principal, getPageBase());
     }
 
     private LoadableDetachableModel<List<StatisticBoxDto<ObjectReferenceType>>> getSortedReviewersModel(
@@ -199,6 +230,9 @@ public class ReviewersStatisticsPanel extends BasePanel {
 
             @Override
             protected List<StatisticBoxDto<ObjectReferenceType>> load() {
+                if (!sortedReviewerList.isEmpty()) {
+                    return sortReviewers(reviewersUnresolvedItemsCountModel, sortedReviewerList);
+                }
                 List<StatisticBoxDto<ObjectReferenceType>> list = new ArrayList<>();
                 HashMap<ObjectReferenceType, ReviewerStatisticDto> reviewersStatistics = reviewersUnresolvedItemsCountModel.getObject();
                 List<ObjectReferenceType> reviewers = new ArrayList<>(reviewersStatistics.keySet());
@@ -223,6 +257,26 @@ public class ReviewersStatisticsPanel extends BasePanel {
                 return list;
             }
         };
+    }
+
+    private List<StatisticBoxDto<ObjectReferenceType>> sortReviewers(
+            IModel<HashMap<ObjectReferenceType, ReviewerStatisticDto>> reviewersUnresolvedItemsCountModel,
+            List<StatisticBoxDto<ObjectReferenceType>> reviewersList) {
+        HashMap<ObjectReferenceType, ReviewerStatisticDto> reviewersStatistics = reviewersUnresolvedItemsCountModel.getObject();
+        //todo duplicated piece of code
+        reviewersList.sort((r1, r2) -> {
+            ReviewerStatisticDto rs1 = reviewersStatistics.get(r1.getStatisticObject());
+            ReviewerStatisticDto rs2 = reviewersStatistics.get(r2.getStatisticObject());
+
+            if (Boolean.FALSE.equals(percentageSortingModel.getObject())) {
+                return Long.compare(rs2.getOpenNotDecidedItemsCount(), rs1.getOpenNotDecidedItemsCount());
+            }
+
+            float r1ItemsPercent = rs1.getOpenNotDecidedItemsPercentage();
+            float r2ItemsPercent = rs2.getOpenNotDecidedItemsPercentage();
+            return Float.compare(r2ItemsPercent, r1ItemsPercent);
+        });
+        return reviewersList;
     }
 
     private long getNotDecidedOpenItemsCount(PrismObject<FocusType> reviewer) {
@@ -333,6 +387,6 @@ public class ReviewersStatisticsPanel extends BasePanel {
     private String createPercentageLabel(ObjectReferenceType reviewerRef,
             IModel<HashMap<ObjectReferenceType, ReviewerStatisticDto>> reviewersStatisticModel) {
         ReviewerStatisticDto reviewerStatistic = reviewersStatisticModel.getObject().get(reviewerRef);
-        return String.format("%.0f", reviewerStatistic.getOpenNotDecidedItemsPercentage()) + "%";
+        return String.format("%.0f", reviewerStatistic.getOpenDecidedItemsPercentage()) + "%";
     }
 }
