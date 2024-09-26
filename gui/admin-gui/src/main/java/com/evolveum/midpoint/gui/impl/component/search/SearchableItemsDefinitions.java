@@ -223,6 +223,7 @@ public class SearchableItemsDefinitions {
                 ItemPath.create(AccessCertificationCaseType.F_OBJECT_REF),
                 ItemPath.create(AccessCertificationCaseType.F_CURRENT_STAGE_OUTCOME),
                 ItemPath.create(AccessCertificationCaseType.F_OUTCOME),
+                ItemPath.create(AccessCertificationCaseType.F_WORK_ITEM, AccessCertificationWorkItemType.F_ASSIGNEE_REF),
                 ItemPath.create(AccessCertificationCaseType.F_TARGET_REF)
         ));
 
