@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.model.intest.manual;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType.DISABLED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType.ENABLED;
+
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -141,7 +144,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
         assertNotNull("No ID in pending operation", pendingOperation.getId());
         // Still old data in the repo. The operation is not completed yet.
-        assertShadowActivationAdministrativeStatusFromCache(repoShadowObj, ActivationStatusType.ENABLED);
+        assertShadowActivationAdministrativeStatusFromCache(repoShadowObj, ENABLED);
         RepoShadowAsserter.forRepoShadow(repoShadow, getCachedAttributes())
                 .assertCachedOrigValues(ATTR_USERNAME_QNAME, USER_WILL_NAME)
                 .assertCachedOrigValues(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
@@ -153,7 +156,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         ShadowType shadowTypeProvisioning = shadowModel.asObjectable();
         assertShadowName(shadowModel, USER_WILL_NAME);
         assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
-        assertShadowActivationAdministrativeStatus(shadowModel, ActivationStatusType.ENABLED);
+        assertShadowActivationAdministrativeStatus(shadowModel, ENABLED);
         assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_WILL_NAME);
         assertAttribute(shadowModel, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
         assertAttributeFromBackingStore(shadowModel, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
@@ -196,7 +199,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
         ObjectDelta<UserType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(UserType.class,
                 userWillOid, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
-                ActivationStatusType.ENABLED);
+                ENABLED);
         ProtectedStringType ps = new ProtectedStringType();
         ps.setClearValue(USER_WILL_PASSWORD_NEW);
         delta.addModificationReplaceProperty(SchemaConstants.PATH_PASSWORD_VALUE, ps);
@@ -225,7 +228,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
         assertNotNull("No ID in pending operation", pendingOperation.getId());
         // Still old data in the repo. The operation is not completed yet.
-        assertShadowActivationAdministrativeStatusFromCache(repoShadowObj, ActivationStatusType.ENABLED);
+        assertShadowActivationAdministrativeStatusFromCache(repoShadowObj, ENABLED);
         RepoShadowAsserter.forRepoShadow(repoShadow, getCachedAttributes())
                 .assertCachedOrigValues(ATTR_USERNAME_QNAME, USER_WILL_NAME)
                 .assertCachedOrigValues(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
@@ -237,7 +240,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         ShadowType shadowTypeProvisioning = shadowProvisioning.asObjectable();
         assertShadowName(shadowProvisioning, USER_WILL_NAME);
         assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
-        assertShadowActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
+        assertShadowActivationAdministrativeStatus(shadowProvisioning, ENABLED);
         assertAttribute(shadowProvisioning, ATTR_USERNAME_QNAME, USER_WILL_NAME);
         assertAttribute(shadowProvisioning, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
         assertAttributeFromBackingStore(shadowProvisioning, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
@@ -256,7 +259,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         display("Model shadow (future)", shadowProvisioningFuture);
         assertShadowName(shadowProvisioningFuture, USER_WILL_NAME);
         assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowProvisioningFuture.asObjectable().getKind());
-        assertShadowActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
+        assertShadowActivationAdministrativeStatus(shadowProvisioningFuture, ENABLED);
         assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, USER_WILL_NAME);
         assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
         assertAttributeFromBackingStore(shadowProvisioningFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
@@ -324,7 +327,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         assertShadowName(shadowModel, USER_WILL_NAME);
         assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeModel.getKind());
         if (supportsBackingStore()) {
-            assertShadowActivationAdministrativeStatus(shadowModel, ActivationStatusType.ENABLED);
+            assertShadowActivationAdministrativeStatus(shadowModel, ENABLED);
         } else {
             assertShadowActivationAdministrativeStatus(shadowModel, ActivationStatusType.DISABLED);
         }
@@ -349,7 +352,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         display("Model shadow (future)", shadowModelFuture);
         assertShadowName(shadowModelFuture, USER_WILL_NAME);
         assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowModelFuture.asObjectable().getKind());
-        assertShadowActivationAdministrativeStatus(shadowModelFuture, ActivationStatusType.ENABLED);
+        assertShadowActivationAdministrativeStatus(shadowModelFuture, ENABLED);
         assertAttribute(shadowModelFuture, ATTR_USERNAME_QNAME, USER_WILL_NAME);
         assertAttribute(shadowModelFuture, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
         assertAttributeFromBackingStore(shadowModelFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
@@ -414,7 +417,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         assertShadowName(shadowModel, USER_WILL_NAME);
         assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
         if (supportsBackingStore()) {
-            assertShadowActivationAdministrativeStatus(shadowModel, ActivationStatusType.ENABLED);
+            assertShadowActivationAdministrativeStatus(shadowModel, ENABLED);
         } else {
             assertShadowActivationAdministrativeStatus(shadowModel, ActivationStatusType.DISABLED);
         }
@@ -438,7 +441,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         display("Model shadow (future)", shadowProvisioningFuture);
         assertShadowName(shadowProvisioningFuture, USER_WILL_NAME);
         assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowProvisioningFuture.asObjectable().getKind());
-        assertShadowActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
+        assertShadowActivationAdministrativeStatus(shadowProvisioningFuture, ENABLED);
         assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, USER_WILL_NAME);
         assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
         assertAttributeFromBackingStore(shadowProvisioningFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
@@ -492,7 +495,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         display("Model shadow (future)", shadowModelFuture);
         assertShadowName(shadowModelFuture, USER_WILL_NAME);
         assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowModelFuture.asObjectable().getKind());
-        assertShadowActivationAdministrativeStatus(shadowModelFuture, ActivationStatusType.ENABLED);
+        assertShadowActivationAdministrativeStatus(shadowModelFuture, ENABLED);
         assertAttribute(shadowModelFuture, ATTR_USERNAME_QNAME, USER_WILL_NAME);
         assertAttribute(shadowModelFuture, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
         assertAttributeFromBackingStore(shadowModelFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
@@ -547,7 +550,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
                 .end()
             .getObject();
 
-        assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
+        assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ENABLED);
         assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
 
         PrismObject<ShadowType> shadowModel = assertModelShadow(accountWillOid)
@@ -573,7 +576,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         if (supportsBackingStore()) {
             assertShadowActivationAdministrativeStatus(shadowModel, ActivationStatusType.DISABLED);
         } else {
-            assertShadowActivationAdministrativeStatus(shadowModel, ActivationStatusType.ENABLED);
+            assertShadowActivationAdministrativeStatus(shadowModel, ENABLED);
         }
         assertAttributeFromBackingStore(shadowModel, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
         assertShadowPassword(shadowModel);
@@ -581,7 +584,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         PrismObject<ShadowType> shadowModelFuture = assertModelShadowFuture(accountWillOid)
             .assertName(USER_WILL_NAME)
             .assertKind(ShadowKindType.ACCOUNT)
-            .assertAdministrativeStatus(ActivationStatusType.ENABLED)
+            .assertAdministrativeStatus(ENABLED)
             .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
                 .assertValue(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE)
@@ -649,7 +652,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
                 .end()
             .getObject();
 
-        assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
+        assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ENABLED);
         assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
 
         PrismObject<ShadowType> shadowModel = assertModelShadow(accountWillOid)
@@ -675,7 +678,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         if (supportsBackingStore()) {
             assertShadowActivationAdministrativeStatus(shadowModel, ActivationStatusType.DISABLED);
         } else {
-            assertShadowActivationAdministrativeStatus(shadowModel, ActivationStatusType.ENABLED);
+            assertShadowActivationAdministrativeStatus(shadowModel, ENABLED);
         }
         assertAttributeFromBackingStore(shadowModel, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
         assertShadowPassword(shadowModel);
@@ -684,7 +687,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         PrismObject<ShadowType> shadowModelFuture = assertModelShadowFuture(accountWillOid)
                 .assertName(USER_WILL_NAME)
                 .assertKind(ShadowKindType.ACCOUNT)
-                .assertAdministrativeStatus(ActivationStatusType.ENABLED)
+                .assertAdministrativeStatus(ENABLED)
                 .attributes()
                     .assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
                     .assertValue(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE)
@@ -716,7 +719,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        backingStoreUpdateWill(USER_WILL_FULL_NAME_PIRATE, INTEREST_ONE, ActivationStatusType.ENABLED, USER_WILL_PASSWORD_NEW);
+        backingStoreUpdateWill(USER_WILL_FULL_NAME_PIRATE, INTEREST_ONE, ENABLED, USER_WILL_PASSWORD_NEW);
 
         // WHEN
         when();
@@ -731,7 +734,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
             .display()
             .assertName(USER_WILL_NAME)
             .assertKind(ShadowKindType.ACCOUNT)
-            .assertAdministrativeStatus(ActivationStatusType.ENABLED)
+            .assertAdministrativeStatus(ENABLED)
             .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
                 .assertValue(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
@@ -748,7 +751,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         PrismObject<ShadowType> shadowModelFuture = assertModelShadowFuture(accountWillOid)
             .assertName(USER_WILL_NAME)
             .assertKind(ShadowKindType.ACCOUNT)
-            .assertAdministrativeStatus(ActivationStatusType.ENABLED)
+            .assertAdministrativeStatus(ENABLED)
             .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
                 .assertValue(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE)
@@ -802,13 +805,13 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
                     .end()
                 .end()
             .getObject();
-        assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
+        assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ENABLED);
         assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
 
         PrismObject<ShadowType> shadowModel = assertModelShadow(accountWillOid)
             .assertName(USER_WILL_NAME)
             .assertKind(ShadowKindType.ACCOUNT)
-            .assertAdministrativeStatus(ActivationStatusType.ENABLED)
+            .assertAdministrativeStatus(ENABLED)
             .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
                 .assertValue(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE)
@@ -836,7 +839,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         display("Model shadow (future)", shadowModelFuture);
         assertShadowName(shadowModelFuture, USER_WILL_NAME);
         assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowModelFuture.asObjectable().getKind());
-        assertShadowActivationAdministrativeStatus(shadowModelFuture, ActivationStatusType.ENABLED);
+        assertShadowActivationAdministrativeStatus(shadowModelFuture, ENABLED);
         assertAttribute(shadowModelFuture, ATTR_USERNAME_QNAME, USER_WILL_NAME);
         assertAttribute(shadowModelFuture, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
         assertAttributeFromBackingStore(shadowModelFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
@@ -885,7 +888,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         PrismObject<ShadowType> shadowModel = assertModelShadow(accountWillOid)
             .assertName(USER_WILL_NAME)
             .assertKind(ShadowKindType.ACCOUNT)
-            .assertAdministrativeStatus(ActivationStatusType.ENABLED)
+            .assertAdministrativeStatus(ENABLED)
             .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
                 .assertValue(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE)
@@ -905,7 +908,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         PrismObject<ShadowType> shadowModelFuture = assertModelShadowFuture(accountWillOid)
             .assertName(USER_WILL_NAME)
             .assertKind(ShadowKindType.ACCOUNT)
-            .assertAdministrativeStatus(ActivationStatusType.ENABLED)
+            .assertAdministrativeStatus(ENABLED)
             .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
                 .assertValue(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE)
@@ -945,7 +948,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
         assertPendingOperationDeltas(repoShadowObj, 0);
 
-        assertShadowActivationAdministrativeStatusFromCache(repoShadowObj, ActivationStatusType.ENABLED);
+        assertShadowActivationAdministrativeStatusFromCache(repoShadowObj, ENABLED);
         RepoShadowAsserter.forRepoShadow(repoShadow, getCachedAttributes())
                 .assertCachedOrigValues(ATTR_USERNAME_QNAME, USER_WILL_NAME)
                 .assertCachedOrigValues(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
@@ -957,7 +960,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         ShadowType shadowTypeProvisioning = shadowModel.asObjectable();
         assertShadowName(shadowModel, USER_WILL_NAME);
         assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
-        assertShadowActivationAdministrativeStatus(shadowModel, ActivationStatusType.ENABLED);
+        assertShadowActivationAdministrativeStatus(shadowModel, ENABLED);
         assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_WILL_NAME);
         assertAttribute(shadowModel, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
         assertAttributeFromBackingStore(shadowModel, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
@@ -972,7 +975,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         display("Model shadow (future)", shadowModelFuture);
         assertShadowName(shadowModelFuture, USER_WILL_NAME);
         assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowModelFuture.asObjectable().getKind());
-        assertShadowActivationAdministrativeStatus(shadowModelFuture, ActivationStatusType.ENABLED);
+        assertShadowActivationAdministrativeStatus(shadowModelFuture, ENABLED);
         assertAttribute(shadowModelFuture, ATTR_USERNAME_QNAME, USER_WILL_NAME);
         assertAttribute(shadowModelFuture, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
         assertAttributeFromBackingStore(shadowModelFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
@@ -1016,7 +1019,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
         assertNotNull("No ID in pending operation", pendingOperation.getId());
         // Still old data in the repo. The operation is not completed yet.
-        assertShadowActivationAdministrativeStatusFromCache(repoShadowObj, ActivationStatusType.ENABLED);
+        assertShadowActivationAdministrativeStatusFromCache(repoShadowObj, ENABLED);
         RepoShadowAsserter.forRepoShadow(repoShadow, getCachedAttributes())
                 .assertCachedOrigValues(ATTR_USERNAME_QNAME, USER_WILL_NAME)
                 .assertCachedOrigValues(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
@@ -1028,7 +1031,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         ShadowType shadowTypeProvisioning = shadowModel.asObjectable();
         assertShadowName(shadowModel, USER_WILL_NAME);
         assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
-        assertShadowActivationAdministrativeStatus(shadowModel, ActivationStatusType.ENABLED);
+        assertShadowActivationAdministrativeStatus(shadowModel, ENABLED);
         assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_WILL_NAME);
         assertAttribute(shadowModel, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
         assertAttributeFromBackingStore(shadowModel, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
@@ -1083,7 +1086,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
         assertNotNull("No ID in pending operation", pendingOperation.getId());
         // Still old data in the repo. The operation is not completed yet.
-        assertShadowActivationAdministrativeStatusFromCache(repoShadowObj, ActivationStatusType.ENABLED);
+        assertShadowActivationAdministrativeStatusFromCache(repoShadowObj, ENABLED);
         RepoShadowAsserter.forRepoShadow(repoShadow, getCachedAttributes())
                 .assertCachedOrigValues(ATTR_USERNAME_QNAME, USER_WILL_NAME)
                 .assertCachedOrigValues(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
@@ -1095,7 +1098,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         ShadowType shadowTypeProvisioning = shadowModel.asObjectable();
         assertShadowName(shadowModel, USER_WILL_NAME);
         assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
-        assertShadowActivationAdministrativeStatus(shadowModel, ActivationStatusType.ENABLED);
+        assertShadowActivationAdministrativeStatus(shadowModel, ENABLED);
         assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_WILL_NAME);
         assertAttribute(shadowModel, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
         assertAttributeFromBackingStore(shadowModel, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
@@ -1160,7 +1163,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
                     .assertCompletionTimestamp(accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd)
                     .end()
                 .end();
-        assertUnassignedShadow(shadowRepoAsserter, false, null);
+        assertUnassignedShadow(shadowRepoAsserter, false, isCaching() ? ENABLED : null);
 
         modelService.getObject(ShadowType.class,
                 accountWillOid, null, task, result);
@@ -1176,7 +1179,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
                     .assertCompletionTimestamp(accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd)
                     .end()
                 .end();
-        assertUnassignedShadow(shadowModelAsserter, false, ActivationStatusType.ENABLED); // backing store not yet updated
+        assertUnassignedShadow(shadowModelAsserter, false, ENABLED); // backing store not yet updated
         assertShadowPassword(shadowModelAsserter);
 
         assertWillUnassignedFuture(assertModelShadowFuture(accountWillOid), true);
@@ -1218,7 +1221,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
                     .assertCompletionTimestamp(accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd)
                     .end()
                 .end();
-        assertUnassignedShadow(shadowRepoAsserter, false, null);
+        assertUnassignedShadow(shadowRepoAsserter, false, isCaching() ? ENABLED : null);
 
         ShadowAsserter<Void> shadowModelAsserter = assertModelShadow(accountWillOid)
             .assertName(USER_WILL_NAME)
@@ -1231,7 +1234,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
                     .assertCompletionTimestamp(accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd)
                     .end()
                 .end();
-        assertUnassignedShadow(shadowModelAsserter, false, ActivationStatusType.ENABLED); // backing store not yet updated
+        assertUnassignedShadow(shadowModelAsserter, false, ENABLED); // backing store not yet updated
         assertShadowPassword(shadowModelAsserter);
 
         assertWillUnassignedFuture(assertModelShadowFuture(accountWillOid), true);
@@ -1274,7 +1277,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
                     .assertCompletionTimestamp(accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd)
                     .end()
                 .end();
-        assertUnassignedShadow(shadowRepoAsserter, true, null);
+        assertUnassignedShadow(shadowRepoAsserter, true, isCaching() ? ENABLED : null);
 
         ShadowAsserter<Void> shadowModelAsserterNoFetch = assertModelShadowNoFetch(accountWillOid)
             .assertName(USER_WILL_NAME)
@@ -1287,7 +1290,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
                     .assertCompletionTimestamp(accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd)
                     .end()
                 .end();
-        assertUnassignedShadow(shadowModelAsserterNoFetch, true, null);
+        assertUnassignedShadow(shadowModelAsserterNoFetch, true, isCaching() ? ENABLED : null);
         // Do NOT assert password here. There is no password even for semi-manual case as the shadow is dead and account gone.
 
         assertUnassignedShadow(assertModelShadow(accountWillOid), true, ActivationStatusType.DISABLED);
@@ -1336,7 +1339,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
                         .assertCompletionTimestamp(accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd)
                         .end()
                     .end();
-        assertUnassignedShadow(shadowRepoAsserter, true, null);
+        assertUnassignedShadow(shadowRepoAsserter, true, isCaching() ? DISABLED : null);
 
         assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 
@@ -1373,7 +1376,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
                 .pendingOperations()
                     .assertNone()
                     .end();
-        assertUnassignedShadow(shadowRepoAsserter, true, null);
+        assertUnassignedShadow(shadowRepoAsserter, true, isCaching() ? DISABLED : null);
 
         assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 
@@ -1481,7 +1484,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
             .end();
         assertWillUnassignPendingOperationExecuting(shadowRepoAsserter);
         // Still old data in the repo. The operation is not completed yet.
-        assertShadowActivationAdministrativeStatusFromCache(shadowRepoAsserter, ActivationStatusType.ENABLED);
+        assertShadowActivationAdministrativeStatusFromCache(shadowRepoAsserter, ENABLED);
         assertAttributeFromCache(shadowRepoAsserter, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
 
         assertModelShadow(accountWillOid)
@@ -1545,7 +1548,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
                     .assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
                 .end();
         assertWillUnassignPendingOperationExecuting(shadowRepoAsserter);
-        assertShadowActivationAdministrativeStatusFromCache(shadowRepoAsserter, ActivationStatusType.ENABLED);
+        assertShadowActivationAdministrativeStatusFromCache(shadowRepoAsserter, ENABLED);
         assertAttributeFromCache(shadowRepoAsserter, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
 
         assertModelShadow(accountWillOid)
@@ -1624,12 +1627,12 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
                     .end()
                 .end();
         assertWillUnassignPendingOperationCompleted(shadowRepoAsserter);
-        assertUnassignedShadow(shadowRepoAsserter, true, null);
+        assertUnassignedShadow(shadowRepoAsserter, true, isCaching() ? DISABLED : null);
 
         ShadowAsserter<Void> shadowModelAsserter = assertModelShadow(accountWillOid)
             .assertName(USER_WILL_NAME)
             .assertKind(ShadowKindType.ACCOUNT);
-        assertUnassignedShadow(shadowModelAsserter, true, null); // Shadow in not in the backing store
+        assertUnassignedShadow(shadowModelAsserter, true, isCaching() ? DISABLED : null); // Shadow in not in the backing store
 
         // For SemiManualDisable case we still pretend that the shadow will exist
         assertWillUnassignedFuture(assertModelShadowFuture(accountWillOid), false);
@@ -1694,7 +1697,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
         // WHEN
         when();
-        reconcileUser(userWillOid, task, result);
+        refreshShadowIfNeeded(accountWillOid);
+        traced(() -> reconcileUser(userWillOid, task, result));
 
         // THEN
         then();
@@ -1727,6 +1731,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
         // WHEN
         when();
+        refreshShadowIfNeeded(accountWillOid);
         reconcileUser(userWillOid, task, result);
 
         // THEN
@@ -1889,13 +1894,13 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
             .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
             .end()
-            .assertNoPassword();
+            .assertNoPasswordIf(!isCaching());
         assertAttributeFromCache(repoShadowAsserter, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
-        assertShadowActivationAdministrativeStatusFromCache(repoShadowAsserter, ActivationStatusType.ENABLED);
+        assertShadowActivationAdministrativeStatusFromCache(repoShadowAsserter, ENABLED);
 
         assertModelShadowFuture(accountWillOid)
             .assertLive()
-            .assertAdministrativeStatus(ActivationStatusType.ENABLED)
+            .assertAdministrativeStatus(ENABLED)
             .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
                 .assertValue(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE)
@@ -2214,7 +2219,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
             .assertKind(ShadowKindType.ACCOUNT)
             .assertNotDead()
             .assertIsExists()
-            .assertAdministrativeStatus(ActivationStatusType.ENABLED)
+            .assertAdministrativeStatus(ENABLED)
             .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
                 .assertValue(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME)
@@ -2237,10 +2242,10 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
                 .assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
                 .assertNoSimpleAttributeIfNotCached(ATTR_DESCRIPTION_QNAME)
             .end()
-            .assertNoPassword()
+            .assertNoPasswordIf(!isCaching())
             .getObject();
         assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME);
-        assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
+        assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ENABLED);
     }
 
     // Direct execution. The operation is always executing immediately after it is requested.
@@ -2252,5 +2257,4 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
     protected OperationResultStatusType getExpectedResultStatus(PendingOperationExecutionStatusType executionStage) {
         return OperationResultStatusType.IN_PROGRESS;
     }
-
 }

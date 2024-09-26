@@ -8,6 +8,8 @@ package com.evolveum.midpoint.model.intest.manual;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType.DISABLED;
+
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
@@ -143,7 +145,9 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
         display("Repo shadow", shadowRepo);
         assertPendingOperationDeltas(shadowRepo, 0);
         assertShadowExists(shadowRepo, true);
-        assertNoShadowPassword(shadowRepo);
+        if (!isCaching()) {
+            assertNoShadowPassword(shadowRepo);
+        }
 
         PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
                 accountJackOid, null, task, result);
@@ -251,7 +255,9 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
                 .assertCompletionTimestamp(accountJackCompletionTimestampStart, accountJackCompletionTimestampEnd)
                 .end()
                 .end();
-        assertUnassignedShadow(shadowRepoAsserter, true, null);
+        assertUnassignedShadow(
+                shadowRepoAsserter, true,
+                isCaching() && isDisablingInsteadOfDeletion() ? DISABLED : null);
 
         ShadowAsserter<Void> shadowModelAsserter = assertModelShadow(accountJackOid)
                 .assertName(USER_JACK_USERNAME)
@@ -264,7 +270,7 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
                 .assertCompletionTimestamp(accountJackCompletionTimestampStart, accountJackCompletionTimestampEnd)
                 .end()
                 .end();
-        assertUnassignedShadow(shadowModelAsserter, true, ActivationStatusType.DISABLED);
+        assertUnassignedShadow(shadowModelAsserter, true, DISABLED);
 
         assertUnassignedFuture(assertModelShadowFuture(accountJackOid), false);
 

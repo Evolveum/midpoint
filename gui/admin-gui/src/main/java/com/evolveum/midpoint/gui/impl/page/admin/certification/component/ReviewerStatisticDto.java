@@ -41,4 +41,11 @@ public class ReviewerStatisticDto implements Serializable {
         }
         return (float) openNotDecidedItemsCount / allOpenItemsCount * 100;
     }
+
+    public float getOpenDecidedItemsPercentage() {
+        if (allOpenItemsCount == 0) {
+            return 0;
+        }
+        return 100 - getOpenNotDecidedItemsPercentage();
+    }
 }
