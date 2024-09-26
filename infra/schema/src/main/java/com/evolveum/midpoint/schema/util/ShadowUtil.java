@@ -48,6 +48,7 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 import static com.evolveum.midpoint.util.MiscUtil.*;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
+import static java.util.Objects.*;
 
 /**
  * Methods that would belong to the {@link ShadowType} class but cannot go there because of JAXB.
@@ -282,7 +283,7 @@ public class ShadowUtil {
     }
 
     public static @NotNull String getResourceOidRequired(@NotNull ShadowType shadow) {
-        return java.util.Objects.requireNonNull(
+        return Objects.requireNonNull(
                 getResourceOid(shadow),
                 () -> "No resource OID in " + shadow);
     }
@@ -745,11 +746,6 @@ public class ShadowUtil {
             return "null";
         }
         return getHumanReadableName(shadowType.asPrismObject());
-    }
-
-    public static boolean isFullShadow(ShadowType shadow) {
-        CachingMetadataType cachingMetadata = shadow.getCachingMetadata();
-        return cachingMetadata != null && cachingMetadata.getRetrievalTimestamp() != null;
     }
 
     public static PolyString determineShadowName(PrismObject<ShadowType> shadow) throws SchemaException {
@@ -1291,7 +1287,7 @@ public class ShadowUtil {
             @Nullable PrismObject<ShadowType> shadow,
             @NotNull ResourceObjectDefinition definition,
             @NotNull XMLGregorianCalendar now) {
-        return getShadowCachedStatus(shadow, definition, now)
+        return getShadowCachedStatus(shadow, definition, null, now)
                 .item(() -> definition.isActivationCached());
     }
 
@@ -1299,7 +1295,7 @@ public class ShadowUtil {
             @Nullable PrismObject<ShadowType> shadow,
             @NotNull ResourceObjectDefinition definition,
             @NotNull XMLGregorianCalendar now) {
-        return getShadowCachedStatus(shadow, definition, now)
+        return getShadowCachedStatus(shadow, definition, null, now)
                 .item(() -> definition.areCredentialsCached());
     }
 
@@ -1307,7 +1303,7 @@ public class ShadowUtil {
             @Nullable PrismObject<ShadowType> shadow,
             @NotNull ResourceObjectDefinition definition,
             @NotNull XMLGregorianCalendar now) {
-        return getShadowCachedStatus(shadow, definition, now)
+        return getShadowCachedStatus(shadow, definition, null, now)
                 .item(() -> definition.isAuxiliaryObjectClassPropertyCached());
     }
 
@@ -1316,7 +1312,7 @@ public class ShadowUtil {
             @Nullable PrismObject<ShadowType> shadow,
             @NotNull ResourceObjectDefinition definition,
             @NotNull XMLGregorianCalendar now) throws SchemaException {
-        var shadowStatus = getShadowCachedStatus(shadow, definition, now);
+        var shadowStatus = getShadowCachedStatus(shadow, definition, null, now);
         if (!shadowStatus.isFresh()) {
             return shadowStatus;
         } else {
@@ -1332,7 +1328,7 @@ public class ShadowUtil {
             @Nullable PrismObject<ShadowType> shadow,
             @NotNull ResourceObjectDefinition definition,
             @NotNull XMLGregorianCalendar now) throws SchemaException {
-        var shadowStatus = getShadowCachedStatus(shadow, definition, now);
+        var shadowStatus = getShadowCachedStatus(shadow, definition, null, now);
         if (!shadowStatus.isFresh()) {
             return shadowStatus;
         } else {
@@ -1348,7 +1344,7 @@ public class ShadowUtil {
             @Nullable PrismObject<ShadowType> shadow,
             @NotNull CompositeObjectDefinition definition,
             @NotNull XMLGregorianCalendar now) {
-        if (!getShadowCachedStatus(shadow, definition, now).isFresh()) {
+        if (!getShadowCachedStatus(shadow, definition, null, now).isFresh()) {
             return Set.of(); // TODO or should we provide at least the identifiers?
         }
         return definition.getAttributeDefinitions().stream()
@@ -1368,6 +1364,7 @@ public class ShadowUtil {
         return getShadowCachedStatus(
                 shadow,
                 getResourceObjectDefinition(shadow),
+                null,
                 now);
     }
 
@@ -1375,6 +1372,7 @@ public class ShadowUtil {
     public static @NotNull ItemCachedStatus getShadowCachedStatus(
             @Nullable PrismObject<ShadowType> shadow,
             @NotNull ResourceObjectDefinition definition,
+            @Nullable ShadowContentDescriptionType contentDescriptionOverride,
             @NotNull XMLGregorianCalendar now) {
         if (shadow == null) {
             return ItemCachedStatus.NULL_OBJECT;
@@ -1390,7 +1388,14 @@ public class ShadowUtil {
         }
         var cachingMetadata = shadow.asObjectable().getCachingMetadata();
         if (cachingMetadata == null) {
-            return ItemCachedStatus.NO_SHADOW_CACHING_METADATA;
+            var contentDescription =
+                    requireNonNullElseGet(contentDescriptionOverride, () -> shadow.asObjectable().getContentDescription());
+            if (contentDescription == ShadowContentDescriptionType.FROM_REPOSITORY) {
+                return ItemCachedStatus.NO_SHADOW_CACHING_METADATA;
+            } else {
+                // This can be problematic when the content description is not known.
+                return ItemCachedStatus.SHADOW_FRESH;
+            }
         }
         var retrievalTimestamp = cachingMetadata.getRetrievalTimestamp();
         if (retrievalTimestamp == null) {

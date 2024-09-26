@@ -142,8 +142,7 @@ class ShadowedObjectConstruction {
         b.associationsHelper.convertReferenceAttributesToAssociations(
                 ctx, resultingShadowedBean, authoritativeDefinition, result);
 
-        // caching metadata are kept from the repository shadow
-
+        copyCachingMetadata(); // these should not be present in the resource object, so that this should effectively clear them
         checkConsistence();
 
         var updatedObject = resourceObject.withNewContent(resultingShadowedBean);

@@ -18102,6 +18102,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.9</a:since>
+                        <a:experimental>true</a:experimental>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -21863,6 +21864,7 @@
                         If they are not, we will skip the respective part of the processing (e.g., a mapping).
                     </xsd:documentation>
                     <xsd:appinfo>
+                        <a:experimental>true</a:experimental>
                         <jaxb:typesafeEnumMember name="USE_CACHED_OR_IGNORE"/>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -21874,6 +21876,7 @@
                         If they are not, we will fail.
                     </xsd:documentation>
                     <xsd:appinfo>
+                        <a:experimental>true</a:experimental>
                         <jaxb:typesafeEnumMember name="USE_CACHED_OR_FAIL"/>
                     </xsd:appinfo>
                 </xsd:annotation>

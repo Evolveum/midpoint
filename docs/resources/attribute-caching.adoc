@@ -23,22 +23,7 @@ Therefore, midPoint has an ability to cache the values of resource objects and u
 Moreover, there is another benefit of having the data cached: instant reporting.
 With the relevant parts of data being cached right in the repository, one can write reports against them, usually allowing for more complex queries and providing faster execution times.
 
-== Enabling Caching
-
-The caching is #turned off by default TODO reconsider#.
-It can be turned on in xref:/midpoint/reference/resources/resource-configuration/[Resource Configuration]:
-
-.Listing 1: Enabling the caching with the default configuration
-[source,xml]
-----
-<resource>
-    ...
-    <caching>
-        <cachingStrategy>passive</cachingStrategy>
-    </caching>
-    ...
-</resource>
-----
+== How It Works
 
 The only supported caching method is *passive* caching: Caches are maintained with minimal impact on normal operations.
 Generally the data are cached only if they are retrieved for other reasons.
@@ -46,22 +31,22 @@ There is no read-ahead.
 The writes are always going to the resource (synchronously): read-through, write-through.
 There is no cache eviction (but old information is overwritten if newer information is available).
 
-If caching is turned on then midPoint will start to cache the data in xref:/midpoint/reference/resources/shadow/[Shadow Objects].
+If caching is turned on, which is by default, then midPoint will cache the data in xref:/midpoint/reference/resources/shadow/[Shadow Objects].
 The caches are build gradually as midPoint reads the objects.
 If you need to populate the caches with information you have to make an operation that is searching all the objects.
 E.g. reconciliation or similar operation should do the trick.
-#A special cache-population task is being considered as well.#
+See xref:#_refreshing_the_cache[Refreshing the Cache] below.
 
 == Configuring Caching
 
-The caching can be enabled or disabled at the level of a resource, object class, object type, or even an individual attribute or association.
+The caching can be enabled or disabled at the level of a resource, object class, object type, or even an individual item (attribute, association, credentials, and so on).
 
 === An Example
 
 For a quick overview, let us consider the following example.
 (The complete description is below.)
 
-.Listing 2: An example of custom caching configuration
+.Listing 1: An example of custom caching configuration
 [source,xml]
 ----
 <resource>
@@ -82,12 +67,14 @@ For a quick overview, let us consider the following example.
                     <attributes>all</attributes> <!--2-->
                     <associations>none</associations> <!--3-->
                 </scope>
+                <timeToLive>P1D</timeToLive>
+                <defaultCacheUse>useCachedOrFresh</defaultCacheUse>
             </caching>
         </objectType>
     </schemaHandling>
     ...
     <caching>
-        <cachingStrategy>none</cachingStrategy>
+        <cachingStrategy>none</cachingStrategy> <!--5-->
     </caching>
     ...
 </resource>
@@ -96,9 +83,10 @@ For a quick overview, let us consider the following example.
 <2> Enables the caching of all attributes.
 <3> Disables the caching of associations.
 <4> Overrides the caching for a specific attribute.
+<5> Disables the caching for all other objects.
 
 Shortly speaking, the caching is disabled for the resource as a whole, except for the `account/default` type, for which it is enabled:
-Cached are all attributes except for `jpegPhoto` but no associations.
+Cached are all attributes except for `jpegPhoto`, credentials, activation, but no associations.
 
 === Configuration Details
 
@@ -113,11 +101,19 @@ It has the following sub-items:
 | `cachingStrategy`
 | The overall switch that turns the caching on and off.
 It can have a value of `none` (no caching) and `passive` (passive caching as described above).
-| `none` #at least for now#
+| `passive`
 
 | `scope`
 | Scope of the caching (see below).
 | see below
+
+| `timeToLive`
+| For how long we consider the cached data as fresh.
+| P1D (or unlimited for xref:#caching_only_read_capability[caching-only read capability])
+
+| `defaultCacheUse`
+| How is the cache used for midPoint operations.
+| #TODO reconsider# `cachedOrFresh` (or `fresh` for xref:#caching_only_read_capability[caching-only read capability])
 |===
 
 .The `scope` configuration item content
@@ -126,27 +122,37 @@ It can have a value of `none` (no caching) and `passive` (passive caching as des
 | Item | Description | Default
 
 | `attributes`
-| Scope of the caching for attributes.
-| `mapped`
+| Scope of the caching for simple attributes (i.e., not reference ones)
+| `defined` (or `all` for xref:#caching_only_read_capability[caching-only read capability])
 
 | `associations`
-| Scope of the caching for associations.
+| Scope of the caching for associations (i.e., reference attributes).
 | `all`
 
 | `activation`
 | Scope of the caching for the activation information.
-The value of `mapped` is currently not supported here.
-(It is interpreted as `all`.)
 | `all`
+
+| `auxiliaryObjectClasses`
+| Scope of the caching for the auxiliary object classes.
+| `all`
+
+| `credentials`
+| Scope of the caching for credentials.
+| `all` (or `none` for xref:#caching_only_read_capability[caching-only read capability])
+
 |===
 
-.The values of the `scope` configuration items
+.The values of the `scope` configuration items for simple attributes
 [%autowidth]
 |===
 | Value | Description
 
 | `none`
 | No items of given kind will be cached.
+
+| `defined`
+| Only attributes defined (refined) in the `schemaHandling` section will be cached.
 
 | `mapped`
 | Only mapped items of given kind, i.e., those that have any mapping defined right in the object type, either inbound or outbound, will be cached.
@@ -155,9 +161,149 @@ The value of `mapped` is currently not supported here.
 | All items of given kind will be cached.
 |===
 
+.The values of the `scope` configuration items for other items (associations, activation, credentials, and so on)
+[%autowidth]
+|===
+| Value | Description
+
+| `none`
+| The data are not cached.
+
+| `all`
+| The data are cached.
+|===
+
 Exceptions (both positive and negative) to the scope can be defined by using `cached` boolean property present for individual attributes and associations.
 
-== Impact on Operations
+== Configuring Cache Use
+
+Even with caching turned on, the data may or may not be used for regular midPoint operation.
+For example, import from a resource may run against the actual resource data, or against the cached shadows in the repository.
+In a similar way, user recomputation may also use the actual or cached data.
+When someone opens a user projection in GUI, the cached or actual data can be displayed.
+And so on.
+
+=== Use of Cached Data for Data Processing
+
+This section describes the use of cached data for data processing in midPoint.
+
+This primarily means providing source data for inbound mappings.
+But it also means providing the idea of what data are on resources when outbound mappings are concerned, e.g., for the correct application of weak and strong mappings.
+
+What it does *not* cover, though, is the primary input of synchronization tasks, like import and reconciliation.
+It is taken always from the resource.
+(Unless turned off by an experimental setting described in xref:#_import_and_reconciliation_tasks[Use of Cached Data for Import and Reconciliation Tasks] section below.)
+
+So, the data processing is driven by the `defaultCacheUse` configuration property.
+It can have the following values:
+
+[%autowidth]
+|===
+| Value | Description
+
+| `useFresh`
+| When we need the data from the shadow, we will fetch it from the resource.
+This is the same behavior as it was before midPoint 4.9.
+
+| `useCachedOrFresh`
+| When we need the data from the shadow, we will use the cached data, if they are available.
+If they are not, we will fetch them from the resource.
+
+| `useCachedOrIgnore`
+| When we need the data from the shadow, we will use the cached data, if they are available.
+If they are not, we will skip the respective part of the processing (e.g., a mapping).
+
+Experimental.
+
+| `useCachedOrFail`
+| When we need the data from the shadow, we will use the cached data, if they are available.
+If they are not, we will fail.
+
+Experimental.
+
+|===
+
+For given task, the default behavior can be overridden using `cachedShadowsUse` model execution option (if that task does support specifying these options).
+However, this setting is currently *experimental*.
+
+[#_import_and_reconciliation_tasks]
+=== Use of Cached Data for Import and Reconciliation Tasks
+
+The import and reconciliation tasks fetch their primary input, i.e., resource objects, right from the resource they are running against.
+It has a benefit of consistently update the cache for these objects.
+
+There may be situations, though, when you'd need to avoid contacting the resource, and take data from the cache.
+It can be attained by specifying `noFetch` option, like this:
+
+.Listing 2: An example of custom caching configuration
+[source,xml]
+----
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="007c5ef2-3d1f-4688-a799-b735bbb9d934">
+    <name>reconcile-hr-persons</name>
+    <executionState>runnable</executionState>
+    <activity>
+        <work>
+            <reconciliation>
+                <resourceObjects>
+                    <resourceRef oid="c37ff87e-42f1-46d2-8c6f-36c780cd1193"/>
+                    <kind>account</kind>
+                    <intent>person</intent>
+                    <searchOptions>
+                        <option>
+                            <options>
+                                <noFetch>true</noFetch> <!--1-->
+                            </options>
+                        </option>
+                    </searchOptions>
+                </resourceObjects>
+            </reconciliation>
+        </work>
+    </activity>
+</task>
+----
+<1> Specifies that the resource should not be contacted.
+
+NOTE: For the "remaining shadows" activity of reconciliation, where shadows that are presumably dead, are reconciled, we _always_ go to the resource.
+If you need this behavior to be avoided, just turn off that activity.
+
+This feature is *experimental*.
+
+[#_refreshing_the_cache]
+== Refreshing the Cache
+
+The best way of refreshing the cache is to run an import or reconciliation task.
+However, if you want to avoid the cost of data processing inherent in these tasks, you can use the following alternative:
+
+.Listing 3: A task that just refreshes the shadow cache
+[source,xml]
+----
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="45012c3e-3ce5-46ed-8d27-8648d2cbbca0">
+    <name>Reload objects on HR resource</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>runnable</executionState>
+    <activity>
+        <work>
+            <import>
+                <resourceObjects>
+                    <resourceRef oid="42a11d38-afbb-4f0e-8aea-c848db8ba0ab"/> <!-- HR -->
+                    <kind>account</kind>
+                    <intent>default</intent>
+                </resourceObjects>
+            </import>
+        </work>
+        <execution>
+            <mode>none</mode> <!--1-->
+        </execution>
+    </activity>
+</task>
+----
+<1> Avoids data processing.
+
+The same effect can be attained by clicking on `Reload` button on the resource page for accounts, entitlements, or generics.
+
+== Impact on API Operations
 
 The cached data are accessible by using the usual xref:/midpoint/reference/interfaces/model-java/[IDM Model Interface].
 There are two operation options that provide access to the cached data:
@@ -173,7 +319,7 @@ If non-zero value is specified then such caches may be used.
 In case that `Long.MAX_VALUE` is specified then the caches are always used and fresh value is never retrieved.
 
 Both options can be used to get cached data.
-The primary difference is that the `noFetch` option never goes to the resource, and it returns whatever data it has.
+The primary difference is that the `noFetch` option never goes to the resource, and it returns whatever data are in the repository.
 On the other hand, the `staleness` option is smarter, and it determines whether it has to go to the resource or not.
 In case that the "maximum" staleness option is used it will result in an error if cached data is not available.
 
@@ -186,7 +332,7 @@ Therefore, to be on the safe side the search operations will always make search 
 There is just one exception: the maximum staleness option will force repository search.
 However, if the search discovers any object that does not have cached data then it will result in an error (specified in the `fetchResult` object property).
 
-== Caching Metadata in Shadows
+=== Caching Metadata in Returned Shadows
 
 xref:/midpoint/reference/resources/shadow/[Shadow Objects] contain `cachingMetadata` property.
 This property can be used to determine whether the returned shadow represents fresh or cached data:
@@ -197,11 +343,37 @@ They have been just retrieved from the resource.
 * If `cachingMetadata` property is present then the data are taken from the cache.
 The `cachingMetadata` property specified how fresh the data are (when they were originally retrieved).
 
+[#caching_only_read_capability]
 == Relation to the "Caching-Only" Read Capability
 
-When the "caching only" read capability is present (e.g., for manual resources), the full shadow caching is enabled by default.
-It can be turned off by specifying `cachingStrategy` to `none`.
-The scope has currently no effect there, though. #TODO reconsider#
+When the "caching only" read capability is present (e.g., for manual resources), the full shadow caching is enabled, with the following differences in default values (comparing to the standard caching):
+
+.Default values differences for "caching-only" read capability
+[%autowidth]
+|===
+| Item | Standard default value | Default when turned on by "caching-only" capability
+
+| `timeToLive`
+| P1D
+| unlimited
+
+| `defaultCacheUse`
+| `cachedOrFresh`
+| `fresh`
+
+| attributes caching scope
+| `defined`
+| `all`
+
+| credentials caching scope
+| `all`
+| `none`
+
+|===
+
+The caching for "caching only" read capability can be turned off by specifying `cachingStrategy` to `none`.
+
+The defaults above can be turned back to standard default values (the second column) by specifying `cachingStrategy` of `passive`.
 
 == Limitations
 
@@ -217,11 +389,19 @@ The scope has currently no effect there, though. #TODO reconsider#
 // But this is still a very young feature and some adjustments might be necessary.
 // Therefore use this feature with care.
 
+== Setting via Configuration Property
+
+The default values for caching can be influenced by setting `midpoint.internals.shadowCachingDefault` configuration property, or `midpoint/internals/shadowCachingDefault` property in `config.xml` file.
+
+If set to `none`, then the default behavior is to have caching turned off. If not set, or set to `standard`, the default is to have caching turned on.
+
 == Migration Note
 
 Before 4.9, this feature was experimental.
 The default setting was that all attributes and no associations were cached.
-Since 4.9, the default is to cache all mapped attributes, and all defined associations.
+
+Since 4.9, the defaults are more elaborate, as described in this document.
+Please take that into account when migrating.
 
 == See Also
 
