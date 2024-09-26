@@ -700,6 +700,7 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
         var fresh = ShadowUtil.getShadowCachedStatus(
                         rawRepoShadow.getPrismObject(),
                         definition,
+                        ShadowContentDescriptionType.FROM_REPOSITORY,
                         CommonBeans.get().clock.currentTimeXMLGregorianCalendar())
                 .isFresh();
 

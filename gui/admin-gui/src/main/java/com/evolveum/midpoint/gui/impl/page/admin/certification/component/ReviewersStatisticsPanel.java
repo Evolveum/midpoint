@@ -10,15 +10,13 @@ package com.evolveum.midpoint.gui.impl.page.admin.certification.component;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.Toggle;
 import com.evolveum.midpoint.gui.api.component.TogglePanel;
-import com.evolveum.midpoint.gui.api.component.form.SwitchBoxPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
-import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
+import com.evolveum.midpoint.gui.impl.component.table.ChartedHeaderDto;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.CertificationDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.widgets.component.WidgetRmChartComponent;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -28,27 +26,23 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.wicket.chartjs.ChartConfiguration;
-import com.evolveum.wicket.chartjs.ChartJsPanel;
+import com.evolveum.wicket.chartjs.ChartData;
+import com.evolveum.wicket.chartjs.ChartDataset;
 import com.evolveum.wicket.chartjs.DoughnutChartConfiguration;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.ComponentTag;
-import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.IResource;
 
 import java.io.Serial;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
 
 import static com.evolveum.midpoint.util.MiscUtil.or0;
 
@@ -66,11 +60,12 @@ public class ReviewersStatisticsPanel extends BasePanel {
     private static final int MAX_REVIEWERS = 5;
     private int realReviewersCount;
     private CertificationDetailsModel model;
-
     //as a default, sorting of the reviewers is done by the percentage of not decided items
     //can be switched to the number of not decided items
     private IModel<Boolean> percentageSortingModel = Model.of(true);
+    private StatisticListBoxPanel<ObjectReferenceType> reviewersPopupPanel;
 
+    private List<StatisticBoxDto<ObjectReferenceType>> sortedReviewerList = new ArrayList<>();
     public ReviewersStatisticsPanel(String id, CertificationDetailsModel model) {
         super(id);
         this.model = model;
@@ -85,9 +80,11 @@ public class ReviewersStatisticsPanel extends BasePanel {
     }
 
     private StatisticListBoxPanel<ObjectReferenceType> initReviewersPanel(String id, boolean allowViewAll) {
-        LoadableDetachableModel<List<StatisticBoxDto<ObjectReferenceType>>> reviewersModel = getReviewersModel(allowViewAll);
-        return new StatisticListBoxPanel<>(id,
-                getReviewersPanelDisplayModel(reviewersModel.getObject().size()), reviewersModel) {
+        IModel<HashMap<ObjectReferenceType, ReviewerStatisticDto>> reviewersStatisticModel = getReviewersStatisticModel();
+        LoadableDetachableModel<List<StatisticBoxDto<ObjectReferenceType>>> sortedReviewersModel =
+                getSortedReviewersModel(reviewersStatisticModel, allowViewAll);
+        StatisticListBoxPanel<ObjectReferenceType> panel = new StatisticListBoxPanel<>(id,
+                getReviewersPanelDisplayModel(sortedReviewersModel.getObject().size()), sortedReviewersModel) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -103,20 +100,17 @@ public class ReviewersStatisticsPanel extends BasePanel {
             @Override
             protected Component createRightSideBoxComponent(String id, StatisticBoxDto<ObjectReferenceType> statisticObject) {
                 ObjectReferenceType reviewerRef = statisticObject.getStatisticObject();
-                DoughnutChartConfiguration chartConfig = getReviewerProgressChartConfig(reviewerRef);
+                DoughnutChartConfiguration chartConfig = getReviewerProgressChartConfig(reviewerRef, reviewersStatisticModel);
 
-                ChartJsPanel<ChartConfiguration> chartPanel = new ChartJsPanel<>(id, Model.of(chartConfig)) {
+                ChartedHeaderDto<DoughnutChartConfiguration> infoDto = new ChartedHeaderDto<>(chartConfig,
+                        createStatisticBoxLabel(statisticObject.getStatisticObject(), reviewersStatisticModel), "",
+                        createPercentageLabel(statisticObject.getStatisticObject(), reviewersStatisticModel));
+                WidgetRmChartComponent<DoughnutChartConfiguration> chartComponent = new WidgetRmChartComponent<>(id,
+                        Model.of(new DisplayType()), Model.of(infoDto));
+                chartComponent.setOutputMarkupId(true);
+                chartComponent.add(AttributeAppender.append(CLASS_CSS,"col-auto p-0"));
+                return chartComponent;
 
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    protected void onComponentTag(ComponentTag tag) {
-                        tag.setName("canvas");
-                        super.onComponentTag(tag);
-                    }
-                };
-                chartPanel.setOutputMarkupId(true);
-                return chartPanel;
             }
 
             @Override
@@ -156,39 +150,102 @@ public class ReviewersStatisticsPanel extends BasePanel {
                     protected void itemSelected(AjaxRequestTarget target, IModel<Toggle<Boolean>> item) {
                         super.itemSelected(target, item);
                         percentageSortingModel.setObject(item.getObject().getValue());
-//                        reviewersModel.detach();
+
                         target.add(ReviewersStatisticsPanel.this);
+                        if (reviewersPopupPanel != null && reviewersPopupPanel.isVisible()) {
+                            target.add(reviewersPopupPanel);
+                        }
                     }
                 };
             }
         };
+        return panel;
     }
 
-    private DoughnutChartConfiguration getReviewerProgressChartConfig(ObjectReferenceType reviewerRef) {
-        PrismObject<FocusType> reviewer = WebModelServiceUtils.loadObject(reviewerRef, getPageBase());
-        if (reviewer == null) {
-            return null;
+    private IModel<HashMap<ObjectReferenceType, ReviewerStatisticDto>> getReviewersStatisticModel() {
+        return new LoadableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected HashMap<ObjectReferenceType, ReviewerStatisticDto> load() {
+                HashMap<ObjectReferenceType, ReviewerStatisticDto> reviewersUnresolvedItemsCount = new HashMap<>();
+                AccessCertificationCampaignType campaign = model.getObjectType();
+                List<ObjectReferenceType> reviewers = CertMiscUtil.loadCampaignReviewers(campaign.getOid(),
+                        ReviewersStatisticsPanel.this.getPageBase());
+
+                reviewers.forEach(reviewerRef -> {
+                    PrismObject<FocusType> reviewerObj = WebModelServiceUtils.loadObject(reviewerRef, getPageBase());
+                    reviewersUnresolvedItemsCount.put(reviewerRef,
+                        new ReviewerStatisticDto(reviewerRef, getNotDecidedOpenItemsCount(reviewerObj), getAllOpenItemsCount(reviewerObj)));
+                });
+                return reviewersUnresolvedItemsCount;
+            }
+        };
+    }
+
+    private DoughnutChartConfiguration getReviewerProgressChartConfig(ObjectReferenceType reviewerRef,
+            IModel<HashMap<ObjectReferenceType, ReviewerStatisticDto>> reviewersStatisticModel ) {
+        ReviewerStatisticDto reviewerStatisticDto = reviewersStatisticModel.getObject().get(reviewerRef);
+        DoughnutChartConfiguration config = new DoughnutChartConfiguration();
+
+        ChartData chartData = new ChartData();
+        ChartDataset dataset = new ChartDataset();
+//        dataset.setLabel("Not decided");
+
+        dataset.setFill(true);
+
+        long notDecidedCertItemsCount = reviewerStatisticDto.getOpenNotDecidedItemsCount();
+        long allOpenCertItemsCount = reviewerStatisticDto.getAllOpenItemsCount();
+        long decidedCertItemsCount = allOpenCertItemsCount - notDecidedCertItemsCount;
+
+        dataset.addData(decidedCertItemsCount);
+        dataset.addBackgroudColor(getChartBackgroundColor(reviewerStatisticDto.getOpenDecidedItemsPercentage()));
+
+        dataset.addData(notDecidedCertItemsCount);
+        dataset.addBackgroudColor("grey");
+
+        chartData.addDataset(dataset);
+
+        config.setData(chartData);
+        return config;
+    }
+
+    private String getChartBackgroundColor(float decidedItemsPercentage) {
+        if (decidedItemsPercentage == 100) {
+            return "green";
+        } else if (decidedItemsPercentage > 50) {
+            return "blue";
+        } if (decidedItemsPercentage > 25) {
+            return "yellow";
+        } else {
+            return "red";
         }
-        AccessCertificationCampaignType campaign = model.getObjectType();
-        MidPointPrincipal principal = MidPointPrincipal.create(reviewer.asObjectable());
-        return CertMiscUtil.createDoughnutChartConfigForCampaigns(
-                Collections.singletonList(campaign.getOid()), principal, getPageBase());
     }
 
-    private LoadableDetachableModel<List<StatisticBoxDto<ObjectReferenceType>>> getReviewersModel(boolean restricted) {
+    private LoadableDetachableModel<List<StatisticBoxDto<ObjectReferenceType>>> getSortedReviewersModel(
+            IModel<HashMap<ObjectReferenceType, ReviewerStatisticDto>> reviewersUnresolvedItemsCountModel, boolean restricted) {
         return new LoadableDetachableModel<>() {
 
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected List<StatisticBoxDto<ObjectReferenceType>> load() {
+                if (!sortedReviewerList.isEmpty()) {
+                    return sortReviewers(reviewersUnresolvedItemsCountModel, sortedReviewerList);
+                }
                 List<StatisticBoxDto<ObjectReferenceType>> list = new ArrayList<>();
-                AccessCertificationCampaignType campaign = model.getObjectType();
-                List<ObjectReferenceType> reviewers = CertMiscUtil.loadCampaignReviewers(campaign.getOid(),
-                        ReviewersStatisticsPanel.this.getPageBase());
+                HashMap<ObjectReferenceType, ReviewerStatisticDto> reviewersStatistics = reviewersUnresolvedItemsCountModel.getObject();
+                List<ObjectReferenceType> reviewers = new ArrayList<>(reviewersStatistics.keySet());
                 reviewers = reviewers.stream().sorted((r1, r2) -> {
-                    float r1ItemsPercent = getNotDecidedItems(r1);
-                    float r2ItemsPercent = getNotDecidedItems(r2);
+                    ReviewerStatisticDto rs1 = reviewersStatistics.get(r1);
+                    ReviewerStatisticDto rs2 = reviewersStatistics.get(r2);
+
+                    if (Boolean.FALSE.equals(percentageSortingModel.getObject())) {
+                        return Long.compare(rs2.getOpenNotDecidedItemsCount(), rs1.getOpenNotDecidedItemsCount());
+                    }
+
+                    float r1ItemsPercent = rs1.getOpenNotDecidedItemsPercentage();
+                    float r2ItemsPercent = rs2.getOpenNotDecidedItemsPercentage();
                     return Float.compare(r2ItemsPercent, r1ItemsPercent);
                 }).toList();
                 if (restricted) {
@@ -202,21 +259,44 @@ public class ReviewersStatisticsPanel extends BasePanel {
         };
     }
 
-    private float getNotDecidedItems(ObjectReferenceType reviewerRef) {
-        String campaignOid = model.getObjectType().getOid();
-        PrismObject<FocusType> reviewer = WebModelServiceUtils.loadObject(reviewerRef, getPageBase());
+    private List<StatisticBoxDto<ObjectReferenceType>> sortReviewers(
+            IModel<HashMap<ObjectReferenceType, ReviewerStatisticDto>> reviewersUnresolvedItemsCountModel,
+            List<StatisticBoxDto<ObjectReferenceType>> reviewersList) {
+        HashMap<ObjectReferenceType, ReviewerStatisticDto> reviewersStatistics = reviewersUnresolvedItemsCountModel.getObject();
+        //todo duplicated piece of code
+        reviewersList.sort((r1, r2) -> {
+            ReviewerStatisticDto rs1 = reviewersStatistics.get(r1.getStatisticObject());
+            ReviewerStatisticDto rs2 = reviewersStatistics.get(r2.getStatisticObject());
+
+            if (Boolean.FALSE.equals(percentageSortingModel.getObject())) {
+                return Long.compare(rs2.getOpenNotDecidedItemsCount(), rs1.getOpenNotDecidedItemsCount());
+            }
+
+            float r1ItemsPercent = rs1.getOpenNotDecidedItemsPercentage();
+            float r2ItemsPercent = rs2.getOpenNotDecidedItemsPercentage();
+            return Float.compare(r2ItemsPercent, r1ItemsPercent);
+        });
+        return reviewersList;
+    }
+
+    private long getNotDecidedOpenItemsCount(PrismObject<FocusType> reviewer) {
         if (reviewer == null) {
             return 0;
         }
+        String campaignOid = model.getObjectType().getOid();
         MidPointPrincipal principal = MidPointPrincipal.create(reviewer.asObjectable());
-        long notDecidedItemsCount = CertMiscUtil.countOpenCertItems(Collections.singletonList(campaignOid), principal,
+        return CertMiscUtil.countOpenCertItems(Collections.singletonList(campaignOid), principal,
                 true, getPageBase());
-        if (Boolean.FALSE.equals(percentageSortingModel.getObject())) {
-            return notDecidedItemsCount;
+    }
+
+    private long getAllOpenItemsCount(PrismObject<FocusType> reviewer) {
+        if (reviewer == null) {
+            return 0;
         }
-        long allOpenItemsCount = CertMiscUtil.countOpenCertItems(Collections.singletonList(campaignOid), principal,
+        String campaignOid = model.getObjectType().getOid();
+        MidPointPrincipal principal = MidPointPrincipal.create(reviewer.asObjectable());
+        return CertMiscUtil.countOpenCertItems(Collections.singletonList(campaignOid), principal,
                 false, getPageBase());
-        return allOpenItemsCount == 0 ? 0 : (float) notDecidedItemsCount / allOpenItemsCount * 100;
     }
 
     private boolean reviewersCountExceedsLimit() {
@@ -293,7 +373,20 @@ public class ReviewersStatisticsPanel extends BasePanel {
     }
 
     private void showAllReviewersPerformed(AjaxRequestTarget target) {
-        getPageBase().showMainPopup(initReviewersPanel(getPageBase().getMainPopupBodyId(), false), target);
+        reviewersPopupPanel = initReviewersPanel(getPageBase().getMainPopupBodyId(), false);
+        getPageBase().showMainPopup(reviewersPopupPanel, target);
     }
 
+    private String createStatisticBoxLabel(ObjectReferenceType reviewerRef,
+            IModel<HashMap<ObjectReferenceType, ReviewerStatisticDto>> reviewersStatisticModel) {
+        ReviewerStatisticDto reviewerStatistic = reviewersStatisticModel.getObject().get(reviewerRef);
+        return getString("ReviewersStatisticsPanel.statistic.itemsWaitingForDecision",
+                reviewerStatistic.getOpenNotDecidedItemsCount(), reviewerStatistic.getAllOpenItemsCount());
+    }
+
+    private String createPercentageLabel(ObjectReferenceType reviewerRef,
+            IModel<HashMap<ObjectReferenceType, ReviewerStatisticDto>> reviewersStatisticModel) {
+        ReviewerStatisticDto reviewerStatistic = reviewersStatisticModel.getObject().get(reviewerRef);
+        return String.format("%.0f", reviewerStatistic.getOpenDecidedItemsPercentage()) + "%";
+    }
 }

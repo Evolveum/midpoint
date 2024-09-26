@@ -6,11 +6,14 @@
  */
 package com.evolveum.midpoint.model.intest.password;
 
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowPurposeType;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.SkipException;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
@@ -33,6 +36,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestPasswordDefaultHashing extends AbstractPasswordTest {
+
+    @BeforeMethod
+    public void skipIfEnforcedCaching() {
+        if (InternalsConfig.isShadowCachingOnByDefault()) {
+            throw new SkipException("Skipping hashing-related password tests because the shadow caching is enabled");
+        }
+    }
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {

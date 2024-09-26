@@ -11,6 +11,7 @@ import java.io.Serial;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
@@ -62,7 +63,7 @@ public class WidgetRmChartComponent<T extends ChartConfiguration> extends BasePa
 
         initInnerChartLabel();
 
-        add(new Label(ID_CHART_TITLE, new PropertyModel<>(chartedHeaderDtoModel, ChartedHeaderDto.F_CHART_TITLE)));
+        add(new MultiLineLabel(ID_CHART_TITLE, new PropertyModel<>(chartedHeaderDtoModel, ChartedHeaderDto.F_CHART_TITLE)));
 
         add(new Label(ID_CHART_VALUE, new PropertyModel<>(chartedHeaderDtoModel, ChartedHeaderDto.F_CHART_VALUE)));
     }

@@ -88,7 +88,7 @@
                                 // Note that we have to take old value to avoid 'true->false' condition state changes
                                 // that could result from the (repeated) execution of this mapping
                                 def userOld = midpoint.modelContext.focusContextRequired.objectOld
-                                userOld?.asObjectable()?.name?.orig?.startsWith('empNo:')
+                                input != null &amp;&amp; userOld?.asObjectable()?.name?.orig?.startsWith('empNo:')
                             </code>
                         </script>
                     </condition>

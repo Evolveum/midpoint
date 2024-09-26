@@ -89,110 +89,133 @@ public class ProjectionChangeExecution<O extends ObjectType> extends ElementChan
 
         boolean completed = true;
         try {
-            LOGGER.trace("Executing projection context {}", projCtx.toHumanReadableString());
+            try {
+                LOGGER.trace("Executing projection context {}", projCtx.toHumanReadableString());
 
-            context.reportProgress(new ProgressInformation(RESOURCE_OBJECT_OPERATION, projCtx.getKey(), ENTERING));
+                context.reportProgress(new ProgressInformation(RESOURCE_OBJECT_OPERATION, projCtx.getKey(), ENTERING));
 
-            ScriptExecutor<O> scriptExecutor = new ScriptExecutor<>(context, projCtx, task, b);
-            scriptExecutor.executeReconciliationScripts(BeforeAfterType.BEFORE, result);
+                ScriptExecutor<O> scriptExecutor = new ScriptExecutor<>(context, projCtx, task, b);
+                scriptExecutor.executeReconciliationScripts(BeforeAfterType.BEFORE, result);
 
-            projectionDelta = projCtx.getExecutableDelta();
+                projectionDelta = projCtx.getExecutableDelta();
 
-            if (projCtx.hasResourceAndIsVisible()) {
-                emptyToDeleteDeltaIfNeeded();
-            } else if (projectionDelta != null) {
-                if (projectionDelta.isAdd() || projectionDelta.isDelete()) {
-                    LOGGER.trace("Resource object definition is not visible -> skipping application of ADD/DELETE deltas");
-                    projectionDelta = null;
-                } else {
-                    assert projectionDelta.isModify();
-                    if (ShadowUtil.hasResourceModifications(projectionDelta.getModifications())) {
-                        LOGGER.trace("Resource object definition is not visible -> deleting on-resource modifications from it");
-                        projectionDelta = projectionDelta.clone();
-                        projectionDelta.getModifications().removeIf( // not very nice -> TODO add support for such op into delta
-                                mod -> ShadowUtil.isResourceModification(mod));
+                if (projCtx.hasResourceAndIsVisible()) {
+                    emptyToDeleteDeltaIfNeeded();
+                } else if (projectionDelta != null) {
+                    if (projectionDelta.isAdd() || projectionDelta.isDelete()) {
+                        LOGGER.trace("Resource object definition is not visible -> skipping application of ADD/DELETE deltas");
+                        projectionDelta = null;
+                    } else {
+                        assert projectionDelta.isModify();
+                        if (ShadowUtil.hasResourceModifications(projectionDelta.getModifications())) {
+                            LOGGER.trace(
+                                    "Resource object definition is not visible -> deleting on-resource modifications from it");
+                            projectionDelta = projectionDelta.clone();
+                            projectionDelta.getModifications().removeIf( // not very nice; TODO add support for such op into delta
+                                    mod -> ShadowUtil.isResourceModification(mod));
+                        }
                     }
                 }
-            }
 
-            if (deletingHigherOrderContextWithLowerAlreadyDeleted()) {
-                result.recordNotApplicable();
-                return;
-            }
-
-            boolean skipDeltaExecution;
-            if (projCtx.isBroken() && !ObjectDelta.isDelete(projectionDelta)) {
-                LOGGER.trace("Ignoring non-delete delta for broken context {}", projCtx.getKey());
-                skipDeltaExecution = true; // TODO what about repo-only deltas (e.g. setting policy statements)?
-            } else {
-                skipDeltaExecution = ObjectDelta.isEmpty(projectionDelta);
-            }
-
-            if (!skipDeltaExecution) {
-                DeltaExecution<O, ShadowType> deltaExecution =
-                        new DeltaExecution<>(projCtx, projectionDelta, null, task, changeExecutionResult);
-                try {
-                    deltaExecution.execute(result);
-                } catch (ConflictDetectedException e) {
-                    throw new SystemException(
-                            "Unexpected conflict exception (these should be present on focus objects only): " + e.getMessage(),
-                            e);
+                if (deletingHigherOrderContextWithLowerAlreadyDeleted()) {
+                    result.recordNotApplicable();
+                    return;
                 }
-                shadowLivenessState = deltaExecution.getShadowLivenessState();
-                if (projCtx.isAdd() && deltaExecution.getObjectAfterModification() != null) {
-                    // FIXME This is suspicious. For example, the shadow creation can be delayed.
-                    //  Also, ADD delta could become converted to MODIFY by delta executor, and so objectAfterModification
-                    //  can be null.
-                    //  This flag should be perhaps set by delta executor, like the "shadow in repo" is unset on object deletion
-                    projCtx.setExists(true);
+
+                boolean skipDeltaExecution;
+                if (projCtx.isBroken() && !ObjectDelta.isDelete(projectionDelta)) {
+                    LOGGER.trace("Ignoring non-delete delta for broken context {}", projCtx.getKey());
+                    skipDeltaExecution = true; // TODO what about repo-only deltas (e.g. setting policy statements)?
+                } else {
+                    skipDeltaExecution = ObjectDelta.isEmpty(projectionDelta);
                 }
-            }
 
-            updateLinks(result);
+                if (!skipDeltaExecution) {
+                    DeltaExecution<O, ShadowType> deltaExecution =
+                            new DeltaExecution<>(projCtx, projectionDelta, null, task, changeExecutionResult);
+                    try {
+                        deltaExecution.execute(result);
+                    } catch (ConflictDetectedException e) {
+                        throw new SystemException(
+                                "Unexpected conflict exception (these should be present on focus objects only): " + e.getMessage(),
+                                e);
+                    }
+                    shadowLivenessState = deltaExecution.getShadowLivenessState();
+                    if (projCtx.isAdd() && deltaExecution.getObjectAfterModification() != null) {
+                        // FIXME This is suspicious. For example, the shadow creation can be delayed.
+                        //  Also, ADD delta could become converted to MODIFY by delta executor, and so objectAfterModification
+                        //  can be null.
+                        //  This flag should be perhaps set by delta executor, like the "shadow in repo"
+                        //  is unset on object deletion
+                        projCtx.setExists(true);
+                    }
+                }
 
-            scriptExecutor.executeReconciliationScripts(BeforeAfterType.AFTER, result);
+                updateLinks(result);
 
-            result.computeStatus();
-            result.recordNotApplicableIfUnknown();
+                scriptExecutor.executeReconciliationScripts(BeforeAfterType.AFTER, result);
 
-        } catch (ObjectAlreadyExistsException e) {
+                result.computeStatus();
+                result.recordNotApplicableIfUnknown();
 
-            // This exception is quite special. We have to decide how bad this really is.
-            // This may be rename conflict - that would be bad.
-            // Or this may be attempt to create account that already exists and just needs
-            // to be linked. Which is no big deal and consistency mechanism (discovery) will
-            // easily handle that. In that case it is done in "another task" which is
-            // quasi-asynchronously executed from provisioning by calling notifyChange.
-            // Once that is done then the account is already linked. And all we need to do
-            // is to restart this whole operation.
+            } catch (ObjectNotFoundException e) {
 
-            // check if this is a repeated attempt - ObjectAlreadyExistsException was not handled
-            // correctly, e.g. if creating "Users" user in AD, whereas
-            // "Users" is SAM Account Name which is used by a built-in group
-            // - in such case, mark the context as broken
-            if (isRepeatedAlreadyExistsException()) {
-                // This is the bad case. Currently we do not do anything more intelligent than to look for
-                // repeated error. If we get ObjectAlreadyExistsException twice then this is bad and we give up.
-                // TODO: do something smarter here
-                LOGGER.debug("Repeated ObjectAlreadyExistsException detected, marking projection {} as broken",
-                        projCtx.toHumanReadableString());
-                recordProjectionExecutionException(e);
+                if (!ShadowType.class.equals(e.getType())) {
+                    LOGGER.trace(
+                            "Non-shadow 'object not found' exception occurred for {}, rethrowing: {}", projCtx, e.getMessage());
+                    throw e; // processed in the outer catch block
+                }
+
+                if (ObjectDelta.isModify(projCtx.getPrimaryDelta())) {
+                    LOGGER.trace("Shadow 'object not found' exception occurred for {} having explicit primary MODIFY delta, "
+                            + "rethrowing: {}", projCtx, e.getMessage());
+                    throw e; // processed in the outer catch block
+                }
+
+                // The shadow may be gone. This can occur especially when shadow caching is used. Let's just record it.
+                // The consistency mechanism hopefully took care of the rest.
+                recordProjectionExecutionExceptionAsGone(e);
                 result.recordException(e);
-                return;
-            }
 
-            // In his case we do not need to set account context as broken, instead we need to restart projector for this
-            // context to recompute new account or find out if the account was already linked.
-            // and also do not set fatal error to the operation result, this
-            // is a special case
-            // if it is fatal, it will be set later
-            // but we need to set some result
-            result.recordSuccess();
-            changeExecutionResult.setProjectionRecomputationRequested();
-            completed = false;
-            LOGGER.debug("ObjectAlreadyExistsException for projection {}, requesting projector restart",
-                    projCtx.toHumanReadableString());
-            projCtx.rotWithDeltaDeletion(); // todo
+            } catch (ObjectAlreadyExistsException e) {
+
+                // This exception is quite special. We have to decide how bad this really is.
+                // This may be rename conflict - that would be bad.
+                // Or this may be attempt to create account that already exists and just needs
+                // to be linked. Which is no big deal and consistency mechanism (discovery) will
+                // easily handle that. In that case it is done in "another task" which is
+                // quasi-asynchronously executed from provisioning by calling notifyChange.
+                // Once that is done then the account is already linked. And all we need to do
+                // is to restart this whole operation.
+
+                // check if this is a repeated attempt - ObjectAlreadyExistsException was not handled
+                // correctly, e.g. if creating "Users" user in AD, whereas
+                // "Users" is SAM Account Name which is used by a built-in group
+                // - in such case, mark the context as broken
+                if (isRepeatedAlreadyExistsException()) {
+                    // This is the bad case. Currently we do not do anything more intelligent than to look for
+                    // repeated error. If we get ObjectAlreadyExistsException twice then this is bad and we give up.
+                    // TODO: do something smarter here
+                    LOGGER.debug("Repeated ObjectAlreadyExistsException detected, marking projection {} as broken",
+                            projCtx.toHumanReadableString());
+                    recordProjectionExecutionException(e);
+                    result.recordException(e);
+                    return;
+                }
+
+                // In his case we do not need to set account context as broken, instead we need to restart projector for this
+                // context to recompute new account or find out if the account was already linked.
+                // and also do not set fatal error to the operation result, this
+                // is a special case
+                // if it is fatal, it will be set later
+                // but we need to set some result
+                result.recordSuccess();
+                changeExecutionResult.setProjectionRecomputationRequested();
+                completed = false;
+                LOGGER.debug("ObjectAlreadyExistsException for projection {}, requesting projector restart",
+                        projCtx.toHumanReadableString());
+                projCtx.rotWithDeltaDeletion(); // todo
+            }
 
         } catch (Throwable t) {
 
@@ -251,6 +274,11 @@ public class ProjectionChangeExecution<O extends ObjectType> extends ElementChan
     private void recordProjectionExecutionException(Throwable e) {
         LOGGER.error("Error executing changes for {}: {}", projCtx.toHumanReadableString(), e.getMessage(), e);
         projCtx.setBroken();
+    }
+
+    private void recordProjectionExecutionExceptionAsGone(Throwable e) {
+        LOGGER.error("Error executing changes for {}: {}", projCtx.toHumanReadableString(), e.getMessage(), e);
+        projCtx.markGone();
     }
 
     private boolean shouldExecute() {

@@ -12,6 +12,7 @@ import java.io.File;
 import java.util.Iterator;
 
 import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.lang3.StringUtils;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
@@ -41,7 +42,9 @@ public class TestConfigurationLoad extends AbstractUnitTest {
             logger.info("  " + key + " = " + c.getString(key));
         }
 
-        assertEquals("", c.getString("database"));
+        // database added via system properties (since default config.xml contains just placeholders that are commented out)
+        String database = c.getString("database");
+        assertTrue(StringUtils.isNotEmpty(database));
     }
 
     /**
