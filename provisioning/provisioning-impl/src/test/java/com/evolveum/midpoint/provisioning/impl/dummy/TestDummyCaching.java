@@ -49,9 +49,7 @@ import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * Almost the same as TestDummy but this is using a caching configuration.
@@ -271,12 +269,14 @@ public class TestDummyCaching extends TestDummy {
 
             checkUniqueness(shadow);
 
+            assertNoCachingMetadata(shadow.getBean());
+
             if (getCachedAccountAttributes().contains(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_QNAME)) {
                 // Ship is cached, so we won't update the cached data if it's incomplete
-                assertCachingMetadata(shadow.getBean(), null, startTs);
+                assertCachingMetadata(shadowRepo.getBean(), null, startTs);
             } else {
                 // Ship is not cached, so we can update the cached data even if it's incomplete
-                assertCachingMetadata(shadow.getBean(), startTs, endTs);
+                assertCachingMetadata(shadowRepo.getBean(), startTs, endTs);
             }
 
             assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
