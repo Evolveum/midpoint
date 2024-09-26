@@ -30,7 +30,6 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.text.WordUtils;
 import org.apache.wicket.model.IModel;
 
 import javax.xml.namespace.QName;
@@ -208,7 +207,7 @@ public class GuiDisplayTypeUtil {
 
             String name = LocalizationUtil.translatePolyString(label);
 
-            String tooltip = LocalizationUtil.translate("MainObjectListPanel.newObjectWithName", new Object[]{ WordUtils.uncapitalize(name) });
+            String tooltip = LocalizationUtil.translate("MainObjectListPanel.newObjectWithName", new Object[]{ name });
 
             displayType.setTooltip(WebComponentUtil.createPolyFromOrigString(tooltip));
         }
