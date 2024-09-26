@@ -12,7 +12,9 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 
 /**
  * @author lazyman
@@ -38,8 +40,34 @@ public class XmlGregorianCalendarModel extends Model<Date> {
     public void setObject(Date object) {
         if (object == null) {
             model.setObject(null);
-        } else {
-            model.setObject(MiscUtil.asXMLGregorianCalendar(object));
+            return;
         }
+
+        XMLGregorianCalendar newValue = MiscUtil.asXMLGregorianCalendar(object);
+
+        GregorianCalendar current = cloneAndStripSeconds(model.getObject());
+        if (current != null) {
+            // this check is done on UI side to prevent stripping of seconds and milliseconds when date was not changed
+            // This happens because of the way how date picker works - it doesn't have seconds/miliseconds field therefore
+            // those fields submitted via html form are always zeroed.
+            // See MID-9733 for more info.
+            GregorianCalendar newCal = cloneAndStripSeconds(newValue);
+            if (current.equals(newCal)) {
+                return;
+            }
+        }
+
+        model.setObject(newValue);
+    }
+
+    private GregorianCalendar cloneAndStripSeconds(XMLGregorianCalendar cal) {
+        if (cal == null) {
+            return null;
+        }
+        GregorianCalendar c = cal.toGregorianCalendar();
+        c.set(Calendar.SECOND, 0);
+        c.set(Calendar.MILLISECOND, 0);
+
+        return c;
     }
 }
