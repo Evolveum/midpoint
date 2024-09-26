@@ -62,6 +62,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
     private static final String ID_BACKGROUND_TASK_LINK = "backgroundTaskLink";
     private static final String ID_BACKGROUND_TASK_EXISTS = "backgroundTaskExists";
     private static final String ID_CASE = "case";
+    private static final String ID_PROCESSED_OBJECT = "processedObject";
     private static final String ID_SHOW_ALL = "showAll";
     private static final String ID_HIDE_ALL = "hideAll";
     private static final String ID_ERROR_STACK_TRACE = "errorStackTrace";
@@ -181,6 +182,23 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
         };
         aCase.add(new VisibleBehaviour(() -> getModelObject().getCaseOid() != null && getModelObject().isCaseVisible()));
         message.add(aCase);
+
+        getModelObject().determineProcessedObjectVisible(getPageBase());
+        AjaxLink<String> processedObject = new AjaxLink<>(ID_PROCESSED_OBJECT) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                final OpResult opResult = OperationResultPanel.this.getModelObject();
+                String oid = opResult.getProcessedObjectOid();
+                if (oid == null || !opResult.isProcessedObjectVisible()) {
+                    return; // just for safety
+                }
+                DetailsPageUtil.dispatchToObjectDetailsPage(opResult.getProcessedObjectType(), oid, getPageBase(), false);
+            }
+        };
+        processedObject.add(new VisibleBehaviour(() -> getModelObject().getProcessedObjectOid() != null && getModelObject().isProcessedObjectVisible()));
+        message.add(processedObject);
 
         AjaxLink<String> showAll = new AjaxLink<>(ID_SHOW_ALL) {
             private static final long serialVersionUID = 1L;
