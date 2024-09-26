@@ -317,14 +317,20 @@ class ShadowDeltaComputerAbsolute {
         for (Item<?, ?> oldRepoItem : rawRepoShadow.getSimpleAttributes()) {
             ItemName oldRepoItemName = oldRepoItem.getElementName();
             if (!expectedRepoSimpleAttributes.contains(oldRepoItemName)) {
-                removeRepoAttribute(oldRepoItem, resourceObjectAttributesContainer.findSimpleAttribute(oldRepoItemName));
+                removeRepoAttribute(
+                        oldRepoItem,
+                        resourceObjectAttributesContainer.findSimpleAttribute(oldRepoItemName),
+                        ocDef.findSimpleAttributeDefinition(oldRepoItemName));
             }
         }
 
         for (Item<?, ?> oldRepoItem : rawRepoShadow.getReferenceAttributes()) {
             ItemName oldRepoItemName = oldRepoItem.getElementName();
             if (!expectedRepoReferenceAttributes.contains(oldRepoItemName)) {
-                removeRepoAttribute(oldRepoItem, resourceObjectAttributesContainer.findReferenceAttribute(oldRepoItemName));
+                removeRepoAttribute(
+                        oldRepoItem,
+                        resourceObjectAttributesContainer.findReferenceAttribute(oldRepoItemName),
+                        ocDef.findReferenceAttributeDefinition(oldRepoItemName));
             }
         }
 
@@ -446,16 +452,40 @@ class ShadowDeltaComputerAbsolute {
     //region Common support
     private void removeRepoAttribute(
             @NotNull Item<?, ?> oldRepoItem,
-            @Nullable ShadowAttribute<?, ?, ?, ?> correspondingResourceObjectAttribute) {
+            @Nullable ShadowAttribute<?, ?, ?, ?> correspondingResourceObjectAttribute,
+            @Nullable ItemDefinition<?> estimatedAttrDefinition) {
+
         LOGGER.trace("Removing old repo shadow attribute {} because it should not be cached", oldRepoItem.getElementName());
         ItemDelta<?, ?> rawEraseDelta = oldRepoItem.createDelta();
+
+        if (rawEraseDelta.getDefinition() == null) {
+            var estimatedRepoDefinition = estimateRepoDefinition(oldRepoItem, estimatedAttrDefinition);
+            if (estimatedRepoDefinition != null) {
+                //noinspection rawtypes,unchecked
+                ((ItemDelta) rawEraseDelta).setDefinition(estimatedRepoDefinition);
+            }
+        }
+
         rawEraseDelta.setValuesToReplace();
+
         if (correspondingResourceObjectAttribute != null) {
             ItemDelta<?, ?> eraseDelta = correspondingResourceObjectAttribute.createDelta();
             eraseDelta.setValuesToReplace();
             computedModifications.add(eraseDelta, rawEraseDelta);
         } else {
             computedModifications.addRawOnly(rawEraseDelta);
+        }
+    }
+
+    /** Repo (especially generic one) cannot handle deltas without definition. So, we have to try to provide one. */
+    private static ItemDefinition<?> estimateRepoDefinition(
+            @NotNull Item<?, ?> oldRepoItem, @Nullable ItemDefinition<?> estimatedDefinition) {
+        if (estimatedDefinition != null) {
+            return estimatedDefinition instanceof ShadowSimpleAttributeDefinition<?> simpleAttrDef ?
+                    simpleAttrDef.toNormalizationAware() : estimatedDefinition;
+        } else {
+            LOGGER.debug("No definition for {}", oldRepoItem);
+            return null;
         }
     }
 

@@ -372,12 +372,10 @@ public class TestDummyCaching extends TestDummy {
      * See MID-7162.
      */
     @Test
-    public void test910CacheMultivaluedAttribute() throws Exception {
+    public void test905CacheMultivaluedAttribute() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
-
-        skipIfNotNativeRepository(); // FIXME temporary
 
         DummyAccount will = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
 
