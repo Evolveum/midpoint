@@ -7,14 +7,13 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import java.math.BigInteger;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.util.CloneUtil;
-
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -104,6 +103,14 @@ public interface ShadowAttributeDefinition<
         if (cachingPolicy.getCachingStrategy() != CachingStrategyType.PASSIVE) {
             // Caching is disabled. Individual overriding of caching status is not relevant.
             return false;
+        }
+
+        var typeClass = getTypeClass();
+        if (typeClass.isArray()) {
+            return false; // most probably a byte array, see MID-10059
+        }
+        if (BigInteger.class.equals(typeClass)) {
+            return false; // MID-10058
         }
 
         var override = isCached();

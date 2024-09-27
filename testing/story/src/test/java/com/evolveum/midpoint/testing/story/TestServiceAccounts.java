@@ -8,8 +8,12 @@ package com.evolveum.midpoint.testing.story;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.io.File;
 
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
+import com.evolveum.midpoint.util.exception.NoFocusNameSchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -192,6 +196,18 @@ public class TestServiceAccounts extends AbstractStoryTest {
 
         } catch (UnsupportedOperationException e) {
             then();
+            assertThat(InternalsConfig.isShadowCachingOnByDefault())
+                    .as("shadow caching enforcement")
+                    .isFalse();
+            displayExpectedException(e);
+        } catch (NoFocusNameSchemaException e) {
+            then();
+            // The icfs:name -> name inbound mapping causes removal of the focus name, leading to this exception.
+            // The mapping is executed only if caching is enabled, because otherwise we do not have the fresh data from
+            // the resource (and the mapping is skipped). See MID-10057.
+            assertThat(InternalsConfig.isShadowCachingOnByDefault())
+                    .as("shadow caching enforcement")
+                    .isTrue();
             displayExpectedException(e);
         }
 

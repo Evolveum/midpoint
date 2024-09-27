@@ -6,6 +6,12 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.abstractrole;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.focusMapping.FocusMappingWizardPanel;
+
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -28,8 +34,12 @@ public abstract class PageAbstractRole<AR extends AbstractRoleType, ARDM extends
     public PageAbstractRole(PrismObject<AR> focus) {
         super(focus);
     }
+
     public void showConstructionWizard(AjaxRequestTarget target) {
         showWizard(target, null, ConstructionWizardPanel.class);
     }
 
+    public void showFocusMappingWizard(PrismContainerValue<AssignmentType> newValue, ItemName containerItemName, AjaxRequestTarget target) {
+        showWizard(newValue, target, containerItemName, FocusMappingWizardPanel.class);
+    }
 }

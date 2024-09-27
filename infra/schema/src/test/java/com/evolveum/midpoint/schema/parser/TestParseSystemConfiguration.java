@@ -122,11 +122,10 @@ public class TestParseSystemConfiguration extends AbstractObjectParserTest<Syste
                         .getHandler().get(0)
                         .getSimpleUserNotifier().get(0)
                         .getAttachment();
-        assertEquals("Wrong # of attachments", 4, attachments.size());
-        assertAttachmentContent(attachments.get(0), "untyped");
-        assertAttachmentContent(attachments.get(1), "ABC");
-        assertAttachmentContent(attachments.get(2), "DEF".getBytes());
-        assertAttachmentContent(attachments.get(3), new BigInteger("1234567890123456789012345678901234567890"));
+        assertEquals("Wrong # of attachments", 3, attachments.size());
+        assertAttachmentContent(attachments.get(0), "ABC");
+        assertAttachmentContent(attachments.get(1), "DEF".getBytes());
+        assertAttachmentContent(attachments.get(2), new BigInteger("1234567890123456789012345678901234567890"));
     }
 
     // for byte[] content we assume convertibility to String

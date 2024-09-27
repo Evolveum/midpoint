@@ -16,7 +16,7 @@ public enum ItemLoadedStatus {
     FULL_SHADOW(true),
 
     /** The item may or may not be cached; but we must use fresh version anyway (because of the configuration). */
-    NOT_ALLOWED(false),
+    USE_OF_CACHED_NOT_ALLOWED(false),
 
     NULL_OBJECT(false),
 

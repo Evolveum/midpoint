@@ -13,6 +13,7 @@ import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathImpl;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -77,13 +78,11 @@ public class AssignedResourceObjectConstruction<AH extends AssignmentHolderType>
                         () -> resource + " as specified in construction in " + getSource()));
 
         for (QName auxiliaryObjectClassName : constructionBean.getAuxiliaryObjectClass()) {
-            ResourceObjectDefinition auxOcDef = refinedSchema.findDefinitionForObjectClass(auxiliaryObjectClassName);
-            if (auxOcDef == null) {
-                throw new SchemaException(
-                        "No auxiliary object class " + auxiliaryObjectClassName + " found in "
-                                + resource + " as specified in construction in " + source);
-            }
-            addAuxiliaryObjectClassDefinition(auxOcDef);
+            addAuxiliaryObjectClassDefinition(
+                    MiscUtil.requireNonNull(
+                            refinedSchema.findDefinitionForObjectClass(auxiliaryObjectClassName),
+                            () -> "No auxiliary object class %s found in %s as specified in construction in %s".formatted(
+                                    auxiliaryObjectClassName, resource, source)));
         }
     }
 

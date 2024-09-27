@@ -149,9 +149,7 @@ public class SourceOrTargetOfMappingPanelFactory extends VariableBindingDefiniti
 
     protected List<String> getAvailableVariables(String input, IModel<PrismPropertyWrapper<VariableBindingDefinitionType>> itemWrapperModel, PageBase pageBase) {
         FocusDefinitionsMappingProvider provider = new FocusDefinitionsMappingProvider(itemWrapperModel);
-        List<String> values = new ArrayList<>(provider.collectAvailableDefinitions(input));
-        values.removeIf(path -> path.startsWith(FocusType.F_METADATA.getLocalPart() + "/"));
-        return values;
+        return provider.collectAvailableDefinitions(input);
     }
 
     @Override
