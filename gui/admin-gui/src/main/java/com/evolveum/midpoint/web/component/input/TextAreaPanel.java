@@ -17,6 +17,10 @@ public class TextAreaPanel<T> extends InputPanel {
 
     private static final String ID_INPUT = "input";
 
+    public TextAreaPanel(String id, IModel<T> model) {
+        this(id, model, null);
+    }
+
     public TextAreaPanel(String id, IModel<T> model, Integer rowsOverride) {
         super(id);
 

@@ -36,6 +36,10 @@ public class FocusDefinitionsMappingProvider extends ChoiceProvider<VariableBind
         this.rowModel = rowModel;
     }
 
+    protected final IModel<PrismPropertyWrapper<VariableBindingDefinitionType>> getRowModel() {
+        return rowModel;
+    }
+
     @Override
     public String getDisplayValue(VariableBindingDefinitionType value) {
         return getIdValue(value);
@@ -43,7 +47,11 @@ public class FocusDefinitionsMappingProvider extends ChoiceProvider<VariableBind
 
     @Override
     public String getIdValue(VariableBindingDefinitionType value) {
-        return GuiDisplayNameUtil.getDisplayName(value);
+        return GuiDisplayNameUtil.getDisplayName(value, stripVariableSegment());
+    }
+
+    protected boolean stripVariableSegment() {
+        return true;
     }
 
     @Override
@@ -65,6 +73,10 @@ public class FocusDefinitionsMappingProvider extends ChoiceProvider<VariableBind
     public List<String> collectAvailableDefinitions(String input, ResourceObjectTypeDefinitionType resourceObjectType) {
         PrismContainerDefinition<? extends Containerable> focusDef = getFocusTypeDefinition(resourceObjectType);
 
+        return collectAvailableDefinitions(input, focusDef);
+    }
+
+    protected List<String> collectAvailableDefinitions(String input, PrismContainerDefinition<? extends Containerable> focusDef) {
         List<String> toSelect = new ArrayList<>();
         if (StringUtils.isNotBlank(input) && input.lastIndexOf("/") == (input.length() - 1)) {
             input = input.substring(0, input.length() - 1);
@@ -135,6 +147,10 @@ public class FocusDefinitionsMappingProvider extends ChoiceProvider<VariableBind
             }
 
             if (def.isOperational()) {
+                continue;
+            }
+
+            if (def.getItemName().equivalent(AssignmentType.F_METADATA)) {
                 continue;
             }
 

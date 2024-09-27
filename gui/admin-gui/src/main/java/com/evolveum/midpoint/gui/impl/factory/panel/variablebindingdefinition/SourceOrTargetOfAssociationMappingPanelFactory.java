@@ -72,8 +72,7 @@ public class SourceOrTargetOfAssociationMappingPanelFactory extends SourceOrTarg
             }
         };
         List<String> values = new ArrayList<>(provider.collectAvailableDefinitions(input));
-        values.removeIf(path -> path.startsWith(AssignmentType.F_METADATA.getLocalPart() + "/")
-                || path.startsWith(AssignmentType.F_CONDITION.getLocalPart() + "/"));
+        values.removeIf(path -> path.startsWith(AssignmentType.F_CONDITION.getLocalPart() + "/"));
         return values;
     }
 }
