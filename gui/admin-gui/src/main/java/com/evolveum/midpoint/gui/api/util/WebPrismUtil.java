@@ -638,4 +638,32 @@ public class WebPrismUtil {
         return new QName(object);
     }
 
+    public static int getNumberOfSameMappingNames(PrismContainerValueWrapper containerValue, String value) {
+        int numberOfSameRef = 0;
+
+        if (AbstractMappingType.class.isAssignableFrom(containerValue.getDefinition().getTypeClass())) {
+            try {
+                PrismPropertyWrapper<String> nameProperty = containerValue.findProperty(AbstractMappingType.F_NAME);
+                String name = nameProperty.getValue().getRealValue();
+
+                if (StringUtils.equals(value, name)) {
+                    numberOfSameRef++;
+                }
+            } catch (SchemaException e) {
+                LOGGER.error("Couldn't find name attribute in objectType " + containerValue, e);
+            }
+        }
+
+        List<ItemWrapper> containers = containerValue.getItems();
+        for (ItemWrapper item : containers) {
+            if (item instanceof PrismContainerWrapper<?> container) {
+                for (PrismContainerValueWrapper childContainerValue : container.getValues()) {
+                    numberOfSameRef = numberOfSameRef + getNumberOfSameMappingNames(childContainerValue, value);
+                }
+            }
+        }
+
+        return numberOfSameRef;
+    }
+
 }

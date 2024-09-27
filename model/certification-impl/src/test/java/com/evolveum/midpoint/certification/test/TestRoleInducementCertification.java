@@ -26,6 +26,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.*;
 import java.util.function.Consumer;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_CLOSE_TIMESTAMP;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REMEDIATION;
@@ -771,7 +772,7 @@ Superuser-Dummy:          - -> A                        jack:A,administrator:nul
         campaign = getCampaignWithCases(campaignOid);
         display("campaign after remediation finished", campaign);
         assertEquals("wrong campaign state", CLOSED, campaign.getState());
-        assertEquals("wrong campaign stage", 3, campaign.getStageNumber());
+        assertEquals("wrong campaign stage", 3, or0(campaign.getStageNumber()));
         assertDefinitionAndOwner(campaign, certificationDefinition);
         assertApproximateTime("end time", new Date(), campaign.getEndTimestamp());
         assertEquals("wrong # of stages", 2, campaign.getStage().size());

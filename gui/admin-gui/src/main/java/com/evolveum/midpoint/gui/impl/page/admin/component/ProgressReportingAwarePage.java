@@ -12,6 +12,8 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskManager;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
 /**
@@ -24,7 +26,12 @@ public interface ProgressReportingAwarePage {
 
     ProgressPanel startAndGetProgressPanel(AjaxRequestTarget target, OperationResult result);
 
-    void finishProcessing(AjaxRequestTarget target, boolean returningFromAsync, OperationResult result);
+    void finishProcessing(
+            AjaxRequestTarget target,
+            boolean returningFromAsync,
+            String processedObjectOid,
+            Class<? extends ObjectType> processedObjectType,
+            OperationResult result);
 
     void continueEditing(AjaxRequestTarget target);
 

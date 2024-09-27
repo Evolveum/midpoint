@@ -28,6 +28,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REMEDIATION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.*;
@@ -416,7 +417,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
         campaign = getCampaignWithCases(campaignOid);
         display("campaign after remediation finished", campaign);
         assertEquals("wrong campaign state", CLOSED, campaign.getState());
-        assertEquals("wrong campaign stage", 2, campaign.getStageNumber());
+        assertEquals("wrong campaign stage", 2, or0(campaign.getStageNumber()));
         assertDefinitionAndOwner(campaign, certificationDefinition);
         assertApproximateTime("end time", new Date(), campaign.getEndTimestamp());
         assertEquals("wrong # of stages", 1, campaign.getStage().size());

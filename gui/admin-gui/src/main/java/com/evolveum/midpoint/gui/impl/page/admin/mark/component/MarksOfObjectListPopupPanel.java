@@ -98,15 +98,16 @@ public class MarksOfObjectListPopupPanel<O extends ObjectType> extends SimplePop
         result.computeStatusIfUnknown();
         getPageBase().showResult(result);
         target.add(getPageBase().getFeedbackPanel());
-        refreshTable(target);
+
+        onSave(target);
     }
 
-    protected void refreshTable(AjaxRequestTarget target) {
+    protected void onSave(AjaxRequestTarget target) {
     }
 
     private void initLayout(){
         MarksOfObjectListPanel<O> panel = new MarksOfObjectListPanel<>(ID_PANEL, wrapper);
-        panel.setUseObjectCollectionInSearch(false);
+        panel.setUseCollectionView(false);
 
         add(panel);
     }

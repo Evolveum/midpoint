@@ -54,7 +54,7 @@ public class CertificationHook implements ChangeHook {
     }
 
     @Override
-    public <O extends ObjectType> HookOperationMode invoke(
+    public <O extends ObjectType> @NotNull HookOperationMode invoke(
             @NotNull ModelContext<O> context, @NotNull Task task, @NotNull OperationResult result) {
         if (context.isSimulation()) {
             return HookOperationMode.FOREGROUND;

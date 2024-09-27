@@ -12,6 +12,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.util.MiscUtil;
+
 import com.google.common.collect.Multimap;
 import org.jetbrains.annotations.NotNull;
 
@@ -50,6 +53,22 @@ public interface ShadowAssociationDefinition
     @NotNull Multimap<QName, ShadowRelationParticipantType> getObjectParticipants();
 
     /**
+     * Provides information on acceptable types of shadows participating in this association as (the one) object.
+     *
+     * Fails if there are no or multiple objects.
+     *
+     * @see #getObjectParticipants()
+     */
+    default @NotNull Collection<ShadowRelationParticipantType> getObjectParticipant() {
+        var objectParticipantsMap = getObjectParticipants();
+        var objectName = MiscUtil.extractSingletonRequired(
+                objectParticipantsMap.keySet(),
+                () -> new IllegalStateException("Multiple object participants in " + this + ": " + objectParticipantsMap.keySet()),
+                () -> new IllegalStateException("No object participants in " + this));
+        return getObjectParticipants().get(objectName);
+    }
+
+    /**
      * Returns the name(s) of participant(s) playing the role of association object:
      *
      * - Exactly one for simple associations.
@@ -68,16 +87,20 @@ public interface ShadowAssociationDefinition
     /**
      * Creates a filter that provides all shadows eligible as the target value for this association.
      *
-     * FIXME resolve limitations:
-     *  - single object class is allowed for given association
-     *  - if multiple object types are there, then the filter is for the whole class
-     *  - if type type is the default object type, then it's used as such (even if the whole OC should be returned)
+     * For complex associations, a filter for association data objects is returned.
      *
-     * TODO are these immediate targets (associated objects, if present), or the "final" targets?
+     * @see ShadowReferenceAttributeDefinition#createTargetObjectsFilter(boolean)
      */
-    default ObjectFilter createTargetObjectsFilter() {
-        // FIXME remove this hack!
-        return getReferenceAttributeDefinition().createTargetObjectsFilter();
+    default ObjectFilter createTargetObjectsFilter(boolean resourceSafe) {
+        var resourceOid = getResourceOid();
+        if (isComplex()) {
+            // This is a preliminary implementation
+            return getAssociationDataObjectDefinition()
+                    .createShadowSearchQuery(resourceOid)
+                    .getFilter();
+        } else {
+            return ObjectQueryUtil.createObjectTypesFilter(resourceOid, getObjectParticipant(), resourceSafe, this);
+        }
     }
 
     /** TODO reconsider this: which definition should we provide as the representative one? There can be many. */
@@ -113,7 +136,7 @@ public interface ShadowAssociationDefinition
 
     boolean isEntitlement();
 
-    default String getResourceOid() {
+    default @NotNull String getResourceOid() {
         return getReferenceAttributeDefinition().getResourceOid();
     }
 
@@ -149,4 +172,7 @@ public interface ShadowAssociationDefinition
 
     /** Use with care. Please do not modify the returned value. */
     @Nullable ShadowAssociationDefinitionType getModernAssociationDefinitionBean();
+
+    /** Use with care. Please do not modify the returned value. */
+    @Nullable ShadowAssociationTypeDefinitionType getModernAssociationTypeDefinitionBean();
 }

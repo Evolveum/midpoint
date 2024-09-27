@@ -10,8 +10,11 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.focusMapping.FocusMappingMappingsTable;
 import com.evolveum.midpoint.gui.impl.page.admin.shadow.ResourceAssociationPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.shadow.ResourceAttributePanel;
+
+import com.evolveum.midpoint.web.model.PrismContainerValueWrapperModel;
 
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -75,6 +78,7 @@ public class AssignmentsDetailsPanel extends MultivalueContainerDetailsPanel<Ass
                 tabs.add(createTabs("AssignmentType.policyRule", AssignmentType.F_POLICY_RULE, PolicyRuleType.COMPLEX_TYPE));
                 break;
             case FOCUS_MAPPING:
+//                tabs.add(createFocusMappingsTab());
                 tabs.add(createTabs("AssignmentType.focusMappings", AssignmentType.F_FOCUS_MAPPINGS, MappingType.COMPLEX_TYPE));
                 break;
             case PERSONA_CONSTRUCTION:
@@ -88,6 +92,19 @@ public class AssignmentsDetailsPanel extends MultivalueContainerDetailsPanel<Ass
         tabs.add(createActivationTab());
         tabs.add(createConditionTab());
         return tabs;
+    }
+
+    private PanelTab createFocusMappingsTab() {
+        return new PanelTab(createStringResource("AssignmentType.focusMappings")) {
+
+            @Override
+            public WebMarkupContainer createPanel(String panelId) {
+                return new FocusMappingMappingsTable(
+                        panelId,
+                        PrismContainerValueWrapperModel.fromContainerValueWrapper(getModel(), AssignmentType.F_FOCUS_MAPPINGS),
+                        null);
+            }
+        };
     }
 
     private PanelTab getConstructionAssociationPanel() {

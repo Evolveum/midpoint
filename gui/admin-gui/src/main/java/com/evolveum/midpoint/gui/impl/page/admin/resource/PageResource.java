@@ -200,8 +200,8 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
         return panel;
     }
 
-    public ResourceAssociationTypeWizardPanel showAssociationTypeWizard(AjaxRequestTarget target) {
-        return showWizard(null, target, ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_ASSOCIATION_TYPE), ResourceAssociationTypeWizardPanel.class);
+    public ResourceAssociationTypeWizardPanel showAssociationTypeWizard(AjaxRequestTarget target, IModel<String> exitLabel) {
+        return showWizard(target, ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_ASSOCIATION_TYPE), ResourceAssociationTypeWizardPanel.class, exitLabel);
     }
 
     public void showResourceObjectTypeBasicWizard(AjaxRequestTarget target, ItemPath pathToValue) {
@@ -236,24 +236,24 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
         showContainerWizardForObjectType(target, pathToValue, PoliciesObjectTypeWizardPanel.class);
     }
 
-    public void showAssociationInboundsWizard(AjaxRequestTarget target, ItemPath pathToValue, ShadowAssociationTypeDefinitionType association) {
-        showWizard(target, pathToValue, AssociationInboundMappingContainerWizardPanel.class);
+    public void showAssociationInboundsWizard(AjaxRequestTarget target, ItemPath pathToValue, ShadowAssociationTypeDefinitionType association, IModel<String> exitLabel) {
+        showWizard(target, pathToValue, AssociationInboundMappingContainerWizardPanel.class, exitLabel);
         addWizardBreadcrumbsForAssociationType(association, LocalizationUtil.translate("PageResource.association.wizard.inbound"));
     }
 
-    public void showAssociationInboundWizard(AjaxRequestTarget target, ItemPath pathToValue, ShadowAssociationTypeDefinitionType association) {
-        AssociationInboundEvaluatorWizardPanel panel = showWizard(target, pathToValue, AssociationInboundEvaluatorWizardPanel.class);
+    public void showAssociationInboundWizard(AjaxRequestTarget target, ItemPath pathToValue, ShadowAssociationTypeDefinitionType association, IModel<String> exitLabel) {
+        AssociationInboundEvaluatorWizardPanel panel = showWizard(target, pathToValue, AssociationInboundEvaluatorWizardPanel.class, exitLabel);
         panel.setShowChoicePanel(true);
         addWizardBreadcrumbsForAssociationType(association, LocalizationUtil.translate("PageResource.association.wizard.inbound"));
     }
 
-    public void showAssociationOutboundsWizard(AjaxRequestTarget target, ItemPath pathToValue, ShadowAssociationTypeDefinitionType association) {
-        showWizard(target, pathToValue, AssociationOutboundMappingContainerWizardPanel.class);
+    public void showAssociationOutboundsWizard(AjaxRequestTarget target, ItemPath pathToValue, ShadowAssociationTypeDefinitionType association, IModel<String> exitLabel) {
+        showWizard(target, pathToValue, AssociationOutboundMappingContainerWizardPanel.class, exitLabel);
         addWizardBreadcrumbsForAssociationType(association, LocalizationUtil.translate("PageResource.association.wizard.outbound"));
     }
 
-    public void showAssociationOutboundWizard(AjaxRequestTarget target, ItemPath pathToValue, ShadowAssociationTypeDefinitionType association) {
-        AssociationOutboundEvaluatorWizardPanel panel = showWizard(target, pathToValue, AssociationOutboundEvaluatorWizardPanel.class);
+    public void showAssociationOutboundWizard(AjaxRequestTarget target, ItemPath pathToValue, ShadowAssociationTypeDefinitionType association, IModel<String> exitLabel) {
+        AssociationOutboundEvaluatorWizardPanel panel = showWizard(target, pathToValue, AssociationOutboundEvaluatorWizardPanel.class, exitLabel);
         panel.setShowChoicePanel(true);
         addWizardBreadcrumbsForAssociationType(association, LocalizationUtil.translate("PageResource.association.wizard.outbound"));
     }

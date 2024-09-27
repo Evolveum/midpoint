@@ -39,7 +39,7 @@ public class ResourceReferenceAttributeWrapperFactoryImpl<R extends Referencable
     protected PrismReferenceWrapper<R> createWrapperInternal(PrismContainerValueWrapper<?> parent, PrismReference item, ItemStatus status, WrapperContext ctx) {
         PrismReferenceWrapper<R> wrapper = super.createWrapperInternal(parent, item, status, ctx);
         ShadowReferenceAttributeDefinition def = (ShadowReferenceAttributeDefinition) item.getDefinition();
-        wrapper.setFilter(def.createTargetObjectsFilter());
+        wrapper.setFilter(def.createTargetObjectsFilter(true));
         return wrapper;
     }
 }

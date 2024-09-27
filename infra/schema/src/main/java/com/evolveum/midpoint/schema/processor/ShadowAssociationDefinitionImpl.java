@@ -1032,6 +1032,11 @@ public class ShadowAssociationDefinitionImpl
         return modernAssociationDefinitionBean;
     }
 
+    @Override
+    public @Nullable ShadowAssociationTypeDefinitionType getModernAssociationTypeDefinitionBean() {
+        return modernAssociationTypeDefinitionBean;
+    }
+
     private record LegacyAssociationTypeInformation(
             @Nullable MappingType outboundMappingBean,
             @NotNull List<InboundMappingType> inboundMappingBeans) implements Serializable {

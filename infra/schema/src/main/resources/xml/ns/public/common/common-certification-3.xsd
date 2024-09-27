@@ -206,7 +206,8 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="number" type="xsd:int" minOccurs="1">
+            <xsd:element name="number" type="xsd:int" minOccurs="0">
+                <!-- cannot be minOccurs=1, because Java getter then produces NPE if data is missing (MID-9331) -->
                 <xsd:annotation>
                     <xsd:documentation>
                         Stages are numbered from 1 onwards.
@@ -519,7 +520,8 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="stageNumber" type="xsd:int" minOccurs="1">
+                    <xsd:element name="stageNumber" type="xsd:int" minOccurs="0">
+                        <!-- cannot be minOccurs=1, because Java getter then produces NPE if data is missing (MID-9331) -->
                         <xsd:annotation>
                             <xsd:documentation>
                                 The stage this campaign is in.
@@ -569,7 +571,8 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="number" type="xsd:int">
+            <xsd:element name="number" type="xsd:int" minOccurs="0">
+                <!-- cannot be minOccurs=1, because Java getter then produces NPE if data is missing (MID-9331) -->
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO
@@ -877,7 +880,8 @@
                 </xsd:annotation>
             </xsd:element>
             -->
-            <xsd:element name="stageNumber" type="xsd:int">
+            <xsd:element name="stageNumber" type="xsd:int" minOccurs="0">
+                <!-- cannot be minOccurs=1, because Java getter then produces NPE if data is missing (MID-9331) -->
                 <xsd:annotation>
                     <xsd:documentation>
                         The number of current stage in which this case is.
@@ -986,7 +990,8 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="stageNumber" type="xsd:int" minOccurs="1" />
+            <!-- cannot be minOccurs=1, because Java getter then produces NPE if data is missing (MID-9331) -->
+            <xsd:element name="stageNumber" type="xsd:int" minOccurs="0" />
             <xsd:element name="outcome" type="tns:AccessCertificationResponseType" minOccurs="1" />
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>

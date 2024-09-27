@@ -11,7 +11,12 @@
     <archetypeType>auxiliary</archetypeType>
     <archetypePolicy>
         <display>
-            <label>Provisioning propagation task (many resources)</label>
+            <label>
+                <orig>Provisioning propagation task (many resources)</orig>
+                <translation>
+                    <key>ProvisioningPropagationTask.manyResources.label</key>
+                </translation>
+            </label>
             <pluralLabel>
                 <orig>Provisioning propagation task (many resources)</orig>
                 <translation>

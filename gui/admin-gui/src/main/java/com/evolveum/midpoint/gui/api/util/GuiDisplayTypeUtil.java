@@ -191,7 +191,7 @@ public class GuiDisplayTypeUtil {
         return createSimpleObjectRelationDisplayType(pageBase, defaultTitleKey, typeTitle, relationTitle);
     }
 
-    public static DisplayType getNewObjectDisplayTypeFromCollectionView(CompiledObjectCollectionView view, PageBase pageBase) {
+    public static DisplayType getNewObjectDisplayTypeFromCollectionView(CompiledObjectCollectionView view) {
         DisplayType displayType = view != null ? view.getDisplay() : null;
         if (displayType == null) {
             displayType = createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green", "");
@@ -202,12 +202,14 @@ public class GuiDisplayTypeUtil {
         }
 
         if (!PolyStringUtils.isEmpty(displayType.getSingularLabel()) || !PolyStringUtils.isEmpty(displayType.getLabel())) {
-            PolyStringType label = !PolyStringUtils.isEmpty(displayType.getSingularLabel()) ?
+            PolyStringType label = displayType.getSingularLabel() != null ?
                     displayType.getSingularLabel() : displayType.getLabel();
-            String sb = pageBase.createStringResource("MainObjectListPanel.newObject").getString()
-                    + " "
-                    + label.getOrig().toLowerCase();
-            displayType.setTooltip(WebComponentUtil.createPolyFromOrigString(sb));
+
+            String name = LocalizationUtil.translatePolyString(label);
+
+            String tooltip = LocalizationUtil.translate("MainObjectListPanel.newObjectWithName", new Object[]{ name });
+
+            displayType.setTooltip(WebComponentUtil.createPolyFromOrigString(tooltip));
         }
         return view != null ? view.getDisplay() : null;
     }

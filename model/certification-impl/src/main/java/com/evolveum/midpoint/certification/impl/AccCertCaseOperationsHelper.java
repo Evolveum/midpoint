@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.certification.impl;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 import static com.evolveum.midpoint.certification.api.OutcomeUtils.normalizeToNull;
@@ -106,9 +108,9 @@ public class AccCertCaseOperationsHelper {
         ItemDeltaCollectionsUtil.applyTo(deltaList, campaign.asPrismContainerValue()); // to have data for outcome computation
 
         AccessCertificationResponseType newCurrentOutcome =
-                computationHelper.computeOutcomeForStage(aCase, campaign, campaign.getStageNumber());
+                computationHelper.computeOutcomeForStage(aCase, campaign, or0(campaign.getStageNumber()));
         AccessCertificationResponseType newOverallOutcome =
-                computationHelper.computeOverallOutcome(aCase, campaign, campaign.getStageNumber(), newCurrentOutcome);
+                computationHelper.computeOverallOutcome(aCase, campaign, or0(campaign.getStageNumber()), newCurrentOutcome);
         deltaList.addAll(prismContext.deltaFor(AccessCertificationCampaignType.class)
                 .item(F_CASE, caseId, F_CURRENT_STAGE_OUTCOME).replace(toUri(newCurrentOutcome))
                 .item(F_CASE, caseId, F_OUTCOME).replace(toUri(newOverallOutcome))
@@ -157,7 +159,7 @@ public class AccCertCaseOperationsHelper {
             if (norm(workItem.getIteration()) != norm(campaign.getIteration())) {
                 throw new IllegalStateException("Couldn't delegate a work item that is not in a current iteration. Current iteration: " + norm(campaign.getIteration()) + ", work item iteration: " + norm(workItem.getIteration()));
             }
-            if (workItem.getStageNumber() != campaign.getStageNumber()) {
+            if (or0(workItem.getStageNumber()) != or0(campaign.getStageNumber())) {
                 throw new IllegalStateException("Couldn't delegate a work item that is not in a current stage. Current stage: " + campaign.getStageNumber() + ", work item stage: " + workItem.getStageNumber());
             }
             List<ObjectReferenceType> delegates = computeDelegateTo(delegateAction, workItem, aCase, campaign, task, result);
@@ -179,7 +181,7 @@ public class AccCertCaseOperationsHelper {
             event.setAttorneyRef(attorney);
             event.setWorkItemId(workItem.getId());
             event.setEscalationLevel(workItem.getEscalationLevel());
-            event.setStageNumber(campaign.getStageNumber());
+            event.setStageNumber(or0(campaign.getStageNumber()));
             event.setIteration(norm(campaign.getIteration()));
             addDeltasForNewAssigneesAndEvent(deltas, workItem, aCase, newAssignees, event);
 
@@ -241,7 +243,7 @@ public class AccCertCaseOperationsHelper {
             if (workItem.getCloseTimestamp() != null) {
                 throw new IllegalStateException("Couldn't delegate a work item that is already closed: " + workItem);
             }
-            if (workItem.getStageNumber() != workItemCampaign.getStageNumber()) {
+            if (or0(workItem.getStageNumber()) != or0(workItemCampaign.getStageNumber())) {
                 throw new IllegalStateException("Couldn't delegate a work item that is not in a current stage. Current stage: " + workItemCampaign.getStageNumber() + ", work item stage: " + workItem.getStageNumber());
             }
             if (norm(workItem.getIteration()) != norm(workItemCampaign.getIteration())) {
@@ -274,7 +276,7 @@ public class AccCertCaseOperationsHelper {
             event.setAttorneyRef(attorney);
             event.setWorkItemId(workItem.getId());
             event.setEscalationLevel(workItem.getEscalationLevel());
-            event.setStageNumber(campaign.getStageNumber());
+            event.setStageNumber(or0(campaign.getStageNumber()));
             event.setIteration(norm(campaign.getIteration()));
             List<ItemDelta<?, ?>> deltas = new ArrayList<>();
             addDeltasForNewAssigneesAndEvent(deltas, workItem, aCase, newAssignees, event);

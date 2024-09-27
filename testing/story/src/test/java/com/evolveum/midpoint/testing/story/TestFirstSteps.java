@@ -294,7 +294,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         then("the import fails");
         assertThatOperationResult(subResult)
                 .isFatalError()
-                .hasMessageContaining("No name in new object");
+                .hasMessageContaining("No name in the new object");
 
         and("no new focus objects are there");
         focusCounter.assertNoNewObjects(result);

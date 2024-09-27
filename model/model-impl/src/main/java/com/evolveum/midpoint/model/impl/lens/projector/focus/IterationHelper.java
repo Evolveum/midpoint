@@ -7,6 +7,11 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus;
 
+import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
+
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
@@ -18,15 +23,11 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Helps {@link AssignmentHolderProcessor} with iteration-related activities.
@@ -339,12 +340,24 @@ class IterationHelper<AH extends AssignmentHolderType> {
 
     private void checkNamePresence(LensContext<AH> context,
             IterationHelper<AH> ctx, @NotNull PrismObject<AH> objectNew) throws NoFocusNameSchemaException {
-        // Explicitly check for name. The checker would check for this also. But checking it here
-        // will produce better error message
-        PolyStringType objectName = objectNew.asObjectable().getName();
-        if (objectName == null || objectName.getOrig() == null || objectName.getOrig().isEmpty()) {
-            throw new NoFocusNameSchemaException("No name in new object " + objectName + " as produced by template " + context.getFocusTemplate() +
-                    " in iteration " + ctx.iteration + ", we cannot process an object without a name");
+        // Explicitly check for name. The checker would check for this also.
+        // But checking it here will produce better error message.
+        var objectName = getOrig(objectNew.asObjectable().getName());
+        if (StringUtils.isEmpty(objectName)) {
+            var sb = new StringBuilder();
+            sb.append("No name in the new object");
+            var template = context.getFocusTemplate();
+            if (template != null) {
+                sb.append(", produced by the template ");
+                sb.append(template);
+            }
+            if (ctx.iteration > 0) {
+                sb.append(", in iteration ");
+                sb.append(ctx.iteration);
+            }
+            sb.append(". We cannot process an object without a name. ");
+            sb.append("Are inbound and/or object template mappings correct and enabled?");
+            throw new NoFocusNameSchemaException(sb.toString());
         }
     }
 

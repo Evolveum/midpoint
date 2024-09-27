@@ -10,12 +10,9 @@ package com.evolveum.midpoint.gui.impl.util;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
-import com.evolveum.midpoint.gui.impl.component.tile.Tile;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.basic.AssociationDefinitionWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.model.api.util.ResourceUtils;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -47,7 +44,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -57,6 +53,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 
@@ -292,28 +290,28 @@ public class ProvisioningObjectsUtil {
     }
 
     public static ObjectFilter getShadowTypeFilterForAssociation(ResourceObjectDefinition oc, ItemName association) {
-        PrismContext prismContext = PrismContext.get();
-        ObjectQuery query = prismContext.queryFactory().createQuery();
         if (oc == null) {
             return null;
         }
-        var shadowAssociationDefinitions = oc.getReferenceAttributeDefinitions();
+        var shadowAssociationDefinitions = oc.getAssociationDefinitions();
 
-        for (ShadowReferenceAttributeDefinition shadowReferenceAttributeDefinition : shadowAssociationDefinitions) {
-            if (association != null && !shadowReferenceAttributeDefinition.getItemName().equivalent(association)) {
+        List<ObjectFilter> filters = new ArrayList<>();
+        for (ShadowAssociationDefinition shadowAssociationDefinition : shadowAssociationDefinitions) {
+            if (association != null && !shadowAssociationDefinition.getItemName().equivalent(association)) {
                 continue;
             }
-            ObjectFilter filter = shadowReferenceAttributeDefinition.createTargetObjectsFilter();
-            query.setFilter(filter);        // TODO this overwrites existing filter (created in previous cycle iteration)... is it OK? [med]
+            ObjectFilter filter = shadowAssociationDefinition.createTargetObjectsFilter(true);
+            filters.add(filter);
         }
-        return query.getFilter();
+        PrismContext prismContext = PrismContext.get();
+        return prismContext.queryFactory().createOr(filters);
     }
 
     /** Creates a filter that provides all shadows eligible as the target value for this association. */
     public static ObjectFilter createAssociationShadowRefFilter(
             ShadowReferenceAttributeDefinition shadowReferenceAttributeDefinition,
             PrismContext prismContext, String resourceOid) {
-        return shadowReferenceAttributeDefinition.createTargetObjectsFilter();
+        return shadowReferenceAttributeDefinition.createTargetObjectsFilter(true);
     }
 
     public static ItemVisibility checkShadowActivationAndPasswordVisibility(ItemWrapper<?, ?> itemWrapper,
@@ -542,8 +540,8 @@ public class ProvisioningObjectsUtil {
         return new ArrayList<>();
     }
 
-    public static List<ShadowReferenceAttributeDefinition> getRefinedAssociationDefinition(ConstructionType construction, PageBase pageBase) {
-        List<ShadowReferenceAttributeDefinition> associationDefinitions = new ArrayList<>();
+    public static List<ShadowAssociationDefinition> getReferenceAssociationDefinition(ConstructionType construction, PageBase pageBase) {
+        List<ShadowAssociationDefinition> associationDefinitions = new ArrayList<>();
 
         if (construction == null) {
             return associationDefinitions;
@@ -565,9 +563,20 @@ public class ProvisioningObjectsUtil {
         return associationDefinitions;
     }
 
-    public static List<ShadowReferenceAttributeDefinition> getRefinedAssociationDefinition(@NotNull ResourceObjectDefinition oc) {
+    private static List<ShadowReferenceAttributeDefinition> getReferenceAssociationDefinition(@NotNull ResourceObjectDefinition oc) {
 
         List<ShadowReferenceAttributeDefinition> associationDefinitions = new ArrayList<>(oc.getReferenceAttributeDefinitions());
+
+        if (CollectionUtils.isEmpty(associationDefinitions)) {
+            LOGGER.debug("Association not supported by resource object definition {}", oc);
+            return associationDefinitions;
+        }
+        return associationDefinitions;
+    }
+
+    private static List<ShadowAssociationDefinition> getRefinedAssociationDefinition(@NotNull ResourceObjectDefinition oc) {
+
+        List<ShadowAssociationDefinition> associationDefinitions = new ArrayList<>(oc.getAssociationDefinitions());
 
         if (CollectionUtils.isEmpty(associationDefinitions)) {
             LOGGER.debug("Association not supported by resource object definition {}", oc);
@@ -593,8 +602,38 @@ public class ProvisioningObjectsUtil {
         return schema.findDefinitionForConstruction(construction);
     }
 
-    public static List<ShadowReferenceAttributeDefinition> getRefinedAssociationDefinition(ResourceType resource, ShadowKindType kind, String intent) {
+    public static List<ShadowReferenceAttributeDefinition> getReferenceAssociationDefinition(ResourceType resource, ShadowKindType kind, String intent) {
         List<ShadowReferenceAttributeDefinition> associationDefinitions = new ArrayList<>();
+
+        try {
+
+            if (resource == null) {
+                return associationDefinitions;
+            }
+            ResourceSchema refinedResourceSchema = ResourceSchemaFactory.getCompleteSchema(resource.asPrismObject());
+            if (com.evolveum.midpoint.schema.util.ShadowUtil.isNotKnown(kind)) {
+                return associationDefinitions;
+            }
+
+            ResourceObjectDefinition oc;
+            if (com.evolveum.midpoint.schema.util.ShadowUtil.isNotKnown(intent)) {
+                oc = refinedResourceSchema.findDefaultDefinitionForKind(kind);
+            } else {
+                oc = refinedResourceSchema.findObjectDefinition(kind, intent);
+            }
+            if (oc == null) {
+                LOGGER.debug("Association for {}/{} not supported by resource {}", kind, intent, resource);
+                return associationDefinitions;
+            }
+            return getReferenceAssociationDefinition(oc);
+        } catch (Exception ex) {
+            LOGGER.error("Association for {}/{} not supported by resource {}: {}", kind, intent, resource, ex.getLocalizedMessage());
+        }
+        return associationDefinitions;
+    }
+
+    public static List<ShadowAssociationDefinition> getRefinedAssociationDefinition(ResourceType resource, ShadowKindType kind, String intent) {
+        List<ShadowAssociationDefinition> associationDefinitions = new ArrayList<>();
 
         try {
 
@@ -623,12 +662,39 @@ public class ProvisioningObjectsUtil {
         return associationDefinitions;
     }
 
+    public static ShadowAssociationDefinition getRefinedAssociationDefinition(ItemName association, ConstructionType construction, PageBase pageBase) {
+        if (construction == null || association == null) {
+            return null;
+        }
+
+        ResourceObjectDefinition objectDef = null;
+        try {
+            objectDef = getResourceObjectDefinition(construction, pageBase);
+        } catch (CommonException e) {
+            LOGGER.debug("Couldn't find ResourceObjectDefinition for construction " + construction);
+        }
+        if (objectDef == null) {
+            return null;
+        }
+
+        for (ShadowAssociationDefinition shadowAssociationDefinition : objectDef.getAssociationDefinitions()) {
+            if (shadowAssociationDefinition.getItemName().equivalent(association)) {
+                return shadowAssociationDefinition;
+            }
+        }
+        return null;
+    }
+
     public static String getAssociationDisplayName(ShadowReferenceAttributeDefinition assocDef) {
         if (assocDef != null) {
             return assocDef.getHumanReadableDescription();
         } else {
             return "";
         }
+    }
+
+    public static String getAssociationDisplayName(ShadowAssociationDefinition assocDef) {
+        return getAssociationDisplayName(assocDef.getReferenceAttributeDefinition());
     }
 
     @Deprecated
@@ -764,5 +830,41 @@ public class ProvisioningObjectsUtil {
                             list.add(associationDef);
                         }));
         return list;
+    }
+
+    @Nullable
+    public static ItemName getAssociationForConstructionAndShadow(@NotNull ConstructionType construction, @NotNull ShadowType shadow, PageBase pageBase) {
+        if (construction.getAssociation() != null
+                && construction.getAssociation().size() == 1
+                && construction.getAssociation().get(0).getRef() != null) {
+            return construction.getAssociation().get(0).getRef().getItemPath().lastName();
+        }
+
+        ResourceObjectDefinition objectDef = null;
+        try {
+            objectDef = getResourceObjectDefinition(construction, pageBase);
+        } catch (CommonException e) {
+            LOGGER.debug("Couldn't find ResourceObjectDefinition for construction " + construction);
+        }
+        if (objectDef == null) {
+            return null;
+        }
+
+        List<? extends ShadowAssociationDefinition> associationDefs = objectDef.getAssociationDefinitions().stream()
+                .filter(assocDef -> assocDef.getObjectParticipants().values().stream()
+                        .anyMatch(participant -> participant.matches(shadow)))
+                .toList();
+
+        if (associationDefs.isEmpty()) {
+            LOGGER.debug("Couldn't find association definition for shadow " + shadow + " in " + objectDef);
+            return null;
+        }
+
+        if (associationDefs.size() > 1) {
+            LOGGER.debug("Couldn't find one association definition for shadow " + shadow + " found: " + associationDefs);
+            return null;
+        }
+
+        return associationDefs.get(0).getItemName();
     }
 }

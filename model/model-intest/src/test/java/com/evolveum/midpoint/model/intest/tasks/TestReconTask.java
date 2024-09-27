@@ -8,7 +8,12 @@ package com.evolveum.midpoint.model.intest.tasks;
 
 import java.io.File;
 
+import com.evolveum.midpoint.test.DummyTestResource;
+import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -22,6 +27,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
+import static com.evolveum.midpoint.model.api.ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_PATH;
+
 /**
  * Tests basic functionality of reconciliation tasks.
  */
@@ -34,7 +41,13 @@ public class TestReconTask extends AbstractInitializedModelIntegrationTest {
     @SuppressWarnings("FieldCanBeLocal")
     private DummyInterruptedSyncResource interruptedSyncResource;
 
-    private static final TestObject<TaskType> TASK_RECONCILIATION = TestObject.file(TEST_DIR, "task-reconciliation.xml", "1cf4e4fd-7648-4f83-bed4-78bd5d30d2a3");
+    private static final TestObject<TaskType> TASK_RECONCILIATION =
+            TestObject.file(TEST_DIR, "task-reconciliation.xml", "1cf4e4fd-7648-4f83-bed4-78bd5d30d2a3");
+
+    private static final DummyTestResource RESOURCE_DUMMY_HARSH = new DummyTestResource(
+            TEST_DIR, "resource-dummy-harsh.xml", "faa1d45c-12bb-44d9-b157-bd99c786d39c", "harsh");
+    private static final TestTask TASK_RECONCILIATION_HARSH =
+            TestTask.file(TEST_DIR, "task-reconciliation-harsh.xml", "0a53b8f1-f91a-4a5b-a454-4985f73c3330");
 
     private static final String USER_FORMAT = "user-";
 
@@ -50,6 +63,10 @@ public class TestReconTask extends AbstractInitializedModelIntegrationTest {
 
         assertUsers(getNumberOfUsers());
         interruptedSyncResource.createAccounts(USERS, this::getUserName);
+
+        RESOURCE_DUMMY_HARSH.initAndTest(this, initTask, initResult);
+        RESOURCE_DUMMY_HARSH.addAccount("account1");
+        TASK_RECONCILIATION_HARSH.init(this, initTask, initResult);
     }
 
     TestObject<TaskType> getReconciliationTask() {
@@ -60,8 +77,13 @@ public class TestReconTask extends AbstractInitializedModelIntegrationTest {
         return getReconciliationTask().oid;
     }
 
+    // TODO seems to be unused
     private int getWorkerThreads() {
         return 0;
+    }
+
+    boolean isMultiNode() {
+        return false;
     }
 
     private String getUserName(int i) {
@@ -96,5 +118,25 @@ public class TestReconTask extends AbstractInitializedModelIntegrationTest {
                     .assertProgress(0)
                     .assertItemsProcessed(0)
                 .end();
+    }
+
+    /** Accounts that are deleted because of sync reaction should be reported correctly in the task. MID-9217. */
+    @Test
+    public void test200ReportingOnDeletedAccounts() throws Exception {
+        skipTestIf(isMultiNode(), "It is sufficient to run this test once");
+
+        var task = getTestTask();
+        var result = task.getResult();
+
+        when("harsh resource is reconciled");
+        TASK_RECONCILIATION_HARSH.rerun(result);
+
+        then("actions executed are correct");
+        TASK_RECONCILIATION_HARSH.assertAfter()
+                .activityState(RECONCILIATION_RESOURCE_OBJECTS_PATH)
+                .actionsExecuted()
+                .all()
+                .display()
+                .assertFailureCount(ChangeTypeType.MODIFY, ShadowType.COMPLEX_TYPE, 0, 0);
     }
 }

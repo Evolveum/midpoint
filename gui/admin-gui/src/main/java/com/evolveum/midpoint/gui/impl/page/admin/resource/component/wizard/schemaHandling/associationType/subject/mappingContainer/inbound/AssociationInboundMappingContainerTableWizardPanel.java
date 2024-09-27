@@ -59,4 +59,12 @@ public abstract class AssociationInboundMappingContainerTableWizardPanel extends
     protected String getTitleIconClass() {
         return "fa fa-arrow-right-to-bracket";
     }
+
+    @Override
+    protected IModel<String> getExitLabel() {
+        if(getHelper().getExitLabel() != null) {
+            return getHelper().getExitLabel();
+        }
+        return super.getExitLabel();
+    }
 }

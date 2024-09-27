@@ -65,8 +65,7 @@ public class FocusResourceObjectTypeStepPanel
     @Override
     protected ItemVisibilityHandler getVisibilityHandler() {
         return wrapper -> {
-            if (wrapper.getItemName().equals(ResourceObjectFocusSpecificationType.F_ITEM_PATH)
-                    || wrapper.getItemName().equals(ResourceObjectFocusSpecificationType.F_ASSIGNMENT_SUBTYPE)) {
+            if (wrapper.getItemName().equals(ResourceObjectFocusSpecificationType.F_ASSIGNMENT_SUBTYPE)) {
                 return ItemVisibility.HIDDEN;
             }
             return ItemVisibility.AUTO;

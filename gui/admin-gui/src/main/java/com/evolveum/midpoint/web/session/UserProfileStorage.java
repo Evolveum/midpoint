@@ -158,7 +158,8 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
         PANEL_ASSOCIATION_OUTBOUND,
         PANEL_MARKING_WIZARD,
         PANEL_DEFAULT_OPERATION_POLICIES_WIZARD,
-        PANEL_MARKS_OF_OBJECT
+        PANEL_MARKS_OF_OBJECT,
+        PANEL_FOCUS_MAPPING_WIZARD
     }
 
     private final Map<String, Integer> tables = new HashMap<>();

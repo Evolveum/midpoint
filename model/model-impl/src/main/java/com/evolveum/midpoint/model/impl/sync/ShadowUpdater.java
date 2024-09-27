@@ -176,17 +176,11 @@ class ShadowUpdater {
         if (deltas.isEmpty()) {
             return;
         }
-        try {
-            if (isShadowSimulation()) {
-                commitToSimulation(result);
-                keepOnlySynchronizationTimestampDelta();
-            }
-            commitToRepository(result);
-            recordModificationExecuted(null);
-        } catch (Throwable t) {
-            recordModificationExecuted(t);
-            throw t;
+        if (isShadowSimulation()) {
+            commitToSimulation(result);
+            keepOnlySynchronizationTimestampDelta();
         }
+        commitToRepository(result);
         deltas.clear();
     }
 
@@ -217,11 +211,13 @@ class ShadowUpdater {
         }
         try {
             beans.cacheRepositoryService.modifyObject(ShadowType.class, syncCtx.getShadowOid(), deltas, result);
+            recordModificationExecuted(null);
         } catch (ObjectNotFoundException ex) {
-            recordModificationExecuted(ex);
             // This may happen e.g. during some recon-livesync interactions.
             // If the shadow is gone then it is gone. No point in recording the
             // situation any more.
+            //
+            // Also, we do not record modification executed here (see MID-9217).
             LOGGER.debug("Could not update synchronization metadata in account, because shadow {} does not "
                     + "exist any more (this may be harmless)", syncCtx.getShadowOid());
             syncCtx.setShadowExistsInRepo(false);

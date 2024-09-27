@@ -5,11 +5,8 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<role xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" oid="34713dae-0000-4717-b184-86d02c9a2361"
-      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+<role oid="34713dae-0000-4717-b184-86d02c9a2361"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>OpenDJ User</name>
 
     <inducement>

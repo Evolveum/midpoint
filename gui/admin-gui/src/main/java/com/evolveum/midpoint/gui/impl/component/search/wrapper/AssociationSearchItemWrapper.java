@@ -8,11 +8,13 @@ package com.evolveum.midpoint.gui.impl.component.search.wrapper;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
+import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
 import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.DisplayableValue;
@@ -33,12 +35,14 @@ public class AssociationSearchItemWrapper extends ChoicesSearchItemWrapper<ItemN
         if (objectDefinition == null) {
             return List.of();
         }
-        List<ShadowReferenceAttributeDefinition> associations = ProvisioningObjectsUtil.getRefinedAssociationDefinition(objectDefinition);
+        List<? extends ShadowAssociationDefinition> associations = objectDefinition.getAssociationDefinitions();
         List<DisplayableValue<ItemName>> values = new ArrayList<>();
-        associations.forEach(association -> values.add(
+        associations.stream()
+                .filter(association -> !association.isComplex())
+                .forEach(association -> values.add(
                 new SearchValue<>(
                         association.getItemName(),
-                        ProvisioningObjectsUtil.getAssociationDisplayName(association))));
+                        GuiDisplayNameUtil.getDisplayName(association.getModernAssociationTypeDefinitionBean()))));
         return values;
     }
 

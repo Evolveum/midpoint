@@ -21,6 +21,8 @@ import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardChoicePanelWithSeparatedCreatePanel;
 
+import org.apache.wicket.model.IModel;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -83,6 +85,14 @@ public class ResourceAssociationTypeWizardPanel extends AbstractWizardChoicePane
             protected void onExitPerformed(AjaxRequestTarget target) {
                 super.onExitPerformed(target);
                 ResourceAssociationTypeWizardPanel.this.onExitPerformed(target);
+            }
+
+            @Override
+            protected IModel<String> getExitLabel() {
+                if(getHelper().getExitLabel() != null) {
+                    return getHelper().getExitLabel();
+                }
+                return super.getExitLabel();
             }
         };
     }

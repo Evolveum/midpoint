@@ -60,7 +60,7 @@ abstract public class CaseManagementEventImpl extends BaseEventImpl implements C
         return outcomeToStatus(changeType, getCaseOrItemOutcome());
     }
 
-    protected abstract String getCaseOrItemOutcome();
+    public abstract String getCaseOrItemOutcome();
 
     @Override
     public String getStatusAsText() {

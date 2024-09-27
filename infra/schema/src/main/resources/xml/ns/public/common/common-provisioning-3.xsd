@@ -1336,20 +1336,14 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="itemPath" type="t:ItemPathType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Path of the item to which this resource object should be mapped.
-                        If not specified, the resource object corresponds to the whole focus object.
-                        (A special case is when "assignmentSubtype" is present, then the default path is "assignment".)
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="assignmentSubtype" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Subtype of the assignment to which this resource object is mapped (if applicable).
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.9</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -1945,7 +1939,14 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="ref" type="xsd:QName" minOccurs="0">
-                <!-- TODO docs [not useful for subjects] -->
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If the association has more than one object, this property points to the one which we define here.
+
+                        Unnecessary for simple associations.
+                        Please leave undefined for subject definitions.
+                    </xsd:documentation>
+                </xsd:annotation>
             </xsd:element>
             <xsd:element name="objectType" type="tns:ResourceObjectTypeIdentificationType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
@@ -5455,11 +5456,6 @@
                                 about the actual resource object. This caching metadata structure
                                 describes when the cached data were retrieved - therefore how fresh
                                 they are.
-                                For now the cachingMetadata are not stored in the repository.
-                                This is now a "virtual" and "transient" property filled in
-                                when the full shadow is retrieved from the resource.
-                                Later on this can get a more proper meaning when we implement
-                                full attribute caching.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

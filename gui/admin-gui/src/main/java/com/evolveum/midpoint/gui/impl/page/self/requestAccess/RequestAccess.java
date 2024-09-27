@@ -528,14 +528,15 @@ public class RequestAccess implements Serializable {
             ObjectDelta<UserType> delta = createUserDelta(user);
 
             ModelExecuteOptions options = ModelExecuteOptions.create()
+                    .firstClickOnly()
                     .partialProcessing(new PartialProcessingOptionsType()
                             .inbound(SKIP)
                             .projection(SKIP))
-                    .ignoreAssignmentPruning();
+                    .ignoreAssignmentPruning()
+                    .previewPolicyRulesEnforcement();
 
             MidPointApplication mp = MidPointApplication.get();
-            ModelContext<UserType> ctx = mp.getModelInteractionService()
-                    .previewChangesLegacy(MiscUtil.createCollection(delta), options, task, List.of(), result);
+            ModelContext<UserType> ctx = mp.getModelInteractionService().previewChanges(List.of(delta), options, task, result);
 
             DeltaSetTriple<? extends EvaluatedAssignment> evaluatedTriple = ctx.getEvaluatedAssignmentTriple();
 

@@ -79,7 +79,7 @@ public class WfHook implements ChangeHook {
     }
 
     @Override
-    public <O extends ObjectType> HookOperationMode invoke(
+    public <O extends ObjectType> @NotNull HookOperationMode invoke(
             @NotNull ModelContext<O> context, @NotNull Task task, @NotNull OperationResult parentResult) {
         // Generally this cannot be minor as we need the "task switched to background" flag.
         // But if the hook does nothing (returns FOREGROUND flag), we mark the result
@@ -155,8 +155,11 @@ public class WfHook implements ChangeHook {
         }
     }
 
-    private HookOperationMode processModelInvocation(@NotNull ModelContext<? extends ObjectType> modelContext,
-            WfConfigurationType wfConfigurationType, @NotNull Task opTask, @NotNull OperationResult result) {
+    private @NotNull HookOperationMode processModelInvocation(
+            @NotNull ModelContext<? extends ObjectType> modelContext,
+            WfConfigurationType wfConfigurationType,
+            @NotNull Task opTask,
+            @NotNull OperationResult result) {
         try {
             modelContext.reportProgress(new ProgressInformation(WORKFLOWS, ENTERING));
             ModelInvocationContext<?> ctx =

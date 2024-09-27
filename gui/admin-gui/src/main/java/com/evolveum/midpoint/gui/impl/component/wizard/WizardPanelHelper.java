@@ -31,7 +31,9 @@ public abstract class WizardPanelHelper<C extends Containerable, AHD extends Ass
     private static final Trace LOGGER = TraceManager.getTrace(WizardPanelHelper.class);
 
     private IModel<PrismContainerValueWrapper<C>> valueModel;
+
     private AHD detailsModel;
+    private IModel<String> exitLabel;
 
     public WizardPanelHelper(
             @NotNull AHD resourceModel) {
@@ -136,5 +138,13 @@ public abstract class WizardPanelHelper<C extends Containerable, AHD extends Ass
                 return null;
             }
         };
+    }
+
+    public void setExitLabel(IModel<String> exitLabel) {
+        this.exitLabel = exitLabel;
+    }
+
+    public IModel<String> getExitLabel() {
+        return exitLabel;
     }
 }

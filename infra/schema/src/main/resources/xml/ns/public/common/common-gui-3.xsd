@@ -1609,6 +1609,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>UserInterfaceFeatureType.identifier</a:displayName>
+                        <a:displayOrder>10</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1622,6 +1623,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>UserInterfaceFeatureType.description</a:displayName>
+                        <a:displayOrder>20</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1676,6 +1678,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.0</a:since>
+                        <a:displayOrder>30</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -2078,6 +2081,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>GuiObjectListViewType.type</a:displayName>
+                                <a:displayOrder>40</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -2131,6 +2135,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+    <xsd:element name="guiObjectListView" type="tns:GuiObjectListViewType"/>
 
     <xsd:complexType name="GuiListDataProviderType">
         <xsd:annotation>
@@ -3569,6 +3574,7 @@
                             <xsd:appinfo>
                                 <a:displayName>ConfigurableUserDashboardType.configurableDashboardRef</a:displayName>
                                 <a:objectReferenceTargetType>tns:DashboardType</a:objectReferenceTargetType>
+                                <a:displayOrder>40</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -3605,6 +3611,38 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>FeedbackMessagesHookType.stackTraceVisibility</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element minOccurs="0" name="showOnlyUserFriendlyMessages" type="xsd:boolean">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If set to true, only user-friendly messages will be shown in the GUI.
+                        This is useful for production systems to avoid showing internal error messages.
+                        If there's no user-friendly message, the default simple user-friendly message will be used.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>FeedbackMessagesHookType.showOnlyUserFriendlyMessages</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element minOccurs="0" name="disableOperationResultDownload" type="xsd:boolean">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If set to true, the operation result download will be disabled.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>FeedbackMessagesHookType.disableOperationResultDownload</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element minOccurs="0" name="displayOnlyTopLevelOperationResult" type="xsd:boolean">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If set to true, only top-level operation result will be displayed.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>FeedbackMessagesHookType.displayOnlyTopLevelOperationResult</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -3874,6 +3912,7 @@
                                 <xsd:appinfo>
                                     <a:since>4.0</a:since>
                                     <a:displayName>CollectionSpecificationType.collectionRef</a:displayName>
+                                    <a:displayOrder>10</a:displayOrder>
                                 </xsd:appinfo>
                             </xsd:annotation>
                         </xsd:element>

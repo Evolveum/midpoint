@@ -10,6 +10,7 @@ package com.evolveum.midpoint.gui.impl.component.tile;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -56,7 +57,7 @@ public class TilePanel<T extends Tile<O>, O extends Serializable> extends BasePa
         add(AttributeAppender.append("class", () -> getModelObject().isSelected() ? "active" : null));
         setOutputMarkupId(true);
 
-        WebMarkupContainer icon = createIconPanel(ID_ICON);
+        Component icon = createIconPanel(ID_ICON);
         add(icon);
 
         Label title = new Label(ID_TITLE, () -> {
@@ -87,7 +88,7 @@ public class TilePanel<T extends Tile<O>, O extends Serializable> extends BasePa
         return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
     }
 
-    protected WebMarkupContainer createIconPanel(String idIcon) {
+    protected Component createIconPanel(String idIcon) {
         WebMarkupContainer icon = new WebMarkupContainer(idIcon);
         icon.add(AttributeAppender.append("class", () -> getModelObject().getIcon()));
         return icon;

@@ -5,14 +5,19 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <archetype oid="00000000-0000-0000-0000-000000000504"
-           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-           xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-           xmlns:livesync="http://midpoint.evolveum.com/xml/ns/public/provisioning/liveSync-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
+        xmlns:livesync="http://midpoint.evolveum.com/xml/ns/public/provisioning/liveSync-3">
     <name>Live synchronization task</name>
     <archetypePolicy>
         <display>
-            <label>Live synchronization task</label>
+            <label>
+                <orig>Live synchronization task</orig>
+                <translation>
+                    <key>LiveSynchronizationTask.label</key>
+                </translation>
+            </label>
             <pluralLabel>
                 <orig>Live synchronization tasks</orig>
                 <translation>

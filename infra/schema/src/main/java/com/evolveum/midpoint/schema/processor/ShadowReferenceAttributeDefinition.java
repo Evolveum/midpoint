@@ -12,12 +12,11 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
@@ -93,31 +92,18 @@ public interface ShadowReferenceAttributeDefinition
                 .anyMatch(participantType -> participantType.matches(potentialTarget));
     }
 
-    // FIXME fix this method
-    default @NotNull ObjectFilter createTargetObjectsFilter() {
-        var resourceOid = stateNonNull(getRepresentativeTargetObjectDefinition().getResourceOid(), "No resource OID in %s", this);
-        var targetParticipantTypes = getTargetParticipantTypes();
-        assertCheck(!targetParticipantTypes.isEmpty(), "No object type definitions (already checked)");
-        var firstObjectType = targetParticipantTypes.iterator().next().getTypeIdentification();
-        if (targetParticipantTypes.size() > 1 || firstObjectType == null) {
-            var objectClassNames = targetParticipantTypes.stream()
-                    .map(def -> def.getObjectDefinition().getObjectClassName())
-                    .collect(Collectors.toSet());
-            var objectClassName = MiscUtil.extractSingletonRequired(
-                    objectClassNames,
-                    () -> new UnsupportedOperationException("Multiple object class names in " + this),
-                    () -> new IllegalStateException("No object class names in " + this));
-            return PrismContext.get().queryFor(ShadowType.class)
-                    .item(ShadowType.F_RESOURCE_REF).ref(resourceOid, ResourceType.COMPLEX_TYPE)
-                    .and().item(ShadowType.F_OBJECT_CLASS).eq(objectClassName)
-                    .buildFilter();
-        } else {
-            return PrismContext.get().queryFor(ShadowType.class)
-                    .item(ShadowType.F_RESOURCE_REF).ref(resourceOid, ResourceType.COMPLEX_TYPE)
-                    .and().item(ShadowType.F_KIND).eq(firstObjectType.getKind())
-                    .and().item(ShadowType.F_INTENT).eq(firstObjectType.getIntent())
-                    .buildFilter();
-        }
+    /**
+     * Returns a filter that provides all shadows eligible as the target value for this reference attribute.
+     *
+     * If `resourceSafe` is `true`, the filter is safe for the execution on the resource, i.e., it does not contain
+     * multiple values for kind and intent. The filtering by object class is used in such cases; that requires post-processing
+     * of returned values that filters out those shadows that do not match those kind/intent values.
+     *
+     * Note that currently provisioning module require at most one kind/intent even with `noFetch` option being present.
+     */
+    default @NotNull ObjectFilter createTargetObjectsFilter(boolean resourceSafe) {
+        return ObjectQueryUtil.createObjectTypesFilter(
+                getResourceOid(), getTargetParticipantTypes(), resourceSafe, this);
     }
 
     /** TODO reconsider this: which definition should we provide as the representative one? There can be many. */
@@ -137,8 +123,10 @@ public interface ShadowReferenceAttributeDefinition
     /** Very poorly defined method; TODO reconsider. */
     boolean isEntitlement();
 
-    default String getResourceOid() {
-        return getRepresentativeTargetObjectDefinition().getResourceOid();
+    default @NotNull String getResourceOid() {
+        return stateNonNull(
+                getRepresentativeTargetObjectDefinition().getResourceOid(),
+                "No resource OID in %s", this);
     }
 
     @NotNull ShadowReferenceAttributeDefinition clone();

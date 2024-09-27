@@ -218,11 +218,10 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
                 .triggers()
                 .assertTriggers(1);
 
-        // Async update is not counted as a connector operation (at least not now). However, there is one "shadow get"
-        // operation because the change does not contain all the data, so we obtain the data from the resource.
-        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
+        // Async update is not counted as a connector operation (at least not now).
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 0);
 
-        // But, we make sure that the clockwork is not run. (MID-5853)
+        // We make sure that the clockwork is not run. (MID-5853)
         assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, 0);
 
         // @formatter:off

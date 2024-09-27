@@ -17,6 +17,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceTask
 
 import com.evolveum.midpoint.model.api.BulkAction;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+
 import jakarta.xml.bind.JAXBElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -330,6 +332,7 @@ public abstract class MemberOperationsTaskCreator {
     private ActivitySubmissionOptions createSubmissionOptions() {
         return ActivitySubmissionOptions.create()
                 .withTaskTemplate(new TaskType()
+                        .channel(SchemaConstants.CHANNEL_USER_URI)
                         .name(WebComponentUtil.createPolyFromOrigString(
                                 getOperationName())));
     }

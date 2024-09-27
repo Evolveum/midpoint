@@ -9,6 +9,7 @@ package com.evolveum.midpoint.certification.impl.task.closeCurrentStage;
 
 import static com.evolveum.midpoint.certification.api.OutcomeUtils.toUri;
 import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
+import static com.evolveum.midpoint.util.MiscUtil.or0;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_CLOSE_TIMESTAMP;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.REVIEW_STAGE_DONE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_CASE;
@@ -80,7 +81,7 @@ public final class AccessCertificationCloseCurrentStageRun
         iteration = norm(campaign.getIteration());
         query = prepareObjectQuery();
 
-        stage = CertCampaignTypeUtil.findStage(campaign, campaign.getStageNumber());
+        stage = CertCampaignTypeUtil.findStage(campaign, or0(campaign.getStageNumber()));
         now = getActivityHandler().getModelBeans().clock.currentTimeXMLGregorianCalendar();
 
         super.beforeRun(result);
@@ -126,9 +127,9 @@ public final class AccessCertificationCloseCurrentStageRun
         Clock clock = getActivityHandler().getModelBeans().clock;
         LOGGER.trace("Updating current outcome for case {}", caseId);
         AccCertResponseComputationHelper computationHelper = getActivityHandler().getComputationHelper();
-        AccessCertificationResponseType newStageOutcome = computationHelper.computeOutcomeForStage(item, campaign, campaign.getStageNumber());
+        AccessCertificationResponseType newStageOutcome = computationHelper.computeOutcomeForStage(item, campaign, or0(campaign.getStageNumber()));
         String newStageOutcomeUri = toUri(newStageOutcome);
-        String newOverallOutcomeUri = toUri(computationHelper.computeOverallOutcome(item, campaign, campaign.getStageNumber(), newStageOutcome));
+        String newOverallOutcomeUri = toUri(computationHelper.computeOverallOutcome(item, campaign, or0(campaign.getStageNumber()), newStageOutcome));
         List<ItemDelta<?, ?>> deltas = new ArrayList<>(
                 PrismContext.get().deltaFor(AccessCertificationCampaignType.class)
                         .item(F_CASE, caseId, F_CURRENT_STAGE_OUTCOME).replace(newStageOutcomeUri)
@@ -136,7 +137,7 @@ public final class AccessCertificationCloseCurrentStageRun
                         .item(F_CASE, caseId, F_EVENT).add(
                                 new StageCompletionEventType()
                                         .timestamp(clock.currentTimeXMLGregorianCalendar())
-                                        .stageNumber(campaign.getStageNumber())
+                                        .stageNumber(or0(campaign.getStageNumber()))
                                         .iteration(campaign.getIteration())
                                         .outcome(newStageOutcomeUri))
                         .asItemDeltas());

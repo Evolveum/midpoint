@@ -106,6 +106,11 @@ public interface ShadowAttributeDefinition<
             return false;
         }
 
+        var typeClass = getTypeClass();
+        if (typeClass.isArray()) {
+            return false; // most probably a byte array, see MID-10059
+        }
+
         var override = isCached();
         if (override != null) {
             return override;

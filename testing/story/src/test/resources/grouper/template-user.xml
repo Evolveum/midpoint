@@ -26,7 +26,7 @@
                     GROUPER_RESOURCE_OID = '1eff65de-5bb6-483d-9edf-8cc2c2ee0233'
                     MEMBER_NAME = new QName(MidPointConstants.NS_RI, 'members')
 
-                    memberDef = prismContext.definitionFactory().createPropertyDefinition(MEMBER_NAME, DOMUtil.XSD_STRING)
+                    memberDef = prismContext.definitionFactory().newPropertyDefinition(MEMBER_NAME, DOMUtil.XSD_STRING)
                     memberDef.setMaxOccurs(-1)
 
                     shadowQuery = prismContext.queryFor(ShadowType.class)

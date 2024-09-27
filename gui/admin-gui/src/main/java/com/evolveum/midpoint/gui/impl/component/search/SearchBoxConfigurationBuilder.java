@@ -90,6 +90,10 @@ public class SearchBoxConfigurationBuilder {
                 ItemPath.create(PrismItemDefinitionType.F_DISPLAY_NAME),
                 ItemPath.create(PrismItemDefinitionType.F_NAME)
         ));
+        FIXED_SEARCH_ITEMS.put(GuiObjectListViewType.class, List.of(
+                ItemPath.create(GuiObjectListViewType.F_IDENTIFIER),
+                ItemPath.create(GuiObjectListViewType.F_TYPE)
+        ));
     }
 
     private Class<?> type;

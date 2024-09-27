@@ -13,6 +13,13 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 
 import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemName;
+
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -87,8 +94,7 @@ public class AssociationExpressionValuePanel extends BasePanel<ExpressionType> {
             @Override
             protected List<ObjectReferenceType> load() {
                 List<ObjectReferenceType> refs = ExpressionUtil.getShadowRefValue(
-                        AssociationExpressionValuePanel.this.getModelObject(),
-                        getPageBase().getPrismContext());
+                        AssociationExpressionValuePanel.this.getModelObject());
                 refs.forEach(ref -> WebModelServiceUtils.resolveReferenceName(ref, getPageBase()));
 
                 return refs;
@@ -120,19 +126,36 @@ public class AssociationExpressionValuePanel extends BasePanel<ExpressionType> {
 
             @Override
             protected <O extends ObjectType> void chooseObjectPerformed(AjaxRequestTarget target, O object) {
-                ExpressionUtil.addShadowRefEvaluatorValue(
-                        AssociationExpressionValuePanel.this.getModelObject(),
-                        object.getOid());
+                ItemName associationName = ProvisioningObjectsUtil.getAssociationForConstructionAndShadow(
+                        construction, (ShadowType) object, getPageBase());
+                if (associationName != null) {
+                    ExpressionUtil.addShadowRefEvaluatorValue(
+                            AssociationExpressionValuePanel.this.getModelObject(),
+                            associationName, object.getOid());
+                }
             }
 
             @Override
             protected void removeObjectPerformed(ObjectReferenceType object) {
                 List<ObjectReferenceType> refs =  ExpressionUtil.getShadowRefValue(
-                        AssociationExpressionValuePanel.this.getModelObject(), getPageBase().getPrismContext());
+                        AssociationExpressionValuePanel.this.getModelObject());
                 refs.removeIf(ref -> ref.getOid().equals(object.getOid()));
-                ExpressionUtil.updateShadowRefEvaluatorValue(
-                        AssociationExpressionValuePanel.this.getModelObject(),
-                        refs);
+                refs.forEach(ref -> {
+                    PrismObject<ShadowType> shadow = ref.getObject();
+                    if (shadow == null) {
+                        shadow = WebModelServiceUtils.loadObject(
+                                ref, SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), getPageBase());
+                    }
+                    if (shadow != null) {
+                        ItemName associationName = ProvisioningObjectsUtil.getAssociationForConstructionAndShadow(
+                                construction, shadow.asObjectable(), getPageBase());
+                        if (associationName != null) {
+                            ExpressionUtil.addShadowRefEvaluatorValue(
+                                    AssociationExpressionValuePanel.this.getModelObject(),
+                                    associationName, object.getOid());
+                        }
+                    }
+                });
                 getModel().detach();
             }
         };

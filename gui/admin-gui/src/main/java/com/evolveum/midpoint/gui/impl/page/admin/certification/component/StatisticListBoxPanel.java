@@ -61,6 +61,8 @@ public class StatisticListBoxPanel<T> extends BasePanel<List<StatisticBoxDto<T>>
     }
 
     private void initLayout() {
+        setOutputMarkupId(true);
+
         WebMarkupContainer titleIcon = new WebMarkupContainer(ID_TITLE_ICON);
         String iconCssClass = GuiDisplayTypeUtil.getIconCssClass(boxDisplayModel.getObject());
         titleIcon.add(AttributeAppender.append("class", iconCssClass));
@@ -88,6 +90,11 @@ public class StatisticListBoxPanel<T> extends BasePanel<List<StatisticBoxDto<T>>
                         return StatisticListBoxPanel.this.createRightSideBoxComponent(id, statisticObject);
                     }
 
+                    @Override
+                    protected boolean isLabelClickable() {
+                        return StatisticListBoxPanel.this.isLabelClickable();
+                    }
+
                 });
             }
         };
@@ -112,6 +119,10 @@ public class StatisticListBoxPanel<T> extends BasePanel<List<StatisticBoxDto<T>>
         add(viewAllLink);
 
         viewAllLink.add(new Label(ID_VIEW_ALL_LABEL, createStringResource("AjaxIconButton.viewAll")));
+    }
+
+    protected boolean isLabelClickable() {
+        return false;
     }
 
     protected boolean isViewAllAllowed() {

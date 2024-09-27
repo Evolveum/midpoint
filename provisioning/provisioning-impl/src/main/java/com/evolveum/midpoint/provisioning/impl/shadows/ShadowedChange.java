@@ -13,6 +13,7 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import java.util.Collection;
 import java.util.Objects;
 
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectAsyncChange;
 import com.evolveum.midpoint.provisioning.util.ErrorState;
 
 import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
@@ -222,7 +223,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
         LOGGER.trace("Going to determine current resource object, as the previous one was non-existent or temporary");
 
         ExistingResourceObjectShadow resourceObject;
-        if (effectiveCtx.hasRealReadCapability()) {
+        if (effectiveCtx.hasRealReadCapability() && !shouldUseCache()) {
             // We go for the fresh object here. TODO to be reconsidered with regards to shadow caching in 4.9.
             try {
                 resourceObject =
@@ -254,6 +255,18 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
         }
         effectiveCtx.applyDefinitionInNewCtx(resourceObject.getPrismObject()); // is this really needed?
         return resourceObject;
+    }
+
+    // This is a hack to make TestGrouperAsyncUpdate (story) work.
+    private boolean shouldUseCache() {
+        if (!(resourceObjectChange instanceof ResourceObjectAsyncChange asyncChange)) {
+            return false; // this hack is only for asynchronous changes
+        }
+        if (asyncChange.isNotificationOnly()) {
+            return false; // something has changed, cache would be outdated
+        }
+        // If caching is enabled, we should use it.
+        return effectiveCtx.getObjectDefinitionRequired().isCachingEnabled();
     }
 
     public boolean isDelete() {

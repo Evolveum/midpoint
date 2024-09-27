@@ -8,6 +8,7 @@ package com.evolveum.midpoint.web.component.data.column;
 
 import static com.evolveum.midpoint.gui.api.page.PageAdminLTE.createStringResourceStatic;
 import static com.evolveum.midpoint.gui.impl.util.DetailsPageUtil.dispatchToObjectDetailsPage;
+import static com.evolveum.midpoint.util.MiscUtil.or0;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -31,6 +32,7 @@ import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
@@ -43,7 +45,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueChoosePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscUtil;
-import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.component.DeadlinePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignProcessingHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertificationItemResponseHelper;
@@ -1207,7 +1208,7 @@ public class ColumnUtils {
                    IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
                AccessCertificationCaseType certItem = unwrapRowModel(rowModel);
                AccessCertificationCampaignType campaign = CertCampaignTypeUtil.getCampaign(certItem);
-               int currentStageNumber = campaign.getStageNumber();
+               int currentStageNumber = or0(campaign.getStageNumber());
                if (currentStageNumber == stageNumber) {
                    return OutcomeUtils.fromUri(certItem.getCurrentStageOutcome());
                }
@@ -1305,7 +1306,7 @@ public class ColumnUtils {
                 public IModel<List<ObjectReferenceType>> extractDataModel(
                         IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
                     AccessCertificationCaseType certCase = CertCampaignTypeUtil.getCase(unwrapRowModel(rowModel));
-                    return () -> CertCampaignTypeUtil.getCurrentlyAssignedReviewers(unwrapRowModel(rowModel), certCase.getStageNumber());
+                    return () -> CertCampaignTypeUtil.getCurrentlyAssignedReviewers(unwrapRowModel(rowModel), or0(certCase.getStageNumber()));
                 }
             });
         }
@@ -1834,24 +1835,18 @@ public class ColumnUtils {
         return name;
     }
 
-    public static List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> createInducedAssociationsColumns(
-            IModel<PrismContainerWrapper<AssignmentType>> containerModel, PageBase page) {
-        return createAssignmentConstructionColumns(containerModel, true, true, false, page);
-    }
-
     public static List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> createInducementConstructionColumns(
             IModel<PrismContainerWrapper<AssignmentType>> containerModel, PageBase page) {
-        return createAssignmentConstructionColumns(containerModel, false, true, true, page);
+        return createAssignmentConstructionColumns(containerModel, true, page);
     }
 
     public static List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> createAssignmentConstructionColumns(
             IModel<PrismContainerWrapper<AssignmentType>> containerModel, PageBase page) {
-        return createAssignmentConstructionColumns(containerModel, false, false, false, page);
+        return createAssignmentConstructionColumns(containerModel, false, page);
     }
 
     private static List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> createAssignmentConstructionColumns(
-            IModel<PrismContainerWrapper<AssignmentType>> containerModel, boolean showColumnForValue, boolean showAssociation,
-            boolean showApplyFor, PageBase page) {
+            IModel<PrismContainerWrapper<AssignmentType>> containerModel, boolean showAdvancedColumns, PageBase page) {
 
         List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 
@@ -1878,13 +1873,11 @@ public class ColumnUtils {
             }
         });
 
-        if (showAssociation) {
+        if (showAdvancedColumns) {
             columns.add(
                     new PrismContainerWrapperColumn<>(
                             containerModel, ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION), page));
-        }
 
-        if (showColumnForValue) {
             columns.add(new AbstractColumn<>(createStringResource("InducedEntitlements.value")) {
                 private static final long serialVersionUID = 1L;
 
@@ -1896,8 +1889,7 @@ public class ColumnUtils {
 
                     ExpressionType expressionType = getExpressionFromRowModel(rowModel, false);
                     List<ShadowType> shadowsList = WebComponentUtil.loadReferencedObjectList(ExpressionUtil.getShadowRefValue(
-                                    expressionType,
-                                    page.getPrismContext()),
+                            expressionType),
                             OPERATION_LOAD_SHADOW_OBJECT, page);
 
                     MultiValueChoosePanel<ShadowType> valuesPanel = new MultiValueChoosePanel<>(componentId,
@@ -1924,7 +1916,11 @@ public class ColumnUtils {
                             ShadowType shadow = selectedList != null && selectedList.size() > 0 ? selectedList.get(0) : null;
                             if (shadow != null && StringUtils.isNotEmpty(shadow.getOid())) {
                                 ExpressionType expression = getExpressionFromRowModel(rowModel, true);
-                                ExpressionUtil.addShadowRefEvaluatorValue(expression, shadow.getOid());
+                                ConstructionType construction = rowModel.getObject().getRealValue().getConstruction();
+                                ItemName associationName = ProvisioningObjectsUtil.getAssociationForConstructionAndShadow(construction, shadow, getPageBase());
+                                if (associationName != null) {
+                                    ExpressionUtil.addShadowRefEvaluatorValue(expression, associationName, shadow.getOid());
+                                }
                             }
                         }
 
@@ -1938,9 +1934,7 @@ public class ColumnUtils {
                     item.add(valuesPanel);
                 }
             });
-        }
 
-        if (showApplyFor) {
             columns.add(new AbstractColumn<>(createStringResource("AssignmentConstruction.inducementFor")) {
                 private static final long serialVersionUID = 1L;
 

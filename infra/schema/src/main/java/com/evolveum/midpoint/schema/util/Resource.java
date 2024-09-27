@@ -142,6 +142,13 @@ public class Resource {
         return resourceBean.toString();
     }
 
+    public @NotNull ShadowBuilder shadow(@NotNull ResourceObjectTypeIdentification identification)
+            throws SchemaException, ConfigurationException {
+        return ShadowBuilder.withDefinition(
+                        getCompleteSchemaRequired().getObjectTypeDefinitionRequired(identification))
+                .onResource(getOid());
+    }
+
     // TODO move to a better place
     public static class ResourceItemDefinitionResolver implements ItemDefinitionResolver {
 
@@ -153,6 +160,7 @@ public class Resource {
 
         @Override
         public ItemDefinition<?> findItemDefinition(@NotNull Class<? extends Containerable> type, @NotNull ItemPath itemPath) {
+            // TODO support associations as well
             if (!ShadowType.class.isAssignableFrom(type)
                     || !itemPath.startsWith(ShadowType.F_ATTRIBUTES)
                     || itemPath.size() != 2) {
@@ -162,7 +170,7 @@ public class Resource {
             if (attrName == null) {
                 return null;
             } else {
-                return definition.findSimpleAttributeDefinition(attrName);
+                return (ItemDefinition<?>) definition.findAttributeDefinition(attrName);
             }
         }
     }

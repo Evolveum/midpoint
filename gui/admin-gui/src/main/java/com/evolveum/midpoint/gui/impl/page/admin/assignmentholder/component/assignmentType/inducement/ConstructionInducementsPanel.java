@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.ass
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.PageAbstractRole;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.AbstractRoleInducementPanel;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -16,6 +17,7 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
+import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -32,8 +34,30 @@ import java.util.List;
         display = @PanelDisplay(label = "ObjectType.ResourceType", icon = GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON, order = 50))
 public class ConstructionInducementsPanel<AR extends AbstractRoleType> extends AbstractInducementPanel<AR> {
 
+    private MidpointFormValidator validator;
+
     public ConstructionInducementsPanel(String id, IModel<PrismObjectWrapper<AR>> model, ContainerPanelConfigurationType config) {
         super(id, model, config);
+    }
+
+    private void createValidator() {
+        validator = new InducedEntitlementsValidator();
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+
+        if (validator == null) {
+            createValidator();
+        }
+
+        if (getPageBase() instanceof AbstractPageObjectDetails) {
+            AbstractPageObjectDetails page = (AbstractPageObjectDetails) getPageBase();
+            if (!page.getFormValidatorRegistry().getValidators().contains(validator)) {
+                page.getFormValidatorRegistry().registerValidator(validator);
+            }
+        }
     }
 
     @Override

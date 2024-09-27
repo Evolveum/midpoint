@@ -1,0 +1,708 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<archetype oid="00000000-0000-0000-0000-000000000170" version="1">
+    <name>Dashboard report</name>
+    <assignment id="9">
+            <identifier>holderType</identifier>
+        <activation>
+            <effectiveStatus>enabled</effectiveStatus>
+        </activation>
+        <assignmentRelation id="10">
+            <holderType>ReportType</holderType>
+        </assignmentRelation>
+    </assignment>
+    <iteration>0</iteration>
+    <iterationToken/>
+    <activation>
+        <effectiveStatus>enabled</effectiveStatus>
+        <enableTimestamp>2024-08-26T12:20:34.178+02:00</enableTimestamp>
+    </activation>
+    <archetypePolicy>
+        <display>
+            <label>Dashboard report</label>
+            <pluralLabel>
+                <t:orig>Dashboard reports</t:orig>
+                <t:norm>dashboard reports</t:norm>
+                <t:translation>
+                    <t:key>DashboardReports.title</t:key>
+                </t:translation>
+            </pluralLabel>
+            <icon>
+                <cssClass>fa fa-tachometer-alt</cssClass>
+                <color>#001F3F</color>
+            </icon>
+        </display>
+        <itemConstraint id="1">
+            <path>objectCollection</path>
+            <visibility>hidden</visibility>
+        </itemConstraint>
+        <adminGuiConfiguration>
+            <objectDetails>
+                <type>ReportType</type>
+                <panel id="2">
+                    <identifier>engine</identifier>
+                    <display>
+                        <label>Engine</label>
+                        <cssClass>fa fa-microchip</cssClass>
+                        <icon>
+                            <cssClass>fa fa-microchip</cssClass>
+                        </icon>
+                    </display>
+                    <displayOrder>11</displayOrder>
+                    <container id="4">
+                        <identifier>engineContainer</identifier>
+                        <display>
+                            <label>Engine</label>
+                        </display>
+                        <item id="5">
+                            <path>dashboard/dashboardRef</path>
+                        </item>
+                        <item id="6">
+                            <path>dashboard/showOnlyWidgetsTable</path>
+                        </item>
+                        <item id="7">
+                            <path>dashboard/storeExportedWidgetData</path>
+                        </item>
+                    </container>
+                    <panelType>formPanel</panelType>
+                    <path>c:dashboard</path>
+                    <type>c:DashboardReportEngineConfigurationType</type>
+                </panel>
+                <panel id="3">
+                    <identifier>view</identifier>
+                    <display>
+                        <label>View</label>
+                        <cssClass>fa fa-eye</cssClass>
+                        <icon>
+                            <cssClass>fa fa-eye</cssClass>
+                        </icon>
+                    </display>
+                    <container id="8">
+                        <identifier>dashboard</identifier>
+                        <display>
+                            <label>Dashboard</label>
+                        </display>
+                        <path>dashboard/view</path>
+                    </container>
+                    <panelType>formPanel</panelType>
+                    <path>c:dashboard/view</path>
+                    <type>c:GuiObjectListViewType</type>
+                </panel>
+            </objectDetails>
+        </adminGuiConfiguration>
+    </archetypePolicy>
+    <superArchetypeRef oid="00000000-0000-0000-0000-000000000172" relation="org:default" type="c:ArchetypeType">
+        <!-- Report -->
+    </superArchetypeRef>
+</archetype>
+
+<archetype oid="00000000-0000-0000-0000-000000000171" version="1">
+    <name>Collection report</name>
+    <assignment id="11">
+            <identifier>holderType</identifier>
+        <activation>
+            <effectiveStatus>enabled</effectiveStatus>
+        </activation>
+        <assignmentRelation id="12">
+            <holderType>ReportType</holderType>
+        </assignmentRelation>
+    </assignment>
+    <iteration>0</iteration>
+    <iterationToken/>
+    <activation>
+        <effectiveStatus>enabled</effectiveStatus>
+        <enableTimestamp>2024-08-26T12:20:34.199+02:00</enableTimestamp>
+    </activation>
+    <archetypePolicy>
+        <display>
+            <label>Collection report</label>
+            <pluralLabel>
+                <t:orig>Collection reports</t:orig>
+                <t:norm>collection reports</t:norm>
+                <t:translation>
+                    <t:key>CollectionReports.title</t:key>
+                </t:translation>
+            </pluralLabel>
+            <icon>
+                <cssClass>fa fa-filter</cssClass>
+                <color>#001F3F</color>
+            </icon>
+        </display>
+        <itemConstraint id="1">
+            <path>dashboard</path>
+            <visibility>hidden</visibility>
+        </itemConstraint>
+        <adminGuiConfiguration>
+            <objectDetails>
+                <type>ReportType</type>
+                <panel id="2">
+                    <identifier>engine</identifier>
+                    <display>
+                        <label>Engine</label>
+                        <cssClass>fa fa-microchip</cssClass>
+                        <icon>
+                            <cssClass>fa fa-microchip</cssClass>
+                        </icon>
+                    </display>
+                    <displayOrder>11</displayOrder>
+                    <container id="7">
+                        <identifier>engineContainer</identifier>
+                        <display>
+                            <label>Engine</label>
+                        </display>
+                        <item id="8">
+                            <path>objectCollection/condition</path>
+                        </item>
+                        <item id="9">
+                            <path>objectCollection/useOnlyReportView</path>
+                        </item>
+                    </container>
+                    <panelType>formPanel</panelType>
+                    <path>c:objectCollection</path>
+                    <type>c:ObjectCollectionReportEngineConfigurationType</type>
+                </panel>
+                <panel id="3">
+                    <identifier>collection</identifier>
+                    <display>
+                        <label>Collection</label>
+                        <cssClass>fa fa-filter</cssClass>
+                        <icon>
+                            <cssClass>fa fa-filter</cssClass>
+                        </icon>
+                    </display>
+                    <displayOrder>12</displayOrder>
+                    <container id="10">
+                        <identifier>collection</identifier>
+                        <path>objectCollection/collection</path>
+                    </container>
+                    <panelType>formPanel</panelType>
+                    <path>c:objectCollection/collection</path>
+                    <type>c:CollectionRefSpecificationType</type>
+                </panel>
+                <panel id="4">
+                    <identifier>view</identifier>
+                    <display>
+                        <label>View</label>
+                        <cssClass>fa fa-eye</cssClass>
+                        <icon>
+                            <cssClass>fa fa-eye</cssClass>
+                        </icon>
+                    </display>
+                    <panelType>reportCollectionView</panelType>
+                </panel>
+                <panel id="5">
+                    <identifier>parameters</identifier>
+                    <display>
+                        <label>Parameter</label>
+                        <cssClass>fa fa-th</cssClass>
+                        <icon>
+                            <cssClass>fa fa-th</cssClass>
+                        </icon>
+                    </display>
+                    <panelType>reportCollectionParameter</panelType>
+                </panel>
+                <panel id="6">
+                    <identifier>subreport</identifier>
+                    <display>
+                        <label>Subreport</label>
+                        <cssClass>fa fa-th</cssClass>
+                        <icon>
+                            <cssClass>fa fa-th</cssClass>
+                        </icon>
+                    </display>
+                    <panelType>reportCollectionSubreport</panelType>
+                </panel>
+            </objectDetails>
+        </adminGuiConfiguration>
+    </archetypePolicy>
+    <superArchetypeRef oid="00000000-0000-0000-0000-000000000172" relation="org:default" type="c:ArchetypeType">
+        <!-- Report -->
+    </superArchetypeRef>
+</archetype>
+
+<archetype oid="00000000-0000-0000-0000-000000000172" version="1">
+    <name>Report</name>
+    <assignment id="9">
+            <identifier>holderType</identifier>
+        <activation>
+            <effectiveStatus>enabled</effectiveStatus>
+        </activation>
+        <assignmentRelation id="10">
+            <holderType>ReportType</holderType>
+        </assignmentRelation>
+    </assignment>
+    <iteration>0</iteration>
+    <iterationToken/>
+    <activation>
+        <effectiveStatus>enabled</effectiveStatus>
+        <enableTimestamp>2024-08-26T12:20:34.164+02:00</enableTimestamp>
+    </activation>
+    <archetypePolicy>
+        <display>
+            <label>Report</label>
+            <pluralLabel>Report</pluralLabel>
+            <icon>
+                <cssClass>fa fa-chart-pie</cssClass>
+                <color>#001F3F</color>
+            </icon>
+        </display>
+        <itemConstraint id="1">
+            <path>jasper</path>
+            <visibility>hidden</visibility>
+        </itemConstraint>
+        <itemConstraint id="2">
+            <path>diagnosticInformation</path>
+            <visibility>hidden</visibility>
+        </itemConstraint>
+        <itemConstraint id="3">
+            <path>defaultScriptConfiguration</path>
+            <visibility>hidden</visibility>
+        </itemConstraint>
+        <itemConstraint id="4">
+            <path>postReportScript</path>
+            <visibility>hidden</visibility>
+        </itemConstraint>
+        <itemConstraint id="5">
+            <path>lifecycleState</path>
+            <visibility>hidden</visibility>
+        </itemConstraint>
+        <adminGuiConfiguration>
+            <objectDetails>
+                <type>ReportType</type>
+                <panel id="6">
+                    <identifier>assignments</identifier>
+                    <visibility>hidden</visibility>
+                    <panelType>assignments</panelType>
+                </panel>
+                <panel id="7">
+                    <identifier>fileFormat</identifier>
+                    <display>
+                        <label>File format</label>
+                        <cssClass>fas fa-file-alt</cssClass>
+                        <icon>
+                            <cssClass>fas fa-file-alt</cssClass>
+                        </icon>
+                    </display>
+                    <displayOrder>20</displayOrder>
+                    <container id="8">
+                        <identifier>fileFormat</identifier>
+                        <path>fileFormat</path>
+                    </container>
+                    <panelType>formPanel</panelType>
+                    <path>c:fileFormat</path>
+                    <type>c:FileFormatConfigurationType</type>
+                </panel>
+            </objectDetails>
+        </adminGuiConfiguration>
+    </archetypePolicy>
+</archetype>
+
+<archetype oid="00000000-0000-0000-0000-000000000300" version="1">
+    <name>System user</name>
+    <description>
+        Archetype for system users, i.e. non-person users that are needed for system to work.
+        This may be (root-like) system administrator, application users and so on.
+    </description>
+    <assignment id="1">
+            <identifier>holderType</identifier>
+        <activation>
+            <effectiveStatus>enabled</effectiveStatus>
+        </activation>
+        <assignmentRelation id="2">
+            <holderType>UserType</holderType>
+        </assignmentRelation>
+    </assignment>
+    <iteration>0</iteration>
+    <iterationToken/>
+    <activation>
+        <effectiveStatus>enabled</effectiveStatus>
+        <enableTimestamp>2024-08-26T12:20:33.766+02:00</enableTimestamp>
+    </activation>
+    <archetypePolicy>
+        <display>
+            <label>System user</label>
+            <pluralLabel>System users</pluralLabel>
+            <icon>
+                <cssClass>fa fa-user</cssClass>
+                <color>red</color>
+            </icon>
+        </display>
+    </archetypePolicy>
+</archetype>
+
+<archetype oid="00000000-0000-0000-0000-000000000320" version="1">
+    <name>System role</name>
+    <description>
+        Archetype for roles that are essential from the system point
+        of view. Those are usually roles for the most powerful system
+        administrators, roles for internal usage in the system
+        (e.g. by tasks) and so on.
+    </description>
+    <assignment id="1">
+            <identifier>holderType</identifier>
+        <activation>
+            <effectiveStatus>enabled</effectiveStatus>
+        </activation>
+        <assignmentRelation id="2">
+            <holderType>RoleType</holderType>
+        </assignmentRelation>
+    </assignment>
+    <iteration>0</iteration>
+    <iterationToken/>
+    <activation>
+        <effectiveStatus>enabled</effectiveStatus>
+        <enableTimestamp>2024-08-26T12:20:33.807+02:00</enableTimestamp>
+    </activation>
+    <archetypePolicy>
+        <display>
+            <label>System role</label>
+            <pluralLabel>System roles</pluralLabel>
+            <icon>
+                <cssClass>fe fe-role</cssClass>
+                <color>red</color>
+            </icon>
+        </display>
+    </archetypePolicy>
+</archetype>
+
+<archetype oid="00000000-0000-0000-0000-000000000321" version="1">
+    <name>Business role</name>
+    <description>
+        Archetype for roles that have meaning from the business perspective.
+        Business roles are usually assigned directly to users, often by using
+        request-and-approve processes. Business roles are usually composed from
+        smaller roles.
+    </description>
+    <assignment id="1">
+            <identifier>holderType</identifier>
+        <activation>
+            <effectiveStatus>enabled</effectiveStatus>
+        </activation>
+        <assignmentRelation id="2">
+            <holderType>RoleType</holderType>
+        </assignmentRelation>
+    </assignment>
+    <iteration>0</iteration>
+    <iterationToken/>
+    <activation>
+        <effectiveStatus>enabled</effectiveStatus>
+        <enableTimestamp>2024-08-26T12:20:33.821+02:00</enableTimestamp>
+    </activation>
+    <archetypePolicy>
+        <display>
+            <label>Business role</label>
+            <pluralLabel>Business roles</pluralLabel>
+            <icon>
+                <cssClass>fe fe-role</cssClass>
+                <color>green</color>
+            </icon>
+        </display>
+    </archetypePolicy>
+</archetype>
+
+<archetype oid="00000000-0000-0000-0000-000000000328" version="1">
+    <name>Application role</name>
+    <description>
+        Application roles are basic roles. They are related to applications.
+        The application roles are integrating technical components for creation
+        of user access with business description of the access.
+    </description>
+    <assignment id="1">
+            <identifier>holderType</identifier>
+        <activation>
+            <effectiveStatus>enabled</effectiveStatus>
+        </activation>
+        <assignmentRelation id="2">
+            <holderType>RoleType</holderType>
+        </assignmentRelation>
+    </assignment>
+    <iteration>0</iteration>
+    <iterationToken/>
+    <activation>
+        <effectiveStatus>enabled</effectiveStatus>
+        <enableTimestamp>2024-08-26T12:20:33.915+02:00</enableTimestamp>
+    </activation>
+    <archetypePolicy>
+        <display>
+            <label>Application role</label>
+            <pluralLabel>Application roles</pluralLabel>
+            <icon>
+                <cssClass>fe fe-role</cssClass>
+                <color>blue</color>
+            </icon>
+        </display>
+    </archetypePolicy>
+</archetype>
+
+<archetype oid="03a452a2-79cf-4fb5-aefd-14d23a05473f" version="0">
+    <name>Irregular User Archetype</name>
+    <assignment id="1">
+        <identifier>holderType</identifier>
+        <assignmentRelation id="2">
+            <holderType>c:FocusType</holderType>
+        </assignmentRelation>
+    </assignment>
+    <archetypePolicy>
+        <display>
+            <label>Irregular User Archetype</label>
+            <icon>
+                <cssClass>fa fa-user</cssClass>
+                <color>purple</color>
+            </icon>
+        </display>
+    </archetypePolicy>
+</archetype>
+
+<archetype oid="2068df70-7f03-41c8-91bd-8e88de626d05" version="0">
+    <name>Sales User Archetype</name>
+    <assignment id="1">
+        <identifier>holderType</identifier>
+        <assignmentRelation id="2">
+            <holderType>c:FocusType</holderType>
+        </assignmentRelation>
+    </assignment>
+    <archetypePolicy>
+        <display>
+            <label>Sales User Archetype</label>
+            <icon>
+                <cssClass>fa fa-user</cssClass>
+                <color>yellow</color>
+            </icon>
+        </display>
+    </archetypePolicy>
+</archetype>
+
+<archetype oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" version="0">
+    <name>Job Role Archetype</name>
+    <assignment id="1">
+        <identifier>holderType</identifier>
+        <assignmentRelation id="2">
+            <holderType>c:FocusType</holderType>
+        </assignmentRelation>
+    </assignment>
+    <archetypePolicy>
+        <display>
+            <label>Job Role Archetype</label>
+            <icon>
+                <cssClass>fe fe-role</cssClass>
+                <color>yellow</color>
+            </icon>
+        </display>
+    </archetypePolicy>
+</archetype>
+
+<archetype oid="324f5625-de3a-4f7f-8e3b-44c8d5ce051d" version="0">
+    <name>Contractors User Archetype</name>
+    <assignment id="1">
+        <identifier>holderType</identifier>
+        <assignmentRelation id="2">
+            <holderType>c:FocusType</holderType>
+        </assignmentRelation>
+    </assignment>
+    <archetypePolicy>
+        <display>
+            <label>Contractors User Archetype</label>
+            <icon>
+                <cssClass>fa fa-user</cssClass>
+                <color>red</color>
+            </icon>
+        </display>
+    </archetypePolicy>
+</archetype>
+
+<archetype oid="40549d50-4abd-4b89-a46e-2678c957afb3" version="0">
+    <name>Aux Role Archetype</name>
+    <assignment id="1">
+        <identifier>holderType</identifier>
+        <assignmentRelation id="2">
+            <holderType>c:FocusType</holderType>
+        </assignmentRelation>
+    </assignment>
+    <archetypePolicy>
+        <display>
+            <label>Aux Role Archetype</label>
+            <icon>
+                <cssClass>fe fe-role</cssClass>
+                <color>purple</color>
+            </icon>
+        </display>
+    </archetypePolicy>
+</archetype>
+
+<archetype oid="5b8a247c-443f-4a9a-a125-963b36383061" version="0">
+    <name>Noise Role Archetype</name>
+    <assignment id="1">
+        <identifier>holderType</identifier>
+        <assignmentRelation id="2">
+            <holderType>c:FocusType</holderType>
+        </assignmentRelation>
+    </assignment>
+    <archetypePolicy>
+        <display>
+            <label>Noise Role Archetype</label>
+            <icon>
+                <cssClass>fe fe-role</cssClass>
+                <color>blue</color>
+            </icon>
+        </display>
+    </archetypePolicy>
+</archetype>
+
+<archetype oid="826f255d-d2c3-4359-9bc2-51047cceeebf" version="0">
+    <name>Location Role Archetype</name>
+    <assignment id="1">
+        <identifier>holderType</identifier>
+        <assignmentRelation id="2">
+            <holderType>c:FocusType</holderType>
+        </assignmentRelation>
+    </assignment>
+    <archetypePolicy>
+        <display>
+            <label>Location Role Archetype</label>
+            <icon>
+                <cssClass>fe fe-role</cssClass>
+                <color>pink</color>
+            </icon>
+        </display>
+    </archetypePolicy>
+</archetype>
+
+<archetype oid="86638d1c-66b6-40a9-817e-cf88ca7aaced" version="0">
+    <name>Regular User Archetype</name>
+    <assignment id="1">
+        <identifier>holderType</identifier>
+        <assignmentRelation id="2">
+            <holderType>c:FocusType</holderType>
+        </assignmentRelation>
+    </assignment>
+    <archetypePolicy>
+        <display>
+            <label>Regular User Archetype</label>
+            <icon>
+                <cssClass>fa fa-user</cssClass>
+                <color>blue</color>
+            </icon>
+        </display>
+    </archetypePolicy>
+</archetype>
+
+<archetype oid="9a3c9cf0-63d3-4165-ab9d-e49865b1da1a" version="0">
+    <name>Technical Role Archetype</name>
+    <assignment id="1">
+        <identifier>holderType</identifier>
+        <assignmentRelation id="2">
+            <holderType>c:FocusType</holderType>
+        </assignmentRelation>
+    </assignment>
+    <archetypePolicy>
+        <display>
+            <label>Technical Role Archetype</label>
+            <icon>
+                <cssClass>fe fe-role</cssClass>
+                <color>brown</color>
+            </icon>
+        </display>
+    </archetypePolicy>
+</archetype>
+
+<archetype oid="b9bcc8ff-7b43-41a2-8844-4834252e21a3" version="0">
+    <name>Plancton Role Archetype</name>
+    <assignment id="1">
+        <identifier>holderType</identifier>
+        <assignmentRelation id="2">
+            <holderType>c:FocusType</holderType>
+        </assignmentRelation>
+    </assignment>
+    <archetypePolicy>
+        <display>
+            <label>Plancton Role Archetype</label>
+            <icon>
+                <cssClass>fe fe-role</cssClass>
+                <color>red</color>
+            </icon>
+        </display>
+    </archetypePolicy>
+</archetype>
+
+<archetype oid="cffd833f-78a5-4cc0-92dc-06a9e2787e64" version="0">
+    <name>Security officers User Archetype</name>
+    <assignment id="1">
+        <identifier>holderType</identifier>
+        <assignmentRelation id="2">
+            <holderType>c:FocusType</holderType>
+        </assignmentRelation>
+    </assignment>
+    <archetypePolicy>
+        <display>
+            <label>Security officers User Archetype</label>
+            <icon>
+                <cssClass>fa fa-user</cssClass>
+                <color>orange</color>
+            </icon>
+        </display>
+    </archetypePolicy>
+</archetype>
+
+<archetype oid="d212dcd9-b062-49fd-adbd-7815868f132c" version="0">
+    <name>Birthright Role Archetype</name>
+    <assignment id="1">
+        <identifier>holderType</identifier>
+        <assignmentRelation id="2">
+            <holderType>c:FocusType</holderType>
+        </assignmentRelation>
+    </assignment>
+    <archetypePolicy>
+        <display>
+            <label>Birthright Role Archetype</label>
+            <icon>
+                <cssClass>fe fe-role</cssClass>
+                <color>orange</color>
+            </icon>
+        </display>
+    </archetypePolicy>
+</archetype>
+
+<archetype oid="e3b84663-1f37-46fa-ab06-70cbac038885" version="0">
+    <name>Semi-regular User Archetype</name>
+    <assignment id="1">
+        <identifier>holderType</identifier>
+        <assignmentRelation id="2">
+            <holderType>c:FocusType</holderType>
+        </assignmentRelation>
+    </assignment>
+    <archetypePolicy>
+        <display>
+            <label>Semi-regular User Archetype</label>
+            <icon>
+                <cssClass>fa fa-user</cssClass>
+                <color>brown</color>
+            </icon>
+        </display>
+    </archetypePolicy>
+</archetype>
+
+<archetype oid="fef8090c-06e3-4ca3-b706-1401f2f679e9" version="0">
+    <name>Managers User Archetype</name>
+    <assignment id="1">
+        <identifier>holderType</identifier>
+        <assignmentRelation id="2">
+            <holderType>c:FocusType</holderType>
+        </assignmentRelation>
+    </assignment>
+    <archetypePolicy>
+        <display>
+            <label>Managers User Archetype</label>
+            <icon>
+                <cssClass>fa fa-user</cssClass>
+                <color>green</color>
+            </icon>
+        </display>
+    </archetypePolicy>
+</archetype>
+
+</objects>

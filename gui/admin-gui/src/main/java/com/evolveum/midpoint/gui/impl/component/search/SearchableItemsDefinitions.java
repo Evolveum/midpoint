@@ -148,6 +148,9 @@ public class SearchableItemsDefinitions {
 
         SEARCHABLE_OBJECTS.put(AssignmentType.class, Arrays.asList(
                 ItemPath.create(AssignmentType.F_TARGET_REF),
+                // Prism now supports search by reference target name (in form of @/name) so
+                // it is okay to have this, even if repository assignment view is not enabled
+                ItemPath.create(AssignmentType.F_TARGET_REF, new ObjectReferencePathSegment(), ObjectType.F_NAME),
                 ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF),
                 ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
                 ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS)
@@ -220,6 +223,7 @@ public class SearchableItemsDefinitions {
                 ItemPath.create(AccessCertificationCaseType.F_OBJECT_REF),
                 ItemPath.create(AccessCertificationCaseType.F_CURRENT_STAGE_OUTCOME),
                 ItemPath.create(AccessCertificationCaseType.F_OUTCOME),
+                ItemPath.create(AccessCertificationCaseType.F_WORK_ITEM, AccessCertificationWorkItemType.F_ASSIGNEE_REF),
                 ItemPath.create(AccessCertificationCaseType.F_TARGET_REF)
         ));
 
@@ -241,6 +245,12 @@ public class SearchableItemsDefinitions {
                 ItemPath.create(PrismItemDefinitionType.F_REQUIRED),
                 ItemPath.create(PrismItemDefinitionType.F_MULTIVALUE),
                 ItemPath.create(PrismItemDefinitionType.F_INDEXED)
+        ));
+
+        SEARCHABLE_OBJECTS.put(GuiObjectListViewType.class, Arrays.asList(
+                ItemPath.create(GuiObjectListViewType.F_TYPE),
+                ItemPath.create(GuiObjectListViewType.F_IDENTIFIER),
+                ItemPath.create(GuiObjectListViewType.F_DISPLAY, DisplayType.F_LABEL)
         ));
     }
 

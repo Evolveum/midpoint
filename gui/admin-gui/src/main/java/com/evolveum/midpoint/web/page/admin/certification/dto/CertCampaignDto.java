@@ -25,6 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import static com.evolveum.midpoint.gui.api.page.PageBase.createEnumResourceKey;
 import static com.evolveum.midpoint.gui.api.page.PageBase.createStringResourceStatic;
 import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
+import static com.evolveum.midpoint.util.MiscUtil.or0;
 
 public class CertCampaignDto extends Selectable {
 
@@ -92,7 +93,7 @@ public class CertCampaignDto extends Selectable {
     }
 
     private String resolveCurrentStateName(PageBase page) {
-        int stageNumber = campaign.getStageNumber();
+        int stageNumber = or0(campaign.getStageNumber());
         AccessCertificationCampaignStateType state = campaign.getState();
         switch (state) {
             case CREATED:
@@ -143,7 +144,7 @@ public class CertCampaignDto extends Selectable {
     }
 
     public int getCurrentStageNumber() {
-        return campaign.getStageNumber();
+        return or0(campaign.getStageNumber());
     }
 
     public String getHandlerUri() {

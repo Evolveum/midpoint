@@ -11,7 +11,7 @@
         oid="00000000-0000-0000-0000-b8249b79d2b5">
     <name>IGA: Who has access to what and why</name>
     <description>Displays IGA representation of user access - all roles, ORGs and services (applications) assigned to users directly or indirectly.
-Formerly known as Indirect assignment report.</description>
+        Formerly known as Indirect assignment report.</description>
     <assignment id="1">
         <identifier>archetype</identifier>
         <targetRef oid="00000000-0000-0000-0000-000000000171" type="ArchetypeType"/>
@@ -83,7 +83,12 @@ Formerly known as Indirect assignment report.</description>
             <column id="5">
                 <name>user</name>
                 <display>
-                    <label>User</label>
+                    <label>
+                        <orig>User</orig>
+                        <translation>
+                            <key>reportIndirectAssignments.userColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <export>
                     <expression>
@@ -97,7 +102,12 @@ Formerly known as Indirect assignment report.</description>
             <column id="6">
                 <name>nameColumn</name>
                 <display>
-                    <label>Name</label>
+                    <label>
+                        <orig>Name</orig>
+                        <translation>
+                            <key>reportIndirectAssignments.nameColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <previousColumn>user</previousColumn>
                 <export>
@@ -112,7 +122,12 @@ Formerly known as Indirect assignment report.</description>
             <column id="7">
                 <name>archetypeName</name>
                 <display>
-                    <label>Type</label>
+                    <label>
+                        <orig>Type</orig>
+                        <translation>
+                            <key>reportIndirectAssignments.archetypeNameColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <previousColumn>nameColumn</previousColumn>
                 <export>
@@ -127,7 +142,12 @@ Formerly known as Indirect assignment report.</description>
             <column id="8">
                 <name>relation</name>
                 <display>
-                    <label>Relation</label>
+                    <label>
+                        <orig>Relation</orig>
+                        <translation>
+                            <key>reportIndirectAssignments.relationColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <previousColumn>archetypeName</previousColumn>
                 <export>
@@ -142,7 +162,12 @@ Formerly known as Indirect assignment report.</description>
             <column id="9">
                 <name>allPath</name>
                 <display>
-                    <label>Path</label>
+                    <label>
+                        <orig>Path</orig>
+                        <translation>
+                            <key>reportIndirectAssignments.allPathColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <previousColumn>relation</previousColumn>
                 <export>
@@ -160,7 +185,12 @@ Formerly known as Indirect assignment report.</description>
                 <!-- This is probably not important column, everything is in the path column anyway. -->
                 <name>parent</name>
                 <display>
-                    <label>Parent</label>
+                    <label>
+                        <orig>Parent</orig>
+                        <translation>
+                            <key>reportIndirectAssignments.parentColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <previousColumn>allPath</previousColumn>
                 <export>
@@ -187,7 +217,12 @@ Formerly known as Indirect assignment report.</description>
                 <!-- We don't store refs/metadata for disabled assignments, so this is always Enabled. -->
                 <name>activation</name>
                 <display>
-                    <label>Activation</label>
+                    <label>
+                        <orig>Activation</orig>
+                        <translation>
+                            <key>reportIndirectAssignments.activationColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <previousColumn>parent</previousColumn>
                 <export>
@@ -202,7 +237,12 @@ Formerly known as Indirect assignment report.</description>
             <column id="12">
                 <name>validTo</name>
                 <display>
-                    <label>Valid to</label>
+                    <label>
+                        <orig>Valid to</orig>
+                        <translation>
+                            <key>reportIndirectAssignments.validToColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <previousColumn>activation</previousColumn>
                 <export>
@@ -217,7 +257,12 @@ Formerly known as Indirect assignment report.</description>
             <column id="13">
                 <name>since</name>
                 <display>
-                    <label>Since</label>
+                    <label>
+                        <orig>Since</orig>
+                        <translation>
+                            <key>reportIndirectAssignments.sinceColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <previousColumn>validTo</previousColumn>
                 <export>
@@ -232,7 +277,12 @@ Formerly known as Indirect assignment report.</description>
             <column id="14">
                 <name>createChannel</name>
                 <display>
-                    <label>Source</label>
+                    <label>
+                        <orig>Source</orig>
+                        <translation>
+                            <key>reportIndirectAssignments.createChannelColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <previousColumn>since</previousColumn>
                 <export>

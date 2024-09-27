@@ -1995,6 +1995,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.0</a:since>
+                <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

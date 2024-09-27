@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
+import static com.evolveum.midpoint.test.util.MidPointTestConstants.RI_GROUP;
+import static com.evolveum.midpoint.util.MiscUtil.extractSingletonRequired;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
@@ -361,7 +364,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         checkUniqueness(shadow);
 
-        assertCachingMetadata(shadow.getBean(), startTs, endTs);
+        assertNoCachingMetadata(shadow.getBean());
 
         assertSteadyResource();
     }
@@ -400,7 +403,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         checkUniqueness(shadow);
 
-        assertCachingMetadata(shadow.getBean(), startTs, endTs);
+        assertNoCachingMetadata(shadow.getBean());
 
         assertSteadyResource();
     }
@@ -442,11 +445,11 @@ public class TestDummy extends AbstractBasicDummyTest {
                 throw new SystemException(e.getMessage(), e);
             }
 
-            assertCachingMetadata(shadow.getBean(), startTs, endTs);
+            assertNoCachingMetadata(shadow.getBean());
 
             if (shadow.getName().getOrig().equals("meathook")) {
                 meathookAccountOid = object.getOid();
-                Long loot = shadow.getAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_LOOT_QNAME);
+                Long loot = shadow.getAttributeRealValue(DUMMY_ACCOUNT_ATTRIBUTE_LOOT_QNAME);
                 assertNotNull(loot);
                 assertEquals("Wrong meathook's loot", 666L, (long) loot);
             }
@@ -2534,7 +2537,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
             and("association is seen when using 'no fetch' search");
             var willAfterNoFetchSearch =
-                    MiscUtil.extractSingletonRequired(
+                    extractSingletonRequired(
                             provisioningService.searchShadows(
                                     Resource.of(resource)
                                             .queryFor(ResourceObjectTypeIdentification.ACCOUNT_DEFAULT)
@@ -4702,6 +4705,62 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertShadowProvisioning(accountOid)
                 .associations()
                 .assertValuesCount(0);
+    }
+
+    /** When a shadow with references is discovered, they should be stored correctly in the repo. MID-9991. */
+    @Test
+    public void test940DiscoverShadowWithReferences() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var accountName = "a-" + getTestNameShort();
+        var groupName = "g-" + getTestNameShort();
+
+        skipTestIf(!isNameUnique(), "Name is not unique (the conflict below would not occur)");
+
+        given("an account and a group");
+        createAccountAndGroup(accountName, groupName);
+
+        when("account with the same name is created via provisioning");
+        try {
+            provisioningService.addObject(
+                    ShadowBuilder.withDefinition(getAccountDefaultDefinition())
+                            .onResource(RESOURCE_DUMMY_OID)
+                            .withSimpleAttribute(ICFS_NAME, accountName)
+                            .asPrismObject(),
+                    null, null, task, result);
+            fail("unexpected success");
+        } catch (ObjectAlreadyExistsException e) {
+            displayExpectedException(e);
+        }
+
+        then("the account is correctly recorded in the repository");
+        var shadows = provisioningService.searchShadows(
+                Resource.of(resource)
+                        .queryFor(RI_ACCOUNT_OBJECT_CLASS)
+                        .and().item(ICFS_NAME_PATH).eq(accountName)
+                        .build(),
+                createNoFetchCollection(), task, result);
+        var shadow = extractSingletonRequired(shadows);
+        var asserter = assertShadowNew(shadow)
+                .display()
+                .assertName(accountName)
+                .assertObjectClass(RI_ACCOUNT_OBJECT_CLASS)
+                .assertIntent(INTENT_DEFAULT)
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertResource(RESOURCE_DUMMY_OID);
+
+        if (InternalsConfig.isShadowCachingOnByDefault() // just for sure; the latter condition should return true as well now
+                || shadow.getObjectDefinition().isEffectivelyCached(ShadowType.F_ATTRIBUTES.append(RI_GROUP))) {
+            asserter.associations()
+                    .association(RI_GROUP)
+                    .assertSize(1);
+        }
+    }
+
+    void createAccountAndGroup(String accountName, String groupName) throws Exception {
+        dummyResourceCtl.addAccount(accountName);
+        var group = dummyResourceCtl.addGroup(groupName);
+        group.addMember(accountName);
     }
 
     // test999 shutdown in the superclass

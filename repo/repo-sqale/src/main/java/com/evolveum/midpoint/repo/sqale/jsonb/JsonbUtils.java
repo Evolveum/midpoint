@@ -67,8 +67,10 @@ public enum JsonbUtils {
                 .put(numberConverter(float.class, Number::floatValue))
                 .put(numberConverter(long.class, Number::longValue))
                 .put(numberConverter(short.class, Number::shortValue))
+                .put(numberConverter(BigInteger.class, v -> v instanceof BigInteger d ? d : BigInteger.valueOf(v.longValue())))
+                .put(numberConverter(BigDecimal.class, v -> v instanceof BigDecimal d ? d : BigDecimal.valueOf(v.doubleValue())))
                 .build();
-            //numberConverter(BigInteger.class, BigInteger);
+            //
             //numberConverter(BigDecimal.class, DOMUtil.XSD_DECIMAL, true);
         }
 
@@ -322,8 +324,12 @@ public enum JsonbUtils {
             return clearValue;
         }
         if (clearValue instanceof byte[] data) {
-            return Base64.encodeBase64String(data);
+            return bytesToBase64(data);
         }
         throw new UnsupportedOperationException("Type " + clearValue.getClass() + " is not currently supported.");
+    }
+
+    public static String bytesToBase64(byte[] data) {
+        return Base64.encodeBase64String(data);
     }
 }

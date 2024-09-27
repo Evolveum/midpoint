@@ -227,7 +227,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             // used cloned deltas instead of origin deltas, because some of the
             // values should be lost later..
             context = contextFactory.createContext(clonedDeltas, options, task, result);
-            context = clockwork.previewChanges(context, listeners, task, result);
+            context = clockwork.previewChangesLegacy(context, listeners, task, result);
 
             schemaTransformer.applySecurityToLensContext(context, task, result);
         } finally {

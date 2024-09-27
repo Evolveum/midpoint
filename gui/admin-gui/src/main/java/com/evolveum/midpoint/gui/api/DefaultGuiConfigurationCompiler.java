@@ -323,6 +323,10 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
                     continue;
                 }
 
+                if (isSubPanel(instance)) {
+                    continue;
+                }
+
                 if (compiledGuiProfile.getObjectDetails() == null) {
                     compiledGuiProfile.setObjectDetails(new GuiObjectDetailsSetType());
                 }

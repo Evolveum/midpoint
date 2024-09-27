@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.LifecycleStateColumn;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.AssignmentHolderAssignmentPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -32,9 +33,10 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import java.util.ArrayList;
 import java.util.List;
 
-@PanelType(name = "schemaHandling")
-@PanelInstance(identifier = "schemaHandling", applicableForType = ResourceType.class,
-        display = @PanelDisplay(label = "PageResource.tab.schemaHandling", icon = GuiStyleConstants.CLASS_RECONCILE_MENU_ITEM, order = 90))
+@PanelType(name = "resourceObjectTypes")
+@PanelInstance(identifier = "resourceObjectTypes", applicableForType = ResourceType.class,
+        childOf = SchemaHandlingPanel.class,
+        display = @PanelDisplay(label = "PageResource.tab.objectTypes", icon = GuiStyleConstants.CLASS_RECONCILE_MENU_ITEM, order = 10))
 public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<ResourceObjectTypeDefinitionType> {
 
 

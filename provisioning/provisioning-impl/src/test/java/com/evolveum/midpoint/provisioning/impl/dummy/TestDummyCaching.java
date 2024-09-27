@@ -26,6 +26,7 @@ import com.evolveum.midpoint.schema.util.RawRepoShadow;
 
 import com.evolveum.midpoint.schema.util.Resource;
 
+import com.evolveum.midpoint.test.asserter.RepoShadowAsserter;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -49,9 +50,7 @@ import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * Almost the same as TestDummy but this is using a caching configuration.
@@ -271,12 +270,14 @@ public class TestDummyCaching extends TestDummy {
 
             checkUniqueness(shadow);
 
+            assertNoCachingMetadata(shadow.getBean());
+
             if (getCachedAccountAttributes().contains(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_QNAME)) {
                 // Ship is cached, so we won't update the cached data if it's incomplete
-                assertCachingMetadata(shadow.getBean(), null, startTs);
+                assertCachingMetadata(shadowRepo.getBean(), null, startTs);
             } else {
                 // Ship is not cached, so we can update the cached data even if it's incomplete
-                assertCachingMetadata(shadow.getBean(), startTs, endTs);
+                assertCachingMetadata(shadowRepo.getBean(), startTs, endTs);
             }
 
             assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
@@ -371,7 +372,7 @@ public class TestDummyCaching extends TestDummy {
      * See MID-7162.
      */
     @Test
-    public void test910CacheMultivaluedAttribute() throws Exception {
+    public void test905CacheMultivaluedAttribute() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -421,7 +422,7 @@ public class TestDummyCaching extends TestDummy {
         then(message);
 
         RawRepoShadow shadow = getShadowRepoRetrieveAllAttributes(ACCOUNT_WILL_OID, result);
-        assertRepoShadowNew(shadow)
+        RepoShadowAsserter.forRepoShadow(shadow, getCachedAccountAttributesWithIndexOnly())
                 .assertCachedNormValues(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, values.toArray());
     }
 
@@ -449,6 +450,11 @@ public class TestDummyCaching extends TestDummy {
     @Override
     protected @NotNull Collection<? extends QName> getCachedAccountAttributes() throws SchemaException, ConfigurationException {
         return getAccountDefaultDefinition().getAttributeNames();
+    }
+
+    protected @NotNull Collection<? extends QName> getCachedAccountAttributesWithIndexOnly()
+            throws SchemaException, ConfigurationException {
+        return getCachedAccountAttributes();
     }
 
     @Override

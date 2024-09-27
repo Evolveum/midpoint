@@ -47,7 +47,8 @@ import java.util.List;
 
 @PanelType(name = "associationTypes")
 @PanelInstance(identifier = "associationTypes", applicableForType = ResourceType.class,
-        display = @PanelDisplay(label = "PageResource.tab.associationTypes", icon = "fa fa-code-compare", order = 95))
+        childOf = SchemaHandlingPanel.class,
+        display = @PanelDisplay(label = "PageResource.tab.associationTypes", icon = "fa fa-code-compare", order = 20))
 public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAssociationTypeDefinitionType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AssociationTypesPanel.class);

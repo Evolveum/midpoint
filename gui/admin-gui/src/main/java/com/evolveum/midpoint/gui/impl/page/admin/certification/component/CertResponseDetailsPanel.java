@@ -58,10 +58,12 @@ public class CertResponseDetailsPanel extends BasePanel<PrismContainerValueWrapp
     private static final String ID_NO_ACTIONS_LABEL = "noActionsLabel";
 
     int stageNumber;
+    int iteration;
 
     public CertResponseDetailsPanel(String id, IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> model, int stageNumber) {
         super(id, model);
         this.stageNumber = stageNumber;
+        this.iteration = getModelObject().getRealValue().getIteration();
     }
 
     @Override
@@ -172,11 +174,14 @@ public class CertResponseDetailsPanel extends BasePanel<PrismContainerValueWrapp
 
             AccessCertificationCaseType certCase = getModelObject().getRealValue();
             List<AccessCertificationWorkItemType> workItems = certCase.getWorkItem();
-            workItems.forEach(workItem -> {
-                if (workItem.getStageNumber() != null && workItem.getStageNumber() == stageNumber) {
-                    list.add(createChatMessageItem(workItem));
-                }
-            });
+            workItems
+                    .stream()
+                    .filter(workItem -> workItem.getStageNumber() == stageNumber && workItem.getIteration() == iteration)
+                    .forEach(workItem -> {
+                        if (workItem.getStageNumber() != null && workItem.getStageNumber() == stageNumber) {
+                            list.add(createChatMessageItem(workItem));
+                        }
+                    });
             if (list.isEmpty()) {
                 list.add(new ChatMessageItem(Model.of(new DisplayType().label("CertResponseDetailsPanel.noActionsLabel")),
                         Model.of("")));

@@ -262,8 +262,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
                     return null;
                 }
 
-                List<ObjectReferenceType> refs = target.asObjectable().getEffectiveMarkRef();
-                return WebComponentUtil.createMarkList(refs, getPageBase());
+                return WebComponentUtil.createMarkList(target.asObjectable(), getPageBase());
             }
         };
     }
@@ -574,7 +573,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
         return addSelectedAssignmentsPerformed(target, Collections.singletonList(new AssignmentType()));
     }
 
-    private List<PrismContainerValueWrapper<AssignmentType>> addSelectedAssignmentsPerformed(AjaxRequestTarget target, List<AssignmentType> newAssignmentsList) {
+    protected final List<PrismContainerValueWrapper<AssignmentType>> addSelectedAssignmentsPerformed(AjaxRequestTarget target, List<AssignmentType> newAssignmentsList) {
         if (CollectionUtils.isEmpty(newAssignmentsList)) {
             warn(getPageBase().getString("AssignmentTablePanel.message.noAssignmentSelected"));
             target.add(getPageBase().getFeedbackPanel());
