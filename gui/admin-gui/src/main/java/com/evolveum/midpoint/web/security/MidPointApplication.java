@@ -210,7 +210,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
 
         getCspSettings().blocking().clear()
                 .unsafeInline()
-                .add(CSPDirective.IMG_SRC, "data:")
+                .add(CSPDirective.IMG_SRC, "*", "data:")
                 .add(CSPDirective.FONT_SRC, "data:");
 
         // This is needed for wicket to work correctly. Also jQuery version in webjars should match AdminLTE jQuery version.
