@@ -13,9 +13,9 @@ import java.io.Serializable;
 
 public class ReviewerStatisticDto implements Serializable {
 
-    private ObjectReferenceType reviewerRef;
-    private long openNotDecidedItemsCount;
-    private long allOpenItemsCount;
+    private final ObjectReferenceType reviewerRef;
+    private final long openNotDecidedItemsCount;
+    private final long allOpenItemsCount;
 
     public ReviewerStatisticDto(ObjectReferenceType reviewerRef, long openNotDecidedItemsCount, long allOpenItemsCount) {
         this.reviewerRef = reviewerRef;
