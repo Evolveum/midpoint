@@ -7,14 +7,18 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.certification.component;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.data.provider.ListDataProvider;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
 import com.evolveum.midpoint.gui.impl.component.tile.*;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -22,9 +26,11 @@ import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.util.ListModel;
 
 import java.io.Serial;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * todo this class contains a lot of duplicate code from ReviewerStatisticsPanel
@@ -34,9 +40,9 @@ public class ReviewersTileTablePanel extends TileTablePanel<Tile<UserType>, User
 
     @Serial private static final long serialVersionUID = 1L;
 
-    private List<UserType> reviewerList;
     private final Map<ObjectReferenceType, ReviewerStatisticDto> reviewerStatisticDtoMap;
     private final boolean isPercentageSorting;
+    Search search;
 
     public ReviewersTileTablePanel(String id, Map<ObjectReferenceType, ReviewerStatisticDto> reviewerStatisticDtoMap,
             boolean isPercentageSorting) {
@@ -45,20 +51,18 @@ public class ReviewersTileTablePanel extends TileTablePanel<Tile<UserType>, User
         this.isPercentageSorting = isPercentageSorting;
     }
 
-//    @Override
-//    protected IModel<Search> createSearchModel() {
-//        return new LoadableDetachableModel<>() {
-//
-//            @Serial private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            protected Search load() {
-//                SearchBuilder<UserType> searchBuilder = new SearchBuilder<>(UserType.class)
-//                        .modelServiceLocator(getPageBase());
-//                return searchBuilder.build();
-//            }
-//        };
-//    }
+    @Override
+    protected IModel<Search> createSearchModel() {
+        return  () -> {
+            if (search != null) {
+                return search;
+            }
+            SearchBuilder searchBuilder = new SearchBuilder<>(UserType.class)
+                    .modelServiceLocator(getPageBase());
+            search = searchBuilder.build();
+            return search;
+        };
+    }
 
     @Override
     protected Component createTile(String id, IModel<Tile<UserType>> model) {
@@ -94,27 +98,65 @@ public class ReviewersTileTablePanel extends TileTablePanel<Tile<UserType>, User
 //        return provider;
     }
 
-    private LoadableModel<List<UserType>> getReviewerListModel() {
-        return new LoadableModel<>(false) {
+    private ObjectQuery createReviewersQuery() {
+        List<String> reviewerOidList = reviewerStatisticDtoMap.keySet().stream()
+                .map(ObjectReferenceType::getOid)
+                .toList();
+        ObjectQuery query = getPageBase().getPrismContext().queryFor(UserType.class)
+                .id(reviewerOidList.toArray(new String[0]))
+                .build();
+        ObjectQuery searchQuery = search != null ? search.createObjectQuery(getPageBase()) : null;
+        if (searchQuery != null && searchQuery.getFilter() != null) {
+            query.addFilter(searchQuery.getFilter());
+        }
+        return query;
+    }
+
+    private ListModel<UserType> getReviewerListModel() {
+        List<UserType> reviewers = getSortedReviewerList();
+        return new ListModel<>(reviewers) {
 
             @Override
-            protected List<UserType> load() {
-                Collection<SelectorOptions<GetOperationOptions>> options = getPageBase().getOperationOptionsBuilder()
-                        .item(FocusType.F_JPEG_PHOTO).retrieve()
-                        .build();
-                List<ObjectReferenceType> sortedReviewers = sortReviewers();
-                return sortedReviewers.stream()
-                        .map(ref -> {
-                            PrismObject<UserType> userPrism = WebModelServiceUtils.loadObject(ref, options, getPageBase());
-                            return userPrism != null ? userPrism.asObjectable() : null;
-                        })
-                        .toList();
+            public void setObject(List<UserType> object) {
+                super.setObject(object);
+            }
+
+            @Override
+            public List<UserType> getObject() {
+                return searchThroughList(reviewers);
             }
         };
     }
 
+    private List<UserType> searchThroughList(List<UserType> reviewerList) {
+        if (reviewerList == null || reviewerList.isEmpty()) {
+            return null;
+        }
+
+        ObjectQuery query = createReviewersQuery();
+        return reviewerList.stream().filter(user -> {
+            try {
+                return ObjectQuery.match(user, query.getFilter(), getPageBase().getMatchingRuleRegistry());
+            } catch (SchemaException e) {
+                throw new TunnelException(e.getMessage());
+            }
+        }).collect(Collectors.toList());
+    }
+
+    private List<UserType> getSortedReviewerList() {
+        Collection<SelectorOptions<GetOperationOptions>> options = getPageBase().getOperationOptionsBuilder()
+                .item(FocusType.F_JPEG_PHOTO).retrieve()
+                .build();
+        List<ObjectReferenceType> sortedReviewers = sortReviewers();
+        return sortedReviewers.stream()
+                .map(ref -> {
+                    PrismObject<UserType> userPrism = WebModelServiceUtils.loadObject(ref, options, getPageBase());
+                    return userPrism != null ? userPrism.asObjectable() : null;
+                })
+                .toList();
+    }
+
     private List<ObjectReferenceType> sortReviewers() {
-        List<StatisticBoxDto<ObjectReferenceType>> list = new ArrayList<>();
         List<ObjectReferenceType> reviewers = new ArrayList<>(reviewerStatisticDtoMap.keySet());
         reviewers = reviewers.stream().sorted((r1, r2) -> {
             ReviewerStatisticDto rs1 = reviewerStatisticDtoMap.get(r1);
