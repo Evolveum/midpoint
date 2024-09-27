@@ -9,7 +9,6 @@ package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
 import static com.evolveum.midpoint.schema.processor.ResourceSchemaFactory.*;
-import static com.evolveum.midpoint.schema.processor.ShadowReferenceParticipantRole.OBJECT;
 import static com.evolveum.midpoint.schema.processor.ShadowReferenceParticipantRole.SUBJECT;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,7 +41,6 @@ import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorConfigurationOptions.CompleteSchemaProvider;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
@@ -215,11 +213,13 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
         configure(
                 resourceBean.getConnectorConfiguration(),
-                null,
+                List.of(),
                 result);
 
         // WHEN
-        resourceSchema = nativeToBare(cc.fetchResourceSchema(result));
+        var nativeResourceSchema = cc.fetchResourceSchema(result);
+        resourceSchema = nativeToBare(nativeResourceSchema);
+        completeResourceSchema = ResourceSchemaFactory.parseCompleteSchema(resourceBean, nativeResourceSchema);
 
         // THEN
         displayDumpable("Generated resource schema", resourceSchema);
@@ -257,7 +257,9 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
                 result);
 
         // WHEN
-        resourceSchema = ResourceSchemaFactory.nativeToBare(cc.fetchResourceSchema(result));
+        var nativeResourceSchema = cc.fetchResourceSchema(result);
+        resourceSchema = ResourceSchemaFactory.nativeToBare(nativeResourceSchema);
+        completeResourceSchema = ResourceSchemaFactory.parseCompleteSchema(resourceBean, nativeResourceSchema);
 
         // THEN
         displayDumpable("Generated resource schema", resourceSchema);
@@ -291,6 +293,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
     @Test
     public void test040AddAccount() throws Exception {
         OperationResult result = createOperationResult();
+        var ctx = createExecutionContext();
 
         var accountClassDefinition = resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
 
@@ -299,7 +302,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
                 .asPrismObject();
 
         when();
-        cc.addObject(shadow, null, result);
+        cc.addObject(shadow, ctx, result);
 
         then();
         DummyAccount dummyAccount = dummyResource.getAccountByName(ACCOUNT_JACK_USERNAME);
@@ -321,7 +324,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
             return true;
         };
 
-        UcfExecutionContext ctx = createExecutionContext();
+        var ctx = createExecutionContext();
         OperationResult result = createOperationResult();
 
         when();
@@ -348,8 +351,8 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
     @Test
     public void test060GetByUidWithNameHint() throws Exception {
         given();
-        UcfExecutionContext ctx = createExecutionContext();
-        OperationResult result = createOperationResult();
+        var ctx = createExecutionContext();
+        var result = createOperationResult();
 
         var accountClassDefinition = resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
         var uidAttr = accountClassDefinition.<String>getPrimaryIdentifierRequired().instantiateFromRealValue("jack");
@@ -370,9 +373,10 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
     public void test100FetchEmptyChanges() throws Exception {
         OperationResult result = createOperationResult();
         var accountClassDefinition = resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
+        var ctx = createExecutionContext();
 
         when("current token is fetched");
-        UcfSyncToken lastToken = cc.fetchCurrentToken(accountClassDefinition, null, result);
+        UcfSyncToken lastToken = cc.fetchCurrentToken(accountClassDefinition, ctx, result);
 
         then();
         displayValue("Token", lastToken);
@@ -380,7 +384,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
         when("changes are fetched");
         CollectingChangeListener handler = new CollectingChangeListener();
-        cc.fetchChanges(accountClassDefinition, lastToken, null, null, null, handler, result);
+        cc.fetchChanges(accountClassDefinition, lastToken, null, null, ctx, handler, result);
 
         then();
         assertThat(handler.getChanges()).as("changes").isEmpty();
@@ -391,8 +395,9 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
     public void test101FetchAddChange() throws Exception {
         OperationResult result = createOperationResult();
         var accountClassDefinition = resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
+        var ctx = createExecutionContext();
 
-        UcfSyncToken lastToken = cc.fetchCurrentToken(accountClassDefinition, null, result);
+        UcfSyncToken lastToken = cc.fetchCurrentToken(accountClassDefinition, ctx, result);
         assertNotNull("No last sync token", lastToken);
 
         given("account is added to the resource");
@@ -405,7 +410,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
         when("changes are fetched");
         CollectingChangeListener handler = new CollectingChangeListener();
-        cc.fetchChanges(accountClassDefinition, lastToken, null, null, null, handler, result);
+        cc.fetchChanges(accountClassDefinition, lastToken, null, null, ctx, handler, result);
 
         then("there is 1 change, and is sane");
 
@@ -620,7 +625,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         when("references are queried via UCF");
 
         OperationResult result = createOperationResult();
-        UcfExecutionContext ctx = createExecutionContext(hrScenario.getResourceBean());
+        var ctx = createExecutionContext(hrScenario.getResourceBean(), hrScenario.getResourceSchemaRequired());
 
         ResourceObjectDefinition personDefinition = hrScenario.person.getObjectClassDefinition();
         var handler = new UcfObjectHandler.Collecting();
@@ -700,7 +705,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         initializeHrScenarioIfNeeded();
 
         var result = createOperationResult();
-        var ctx = createExecutionContext(hrScenario.getResourceBean());
+        var ctx = createExecutionContext(hrScenario.getResourceBean(), hrScenario.getResourceSchemaRequired());
         var resourceSchema = hrScenario.getResourceSchemaRequired();
 
         given("engineering org unit");
@@ -772,7 +777,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         initializeHrScenarioIfNeeded();
 
         var result = createOperationResult();
-        var ctx = createExecutionContext(hrScenario.getResourceBean());
+        var ctx = createExecutionContext(hrScenario.getResourceBean(), hrScenario.getResourceSchemaRequired());
         var resourceSchema = hrScenario.getResourceSchemaRequired();
         var contractClassDefinition = resourceSchema.findObjectClassDefinitionRequired(Contract.OBJECT_CLASS_NAME.xsd());
         var personClassDefinition = resourceSchema.findObjectClassDefinitionRequired(Person.OBJECT_CLASS_NAME.xsd());
@@ -860,11 +865,12 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
     private @NotNull UcfResourceObject createHrOrgUnit(String name, OperationResult result) throws Exception {
         var classDefinition =
                 hrScenario.getResourceSchemaRequired().findObjectClassDefinitionRequired(OrgUnit.OBJECT_CLASS_NAME.xsd());
+        var ctx = createExecutionContext();
         hrConnectorInstance.addObject(
                 ShadowBuilder.withDefinition(classDefinition)
                         .withSimpleAttribute(OrgUnit.AttributeNames.NAME.q(), name)
                         .asPrismObject(),
-                null, result);
+                ctx, result);
         return searchHrObjectByName(classDefinition, OrgUnit.AttributeNames.NAME, name, result);
     }
 
@@ -872,18 +878,19 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
     private @NotNull UcfResourceObject createHrPerson(String name, OperationResult result) throws Exception {
         var classDefinition =
                 hrScenario.getResourceSchemaRequired().findObjectClassDefinitionRequired(Person.OBJECT_CLASS_NAME.xsd());
+        var ctx = createExecutionContext();
         hrConnectorInstance.addObject(
                 ShadowBuilder.withDefinition(classDefinition)
                         .withSimpleAttribute(Person.AttributeNames.NAME.q(), name)
                         .asPrismObject(),
-                null, result);
+                ctx, result);
         return searchHrObjectByName(classDefinition, Person.AttributeNames.NAME, name, result);
     }
 
     private @NotNull UcfResourceObject searchHrObjectByName(
             ResourceObjectClassDefinition objectClassDefinition, AttrName nameAttr, String nameAttrValue, OperationResult result)
             throws Exception {
-        var ctx = createExecutionContext(hrScenario.getResourceBean());
+        var ctx = createExecutionContext(hrScenario.getResourceBean(), hrScenario.getResourceSchemaRequired());
         var handler = new UcfObjectHandler.Collecting();
         hrConnectorInstance.search(
                 objectClassDefinition,
@@ -915,9 +922,10 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         hrConnectorInstance = connectorFactory
                 .createConnectorInstance(connectorBean, "hr", "")
                 .configure(
-                        configuration.asPrismContainerValue(),
-                        new ConnectorConfigurationOptions()
-                                .completeSchemaProvider(CompleteSchemaProvider.forResource(resourceDef)),
+                        new ConnectorConfiguration(
+                                configuration.asPrismContainerValue(),
+                                List.of()),
+                        new ConnectorConfigurationOptions(),
                         result)
                 .initialize(null, null, result);
 

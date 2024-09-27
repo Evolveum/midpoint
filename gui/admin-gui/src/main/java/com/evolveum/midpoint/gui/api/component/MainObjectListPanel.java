@@ -634,10 +634,24 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                             return;
                         }
 
-                        LoadableDetachableModel<PrismObjectWrapper<O>> focusModel = loadWrapper(selected.getObject().getValue());
+                        OperationResult result = new OperationResult("createWrapper");
+                        LoadableDetachableModel<PrismObjectWrapper<O>> focusModel = loadWrapper(selected.getObject().getValue(), result);
+
+                        if (focusModel == null || focusModel.getObject() == null) {
+                            if (result.isSuccess()) {
+                                warn(getString("ProcessedObjectsPanel.message.noObjectFound", selected.getObject().getValue().getOid()));
+                            }
+                            target.add(getPageBase().getFeedbackPanel());
+                            return;
+                        }
 
                         MarksOfObjectListPopupPanel popup = new MarksOfObjectListPopupPanel(
-                                getPageBase().getMainPopupBodyId(), focusModel);
+                                getPageBase().getMainPopupBodyId(), focusModel) {
+                            @Override
+                            protected void refreshTable(AjaxRequestTarget target) {
+                                MainObjectListPanel.this.refreshTable(target);
+                            }
+                        };
 
                         getPageBase().showMainPopup(popup, target);
                     }
@@ -646,7 +660,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         };
     }
 
-    private LoadableDetachableModel<PrismObjectWrapper<O>> loadWrapper(O objectBean) {
+    private LoadableDetachableModel<PrismObjectWrapper<O>> loadWrapper(O objectBean, OperationResult result) {
         return new LoadableDetachableModel<>() {
             @Override
             protected PrismObjectWrapper<O> load() {
@@ -655,6 +669,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 }
 
                 Task task = getPageBase().createSimpleTask("createWrapper");
+                task.setResult(result);
 
                 Collection<SelectorOptions<GetOperationOptions>> options = getPageBase().getOperationOptionsBuilder()
                         .noFetch()
@@ -664,7 +679,11 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
                 try {
                     PrismObject<O> prismObject = (PrismObject<O>) WebModelServiceUtils.loadObject(
-                            objectBean.getClass(), objectBean.getOid(), options, getPageBase(), task, task.getResult());
+                            objectBean.getClass(), objectBean.getOid(), options, getPageBase(), task, result);
+
+                    if (prismObject == null) {
+                        return null;
+                    }
 
                     PrismObjectWrapperFactory<O> factory = getPageBase().findObjectWrapperFactory(prismObject.getDefinition());
                     OperationResult result = task.getResult();

@@ -14,10 +14,14 @@ import com.evolveum.midpoint.ninja.action.mining.generator.GeneratorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+
+import javax.xml.namespace.QName;
 
 /**
  * The InitialObjectsDefinition class facilitates the generation of initial objects, including roles, organizations,
@@ -395,12 +399,12 @@ public class InitialObjectsDefinition {
 
     public enum NoiseApplicationBusinessAbstractRole implements InitialAbstractRole {
 
-        NOISE_MEDIA_MANAGER("c368b9a1-3c58-4d6f-9f86-a23ccf8a4f06", "Noise Media Manager"),
-        NOISE_MEDIA_ANALYST("6e42c7ab-4c75-4c17-bf69-63049315680c", "Noise Media Analyst"),
-        NOISE_MEDIA_WRITER("f659fe15-9e98-4468-9e7d-80eabe6253c9", "Noise Media Writer"),
-        NOISE_MEDIA_READER("f3e4d45c-d311-4f8b-99da-a96313ec7eb0", "Noise Media Reader"),
-        NOISE_MEDIA_AUDITOR("dd36aaa5-d671-4a5d-b2c0-3af937f5db0c", "Noise Media Auditor"),
-        NOISE_MEDIA_ADMIN("62231b07-af48-4dfb-8250-a40f13994d0c", "Noise Media Admin");
+        NOISE_MEDIA_MANAGER("c368b9a1-3c58-4d6f-9f86-a23ccf8a4f06", "Media Manager"),
+        NOISE_MEDIA_ANALYST("6e42c7ab-4c75-4c17-bf69-63049315680c", "Media Analyst"),
+        NOISE_MEDIA_WRITER("f659fe15-9e98-4468-9e7d-80eabe6253c9", "Media Writer"),
+        NOISE_MEDIA_READER("f3e4d45c-d311-4f8b-99da-a96313ec7eb0", "Media Reader"),
+        NOISE_MEDIA_AUDITOR("dd36aaa5-d671-4a5d-b2c0-3af937f5db0c", "Media Auditor"),
+        NOISE_MEDIA_ADMIN("62231b07-af48-4dfb-8250-a40f13994d0c", "Media Admin");
 
         private final String oid;
         private final String name;
@@ -624,44 +628,46 @@ public class InitialObjectsDefinition {
     public enum Archetypes implements InitialArchetype {
 
         PLANCTON_ROLE("b9bcc8ff-7b43-41a2-8844-4834252e21a3", "Plancton Role Archetype",
-                "red", "fe fe-role"),
+                "red", "fe fe-role", RoleType.COMPLEX_TYPE),
         TECHNICAL_ROLE("9a3c9cf0-63d3-4165-ab9d-e49865b1da1a", "Technical Role Archetype",
-                "brown", "fe fe-role"),
+                "brown", "fe fe-role", RoleType.COMPLEX_TYPE),
         LOCATION_ROLE("826f255d-d2c3-4359-9bc2-51047cceeebf", "Location Role Archetype",
-                "pink", "fe fe-role"),
+                "pink", "fe fe-role", RoleType.COMPLEX_TYPE),
         JOB_ROLE("2fd84b31-d2f2-407a-b970-907dfd1cb239", "Job Role Archetype",
-                "yellow", "fe fe-role"),
+                "yellow", "fe fe-role", RoleType.COMPLEX_TYPE),
         AUX_ROLE("40549d50-4abd-4b89-a46e-2678c957afb3", "Aux Role Archetype",
-                "purple", "fe fe-role"),
+                "purple", "fe fe-role", RoleType.COMPLEX_TYPE),
         BIRTHRIGHT_ROLE("d212dcd9-b062-49fd-adbd-7815868f132c", "Birthright Role Archetype",
-                "orange", "fe fe-role"),
+                "orange", "fe fe-role", RoleType.COMPLEX_TYPE),
         NOISE_ROLE("5b8a247c-443f-4a9a-a125-963b36383061", "Noise Role Archetype",
-                "blue", "fe fe-role"),
+                "blue", "fe fe-role", RoleType.COMPLEX_TYPE),
         REGULAR_USER("86638d1c-66b6-40a9-817e-cf88ca7aaced", "Regular User Archetype",
-                "blue", "fa fa-user"),
+                "blue", "fa fa-user", UserType.COMPLEX_TYPE),
         SEMI_REGULAR_USER("e3b84663-1f37-46fa-ab06-70cbac038885", "Semi-regular User Archetype",
-                "brown", "fa fa-user"),
+                "brown", "fa fa-user", UserType.COMPLEX_TYPE),
         IRREGULAR_USER("03a452a2-79cf-4fb5-aefd-14d23a05473f", "Irregular User Archetype",
-                "purple", "fa fa-user"),
+                "purple", "fa fa-user", UserType.COMPLEX_TYPE),
         MANAGERS_USER("fef8090c-06e3-4ca3-b706-1401f2f679e9", "Managers User Archetype",
-                "green", "fa fa-user"),
+                "green", "fa fa-user", UserType.COMPLEX_TYPE),
         SALES_USER("2068df70-7f03-41c8-91bd-8e88de626d05", "Sales User Archetype",
-                "yellow", "fa fa-user"),
+                "yellow", "fa fa-user", UserType.COMPLEX_TYPE),
         SECURITY_OFFICERS_USER("cffd833f-78a5-4cc0-92dc-06a9e2787e64", "Security officers User Archetype",
-                "orange", "fa fa-user"),
+                "orange", "fa fa-user", UserType.COMPLEX_TYPE),
         CONTRACTORS_USER("324f5625-de3a-4f7f-8e3b-44c8d5ce051d", "Contractors User Archetype",
-                "red", "fa fa-user");
+                "red", "fa fa-user", UserType.COMPLEX_TYPE);
 
         private final String oid;
         private final String name;
         private final String color;
         private final String iconCss;
+        private final QName holderType;
 
-        Archetypes(String oid, String name, String color, String iconCss) {
+        Archetypes(String oid, String name, String color, String iconCss, QName holderType) {
             this.oid = oid;
             this.name = name;
             this.color = color;
             this.iconCss = iconCss;
+            this.holderType = holderType;
         }
 
         @Override
@@ -684,6 +690,10 @@ public class InitialObjectsDefinition {
             return name;
         }
 
+        @Override
+        public QName getHolderType() {
+            return holderType;
+        }
     }
 
 }

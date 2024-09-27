@@ -7,10 +7,6 @@
 
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
-import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
-
-import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
-
 /**
  * A restricted access to basic data about the {@link ConnectorInstanceConnIdImpl}.
  * Created to avoid circular dependencies from called components to the connector instance,
@@ -21,12 +17,6 @@ interface ConnectorContext {
     Boolean getConfiguredLegacySchema();
 
     boolean isLegacySchema();
-
-    default CompleteResourceSchema getResourceSchemaRequired() {
-        return stateNonNull(getResourceSchema(), "No resource schema in %s", this);
-    }
-
-    CompleteResourceSchema getResourceSchema();
 
     String getHumanReadableName();
 }

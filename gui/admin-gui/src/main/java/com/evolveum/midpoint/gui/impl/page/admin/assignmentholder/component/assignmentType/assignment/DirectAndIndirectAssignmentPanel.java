@@ -275,8 +275,8 @@ public class DirectAndIndirectAssignmentPanel<AH extends AssignmentHolderType> e
         Set<AssignmentValueWrapper> assignmentValueWrapperSet = new LinkedHashSet<>();
 
         ObjectDelta<AH> delta = getObjectDelta(result);
-        ModelContext<AH> modelContext = getPageBase().getModelInteractionService().previewChanges(
-                Collections.singleton(delta), createPreviewAssignmentsOptions(), task, result);
+        ModelContext<AH> modelContext = getPageBase().getModelInteractionService().previewChangesLegacy(
+                Collections.singleton(delta), createPreviewAssignmentsOptions(), task, List.of(), result);
         Collection<? extends EvaluatedAssignment> evaluatedAssignments = modelContext.getNonNegativeEvaluatedAssignments();
 
         for (EvaluatedAssignment evaluatedAssignment : evaluatedAssignments) {

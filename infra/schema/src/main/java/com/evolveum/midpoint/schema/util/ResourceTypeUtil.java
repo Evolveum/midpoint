@@ -121,20 +121,12 @@ public class ResourceTypeUtil {
         }
     }
 
-    /** Returns `null` if the list of constraints does not exist or is empty. */
-    public static List<QName> getSchemaGenerationConstraints(ResourceType resource) {
+    public static @NotNull List<QName> getSchemaGenerationConstraints(ResourceType resource) {
         if (hasSchemaGenerationConstraints(resource)) {
             return resource.getSchema().getGenerationConstraints().getGenerateObjectClass();
         } else {
-            return null;
+            return List.of();
         }
-    }
-
-    public static List<QName> getSchemaGenerationConstraints(PrismObject<ResourceType> resource) {
-        if (resource == null) {
-            return null;
-        }
-        return getSchemaGenerationConstraints(resource.asObjectable());
     }
 
     /**

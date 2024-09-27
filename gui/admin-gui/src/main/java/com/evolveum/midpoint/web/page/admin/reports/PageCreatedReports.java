@@ -221,7 +221,7 @@ public class PageCreatedReports extends PageAdmin {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            protected InputStream initStream() {
+            protected InputStream getInputStream() {
                 return ReportDownloadHelper.createReport(currentReport, this, PageCreatedReports.this);
             }
 

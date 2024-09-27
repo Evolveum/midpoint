@@ -1520,8 +1520,13 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         ModelExecuteOptions options = executeOptions()
                 .executeImmediatelyAfterApproval(immediate)
                 .partialProcessing(new PartialProcessingOptionsType().approvals(PROCESS));
-        ModelContext<ObjectType> modelContext = modelInteractionService
-                .previewChanges(singleton(primaryDelta), options, task, result);
+
+        // role24 causes enforcement exception; but that is supported only in the legacy mode
+        // (in modern preview it throws a real exception)
+        ModelContext<ObjectType> modelContext =
+                also24 ?
+                        modelInteractionService.previewChangesLegacy(List.of(primaryDelta), options, task, List.of(), result) :
+                        modelInteractionService.previewChanges(List.of(primaryDelta), options, task, List.of(), result);
 
         List<ApprovalSchemaExecutionInformationType> approvalInfo = modelContext.getHookPreviewResults(ApprovalSchemaExecutionInformationType.class);
         PolicyRuleEnforcerPreviewOutputType enforceInfo = modelContext.getPolicyRuleEnforcerPreviewOutput();
@@ -1536,12 +1541,10 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         // we do not assert success here, because there are (intentional) exceptions in some expressions
 
         assertEquals("Wrong # of schema execution information pieces", also24 ? 5 : 4, approvalInfo.size());
-        assertNotNull("No enforcement preview output", enforceInfo);
-        List<EvaluatedPolicyRuleType> enforcementRules = enforceInfo.getRule();
         if (also24) {
+            assertNotNull("No enforcement preview output", enforceInfo);
+            List<EvaluatedPolicyRuleType> enforcementRules = enforceInfo.getRule();
             assertEquals("Wrong # of enforcement rules", 1, enforcementRules.size());
-        } else {
-            assertEquals("Wrong # of enforcement rules", 0, enforcementRules.size());
         }
 
         // shortcuts

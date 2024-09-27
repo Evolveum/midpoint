@@ -19,8 +19,8 @@ By default, the repository configuration is stored in the `$HOME/midpoint` direc
 This directory is further referenced to as `midpoint.home`.
 
 This directory will be created upon the very first start of midPoint.
-The configuration file *config.xml* will be generated if it does not exist and it will be pre-configured to use the embedded H2 repository.
-You can first start midPoint with embedded H2 repository and then reconfigure the created `config.xml` to use another database, or you can prepare `config.xml` before the midPoint starts for the very first time using the sample configurations (see the child pages below).
+The configuration file *config.xml* will be generated if it does not exist and it will be populated with placeholders to use generic repository implementation.
+If there's are no values populated in `config.xml` or via JVM `-D` options, repository initialization will fail.
 
 == Configuration options
 
@@ -32,44 +32,15 @@ Default values are used only if repository is in embedded mode, otherwise config
 
 | database
 | Simplified option for repository setup.
-Possible values are *h2*, *mysql*, *oracle*, *sqlserver*, *postgresql*.
-This option will set defaults for other options, for example *embedded*, *hibernateHbm2ddl, hibernateDialect* and *driverClassName* based on the selected database.
+Possible values are *oracle*, *sqlserver*, *postgresql*.
+This option will set defaults for other options, for example *hibernateHbm2ddl, hibernateDialect* and *driverClassName* based on the selected database.
 These defaults can be overridden by specifying custom values in configuration.
-| h2
+|
 
 | dropIfExists
 | Drops database files if they exist during start.
 Useful for tests.
 | false
-
-| baseDir
-| Directory where H2 files will be saved if we're running in embedded mode.
-`<baseDir>${midpoint.home}</baseDir>` can be used if we want to store H2 db files in `midpoint.home` directory
-| current folder "."
-
-| fileName
-| Database filename.
-Name for H2 files if we're running in embedded mode.
-| midpoint
-
-| embedded
-| Embedded H2 mode.
-| true
-
-| asServer
-| This option can be used if we're running in H2 embedded mode.
-If the server mode is turned on, H2 runs with TCP server.
-Other applications/services can connect to H2 server.
-If false, H2 runs in file mode.
-| false
-
-| tcpSSL
-| Embedded H2 server mode SSL.
-| false
-
-| port
-| Embedded H2 server mode port.
-| 5437
 
 | hibernateHbm2ddl
 | Automatically validates or exports schema DDL to the database when the SessionFactory is created.
@@ -77,11 +48,11 @@ E.g. `validate` \| `update` \| `create` \| `create-drop` \| `none`.
 With `create-drop` the database schema will be dropped when the SessionFactory is closed explicitly.
 For production environments, `validate` should be used (before midPoint 3.9) or `none` (3.9 and later).
 Please see *Schema creation and updating* section later.
-| for H2 `update`, otherwise `none` (was `validate` before 3.9)
+| `none`
 
 | hibernateDialect
-| SQL dialect based on chosen DB link:http://docs.jboss.org/hibernate/orm/4.1/manual/en-US/html_single/#sql-dialects[Supported hibernate dialects].
-| org.hibernate.dialect.H2Dialect
+| Derived from *database* option.
+|
 
 // TODO remove when 4.4 support ends
 | dataSource
@@ -92,19 +63,19 @@ Example: `<dataSource>java:comp/env/jdbc/midpoint</dataSource>`
 
 | jdbcUsername
 | Username for JDBC connection.
-| sa (if embedded=true), _null_ (otherwise)
+|
 
 | jdbcPassword
 | Password for JDBC connection.
-| empty string (if embedded=true), _null_ (otherwise)
+|
 
 | jdbcUrl
 | URL for JDBC connection.
-| if embedded=true url is computed from previous parameters
+|
 
 | driverClassName
 | Driver class name for JDBC connection.
-| org.h2.Driver (if embedded=true)
+| Derived from *database* option.
 
 | fullObjectFormat
 | Property specifies format (or language) used to store serialized object representation (*m_object.fullObject*).
@@ -155,9 +126,8 @@ See bug:MID-5342[].
 
 == Schema creation and updating
 
-
 Midpoint provides flexible and powerful approach to schema validation and maintenance.
-It is enabled by setting `hibernateHbm2ddl` parameter to `none`, which is now the default for non-H2 databases.
+It is enabled by setting `hibernateHbm2ddl` parameter to `none`, which is now the default.
 
 What it does:
 
@@ -185,7 +155,7 @@ Schema validation and maintenance is the driven by these configuration options:
 | Whether to skip this process of explicit schema validation.
 a|
 * `true` (i.e. "skip") if `hibernateHbm2ddl` is `validate`, `update`, `create`, or `create-drop`;
-* `false` (i.e. "do not skip") otherwise (e.g. if it is `none` which is the default for non-H2 databases)
+* `false` (i.e. "do not skip") otherwise (e.g. if it is `none` which is the default)
 
 | missingSchemaAction
 a| What to do if the database schema is not present:
@@ -253,7 +223,7 @@ Intended for test, not for production usage.
 === Schema creation and updating (before 3.9)
 
 In earlier versions of midPoint the schema creation and update is driven solely by the `hibernateHbm2ddl` parameter.
-For production environments it is strongly recommended setting it to `validate` that is the default value for non-H2 databases.
+For production environments it is strongly recommended setting it to `validate`.
 Then you have to maintain it manually using SQL scripts which are located in the distribution package.
 
 SQL schema scripts for all supported databases are located in midPoint distribution package which is downloadable from link:https://evolveum.com/download/[download page] for current release.

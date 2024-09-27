@@ -10,7 +10,6 @@ package com.evolveum.midpoint.repo.sqlbase;
  * Enumeration of supported SQL/databases (RDBMS).
  */
 public enum SupportedDatabase {
-    H2,
     POSTGRESQL,
     ORACLE,
     SQLSERVER;

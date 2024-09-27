@@ -1028,6 +1028,10 @@ public class ShadowAssociationDefinitionImpl
         return getReferenceAttributeDefinition().isTolerant();
     }
 
+    public @Nullable ShadowAssociationDefinitionType getModernAssociationDefinitionBean() {
+        return modernAssociationDefinitionBean;
+    }
+
     private record LegacyAssociationTypeInformation(
             @Nullable MappingType outboundMappingBean,
             @NotNull List<InboundMappingType> inboundMappingBeans) implements Serializable {

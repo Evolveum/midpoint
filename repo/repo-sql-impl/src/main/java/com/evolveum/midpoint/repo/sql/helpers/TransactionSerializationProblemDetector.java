@@ -68,15 +68,11 @@ public class TransactionSerializationProblemDetector {
         // error messages / error codes / SQL states listed below we consider related to locking
         // (sql states should be somewhat standardized; sql error codes are vendor-specific)
 
-        boolean h2 = configuration.isUsingH2();
         boolean oracle = configuration.isUsingOracle();
         boolean sqlServer = configuration.isUsingSQLServer();
 
         return "40001".equals(sqlException.getSQLState()) // serialization failure in PostgreSQL - http://www.postgresql.org/docs/9.1/static/transaction-iso.html - and probably also in other systems
                 || "40P01".equals(sqlException.getSQLState()) // deadlock in PostgreSQL
-                || h2 && messageContains(sqlException.getMessage(), H2_SERIALIZATION_ERRORS)
-                || h2 && sqlException.getErrorCode() == 50200 // table timeout lock in H2, 50200 is LOCK_TIMEOUT_1 error code
-                || h2 && sqlException.getErrorCode() == 40001 // DEADLOCK_1 in H2
                 || oracle && sqlException.getErrorCode() == 8177 // ORA-08177: can't serialize access for this transaction in Oracle
                 || oracle && sqlException.getErrorCode() == 1466 // ORA-01466 ["unable to read data - table definition has changed"] in Oracle
                 || oracle && sqlException.getErrorCode() == 1555 // ORA-01555: snapshot too old: rollback segment number  with name "" too small
@@ -95,18 +91,12 @@ public class TransactionSerializationProblemDetector {
         return false;
     }
 
-    private static final String[] H2_SERIALIZATION_ERRORS = {
-            // this is some recent H2 weirdness (MID-3969)
-            "Referential integrity constraint violation: \"FK_AUDIT_ITEM: PUBLIC.M_AUDIT_ITEM FOREIGN KEY(RECORD_ID) REFERENCES PUBLIC.M_AUDIT_EVENT(ID)"
-    };
-
     private static final Pattern[] OK_PATTERNS = new Pattern[] {
             Pattern.compile(".*Duplicate entry '.*' for key 'iExtItemDefinition'.*"), // reportedly MySQL, but left here to die with the generic repo
             Pattern.compile(".*ORA-00001:.*\\.IEXTITEMDEFINITION\\).*") // Oracle
     };
 
     private static final String[] OK_STRINGS = new String[] {
-            "Unique index or primary key violation: \"IEXTITEMDEFINITION", // H2
             "Violation of UNIQUE KEY constraint 'iExtItemDefinition'", // SQL Server
             "duplicate key value violates unique constraint \"iextitemdefinition\"", // PostgreSQL
 

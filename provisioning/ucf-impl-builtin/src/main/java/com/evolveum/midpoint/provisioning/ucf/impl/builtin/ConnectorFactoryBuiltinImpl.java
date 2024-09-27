@@ -258,7 +258,7 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 
     @Override
     public @NotNull ConnectorInstance createConnectorInstance
-            (ConnectorType connectorBean, String instanceName, String desc) throws ObjectNotFoundException {
+            (@NotNull ConnectorType connectorBean, String instanceName, String desc) throws ObjectNotFoundException {
         ConnectorStruct struct = getConnectorStruct(connectorBean);
         Class<? extends ConnectorInstance> connectorClass = struct.connectorClass;
         ConnectorInstance connectorInstance;

@@ -6,9 +6,11 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.basic;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.model.IModel;
 
@@ -19,9 +21,6 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 /**
  * @author lskublik
@@ -63,5 +62,17 @@ public class BasicSettingResourceObjectTypeStepPanel
     @Override
     public VisibleEnableBehaviour getBackBehaviour() {
         return new VisibleBehaviour(() -> false);
+    }
+
+    @Override
+    protected ItemMandatoryHandler getMandatoryHandler() {
+        return this::checkMandatory;
+    }
+
+    protected boolean checkMandatory(ItemWrapper itemWrapper) {
+        if (itemWrapper.getItemName().equals(ResourceObjectTypeDefinitionType.F_KIND)) {
+            return true;
+        }
+        return itemWrapper.isMandatory();
     }
 }

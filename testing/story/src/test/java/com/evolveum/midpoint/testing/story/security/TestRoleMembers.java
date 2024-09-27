@@ -10,6 +10,7 @@ import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.List;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -156,7 +157,8 @@ public class TestRoleMembers extends AbstractStoryTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
         ObjectDelta<UserType> emptyMancombDelta = deltaFor(UserType.class).asObjectDelta(userOid);
-        ModelContext<UserType> previewContext = modelInteractionService.previewChanges(Collections.singleton(emptyMancombDelta), null, task, result);
+        ModelContext<UserType> previewContext =
+                modelInteractionService.previewChangesLegacy(List.of(emptyMancombDelta), null, task, List.of(), result);
         displayDumpable("Preview context", previewContext);
         result.computeStatus();
         if (!result.isSuccess() && !result.isHandledError() && !result.isWarning()) {

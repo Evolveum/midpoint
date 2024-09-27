@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.impl.util.mock;
 
 import java.util.*;
 
+import com.evolveum.midpoint.schema.processor.BareResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.util.exception.*;
 
@@ -26,7 +27,6 @@ import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.task.api.Task;
@@ -172,7 +172,7 @@ public class MockFactory {
             }
 
             @Override
-            public @Nullable ResourceSchema fetchSchema(
+            public @Nullable BareResourceSchema fetchSchema(
                     @NotNull PrismObject<ResourceType> resource, @NotNull OperationResult parentResult) {
                 return null;
             }
@@ -472,11 +472,6 @@ public class MockFactory {
             @Override
             public @NotNull RepositoryDiag getRepositoryDiag() {
                 return new RepositoryDiag();
-            }
-
-            @Override
-            public boolean isGenericNonH2() {
-                return false;
             }
 
             @Override

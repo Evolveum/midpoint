@@ -25,7 +25,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.DiscoveredConfiguration;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.*;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.BareResourceSchema;
 import com.evolveum.midpoint.schema.query.TypedQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -568,14 +568,14 @@ public interface ModelService {
 
     /**
      * <p>
-     * Method work same as
-     * {@link ProvisioningService#fetchSchema(PrismObject, OperationResult)}.
+     * Method work the same as {@link ProvisioningService#fetchSchema(PrismObject, OperationResult)}.
      * </p>
      *
      * @param resource resource with connector configuration
      * @return Resource schema fetched by connector
      */
-    @Nullable ResourceSchema fetchSchema(@NotNull PrismObject<ResourceType> resource, @NotNull OperationResult parentResult);
+    @Nullable BareResourceSchema fetchSchema(
+            @NotNull PrismObject<ResourceType> resource, @NotNull OperationResult parentResult);
 
     /**
      * <p>

@@ -547,7 +547,8 @@ public class TestRbac extends AbstractRbacTest {
         ObjectDelta<UserType> delta = user.createModifyDelta();
 
         // WHEN
-        ModelContext<ObjectType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta), getDefaultOptions(), task, result);
+        ModelContext<ObjectType> modelContext =
+                modelInteractionService.previewChangesLegacy(List.of(delta), getDefaultOptions(), task, List.of(), result);
 
         // THEN
         result.computeStatus();
@@ -2792,7 +2793,8 @@ public class TestRbac extends AbstractRbacTest {
 
         // WHEN
         when();
-        ModelContext<ObjectType> context = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+        ModelContext<ObjectType> context =
+                modelInteractionService.previewChangesLegacy(List.of(delta), null, task, List.of(), result);
 
         // THEN
         then();

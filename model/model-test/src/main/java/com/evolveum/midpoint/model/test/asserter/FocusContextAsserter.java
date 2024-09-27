@@ -62,8 +62,8 @@ public class FocusContextAsserter<F extends ObjectType,RA> extends ElementContex
     }
 
     @Override
-    public ObjectDeltaAsserter<F, FocusContextAsserter<F,RA>> secondaryDelta() {
-        return (ObjectDeltaAsserter<F, FocusContextAsserter<F,RA>>) super.secondaryDelta();
+    public ObjectDeltaAsserter<F, FocusContextAsserter<F,RA>> summarySecondaryDelta() {
+        return (ObjectDeltaAsserter<F, FocusContextAsserter<F,RA>>) super.summarySecondaryDelta();
     }
 
     @Override

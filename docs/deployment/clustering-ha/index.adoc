@@ -48,8 +48,8 @@ If you need clustering/failover, set this to true.
 
 |===
 
-In some circumstances the Quartz component in task manager needs to use separate database (usually only if you want to run it on H2).
-Then you need to configure that properly; see the section on H2 use below.
+In some circumstances the Quartz component in task manager needs to use separate database.
+If that's the case, proper configuration is needed.
 
 *Important:* if there are more nodes sharing a repository, all of them must have parameter `clustered` set to `true`. Otherwise, tasks will not be scheduled correctly.
 (midPoint will disable scheduling tasks on non-conformant nodes, i.e. on non-clustered nodes that are parts of such a system.) The best way how to ensure this is to have common config file.
@@ -283,68 +283,6 @@ The following message may appear if your clock is not synchronized between midPo
 [source]
 ----
 2014-05-26 00:45:32,818 [TASKMANAGER] [QuartzScheduler_midPointScheduler-node02_ClusterManager] WARN (org.quartz.impl.jdbcjobstore.JobStoreTX): This scheduler instance (node02) is still active but was recovered by another instance in the cluster.  This may cause inconsistent behavior.
-----
-
-== Using H2 when clustered
-
-Using H2 in clustered mode is *not* recommended because of needless complexity.
-First, it needs to be specified to run in standalone process.
-And second, Quartz and midPoint need to use separate MVCC-related settings.
-
-An example:
-
-[source,xml]
-----
-<repository>
-  <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</repositoryServiceFactoryClass>
-  <baseDir>${midpoint.home}</baseDir>
-  <embedded>false</embedded>
-  <asServer>true</asServer>
-  <driverClassName>org.h2.Driver</driverClassName>
-  <jdbcUsername>sa</jdbcUsername>
-  <jdbcPassword></jdbcPassword>
-  <jdbcUrl>jdbc:h2:tcp://localhost:6000/~/midpoint;LOCK_MODE=1;DB_CLOSE_ON_EXIT=FALSE;LOCK_TIMEOUT=100;MAX_LENGTH_INPLACE_LOB=10240;NON_KEYWORDS=VALUE</jdbcUrl>
-  <hibernateDialect>org.hibernate.dialect.H2Dialect</hibernateDialect>
-  <hibernateHbm2ddl>update</hibernateHbm2ddl>
-</repository>
-<taskManager>
-  <clustered>true</clustered>
-  <jdbcUrl>jdbc:h2:tcp://localhost:6000/~/midpoint-quartz;MVCC=TRUE;DB_CLOSE_ON_EXIT=FALSE;MAX_LENGTH_INPLACE_LOB=10240;NON_KEYWORDS=VALUE</jdbcUrl>
-  <jmxUsername>midpoint</jmxUsername>
-  <jmxPassword>secret</jmxPassword>
-</taskManager>
-----
-
-The following task manager settings are relevant in this context:
-
-[%autowidth]
-|===
-| Parameter | Meaning
-
-| jdbcUrl
-| If you are using H2, you have to set up use different database parameters from those used by midPoint repository.
-And, because link:http://www.h2database.com/html/advanced.html#mvcc[MVCC mode] is to be enabled, task manager has to use a database instance different from the one used by the repository.(If you are using database other than H2, you may skip setting special jdbcUrl in the <taskManager> configuration.
-The jdbcUrl from repository config will be used.
-As a result, Quartz tables will be stored in the same database instance as midPoint tables.)
-
-
-// TODO remove when 4.4 support ends
-| dataSource
-| Uses specified data source to obtain DB connections.
-(See xref:/midpoint/reference/repository/configuration/[Repository Configuration]).
-
-
-|===
-
-Other task manager database settings (e.g. jdbc username and password, driver class name, hibernate dialect) are taken by default from <repository> configuration, but, of course, they may be overridden in task manager configuration.
-
-H2 then has to be started independently of both nodes.
-In this case, it is expected to listen on port 6000.
-To do that, you can use e.g. this command line:
-
-[source,bash]
-----
-java -jar h2-1.3.171.jar -tcp -tcpPort 6000 -tcpAllowOthers
 ----
 
 == Limitations

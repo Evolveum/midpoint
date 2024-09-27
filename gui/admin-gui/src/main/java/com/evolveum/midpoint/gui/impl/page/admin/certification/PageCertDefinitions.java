@@ -16,6 +16,7 @@ import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionVi
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ObjectReferenceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -34,12 +35,14 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
+import com.evolveum.midpoint.web.page.admin.certification.dto.ManagerSearchDto;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAdminWorkItems;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.form.Form;
@@ -245,6 +248,12 @@ public class PageCertDefinitions extends PageAdminWorkItems {
     private void createCampaignPerformed(AjaxRequestTarget target, AccessCertificationDefinitionType definition) {
         LOGGER.debug("Create certification campaign performed for {}", definition.asPrismObject());
 
+        if (!isVerifiedCertDefinition(definition)) {
+            warn(getString("PageCertDefinitions.message.createCampaignPerformed.badlyConfiguredDefinition",
+                    definition.getName()));
+            target.add(getFeedbackPanel());
+            return;
+        }
         OperationResult result = new OperationResult(OPERATION_CREATE_CAMPAIGN);
         try {
             Task task = createSimpleTask(OPERATION_CREATE_CAMPAIGN);
@@ -266,6 +275,64 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 
         showResult(result);
         target.add(getFeedbackPanel());
+    }
+
+    private boolean isVerifiedCertDefinition(AccessCertificationDefinitionType definition) {
+        if (!stageDefinitionExists(definition)) {
+            return false;
+        }
+        return definition.getStageDefinition().stream().allMatch(this::isReviewerSpecificationVerified);
+    }
+
+    private boolean stageDefinitionExists(AccessCertificationDefinitionType definition) {
+        return definition.getStageDefinition() != null && !definition.getStageDefinition().isEmpty();
+    }
+
+    private boolean isReviewerSpecificationVerified(AccessCertificationStageDefinitionType stageDef) {
+        if (stageDef.getReviewerSpecification() == null) {
+            return false;
+        }
+        AccessCertificationReviewerSpecificationType reviewerSpec = stageDef.getReviewerSpecification();
+        if (Boolean.TRUE.equals(reviewerSpec.isUseTargetOwner())) {
+            return true;
+        }
+        if (Boolean.TRUE.equals(reviewerSpec.isUseTargetApprover())) {
+            return true;
+        }
+        if (Boolean.TRUE.equals(reviewerSpec.isUseObjectOwner())) {
+            return true;
+        }
+        if (Boolean.TRUE.equals(reviewerSpec.isUseObjectApprover())) {
+            return true;
+        }
+        if (isManagerSearchVerified(reviewerSpec.getUseObjectManager())) {
+            return true;
+        }
+        if (isReviewerExpressionListVerified(reviewerSpec.getReviewerExpression())) {
+            return true;
+        }
+        if (isReviewerRefListVerified(reviewerSpec.getDefaultReviewerRef())) {
+            return true;
+        }
+        if (isReviewerRefListVerified(reviewerSpec.getAdditionalReviewerRef())) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isManagerSearchVerified(ManagerSearchType managerSearch) {
+        return managerSearch != null &&
+                (StringUtils.isNotEmpty(managerSearch.getOrgType()) || Boolean.TRUE.equals(managerSearch.isAllowSelf()));
+    }
+
+    private boolean isReviewerExpressionListVerified(List<ExpressionType> expressionList) {
+        return expressionList != null && !expressionList.isEmpty()
+                && expressionList.stream().anyMatch(ex -> !ExpressionUtil.isEmpty(ex));
+    }
+
+    private boolean isReviewerRefListVerified(List<ObjectReferenceType> reviewerList) {
+        return reviewerList != null && !reviewerList.isEmpty()
+                && reviewerList.stream().anyMatch(ref -> ref != null && StringUtils.isNotEmpty(ref.getOid()));
     }
 
     private void deleteConfirmation(AjaxRequestTarget target, AccessCertificationDefinitionType definition) {

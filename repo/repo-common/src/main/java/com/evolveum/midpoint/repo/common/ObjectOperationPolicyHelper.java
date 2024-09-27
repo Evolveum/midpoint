@@ -7,6 +7,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.OperationPoli
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.util.MiscUtil;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
@@ -303,7 +305,7 @@ public class ObjectOperationPolicyHelper {
         }
 
         private static @NotNull AssertionError unsupported(AbstractOperationPolicyConfigurationType value) {
-            return new AssertionError("Unsupported policy configuration type: " + value);
+            return new AssertionError("Unsupported policy configuration type: " + MiscUtil.getValueWithClass(value));
         }
 
         private boolean isMoreRestricted(
@@ -327,7 +329,7 @@ public class ObjectOperationPolicyHelper {
                     throw unsupported(value2);
                 }
             } else {
-                throw unsupported(value1);
+                // there are no restriction levels for OperationPolicyConfigurationType (yet)
             }
             // Restrictions levels are the same, let's compare severities
             var severity1 = Objects.requireNonNullElse(value1.getSeverity(), ERROR);

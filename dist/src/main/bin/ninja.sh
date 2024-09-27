@@ -86,11 +86,6 @@ if [ "${MP_NO_ENV_COMPAT:-}" != "1" ]; then
     export ${ENV_MAP_PREFIX}midpoint_repository_database="${REPO_DATABASE_TYPE}"
     [ "${db_port:-}" == "default" ] && db_port=""
     case ${REPO_DATABASE_TYPE} in
-    h2)
-      [ "${db_port:-}" == "" ] && db_port=5437
-      db_prefix="jdbc:h2:tcp://"
-      db_path="/${REPO_DATABASE:-midpoint}"
-      ;;
     oracle)
       [ "${db_port:-}" == "" ] && db_port=1521
       db_prefix="jdbc:oracle:thin:@"

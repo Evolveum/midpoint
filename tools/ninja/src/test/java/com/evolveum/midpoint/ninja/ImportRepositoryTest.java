@@ -11,13 +11,11 @@ import java.io.File;
 import org.assertj.core.api.Assertions;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.SkipException;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.RepositoryDiag;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
@@ -34,15 +32,10 @@ public class ImportRepositoryTest extends NinjaSpringTest {
     private static final String PATH_MONKEY_ISLAND_SIMPLE_ZIP = "./target/org-monkey-island-simple.zip";
 
     @BeforeClass(
-            dependsOnMethods = {"springTestContextPrepareTestInstance"}
+            dependsOnMethods = { "springTestContextPrepareTestInstance" }
     )
     @Override
     public void beforeClass() throws Exception {
-        RepositoryDiag diag = repository.getRepositoryDiag();
-        if (diag.isEmbedded()) {
-            throw new SkipException("Skipping test because H2 is used as repository.");
-        }
-
         TestUtils.zipFile(new File("./src/test/resources/org-monkey-island-simple.xml"), new File(PATH_MONKEY_ISLAND_SIMPLE_ZIP));
 
         super.beforeClass();

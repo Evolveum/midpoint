@@ -394,7 +394,6 @@
                         <configuration>
                             <suiteXmlFiles>
                                 <suiteXmlFile>testng-integration-${integrationTestSuite}.xml</suiteXmlFile>
-                                <!-- these tests cannot be run under H2 -->
                                 <suiteXmlFile>testng-db-specific.xml</suiteXmlFile>
                             </suiteXmlFiles>
                         </configuration>

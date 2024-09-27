@@ -7,10 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Fragment;
@@ -20,10 +17,8 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangesExecutorImpl;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysis;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context.AnalysisCategoryMode;
@@ -31,23 +26,18 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard.mode.An
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard.mode.ProcessModeChoiceStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard.mode.RoleAnalysisSessionBasicRoleModeWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard.mode.RoleAnalysisTypeChoiceStepPanel;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCategoryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+
 
 public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnalysisSessionType, AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
-
-    private static final String DOT_CLASS = RoleAnalysisSessionWizardPanel.class.getName() + ".";
-    private static final String OP_PROCESS_CLUSTERING = DOT_CLASS + "processClustering";
 
     public static final Trace LOGGER = TraceManager.getTrace(RoleAnalysisSessionWizardPanel.class);
 
@@ -283,7 +273,7 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
 
             @Override
             protected void onSubmitPerformed(AjaxRequestTarget target) {
-                onSubmitPerform();
+                super.onSubmitPerformed(target);
                 finalSubmitPerform(target, taskType);
             }
         });
@@ -291,39 +281,8 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
         return steps;
     }
 
-    private void finalSubmitPerform(AjaxRequestTarget target, TaskType taskType) {
-        Task task = getPageBase().createSimpleTask(OP_PROCESS_CLUSTERING);
-        OperationResult result = task.getResult();
-
-        Collection<ObjectDelta<? extends ObjectType>> deltas;
-        try {
-            deltas = getHelper().getDetailsModel().collectDeltas(result);
-
-            Collection<ObjectDeltaOperation<? extends ObjectType>> objectDeltaOperations = new ObjectChangesExecutorImpl()
-                    .executeChanges(deltas, false, task, result, target);
-
-            String sessionOid = ObjectDeltaOperation.findAddDeltaOidRequired(objectDeltaOperations,
-                    RoleAnalysisSessionType.class);
-
-            RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-
-            PrismObject<RoleAnalysisSessionType> sessionTypeObject = roleAnalysisService.getSessionTypeObject(sessionOid, task, result);
-
-            if (sessionTypeObject != null) {
-                ModelInteractionService modelInteractionService = getPageBase().getModelInteractionService();
-                roleAnalysisService.executeClusteringTask(modelInteractionService, sessionTypeObject,
-                        null, null, task, result, taskType);
-            }
-        } catch (CommonException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't process clustering", e);
-            result.recordFatalError(
-                    createStringResource("RoleAnalysisSessionWizardPanel.message.clustering.error").getString()
-                    , e);
-        }
-
-        setResponsePage(PageRoleAnalysis.class);
-        ((PageBase) getPage()).showResult(result);
-        target.add(getFeedbackPanel());
+    protected void finalSubmitPerform(@NotNull AjaxRequestTarget target, @NotNull TaskType taskType) {
+        //override in subclasses
     }
 
     private void onExitPerformed() {

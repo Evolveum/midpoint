@@ -182,9 +182,6 @@ public class SqaleServiceBase {
         JdbcRepositoryConfiguration config = repositoryConfiguration();
         diag.setDriverShortName(config.getDriverClassName());
         diag.setRepositoryUrl(config.getJdbcUrl());
-        diag.setEmbedded(config.isEmbedded());
-
-        diag.setH2(config.getDatabaseType() == SupportedDatabase.H2);
 
         Enumeration<Driver> drivers = DriverManager.getDrivers();
         while (drivers.hasMoreElements()) {
@@ -226,10 +223,6 @@ public class SqaleServiceBase {
         details.sort((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getLabel(), o2.getLabel()));
 
         return diag;
-    }
-
-    public boolean isGenericNonH2() {
-        return false; // This is the native implementation, not the generic one.
     }
 
     private void addGlobalMetadataInfo(JdbcSession jdbcSession, List<LabeledString> details) {

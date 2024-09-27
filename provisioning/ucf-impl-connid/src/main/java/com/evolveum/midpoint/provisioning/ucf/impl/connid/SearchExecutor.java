@@ -15,7 +15,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.reporting.ConnIdOperation;
 
-import com.evolveum.midpoint.provisioning.ucf.api.UcfExecutionContext;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -60,7 +59,7 @@ class SearchExecutor {
     private final PagedSearchCapabilityType pagedSearchConfiguration;
     private final SearchHierarchyConstraints searchHierarchyConstraints;
     private final UcfFetchErrorReportingMethod errorReportingMethod;
-    private final UcfExecutionContext reporter;
+    @NotNull private final ConnectorOperationContext operationContext;
     @NotNull private final ConnectorInstanceConnIdImpl connectorInstance;
 
     /**
@@ -77,7 +76,7 @@ class SearchExecutor {
             PagedSearchCapabilityType pagedSearchConfiguration,
             SearchHierarchyConstraints searchHierarchyConstraints,
             UcfFetchErrorReportingMethod errorReportingMethod,
-            UcfExecutionContext reporter,
+            @NotNull ConnectorOperationContext operationContext,
             @NotNull ConnectorInstanceConnIdImpl connectorInstance) throws SchemaException {
 
         this.resourceObjectDefinition = resourceObjectDefinition;
@@ -89,7 +88,7 @@ class SearchExecutor {
         this.pagedSearchConfiguration = pagedSearchConfiguration;
         this.searchHierarchyConstraints = searchHierarchyConstraints;
         this.errorReportingMethod = errorReportingMethod;
-        this.reporter = reporter;
+        this.operationContext = operationContext;
         this.connectorInstance = connectorInstance;
     }
 
@@ -223,7 +222,7 @@ class SearchExecutor {
 
         try {
             LOGGER.trace("Executing ConnId search operation: {}", operation);
-            connIdSearchResult = connectorInstance.getConnIdConnectorFacade()
+            connIdSearchResult = connectorInstance.getConnIdConnectorFacadeRequired()
                     .search(
                             icfObjectClass,
                             connIdFilter,
@@ -232,12 +231,11 @@ class SearchExecutor {
             recordIcfOperationEnd(operation, null);
 
             result.recordSuccess();
-        } catch (IntermediateException inEx) {
-            Throwable ex = inEx.getCause();
+        } catch (IntermediateSchemaException inEx) {
+            SchemaException ex = inEx.getSchemaException();
             recordIcfOperationEnd(operation, ex);
             result.recordFatalError(ex);
-            throwProperException(ex, ex);
-            throw new AssertionError("should not get here");
+            throw ex;
         } catch (Throwable ex) {
             recordIcfOperationEnd(operation, ex);
             Throwable midpointEx = processConnIdException(ex, connectorInstance, result);
@@ -250,22 +248,23 @@ class SearchExecutor {
     }
 
     /** Do some kind of acrobatics to do proper throwing of checked exception */
-    private void throwProperException(Throwable transformed, Throwable original) throws CommunicationException,
-            ObjectNotFoundException, GenericFrameworkException, SchemaException, SecurityViolationException {
-        if (transformed instanceof CommunicationException) {
-            throw (CommunicationException) transformed;
-        } else if (transformed instanceof ObjectNotFoundException) {
-            throw (ObjectNotFoundException) transformed;
-        } else if (transformed instanceof GenericFrameworkException) {
-            throw (GenericFrameworkException) transformed;
-        } else if (transformed instanceof SchemaException) {
-            throw (SchemaException) transformed;
-        } else if (transformed instanceof SecurityViolationException) {
-            throw (SecurityViolationException) transformed;
-        } else if (transformed instanceof RuntimeException) {
-            throw (RuntimeException) transformed;
-        } else if (transformed instanceof Error) {
-            throw (Error) transformed;
+    private void throwProperException(Throwable transformed, Throwable original)
+            throws CommunicationException, ObjectNotFoundException, GenericFrameworkException, SchemaException,
+            SecurityViolationException {
+        if (transformed instanceof CommunicationException communicationException) {
+            throw communicationException;
+        } else if (transformed instanceof ObjectNotFoundException objectNotFoundException) {
+            throw objectNotFoundException;
+        } else if (transformed instanceof GenericFrameworkException genericFrameworkException) {
+            throw genericFrameworkException;
+        } else if (transformed instanceof SchemaException schemaException) {
+            throw schemaException;
+        } else if (transformed instanceof SecurityViolationException securityViolationException) {
+            throw securityViolationException;
+        } else if (transformed instanceof RuntimeException runtimeException) {
+            throw runtimeException;
+        } else if (transformed instanceof Error error) {
+            throw error;
         } else {
             throw new SystemException(
                     "Got unexpected exception: %s: %s".formatted(
@@ -275,19 +274,20 @@ class SearchExecutor {
     }
 
     private ConnIdOperation recordIcfOperationStart() {
-        return connectorInstance.recordIcfOperationStart(reporter, ProvisioningOperation.ICF_SEARCH, resourceObjectDefinition);
+        return connectorInstance.recordIcfOperationStart(
+                operationContext.ucfExecutionContext(), ProvisioningOperation.ICF_SEARCH, resourceObjectDefinition);
     }
 
     private void recordIcfOperationEnd(ConnIdOperation operation, Throwable ex) {
-        connectorInstance.recordIcfOperationEnd(reporter, operation, ex);
+        connectorInstance.recordIcfOperationEnd(operationContext.ucfExecutionContext(), operation, ex);
     }
 
     private void recordIcfOperationResume(@NotNull ConnIdOperation operation) {
-        connectorInstance.recordIcfOperationResume(reporter, operation);
+        connectorInstance.recordIcfOperationResume(operationContext.ucfExecutionContext(), operation);
     }
 
     private void recordIcfOperationSuspend(@NotNull ConnIdOperation operation) {
-        connectorInstance.recordIcfOperationSuspend(reporter, operation);
+        connectorInstance.recordIcfOperationSuspend(operationContext.ucfExecutionContext(), operation);
     }
 
     @Nullable
@@ -351,12 +351,12 @@ class SearchExecutor {
                 }
 
                 var ucfObject = connectorInstance.connIdObjectConvertor.convertToUcfObject(
-                        connectorObject, resourceObjectDefinition, errorReportingMethod, result);
+                        connectorObject, resourceObjectDefinition, errorReportingMethod, operationContext, result);
 
                 return handler.handle(ucfObject, result);
 
             } catch (SchemaException e) {
-                throw new IntermediateException(e);
+                throw new IntermediateSchemaException(e);
             } finally {
                 recordIcfOperationResume(operation);
             }

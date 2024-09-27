@@ -161,7 +161,7 @@ public class FullInboundsProcessing<F extends FocusType> extends AbstractInbound
         if (wave == projectionContext.getWave() + 1) {
             // We are in the wave that follows right after this projection context was projected/executed in.
             // So, we would like to use the delta that was executed in that wave.
-            if (projectionContext.getLensContext().isPreview()) {
+            if (projectionContext.getLensContext().isLegacyPreview()) {
                 // ... unless we are in legacy preview, where are no executions. So we must take what was provided + computed.
                 return InboundSourceData.forShadow(
                         currentShadow, // TODO reconsider old vs new here

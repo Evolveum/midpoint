@@ -84,10 +84,10 @@ public class BaseGeneratorOptions {
     @Parameter(names = { P_PLANKTON_DISABLE, P_PLANKTON_DISABLE_LONG }, descriptionKey = "baseGeneratorOptions.planktonDisable")
     private boolean isPlanktonDisable = false;
 
-    @Parameter(names = { P_ADDITION_NOISE, P_ADDITION_NOISE_LONG }, descriptionKey = "baseGeneratorOptions.forget.noise")
+    @Parameter(names = { P_FORGET_NOISE, P_FORGET_NOISE_LONG }, descriptionKey = "baseGeneratorOptions.forget.noise")
     private int forgetNoise = 0;
 
-    @Parameter(names = { P_FORGET_NOISE, P_FORGET_NOISE_LONG }, descriptionKey = "baseGeneratorOptions.addition.noise")
+    @Parameter(names = { P_ADDITION_NOISE, P_ADDITION_NOISE_LONG }, descriptionKey = "baseGeneratorOptions.addition.noise")
     private int additionNoise = 0;
 
     @Parameter(names = { P_INCLUDE_AUX, P_INCLUDE_AUX_LONG }, descriptionKey = "baseGeneratorOptions.includeAux")

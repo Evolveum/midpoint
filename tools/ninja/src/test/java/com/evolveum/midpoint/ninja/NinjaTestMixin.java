@@ -62,7 +62,6 @@ public interface NinjaTestMixin {
 
     /**
      * Add @BeforeMethod calling this into test classes that need this.
-     * This also removes H2 DB files, effectively cleaning the DB between test methods.
      * This is not enough to support tests on other DB (it doesn't run dbtest profile properly)
      * or for Native repository, but {@link #clearMidpointTestDatabase(ApplicationContext)} can be used in the preExecute block.
      */
@@ -104,10 +103,6 @@ public interface NinjaTestMixin {
             SchemaService schemaService = context.getBean(SchemaService.class);
 
             SqlRepositoryConfiguration repoConfig = baseHelper.getConfiguration();
-            if (repoConfig.isEmbedded()) {
-                return;
-            }
-
             SqlRepoContext fakeRepoContext = new SqlRepoContext(
                     repoConfig, baseHelper.dataSource(), schemaService, null);
             try (JdbcSession jdbcSession = fakeRepoContext.newJdbcSession().startTransaction()) {

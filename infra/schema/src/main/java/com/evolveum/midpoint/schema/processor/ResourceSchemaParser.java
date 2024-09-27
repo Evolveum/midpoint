@@ -114,7 +114,8 @@ class ResourceSchemaParser {
     }
 
     /** Creates {@link CompleteResourceSchema} for the given resource. This is the main functionality of this parser. */
-    static CompleteResourceSchema parseComplete(@NotNull ResourceType resource, @NotNull NativeResourceSchema nativeSchema)
+    static @NotNull CompleteResourceSchema parseComplete(
+            @NotNull ResourceType resource, @NotNull NativeResourceSchema nativeSchema)
             throws SchemaException, ConfigurationException {
         var schemaHandlingBean = resource.getSchemaHandling();
         var schemaHandling =

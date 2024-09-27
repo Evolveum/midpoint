@@ -6,10 +6,9 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page;
 
+import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard.mode.ProcessModeChoiceStepPanel;
-import com.evolveum.midpoint.util.exception.CommonException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -24,6 +23,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangesExecutorImpl;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.component.InlineOperationalButtonsPanel;
@@ -31,12 +31,21 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.RoleAnalysisSessionSummaryPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context.AnalysisCategoryMode;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard.RoleAnalysisSessionWizardPanel;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -56,8 +65,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAnalysisSessionType, AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
 
+    public static final Trace LOGGER = TraceManager.getTrace(PageRoleAnalysisSession.class);
+
     private static final String DOT_CLASS = PageRoleAnalysisSession.class.getName() + ".";
     private static final String OP_DELETE_CLEANUP = DOT_CLASS + "deleteCleanup";
+    private static final String OP_PROCESS_CLUSTERING = DOT_CLASS + "processClustering";
 
     public PageRoleAnalysisSession() {
         super();
@@ -260,10 +272,67 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
                         reloadObjectDetailsModel(session.asPrismObject());
                         return getObjectDetailsModels();
                     }
+
+                    @Override
+                    protected void finalSubmitPerform(@NotNull AjaxRequestTarget target, @NotNull TaskType taskType) {
+                        PageRoleAnalysisSession.this.submitWizardAndPerformAnalysis(target, taskType);
+                    }
                 });
             }
         };
 
+    }
+
+    private void submitWizardAndPerformAnalysis(AjaxRequestTarget target, TaskType taskType) {
+        Task task = getPageBase().createSimpleTask(OP_PROCESS_CLUSTERING);
+        OperationResult result = task.getResult();
+
+        Collection<ObjectDelta<? extends ObjectType>> deltas;
+        try {
+            deltas = getObjectDetailsModels().collectDeltas(result);
+
+            Collection<ObjectDeltaOperation<? extends ObjectType>> objectDeltaOperations = new ObjectChangesExecutorImpl()
+                    .executeChanges(deltas, false, task, result, target);
+
+            String sessionOid = ObjectDeltaOperation.findAddDeltaOidRequired(objectDeltaOperations,
+                    RoleAnalysisSessionType.class);
+
+            RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
+
+            PrismObject<RoleAnalysisSessionType> sessionTypeObject = roleAnalysisService.getSessionTypeObject(sessionOid, task, result);
+
+            if (sessionTypeObject != null) {
+                ModelInteractionService modelInteractionService = getPageBase().getModelInteractionService();
+                roleAnalysisService.executeClusteringTask(modelInteractionService, sessionTypeObject,
+                        null, null, task, result, taskType);
+            }
+        } catch (CommonException e) {
+            LoggingUtils.logException(LOGGER, "Couldn't process clustering", e);
+            result.recordFatalError(
+                    createStringResource("RoleAnalysisSessionWizardPanel.message.clustering.error").getString()
+                    , e);
+        }
+
+        setResponsePage(PageRoleAnalysis.class);
+        ((PageBase) getPage()).showResult(result);
+        target.add(getFeedbackPanel());
+    }
+
+    public static @NotNull PrismContainerWrapperModel<RoleAnalysisSessionType, AbstractAnalysisSessionOptionType> getSessionOptionContainer(
+            @NotNull AssignmentHolderDetailsModel<RoleAnalysisSessionType> detailsModel) {
+        LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = detailsModel.getObjectWrapperModel();
+        RoleAnalysisOptionType processModeObject = objectWrapperModel.getObject().getObject().asObjectable().getAnalysisOption();
+        RoleAnalysisProcessModeType processMode = processModeObject.getProcessMode();
+        PrismContainerWrapperModel<RoleAnalysisSessionType, AbstractAnalysisSessionOptionType> containerWrapperModel;
+        if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
+            containerWrapperModel = PrismContainerWrapperModel.fromContainerWrapper(objectWrapperModel,
+                    ItemPath.create(RoleAnalysisSessionType.F_ROLE_MODE_OPTIONS));
+        } else {
+            containerWrapperModel = PrismContainerWrapperModel.fromContainerWrapper(objectWrapperModel,
+                    ItemPath.create(RoleAnalysisSessionType.F_USER_MODE_OPTIONS));
+        }
+        containerWrapperModel.getObject().setExpanded(true);
+        return containerWrapperModel;
     }
 
     @Override

@@ -38,11 +38,6 @@ public class CompleteResourceSchemaImpl extends ResourceSchemaImpl implements Co
     }
 
     @Override
-    public @NotNull BasicResourceInformation getBasicResourceInformation() {
-        return basicResourceInformation;
-    }
-
-    @Override
     public boolean isCaseIgnoreAttributeNames() {
         return caseIgnoreAttributeNames;
     }

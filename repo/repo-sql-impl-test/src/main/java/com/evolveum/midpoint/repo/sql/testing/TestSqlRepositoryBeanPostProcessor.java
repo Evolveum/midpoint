@@ -40,8 +40,8 @@ public class TestSqlRepositoryBeanPostProcessor implements BeanPostProcessor {
         }
         LOGGER.info("Postprocessing entity manager factory - removing everything from database if necessary.");
 
-        //we'll attempt to drop database objects if configuration contains dropIfExists=true and embedded=false
-        if (!repoConfig.isDropIfExists() || repoConfig.isEmbedded()) {
+        //we'll attempt to drop database objects if configuration contains dropIfExists=true
+        if (!repoConfig.isDropIfExists()) {
             LOGGER.info("We're not deleting objects from DB, drop if exists=false or embedded=true.");
             return bean;
         }

@@ -118,15 +118,6 @@ class ReferenceAttributeTargetSearchExpressionEvaluator
                 // FIXME do additional filtering for the targets (if there are multiple types for them)
                 return ShadowUtil.isNotDead(object.asObjectable());
             }
-
-            /**
-             * Create on demand used in AssociationTargetSearch would fail
-             * @return false
-             */
-            @Override
-            protected boolean isCreateOnDemandSafe() {
-                return false;
-            }
         };
     }
 

@@ -39,14 +39,7 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
     public static final int THREADS = 4;
 
     /*
-     *  H2 seems to have a problem in that one of the worker threads freezes when running the following statement:
-     *
-     *  select distinct rparentorg0_.owner_oid as col_0_0_ from m_reference rparentorg0_
-     *      inner join m_object robject1_ on rparentorg0_.owner_oid=robject1_.oid where rparentorg0_.reference_type=0 and rparentorg0_.targetOid=? and robject1_.objectTypeClass=?
-     *
-     *  (selecting child nodes to be registered into orgGraph)
-     *
-     *  Dunno why. Let's use a timeout of 30 minutes so that the tests would not loop indefinitely.
+     *  Let's use a timeout of 30 minutes so that the tests would not loop indefinitely.
      */
     public static final long TIMEOUT = 1800L * 1000L;
 
