@@ -596,7 +596,7 @@ Currently, only mapped attributes are cached by default.
 See commits [4775c1](https://github.com/Evolveum/midpoint/commit/4775c14884d42aa758c19b5693ec07dcacdeb147)
 and #the following one - TODO#.
 
-* When processing live sync and asynchronous update changes that contain only the object identifiers, a more aggressive approach to fetching actual objects was adopted:
+* When processing live sync changes that contain only the object identifiers, a more aggressive approach to fetching actual objects was adopted:
 We now always fetch the actual object, if possible.
 The reason is that the cached version may be incomplete or outdated.
 (This may still change before 4.9 the release, though.)

@@ -57,4 +57,8 @@ public class ResourceObjectAsyncChange extends ResourceObjectChange implements A
     public Trace getLogger() {
         return LOGGER;
     }
+
+    public boolean isNotificationOnly() {
+        return notificationOnly;
+    }
 }

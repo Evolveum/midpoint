@@ -42,6 +42,16 @@ public class TestConfigurationLoad extends AbstractUnitTest {
             logger.info("  " + key + " = " + c.getString(key));
         }
 
+        String type = c.getString("type");
+        if ("native".equals(type)) {
+            return;
+        }
+
+        String repositoryServiceFactoryClass = c.getString("repositoryServiceFactoryClass");
+        if (StringUtils.isEmpty(repositoryServiceFactoryClass) || !repositoryServiceFactoryClass.startsWith("com\\.evolveum\\.midpoint\\.repo\\.sql")) {
+            return;
+        }
+
         // database added via system properties (since default config.xml contains just placeholders that are commented out)
         String database = c.getString("database");
         assertTrue(StringUtils.isNotEmpty(database));

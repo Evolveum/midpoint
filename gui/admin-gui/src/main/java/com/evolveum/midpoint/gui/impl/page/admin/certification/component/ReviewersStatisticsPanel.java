@@ -216,7 +216,7 @@ public class ReviewersStatisticsPanel extends BasePanel {
         } else if (decidedItemsPercentage > 50) {
             return "blue";
         } if (decidedItemsPercentage > 25) {
-            return "yellow";
+            return "#ffc107";
         } else {
             return "red";
         }
@@ -373,9 +373,12 @@ public class ReviewersStatisticsPanel extends BasePanel {
     }
 
     private void showAllReviewersPerformed(AjaxRequestTarget target) {
-        reviewersPopupPanel = initReviewersPanel(getPageBase().getMainPopupBodyId(), false);
-        getPageBase().showMainPopup(reviewersPopupPanel, target);
+        ReviewersTileTablePanel reviewersPanel = new ReviewersTileTablePanel(getPageBase().getMainPopupBodyId(),
+                getReviewersStatisticModel().getObject());
+        getPageBase().showMainPopup(reviewersPanel, target);
     }
+
+
 
     private String createStatisticBoxLabel(ObjectReferenceType reviewerRef,
             IModel<HashMap<ObjectReferenceType, ReviewerStatisticDto>> reviewersStatisticModel) {

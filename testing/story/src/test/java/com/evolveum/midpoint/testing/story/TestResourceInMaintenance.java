@@ -236,6 +236,8 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
 
         // Apply pending deltas:
         when("recompute user");
+
+        invalidateShadowCacheIfNeeded(RESOURCE_OID); // otherwise, the recomputation would not touch the resource
         modelService.recompute(UserType.class, USER1_OID, executeOptions().reconcile(), task, result);
 
         then("recompute user");
@@ -492,8 +494,8 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
                 .assertIsExists()
                 .end();
 
-        when();
-        // Apply pending delete delta:
+        when("reconciling the user (should apply pending delta)");
+        invalidateShadowCacheIfNeeded(RESOURCE_OID); // otherwise, the recomputation would not touch the resource
         modelService.recompute(UserType.class, USER2_OID, executeOptions().reconcile(), task, result);
 
         then();
