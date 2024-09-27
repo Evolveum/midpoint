@@ -48,7 +48,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class TestDelivery extends AbstractStoryTest {
 
     @Autowired private CaseService caseService;
-    //@Autowired private DummyTransport dummyTransport;
 
     private static final String TEST_DIR = "src/test/resources/delivery";
     private static final String ORG_DIR = TEST_DIR + "/orgs";
@@ -168,15 +167,7 @@ public class TestDelivery extends AbstractStoryTest {
         repoAddObjectFromFile(ROLE_OPENDJ_FILE, initResult);
 
         DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
-
-//        setGlobalTracingOverride(createModelAndWorkflowLoggingTracingProfile());
     }
-
-    //    @Override
-//    protected TracingProfileType getTestMethodTracingProfile() {
-//        return createModelAndWorkflowLoggingTracingProfile()
-//                .fileNamePattern(TEST_METHOD_TRACING_FILENAME_PATTERN);
-//    }
 
     @Override
     protected PrismObject<UserType> getDefaultActor() {
@@ -326,7 +317,7 @@ public class TestDelivery extends AbstractStoryTest {
     private String bobShadowOid;
 
     @Test
-    public void test200assignOpenDJBob() throws Exception {
+    public void test200AssignOpenDJBob() throws Exception {
         displayTestTitle(getTestName());
 
         Task task = getTestTask();
@@ -334,20 +325,25 @@ public class TestDelivery extends AbstractStoryTest {
 
         assignRole(userBobOid, ROLE_OPENDJ_OID);
 
-        PrismObject<UserType> userBobAfter = modelService.getObject(UserType.class, userBobOid, getOperationOptionsBuilder().item(UserType.F_JPEG_PHOTO).retrieve().build(), task, result);
+        PrismObject<UserType> userBobAfter = modelService.getObject(
+                UserType.class, userBobOid,
+                getOperationOptionsBuilder().item(UserType.F_JPEG_PHOTO).retrieve().build(),
+                task, result);
         assertUser(userBobAfter, "after")
                 .assertLiveLinks(1)
                 .assignments()
                 .assertRole(ROLE_OPENDJ_OID);
 
-        PrismObject<ShadowType> shadow = findShadowByNameViaModel(ShadowKindType.ACCOUNT, "default", "uid=bob,ou=People,dc=example,dc=com", resourceOpenDj, null, task, result);
+        PrismObject<ShadowType> shadow = findShadowByNameViaModel(
+                ShadowKindType.ACCOUNT, "default", "uid=bob,ou=People,dc=example,dc=com", resourceOpenDj,
+                null, task, result);
         assertNotNull(shadow);
         bobShadowOid = shadow.getOid();
         new ShadowAsserter<>(shadow).attributes().assertNoSimpleAttribute(ATTR_JPEG_PHOTO);
     }
 
     @Test
-    public void test210addUserPhoto() throws Exception {
+    public void test210AddUserPhoto() throws Exception {
         displayTestTitle(getTestName());
 
         Task task = getTestTask();
@@ -357,24 +353,32 @@ public class TestDelivery extends AbstractStoryTest {
         modifyUserAdd(userBobOid, UserType.F_JPEG_PHOTO, task, result, "SGVsbG8=".getBytes());
         assertResultStatus(result, OperationResultStatus.SUCCESS);
 
-        PrismObject<UserType> userBobNoRetrievePhoto = modelService.getObject(UserType.class, userBobOid, Collections.emptyList(), task, result);
+        var userBobNoRetrievePhoto = modelService.getObject(UserType.class, userBobOid, null, task, result);
         assertNull(userBobNoRetrievePhoto.asObjectable().getJpegPhoto(), "Jpeg photo should not be returned");
 
-        PrismObject<UserType> userBobAfter = modelService.getObject(UserType.class, userBobOid, getOperationOptionsBuilder().item(UserType.F_JPEG_PHOTO).retrieve().build(), task, result);
+        var userBobAfter = modelService.getObject(
+                UserType.class, userBobOid,
+                getOperationOptionsBuilder().item(UserType.F_JPEG_PHOTO).retrieve().build(),
+                task, result);
         assertUser(userBobAfter, "after")
                 .assertJpegPhoto("SGVsbG8=".getBytes())
                 .assertLiveLinks(1);
 
-        PrismObject<ShadowType> shadow = findShadowByNameViaModel(ShadowKindType.ACCOUNT, "default", "uid=bob,ou=People,dc=example,dc=com", resourceOpenDj, null, task, result);
+        var shadow = findShadowByNameViaModel(
+                ShadowKindType.ACCOUNT, "default", "uid=bob,ou=People,dc=example,dc=com", resourceOpenDj,
+                null, task, result);
         new ShadowAsserter<>(shadow)
+                .display()
                 .attributes()
                 .attribute(ATTR_JPEG_PHOTO)
                 .assertSize(1);
 
+        var repoShadow = repositoryService.getObject(ShadowType.class, shadow.getOid(), null, result);
+        displayDumpable("repo shadow", repoShadow);
     }
 
     @Test
-    public void test220previewRecomputeBob() throws Exception {
+    public void test220PreviewRecomputeBob() throws Exception {
         displayTestTitle(getTestName());
 
         Task task = getTestTask();
@@ -392,7 +396,7 @@ public class TestDelivery extends AbstractStoryTest {
     }
 
     @NotNull
-    public CaseType getRootCase(OperationResult result) throws ObjectNotFoundException, SchemaException {
+    private CaseType getRootCase(OperationResult result) throws ObjectNotFoundException, SchemaException {
         String caseOid = result.findCaseOid();
         assertNotNull("Case OID is not set in operation result", caseOid);
         return repositoryService.getObject(CaseType.class, caseOid, null, result).asObjectable();
