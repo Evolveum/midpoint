@@ -147,6 +147,9 @@ public class ExtensionProcessor {
                 || realValue instanceof Boolean) {
             return realValue;
         }
+        if (realValue instanceof byte[] bytes) {
+            return JsonbUtils.bytesToBase64(bytes);
+        }
 
         if (realValue instanceof PolyString) {
             PolyString poly = (PolyString) realValue;

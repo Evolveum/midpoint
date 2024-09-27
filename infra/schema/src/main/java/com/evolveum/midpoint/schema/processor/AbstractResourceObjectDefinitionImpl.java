@@ -823,16 +823,24 @@ public abstract class AbstractResourceObjectDefinitionImpl
 
         boolean readCachedCapabilityPresent = isReadCachedCapabilityPresent();
 
-        boolean enabledBecauseOfReadCachedCapability = false;
-        boolean defaultIsMaxCaching = false;
+        var defaultForSimpleAttributesScope = ShadowSimpleAttributesCachingScopeType.DEFINED;
+        var defaultForCredentialsScope = ShadowItemsCachingScopeType.ALL;
+        var defaultForCacheUse = CachedShadowsUseType.USE_FRESH;
+        var defaultForTtl = "P1D";
         if (workingCopy.getCachingStrategy() == null) {
             if (readCachedCapabilityPresent) {
                 workingCopy.setCachingStrategy(CachingStrategyType.PASSIVE);
-                enabledBecauseOfReadCachedCapability = true;
-                defaultIsMaxCaching = true;
+                defaultForSimpleAttributesScope = ShadowSimpleAttributesCachingScopeType.ALL;
+                defaultForCredentialsScope = ShadowItemsCachingScopeType.NONE;
+                defaultForTtl = "P1000Y";
+            } else if (InternalsConfig.isShadowCachingFullByDefault()) {
+                // Currently used for testing
+                workingCopy.setCachingStrategy(CachingStrategyType.PASSIVE);
+                defaultForSimpleAttributesScope = ShadowSimpleAttributesCachingScopeType.ALL;
+                defaultForCacheUse = CachedShadowsUseType.USE_CACHED_OR_FRESH;
+                defaultForTtl = "P1000Y";
             } else if (InternalsConfig.isShadowCachingOnByDefault()) {
                 workingCopy.setCachingStrategy(CachingStrategyType.PASSIVE);
-                defaultIsMaxCaching = InternalsConfig.isShadowCachingFullByDefault();
             } else {
                 workingCopy.setCachingStrategy(CachingStrategyType.NONE);
             }
@@ -843,9 +851,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
         }
         var scope = workingCopy.getScope();
         if (scope.getAttributes() == null) {
-            scope.setAttributes(
-                    defaultIsMaxCaching ?
-                            ShadowSimpleAttributesCachingScopeType.ALL : ShadowSimpleAttributesCachingScopeType.DEFINED);
+            scope.setAttributes(defaultForSimpleAttributesScope);
         }
         if (scope.getAssociations() == null) {
             scope.setAssociations(ShadowItemsCachingScopeType.ALL);
@@ -854,24 +860,16 @@ public abstract class AbstractResourceObjectDefinitionImpl
             scope.setActivation(ShadowItemsCachingScopeType.ALL);
         }
         if (scope.getCredentials() == null) {
-            scope.setCredentials(
-                    enabledBecauseOfReadCachedCapability ? ShadowItemsCachingScopeType.NONE : ShadowItemsCachingScopeType.ALL);
+            scope.setCredentials(defaultForCredentialsScope);
         }
         if (scope.getAuxiliaryObjectClasses() == null) {
             scope.setAuxiliaryObjectClasses(ShadowItemsCachingScopeType.ALL);
         }
         if (workingCopy.getDefaultCacheUse() == null) {
-            // When enabling the caching because of read cached, we want to keep the pre-4.9 behavior (of not using
-            // the cache by projector) by default. It should not make a difference, but seemingly it does. TODO research
-            if (workingCopy.getCachingStrategy() == CachingStrategyType.PASSIVE && !enabledBecauseOfReadCachedCapability) {
-                workingCopy.setDefaultCacheUse(CachedShadowsUseType.USE_CACHED_OR_FRESH);
-            } else {
-                workingCopy.setDefaultCacheUse(CachedShadowsUseType.USE_FRESH);
-            }
+            workingCopy.setDefaultCacheUse(defaultForCacheUse);
         }
         if (workingCopy.getTimeToLive() == null) {
-            workingCopy.setTimeToLive(
-                    XmlTypeConverter.createDuration(defaultIsMaxCaching ? "P1000Y" : "P1D"));
+            workingCopy.setTimeToLive(XmlTypeConverter.createDuration(defaultForTtl));
         }
         return workingCopy;
     }

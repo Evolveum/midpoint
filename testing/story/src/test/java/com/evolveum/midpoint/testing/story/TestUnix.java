@@ -955,6 +955,7 @@ public class TestUnix extends AbstractStoryTest {
 
         // WHEN
         when();
+        invalidateShadowCacheIfNeeded(getResourceOid());
         reconcileUser(userBefore.getOid(), task, result);
 
         // THEN

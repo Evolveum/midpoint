@@ -48,7 +48,6 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 import static com.evolveum.midpoint.util.MiscUtil.*;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
-import static java.util.Objects.*;
 
 /**
  * Methods that would belong to the {@link ShadowType} class but cannot go there because of JAXB.
@@ -1311,14 +1310,14 @@ public class ShadowUtil {
             @NotNull ItemName attrName,
             @Nullable PrismObject<ShadowType> shadow,
             @NotNull ResourceObjectDefinition definition,
+            @Nullable ShadowAttributeDefinition<?, ?, ?, ?> attrDefOverride,
             @NotNull XMLGregorianCalendar now) throws SchemaException {
         var shadowStatus = getShadowCachedStatus(shadow, definition, null, now);
         if (!shadowStatus.isFresh()) {
             return shadowStatus;
         } else {
-            var cached = definition
-                    .findAttributeDefinitionRequired(attrName)
-                    .isEffectivelyCached(definition);
+            var attrDef = attrDefOverride != null ? attrDefOverride : definition.findAttributeDefinitionRequired(attrName);
+            var cached = attrDef.isEffectivelyCached(definition);
             return ItemCachedStatus.item(cached);
         }
     }
