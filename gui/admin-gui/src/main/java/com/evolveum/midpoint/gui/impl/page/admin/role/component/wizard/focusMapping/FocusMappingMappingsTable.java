@@ -9,69 +9,73 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.focusMap
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.impl.component.input.FocusDefinitionsMappingProvider;
+import com.evolveum.midpoint.gui.impl.component.input.Select2MultiChoicePanel;
+import com.evolveum.midpoint.gui.impl.component.input.SourceOfFocusMappingProvider;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attributeMapping.AbstractMappingsTable;
+
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.api.util.MappingDirection;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.input.FocusDefinitionsMappingProvider;
-import com.evolveum.midpoint.gui.impl.component.input.Select2MultiChoicePanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attributeMapping.AttributeMappingsTable;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismValueWrapperImpl;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author lskublik
  */
-public abstract class FocusMappingMappingsTable<P extends Containerable> extends AttributeMappingsTable<MappingType, ResourceAttributeDefinitionType> {
+public class FocusMappingMappingsTable extends AbstractMappingsTable<MappingsType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(FocusMappingMappingsTable.class);
 
     public FocusMappingMappingsTable(
-            String id, IModel<PrismContainerValueWrapper<MappingType>> valueModel, ContainerPanelConfigurationType config) {
+            String id,
+            IModel<PrismContainerValueWrapper<MappingsType>> valueModel, ContainerPanelConfigurationType config) {
         super(id, valueModel, config);
     }
 
     @Override
-    protected void onInitialize() {
-        super.onInitialize();
+    protected IModel<PrismContainerWrapper<MappingType>> getContainerModel() {
+        return PrismContainerWrapperModel.fromContainerValueWrapper(getValueModel(), MappingsType.F_MAPPING);
     }
 
     @Override
-    protected UserProfileStorage.TableId getTableId() {
-        return UserProfileStorage.TableId.PANEL_OUTBOUND_MAPPING_WIZARD;
+    protected PrismContainerValueWrapper createNewValue(PrismContainerValue<MappingType> value, AjaxRequestTarget target) {
+        PrismContainerValueWrapper<MappingType> newValue = super.createNewValue(value, target);
+        if (newValue != null && newValue.getRealValue() != null) {
+            try {
+                PrismPropertyWrapper<MappingStrengthType> property = newValue.findProperty(MappingType.F_STRENGTH);
+                property.getValue().setRealValue(MappingStrengthType.STRONG);
+            } catch (SchemaException e) {
+                LOGGER.error("Couldn't find property for strength in " + newValue);
+            }
+        }
+        return newValue;
     }
 
     @Override
-    protected MappingDirection getMappingType() {
-        return MappingDirection.OUTBOUND;
-    }
-
-    @Override
-    protected String getKeyOfTitleForNewObjectButton() {
-        return "OutboundAttributeMappingsTable.newObject";
+    protected IColumn<PrismContainerValueWrapper<MappingType>, String> createStrengthIconColumn() {
+        return null;
     }
 
     @Override
@@ -84,107 +88,11 @@ public abstract class FocusMappingMappingsTable<P extends Containerable> extends
 
         columns.add(new PrismPropertyWrapperColumn<MappingType, String>(
                 mappingTypeDef,
-                MappingType.F_SOURCE,
+                MappingType.F_STRENGTH,
                 AbstractItemWrapperColumn.ColumnType.VALUE,
-                getPageBase()) {
+                getPageBase()));
 
-            @Override
-            protected <IW extends ItemWrapper> Component createColumnPanel(String componentId, IModel<IW> rowModel) {
-
-                IModel<Collection<VariableBindingDefinitionType>> multiselectModel = new IModel<>() {
-
-                    @Override
-                    public Collection<VariableBindingDefinitionType> getObject() {
-
-                        return ((PrismPropertyWrapper<VariableBindingDefinitionType>) rowModel.getObject())
-                                .getValues().stream()
-                                .filter(value -> !ValueStatus.DELETED.equals(value.getStatus()) && value.getRealValue() != null)
-                                .map(PrismValueWrapperImpl::getRealValue)
-                                .collect(Collectors.toList());
-                    }
-
-                    @Override
-                    public void setObject(Collection<VariableBindingDefinitionType> newValues) {
-
-                        PrismPropertyWrapper<VariableBindingDefinitionType> sourceItem =
-                                ((PrismPropertyWrapper<VariableBindingDefinitionType>) rowModel.getObject());
-                        List<PrismPropertyValueWrapper<VariableBindingDefinitionType>> toRemoveValues
-                                = sourceItem.getValues().stream()
-                                .filter(v -> v.getRealValue() != null).collect(Collectors.toList());
-
-                        newValues.forEach(newValue -> {
-                            if (newValue.getPath() == null) {
-                                return;
-                            }
-                            Optional<PrismPropertyValueWrapper<VariableBindingDefinitionType>> found = sourceItem.getValues().stream()
-                                    .filter(actualValue -> actualValue.getRealValue() != null
-                                                    && actualValue.getRealValue().getPath() != null
-                                                    && newValue.getPath().getItemPath().stripVariableSegment()
-                                            .equals(actualValue.getRealValue().getPath().getItemPath().stripVariableSegment()))
-                                    .findFirst();
-                            if (found.isPresent()) {
-                                toRemoveValues.remove(found.get());
-                                if (ValueStatus.DELETED.equals(found.get().getStatus())) {
-                                    found.get().setStatus(ValueStatus.NOT_CHANGED);
-                                }
-                            } else {
-                                try {
-                                    PrismPropertyValue<VariableBindingDefinitionType> newPrismValue
-                                            = getPrismContext().itemFactory().createPropertyValue();
-                                    newPrismValue.setValue(newValue);
-                                    sourceItem.add(newPrismValue, getPageBase());
-                                } catch (SchemaException e) {
-                                    LOGGER.error("Couldn't initialize new value for Source item", e);
-                                }
-                            }
-                        });
-
-                        toRemoveValues.forEach(toRemoveValue -> {
-                            try {
-                                sourceItem.remove(toRemoveValue, getPageBase());
-                            } catch (SchemaException e) {
-                                LOGGER.error("Couldn't remove old value for Source item", e);
-                            }
-                        });
-
-                        List<PrismPropertyValueWrapper<VariableBindingDefinitionType>> undeletedValues = sourceItem.getValues().stream()
-                                .filter(value -> value.getStatus() != ValueStatus.DELETED)
-                                .collect(Collectors.toList());
-                        if (undeletedValues.stream().filter(value -> value.getRealValue() != null).count() > 0) {
-                            sourceItem.getValues().removeIf(value -> value.getRealValue() == null);
-                        } else if (undeletedValues.isEmpty()) {
-                            try {
-                                PrismPropertyValue<VariableBindingDefinitionType> newPrismValue
-                                        = getPrismContext().itemFactory().createPropertyValue();
-                                newPrismValue.setValue(null);
-                                sourceItem.add(newPrismValue, getPageBase());
-                            } catch (SchemaException e) {
-                                LOGGER.error("Couldn't initialize new null value for Source item", e);
-                            }
-                        }
-
-                    }
-                };
-
-                FocusDefinitionsMappingProvider provider;
-                if (isMappingForAssociation()) {
-                    provider = new FocusDefinitionsMappingProvider((IModel<PrismPropertyWrapper<VariableBindingDefinitionType>>) rowModel) {
-                        @Override
-                        protected PrismContainerDefinition<? extends Containerable> getFocusTypeDefinition(ResourceObjectTypeDefinitionType resourceObjectType) {
-                            return PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(AssignmentType.class);
-                        }
-                    };
-                } else {
-                    provider = new FocusDefinitionsMappingProvider((IModel<PrismPropertyWrapper<VariableBindingDefinitionType>>) rowModel);
-                }
-                return new Select2MultiChoicePanel<>(componentId, multiselectModel, provider);
-            }
-
-            @Override
-            public String getCssClass() {
-                return "col-xl-2 col-lg-2 col-md-2";
-            }
-        });
+        columns.add(createSourceColumn(mappingTypeDef));
 
         columns.add(new IconColumn<>(Model.of()) {
             @Override
@@ -198,7 +106,8 @@ public abstract class FocusMappingMappingsTable<P extends Containerable> extends
             }
         });
 
-        columns.add(new PrismPropertyWrapperColumn(
+        columns.add(new
+                PrismPropertyWrapperColumn(
                 mappingTypeDef,
                 MappingType.F_EXPRESSION,
                 AbstractItemWrapperColumn.ColumnType.VALUE,
@@ -216,27 +125,46 @@ public abstract class FocusMappingMappingsTable<P extends Containerable> extends
             }
         });
 
-        Model<PrismContainerDefinition<ResourceAttributeDefinitionType>> resourceAttributeDef =
-                Model.of(PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(
-                        ResourceAttributeDefinitionType.class));
-
-        columns.add(createVirtualRefItemColumn(resourceAttributeDef, "col-xl-2 col-lg-2 col-md-3"));
+        columns.add(new PrismPropertyWrapperColumn<MappingType, String>(
+                mappingTypeDef,
+                MappingType.F_TARGET,
+                AbstractItemWrapperColumn.ColumnType.VALUE,
+                getPageBase()));
 
         return columns;
     }
 
-    private boolean isMappingForAssociation() {
-        var associationParent = getValueModel().getObject().getParentContainerValue(ShadowAssociationDefinitionType.class);
-        return associationParent != null;
+    private IColumn<PrismContainerValueWrapper<MappingType>, String> createSourceColumn(IModel<PrismContainerDefinition<MappingType>> mappingTypeDef) {
+        return new PrismPropertyWrapperColumn<MappingType, String>(
+                mappingTypeDef,
+                MappingType.F_SOURCE,
+                AbstractItemWrapperColumn.ColumnType.VALUE,
+                getPageBase()) {
+
+            @Override
+            protected <IW extends ItemWrapper> Component createColumnPanel(String componentId, IModel<IW> rowModel) {
+
+                IModel<Collection<VariableBindingDefinitionType>> multiselectModel = createSourceMultiselectModel(rowModel);
+
+                SourceOfFocusMappingProvider provider = new SourceOfFocusMappingProvider(
+                        (IModel<PrismPropertyWrapper<VariableBindingDefinitionType>>) rowModel);
+                return new Select2MultiChoicePanel<>(componentId, multiselectModel, provider);
+            }
+
+            @Override
+            public String getCssClass() {
+                return "col-xl-2 col-lg-2 col-md-2";
+            }
+        };
     }
 
     @Override
-    protected ItemName getItemNameOfRefAttribute() {
-        return ResourceAttributeDefinitionType.F_REF;
+    protected UserProfileStorage.TableId getTableId() {
+        return UserProfileStorage.TableId.PANEL_FOCUS_MAPPING_WIZARD;
     }
 
     @Override
-    protected ItemPathType getAttributeRefAttributeValue(PrismContainerValueWrapper<ResourceAttributeDefinitionType> value) {
-        return value.getRealValue().getRef();
+    protected String getKeyOfTitleForNewObjectButton() {
+        return "FocusMappingMappingsTable.newObject";
     }
 }
