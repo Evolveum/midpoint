@@ -72,7 +72,7 @@ public class FocusMappingWizardPanel<AR extends AbstractRoleType> extends Abstra
 
         steps.add( new FocusMappingMappingsStepPanel<>(getHelper().getDetailsModel(), valueModel) {
             @Override
-            protected void inEditOutboundValue(IModel<PrismContainerValueWrapper<MappingType>> rowModel, AjaxRequestTarget target) {
+            protected void inEditMappingValue(IModel<PrismContainerValueWrapper<MappingType>> rowModel, AjaxRequestTarget target) {
                 showMappingAttributeMappingWizardFragment(target, rowModel, valueModel);
             }
 
