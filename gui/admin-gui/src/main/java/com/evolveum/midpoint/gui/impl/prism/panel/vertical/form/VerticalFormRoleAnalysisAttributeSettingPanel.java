@@ -7,12 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.prism.panel.vertical.form;
 
-import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.AnalysisAttributeSelectorPanel;
-import com.evolveum.midpoint.util.QNameUtil;
-
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAnalysisSessionOptionType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
@@ -20,8 +15,6 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
-import org.apache.wicket.model.PropertyModel;
 
 public class VerticalFormRoleAnalysisAttributeSettingPanel extends VerticalFormPrismPropertyPanel<ItemPathType>  {
 

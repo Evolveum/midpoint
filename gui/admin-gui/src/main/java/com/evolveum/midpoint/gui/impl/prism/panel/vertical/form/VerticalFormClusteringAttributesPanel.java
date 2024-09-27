@@ -33,6 +33,16 @@ public class VerticalFormClusteringAttributesPanel extends VerticalFormPrismCont
         return panel;
     }
 
+    @Override
+    protected boolean isHelpTextVisible() {
+        return true;
+    }
+
+    @Override
+    protected boolean isExpandedButtonVisible() {
+        return false;
+    }
+
     public @Nullable RoleAnalysisOptionType getAnalysisOption() {
         PrismContainerWrapper<ClusteringAttributeSettingType> clusteringSettings = getModelObject();
         RoleAnalysisSessionType session = (RoleAnalysisSessionType) clusteringSettings.findObjectWrapper().getObject().asObjectable();

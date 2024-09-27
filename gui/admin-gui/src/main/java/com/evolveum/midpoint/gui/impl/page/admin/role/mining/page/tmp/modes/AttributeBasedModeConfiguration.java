@@ -7,21 +7,21 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.modes;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context.AbstractRoleAnalysisConfiguration;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.jetbrains.annotations.NotNull;
-
-public class AdvancedModeConfiguration extends AbstractRoleAnalysisConfiguration {
+public class AttributeBasedModeConfiguration extends AbstractRoleAnalysisConfiguration {
 
     RoleAnalysisService service;
     Task task;
     OperationResult result;
 
-    public AdvancedModeConfiguration(
+    public AttributeBasedModeConfiguration(
             RoleAnalysisService service,
             RoleAnalysisSessionType objectWrapper,
             Task task,
@@ -34,12 +34,8 @@ public class AdvancedModeConfiguration extends AbstractRoleAnalysisConfiguration
 
     @Override
     public void updateConfiguration() {
-        if (getProcessMode() == null) {
-            return;
-        }
-        RangeType propertyRange = new RangeType()
-                .min(5.0)
-                .max(Double.valueOf(getMaxPropertyCount()));
+        RangeType propertyRange = createPropertyRange();
+//        ClusteringAttributeSettingType clusteringSetting = createClusteringSetting();
 
         updatePrimaryOptions(null,
                 false,
@@ -47,17 +43,40 @@ public class AdvancedModeConfiguration extends AbstractRoleAnalysisConfiguration
                 getDefaultAnalysisAttributes(),
                 null,
                 80.0,
-                10,
+                5,
                 5,
                 false);
 
         updateDetectionOptions(5,
                 5,
                 null,
-                new RangeType()
-                        .min(10.0)
-                        .max(100.0),
+                createDetectionRange(),
                 RoleAnalysisDetectionProcessType.FULL);
+    }
+
+    private RangeType createPropertyRange() {
+        double minPropertyCount = 5;
+        double maxPropertyCount = getMaxPropertyCount();
+        return new RangeType().min(minPropertyCount).max(maxPropertyCount);
+    }
+
+    //TODO let the user choose the archetype or root for departmnet structre
+    private @NotNull ClusteringAttributeSettingType createClusteringSetting() {
+        ClusteringAttributeSettingType clusteringSetting = new ClusteringAttributeSettingType();
+        ClusteringAttributeRuleType rule = new ClusteringAttributeRuleType()
+                .path(UserType.F_TITLE.toBean())
+                .isMultiValue(true)
+                .weight(1.0)
+                .similarity(100.0);
+        clusteringSetting.getClusteringAttributeRule().add(rule);
+        return clusteringSetting;
+    }
+
+    // TODO: We should probably use department mode for discovery of department roles.
+    //  For example roles that cover 90%+ of users in a department should be used as department inducement.
+    //  Also these structured classes should be used for migration process specification.
+    private RangeType createDetectionRange() {
+        return new RangeType().min(90.0).max(100.0);
     }
 
     public @NotNull Integer getMaxPropertyCount() {

@@ -1236,6 +1236,9 @@
                             It allows for configuration of settings related to attribute analysis within the analysis process.
                         </p>
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AnalysisAttributeSettingType.userAnalysisAttributeSetting</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
 
@@ -2522,6 +2525,16 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="DEPARTMENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="attribute_based">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This mapping should be used during basic analysis.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ATTRIBUTE_BASED"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

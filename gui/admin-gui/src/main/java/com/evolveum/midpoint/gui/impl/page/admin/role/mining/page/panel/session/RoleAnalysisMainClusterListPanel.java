@@ -588,13 +588,13 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
                                 @Contract(pure = true)
                                 @Override
                                 public @NotNull String getIconCssClass() {
-                                    return "fa fa-arrow-down text-danger";
+                                    return "fa fa-arrow-down text-success";
                                 }
 
                                 @Contract(pure = true)
                                 @Override
                                 protected @NotNull String getLabelComponentCssClass() {
-                                    return "ml-1 text-danger";
+                                    return "ml-1 text-success";
                                 }
 
                                 @Override
@@ -771,7 +771,7 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
         return basicTable;
     }
 
-    private static void onAttributeAnalysisClickPerform(
+    private void onAttributeAnalysisClickPerform(
             @NotNull AjaxRequestTarget target,
             @NotNull Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
             @NotNull IModel<SelectableBean<RoleAnalysisClusterType>> model) {
@@ -805,7 +805,7 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
                     @Override
                     protected RoleAnalysisAttributesDto load() {
                         return RoleAnalysisAttributesDto.loadFromCluster(
-                                "RoleAnalysis.aspect.overview.page.title.clustering.attribute.analysis",
+                                createStringResource("RoleAnalysis.aspect.overview.page.title.clustering.attribute.analysis").getString(),
                                 model.getObject().getValue());
                     }
                 };

@@ -79,12 +79,25 @@ public class VerticalFormPrismContainerPanel<C extends Containerable> extends Pr
             }
 
             @Override
+            protected boolean isHelpTextVisible() {
+                return VerticalFormPrismContainerPanel.this.isHelpTextVisible();
+            }
+
+            @Override
+            protected boolean isExpandedButtonVisible() {
+                return VerticalFormPrismContainerPanel.this.isExpandedButtonVisible();
+            }
+
+            @Override
             protected void refreshPanel(AjaxRequestTarget target) {
                 target.add(VerticalFormPrismContainerPanel.this.get(ID_CONTAINER));
             }
         };
         header.setOutputMarkupId(true);
-        header.add(AttributeAppender.append("class", () -> getModelObject().isExpanded() ? "card-header" : ""));
+
+        if(isExpandedButtonVisible()) {
+            header.add(AttributeAppender.append("class", () -> getModelObject().isExpanded() ? "card-header" : ""));
+        }
         return header;
     }
 
@@ -134,6 +147,14 @@ public class VerticalFormPrismContainerPanel<C extends Containerable> extends Pr
 
     protected boolean getHeaderVisibility() {
         return isHeaderVisible();
+    }
+
+    protected boolean isHelpTextVisible() {
+        return false;
+    }
+
+    protected boolean isExpandedButtonVisible() {
+        return true;
     }
 
     public Component getContainer(){

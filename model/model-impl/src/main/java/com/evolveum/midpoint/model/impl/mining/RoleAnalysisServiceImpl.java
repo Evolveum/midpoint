@@ -492,8 +492,12 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         analysisClusterStatisticType.setMembershipMean(clusterStatistics.getMembershipMean());
         analysisClusterStatisticType.setMembershipRange(clusterStatistics.getMembershipRange().clone());
         //TODO consider update
-        analysisClusterStatisticType.setRoleAttributeAnalysisResult(clusterStatistics.getRoleAttributeAnalysisResult().clone());
-        analysisClusterStatisticType.setUserAttributeAnalysisResult(clusterStatistics.getUserAttributeAnalysisResult().clone());
+        if (clusterStatistics.getRoleAttributeAnalysisResult() != null) {
+            analysisClusterStatisticType.setRoleAttributeAnalysisResult(clusterStatistics.getRoleAttributeAnalysisResult().clone());
+        }
+        if (clusterStatistics.getUserAttributeAnalysisResult() != null) {
+            analysisClusterStatisticType.setUserAttributeAnalysisResult(clusterStatistics.getUserAttributeAnalysisResult().clone());
+        }
         return analysisClusterStatisticType;
     }
 
@@ -1054,8 +1058,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             candidateRolesIds.add(detectedPattern.getIdentifier());
         }
 
-//        resolveUserModeChunkPattern(basicChunk, miningRoleTypeChunks, detectedPatternsRoles, candidateRolesIds, miningUserTypeChunks, detectedPatternsUsers);
-        resolveRoleModeChunkPattern(basicChunk, miningRoleTypeChunks, detectedPatternsRoles, candidateRolesIds, miningUserTypeChunks, detectedPatternsUsers);
+        resolveTablePatternChunk(processMode, basicChunk, miningRoleTypeChunks, detectedPatternsRoles, candidateRolesIds, miningUserTypeChunks, detectedPatternsUsers);
+
         int size = detectedPatternsUsers.size();
 
         IntStream.range(0, size).forEach(i -> {
@@ -2189,7 +2193,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         }
 
         RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = clusterStatistics.getUserAttributeAnalysisResult();
-        if (userAttributeAnalysisResult != null && processModeType.equals(RoleAnalysisProcessModeType.USER)) {
+        if (userAttributeAnalysisResult != null) {
             attributeAnalysis.addAll(userAttributeAnalysisResult.getAttributeAnalysis());
         }
 
@@ -2213,6 +2217,12 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     public @Nullable List<RoleAnalysisAttributeDef> resolveAnalysisAttributes(
             @NotNull RoleAnalysisSessionType session,
             @NotNull QName complexType) {
+
+        //TODO remove later. It temporary disable role attribute analysis
+        if (complexType == RoleType.COMPLEX_TYPE) {
+            return null;
+        }
+
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
         if (analysisOption == null) {
             return null;
@@ -2270,8 +2280,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 //        }
 
 //        Map<String, RoleAnalysisAttributeDef> attributeMap = createAttributeMap();
-
-
 
 //        for (AnalysisAttributeRuleType rule : analysisAttributeRule) {
 //            if (!rule.getPropertyType().equals(complexType)) {

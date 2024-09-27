@@ -67,9 +67,19 @@ public abstract class AbstractFormWizardStepPanel<ODM extends ObjectDetailsModel
             protected boolean isVisibleSubContainer(PrismContainerWrapper c) {
                 return AbstractFormWizardStepPanel.this.isVisibleSubContainer(c);
             }
+
+            @Override
+            protected boolean isShowEmptyButtonVisible() {
+                return AbstractFormWizardStepPanel.this.isShowEmptyButtonVisible();
+            }
+
         };
         panel.setOutputMarkupId(true);
         add(panel);
+    }
+
+    protected boolean isShowEmptyButtonVisible() {
+        return true;
     }
 
     protected boolean isVisibleSubContainer(PrismContainerWrapper c) {

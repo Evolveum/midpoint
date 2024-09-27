@@ -52,7 +52,7 @@ public class ClusteringBehavioralResolver implements Clusterable {
 //            case STANDARD, BALANCED, EXACT, EXPLORATION ->
             case BALANCED, EXACT, EXPLORATION, BIRTHRIGHT ->
                     executeStandardClustering(roleAnalysisService, modelService, session, handler, task, attributeAnalysisCache, result);
-            case ADVANCED, DEPARTMENT -> {
+            case ADVANCED, DEPARTMENT, ATTRIBUTE_BASED -> {
                 RoleAnalysisProcedureType analysisProcedureType = analysisOption.getAnalysisProcedureType();
                 if (analysisProcedureType == RoleAnalysisProcedureType.OUTLIER_DETECTION) {
                     yield executeOutlierClustering(roleAnalysisService, modelService, session, handler, attributeAnalysisCache, task, result);

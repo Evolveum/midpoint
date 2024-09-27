@@ -58,7 +58,8 @@ public class ClusteringRoleAnalysisSessionOptionWizardPanel extends AbstractForm
 
             if (itemName.equals(AbstractAnalysisSessionOptionType.F_QUERY)
                     || itemName.equals(AbstractAnalysisSessionOptionType.F_IS_INDIRECT)
-                    || itemName.equals(AbstractAnalysisSessionOptionType.F_PROPERTIES_RANGE)) {
+                    || itemName.equals(AbstractAnalysisSessionOptionType.F_PROPERTIES_RANGE)
+                    || itemName.equals(AbstractAnalysisSessionOptionType.F_MAX_DISTANCE)) {
                 return ItemVisibility.HIDDEN;
             }
 
@@ -82,6 +83,11 @@ public class ClusteringRoleAnalysisSessionOptionWizardPanel extends AbstractForm
     @Override
     protected boolean isVisibleSubContainer(PrismContainerWrapper c) {
         return true;
+    }
+
+    @Override
+    protected boolean isShowEmptyButtonVisible() {
+        return false;
     }
 
     @Override

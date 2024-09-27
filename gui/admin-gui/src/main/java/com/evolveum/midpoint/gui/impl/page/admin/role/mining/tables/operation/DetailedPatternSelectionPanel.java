@@ -13,7 +13,6 @@ import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -27,14 +26,15 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.model.InfoBoxModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisDetectedPatternDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisInfoBox;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 
-public class DebugLabel extends BasePanel<PatternStatistics<?>> implements Popupable {
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
+
+public class DetailedPatternSelectionPanel extends BasePanel<PatternStatistics<?>> implements Popupable {
 
     @Serial private static final long serialVersionUID = 1L;
 
@@ -44,7 +44,7 @@ public class DebugLabel extends BasePanel<PatternStatistics<?>> implements Popup
     private static final String ID_CARD_TITLE = "card-title";
     private static final String ID_EXPLORE_PATTERN_BUTTON = "explore-pattern-button";
 
-    public DebugLabel(String id, IModel<PatternStatistics<?>> model) {
+    public DetailedPatternSelectionPanel(String id, IModel<PatternStatistics<?>> model) {
         super(id, model);
 //        initLayout();
     }
@@ -178,13 +178,8 @@ public class DebugLabel extends BasePanel<PatternStatistics<?>> implements Popup
                 "Number of detected patterns");
 
         RoleAnalysisInfoBox infoBoxReductionLabel = new RoleAnalysisInfoBox(
-                headerItems.newChildId(), Model.of(infoBoxReduction)) {
-            @Override
-            protected String getInfoBoxCssClass() {
-                return "bg-primary";
-            }
-        };
-        infoBoxReductionLabel.add(AttributeModifier.replace("class", "col-md-6"));
+                headerItems.newChildId(), Model.of(infoBoxReduction));
+        infoBoxReductionLabel.add(AttributeModifier.replace(CLASS_CSS, "col-md-6 p-2"));
         infoBoxReductionLabel.setOutputMarkupId(true);
         headerItems.add(infoBoxReductionLabel);
 
@@ -195,13 +190,8 @@ public class DebugLabel extends BasePanel<PatternStatistics<?>> implements Popup
                 "Number of top pattern relations");
 
         RoleAnalysisInfoBox outliersLabel = new RoleAnalysisInfoBox(
-                headerItems.newChildId(), Model.of(infoBoxOutliers)) {
-            @Override
-            protected String getInfoBoxCssClass() {
-                return "bg-primary";
-            }
-        };
-        outliersLabel.add(AttributeModifier.replace("class", "col-md-6"));
+                headerItems.newChildId(), Model.of(infoBoxOutliers));
+        outliersLabel.add(AttributeModifier.replace(CLASS_CSS, "col-md-6 p-2"));
         outliersLabel.setOutputMarkupId(true);
         headerItems.add(outliersLabel);
 
@@ -213,13 +203,8 @@ public class DebugLabel extends BasePanel<PatternStatistics<?>> implements Popup
                 "Max coverage of the detected pattern");
 
         RoleAnalysisInfoBox resolvedPatternLabel = new RoleAnalysisInfoBox(
-                headerItems.newChildId(), Model.of(infoBoxResolvedPattern)) {
-            @Override
-            protected String getInfoBoxCssClass() {
-                return "bg-primary";
-            }
-        };
-        resolvedPatternLabel.add(AttributeModifier.replace("class", "col-md-6"));
+                headerItems.newChildId(), Model.of(infoBoxResolvedPattern));
+        resolvedPatternLabel.add(AttributeModifier.replace(CLASS_CSS, "col-md-6 p-2"));
         resolvedPatternLabel.setOutputMarkupId(true);
         headerItems.add(resolvedPatternLabel);
 
@@ -233,13 +218,8 @@ public class DebugLabel extends BasePanel<PatternStatistics<?>> implements Popup
                 "Average relations per detected pattern");
 
         RoleAnalysisInfoBox candidateRolesLabel = new RoleAnalysisInfoBox(
-                headerItems.newChildId(), Model.of(infoBoxCandidateRoles)) {
-            @Override
-            protected String getInfoBoxCssClass() {
-                return "bg-primary";
-            }
-        };
-        candidateRolesLabel.add(AttributeModifier.replace("class", "col-md-6"));
+                headerItems.newChildId(), Model.of(infoBoxCandidateRoles));
+        candidateRolesLabel.add(AttributeModifier.replace(CLASS_CSS, "col-md-6 p-2"));
         candidateRolesLabel.setOutputMarkupId(true);
         headerItems.add(candidateRolesLabel);
     }
@@ -265,13 +245,13 @@ public class DebugLabel extends BasePanel<PatternStatistics<?>> implements Popup
         };
         explorePatternButton.titleAsLabel(true);
         explorePatternButton.setOutputMarkupId(true);
-        explorePatternButton.add(AttributeAppender.append("class", "ml-auto btn btn-primary btn-sm"));
+        explorePatternButton.add(AttributeModifier.append(CLASS_CSS, "ml-auto btn btn-primary btn-sm"));
         explorePatternButton.setOutputMarkupId(true);
         return explorePatternButton;
     }
 
     protected void explorePatternPerform(@NotNull DetectedPattern pattern, AjaxRequestTarget target) {
-
+        //override in subclass
     }
 
 }
