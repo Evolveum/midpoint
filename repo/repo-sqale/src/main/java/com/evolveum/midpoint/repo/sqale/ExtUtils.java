@@ -56,10 +56,10 @@ public class ExtUtils {
         addType(DOMUtil.XSD_FLOAT, Float.class);
         addType(DOMUtil.XSD_DOUBLE, Double.class);
         addType(DOMUtil.XSD_DATETIME, XMLGregorianCalendar.class);
+        addType(DOMUtil.XSD_BASE64BINARY, byte[].class);
         addType(PolyStringType.COMPLEX_TYPE, PolyString.class);
         addType(ProtectedStringType.COMPLEX_TYPE,ProtectedStringType.class);
         addType(ProtectedByteArrayType.COMPLEX_TYPE, ProtectedByteArrayType.class);
-
     }
 
     private static void addType(QName typeName, Class<?> valueClass) {

@@ -10,12 +10,14 @@ import static java.util.Collections.emptyList;
 import static java.util.Comparator.comparing;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.InstanceOfAssertFactories.BIG_INTEGER;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
@@ -3564,6 +3566,97 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         var shadowFromRepoAfter = repositoryService.getObject(ShadowType.class, shadowOid, null, result);
         assertProtectedAttributeValue(shadowFromRepoAfter, attrPath, valueToUpdate);
     }
+
+    @Test
+    public void test541BigIntegerAttribute() throws CommonException {
+        OperationResult result = createOperationResult();
+
+        given("a shadow with protected attribute");
+        ShadowType shadow = new ShadowType().name(getTestNameShort())
+                .resourceRef(UUID.randomUUID().toString(), ResourceType.COMPLEX_TYPE)
+                .objectClass(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS)
+                .kind(ShadowKindType.ACCOUNT)
+                .intent("intent");
+        ItemName attrName = ItemName.from(NS_RI, "a540");
+        ItemPath attrPath = ItemPath.create(ShadowType.F_ATTRIBUTES, attrName);
+        var initialValue = BigInteger.TEN.add(BigInteger.valueOf(Long.MAX_VALUE));
+
+        var shadowAttributesHelper = new ShadowAttributesHelper(shadow);
+        //noinspection RedundantTypeArguments
+        shadowAttributesHelper.<BigInteger>set(
+                attrName, DOMUtil.XSD_INTEGER, 0, 1, initialValue);
+
+        when("shadow is put into the repository");
+        var shadowOid = repositoryService.addObject(shadow.asPrismObject(), null, result);
+
+        then("the attribute is there");
+        var shadowFromRepo = repositoryService.getObject(ShadowType.class, shadowOid, null, result);
+        BigInteger readValue =  shadowFromRepo.getAllValues(attrPath).iterator().next().getRealValue();
+        assertThat(readValue).isEqualTo(initialValue);
+        when("attribute value is replaced");
+        var valueToUpdate = BigInteger.TEN;
+
+        when("attribute value is replaced");
+        var deltas = prismContext.deltaFor(ShadowType.class)
+                .item(attrPath, shadowAttributesHelper.getDefinition(attrName))
+                .replace(valueToUpdate)
+                .asItemDeltas();
+        repositoryService.modifyObject(ShadowType.class, shadowOid, deltas, result);
+
+        then("everything is OK, and the value is updated");
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        var shadowFromRepoAfter = repositoryService.getObject(ShadowType.class, shadowOid, null, result);
+        readValue =  shadowFromRepoAfter.getAllValues(attrPath).iterator().next().getRealValue();
+        assertThat(readValue).isEqualTo(valueToUpdate);
+
+    }
+
+    @Test
+    public void test542ByteArrayAttribute() throws CommonException {
+        OperationResult result = createOperationResult();
+
+        given("a shadow with protected attribute");
+        ShadowType shadow = new ShadowType().name(getTestNameShort())
+                .resourceRef(UUID.randomUUID().toString(), ResourceType.COMPLEX_TYPE)
+                .objectClass(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS)
+                .kind(ShadowKindType.ACCOUNT)
+                .intent("intent");
+        ItemName attrName = ItemName.from(NS_RI, "a540");
+        ItemPath attrPath = ItemPath.create(ShadowType.F_ATTRIBUTES, attrName);
+        var initialValue = "foo".getBytes(StandardCharsets.UTF_8);
+
+        var shadowAttributesHelper = new ShadowAttributesHelper(shadow);
+        //noinspection RedundantTypeArguments
+        shadowAttributesHelper.<byte[]>set(
+                attrName, DOMUtil.XSD_BASE64BINARY, 0, 1, initialValue);
+
+        when("shadow is put into the repository");
+        var shadowOid = repositoryService.addObject(shadow.asPrismObject(), null, result);
+
+        then("the attribute is there");
+        var shadowFromRepo = repositoryService.getObject(ShadowType.class, shadowOid, null, result);
+        byte[] readValue =  shadowFromRepo.getAllValues(attrPath).iterator().next().getRealValue();
+        assertThat(readValue).isEqualTo(initialValue);
+        when("attribute value is replaced");
+        var valueToUpdate = "bar".getBytes(StandardCharsets.UTF_8);
+
+        when("attribute value is replaced");
+        var deltas = prismContext.deltaFor(ShadowType.class)
+                .item(attrPath, shadowAttributesHelper.getDefinition(attrName))
+                .replace(valueToUpdate)
+                .asItemDeltas();
+        repositoryService.modifyObject(ShadowType.class, shadowOid, deltas, result);
+
+        then("everything is OK, and the value is updated");
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        var shadowFromRepoAfter = repositoryService.getObject(ShadowType.class, shadowOid, null, result);
+        readValue =  shadowFromRepoAfter.getAllValues(attrPath).iterator().next().getRealValue();
+        assertThat(readValue).isEqualTo(valueToUpdate);
+
+    }
+
 
     @Test(description = "MID-9754")
     public void test550reindexShadowsWithSameAttributeNameDifferentType() throws Exception {
