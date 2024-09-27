@@ -425,7 +425,7 @@ public class RoleAnalysisReconfigureSessionPopupPanel
 
                 ModelInteractionService modelInteractionService = getPageBase().getModelInteractionService();
                 roleAnalysisService.executeClusteringTask(
-                        modelInteractionService, sessionTypeObject, null, null, task, result, new TaskType());
+                        modelInteractionService, sessionTypeObject, task, result);
             }
         } catch (Throwable e) {
             LoggingUtils.logException(LOGGER, "Couldn't process clustering", e);

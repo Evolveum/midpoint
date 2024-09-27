@@ -19,6 +19,7 @@ import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -68,43 +69,26 @@ public class ProcessModeChoiceStepPanel extends EnumWizardChoicePanel<ProcessMod
 
     @Override
     protected void onTileClickPerformed(@NotNull ProcessMode value, AjaxRequestTarget target) {
-//        PrismObjectWrapper<RoleAnalysisSessionType> objectWrapper = getAssignmentHolderDetailsModel()
-//                .getObjectWrapper();
-//
-//        PrismPropertyWrapper<RoleAnalysisProcessModeType> property;
-//        try {
-//            property = objectWrapper.findProperty(ItemPath.create(RoleAnalysisSessionType.F_ANALYSIS_OPTION, RoleAnalysisOptionType.F_PROCESS_MODE));
-//            property.getValue().setRealValue(ProcessMode.ROLE == value ? RoleAnalysisProcessModeType.ROLE : RoleAnalysisProcessModeType.USER);
-//        } catch (SchemaException e) {
-//            //TODO handle properly
-//            throw new RuntimeException(e);
-//        }
-//
-//        AnalysisCategoryMode categoryMode = AnalysisCategoryMode.resolveCategoryMode(objectWrapper.getObject().asObjectable());
         Task task = getPageBase().createSimpleTask("prepare options");
         OperationResult result = task.getResult();
-        reloadDefaultConfiguration(ProcessMode.ROLE == value ? RoleAnalysisProcessModeType.ROLE : RoleAnalysisProcessModeType.USER, task, result);
 
-//        Containerable realValue = property.getRealValue();
-//
-//        if (realValue instanceof RoleAnalysisOptionType analysisOptionType) {
-//            RoleAnalysisCategoryType analysisCategory = analysisOptionType.getAnalysisCategory();
-//            if (analysisCategory != null) {
+        PrismObjectWrapper<RoleAnalysisSessionType> objectWrapper = getAssignmentHolderDetailsModel().getObjectWrapper();
+        RoleAnalysisSessionType session;
+        try {
+            session = objectWrapper.getObjectApplyDelta().asObjectable();
+        } catch (CommonException e) {
+            session = objectWrapper.getObjectOld().asObjectable();
+        }
+        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+        analysisOption.setProcessMode(ProcessMode.ROLE == value ? RoleAnalysisProcessModeType.ROLE : RoleAnalysisProcessModeType.USER);
+        AnalysisCategoryMode categoryMode = AnalysisCategoryMode.resolveCategoryMode(session);
+        categoryMode.generateConfiguration(getPageBase().getRoleAnalysisService(), session, task, result);
 
-//                RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-//                AnalysisCategoryMode.generateConfiguration(
-//                        roleAnalysisService, analysisCategory, objectWrapperModel, task, result);
-//            } else {
-//                throw new IllegalStateException("Unexpected null value (expected RoleAnalysisCategoryType != null): " + realValue);
-//            }
-//        } else {
-//            throw new IllegalStateException("Unexpected value (expected RoleAnalysisOptionType): " + realValue);
-//        }
-
+        reloadDefaultConfiguration(session);
         onSubmitPerformed(target);
     }
 
-    protected void reloadDefaultConfiguration(RoleAnalysisProcessModeType value, Task task, OperationResult result) {
+    protected void reloadDefaultConfiguration(RoleAnalysisSessionType sessionType) {
 
     }
 

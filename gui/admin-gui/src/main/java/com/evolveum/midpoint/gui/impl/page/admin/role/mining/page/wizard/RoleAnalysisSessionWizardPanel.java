@@ -9,6 +9,10 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
@@ -31,11 +35,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-
 
 public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnalysisSessionType, AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
 
@@ -80,8 +79,8 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
             }
 
             @Override
-            protected void reloadDefaultConfiguration(AnalysisCategoryMode value, Task task, OperationResult result) {
-                AssignmentHolderDetailsModel<RoleAnalysisSessionType> sessionModel = reloadWrapperWithDefaultConfiguration(value, task, result);
+            protected void reloadDefaultConfiguration(RoleAnalysisSessionType session) {
+                AssignmentHolderDetailsModel<RoleAnalysisSessionType> sessionModel = reloadWrapperWithDefaultConfiguration(session);
                 getHelper().updateDetailsModel(sessionModel);
             }
 
@@ -130,8 +129,8 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
             }
 
             @Override
-            protected void reloadDefaultConfiguration(RoleAnalysisProcessModeType value, Task task, OperationResult result) {
-                AssignmentHolderDetailsModel<RoleAnalysisSessionType> sessionModel = RoleAnalysisSessionWizardPanel.this.reloadWrapperWithDefaultConfiguration(value, task, result);
+            protected void reloadDefaultConfiguration(RoleAnalysisSessionType session) {
+                AssignmentHolderDetailsModel<RoleAnalysisSessionType> sessionModel = RoleAnalysisSessionWizardPanel.this.reloadWrapperWithDefaultConfiguration(session);
                 getHelper().updateDetailsModel(sessionModel);
             }
         };
@@ -153,16 +152,11 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
         };
     }
 
-    protected AssignmentHolderDetailsModel<RoleAnalysisSessionType> reloadWrapperWithDefaultConfiguration(AnalysisCategoryMode category, Task task, OperationResult result) {
-        return null;
-    }
-
-    protected AssignmentHolderDetailsModel<RoleAnalysisSessionType> reloadWrapperWithDefaultConfiguration(RoleAnalysisProcessModeType processMode, Task task, OperationResult result) {
+    protected AssignmentHolderDetailsModel<RoleAnalysisSessionType> reloadWrapperWithDefaultConfiguration(RoleAnalysisSessionType session) {
         return null;
     }
 
     private List<WizardStep> createBasicSteps() {
-        TaskType taskType = new TaskType();
         List<WizardStep> steps = new ArrayList<>();
 
         steps.add(new BasicSessionInformationStepPanel(getHelper().getDetailsModel()) {
@@ -195,7 +189,7 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
                     showWizardFragment(target, new WizardPanel(getIdOfWizardPanel(), new WizardModel(createBasicSteps())));
                     super.onSubmitPerformed(target);
                 }
-                finalSubmitPerform(target, taskType);
+                finalSubmitPerform(target);
             }
         });
 
@@ -218,7 +212,7 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
 
                 @Override
                 protected void onSubmitPerformed(AjaxRequestTarget target) {
-                    finalSubmitPerform(target, taskType);
+                    finalSubmitPerform(target);
                 }
             });
 
@@ -245,7 +239,7 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
 
                     @Override
                     protected void onSubmitPerformed(AjaxRequestTarget target) {
-                        finalSubmitPerform(target, taskType);
+                        finalSubmitPerform(target);
                     }
                 });
             }
@@ -278,12 +272,12 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
 
             @Override
             protected void onSubmitPerformed(AjaxRequestTarget target) {
-                finalSubmitPerform(target, taskType);
+                finalSubmitPerform(target);
             }
 
         });
 
-        steps.add(new RoleAnalysisSessionMaintenanceWizardPanel(getHelper().getDetailsModel(), taskType) {
+        steps.add(new RoleAnalysisSessionMaintenanceWizardPanel(getHelper().getDetailsModel()) {
 
             @Override
             public IModel<String> getTitle() {
@@ -298,14 +292,14 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
             @Override
             protected void onSubmitPerformed(AjaxRequestTarget target) {
                 super.onSubmitPerformed(target);
-                finalSubmitPerform(target, taskType);
+                finalSubmitPerform(target);
             }
         });
 
         return steps;
     }
 
-    protected void finalSubmitPerform(@NotNull AjaxRequestTarget target, @NotNull TaskType taskType) {
+    protected void finalSubmitPerform(@NotNull AjaxRequestTarget target) {
         //override in subclasses
     }
 

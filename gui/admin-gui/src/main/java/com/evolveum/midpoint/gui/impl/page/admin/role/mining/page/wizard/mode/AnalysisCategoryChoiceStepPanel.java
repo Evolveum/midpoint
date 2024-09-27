@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard.mode;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.exception.CommonException;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
@@ -65,17 +67,40 @@ public class AnalysisCategoryChoiceStepPanel extends EnumWizardChoicePanel<Analy
     }
 
     @Override
-    protected void onTileClickPerformed(AnalysisCategoryMode value, AjaxRequestTarget target) {
-        analysisCategoryModel.setObject(value);
+    protected void onTileClickPerformed(AnalysisCategoryMode category, AjaxRequestTarget target) {
+        analysisCategoryModel.setObject(category);
 
         Task task = getPageBase().createSimpleTask("prepare options");
         OperationResult result = task.getResult();
-        reloadDefaultConfiguration(value, task, result);
+
+        PrismObjectWrapper<RoleAnalysisSessionType> sessionWrapper = getAssignmentHolderDetailsModel().getObjectWrapper();
+        RoleAnalysisSessionType session;
+        try {
+            session = sessionWrapper.getObjectApplyDelta().asObjectable();
+        } catch (CommonException e) {
+            session = sessionWrapper.getObjectOld().asObjectable();
+        }
+
+        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+        if (analysisOption == null) {
+            analysisOption = new RoleAnalysisOptionType();
+            session.setAnalysisOption(analysisOption);
+        }
+        analysisOption.setAnalysisCategory(category.resolveCategoryMode());
+
+        if (!category.requiresProcessModeConfiguration()) {
+            session.getAnalysisOption().setProcessMode(category.getRequiredProcessModeConfiguration());
+        }
+
+
+        category.generateConfiguration(getPageBase().getRoleAnalysisService(), session, task, result);
+
+        reloadDefaultConfiguration(session);
 
         onSubmitPerformed(target);
     }
 
-    protected void reloadDefaultConfiguration(AnalysisCategoryMode value, Task task, OperationResult result) {
+    protected void reloadDefaultConfiguration(RoleAnalysisSessionType session) {
 
     }
 

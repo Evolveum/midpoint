@@ -30,7 +30,6 @@ import java.util.stream.IntStream;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAssignmentAttributeDef;
 import com.evolveum.midpoint.common.mining.objects.detection.BasePattern;
 import com.evolveum.midpoint.common.mining.objects.statistic.UserAccessDistribution;
 import com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils;
@@ -1157,11 +1156,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     public void executeClusteringTask(
             @NotNull ModelInteractionService modelInteractionService,
             @NotNull PrismObject<RoleAnalysisSessionType> session,
-            @Nullable String taskOid,
-            @Nullable PolyStringType taskName,
             @NotNull Task task,
-            @NotNull OperationResult result,
-            @NotNull TaskType processingTask) {
+            @NotNull OperationResult result) {
 
         String state = recomputeAndResolveSessionOpStatus(session, result, task);
 
@@ -1186,17 +1182,12 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                     .work(new WorkDefinitionsType()
                             .roleAnalysisClustering(rdw));
 
-            processingTask.setName(Objects.requireNonNullElseGet(
-                    taskName, () -> PolyStringType.fromOrig("Session clustering  (" + session + ")")));
+            TaskType processingTask = new TaskType();
+            processingTask.setName(PolyStringType.fromOrig("Session clustering  (" + session + ")"));
 
-            if (taskOid != null) {
-                processingTask.setOid(taskOid);
-            } else {
-                taskOid = UUID.randomUUID().toString();
-                processingTask.setOid(taskOid);
-            }
-
+            String taskOid = UUID.randomUUID().toString(); //TODO is this really needed here?
             processingTask.setOid(taskOid);
+
             modelInteractionService.submit(
                     activity,
                     ActivitySubmissionOptions.create()

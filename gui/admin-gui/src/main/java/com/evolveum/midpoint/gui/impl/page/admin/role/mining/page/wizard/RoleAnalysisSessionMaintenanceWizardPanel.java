@@ -53,12 +53,10 @@ public class RoleAnalysisSessionMaintenanceWizardPanel
 
     private static final String DECOMMISSIONED_MARK_OBJECT_ID = "00000000-0000-0000-0000-000000000801";
     boolean isRebuild = false;
-    TaskType taskType;
     Model<Boolean> isActiveModel = Model.of(false);
 
-    public RoleAnalysisSessionMaintenanceWizardPanel(AssignmentHolderDetailsModel<RoleAnalysisSessionType> model, TaskType taskType) {
+    public RoleAnalysisSessionMaintenanceWizardPanel(AssignmentHolderDetailsModel<RoleAnalysisSessionType> model) {
         super(model);
-        this.taskType = taskType;
     }
 
     @Override
@@ -258,7 +256,7 @@ public class RoleAnalysisSessionMaintenanceWizardPanel
 
                 ScheduleType schedule = new ScheduleType();
                 schedule.setInterval(seconds);
-                taskType.setSchedule(schedule.clone());
+
             }
 
         }

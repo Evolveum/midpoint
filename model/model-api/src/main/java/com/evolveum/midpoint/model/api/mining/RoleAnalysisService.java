@@ -516,22 +516,17 @@ public interface RoleAnalysisService {
      * This method is used to execute a clustering task.
      * It creates a new cluster and stores it in the session.
      *
+     * @param processingTask The processing task.
      * @param modelInteractionService The model interaction service.
      * @param session The session under which the clustering task is executed.
-     * @param taskOid The OID of the task.
-     * @param taskName The name of the task.
      * @param task The task associated with this operation.
      * @param result The operation result.
-     * @param processingTask The processing task.
      */
     void executeClusteringTask(
             @NotNull ModelInteractionService modelInteractionService,
             @NotNull PrismObject<RoleAnalysisSessionType> session,
-            @Nullable String taskOid,
-            @Nullable PolyStringType taskName,
             @NotNull Task task,
-            @NotNull OperationResult result,
-            @NotNull TaskType processingTask);
+            @NotNull OperationResult result);
 
     /**
      * Recompute and resolve the cluster operation status.
