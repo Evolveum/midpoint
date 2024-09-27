@@ -12,6 +12,7 @@ import java.io.File;
 import java.util.Arrays;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.apache.directory.api.util.GeneralizedTime;
@@ -75,7 +76,9 @@ public class TestUnixTolerantAux extends TestUnix {
     protected void assertTest132Audit() {
         displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
-        dummyAuditService.assertRecords(3);
+        // When caching is not used, the posixAccount is first removed from organizationalUnit and then re-added.
+        // When it is used, nothing like that occur.
+        dummyAuditService.assertRecords(InternalsConfig.isShadowCachingOnByDefault() ? 2 : 3);
         dummyAuditService.assertExecutionDeltas(2);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
@@ -163,6 +166,7 @@ public class TestUnixTolerantAux extends TestUnix {
 
         // WHEN
         when();
+        invalidateShadowCacheIfNeeded(getResourceOid());
         reconcileUser(userBefore.getOid(), task, result);
 
         // THEN
