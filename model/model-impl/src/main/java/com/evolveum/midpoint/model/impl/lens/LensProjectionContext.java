@@ -893,7 +893,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (isFullShadow()) {
             return ItemLoadedStatus.FULL_SHADOW;
         } else if (!isCachedShadowsUseAllowed()) {
-            return ItemLoadedStatus.NOT_ALLOWED;
+            return ItemLoadedStatus.USE_OF_CACHED_NOT_ALLOWED;
         } else {
             return null; // Let's look at the status of the specific item
         }
