@@ -243,7 +243,8 @@ public class ObjectUpdater {
                 .options(SerializationOptions
                         .createSerializeReferenceNamesForNullOids()
                         .skipIndexOnly(true)
-                        .skipTransient(true))
+                        .skipTransient(true)
+                        .preservePolyStringNorm(true))
                 .serialize(savedObject);
         byte[] fullObject = RUtil.getBytesFromSerializedForm(xml, getConfiguration().isUseZip());
 
