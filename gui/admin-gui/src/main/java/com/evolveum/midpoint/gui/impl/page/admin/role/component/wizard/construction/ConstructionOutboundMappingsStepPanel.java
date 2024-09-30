@@ -59,7 +59,7 @@ public class ConstructionOutboundMappingsStepPanel<AR extends AbstractRoleType>
             }
 
             @Override
-                protected void editItemPerformed(
+            public void editItemPerformed(
                         AjaxRequestTarget target,
                         IModel<PrismContainerValueWrapper<MappingType>> rowModel,
                         List<PrismContainerValueWrapper<MappingType>> listItems) {

@@ -48,6 +48,7 @@ public class FocusMappingWizardPanel<AR extends AbstractRoleType> extends Abstra
             String stepId) {
         WizardModel wizardModel = new WizardModel(createFocusMappingSteps(valueModel));
         if (StringUtils.isNotEmpty(stepId)) {
+            getPageBase().getPageParameters().set(WizardModel.PARAM_STEP, stepId);
             wizardModel.setActiveStepById(stepId);
         }
         showWizardFragment(
@@ -58,7 +59,7 @@ public class FocusMappingWizardPanel<AR extends AbstractRoleType> extends Abstra
     private List<WizardStep> createFocusMappingSteps(IModel<PrismContainerValueWrapper<AssignmentType>> valueModel) {
         List<WizardStep> steps = new ArrayList<>();
 
-        BasicFocusMappingStepPanel<AR> selectResource =
+        BasicFocusMappingStepPanel<AR> basic =
                 new BasicFocusMappingStepPanel<>(getHelper().getDetailsModel(), valueModel) {
 
                     @Override
@@ -68,7 +69,7 @@ public class FocusMappingWizardPanel<AR extends AbstractRoleType> extends Abstra
                     }
                 };
 
-        steps.add(selectResource);
+        steps.add(basic);
 
         steps.add( new FocusMappingMappingsStepPanel<>(getHelper().getDetailsModel(), valueModel) {
             @Override

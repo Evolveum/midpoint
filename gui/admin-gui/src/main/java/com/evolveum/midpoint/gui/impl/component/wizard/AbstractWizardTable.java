@@ -10,6 +10,7 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
+import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.Containerable;
@@ -25,6 +26,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfig
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -34,7 +37,7 @@ import java.util.List;
 /**
  * @author lskublik
  */
-public abstract class AbstractWizardTable<C extends Containerable, CV extends Containerable> extends MultivalueContainerListPanel<C> {
+public abstract class AbstractWizardTable<C extends Containerable, CV extends Containerable> extends MultivalueContainerListPanelWithDetailsPanel<C> {
 
     private final IModel<PrismContainerValueWrapper<CV>> valueModel;
 
@@ -97,7 +100,7 @@ public abstract class AbstractWizardTable<C extends Containerable, CV extends Co
     }
 
     @Override
-    protected void editItemPerformed(
+    public void editItemPerformed(
             AjaxRequestTarget target,
             IModel<PrismContainerValueWrapper<C>> rowModel,
             List<PrismContainerValueWrapper<C>> listItems) {
@@ -170,5 +173,10 @@ public abstract class AbstractWizardTable<C extends Containerable, CV extends Co
         getContainerModel().detach();
         clearCache();
         super.refreshTable(target);
+    }
+
+    @Override
+    protected WebMarkupContainer getMultivalueContainerDetailsPanel(ListItem<PrismContainerValueWrapper<C>> item) {
+        return new WebMarkupContainer(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS);
     }
 }

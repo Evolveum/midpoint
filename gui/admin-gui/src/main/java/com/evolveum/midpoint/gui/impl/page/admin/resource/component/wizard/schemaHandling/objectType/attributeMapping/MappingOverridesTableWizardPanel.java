@@ -62,7 +62,7 @@ public abstract class MappingOverridesTableWizardPanel<C extends Containerable> 
             }
 
             @Override
-            protected void editItemPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> rowModel, List<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> listItems) {
+            public void editItemPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> rowModel, List<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> listItems) {
                 inEditNewValue(rowModel, target);
             }
         };

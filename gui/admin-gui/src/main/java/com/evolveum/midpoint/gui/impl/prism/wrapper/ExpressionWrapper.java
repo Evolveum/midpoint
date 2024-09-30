@@ -96,6 +96,25 @@ public class ExpressionWrapper extends PrismPropertyWrapperImpl<ExpressionType> 
         return false;
     }
 
+    public boolean isFocusMappingExpression() {
+        if (!getPath().last().equals(MappingType.F_EXPRESSION.last())) {
+            return false;
+        }
+        PrismContainerWrapperImpl mappingContainer = getParent() != null ? (PrismContainerWrapperImpl) getParent().getParent() : null;
+        if (mappingContainer != null && MappingType.class.isAssignableFrom(mappingContainer.getCompileTimeClass())) {
+            PrismContainerValueWrapperImpl mappingValue = (PrismContainerValueWrapperImpl) mappingContainer.getParent();
+            if (mappingValue != null) {
+                PrismContainerWrapperImpl mappingsContainer = (PrismContainerWrapperImpl) mappingValue.getParent();
+                if (mappingsContainer != null &&
+                        MappingsType.class.equals(mappingsContainer.getCompileTimeClass())
+                        && AssignmentType.F_FOCUS_MAPPINGS.equivalent(mappingsContainer.getItemName())) {
+                    return  true;
+                }
+            }
+        }
+        return false;
+    }
+
     public ConstructionType getConstruction() {
         if (getParent() == null) {
             return construction;

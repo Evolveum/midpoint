@@ -128,7 +128,7 @@ public abstract class InboundMappingsTableWizardPanel extends AbstractResourceWi
                     }
 
                     @Override
-                    protected void editItemPerformed(
+                    public void editItemPerformed(
                             AjaxRequestTarget target,
                             IModel<PrismContainerValueWrapper<MappingType>> rowModel,
                             List<PrismContainerValueWrapper<MappingType>> listItems) {
@@ -178,7 +178,7 @@ public abstract class InboundMappingsTableWizardPanel extends AbstractResourceWi
                     }
 
                     @Override
-                    protected void editItemPerformed(
+                    public void editItemPerformed(
                             AjaxRequestTarget target,
                             IModel<PrismContainerValueWrapper<MappingType>> rowModel,
                             List<PrismContainerValueWrapper<MappingType>> listItems) {

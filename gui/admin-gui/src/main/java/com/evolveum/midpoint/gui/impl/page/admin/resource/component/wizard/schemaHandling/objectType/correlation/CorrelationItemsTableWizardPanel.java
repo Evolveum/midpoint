@@ -62,7 +62,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
     private void initLayout() {
         CorrelationItemsTable table = new CorrelationItemsTable(ID_TABLE, getValueModel(), getConfiguration()) {
             @Override
-            protected void editItemPerformed(
+            public void editItemPerformed(
                     AjaxRequestTarget target,
                     IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel,
                     List<PrismContainerValueWrapper<ItemsSubCorrelatorType>> listItems) {
