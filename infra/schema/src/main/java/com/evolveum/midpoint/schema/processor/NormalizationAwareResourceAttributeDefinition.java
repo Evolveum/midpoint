@@ -542,9 +542,7 @@ public class NormalizationAwareResourceAttributeDefinition<T>
 
     @VisibleForTesting
     public static PolyString wrap(String orig, String norm) {
-        // The lang is only to serialize the string in full; TODO remove eventually MID-2119
-        return new PolyString(
-                orig, norm, new PolyStringTranslationType().key("dummy"));
+        return new PolyString(orig, norm);
     }
 
     @Override

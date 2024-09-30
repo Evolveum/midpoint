@@ -12,7 +12,6 @@ import com.evolveum.midpoint.gui.impl.component.table.ChartedHeaderDto;
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.widgets.component.WidgetRmChartComponent;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -32,7 +31,7 @@ import java.io.Serial;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
 
-public class ReviewerTilePanel extends TilePanel<Tile<SelectableBean<UserType>>, SelectableBean<UserType>> {
+public class ReviewerTilePanel extends TilePanel<Tile<UserType>, UserType> {
 
     @Serial private static final long serialVersionUID = 1L;
 
@@ -40,7 +39,7 @@ public class ReviewerTilePanel extends TilePanel<Tile<SelectableBean<UserType>>,
 
     private ReviewerStatisticDto statisticDto;
 
-    public ReviewerTilePanel(String id, IModel<Tile<SelectableBean<UserType>>> model, ReviewerStatisticDto statisticDto) {
+    public ReviewerTilePanel(String id, IModel<Tile<UserType>> model, ReviewerStatisticDto statisticDto) {
         super(id, model);
         this.statisticDto = statisticDto;
         initLayout();
@@ -48,7 +47,7 @@ public class ReviewerTilePanel extends TilePanel<Tile<SelectableBean<UserType>>,
 
     @Override
     protected Component createIconPanel(String idIcon) {
-        UserType reviewer = getModelObject().getValue().getValue();
+        UserType reviewer = getModelObject().getValue();
         IResource messageImageResource = WebComponentUtil.createJpegPhotoResource(reviewer);
         Component messageImagePanel = WebComponentUtil.createPhotoOrDefaultImagePanel(idIcon, messageImageResource,
                 new IconType().cssClass("fa fa-user-circle"));

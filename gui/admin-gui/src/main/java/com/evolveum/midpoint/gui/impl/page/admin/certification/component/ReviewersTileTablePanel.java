@@ -8,58 +8,65 @@
 package com.evolveum.midpoint.gui.impl.page.admin.certification.component;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.data.provider.ObjectDataProvider;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.data.provider.ListDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
 import com.evolveum.midpoint.gui.impl.component.tile.*;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.util.ListModel;
 
 import java.io.Serial;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
-public class ReviewersTileTablePanel extends TileTablePanel<Tile<SelectableBean<UserType>>, SelectableBean<UserType>> implements Popupable {
+/**
+ * todo this class contains a lot of duplicate code from ReviewerStatisticsPanel
+ * should be cleaned up
+ */
+public class ReviewersTileTablePanel extends TileTablePanel<Tile<UserType>, UserType> implements Popupable {
 
-    private final List<String> reviewerOidList;
+    @Serial private static final long serialVersionUID = 1L;
+
     private final Map<ObjectReferenceType, ReviewerStatisticDto> reviewerStatisticDtoMap;
+    private final boolean isPercentageSorting;
+    Search search;
 
-    public ReviewersTileTablePanel(String id,
-            Map<ObjectReferenceType, ReviewerStatisticDto> reviewerStatisticDtoMap) {
+    public ReviewersTileTablePanel(String id, Map<ObjectReferenceType, ReviewerStatisticDto> reviewerStatisticDtoMap,
+            boolean isPercentageSorting) {
         super(id, Model.of(ViewToggle.TILE), null);
         this.reviewerStatisticDtoMap = reviewerStatisticDtoMap;
-        reviewerOidList = reviewerStatisticDtoMap.keySet().stream().map(ObjectReferenceType::getOid).toList();
+        this.isPercentageSorting = isPercentageSorting;
     }
 
     @Override
     protected IModel<Search> createSearchModel() {
-        return new LoadableDetachableModel<>() {
-
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            protected Search load() {
-                SearchBuilder<UserType> searchBuilder = new SearchBuilder<>(UserType.class)
-                        .modelServiceLocator(getPageBase());
-                return searchBuilder.build();
+        return  () -> {
+            if (search != null) {
+                return search;
             }
+            SearchBuilder searchBuilder = new SearchBuilder<>(UserType.class)
+                    .modelServiceLocator(getPageBase());
+            search = searchBuilder.build();
+            return search;
         };
     }
 
     @Override
-    protected Component createTile(String id, IModel<Tile<SelectableBean<UserType>>> model) {
-        UserType user = model.getObject().getValue().getValue();
+    protected Component createTile(String id, IModel<Tile<UserType>> model) {
+        UserType user = model.getObject().getValue();
         ReviewerTilePanel tilePanel = new ReviewerTilePanel(id, model, getReviewerStatisticDto(user.getOid()));
         tilePanel.add(AttributeAppender.append("class", "d-flex flex-column ml-3 mt-3"));
         tilePanel.add(AttributeAppender.append("style", "height: 270px; width: 220px;"));
@@ -68,24 +75,102 @@ public class ReviewersTileTablePanel extends TileTablePanel<Tile<SelectableBean<
     }
 
     @Override
-    public ObjectDataProvider createProvider() {
-        ObjectDataProvider provider = new ObjectDataProvider(this, getSearchModel()) {
+    public ListDataProvider createProvider() {
+        ListDataProvider provider = new ListDataProvider(this, getReviewerListModel());
+        return provider;
+
+//        ObjectDataProvider provider = new ObjectDataProvider(this, getSearchModel()) {
+//
+//            @Override
+//            protected ObjectQuery getCustomizeContentQuery() {
+//                if (reviewerOidList == null || reviewerOidList.isEmpty()) {
+//                    return null;
+//                }
+//                return getPageBase().getPrismContext().queryFor(UserType.class)
+//                        .id(reviewerOidList.toArray(new String[0]))
+//                        .build();
+//            }
+//        };
+//        Collection<SelectorOptions<GetOperationOptions>> options = getPageBase().getOperationOptionsBuilder()
+//                .item(FocusType.F_JPEG_PHOTO).retrieve()
+//                .build();
+//        provider.setOptions(options);
+//        return provider;
+    }
+
+    private ObjectQuery createReviewersQuery() {
+        List<String> reviewerOidList = reviewerStatisticDtoMap.keySet().stream()
+                .map(ObjectReferenceType::getOid)
+                .toList();
+        ObjectQuery query = getPageBase().getPrismContext().queryFor(UserType.class)
+                .id(reviewerOidList.toArray(new String[0]))
+                .build();
+        ObjectQuery searchQuery = search != null ? search.createObjectQuery(getPageBase()) : null;
+        if (searchQuery != null && searchQuery.getFilter() != null) {
+            query.addFilter(searchQuery.getFilter());
+        }
+        return query;
+    }
+
+    private ListModel<UserType> getReviewerListModel() {
+        List<UserType> reviewers = getSortedReviewerList();
+        return new ListModel<>(reviewers) {
 
             @Override
-            protected ObjectQuery getCustomizeContentQuery() {
-                if (reviewerOidList == null || reviewerOidList.isEmpty()) {
-                    return null;
-                }
-                return getPageBase().getPrismContext().queryFor(UserType.class)
-                        .id(reviewerOidList.toArray(new String[0]))
-                        .build();
+            public void setObject(List<UserType> object) {
+                super.setObject(object);
+            }
+
+            @Override
+            public List<UserType> getObject() {
+                return searchThroughList(reviewers);
             }
         };
+    }
+
+    private List<UserType> searchThroughList(List<UserType> reviewerList) {
+        if (reviewerList == null || reviewerList.isEmpty()) {
+            return null;
+        }
+
+        ObjectQuery query = createReviewersQuery();
+        return reviewerList.stream().filter(user -> {
+            try {
+                return ObjectQuery.match(user, query.getFilter(), getPageBase().getMatchingRuleRegistry());
+            } catch (SchemaException e) {
+                throw new TunnelException(e.getMessage());
+            }
+        }).collect(Collectors.toList());
+    }
+
+    private List<UserType> getSortedReviewerList() {
         Collection<SelectorOptions<GetOperationOptions>> options = getPageBase().getOperationOptionsBuilder()
                 .item(FocusType.F_JPEG_PHOTO).retrieve()
                 .build();
-        provider.setOptions(options);
-        return provider;
+        List<ObjectReferenceType> sortedReviewers = sortReviewers();
+        return sortedReviewers.stream()
+                .map(ref -> {
+                    PrismObject<UserType> userPrism = WebModelServiceUtils.loadObject(ref, options, getPageBase());
+                    return userPrism != null ? userPrism.asObjectable() : null;
+                })
+                .toList();
+    }
+
+    private List<ObjectReferenceType> sortReviewers() {
+        List<ObjectReferenceType> reviewers = new ArrayList<>(reviewerStatisticDtoMap.keySet());
+        reviewers = reviewers.stream().sorted((r1, r2) -> {
+            ReviewerStatisticDto rs1 = reviewerStatisticDtoMap.get(r1);
+            ReviewerStatisticDto rs2 = reviewerStatisticDtoMap.get(r2);
+
+            if (!isPercentageSorting) {
+                return Long.compare(rs2.getOpenNotDecidedItemsCount(), rs1.getOpenNotDecidedItemsCount());
+            }
+
+            float r1ItemsPercent = rs1.getOpenNotDecidedItemsPercentage();
+            float r2ItemsPercent = rs2.getOpenNotDecidedItemsPercentage();
+            return Float.compare(r2ItemsPercent, r1ItemsPercent);
+        }).toList();
+        return reviewers;
     }
 
     private ReviewerStatisticDto getReviewerStatisticDto(String reviewerOid) {
@@ -102,13 +187,15 @@ public class ReviewersTileTablePanel extends TileTablePanel<Tile<SelectableBean<
     }
 
     @Override
-    protected Tile<SelectableBean<UserType>> createTileObject(SelectableBean<UserType> object) {
-        UserType user = object.getValue();
+    protected Tile<UserType> createTileObject(UserType user) {
+        if (user == null) {
+            return new Tile<>();
+        }
         String title = WebComponentUtil.getDisplayNameOrName(user.asPrismObject());
 
-        Tile<SelectableBean<UserType>> tile = new Tile<>(null, title);
+        Tile<UserType> tile = new Tile<>(null, title);
         tile.setDescription(user.getDescription());
-        tile.setValue(object);
+        tile.setValue(user);
 
         return tile;
     }

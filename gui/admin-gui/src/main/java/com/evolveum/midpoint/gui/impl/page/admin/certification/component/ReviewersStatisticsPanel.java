@@ -109,6 +109,7 @@ public class ReviewersStatisticsPanel extends BasePanel {
                         Model.of(new DisplayType()), Model.of(infoDto));
                 chartComponent.setOutputMarkupId(true);
                 chartComponent.add(AttributeAppender.append(CLASS_CSS,"col-auto p-0"));
+                chartComponent.add(AttributeAppender.append("style","min-width: 210px;"));
                 return chartComponent;
 
             }
@@ -374,7 +375,7 @@ public class ReviewersStatisticsPanel extends BasePanel {
 
     private void showAllReviewersPerformed(AjaxRequestTarget target) {
         ReviewersTileTablePanel reviewersPanel = new ReviewersTileTablePanel(getPageBase().getMainPopupBodyId(),
-                getReviewersStatisticModel().getObject());
+                getReviewersStatisticModel().getObject(), percentageSortingModel.getObject());
         getPageBase().showMainPopup(reviewersPanel, target);
     }
 

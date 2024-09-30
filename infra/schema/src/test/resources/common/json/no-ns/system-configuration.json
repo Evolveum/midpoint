@@ -6,8 +6,6 @@
       "handler" : {
         "simpleUserNotifier" : [ {
           "attachment" : [ {
-            "content" : "untyped"
-          }, {
             "content" : {
               "@type" : "string",
               "@value" : "ABC"

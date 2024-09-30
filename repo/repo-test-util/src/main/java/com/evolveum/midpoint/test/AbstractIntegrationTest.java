@@ -1379,7 +1379,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         long actualIncrement = currentCount - getLastCount(counter);
         var a = assertThat(actualIncrement)
                 .as("Increment in " + counter.getLabel());
-        if (InternalsConfig.isShadowCachingOnByDefault()
+        if (InternalsConfig.isShadowCachingFullByDefault()
                 && (counter == InternalCounters.SHADOW_FETCH_OPERATION_COUNT || counter == InternalCounters.CONNECTOR_OPERATION_COUNT)) {
             a.isLessThanOrEqualTo(expectedIncrement);
         } else {
@@ -1461,7 +1461,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected void assertSteadyResourcesAfterInvalidation() {
-        var invalidated = InternalsConfig.isShadowCachingOnByDefault();
+        var invalidated = InternalsConfig.isShadowCachingFullByDefault();
         assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT, invalidated ? 1 : 0);
         assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_MODIFY_COUNT, 0);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
@@ -4625,7 +4625,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     protected void invalidateShadowCacheIfNeeded(String resourceOid)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        if (InternalsConfig.isShadowCachingOnByDefault()) {
+        if (InternalsConfig.isShadowCachingFullByDefault()) {
             repositoryService.modifyObject(
                     ResourceType.class,
                     resourceOid,
