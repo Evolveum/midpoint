@@ -802,6 +802,8 @@ CREATE INDEX iAExtensionLong
   ON m_assignment_ext_long (longValue);
 CREATE INDEX iAExtensionPolyString
   ON m_assignment_ext_poly (orig);
+CREATE INDEX iAExtensionPolyNorm
+    ON m_assignment_ext_poly (norm);
 CREATE INDEX iAExtensionReference
   ON m_assignment_ext_reference (targetoid);
 CREATE INDEX iAExtensionString
@@ -849,6 +851,8 @@ CREATE INDEX iExtensionLong
   ON m_object_ext_long (longValue);
 CREATE INDEX iExtensionPolyString
   ON m_object_ext_poly (orig);
+CREATE INDEX iExtensionPolyNorm
+    ON m_object_ext_poly (norm);
 CREATE INDEX iExtensionReference
   ON m_object_ext_reference (targetoid);
 CREATE INDEX iExtensionString
