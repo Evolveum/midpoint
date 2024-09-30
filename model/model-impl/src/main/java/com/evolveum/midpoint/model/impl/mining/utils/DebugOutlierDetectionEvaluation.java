@@ -14,6 +14,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Evaluates outlier detection on RBAC generated dataset which contains outlier labels.
+ * Metrics: F1 score, precision, recall
  */
 public class DebugOutlierDetectionEvaluation {
 
@@ -25,12 +26,25 @@ public class DebugOutlierDetectionEvaluation {
     ) {}
 
     private record PredictionRecord(
+            String oid,
             String name,
             Boolean groundTruth,
             Boolean prediction
     ) {}
 
-    private final List<String> OUTLIER_PREFIXES = Arrays.asList("Matuzalem", "Jumper", "Zombie", "Mask", "Irregular");
+    // named outlier: identified by name
+    private final List<String> NAMED_OUTLIER_PREFIXES = Arrays.asList("Matuzalem", "Jumper", "Zombie", "Mask");
+
+    // noise outlier: identified by noise role, see InitialObjectsDefinition.NoiseApplicationBusinessAbstractRole
+    private final List<String> NOISE_ROLES_OIDS = Arrays.asList(
+            "c368b9a1-3c58-4d6f-9f86-a23ccf8a4f06",
+            "6e42c7ab-4c75-4c17-bf69-63049315680c",
+            "f659fe15-9e98-4468-9e7d-80eabe6253c9",
+            "f3e4d45c-d311-4f8b-99da-a96313ec7eb0",
+            "dd36aaa5-d671-4a5d-b2c0-3af937f5db0c",
+            "62231b07-af48-4dfb-8250-a40f13994d0c"
+    );
+
     private final String sessionOid;
     private final ModelService modelService;
     private final RoleAnalysisService roleAnalysisService;
@@ -91,8 +105,7 @@ public class DebugOutlierDetectionEvaluation {
     @Override
     public String toString() {
         return "DebugOutlierDetectionEvaluation{" +
-                "\n  OUTLIER_PREFIXES=" + OUTLIER_PREFIXES +
-                ",\n  sessionOid='" + sessionOid + "'" +
+                "\n  sessionOid='" + sessionOid + "'" +
                 ",\n  confusionMatrix=" + confusionMatrix +
                 ",\n  precision=" + precision +
                 ",\n  recall=" + recall +
@@ -108,31 +121,34 @@ public class DebugOutlierDetectionEvaluation {
         return new ConfusionMatrix(tp, tn, fp, fn);
     }
 
-    private List<PredictionRecord> labelData(List<String> users, List<String> outliers) {
+    private List<PredictionRecord> labelData(List<UserType> users, List<UserType> outliers) {
         return users
                 .stream()
-                .map(name -> {
-                    var groundTruth = OUTLIER_PREFIXES.stream().anyMatch(name::startsWith);
-                    var prediction = outliers.contains(name);
-                    return new PredictionRecord(name, groundTruth, prediction);
+                .map(user -> {
+                    var name = user.getName().toString();
+                    var isNamedOutlier = NAMED_OUTLIER_PREFIXES.stream().anyMatch(user.getName().toString()::startsWith);
+                    var isNoiseRoleOutlier = user.getRoleMembershipRef().stream().anyMatch(r -> NOISE_ROLES_OIDS.contains(r.getOid()));
+                    var groundTruth = isNamedOutlier || isNoiseRoleOutlier;;
+                    var prediction = outliers.stream().anyMatch(o -> o.getOid().equals(user.getOid()));
+                    return new PredictionRecord(user.getOid(), name, groundTruth, prediction);
                 })
                 .toList();
     }
 
-    private List<String> getSessionUsers(String sessionOid) throws Exception {
-        // NOTE: it is currently difficult to query users the same way as in session, therefore extracting them from all clusters
+    private List<UserType> getSessionUsers(String sessionOid) throws Exception {
+        // NOTE: it is currently difficult to query users the same way as in session, therefore extracting from all clusters
         var clusters = getClusters(sessionOid);
         return clusters
                 .stream()
                 .flatMap(cluster -> cluster.getMember().stream())
-                .map(ref -> this.getUserName(ref.getOid()))
+                .map(ref -> this.getUser(ref.getOid()))
                 .toList();
     }
 
-    private List<String> getOutliers(String sessionOid, OutlierClusterCategoryType category) throws Exception {
+    private List<UserType> getOutliers(String sessionOid, OutlierClusterCategoryType category) throws Exception {
         return roleAnalysisService.getSessionOutliers(sessionOid, category, task, task.getResult())
                 .stream()
-                .map(outlier -> this.getUserName(outlier.getTargetObjectRef().getOid()))
+                .map(outlier -> this.getUser(outlier.getTargetObjectRef().getOid()))
                 .toList();
     }
 
@@ -148,10 +164,9 @@ public class DebugOutlierDetectionEvaluation {
                 .toList();
     }
 
-    private String getUserName(String userOid) {
+    private UserType getUser(String userOid) {
         try {
-            var user = modelService.getObject(UserType.class, userOid, null, task, task.getResult()).asObjectable();
-            return user.getName().toString();
+            return modelService.getObject(UserType.class, userOid, null, task, task.getResult()).asObjectable();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
