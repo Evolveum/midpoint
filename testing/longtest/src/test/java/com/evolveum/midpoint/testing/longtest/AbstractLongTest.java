@@ -89,6 +89,8 @@ public abstract class AbstractLongTest extends AbstractModelIntegrationTest {
 
         CommonInitialObjects.ARCHETYPE_RECONCILIATION_TASK.init(this, initTask, initResult);
         CommonInitialObjects.ARCHETYPE_IMPORT_TASK.init(this, initTask, initResult);
+
+        CommonInitialObjects.SERVICE_ORIGIN_INTERNAL.init(this, initTask, initResult);
     }
 
     protected File getSystemConfigurationFile() {
