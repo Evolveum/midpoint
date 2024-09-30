@@ -100,4 +100,9 @@ public class BasicFocusMappingStepPanel<AR extends AbstractRoleType> extends Abs
             return ItemVisibility.AUTO;
         };
     }
+
+    @Override
+    public String getStepId() {
+        return super.getStepId();
+    }
 }

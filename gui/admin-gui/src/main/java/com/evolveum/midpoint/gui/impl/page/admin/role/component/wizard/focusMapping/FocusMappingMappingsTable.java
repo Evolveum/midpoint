@@ -74,23 +74,12 @@ public class FocusMappingMappingsTable extends AbstractMappingsTable<MappingsTyp
     }
 
     @Override
-    protected IColumn<PrismContainerValueWrapper<MappingType>, String> createStrengthIconColumn() {
-        return null;
-    }
-
-    @Override
     protected Collection<? extends IColumn<PrismContainerValueWrapper<MappingType>, String>> createCustomColumns() {
 
         List<IColumn<PrismContainerValueWrapper<MappingType>, String>> columns = new ArrayList<>();
 
         IModel<PrismContainerDefinition<MappingType>> mappingTypeDef =
                 getMappingTypeDefinition();
-
-        columns.add(new PrismPropertyWrapperColumn<MappingType, String>(
-                mappingTypeDef,
-                MappingType.F_STRENGTH,
-                AbstractItemWrapperColumn.ColumnType.VALUE,
-                getPageBase()));
 
         columns.add(createSourceColumn(mappingTypeDef));
 

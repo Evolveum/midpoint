@@ -60,7 +60,7 @@ public class CorrelationItemRefsTable extends AbstractWizardTable<CorrelationIte
     }
 
     @Override
-    protected void editItemPerformed(
+    public void editItemPerformed(
             AjaxRequestTarget target,
             IModel<PrismContainerValueWrapper<CorrelationItemType>> rowModel,
             List<PrismContainerValueWrapper<CorrelationItemType>> listItems) {

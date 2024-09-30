@@ -129,7 +129,7 @@ public abstract class OutboundMappingsTableWizardPanel extends AbstractResourceW
                     }
 
                     @Override
-                    protected void editItemPerformed(
+                    public void editItemPerformed(
                             AjaxRequestTarget target,
                             IModel<PrismContainerValueWrapper<MappingType>> rowModel,
                             List<PrismContainerValueWrapper<MappingType>> listItems) {
@@ -179,7 +179,7 @@ public abstract class OutboundMappingsTableWizardPanel extends AbstractResourceW
                     }
 
                     @Override
-                    protected void editItemPerformed(
+                    public void editItemPerformed(
                             AjaxRequestTarget target,
                             IModel<PrismContainerValueWrapper<MappingType>> rowModel,
                             List<PrismContainerValueWrapper<MappingType>> listItems) {
