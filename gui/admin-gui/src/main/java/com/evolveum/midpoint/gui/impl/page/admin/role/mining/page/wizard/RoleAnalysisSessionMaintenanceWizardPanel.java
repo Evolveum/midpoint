@@ -11,9 +11,12 @@ import java.io.Serial;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.util.exception.SystemException;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
@@ -43,6 +46,8 @@ public class RoleAnalysisSessionMaintenanceWizardPanel
     private static final String ID_TITLE_RETENTION = "title-retention";
     private static final String ID_LABEL_RETENTION = "label-retention";
     private static final String ID_INPUT_RETENTION = "input-retention";
+
+    private static final String ID_PROCESSING_CONTAINER = "processing-container";
     private static final String ID_TITLE_PROCESSING = "title-processing";
     private static final String ID_DESCRIPTION_PROCESSING = "description-processing";
     private static final String ID_REBUILD_PROCESSING = "rebuild-processing";
@@ -52,7 +57,7 @@ public class RoleAnalysisSessionMaintenanceWizardPanel
     private static final String COLORED_BUTTON_CSS = "colored-form-primary ";
 
     private static final String DECOMMISSIONED_MARK_OBJECT_ID = "00000000-0000-0000-0000-000000000801";
-    boolean isRebuild = false;
+    boolean isRebuild = true;
     Model<Boolean> isActiveModel = Model.of(false);
 
     public RoleAnalysisSessionMaintenanceWizardPanel(AssignmentHolderDetailsModel<RoleAnalysisSessionType> model) {
@@ -136,6 +141,11 @@ public class RoleAnalysisSessionMaintenanceWizardPanel
 
     private void inputProcessingPart() {
 
+        WebMarkupContainer processingContainer = new WebMarkupContainer(ID_PROCESSING_CONTAINER);
+        processingContainer.setOutputMarkupId(true);
+        processingContainer.add(new VisibleBehaviour(() -> false));
+        add(processingContainer);
+
         IconWithLabel iconWithLabel = new IconWithLabel(ID_TITLE_PROCESSING,
                 createStringResource("RoleAnalysisSessionMaintenanceWizardPanel.data.processing.label")) {
             @Override
@@ -145,19 +155,19 @@ public class RoleAnalysisSessionMaintenanceWizardPanel
         };
         iconWithLabel.setOutputMarkupId(true);
         iconWithLabel.add(AttributeModifier.append(CLASS_CSS, "d-flex align-items-center gap-2 h5"));
-        add(iconWithLabel);
+        processingContainer.add(iconWithLabel);
 
         Label description = new Label(ID_DESCRIPTION_PROCESSING,
                 createStringResource("RoleAnalysisSessionMaintenanceWizardPanel.data.processing.help"));
         description.setOutputMarkupId(true);
         description.add(AttributeModifier.append(CLASS_CSS, "text-gray"));
-        add(description);
+        processingContainer.add(description);
 
-        initDeleteButton();
-        initRebuildButton();
+        initDeleteButton(processingContainer);
+        initRebuildButton(processingContainer);
     }
 
-    private void initRebuildButton() {
+    private void initRebuildButton(WebMarkupContainer processingContainer) {
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_REFRESH,
                 IconCssStyle.IN_ROW_STYLE);
         AjaxCompositedIconSubmitButton rebuildButton = new AjaxCompositedIconSubmitButton(ID_REBUILD_PROCESSING,
@@ -187,10 +197,10 @@ public class RoleAnalysisSessionMaintenanceWizardPanel
             rebuildButton.add(AttributeModifier.append(CLASS_CSS, COLORED_BUTTON_CSS));
         }
 
-        add(rebuildButton);
+        processingContainer.add(rebuildButton);
     }
 
-    private void initDeleteButton() {
+    private void initDeleteButton(WebMarkupContainer processingContainer) {
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_ICON_TRASH,
                 IconCssStyle.IN_ROW_STYLE);
         AjaxCompositedIconSubmitButton deleteButton = new AjaxCompositedIconSubmitButton(ID_DELETE_PROCESSING,
@@ -220,7 +230,7 @@ public class RoleAnalysisSessionMaintenanceWizardPanel
             deleteButton.add(AttributeModifier.append(CLASS_CSS, COLORED_BUTTON_CSS));
         }
 
-        add(deleteButton);
+        processingContainer.add(deleteButton);
     }
 
     @Override
