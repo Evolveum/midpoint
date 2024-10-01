@@ -320,7 +320,6 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
                 sessionId,
                 modelService,
                 roleAnalysisService,
-                prismContext,
                 createTask("evaluate outlier detection")
         ).evaluate();
         display(evaluation.toString());

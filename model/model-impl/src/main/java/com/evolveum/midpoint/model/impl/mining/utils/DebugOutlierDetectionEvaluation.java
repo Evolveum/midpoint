@@ -6,7 +6,6 @@ import java.util.stream.Stream;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OutlierClusterCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
@@ -48,7 +47,6 @@ public class DebugOutlierDetectionEvaluation {
     private final String sessionOid;
     private final ModelService modelService;
     private final RoleAnalysisService roleAnalysisService;
-    private final PrismContext prismContext;
     private final Task task;
 
     private ConfusionMatrix confusionMatrix;
@@ -58,13 +56,11 @@ public class DebugOutlierDetectionEvaluation {
             String sessionOid,
             ModelService modelService,
             RoleAnalysisService roleAnalysisService,
-            PrismContext prismContext,
             Task parentTask
     ) {
         this.sessionOid = sessionOid;
         this.modelService = modelService;
         this.roleAnalysisService = roleAnalysisService;
-        this.prismContext = prismContext;
         task = parentTask.createSubtask();
     }
 
@@ -153,7 +149,7 @@ public class DebugOutlierDetectionEvaluation {
     }
 
     private List<RoleAnalysisClusterType> getClusters(String sessionOid) throws Exception {
-        var query = prismContext.queryFor(RoleAnalysisClusterType.class)
+        var query = modelService.getPrismContext().queryFor(RoleAnalysisClusterType.class)
                 .item(RoleAnalysisClusterType.F_ROLE_ANALYSIS_SESSION_REF)
                 .ref(sessionOid)
                 .build();
