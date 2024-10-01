@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.focusMapping;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
+
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
@@ -20,18 +23,33 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 @PanelInstance(identifier = "arw-focusMapping-mapping-optional",
         applicableForType = AbstractRoleType.class,
         applicableForOperation = OperationTypeType.WIZARD,
-        display = @PanelDisplay(label = "PageRole.wizard.step.focusMapping.mapping.optional", icon = "fa fa-circle"),
+        display = @PanelDisplay(label = "PageRole.wizard.step.focusMapping.mapping.optional", icon = "fa fa-screwdriver-wrench"),
         containerPath = "empty")
 public class FocusMappingMappingOptionalStepPanel<AHD extends AssignmentHolderDetailsModel> extends OutboundMappingOptionalConfigurationStepPanel<AHD> {
 
-    private static final String PANEL_TYPE = "arw-focusMapping-mapping-optional";
+    public static final String PANEL_TYPE = "arw-focusMapping-mapping-optional";
 
-    public FocusMappingMappingOptionalStepPanel(AHD model, IModel newValueModel) {
+    public FocusMappingMappingOptionalStepPanel(AHD model,
+            IModel<PrismContainerValueWrapper<MappingType>> newValueModel) {
         super(model, newValueModel);
     }
 
-    @Override
     protected String getPanelType() {
         return PANEL_TYPE;
+    }
+
+    @Override
+    public IModel<String> getTitle() {
+        return createStringResource("PageRole.wizard.step.focusMapping.mapping.optional");
+    }
+
+    @Override
+    protected IModel<?> getTextModel() {
+        return createStringResource("PageRole.wizard.step.focusMapping.mapping.optional.text");
+    }
+
+    @Override
+    protected IModel<?> getSubTextModel() {
+        return createStringResource("PageRole.wizard.step.focusMapping.mapping.optional.subText");
     }
 }

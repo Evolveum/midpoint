@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.focusMapping;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractFormWizardStepPanel;
@@ -15,6 +17,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.Abstr
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -71,7 +74,12 @@ public class BasicFocusMappingStepPanel<AR extends AbstractRoleType> extends Abs
         return createStringResource("PageRole.wizard.step.focusMapping.basicInformation.subText");
     }
 
-    protected boolean checkMandatory(ItemWrapper itemWrapper) {
+    @Override
+    protected ItemMandatoryHandler getMandatoryHandler() {
+        return this::checkMandatory;
+    }
+
+    private boolean checkMandatory(ItemWrapper itemWrapper) {
         if (itemWrapper.getItemName().equals(AssignmentType.F_FOCUS_TYPE)) {
             return true;
         }
@@ -81,5 +89,20 @@ public class BasicFocusMappingStepPanel<AR extends AbstractRoleType> extends Abs
     @Override
     public VisibleEnableBehaviour getBackBehaviour() {
         return new VisibleBehaviour(() -> false);
+    }
+
+    @Override
+    protected ItemVisibilityHandler getVisibilityHandler() {
+        return wrapper -> {
+            if (wrapper.getItemName().equals(AssignmentType.F_EFFECTIVE_MARK_REF)) {
+                return ItemVisibility.HIDDEN;
+            }
+            return ItemVisibility.AUTO;
+        };
+    }
+
+    @Override
+    public String getStepId() {
+        return super.getStepId();
     }
 }

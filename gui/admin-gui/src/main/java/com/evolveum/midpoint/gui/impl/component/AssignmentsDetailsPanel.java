@@ -10,11 +10,16 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.focusMapping.FocusMappingMappingsTable;
 import com.evolveum.midpoint.gui.impl.page.admin.shadow.ResourceAssociationPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.shadow.ResourceAttributePanel;
 
+import com.evolveum.midpoint.web.model.PrismContainerValueWrapperModel;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
@@ -75,7 +80,7 @@ public class AssignmentsDetailsPanel extends MultivalueContainerDetailsPanel<Ass
                 tabs.add(createTabs("AssignmentType.policyRule", AssignmentType.F_POLICY_RULE, PolicyRuleType.COMPLEX_TYPE));
                 break;
             case FOCUS_MAPPING:
-                tabs.add(createTabs("AssignmentType.focusMappings", AssignmentType.F_FOCUS_MAPPINGS, MappingType.COMPLEX_TYPE));
+                tabs.add(createFocusMappingsTab());
                 break;
             case PERSONA_CONSTRUCTION:
                 tabs.add(createTabs("AssignmentType.personaConstruction", AssignmentType.F_PERSONA_CONSTRUCTION, PersonaConstructionType.COMPLEX_TYPE));
@@ -88,6 +93,34 @@ public class AssignmentsDetailsPanel extends MultivalueContainerDetailsPanel<Ass
         tabs.add(createActivationTab());
         tabs.add(createConditionTab());
         return tabs;
+    }
+
+    private PanelTab createFocusMappingsTab() {
+        return new PanelTab(createStringResource("AssignmentType.focusMappings")) {
+
+            @Override
+            public WebMarkupContainer createPanel(String panelId) {
+                return new FocusMappingMappingsTable(
+                        panelId,
+                        PrismContainerValueWrapperModel.fromContainerValueWrapper(getModel(), AssignmentType.F_FOCUS_MAPPINGS),
+                        null){
+                    @Override
+                    public void editItemPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<MappingType>> rowModel, List<PrismContainerValueWrapper<MappingType>> listItems) {
+                        showDetailsPanel(target, rowModel, listItems);
+                    }
+
+                    @Override
+                    protected WebMarkupContainer getMultivalueContainerDetailsPanel(ListItem<PrismContainerValueWrapper<MappingType>> item) {
+                        return new MultivalueContainerDetailsPanel<>(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS, item.getModel()) {
+                            @Override
+                            protected DisplayNamePanel<MappingType> createDisplayNamePanel(String displayNamePanelId) {
+                                return new DisplayNamePanel<>(displayNamePanelId, Model.of(item.getModelObject().getRealValue()));
+                            }
+                        };
+                    }
+                };
+            }
+        };
     }
 
     private PanelTab getConstructionAssociationPanel() {

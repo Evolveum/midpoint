@@ -40,7 +40,12 @@
                 <name>object</name>
                 <path>objectRef</path>
                 <display>
-                    <label>Object</label>
+                    <label>
+                        <orig>Object</orig>
+                        <translation>
+                            <key>reportCertificationWorkItems.objectColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <export>
                     <expression>
@@ -60,7 +65,12 @@
                 <name>target</name>
                 <path>targetRef</path>
                 <display>
-                    <label>Target</label>
+                    <label>
+                        <orig>Target</orig>
+                        <translation>
+                            <key>reportCertificationWorkItems.targetColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <previousColumn>object</previousColumn>
                 <export>
@@ -80,7 +90,12 @@
             <column id="4">
                 <name>campaignName</name>
                 <display>
-                    <label>Campaign</label>
+                    <label>
+                        <orig>Campaign</orig>
+                        <translation>
+                            <key>reportCertificationWorkItems.campaignNameColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <previousColumn>target</previousColumn>
                 <export>
@@ -99,7 +114,12 @@
             <column id="5">
                 <name>iteration</name>
                 <display>
-                    <label>Iteration</label>
+                    <label>
+                        <orig>Iteration</orig>
+                        <translation>
+                            <key>reportCertificationWorkItems.iterationColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <previousColumn>campaignName</previousColumn>
                 <export>
@@ -117,7 +137,12 @@
             <column id="6">
                 <name>stageNumber</name>
                 <display>
-                    <label>Stage number</label>
+                    <label>
+                        <orig>Stage number</orig>
+                        <translation>
+                            <key>reportCertificationWorkItems.stageNumberColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <previousColumn>iteration</previousColumn>
                 <export>
@@ -135,7 +160,12 @@
             <column id="7">
                 <name>originalAssigneeRef</name>
                 <display>
-                    <label>Original assignee</label>
+                    <label>
+                        <orig>Original assignee</orig>
+                        <translation>
+                            <key>reportCertificationWorkItems.originalAssigneeRefColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <previousColumn>stageNumber</previousColumn>
                 <export>
@@ -153,7 +183,12 @@
             <column id="8">
                 <name>deadline</name>
                 <display>
-                    <label>Deadline</label>
+                    <label>
+                        <orig>Deadline</orig>
+                        <translation>
+                            <key>reportCertificationWorkItems.deadlineColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <previousColumn>originalAssigneeRef</previousColumn>
                 <export>
@@ -171,7 +206,12 @@
             <column id="9">
                 <name>assigneeRef</name>
                 <display>
-                    <label>Current assignee(s)</label>
+                    <label>
+                        <orig>Current assignee(s)</orig>
+                        <translation>
+                            <key>reportCertificationWorkItems.assigneeRefColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <previousColumn>deadline</previousColumn>
                 <export>
@@ -189,7 +229,12 @@
             <column id="10">
                 <name>escalationLevel</name>
                 <display>
-                    <label>Escalation level</label>
+                    <label>
+                        <orig>Escalation level</orig>
+                        <translation>
+                            <key>reportCertificationWorkItems.escalationLevelColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <previousColumn>assigneeRef</previousColumn>
                 <export>
@@ -207,7 +252,12 @@
             <column id="11">
                 <name>performerRef</name>
                 <display>
-                    <label>Performer</label>
+                    <label>
+                        <orig>Performer</orig>
+                        <translation>
+                            <key>reportCertificationWorkItems.performerRefColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <previousColumn>escalationLevel</previousColumn>
                 <export>
@@ -225,7 +275,12 @@
             <column id="12">
                 <name>outcome</name>
                 <display>
-                    <label>Outcome</label>
+                    <label>
+                        <orig>Outcome</orig>
+                        <translation>
+                            <key>reportCertificationWorkItems.outcomeColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <previousColumn>performerRef</previousColumn>
                 <export>
@@ -245,7 +300,12 @@
             <column id="13">
                 <name>comment</name>
                 <display>
-                    <label>Comment</label>
+                    <label>
+                        <orig>Comment</orig>
+                        <translation>
+                            <key>reportCertificationWorkItems.commentColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <previousColumn>outcome</previousColumn>
                 <export>
@@ -263,7 +323,12 @@
             <column id="14">
                 <name>outputChangeTimestamp</name>
                 <display>
-                    <label>Last changed on</label>
+                    <label>
+                        <orig>Last changed on</orig>
+                        <translation>
+                            <key>reportCertificationWorkItems.outputChangeTimestampColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <previousColumn>comment</previousColumn>
                 <export>
@@ -281,7 +346,12 @@
             <column id="15">
                 <name>closeTimestamp</name>
                 <display>
-                    <label>Closed on</label>
+                    <label>
+                        <orig>Closed on</orig>
+                        <translation>
+                            <key>reportCertificationWorkItems.closeTimestampColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <previousColumn>outputChangeTimestamp</previousColumn>
                 <export>
@@ -350,9 +420,9 @@
 
                         def aCase = object as AccessCertificationCaseType
                         aCase.workItem
-                                .findAll { stageNumber == null || it.stageNumber == stageNumber }
-                                .findAll { iteration == null || CertCampaignTypeUtil.norm(iteration) == iteration }
-                                .collect()
+                            .findAll { stageNumber == null || it.stageNumber == stageNumber }
+                            .findAll { iteration == null || CertCampaignTypeUtil.norm(iteration) == iteration }
+                            .collect()
                     </code>
                 </script>
             </expression>

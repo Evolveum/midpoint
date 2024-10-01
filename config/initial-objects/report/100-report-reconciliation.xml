@@ -45,7 +45,7 @@
                                 <code>
                                     import javax.xml.namespace.QName;
                                     if (objectClass != null)
-                                        return new QName("http://midpoint.evolveum.com/xml/ns/public/resource/instance-3", objectClass)
+                                    return new QName("http://midpoint.evolveum.com/xml/ns/public/resource/instance-3", objectClass)
                                 </code>
                             </script>
                         </expression>
@@ -147,7 +147,12 @@
             <column id="10">
                 <name>ownerColumn</name>
                 <display>
-                    <label>Owner</label>
+                    <label>
+                        <orig>Owner</orig>
+                        <translation>
+                            <key>reportReconciliation.ownerColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <export>
                     <expression>

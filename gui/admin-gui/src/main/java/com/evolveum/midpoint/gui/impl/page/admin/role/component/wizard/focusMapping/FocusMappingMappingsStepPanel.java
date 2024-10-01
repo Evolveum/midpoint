@@ -5,9 +5,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attributeMapping.OutboundAttributeMappingsTable;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ObjectTypeAttributeMappingWrapper;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -51,26 +49,21 @@ public class FocusMappingMappingsStepPanel<AR extends AbstractRoleType>
     }
 
     private void initLayout() {
-        add(new OutboundAttributeMappingsTable<>(ID_PANEL, getValueModel(), getContainerConfiguration(PANEL_TYPE)) {
+        add(new FocusMappingMappingsTable(ID_PANEL, getValueModel(), getContainerConfiguration(PANEL_TYPE)) {
             @Override
-            protected ItemName getItemNameOfContainerWithMappings() {
-                return ConstructionType.F_ATTRIBUTE;
-            }
-
-            @Override
-                protected void editItemPerformed(
+            public void editItemPerformed(
                         AjaxRequestTarget target,
                         IModel<PrismContainerValueWrapper<MappingType>> rowModel,
                         List<PrismContainerValueWrapper<MappingType>> listItems) {
                     if (isValidFormComponentsOfRow(rowModel, target)) {
-                        inEditOutboundValue(rowModel, target);
+                        inEditMappingValue(rowModel, target);
                     }
                 }
             }
         );
     }
 
-    protected void inEditOutboundValue(IModel<PrismContainerValueWrapper<MappingType>> rowModel, AjaxRequestTarget target) {
+    protected void inEditMappingValue(IModel<PrismContainerValueWrapper<MappingType>> rowModel, AjaxRequestTarget target) {
 
     }
 
@@ -129,24 +122,7 @@ public class FocusMappingMappingsStepPanel<AR extends AbstractRoleType>
     }
 
     @Override
-    protected void onSubmitPerformed(AjaxRequestTarget target) {
-        super.onSubmitPerformed(target);
-        try {
-            if (ValueStatus.ADDED.equals(focusMappingModel.getObject().getParentContainerValue(AssignmentType.class).getStatus())) {
-
-                PrismContainerWrapper container =
-                        ((PrismContainerWrapper) focusMappingModel.getObject().getParent()).findContainer(ConstructionType.F_ATTRIBUTE);
-                if (container instanceof ObjectTypeAttributeMappingWrapper) {
-                    ((ObjectTypeAttributeMappingWrapper)container).applyDelta();
-                }
-            }
-        } catch (SchemaException e) {
-            LOGGER.error("Couldn't apply delta from attribute value container.");
-        }
-    }
-
-    @Override
     public String appendCssToWizard() {
-        return "mt-5 mx-auto col-11";
+        return "mt-5 mx-auto col-12";
     }
 }

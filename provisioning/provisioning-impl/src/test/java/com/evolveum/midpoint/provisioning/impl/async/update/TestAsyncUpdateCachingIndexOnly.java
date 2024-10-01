@@ -19,7 +19,7 @@ import com.evolveum.midpoint.task.api.Task;
 
 public class TestAsyncUpdateCachingIndexOnly extends TestAsyncUpdateCaching {
 
-    static final File RESOURCE_ASYNC_CACHING_INDEX_ONLY_FILE =
+    private static final File RESOURCE_ASYNC_CACHING_INDEX_ONLY_FILE =
             new File(TEST_DIR, "resource-async-caching-index-only.xml");
 
     @Autowired

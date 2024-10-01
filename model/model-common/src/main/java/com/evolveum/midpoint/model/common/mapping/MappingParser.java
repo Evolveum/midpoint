@@ -255,18 +255,18 @@ class MappingParser<D extends ItemDefinition<?>, MBT extends AbstractMappingType
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         Throwable cause = te.getCause();
-        if (cause instanceof SchemaException) {
-            throw (SchemaException) cause;
-        } else if (cause instanceof ExpressionEvaluationException) {
-            throw (ExpressionEvaluationException) cause;
-        } else if (cause instanceof ObjectNotFoundException) {
-            throw (ObjectNotFoundException) cause;
-        } else if (cause instanceof CommunicationException) {
-            throw (CommunicationException) cause;
-        } else if (cause instanceof ConfigurationException) {
-            throw (ConfigurationException) cause;
-        } else if (cause instanceof SecurityViolationException) {
-            throw (SecurityViolationException) cause;
+        if (cause instanceof SchemaException schemaException) {
+            throw schemaException;
+        } else if (cause instanceof ExpressionEvaluationException expressionEvaluationException) {
+            throw expressionEvaluationException;
+        } else if (cause instanceof ObjectNotFoundException objectNotFoundException) {
+            throw objectNotFoundException;
+        } else if (cause instanceof CommunicationException communicationException) {
+            throw communicationException;
+        } else if (cause instanceof ConfigurationException configurationException) {
+            throw configurationException;
+        } else if (cause instanceof SecurityViolationException securityViolationException) {
+            throw securityViolationException;
         } else {
             throw te;
         }

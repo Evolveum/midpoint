@@ -22,6 +22,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTablePanel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.util.ObjectReferenceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.data.column.ObjectReferenceColumnPanel;
@@ -211,7 +212,7 @@ public class CertResponseDetailsPanel extends BasePanel<PrismContainerValueWrapp
 
     private ObjectReferenceType getPerformerOrAssigneeRef(AccessCertificationWorkItemType workItem) {
         ObjectReferenceType performerRef = workItem.getPerformerRef();
-        if (performerRef != null) {
+        if (performerRef != null && StringUtils.isNotEmpty(performerRef.getOid())) {
             return performerRef;
         }
         List<ObjectReferenceType> assignees = workItem.getAssigneeRef();

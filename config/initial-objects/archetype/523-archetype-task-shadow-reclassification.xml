@@ -5,13 +5,18 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <archetype oid="00000000-0000-0000-0000-000000000523"
-           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-           xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
     <name>Shadow reclassification task</name>
     <archetypePolicy>
         <display>
-            <label>Shadow reclassification task</label>
+            <label>
+                <orig>Shadow reclassification task</orig>
+                <translation>
+                    <key>ShadowReclassificationTask.label</key>
+                </translation>
+            </label>
             <pluralLabel>
                 <orig>Shadow reclassification tasks</orig>
                 <translation>

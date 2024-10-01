@@ -20,6 +20,8 @@ import com.evolveum.midpoint.provisioning.impl.shadows.RepoShadowWithState;
 import com.evolveum.midpoint.repo.common.ObjectMarkHelper;
 import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper.EffectiveMarksAndPolicies;
 
+import com.evolveum.midpoint.util.QNameUtil;
+
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -315,14 +317,20 @@ class ShadowDeltaComputerAbsolute {
         for (Item<?, ?> oldRepoItem : rawRepoShadow.getSimpleAttributes()) {
             ItemName oldRepoItemName = oldRepoItem.getElementName();
             if (!expectedRepoSimpleAttributes.contains(oldRepoItemName)) {
-                removeRepoAttribute(oldRepoItem, resourceObjectAttributesContainer.findSimpleAttribute(oldRepoItemName));
+                removeRepoAttribute(
+                        oldRepoItem,
+                        resourceObjectAttributesContainer.findSimpleAttribute(oldRepoItemName),
+                        ocDef.findSimpleAttributeDefinition(oldRepoItemName));
             }
         }
 
         for (Item<?, ?> oldRepoItem : rawRepoShadow.getReferenceAttributes()) {
             ItemName oldRepoItemName = oldRepoItem.getElementName();
             if (!expectedRepoReferenceAttributes.contains(oldRepoItemName)) {
-                removeRepoAttribute(oldRepoItem, resourceObjectAttributesContainer.findReferenceAttribute(oldRepoItemName));
+                removeRepoAttribute(
+                        oldRepoItem,
+                        resourceObjectAttributesContainer.findReferenceAttribute(oldRepoItemName),
+                        ocDef.findReferenceAttributeDefinition(oldRepoItemName));
             }
         }
 
@@ -330,16 +338,19 @@ class ShadowDeltaComputerAbsolute {
             if (resourceObjectDelta != null) {
                 LOGGER.trace("Found incomplete cacheable attributes: {} while resource object delta is known. "
                         + "We'll update them using the delta.", incompleteCacheableAttributes);
-                throw new UnsupportedOperationException("Please implement incomplete attributes handling"); // MID-2119
-//                for (ItemDelta<?, ?> modification : resourceObjectDelta.getModifications()) {
-//                    if (modification.getPath().startsWith(ShadowType.F_ATTRIBUTES)) {
-//                        if (QNameUtil.contains(incompleteCacheableAttributes, modification.getElementName())) {
-//                            LOGGER.trace(" - using: {}", modification);
-//                            computedShadowDelta.addModification(modification.clone());
-//                        }
-//                    }
-//                }
-//                incompleteCacheableAttributes.clear(); // So we are OK regarding this. We can update caching timestamp.
+                for (ItemDelta<?, ?> modification : resourceObjectDelta.getModifications()) {
+                    if (modification.getPath().startsWith(ShadowType.F_ATTRIBUTES)) {
+                        var attrName = modification.getElementName();
+                        if (QNameUtil.contains(incompleteCacheableAttributes, attrName)) {
+                            LOGGER.trace(" - using: {}", modification);
+                            // assuming that the attribute is not a reference one
+                            computedModifications.add(
+                                    modification.clone(),
+                                    ocDef.findSimpleAttributeDefinitionRequired(attrName));
+                        }
+                    }
+                }
+                incompleteCacheableAttributes.clear(); // So we are OK regarding this. We can update caching timestamp.
             } else {
                 LOGGER.trace("Found incomplete cacheable attributes: {} while resource object delta is not known. "
                         + "We will not update them in the repo shadow.", incompleteCacheableAttributes);
@@ -441,16 +452,40 @@ class ShadowDeltaComputerAbsolute {
     //region Common support
     private void removeRepoAttribute(
             @NotNull Item<?, ?> oldRepoItem,
-            @Nullable ShadowAttribute<?, ?, ?, ?> correspondingResourceObjectAttribute) {
+            @Nullable ShadowAttribute<?, ?, ?, ?> correspondingResourceObjectAttribute,
+            @Nullable ItemDefinition<?> estimatedAttrDefinition) {
+
         LOGGER.trace("Removing old repo shadow attribute {} because it should not be cached", oldRepoItem.getElementName());
         ItemDelta<?, ?> rawEraseDelta = oldRepoItem.createDelta();
+
+        if (rawEraseDelta.getDefinition() == null) {
+            var estimatedRepoDefinition = estimateRepoDefinition(oldRepoItem, estimatedAttrDefinition);
+            if (estimatedRepoDefinition != null) {
+                //noinspection rawtypes,unchecked
+                ((ItemDelta) rawEraseDelta).setDefinition(estimatedRepoDefinition);
+            }
+        }
+
         rawEraseDelta.setValuesToReplace();
+
         if (correspondingResourceObjectAttribute != null) {
             ItemDelta<?, ?> eraseDelta = correspondingResourceObjectAttribute.createDelta();
             eraseDelta.setValuesToReplace();
             computedModifications.add(eraseDelta, rawEraseDelta);
         } else {
             computedModifications.addRawOnly(rawEraseDelta);
+        }
+    }
+
+    /** Repo (especially generic one) cannot handle deltas without definition. So, we have to try to provide one. */
+    private static ItemDefinition<?> estimateRepoDefinition(
+            @NotNull Item<?, ?> oldRepoItem, @Nullable ItemDefinition<?> estimatedDefinition) {
+        if (estimatedDefinition != null) {
+            return estimatedDefinition instanceof ShadowSimpleAttributeDefinition<?> simpleAttrDef ?
+                    simpleAttrDef.toNormalizationAware() : estimatedDefinition;
+        } else {
+            LOGGER.debug("No definition for {}", oldRepoItem);
+            return null;
         }
     }
 

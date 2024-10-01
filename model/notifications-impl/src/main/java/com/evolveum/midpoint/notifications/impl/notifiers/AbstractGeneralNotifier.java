@@ -431,7 +431,7 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
         List<NotificationMessageAttachmentType> localizedAttachments = localizedContent.getAttachment();
         List<NotificationMessageAttachmentType> defaultAttachments = defaultContent.getAttachment();
         if (localizedAttachments.isEmpty() && !defaultAttachments.isEmpty()) {
-            localizedAttachments.addAll(defaultAttachments);
+            defaultAttachments.forEach(n -> localizedAttachments.add(n.clone()));
         }
 
         ExpressionType defaultAttachmentExpression = defaultContent.getAttachmentExpression();

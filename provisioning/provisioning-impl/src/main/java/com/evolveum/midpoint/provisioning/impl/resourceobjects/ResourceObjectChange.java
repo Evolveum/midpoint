@@ -186,8 +186,18 @@ public abstract class ResourceObjectChange extends AbstractLazilyInitializableRe
 
         ShadowItemsToReturn actualShadowItemsToReturn = determineAttributesToReturn();
         if (ucfResourceObject == null) {
-            getLogger().trace("Trying to fetch object {} because it is not in the change", identifiers);
-            return fetchResourceObject(actualShadowItemsToReturn, result);
+            if (!(this instanceof ResourceObjectAsyncChange)) {
+                getLogger().trace("Trying to fetch object {} because it is not in the change", identifiers);
+                return fetchResourceObject(actualShadowItemsToReturn, result);
+            } else {
+                // Really ugly hack to make story TestGrouperAsyncUpdate pass.
+                // The problem is that if we fetch the object (a group) here, it will be without the membership, as it's
+                // with fetchStrategy=MINIMAL. And, it won't get updated in ShadowedChange from the delta.
+                // TODO fix this someday
+                getLogger().trace("NOT fetching resource object {} because this is an asynchronous change, will be fetched later",
+                        identifiers);
+                return null;
+            }
         }
 
         // This is a specialty of live synchronization

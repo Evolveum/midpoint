@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.ass
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.PageAbstractRole;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.AbstractRoleInducementPanel;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -22,6 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
+import java.util.Collections;
 import java.util.List;
 
 @PanelType(name = "focusMappingsInducements")
@@ -61,20 +63,22 @@ public class FocusMappingsInducementsPanel<AR extends AbstractRoleType> extends 
     }
 
     @Override
-    protected boolean hasTargetObject() {
-        return false;
-    }
-
-    @Override
-    protected void initializeNewAssignmentData(PrismContainerValue<AssignmentType> newAssignmentValue,
-            AssignmentType assignmentObject, AjaxRequestTarget target) {
+    protected void newAssignmentClickPerformed(AjaxRequestTarget target) {
+        PrismContainerValue<AssignmentType> newValue = getContainerModel().getObject().getItem().createNewValue();
         try {
-            newAssignmentValue.findOrCreateContainer(AssignmentType.F_FOCUS_MAPPINGS);
-            assignmentObject.setFocusMappings(new MappingsType());
+            newValue.findOrCreateContainer(AssignmentType.F_FOCUS_MAPPINGS);
+            newValue.asContainerable().setFocusMappings(new MappingsType());
         } catch (SchemaException e) {
             LOGGER.error("Cannot create focus mappings inducement: {}", e.getMessage(), e);
             getSession().error("Cannot create focus mappings inducement");
             target.add(getPageBase().getFeedbackPanel());
+            return;
         }
+
+        if (getPageBase() instanceof PageAbstractRole) {
+            ((PageAbstractRole) getPageBase()).showFocusMappingWizard(newValue, AbstractRoleType.F_INDUCEMENT, target);
+            return;
+        }
+        super.newAssignmentClickPerformed(target);
     }
 }

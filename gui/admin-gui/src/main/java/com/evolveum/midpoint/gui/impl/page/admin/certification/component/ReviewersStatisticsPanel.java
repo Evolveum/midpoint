@@ -109,6 +109,7 @@ public class ReviewersStatisticsPanel extends BasePanel {
                         Model.of(new DisplayType()), Model.of(infoDto));
                 chartComponent.setOutputMarkupId(true);
                 chartComponent.add(AttributeAppender.append(CLASS_CSS,"col-auto p-0"));
+                chartComponent.add(AttributeAppender.append("style","min-width: 210px;"));
                 return chartComponent;
 
             }
@@ -216,7 +217,7 @@ public class ReviewersStatisticsPanel extends BasePanel {
         } else if (decidedItemsPercentage > 50) {
             return "blue";
         } if (decidedItemsPercentage > 25) {
-            return "yellow";
+            return "#ffc107";
         } else {
             return "red";
         }
@@ -373,9 +374,12 @@ public class ReviewersStatisticsPanel extends BasePanel {
     }
 
     private void showAllReviewersPerformed(AjaxRequestTarget target) {
-        reviewersPopupPanel = initReviewersPanel(getPageBase().getMainPopupBodyId(), false);
-        getPageBase().showMainPopup(reviewersPopupPanel, target);
+        ReviewersTileTablePanel reviewersPanel = new ReviewersTileTablePanel(getPageBase().getMainPopupBodyId(),
+                getReviewersStatisticModel().getObject(), percentageSortingModel.getObject());
+        getPageBase().showMainPopup(reviewersPanel, target);
     }
+
+
 
     private String createStatisticBoxLabel(ObjectReferenceType reviewerRef,
             IModel<HashMap<ObjectReferenceType, ReviewerStatisticDto>> reviewersStatisticModel) {

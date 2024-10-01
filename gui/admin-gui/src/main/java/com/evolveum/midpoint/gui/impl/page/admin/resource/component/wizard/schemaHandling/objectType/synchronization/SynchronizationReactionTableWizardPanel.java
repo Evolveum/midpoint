@@ -64,7 +64,7 @@ public abstract class SynchronizationReactionTableWizardPanel<C extends Abstract
         SynchronizationReactionTable<C, P> table = new SynchronizationReactionTable<>(
                 ID_TABLE, getValueModel(), getConfiguration()) {
             @Override
-            protected void editItemPerformed(
+            public void editItemPerformed(
                     AjaxRequestTarget target,
                     IModel<PrismContainerValueWrapper<C>> rowModel,
                     List<PrismContainerValueWrapper<C>> listItems) {

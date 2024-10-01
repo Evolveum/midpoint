@@ -39,7 +39,7 @@ public class AssociationAndExpressionPanelFactory extends AbstractGuiComponentFa
     protected Panel getPanel(PrismPropertyPanelContext<ExpressionType> panelCtx) {
         ExpressionWrapper expressionWrapper = (ExpressionWrapper) panelCtx.unwrapWrapperModel();
 
-        if (expressionWrapper.isAttributeExpression()) {
+        if (expressionWrapper.isAttributeExpression() || expressionWrapper.isFocusMappingExpression()) {
             return new ExpressionPanel(panelCtx.getComponentId(), (IModel)panelCtx.getItemWrapperModel(), panelCtx.getRealValueModel()) {
                 @Override
                 protected List<ExpressionPanel.RecognizedEvaluator> getChoices() {
@@ -69,7 +69,8 @@ public class AssociationAndExpressionPanelFactory extends AbstractGuiComponentFa
         }
         ExpressionWrapper expressionWrapper = (ExpressionWrapper) wrapper;
         return expressionWrapper.isAssociationExpression()
-                || (expressionWrapper.isAttributeExpression());
+                || expressionWrapper.isAttributeExpression()
+                || expressionWrapper.isFocusMappingExpression();
     }
 
     @Override

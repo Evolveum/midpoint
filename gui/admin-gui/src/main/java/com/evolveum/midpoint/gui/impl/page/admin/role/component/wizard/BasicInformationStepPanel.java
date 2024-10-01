@@ -82,12 +82,12 @@ public class BasicInformationStepPanel extends AbstractFormWizardStepPanel<Focus
         return createStringResource("PageRole.wizard.step.basicInformation.subText");
     }
 
-    protected boolean checkMandatory(ItemWrapper itemWrapper) {
-        if (itemWrapper.getItemName().equals(RoleType.F_NAME)) {
-            return true;
-        }
-        return itemWrapper.isMandatory();
-    }
+//    protected boolean checkMandatory(ItemWrapper itemWrapper) {
+//        if (itemWrapper.getItemName().equals(RoleType.F_NAME)) {
+//            return true;
+//        }
+//        return itemWrapper.isMandatory();
+//    }
 
     @Override
     protected boolean isExitButtonVisible() {

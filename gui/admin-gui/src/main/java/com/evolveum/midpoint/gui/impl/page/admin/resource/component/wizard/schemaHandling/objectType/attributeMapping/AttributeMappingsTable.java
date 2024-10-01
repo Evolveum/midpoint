@@ -62,14 +62,14 @@ import java.util.*;
 /**
  * @author lskublik
  */
-public abstract class AttributeMappingsTable<P extends Containerable, AP extends Containerable> extends AbstractWizardTable<MappingType, P> {
+public abstract class AttributeMappingsTable<P extends Containerable, AP extends Containerable> extends AbstractMappingsTable<P> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AttributeMappingsTable.class);
 
     public AttributeMappingsTable(
             String id,
             IModel<PrismContainerValueWrapper<P>> valueModel, ContainerPanelConfigurationType config) {
-        super(id, valueModel, config, MappingType.class);
+        super(id, valueModel, config);
     }
 
     protected final PrismContainerValueWrapper createNewValue(PrismContainerValue<MappingType> value, AjaxRequestTarget target) {
@@ -241,153 +241,6 @@ public abstract class AttributeMappingsTable<P extends Containerable, AP extends
     }
 
     protected abstract ItemPathType getAttributeRefAttributeValue(PrismContainerValueWrapper<AP> value);
-
-    @Override
-    protected String getInlineMenuCssClass() {
-        return "";
-    }
-
-    @Override
-    protected List<IColumn<PrismContainerValueWrapper<MappingType>, String>> createDefaultColumns() {
-        List<IColumn<PrismContainerValueWrapper<MappingType>, String>> columns = new ArrayList<>();
-
-        columns.add(new CheckBoxHeaderColumn<>());
-
-        IModel<PrismContainerDefinition<MappingType>> mappingTypeDef =
-                getMappingTypeDefinition();
-
-        IColumn<PrismContainerValueWrapper<MappingType>, String> iconColumns = createUsedIconColumn();
-        Optional.ofNullable(iconColumns).ifPresent(column -> columns.add(column));
-
-        columns.add(createStrengthIconColumn());
-
-        columns.add(new PrismPropertyWrapperColumn<MappingType, String>(
-                mappingTypeDef,
-                MappingType.F_NAME,
-                AbstractItemWrapperColumn.ColumnType.VALUE,
-                getPageBase()) {
-
-            @Override
-            public String getCssClass() {
-                return "col-xl-2 col-lg-2 col-md-2";
-            }
-        });
-
-        columns.addAll(createCustomColumns());
-
-        columns.add(new LifecycleStateColumn<>(getContainerModel(), getPageBase()));
-
-        return columns;
-    }
-
-    private IColumn<PrismContainerValueWrapper<MappingType>, String> createStrengthIconColumn() {
-        return new IconColumn<>(Model.of()) {
-
-            @Override
-            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<MappingType>>> cellItem, String componentId, IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
-                super.populateItem(cellItem, componentId, rowModel);
-                cellItem.add(AttributeAppender.append("class", "text-center"));
-            }
-
-            @Override
-            protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
-                return GuiDisplayTypeUtil.getDisplayTypeForStrengthOfMapping(rowModel);
-            }
-
-            @Override
-            public String getCssClass() {
-                return "px-0";
-            }
-        };
-    }
-
-    protected IColumn<PrismContainerValueWrapper<MappingType>, String> createUsedIconColumn() {
-        return null;
-    }
-
-    ;
-
-    protected abstract Collection<? extends IColumn<PrismContainerValueWrapper<MappingType>, String>> createCustomColumns();
-
-    protected final LoadableModel<PrismContainerDefinition<MappingType>> getMappingTypeDefinition() {
-        return WebComponentUtil.getContainerDefinitionModel(MappingType.class);
-    }
-
-    @Override
-    protected List<Component> createToolbarButtonsList(String idButton) {
-        List<Component> buttons = new ArrayList<>();
-        AjaxIconButton newObjectButton = new AjaxIconButton(
-                idButton,
-                new Model<>("fa fa-circle-plus"),
-                createStringResource(getKeyOfTitleForNewObjectButton())) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                newItemPerformed(target, null);
-            }
-        };
-        newObjectButton.add(AttributeAppender.append("class", "btn btn-primary btn-sm ml-3"));
-        newObjectButton.add(new VisibleBehaviour(this::isCreateNewObjectVisible));
-        newObjectButton.showTitleAsLabel(true);
-        buttons.add(newObjectButton);
-
-        return buttons;
-    }
-
-    @Override
-    protected List<InlineMenuItem> createInlineMenu() {
-        List<InlineMenuItem> items = new ArrayList<>();
-
-        ButtonInlineMenuItem changeLifecycle = new ButtonInlineMenuItem(
-                createStringResource("AttributeMappingsTable.button.changeLifecycle")) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder("fa fa-heart-pulse");
-            }
-
-            @Override
-            public VisibilityChecker getVisibilityChecker() {
-                return (rowModel, isHeader) -> isHeader;
-            }
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return createChangeLifecycleColumnAction();
-            }
-        };
-        items.add(changeLifecycle);
-        items.addAll(super.createInlineMenu());
-        return items;
-    }
-
-    private InlineMenuItemAction createChangeLifecycleColumnAction() {
-        return new InlineMenuItemAction() {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                IModel<List<PrismContainerValueWrapper<MappingType>>> selected = () -> getSelectedItems();
-                if (selected.getObject().isEmpty()) {
-                    warn(createStringResource("MultivalueContainerListPanel.message.noItemsSelected").getString());
-                    target.add(getFeedbackPanel());
-                    return;
-                }
-                ChangeLifecycleSelectedMappingsPopup changePopup = new ChangeLifecycleSelectedMappingsPopup(
-                        getPageBase().getMainPopupBodyId(),
-                        selected) {
-                    @Override
-                    protected void applyChanges(AjaxRequestTarget target) {
-                        super.applyChanges(target);
-                        refreshTable(target);
-                    }
-                };
-
-                getPageBase().showMainPopup(changePopup, target);
-            }
-        };
-    }
 
     protected IColumn<PrismContainerValueWrapper<MappingType>, String> createVirtualRefItemColumn(
             IModel<? extends PrismContainerDefinition> resourceAttributeDef, String cssClasses) {

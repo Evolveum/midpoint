@@ -50,7 +50,7 @@ public abstract class DefaultOperationPoliciesTableWizardPanel extends AbstractR
     private void initLayout() {
         DefaultOperationPoliciesTable table = new DefaultOperationPoliciesTable(ID_TABLE, getValueModel(), getConfiguration()){
             @Override
-            protected void editItemPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<DefaultOperationPolicyConfigurationType>> rowModel, List<PrismContainerValueWrapper<DefaultOperationPolicyConfigurationType>> listItems) {
+            public void editItemPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<DefaultOperationPolicyConfigurationType>> rowModel, List<PrismContainerValueWrapper<DefaultOperationPolicyConfigurationType>> listItems) {
                 showPolicyStepWizard(target, rowModel);
             }
         };

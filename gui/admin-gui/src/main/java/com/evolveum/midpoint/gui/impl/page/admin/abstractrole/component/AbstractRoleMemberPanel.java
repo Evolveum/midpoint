@@ -920,7 +920,8 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                 @Override
                 protected IModel<String> getWarningMessageModel() {
                     if (isSubtreeScope()) {
-                        return getPageBase().createStringResource("abstractRoleMemberPanel.delete.warning.subtree");
+                        return getPageBase().createStringResource("abstractRoleMemberPanel.delete.warning.subtree"
+                                + getObjectTypeSpecificLocalizationKeySuffix());
                     }
                     return null;
                 }
@@ -975,7 +976,8 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             @Override
             protected IModel<String> createWarningMessageModel() {
                 if (isSubtreeScope()) {
-                    return createStringResource("abstractRoleMemberPanel.recompute.warning.subtree");
+                    return createStringResource("abstractRoleMemberPanel.recompute.warning.subtree"
+                            + getObjectTypeSpecificLocalizationKeySuffix());
                 }
                 return null;
             }
@@ -1078,16 +1080,6 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                                 relations,
                                 target);
                     }
-
-//                    @Override
-//                    protected IModel<String> getWarningMessageModel() {
-//                        if (isSubtreeScope()) {
-//                            return getPageBase().createStringResource("abstractRoleMemberPanel.unassign.warning.subtree");
-//                        } else if (isIndirect()) {
-//                            return getPageBase().createStringResource("abstractRoleMemberPanel.unassign.warning.indirect");
-//                        }
-//                        return null;
-//                    }
                 };
 
                 getPageBase().showMainPopup(chooseTypePopupContent, target);
@@ -1172,9 +1164,11 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                 @Override
                 protected IModel<String> getWarningMessageModel() {
                     if (isSubtreeScope()) {
-                        return getPageBase().createStringResource("abstractRoleMemberPanel.unassign.warning.subtree");
+                        return getPageBase().createStringResource("abstractRoleMemberPanel.unassign.warning.subtree"
+                                + getObjectTypeSpecificLocalizationKeySuffix());
                     } else if (isIndirect()) {
-                        return getPageBase().createStringResource("abstractRoleMemberPanel.unassign.warning.indirect");
+                        return getPageBase().createStringResource("abstractRoleMemberPanel.unassign.warning.indirect"
+                                + getObjectTypeSpecificLocalizationKeySuffix());
                     }
                     return null;
                 }
@@ -1247,9 +1241,11 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             @Override
             protected IModel<String> createWarningMessageModel() {
                 if (isSubtreeScope() && rowModel == null) {
-                    return createStringResource("abstractRoleMemberPanel.unassign.warning.subtree");
+                    return createStringResource("abstractRoleMemberPanel.unassign.warning.subtree"
+                            + getObjectTypeSpecificLocalizationKeySuffix());
                 } else if (isIndirect() && rowModel == null) {
-                    return createStringResource("abstractRoleMemberPanel.unassign.warning.indirect");
+                    return createStringResource("abstractRoleMemberPanel.unassign.warning.indirect"
+                            + getObjectTypeSpecificLocalizationKeySuffix());
                 }
                 return null;
             }
@@ -1729,5 +1725,11 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                 buttonDescriptionsModel.getObject() != null ?
                 buttonDescriptionsModel.getObject().getAdditionalButtons() : null;
         return CollectionUtils.isNotEmpty(additionalButtons);
+    }
+
+    private String getObjectTypeSpecificLocalizationKeySuffix() {
+        String typeClass = getModelObject().getClass().getSimpleName();
+        // remove "Type" suffix
+        return "." + typeClass.substring(0, typeClass.length() - 4).toLowerCase();
     }
 }
