@@ -54,9 +54,9 @@ public class AnalysisAttributeSelectionProvider extends ChoiceProvider<ItemPathT
     public void query(String text, int page, Response<ItemPathType> response) {
 
         List<String> choices = collectAvailableDefinitions(text);
-
         response.addAll(toChoices(choices));
     }
+
 
     @Override
     public Collection<ItemPathType> toChoices(Collection<String> values) {
@@ -95,9 +95,11 @@ public class AnalysisAttributeSelectionProvider extends ChoiceProvider<ItemPathT
 
     private static ItemPath createPossibleAttribute(ItemDefinition<?> def) {
         //TODO we want extension references, but maybe we can somehow filter relevant defs from static schema?
-        if (def instanceof PrismReferenceDefinition refDef && !refDef.isOperational()) {
+        // Think about !refDef.isOperational() and searchable items.
+        if (def instanceof PrismReferenceDefinition refDef ) {
             return refDef.getItemName();
         }
+
         if (def instanceof PrismPropertyDefinition<?> propertyDef) {
             if (RoleAnalysisAttributeDefUtils.isSupportedPropertyType(propertyDef.getTypeClass())
                     && !propertyDef.isOperational()) { // TODO differentiate searchable items && def.isSearchable()) {

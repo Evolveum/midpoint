@@ -12,6 +12,8 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -33,9 +35,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ClusteringAttributeRuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ClusteringAttributeSettingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 
 public class ClusteringAttributeSelectorPanel extends InputPanel {
     private static final String ID_MULTISELECT = "multiselect";
@@ -101,7 +100,10 @@ public class ClusteringAttributeSelectorPanel extends InputPanel {
 
     @NotNull
     private ChoiceProvider<ClusteringAttributeRuleType> buildChoiceProvider() {
-        return new ClusteringAttributeSelectionProvider();
+        if(processModeType == RoleAnalysisProcessModeType.ROLE) {
+            return new ClusteringAttributeSelectionProvider(RoleType.COMPLEX_TYPE);
+        }
+        return new ClusteringAttributeSelectionProvider(UserType.COMPLEX_TYPE);
     }
 
 

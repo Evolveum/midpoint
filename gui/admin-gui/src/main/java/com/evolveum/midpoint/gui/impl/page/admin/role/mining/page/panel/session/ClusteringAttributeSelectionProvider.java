@@ -8,17 +8,10 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session;
 
 import com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClusteringAttributeRuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -26,15 +19,20 @@ import org.apache.commons.lang3.StringUtils;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 
+import javax.xml.namespace.QName;
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class ClusteringAttributeSelectionProvider extends ChoiceProvider<ClusteringAttributeRuleType> {
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
-    public ClusteringAttributeSelectionProvider() {
+    QName complexType;
+
+    public ClusteringAttributeSelectionProvider(QName complexType) {
+        this.complexType = complexType;
     }
 
     @Override
@@ -51,7 +49,6 @@ public class ClusteringAttributeSelectionProvider extends ChoiceProvider<Cluster
     public void query(String text, int page, Response<ClusteringAttributeRuleType> response) {
 
         List<String> choices = collectAvailableDefinitions(text);
-
         response.addAll(toChoices(choices));
     }
 
@@ -74,7 +71,7 @@ public class ClusteringAttributeSelectionProvider extends ChoiceProvider<Cluster
 
     public List<String> collectAvailableDefinitions(String input) {
 
-        PrismContainerDefinition<UserType> userDef = PrismContext.get().getSchemaRegistry().findContainerDefinitionByType(UserType.COMPLEX_TYPE);
+        PrismContainerDefinition<UserType> userDef = PrismContext.get().getSchemaRegistry().findContainerDefinitionByType(complexType);
 
         List<ItemPath> paths = new ArrayList<>();
         for (ItemDefinition<?> def : userDef.getDefinitions()) {
@@ -101,6 +98,12 @@ public class ClusteringAttributeSelectionProvider extends ChoiceProvider<Cluster
     }
 
     private static ItemPath createPossibleAttribute(ItemDefinition<?> def) {
+        //TODO we want extension references, but maybe we can somehow filter relevant defs from static schema?
+        // Think about !refDef.isOperational() and searchable items.
+        if (def instanceof PrismReferenceDefinition refDef ) {
+            return refDef.getItemName();
+        }
+
         if (def instanceof PrismPropertyDefinition<?> propertyDef) {
             if (RoleAnalysisAttributeDefUtils.isSupportedPropertyType(propertyDef.getTypeClass())
                     && !propertyDef.isOperational()
