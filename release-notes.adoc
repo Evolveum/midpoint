@@ -143,6 +143,8 @@ More details can be found in the xrefv:/midpoint/reference/master/misc/notificat
 More information can be found in the xref:/midpoint/reference/security/authentication/flexible-authentication/modules/sequence/#authenticationsequencemoduletype[Authentication Sequence Module].
 * 'Resource object types' panel identifier changed from 'schemaHandling' to 'resourceObjectTypes' and panel was moved from top level menu item to submenu of new top level menu item 'Schema handling'. The 'schemaHandling' identifier is now used for the top level menu item.
 * Added missing indexes for extension poly-string properties and shadow attributes for generic repositories (Oracle, MS SQL Server). For more info see SQL upgrade scripts.
+* Implemented the ability to configure login page form with custom title and description.
+Also, custom link can be added to the login page form.
 
 === Releases Of Other Components
 
