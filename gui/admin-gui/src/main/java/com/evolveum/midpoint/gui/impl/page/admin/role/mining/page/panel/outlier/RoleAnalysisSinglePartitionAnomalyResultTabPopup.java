@@ -746,6 +746,7 @@ public class RoleAnalysisSinglePartitionAnomalyResultTabPopup extends BasePanel<
                         if (confidenceDeviation == null) {
                             confidenceDeviation = 0.0;
                         }
+                        confidenceDeviation *= 100;
                         BigDecimal bd = new BigDecimal(confidenceDeviation);
                         bd = bd.setScale(2, RoundingMode.HALF_UP);
                         double pointsDensity = bd.doubleValue();
