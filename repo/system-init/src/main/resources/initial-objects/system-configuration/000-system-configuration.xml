@@ -1819,25 +1819,25 @@
 
     </adminGuiConfiguration>
 
-    <roleAnalysis>
-        <attributeStatistics>
-            <type>UserType</type>
-            <path>title</path>
-            <path>locality</path>
-            <path>archetypeRef</path>
-            <path>extension/manager</path>
-            <assignment>
-                <targetType></targetType>
-                <rootOrgRef oid="my-root-department-oid" /> <!-- or archetypeRef -->
-                <archetypeRef oid="department-archetype-oid" /> <!-- or rootOrgRef -->
-            </assignment>
-            <organization>
-                <rootOrgRef oid="my-root-department-oid" /> <!-- or archetypeRef -->
-                <archetypeRef oid="department-archetype-oid" /> <!-- or rootOrgRef -->
-            </organization>
-        </attributeStatistics>
+    <!--<roleAnalysis>-->
+    <!--    <attributeStatistics>-->
+    <!--        <type>UserType</type>-->
+    <!--        <path>title</path>-->
+    <!--        <path>locality</path>-->
+    <!--        <path>archetypeRef</path>-->
+    <!--        <path>extension/manager</path>-->
+    <!--        <assignment>-->
+    <!--            <targetType></targetType>-->
+    <!--            <rootOrgRef oid="my-root-department-oid" /> &lt;!&ndash; or archetypeRef &ndash;&gt;-->
+    <!--            <archetypeRef oid="department-archetype-oid" /> &lt;!&ndash; or rootOrgRef &ndash;&gt;-->
+    <!--        </assignment>-->
+    <!--        <organization>-->
+    <!--            <rootOrgRef oid="my-root-department-oid" /> &lt;!&ndash; or archetypeRef &ndash;&gt;-->
+    <!--            <archetypeRef oid="department-archetype-oid" /> &lt;!&ndash; or rootOrgRef &ndash;&gt;-->
+    <!--        </organization>-->
+    <!--    </attributeStatistics>-->
 
-    </roleAnalysis>
+    <!--</roleAnalysis>-->
 
     <expressions>
         <expressionProfile id="218">
