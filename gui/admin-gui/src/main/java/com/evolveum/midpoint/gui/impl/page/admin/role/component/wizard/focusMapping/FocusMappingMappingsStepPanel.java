@@ -51,7 +51,7 @@ public class FocusMappingMappingsStepPanel<AR extends AbstractRoleType>
     private void initLayout() {
         add(new FocusMappingMappingsTable(ID_PANEL, getValueModel(), getContainerConfiguration(PANEL_TYPE)) {
             @Override
-                protected void editItemPerformed(
+            public void editItemPerformed(
                         AjaxRequestTarget target,
                         IModel<PrismContainerValueWrapper<MappingType>> rowModel,
                         List<PrismContainerValueWrapper<MappingType>> listItems) {

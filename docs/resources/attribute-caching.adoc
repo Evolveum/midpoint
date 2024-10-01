@@ -113,7 +113,7 @@ It can have a value of `none` (no caching) and `passive` (passive caching as des
 
 | `defaultCacheUse`
 | How is the cache used for midPoint operations.
-| #TODO reconsider# `cachedOrFresh` (or `fresh` for xref:#caching_only_read_capability[caching-only read capability])
+| `fresh`
 |===
 
 .The `scope` configuration item content

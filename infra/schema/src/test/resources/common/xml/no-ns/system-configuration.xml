@@ -12,9 +12,6 @@
         <handler>
             <simpleUserNotifier>
                 <attachment>
-                    <content>untyped</content>
-                </attachment>
-                <attachment>
                     <content xsi:type="string">ABC</content>
                 </attachment>
                 <attachment>

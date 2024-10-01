@@ -56,6 +56,6 @@ class AttributeMapper<
 
     @Override
     boolean isItemLoaded(LensProjectionContext projectionContext) throws SchemaException, ConfigurationException {
-        return projectionContext.isAttributeLoaded(getItemName());
+        return projectionContext.isAttributeLoaded(getItemName(), itemDefinition);
     }
 }

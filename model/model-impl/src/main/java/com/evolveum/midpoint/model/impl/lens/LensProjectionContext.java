@@ -959,7 +959,12 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      * (in the {@link #isFullShadow()} sense) or it must be cached *and* the use of cache for computations
      * must be allowed.
      */
-    public boolean isAttributeLoaded(QName attrName) throws SchemaException, ConfigurationException {
+    public boolean isAttributeLoaded(@NotNull QName attrName) throws SchemaException, ConfigurationException {
+        return isAttributeLoaded(attrName, null);
+    }
+
+    public boolean isAttributeLoaded(@NotNull QName attrName, @Nullable ShadowAttributeDefinition<?, ?, ?, ?> attrDefOverride)
+            throws SchemaException, ConfigurationException {
         ItemLoadedStatus status;
         var generic = getGenericItemLoadedAnswer();
         if (generic != null) {
@@ -970,6 +975,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
                             ItemName.fromQName(attrName),
                             getObjectCurrent(),
                             getCompositeObjectDefinitionRequired(),
+                            attrDefOverride,
                             getCurrentTime()));
         }
         LOGGER.trace("Attribute '{}' loaded status: {}", attrName, status);

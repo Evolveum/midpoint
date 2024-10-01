@@ -5,13 +5,18 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <archetype oid="00000000-0000-0000-0000-000000000502"
-           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-           xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
     <name>Recomputation task</name>
     <archetypePolicy>
         <display>
-            <label>Recomputation task</label>
+            <label>
+                <orig>Recomputation task</orig>
+                <translation>
+                    <key>RecomputationTask.label</key>
+                </translation>
+            </label>
             <pluralLabel>
                 <orig>Recomputation tasks</orig>
                 <translation>

@@ -344,7 +344,7 @@ public class PrismItemDefinitionsTable extends AbstractWizardTable<PrismItemDefi
     }
 
     @Override
-    protected void editItemPerformed(
+    public void editItemPerformed(
             AjaxRequestTarget target,
             IModel<PrismContainerValueWrapper<PrismItemDefinitionType>> rowModel,
             List<PrismContainerValueWrapper<PrismItemDefinitionType>> listItems) {

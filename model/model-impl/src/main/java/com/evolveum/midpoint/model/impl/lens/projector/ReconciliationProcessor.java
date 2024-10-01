@@ -227,12 +227,12 @@ public class ReconciliationProcessor implements ProjectorProcessor {
             return;
         }
         Collection<QName> deletedAuxObjectClassNames;
-        PrismObject<ShadowType> objectOld = projCtx.getObjectOld();
+        PrismObject<ShadowType> objectCurrent = projCtx.getObjectCurrent();
         if (auxOcDelta.isReplace()) {
-            if (objectOld == null) {
+            if (objectCurrent == null) {
                 return;
             }
-            PrismProperty<QName> auxOcPropOld = objectOld.findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS);
+            PrismProperty<QName> auxOcPropOld = objectCurrent.findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS);
             if (auxOcPropOld == null) {
                 return;
             }
@@ -290,12 +290,8 @@ public class ReconciliationProcessor implements ProjectorProcessor {
             }
         }
         LOGGER.trace("Attributes to delete: {}", attributesToDelete);
-        if (attributesToDelete.isEmpty()) {
-            return;
-        }
-
         for (QName attrNameToDelete: attributesToDelete) {
-            ShadowSimpleAttribute<Object> attrToDelete = ShadowUtil.getSimpleAttribute(objectOld, attrNameToDelete);
+            ShadowSimpleAttribute<Object> attrToDelete = ShadowUtil.getSimpleAttribute(objectCurrent, attrNameToDelete);
             if (attrToDelete == null || attrToDelete.isEmpty()) {
                 continue;
             }
@@ -612,9 +608,9 @@ public class ReconciliationProcessor implements ProjectorProcessor {
                     .findContainerDefinitionByCompileTimeClass(ShadowAssociationValueType.class)
                     .instantiate();
             for (var cvwo : shouldBeCValues) {
-                var cvalue = (ShadowAssociationValue) cvwo.getItemValue().clone();
-                cvalue.setParent(fakeParent);
-                cvwo.setItemValue(cvalue);
+                var value = cvwo.getItemValue().clone();
+                value.setParent(fakeParent);
+                cvwo.setItemValue(value);
             }
 
             boolean hasStrongShouldBeCValue = false;

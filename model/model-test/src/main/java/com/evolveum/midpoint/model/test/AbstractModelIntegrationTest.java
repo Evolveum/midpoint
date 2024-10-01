@@ -7783,14 +7783,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void refreshShadowIfNeeded(@NotNull String shadowOid) throws CommonException {
-        if (InternalsConfig.isShadowCachingOnByDefault()) {
+        if (InternalsConfig.isShadowCachingFullByDefault()) {
             provisioningService.getShadow(shadowOid, null, getTestTask(), getTestOperationResult());
         }
     }
 
     protected void refreshAllShadowsIfNeeded(@NotNull String resourceOid, @NotNull ResourceObjectTypeIdentification type)
             throws CommonException {
-        if (!InternalsConfig.isShadowCachingOnByDefault()) {
+        if (!InternalsConfig.isShadowCachingFullByDefault()) {
             return;
         }
         provisioningService.searchShadows(

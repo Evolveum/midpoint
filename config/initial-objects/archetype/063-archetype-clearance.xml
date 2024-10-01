@@ -10,8 +10,18 @@
     <description>Archetype for clearances (screenings, trainings, legal agreements/clauses).</description>
     <archetypePolicy>
         <display>
-            <label>Clearance</label>
-            <pluralLabel>Clearances</pluralLabel>
+            <label>
+                <orig>Clearance</orig>
+                <translation>
+                    <key>clearance.label</key>
+                </translation>
+            </label>
+            <pluralLabel>
+                <orig>Clearances</orig>
+                <translation>
+                    <key>clearance.pluralLabel</key>
+                </translation>
+            </pluralLabel>
             <icon>
                 <cssClass>fa fa-award</cssClass>
                 <color>green</color>

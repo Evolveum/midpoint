@@ -659,6 +659,7 @@ end
         <scope>
             <attributes>all</attributes>
         </scope>
+        <defaultCacheUse>useCachedOrFresh</defaultCacheUse>
     </caching>
 
     <synchronization>

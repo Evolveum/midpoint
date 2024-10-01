@@ -1703,4 +1703,9 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
 
         return alias.stream().map(s -> createMappingAliasSpecification(spec, s)).toList();
     }
+
+    @Override
+    public D getTargetItemDefinition() {
+        return getOutputDefinition();
+    }
 }

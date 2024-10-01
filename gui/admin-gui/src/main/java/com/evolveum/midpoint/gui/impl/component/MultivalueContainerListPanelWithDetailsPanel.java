@@ -156,7 +156,10 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
     @Override
     public void editItemPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> rowModel,
             List<PrismContainerValueWrapper<C>> listItems) {
+        showDetailsPanel(target, rowModel, listItems);
+    }
 
+    protected final void showDetailsPanel(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> rowModel, List<PrismContainerValueWrapper<C>> listItems) {
         if ((listItems != null && !listItems.isEmpty()) || rowModel != null) {
             setItemDetailsVisible(true);
             detailsPanelItemsList.clear();

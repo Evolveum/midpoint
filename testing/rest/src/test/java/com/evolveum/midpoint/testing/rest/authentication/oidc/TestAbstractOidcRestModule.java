@@ -15,9 +15,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import com.nimbusds.jose.shaded.gson.internal.LinkedTreeMap;
 import com.nimbusds.jose.util.JSONObjectUtils;
-import net.minidev.json.JSONArray;
-import net.minidev.json.JSONObject;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.text.StringEscapeUtils;
@@ -310,20 +309,20 @@ public abstract class TestAbstractOidcRestModule extends TestAbstractAuthenticat
     private Map<String, String> getPublicKeys() {
         Map<String, String> publicKeys = new HashMap<>();
         try {
-            JSONArray keys = ((JSONArray) JSONObjectUtils.parse(
+            List<LinkedTreeMap<String, Object>> keys = ((List<LinkedTreeMap<String, Object>>) JSONObjectUtils.parse(
                     WebClient.create(getJwksUri()).get().readEntity(String.class)).get("keys"));
             keys.stream()
                     .filter(json ->
-                            ((JSONObject) json).containsKey("use")
-                                    && "sig".equals(((JSONObject) json).get("use")))
+                            json.containsKey("use")
+                                    && "sig".equals(json.get("use")))
                     .forEach(key ->
                 publicKeys.put(
-                        (String) ((JSONObject) key).get("kid"),
-                        (String) ((JSONArray) ((JSONObject) key).get("x5c")).get(0)));
+                        (String) key.get("kid"),
+                        ((List<String>) key.get("x5c")).get(0)));
             return publicKeys;
         } catch (Exception e) {
             LOGGER.error("Couldn't get public key from IDP", e);
-            return null;
+            return publicKeys;
         }
     }
 

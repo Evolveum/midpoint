@@ -16,6 +16,7 @@ import com.evolveum.midpoint.util.HumanReadableDescribable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface PrismValueDeltaSetTripleProducer<V extends PrismValue, D extends ItemDefinition<?>>
         extends HumanReadableDescribable, DebugDumpable {
@@ -64,4 +65,10 @@ public interface PrismValueDeltaSetTripleProducer<V extends PrismValue, D extend
     boolean isPushChanges();
 
     boolean isEnabled();
+
+    /**
+     * Returns the definition for the target item. It is usually present, but there may be border cases where it is not.
+     * Please research them if needed.
+     */
+    @Nullable D getTargetItemDefinition();
 }

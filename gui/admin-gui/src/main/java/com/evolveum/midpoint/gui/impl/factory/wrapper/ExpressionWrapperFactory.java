@@ -48,7 +48,10 @@ public class ExpressionWrapperFactory extends PrismPropertyWrapperFactoryImpl<Ex
                                                                  ItemStatus status, WrapperContext ctx) {
 
         ExpressionWrapper expressionWrapper = new ExpressionWrapper(parent, item, status);
-        if (!expressionWrapper.isConstructionExpression() && !expressionWrapper.isAttributeExpression() && !expressionWrapper.isAssociationExpression()) {
+        if (!expressionWrapper.isConstructionExpression()
+                && !expressionWrapper.isAttributeExpression()
+                && !expressionWrapper.isAssociationExpression()
+                && !expressionWrapper.isFocusMappingExpression()) {
             return super.createWrapperInternal(parent, item, status, ctx);
         }
 
@@ -62,7 +65,10 @@ public class ExpressionWrapperFactory extends PrismPropertyWrapperFactoryImpl<Ex
             return;
         }
         ExpressionWrapper expressionWrapper = (ExpressionWrapper) wrapper;
-        if (expressionWrapper.isConstructionExpression() || expressionWrapper.isAttributeExpression() || expressionWrapper.isAssociationExpression()) {
+        if (expressionWrapper.isConstructionExpression()
+                || expressionWrapper.isAttributeExpression()
+                || expressionWrapper.isAssociationExpression()
+                || expressionWrapper.isFocusMappingExpression()) {
             getRegistry().registerWrapperPanel(expressionWrapper.getTypeName(), ExpressionPropertyPanel.class);
             return;
         }

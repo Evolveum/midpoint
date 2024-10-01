@@ -60,7 +60,7 @@ public abstract class AssociationsTableWizardPanel extends AbstractResourceWizar
     private void initLayout() {
         AssociationsTable table = new AssociationsTable(ID_TABLE, getValueModel(), getConfiguration()) {
             @Override
-            protected void editItemPerformed(
+            public void editItemPerformed(
                     AjaxRequestTarget target,
                     IModel<PrismContainerValueWrapper<ResourceObjectAssociationType>> rowModel,
                     List<PrismContainerValueWrapper<ResourceObjectAssociationType>> listItems) {

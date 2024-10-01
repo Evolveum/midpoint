@@ -172,7 +172,7 @@ public class EnumerationValueDefinitionsTable extends AbstractWizardTable<Enumer
     }
 
     @Override
-    protected void editItemPerformed(
+    public void editItemPerformed(
             AjaxRequestTarget target,
             IModel<PrismContainerValueWrapper<EnumerationValueTypeDefinitionType>> rowModel,
             List<PrismContainerValueWrapper<EnumerationValueTypeDefinitionType>> listItems) {

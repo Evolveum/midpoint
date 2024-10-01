@@ -1,168 +1,124 @@
 = Shadow Partitioning
+:page-since: "4.9"
 
-== Removing from m_object hierarchy
+MidPoint 4.9 Native Repository support database table partitioning for shadows.
 
-IMPORTANT: Shadows not being able to be found breaks lots of tasks dealing with objects in general (eg. trigger task), so it seems repository needs if searching for ObjectType emulate joined search over `m_object` and `m_shadow`
+Partitions are created per resource per object class automatically on first shadow add operation. If there are preexisting shadows with same resource and object class in default partition, they are automatically migrated to newly created partition during add transaction.
 
-== Migration
+NOTE: This needs to be done before attaching partition, because PostgreSQL refused to attach partition if the data, which should belong to partition are in other partitions.
 
-=== Upgrade Script `postgres-upgrade.sql`
+== Enabling Shadow Partitioning
 
-. Remove `m_shadow` from `m_object` inheritance
-. Rename `m_shadow` to `m_shadow_default` to be used as default partition
-. Create `m_shadow` table with partitioning enabled
-** Create `m_shadow_partition_def` to store definitions for partitions
-. Attach `m_shadow_default` as default partition to `m_shadow`
+=== New Installations
 
+On new installations shadow partitioning is enabled by default in system confirutation:
 
-
-==== SQL Scripts
-
-.Converting `m_shadow` table to become default partition 
-[source, sql]
+.System Configuration
+[source, xml]
 ----
-ALTER TABLE m_shadow NO INHERIT m_object;
-ALTER TABLE m_shadow RENAME TO m_shadow_default;
-
-ALTER TABLE m_shadow_default
-ALTER resourcereftargetoid TYPE uuid,
-ALTER resourcereftargetoid SET NOT NULL;
-
-DROP TRIGGER "m_shadow_oid_insert_tr" ON "m_shadow_default";
-DROP TRIGGER "m_shadow_update_tr" ON "m_shadow_default";
-DROP TRIGGER "m_shadow_oid_insert_tr" ON "m_shadow_default";
+<systemConfiguration>
+    <internals>
+        <repository>
+            <autoCreatePartitionsOnAdd>true</autoCreatePartitionsOnAdd>
+        </repository>
+    </internals>
+</systemConfiguration>
 ----
 
-.Creating partitioned `m_shadow`
-[source, sql]
+=== Upgraded Installation
+
+During execution of SQL upgrade script all shadows are automaticly moved to default partition (`m_shadow_default`).
+
+In order to enable autopartitioning and create partitions for existing shadows:
+
+. Suspend all tasks synchronizing or modifying resources / shadows
+. Navigate to Admin GUI - About Page and click on Enable Shadow Partitioning button
+  - This will create and run task named *Repartition Repository*, which
+    will modify system configuration to enable automatic partition creation
+
+. Wait for task *Repartition Repository* finish
+. Reenable all tasks suspended in step 1.
+
+
+The *Repartition Repository* task is equivalent to following task:
+
+[source, xml]
 ----
-CREATE TABLE m_shadow (
-    oid UUID NOT NULL REFERENCES m_object_oid(oid),
-    objectType ObjectType 
-            GENERATED ALWAYS AS ('SHADOW') STORED
-        CONSTRAINT m_shadow_objecttype_check
-            CHECK (objectType = 'SHADOW'),
-    nameOrig TEXT NOT NULL,
-    nameNorm TEXT NOT NULL,
-    fullObject BYTEA,
-    tenantRefTargetOid UUID,
-    tenantRefTargetType ObjectType,
-    tenantRefRelationId INTEGER REFERENCES m_uri(id),
-    lifecycleState TEXT, -- TODO what is this? how many distinct values?
-    cidSeq BIGINT NOT NULL DEFAULT 1, -- sequence for container id, next free cid
-    version INTEGER NOT NULL DEFAULT 1,
-    -- complex DB columns, add indexes as needed per concrete table, e.g. see m_user
-    -- TODO compare with [] in JSONB, check performance, indexing, etc. first
-    policySituations INTEGER[], -- soft-references m_uri, only EQ filter
-    subtypes TEXT[], -- only EQ filter
-    fullTextInfo TEXT,
+<task oid="00000000-0000-0000-0000-000000000581"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
-    ext JSONB,
-    creatorRefTargetOid UUID,
-    creatorRefTargetType ObjectType,
-    creatorRefRelationId INTEGER REFERENCES m_uri(id),
-    createChannelId INTEGER REFERENCES m_uri(id),
-    createTimestamp TIMESTAMPTZ,
-    modifierRefTargetOid UUID,
-    modifierRefTargetType ObjectType,
-    modifierRefRelationId INTEGER REFERENCES m_uri(id),
-    modifyChannelId INTEGER REFERENCES m_uri(id),
-    modifyTimestamp TIMESTAMPTZ,
+    <name>Repartition Repository (After Upgrade) Task</name>
+    <assignment id="1">
+        <identifier>archetype</identifier>
+        <targetRef oid="00000000-0000-0000-0000-000000000519" type="ArchetypeType" />
+    </assignment>
+    <assignment id="2">
+        <identifier>auxiliaryArchetype</identifier>
+        <targetRef oid="00000000-0000-0000-0000-000000000528" type="ArchetypeType" />
+    </assignment>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
 
-    -- these are purely DB-managed metadata, not mapped to in midPoint
-    db_created TIMESTAMPTZ NOT NULL DEFAULT current_timestamp,
-    db_modified TIMESTAMPTZ NOT NULL DEFAULT current_timestamp, -- updated in update trigger
-    
-    objectClassId INTEGER REFERENCES m_uri(id),
-    resourceRefTargetOid UUID,
-    resourceRefTargetType ObjectType,
-    resourceRefRelationId INTEGER REFERENCES m_uri(id),
-    intent TEXT,
-    tag TEXT,
-    kind ShadowKindType,
-    dead BOOLEAN,
-    exist BOOLEAN,
-    fullSynchronizationTimestamp TIMESTAMPTZ,
-    pendingOperationCount INTEGER NOT NULL,
-    primaryIdentifierValue TEXT,
-    synchronizationSituation SynchronizationSituationType,
-    synchronizationTimestamp TIMESTAMPTZ,
-    attributes JSONB,
-    -- correlation
-    correlationStartTimestamp TIMESTAMPTZ,
-    correlationEndTimestamp TIMESTAMPTZ,
-    correlationCaseOpenTimestamp TIMESTAMPTZ,
-    correlationCaseCloseTimestamp TIMESTAMPTZ,
-    correlationSituation CorrelationSituationType
-) PARTITION BY LIST (resourceRefTargetOid);
-CREATE TRIGGER m_shadow_oid_insert_tr BEFORE INSERT ON m_shadow
-    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
-CREATE TRIGGER m_shadow_update_tr BEFORE UPDATE ON m_shadow
-    FOR EACH ROW EXECUTE FUNCTION before_update_object();
-CREATE TRIGGER m_shadow_oid_delete_tr AFTER DELETE ON m_shadow
-    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
+    <executionState>suspended</executionState>
+    <schedulingState>suspended</schedulingState>
+    <binding>loose</binding>
 
-ALTER TABLE m_shadow ATTACH PARTITION m_shadow_default DEFAULT;
+    <activity>
+        <composition>
+            <activity>
+                <order>1</order>
+                <work>
+                    <explicitChangeExecution>
+                        <delta>
+                            <t:changeType>modify</t:changeType>
+                            <t:objectType>SystemConfigurationType</t:objectType>
+                            <t:oid>00000000-0000-0000-0000-000000000001</t:oid>
+                            <t:itemDelta>
+                                <t:modificationType>add</t:modificationType>
+                                <t:path>internals/repository/autoCreatePartitionsOnAdd</t:path>
+                                <t:value xsi:type="xsd:boolean">true</t:value>
+                            </t:itemDelta>
+                        </delta>
+                    </explicitChangeExecution>
+                </work>
+            </activity>
+            <activity>
+                <order>2</order>
+                <work>
+                    <repartitioning />
+                </work>
+            </activity>
+        </composition>
+    </activity>
+</task>
 ----
 
 
+== Disabling Automatic Shadow Partitioning
+
+IF you disable automatic shadow partitioning (`autoCreatePartitionsOnAdd`) using system configuration, the repository will behave as following:
+
+ * No new partitions will be created on shadow add.
+ * Existing partitions wills still be in use.
+ * Existing shadows will still be in their respective partitions. 
+ * New shadows belonging:
+** to existing partitions - will be stored in these partitions.
+** to existing resource, but `objectClass` which does not have partition attached - will be stored in default partition for that resource.
+** new resource - will b e stored in default partition
 
 
-==== Creating partition for resource 
+== Partition naming / schema
 
-Before attaching new partition we need to migrate shadows from original partition (if existed) to new partition 
+`m_shadow` table::
+Base shadow table, partitioned by `resourceRefTargetOid` column (this column stores oid of resource) and default partition `m_shadow_default` (this partition stores all shadows, which do not belong to other partitions)
 
-.Migration algorithm
-. Start transaction
-. Create new table for partition 
-.. using `CREATE TABLE m_shadow_... (like m_shadow_default INCLUDING ALL )`
-*** no need to migrate partitioning scripts if new columns are added in later releases
+`m_shadow_default` table::
+Default partition for shadows, usually should be empty on new installations if autopartitioning was not disabled. If you upgraded from 4.8, this table is original `m_shadow` table from 4.8.
 
-.. Drop objectType generated constraint
-*** creates problem during copying existing shadows in database, generated columns must not be used in inserts, if we have generated columns then we can not use `insert into ... select * from`, but we will need to enumerate all columns.
+`m_shadow_{resourceOid}` table::
+ Partition for resource,  this table does not store any actual data and it is partitioned by `objectClassId`. It has default partition named `m_shadow_{resourceId}_default`.
 
-. Copy records from original partition (usually `m_shadow_default`) to new partition
-
-. Deleting shadows in original partition
-.. Disable triggers on original partition - we do not want to run delete triggers, since we are just moving data between partitions
-.. Delete migrated records in old partition
-.. Reenable triggers on original partition
-
-. Re-enable constraints on new partition
-.. Delete `objectType` column (alter column does not support conversion from normal column to generated)
-.. Add `objectType` column using original partition
-. Attaching partition to `m_shadow` (or resource partition if it is class partition)
-. Commit transaction
-
-.SQL
-[source, sql]
-----
-begin;
-CREATE TABLE m_shadow_8558374c_0b41_4cf9_a5cd_4b3912ea6305 (like m_shadow_default INCLUDING ALL ); 
-
-/* We need to remove generated from object type in order to use built-in insert/ select combo */
-ALTER TABLE m_shadow_8558374c_0b41_4cf9_a5cd_4b3912ea6305 ALTER objecttype DROP EXPRESSION;
-
-INSERT into m_shadow_8558374c_0b41_4cf9_a5cd_4b3912ea6305 SELECT * FROM m_shadow_default where resourceRefTargetOid = '8558374c-0b41-4cf9-a5cd-4b3912ea6305';
-/* Migrate marks, other subtables attached to m_shadow */
-
-ALTER TABLE m_shadow_8558374c_0b41_4cf9_a5cd_4b3912ea6305 
-    DROP objecttype;
-ALTER TABLE m_shadow_8558374c_0b41_4cf9_a5cd_4b3912ea6305 
-    ADD COLUMN objecttype ObjectType
-        GENERATED ALWAYS AS ('SHADOW') STORED
-            CONSTRAINT m_shadow_objecttype_check
-                CHECK (objectType = 'SHADOW');
-
-
-/* We should skip drop triggers for m_oid table */
-ALTER TABLE m_shadow_default DISABLE TRIGGER ALL;
-
-DELETE FROM m_shadow_default where resourceRefTargetOid = '8558374c-0b41-4cf9-a5cd-4b3912ea6305';
-ALTER TABLE m_shadow_default ENABLE TRIGGER ALL;
-
-
-
-ALTER TABLE m_shadow ATTACH PARTITION m_shadow_8558374c_0b41_4cf9_a5cd_4b3912ea6305 FOR VALUES IN ('8558374c-0b41-4cf9-a5cd-4b3912ea6305');
-commit;
-----
+`m_shadow_{resourceOid}_{objectClassId}`::
+Partition for resource and object class. `objectClassId` is id from `m_uri` table, which maps URIs / QNames to numeric identifiers.

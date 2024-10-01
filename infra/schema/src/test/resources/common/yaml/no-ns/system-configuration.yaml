@@ -6,7 +6,6 @@ systemConfiguration:
     handler:
       simpleUserNotifier:
         - attachment:
-            - content: "untyped"
             - content: !<string> "ABC"
             - content: !!binary |-
                 REVG

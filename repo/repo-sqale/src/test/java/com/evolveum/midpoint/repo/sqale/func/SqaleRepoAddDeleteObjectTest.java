@@ -821,7 +821,11 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .isEqualTo("string-value");
     }
 
-    @Test
+    /**
+     * Disabled, as of now, base64binary is supported.
+     *
+     * **/
+    @Test(enabled = false)
     public void test302AddObjectWithExtensionItemOfNonIndexableType()
             throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
         OperationResult result = createOperationResult();

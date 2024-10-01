@@ -130,7 +130,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                     }
 
                     @Override
-                    protected void editItemPerformed(
+                    public void editItemPerformed(
                             AjaxRequestTarget target,
                             IModel<PrismContainerValueWrapper<MappingType>> rowModel,
                             List<PrismContainerValueWrapper<MappingType>> listItems) {
@@ -169,7 +169,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                     }
 
                     @Override
-                    protected void editItemPerformed(
+                    public void editItemPerformed(
                             AjaxRequestTarget target,
                             IModel<PrismContainerValueWrapper<MappingType>> rowModel,
                             List<PrismContainerValueWrapper<MappingType>> listItems) {

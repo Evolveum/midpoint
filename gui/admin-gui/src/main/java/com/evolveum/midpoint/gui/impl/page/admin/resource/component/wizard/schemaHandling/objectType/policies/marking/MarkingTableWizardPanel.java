@@ -49,7 +49,7 @@ public abstract class MarkingTableWizardPanel extends AbstractResourceWizardBasi
     private void initLayout() {
         MarkingTable table = new MarkingTable(ID_TABLE, getValueModel(), getConfiguration()){
             @Override
-            protected void editItemPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ShadowMarkingConfigurationType>> rowModel, List<PrismContainerValueWrapper<ShadowMarkingConfigurationType>> listItems) {
+            public void editItemPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ShadowMarkingConfigurationType>> rowModel, List<PrismContainerValueWrapper<ShadowMarkingConfigurationType>> listItems) {
                 showPatternStepWizard(target, rowModel);
             }
         };

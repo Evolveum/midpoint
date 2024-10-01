@@ -186,7 +186,8 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
 
     private boolean useAsIsForNull() {
         return parent != null && parent.getObject() instanceof ExpressionWrapper &&
-                ((ExpressionWrapper)parent.getObject()).isAttributeExpression();
+                (((ExpressionWrapper)parent.getObject()).isAttributeExpression()
+                        || ((ExpressionWrapper)parent.getObject()).isFocusMappingExpression());
     }
 
     private void initLayout() {

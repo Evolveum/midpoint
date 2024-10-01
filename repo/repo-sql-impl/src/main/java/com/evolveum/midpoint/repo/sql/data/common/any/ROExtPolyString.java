@@ -28,7 +28,8 @@ import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
 @Entity
 @IdClass(ROExtPolyStringId.class)
 @Table(name = "m_object_ext_poly", indexes = {
-        @Index(name = "iExtensionPolyString", columnList = "orig")
+        @Index(name = "iExtensionPolyString", columnList = "orig"),
+        @Index(name = "iExtensionPolyNorm", columnList = "orig")
 })
 public class ROExtPolyString extends ROExtBase<String> {
 

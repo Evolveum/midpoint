@@ -35,8 +35,18 @@
     </description>
     <archetypePolicy>
         <display>
-            <label>Business role</label>
-            <pluralLabel>Business roles</pluralLabel>
+            <label>
+                <orig>Business role</orig>
+                <translation>
+                    <key>businessRole.label</key>
+                </translation>
+            </label>
+            <pluralLabel>
+                <orig>Business roles</orig>
+                <translation>
+                    <key>businessRole.pluralLabel</key>
+                </translation>
+            </pluralLabel>
             <icon>
                 <cssClass>fe fe-role</cssClass>
                 <color>green</color>

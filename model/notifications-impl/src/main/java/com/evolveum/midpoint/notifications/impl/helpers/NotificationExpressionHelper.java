@@ -242,10 +242,11 @@ public class NotificationExpressionHelper {
 
         var task = ctx.task();
         QName resultName = new QName(SchemaConstants.NS_C, "result");
-        PrismPropertyDefinition<NotificationMessageAttachmentType> resultDef =
-                prismContext.definitionFactory().newPropertyDefinition(
-                        resultName, NotificationMessageAttachmentType.COMPLEX_TYPE);
-        Expression<PrismPropertyValue<NotificationMessageAttachmentType>, PrismPropertyDefinition<NotificationMessageAttachmentType>> expression =
+        ComplexTypeDefinition ctd = prismContext.getSchemaRegistry().findComplexTypeDefinitionByType(NotificationMessageAttachmentType.COMPLEX_TYPE);
+
+        PrismContainerDefinition<NotificationMessageAttachmentType> resultDef =
+                prismContext.definitionFactory().newContainerDefinition(resultName, ctd);
+        Expression<PrismContainerValue<NotificationMessageAttachmentType>, PrismContainerDefinition<NotificationMessageAttachmentType>> expression =
                 expressionFactory.makeExpression(
                         ExpressionConfigItem.of(expressionBean, origin),
                         resultDef, ctx.defaultExpressionProfile(),
@@ -253,16 +254,16 @@ public class NotificationExpressionHelper {
         ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, variablesMap, shortDesc, task);
         eeContext.setExpressionFactory(expressionFactory);
 
-        PrismValueDeltaSetTriple<PrismPropertyValue<NotificationMessageAttachmentType>> exprResultTriple =
-                ExpressionUtil.evaluateExpressionInContext(expression, eeContext, task, result);
+        PrismValueDeltaSetTriple<PrismContainerValue<NotificationMessageAttachmentType>> exprResultTriple =
+                (PrismValueDeltaSetTriple) ExpressionUtil.evaluateAnyExpressionInContext(expression, eeContext, task, result);
 
-        Collection<PrismPropertyValue<NotificationMessageAttachmentType>> exprResult = exprResultTriple.getZeroSet();
+        Collection<PrismContainerValue<NotificationMessageAttachmentType>> exprResult = exprResultTriple.getZeroSet();
         if (exprResult.isEmpty()) {
             return null;
         }
 
         List<NotificationMessageAttachmentType> retval = new ArrayList<>();
-        for (PrismPropertyValue<NotificationMessageAttachmentType> item : exprResult) {
+        for (PrismContainerValue<NotificationMessageAttachmentType> item : exprResult) {
             retval.add(item.getValue());
         }
         return retval;

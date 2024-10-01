@@ -178,8 +178,7 @@ public class InternalsConfig {
     }
 
     /**
-     * If true, and if the shadow caching is enabled because of {@link #isShadowCachingOnByDefault()}, then the cache is turned
-     * on with long TTL, and for all attributes. To be used for tests.
+     * If true, then the cache is turned on by default with long TTL, and for all attributes. To be used for tests.
      */
     public static boolean isShadowCachingFullByDefault() {
         return shadowCachingDefault == ShadowCachingDefault.FULL;
