@@ -11,6 +11,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
+import com.evolveum.midpoint.gui.impl.page.admin.certification.column.AbstractGuiColumn;
 import com.evolveum.midpoint.web.application.ActionType;
 
 import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
@@ -74,7 +75,8 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             "com.evolveum.midpoint.web.page.admin.services",
             "com.evolveum.midpoint.web.page.admin.users",
             "com.evolveum.midpoint.web.page.admin.server",
-            "com.evolveum.midpoint.web.component.action"
+            "com.evolveum.midpoint.web.component.action",
+            "com.evolveum.midpoint.gui.impl.page.admin.certification.column"
     };
 
     private static final Map<Object, Collection<Class<?>>> SCANNED_CLASSES_MAP = new HashMap<>();
@@ -82,6 +84,8 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
     private static final Map<String, Class<? extends Panel>> PANELS_MAP = new HashMap<>();
 
     private static final Map<String, Class<? extends AbstractGuiAction<?>>> ACTIONS_MAP = new HashMap<>();
+
+    private static final Map<String, Class<? extends AbstractGuiColumn<?, ?>>> COLUMNS_MAP = new HashMap<>();
 
     private static final Map<String, SimpleCounter<?, ?>> COUNTERS_MAP = new HashMap<>();
 
@@ -135,11 +139,16 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         return getClassesForAnnotation(ActionType.class, additionalPackagesToScan);
     }
 
+    private Collection<Class<?>> getColumnTypeClasses() {
+        return getClassesForAnnotation(ColumnType.class, additionalPackagesToScan);
+    }
+
     @PostConstruct
     public void init() {
         fillInPanelsMap();
         fillInCountersMap();
         fillInActionsMap();
+        fillInColumnsMap();
 
         registry.registerCompiler(this);
     }
@@ -150,6 +159,18 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
 
     public Class<? extends AbstractGuiAction<?>> findAction(String identifier) {
         return ACTIONS_MAP.get(identifier);
+    }
+
+    public Class<? extends AbstractGuiColumn<?, ?>> findColumn(String identifier) {
+        return COLUMNS_MAP.get(identifier);
+    }
+
+    public List<Class<? extends AbstractGuiColumn<?, ?>>> findAllApplicableColumns(Class<? extends Containerable> clazz) {
+        return COLUMNS_MAP
+                .values()
+                .stream()
+                .filter(column -> column.getAnnotation(ColumnType.class).applicableForType().isAssignableFrom(clazz))
+                .toList();
     }
 
     public SimpleCounter findCounter(String identifier) {
@@ -388,6 +409,18 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             ActionType actionType = clazz.getAnnotation(ActionType.class);
             if (actionType != null && StringUtils.isNotEmpty(actionType.identifier())) {
                 ACTIONS_MAP.put(actionType.identifier(), (Class<? extends AbstractGuiAction<?>>) clazz);
+            }
+        }
+    }
+
+    private synchronized void fillInColumnsMap() {
+        if (!COLUMNS_MAP.isEmpty()) {
+            return;
+        }
+        for (Class<?> clazz : getColumnTypeClasses()) {
+            ColumnType columnType = clazz.getAnnotation(ColumnType.class);
+            if (columnType != null && StringUtils.isNotEmpty(columnType.identifier())) {
+                COLUMNS_MAP.put(columnType.identifier(), (Class<? extends AbstractGuiColumn<?, ?>>) clazz);
             }
         }
     }

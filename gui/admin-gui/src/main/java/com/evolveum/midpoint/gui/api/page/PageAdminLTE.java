@@ -12,9 +12,11 @@ import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
+import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.secrets.SecretsProviderManager;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.column.AbstractGuiColumn;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
@@ -878,6 +880,14 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
     public Class<? extends AbstractGuiAction<?>> findGuiAction(String identifier) {
         return guiConfigurationRegistry.findAction(identifier);
+    }
+
+    public Class<? extends AbstractGuiColumn<?, ?>> findGuiColumn(String identifier) {
+        return guiConfigurationRegistry.findColumn(identifier);
+    }
+
+    public List<Class<? extends AbstractGuiColumn<?, ?>>> findAllApplicableGuiColumns(Class<? extends Containerable> clazz) {
+        return guiConfigurationRegistry.findAllApplicableColumns(clazz);
     }
 
     public SimpleCounter getCounterProvider(String identifier) {
