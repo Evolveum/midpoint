@@ -13,6 +13,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
 
+import com.evolveum.midpoint.model.impl.mining.utils.DebugOutlierDetectionEvaluation;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import com.google.common.collect.ListMultimap;
@@ -225,6 +226,32 @@ public class ClusteringActionExecutor extends BaseAction {
         handler.setOperationCountToProcess(clusters.size());
         roleAnalysisService
                 .updateSessionStatistics(sessionRef, sessionStatistic, task, result);
+
+        // Development only helper method - DO NOT RUN IN REAL ENVIRONMENT!
+        //logDebugOutlierDetectionEvaluation(sessionOid, modelService, roleAnalysisService, task);
+    }
+
+    /**
+     * Logs outlier detection evaluation, can be used only with RBAC generated test data.
+     * Intended to be used for development purposes only.
+     */
+    private void logDebugOutlierDetectionEvaluation(
+            String sessionOid,
+            ModelService modelService,
+            RoleAnalysisService roleAnalysisService,
+            Task task
+    ) {
+        try {
+            var evaluation = new DebugOutlierDetectionEvaluation(
+                    sessionOid,
+                    modelService,
+                    roleAnalysisService,
+                    task
+            ).evaluate();
+            LOGGER.info(evaluation.toString());
+        } catch (Exception e) {
+            LOGGER.warn("Exception in outlier detection evaluation", e);
+        }
     }
 
     public static @NotNull ListMultimap<String, String> loadRoleMembersMap(@NotNull ModelService modelService,
