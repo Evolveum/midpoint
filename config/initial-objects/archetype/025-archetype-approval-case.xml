@@ -15,8 +15,18 @@
     </description>
     <archetypePolicy>
         <display>
-            <label>Approval case</label>
-            <pluralLabel>Approval cases</pluralLabel>
+            <label>
+                <orig>Approval case</orig>
+                <translation>
+                    <key>approvalCase.label</key>
+                </translation>
+            </label>
+            <pluralLabel>
+                <orig>Approval cases</orig>
+                <translation>
+                    <key>approvalCase.pluralLabel</key>
+                </translation>
+            </pluralLabel>
             <icon>
                 <cssClass>fe fe-approver-object</cssClass>
             </icon>

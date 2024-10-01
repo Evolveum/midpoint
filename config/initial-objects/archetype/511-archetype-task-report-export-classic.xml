@@ -5,13 +5,18 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <archetype oid="00000000-0000-0000-0000-000000000511"
-           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-           xmlns:rext="http://midpoint.evolveum.com/xml/ns/public/report/extension-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:rext="http://midpoint.evolveum.com/xml/ns/public/report/extension-3">
     <name>Report export task</name>
     <archetypePolicy>
         <display>
-            <label>Report export task</label>
+            <label>
+                <orig>Report export task</orig>
+                <translation>
+                    <key>ReportExportTask.label</key>
+                </translation>
+            </label>
             <pluralLabel>
                 <orig>Report export tasks</orig>
                 <translation>
@@ -37,7 +42,12 @@
                         <container id="4">
                             <identifier>reportParam</identifier>
                             <display>
-                                <label>Parameters</label>
+                                <label>
+                                    <orig>Parameters</orig>
+                                    <translation>
+                                        <key>parameters.container.label</key>
+                                    </translation>
+                                </label>
                             </display>
                             <path>activity/work/reportExport/reportParam</path>
                         </container>

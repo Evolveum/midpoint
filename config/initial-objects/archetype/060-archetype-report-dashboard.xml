@@ -11,7 +11,12 @@
     <name>Dashboard report</name>
     <archetypePolicy>
         <display>
-            <label>Dashboard report</label>
+            <label>
+                <orig>Dashboard report</orig>
+                <translation>
+                    <key>dashboardReport.label</key>
+                </translation>
+            </label>
             <pluralLabel>
                 <orig>Dashboard reports</orig>
                 <translation>
@@ -34,7 +39,12 @@
                     <identifier>engine</identifier>
                     <displayOrder>11</displayOrder>
                     <display>
-                        <label>Engine</label>
+                        <label>
+                            <orig>Engine</orig>
+                            <translation>
+                                <key>engine.panel.label</key>
+                            </translation>
+                        </label>
                         <cssClass>fa fa-microchip</cssClass>
                         <icon>
                             <cssClass>fa fa-microchip</cssClass>
@@ -43,7 +53,12 @@
                     <container id="4">
                         <identifier>engineContainer</identifier>
                         <display>
-                            <label>Engine</label>
+                            <label>
+                                <orig>Engine</orig>
+                                <translation>
+                                    <key>engine.panel.label</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="5">
                             <path>dashboard/dashboardRef</path>
@@ -62,7 +77,12 @@
                 <panel id="3">
                     <identifier>view</identifier>
                     <display>
-                        <label>View</label>
+                        <label>
+                            <orig>View</orig>
+                            <translation>
+                                <key>view.panel.label</key>
+                            </translation>
+                        </label>
                         <cssClass>fa fa-eye</cssClass>
                         <icon>
                             <cssClass>fa fa-eye</cssClass>
@@ -71,7 +91,12 @@
                     <container id="8">
                         <identifier>dashboard</identifier>
                         <display>
-                            <label>Dashboard</label>
+                            <label>
+                                <orig>Dashboard</orig>
+                                <translation>
+                                    <key>dashboard.panel.label</key>
+                                </translation>
+                            </label>
                         </display>
                         <path>dashboard/view</path>
                     </container>

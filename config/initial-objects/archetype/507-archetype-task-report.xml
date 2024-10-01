@@ -5,14 +5,19 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <archetype oid="00000000-0000-0000-0000-000000000507"
-           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-           xmlns:rext="http://midpoint.evolveum.com/xml/ns/public/report/extension-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:rext="http://midpoint.evolveum.com/xml/ns/public/report/extension-3">
     <name>Report task</name>
     <description>Super archetype for all report archetypes</description>
     <archetypePolicy>
         <display>
-            <label>Report task</label>
+            <label>
+                <orig>Report task</orig>
+                <translation>
+                    <key>ReportTask.label</key>
+                </translation>
+            </label>
             <pluralLabel>
                 <orig>Report tasks</orig>
                 <translation>

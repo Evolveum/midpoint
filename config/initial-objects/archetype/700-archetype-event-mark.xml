@@ -6,7 +6,7 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <archetype oid="00000000-0000-0000-0000-000000000700"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Event mark</name>
     <description>Denotes marks for audit and simulation events</description>
     <assignment id="1">
@@ -17,13 +17,31 @@
     </assignment>
     <archetypePolicy>
         <display>
-            <label>Event Mark</label>
-            <pluralLabel>Event Marks</pluralLabel>
+            <label>
+                <orig>Event mark</orig>
+                <translation>
+                    <key>EventMark.label</key>
+                </translation>
+            </label>
+            <pluralLabel>
+                <orig>Event marks</orig>
+                <translation>
+                    <key>EventMarks.pluralLabel</key>
+                </translation>
+            </pluralLabel>
             <icon>
                 <cssClass>fa fa-tag</cssClass>
                 <color>green</color>
             </icon>
         </display>
+        <adminGuiConfiguration>
+            <objectDetails>
+                <panel id="3">
+                    <identifier>objectOperationPolicyPanel</identifier>
+                    <visibility>hidden</visibility>
+                </panel>
+            </objectDetails>
+        </adminGuiConfiguration>
     </archetypePolicy>
     <archetypeType>structural</archetypeType>
 </archetype>

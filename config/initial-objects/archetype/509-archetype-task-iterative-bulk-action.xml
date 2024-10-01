@@ -5,14 +5,19 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <archetype oid="00000000-0000-0000-0000-000000000509"
-           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-           xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-           xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
+        xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
     <name>Iterative action task</name>
     <archetypePolicy>
         <display>
-            <label>Iterative action task</label>
+            <label>
+                <orig>Iterative action task</orig>
+                <translation>
+                    <key>IterativeActionTask.title</key>
+                </translation>
+            </label>
             <pluralLabel>
                 <orig>Iterative action tasks</orig>
                 <translation>
