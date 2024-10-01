@@ -219,6 +219,10 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
         return super.createCustomExportableColumn(displayModel, guiObjectColumn, expression);
     }
 
+    @Override
+    protected boolean shouldCheckForNameColumn() {
+        return false;
+    }
 
     private void recordCommentPerformed(AjaxRequestTarget target, PrismContainerValueWrapper<AccessCertificationWorkItemType> certItemWrapper) {
         if (certItemWrapper == null) {

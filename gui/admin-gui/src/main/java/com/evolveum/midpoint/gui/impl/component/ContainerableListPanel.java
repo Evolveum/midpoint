@@ -775,7 +775,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             return initColumns();
         }
 
-        boolean checkForNameColumn = true;
+        boolean checkForNameColumn = shouldCheckForNameColumn();
         if (shouldIncludeDefaultColumns()) {
             columns = initColumns();
             checkForNameColumn = false;
@@ -815,6 +815,10 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         if (iconColumn != null) {
             columns.add(iconColumn);
         }
+    }
+
+    protected boolean shouldCheckForNameColumn() {
+        return true;
     }
 
     protected List<IColumn<PO, String>> getViewColumnsTransformed(List<GuiObjectColumnType> customColumns) {

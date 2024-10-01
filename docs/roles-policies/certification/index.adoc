@@ -275,14 +275,13 @@ WARNING: Be aware that _availableResponse_ element is deprecated therefore it's 
 === Configuring collection views for certification items
 
 Certification items collection view brings more extended configuration options.
-Default certification items collection view can be configured in the _systemConfiguration -> adminGuiConfiguration -> objectCollectionViews -> objectCollectionView_.
-To be used as a default view, the collection view identifier should be defined in the _accessCertification_ -> _defaultView_ element in the system configuration.
+Default certification items collection view can be configured in the _systemConfiguration -> accessCertification -> defaultView_.
 Collection view configuration should define identifier and type.
 Collection view can also contain columns and actions configuration.
 
 [source,xml]
 ----
-            <objectCollectionView>
+            <defaultView>
                 <identifier>defaultCertItemsView</identifier>
                 <column>
                     <name>stage</name>
@@ -319,7 +318,7 @@ Collection view can also contain columns and actions configuration.
                         <type>AccessCertificationWorkItemType</type>
                     </panel>
                 </action>
-            </objectCollectionView>
+            </defaultView>
 ----
 
 To learn more about actions configuration, please follow to xref:/midpoint/reference/roles-policies/certification/actions/[GUI Actions] page.
