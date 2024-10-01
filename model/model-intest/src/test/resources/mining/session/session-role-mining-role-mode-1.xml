@@ -21,28 +21,12 @@
         <minPropertiesOverlap>5</minPropertiesOverlap>
         <clusteringAttributeSetting>
         </clusteringAttributeSetting>
-        <analysisAttributeSetting>
-            <analysisAttributeRule xsi:type="c:AnalysisAttributeRuleType">
-                <attributeIdentifier>title</attributeIdentifier>
-                <propertyType>c:UserType</propertyType>
-            </analysisAttributeRule>
-            <analysisAttributeRule xsi:type="c:AnalysisAttributeRuleType">
-                <attributeIdentifier>archetype ref</attributeIdentifier>
-                <propertyType>c:UserType</propertyType>
-            </analysisAttributeRule>
-            <analysisAttributeRule xsi:type="c:AnalysisAttributeRuleType">
-                <attributeIdentifier>locality</attributeIdentifier>
-                <propertyType>c:UserType</propertyType>
-            </analysisAttributeRule>
-            <analysisAttributeRule xsi:type="c:AnalysisAttributeRuleType">
-                <attributeIdentifier>org assignment</attributeIdentifier>
-                <propertyType>c:UserType</propertyType>
-            </analysisAttributeRule>
-            <analysisAttributeRule xsi:type="c:AnalysisAttributeRuleType">
-                <attributeIdentifier>archetype ref</attributeIdentifier>
-                <propertyType>c:RoleType</propertyType>
-            </analysisAttributeRule>
-        </analysisAttributeSetting>
+        <userAnalysisAttributeSetting>
+            <path>c:title</path>
+            <path>c:parentOrgRef</path>
+            <path>c:archetypeRef</path>
+            <path>c:locality</path>
+        </userAnalysisAttributeSetting>
         <isIndirect>false</isIndirect>
         <detailedAnalysis>false</detailedAnalysis>
     </roleModeOptions>
