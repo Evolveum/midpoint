@@ -36,7 +36,7 @@
         <detailedAnalysis>false</detailedAnalysis>
     </userModeOptions>
     <defaultDetectionOption>
-        <sensitivity>80.0</sensitivity>
+        <sensitivity>75.0</sensitivity>
         <minRolesOccupancy>2</minRolesOccupancy>
         <minUserOccupancy>2</minUserOccupancy>
         <frequencyRange>
