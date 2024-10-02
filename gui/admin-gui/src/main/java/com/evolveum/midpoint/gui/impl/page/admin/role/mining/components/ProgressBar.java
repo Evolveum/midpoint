@@ -132,6 +132,7 @@ public class ProgressBar extends BasePanel<String> {
             List<PrismObject<FocusType>> objects = new ArrayList<>();
             Map<String, RoleAnalysisAttributeStatistics> objectsMap = new HashMap<>();
             for (RoleAnalysisAttributeStatistics analysisResult : roleAnalysisAttributeResult) {
+                //TODO hack, this is wrong, not all attribute values is oid TBD
                 PrismObject<FocusType> focusTypeObject = roleAnalysisService.getFocusTypeObject(
                         analysisResult.getAttributeValue(), task, result);
                 if (focusTypeObject == null) {

@@ -16,6 +16,7 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 
 import org.apache.commons.lang3.StringUtils;
@@ -44,7 +45,8 @@ public class MappingNameWrapperFactory extends PrismPropertyWrapperFactoryImpl<S
     @Override
     public PrismPropertyWrapper<String> createWrapper(PrismContainerValueWrapper<?> parent, Item childItem, ItemStatus status, WrapperContext context) throws SchemaException {
         PrismPropertyWrapper<String> wrapper = super.createWrapper(parent, childItem, status, context);
-        if (wrapper.getStatus() == ItemStatus.NOT_CHANGED
+        if (parent.getStatus() == ValueStatus.NOT_CHANGED
+                && wrapper.getStatus() == ItemStatus.NOT_CHANGED
                 && childItem.getDefinition().isSingleValue()
                 && !childItem.getValues().isEmpty()
                 && childItem.getValue() != null

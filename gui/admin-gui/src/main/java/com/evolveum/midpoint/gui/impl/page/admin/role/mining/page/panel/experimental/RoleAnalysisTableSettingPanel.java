@@ -10,11 +10,19 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.experim
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.*;
 
 import java.io.Serial;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
+import java.util.*;
 
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChunkAction;
+
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.ObjectSimpleAttributeSelectionProvider;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -25,6 +33,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.xerces.xni.QName;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
@@ -37,6 +46,9 @@ import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
+
+import org.wicketstuff.select2.ChoiceProvider;
+import org.wicketstuff.select2.Select2MultiChoice;
 
 public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements Popupable {
 
@@ -187,29 +199,28 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
         labelWithHelpPanel.setOutputMarkupId(true);
         add(labelWithHelpPanel);
 
-        ChoiceRenderer<RoleAnalysisAttributeDef> renderer = new ChoiceRenderer<>("displayValue");
+        //TODO decide what to do with this?
 
-        List<RoleAnalysisAttributeDef> attributesForRoleAnalysis = createSimpleRoleAttributeChoiceSet();
-        IModel<RoleAnalysisAttributeDef> selectedModel = Model.of(roleAnalysisAttributeDef.getObject());
+        ChoiceProvider<ItemPathType> choiceProvider = new ObjectSimpleAttributeSelectionProvider(RoleType.COMPLEX_TYPE);
 
-        DropDownChoice<RoleAnalysisAttributeDef> dropDownChoice = new DropDownChoice<>(
-                ID_SELECTOR_ROLE, selectedModel,
-                attributesForRoleAnalysis, renderer);
+        Select2MultiChoice<ItemPathType> multiselect = new Select2MultiChoice<>(ID_SELECTOR_ROLE,
+                initSelectedModel(roleAnalysisAttributeDef),
+                choiceProvider);
 
-        dropDownChoice.setOutputMarkupId(true);
-        dropDownChoice.add(new AjaxFormComponentUpdatingBehavior("change") {
+        multiselect.getSettings()
+                .setMinimumInputLength(0)
+                .setMaximumSelectionLength(1);
+        multiselect.add(new AjaxFormComponentUpdatingBehavior("change") {
+
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                if (option.getObject() == null) {
-                    option.setObject(new DisplayValueOption());
-                }
-                roleAnalysisAttributeDef.setObject(selectedModel.getObject());
-                option.getObject().setRoleAnalysisRoleDef(selectedModel.getObject());
+                updateRoleAnalysisAttributeDefModel(multiselect.getModel().getObject());
             }
         });
-        dropDownChoice.setOutputMarkupId(true);
-        dropDownChoice.setEnabled(isRoleExpanded);
-        add(dropDownChoice);
+        multiselect.setOutputMarkupId(true);
+        multiselect.setEnabled(isRoleExpanded);
+        add(multiselect);
+
     }
 
     private void initUserHeaderSelector() {
@@ -237,30 +248,70 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
         labelWithHelpPanel.setOutputMarkupId(true);
         add(labelWithHelpPanel);
 
-        ChoiceRenderer<RoleAnalysisAttributeDef> renderer = new ChoiceRenderer<>("displayValue");
-
         //TODO mark good
-        List<RoleAnalysisAttributeDef> attributesForUserAnalysis = createSimpleUserAttributeChoiceSet();
-        IModel<RoleAnalysisAttributeDef> selectedModel = Model.of(userAnalysisAttributeDef.getObject());
+        //TODO decide what to do with this?
+        ChoiceProvider<ItemPathType> choiceProvider = new ObjectSimpleAttributeSelectionProvider(UserType.COMPLEX_TYPE);
 
-        DropDownChoice<RoleAnalysisAttributeDef> dropDownChoice = new DropDownChoice<>(
-                ID_SELECTOR_USER, selectedModel,
-                attributesForUserAnalysis, renderer);
+        Select2MultiChoice<ItemPathType> multiselect = new Select2MultiChoice<>(ID_SELECTOR_USER,
+                initSelectedModel(userAnalysisAttributeDef),
+                choiceProvider);
 
-        dropDownChoice.setOutputMarkupId(true);
-        dropDownChoice.add(new AjaxFormComponentUpdatingBehavior("change") {
+        multiselect.getSettings()
+                .setMinimumInputLength(0)
+                .setMaximumSelectionLength(1);
+        multiselect.add(new AjaxFormComponentUpdatingBehavior("change") {
+
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                if (option.getObject() == null) {
-                    option.setObject(new DisplayValueOption());
-                }
-                userAnalysisAttributeDef.setObject(selectedModel.getObject());
-                option.getObject().setUserAnalysisUserDef(selectedModel.getObject());
+                updateUserAnalysisAttributeDefModel(multiselect.getModel().getObject());
             }
         });
-        dropDownChoice.setOutputMarkupId(true);
-        dropDownChoice.setEnabled(isUserExpanded);
-        add(dropDownChoice);
+        multiselect.setOutputMarkupId(true);
+        multiselect.setEnabled(isUserExpanded);
+        add(multiselect);
+    }
+
+    private void updateUserAnalysisAttributeDefModel(Collection<ItemPathType> selected) {
+        PrismObjectDefinition<?> userDefinition = PrismContext.get().getSchemaRegistry()
+                .findObjectDefinitionByCompileTimeClass(UserType.class);
+
+        if (option.getObject() == null) {
+            option.setObject(new DisplayValueOption());
+        }
+        for (ItemPathType pathType : selected) {
+            ItemPath path = pathType.getItemPath();
+            ItemDefinition<?> itemDefinition = userDefinition.findItemDefinition(path);
+
+            userAnalysisAttributeDef.setObject(new RoleAnalysisAttributeDef(path, itemDefinition));
+            option.getObject().setUserAnalysisUserDef(userAnalysisAttributeDef.getObject());
+        }
+    }
+
+    private void updateRoleAnalysisAttributeDefModel(Collection<ItemPathType> selected) {
+        PrismObjectDefinition<?> roleDefinition = PrismContext.get().getSchemaRegistry()
+                .findObjectDefinitionByCompileTimeClass(RoleType.class);
+
+        if (option.getObject() == null) {
+            option.setObject(new DisplayValueOption());
+        }
+        for (ItemPathType pathType : selected) {
+            ItemPath path = pathType.getItemPath();
+            ItemDefinition<?> itemDefinition = roleDefinition.findItemDefinition(path);
+
+            roleAnalysisAttributeDef.setObject(new RoleAnalysisAttributeDef(path, itemDefinition));
+            option.getObject().setRoleAnalysisRoleDef(roleAnalysisAttributeDef.getObject());
+        }
+    }
+
+    private LoadableModel<Collection<ItemPathType>> initSelectedModel(LoadableDetachableModel<RoleAnalysisAttributeDef> model) {
+        return new LoadableModel<>(false) {
+
+            @Override
+            protected Collection<ItemPathType> load() {
+                return Collections.singleton(model.getObject()
+                        .getPath().toBean());
+            }
+        };
     }
 
     public void initSortingSetting() {
@@ -351,20 +402,21 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
             protected void onUpdate(AjaxRequestTarget target) {
                 selectedTableMode = selectedModeModel.getObject();
                 updateBasedExpandedStatus(selectedTableMode);
-                DropDownChoice<?> componentUserSelector = (DropDownChoice<?>) RoleAnalysisTableSettingPanel
+                Select2MultiChoice<?> componentUserSelector = (Select2MultiChoice<?>) RoleAnalysisTableSettingPanel
                         .this.get(ID_SELECTOR_ROLE);
                 componentUserSelector.setEnabled(isRoleExpanded);
-                DropDownChoice<?> componentRoleSelector = (DropDownChoice<?>) RoleAnalysisTableSettingPanel
+                Select2MultiChoice<?> componentRoleSelector = (Select2MultiChoice<?>) RoleAnalysisTableSettingPanel
                         .this.get(ID_SELECTOR_USER);
                 componentRoleSelector.setEnabled(isUserExpanded);
 
-                if (isRoleExpanded) {
-                    componentRoleSelector.setDefaultModel(Model.of(getObjectNameDef()));
-                }
-
-                if (isUserExpanded) {
-                    componentUserSelector.setDefaultModel(Model.of(getObjectNameDef()));
-                }
+                //TODO decide what to do with this?
+//                if (isRoleExpanded) {
+//                    componentRoleSelector.setDefaultModel(Model.of(getObjectNameDef()));
+//                }
+//
+//                if (isUserExpanded) {
+//                    componentUserSelector.setDefaultModel(Model.of(getObjectNameDef()));
+//                }
 
                 target.add(componentUserSelector);
                 target.add(componentRoleSelector);

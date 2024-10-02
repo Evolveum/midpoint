@@ -82,7 +82,7 @@ public class AdvancedClustering implements Clusterable {
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
 
         List<RoleAnalysisAttributeDefConvert> roleAnalysisAttributeDefConverts = generateMatchingRulesList(
-                sessionOptionType.getClusteringAttributeSetting().getClusteringAttributeRule(),
+                sessionOptionType.getClusteringAttributeSetting(),
                 RoleAnalysisProcessModeType.ROLE);
 
         SearchFilterType query = sessionOptionType.getQuery();
@@ -131,7 +131,7 @@ public class AdvancedClustering implements Clusterable {
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
 
         List<RoleAnalysisAttributeDefConvert> roleAnalysisAttributeDefConverts = generateMatchingRulesList(
-                sessionOptionType.getClusteringAttributeSetting().getClusteringAttributeRule(),
+                sessionOptionType.getClusteringAttributeSetting(),
                 RoleAnalysisProcessModeType.USER);
 
         SearchFilterType query = sessionOptionType.getQuery();
@@ -254,7 +254,8 @@ public class AdvancedClustering implements Clusterable {
             return ClusteringMode.BALANCED;
         } else {
 
-            if(analysisProcedureType.equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)){
+            if(analysisProcedureType.equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)
+            || analysisCategory.equals(RoleAnalysisCategoryType.ATTRIBUTE_BASED)) {
                 return ClusteringMode.BALANCED_RULES_OUTLIER;
             }
 

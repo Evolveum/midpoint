@@ -5,12 +5,17 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <archetype oid="00000000-0000-0000-0000-000000000521"
-           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Approval-related task</name>
     <archetypePolicy>
         <display>
-            <label>Approval-related task</label>
+            <label>
+                <orig>Approval-related task</orig>
+                <translation>
+                    <key>ApprovalRelatedTask.label</key>
+                </translation>
+            </label>
             <pluralLabel>
                 <orig>Approval-related tasks</orig>
                 <translation>

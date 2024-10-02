@@ -10,6 +10,9 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.components;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisAttributeAnalysisDto;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -17,6 +20,7 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,17 +43,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * add(progressBarForm);
  * }</pre>
  */
-public class ProgressBarForm extends BasePanel<String> {
+public class ProgressBarForm extends BasePanel<RoleAnalysisAttributeAnalysisDto> {
     private static final String ID_CONTAINER = "container";
     private static final String ID_FORM_TITLE = "progressFormTitle";
     private static final String ID_REPEATING_VIEW = "repeatingProgressBar";
-    transient RoleAnalysisAttributeAnalysis analysisResult;
-    Set<String> pathToMark;
 
-    public ProgressBarForm(String id, RoleAnalysisAttributeAnalysis analysisResult, Set<String> pathToMark) {
-        super(id);
+    private Set<String> pathToMark;
+
+    public ProgressBarForm(String id, IModel<RoleAnalysisAttributeAnalysisDto> analysisResultDto, Set<String> pathToMark) {
+        super(id, analysisResultDto);
         this.pathToMark = pathToMark;
-        this.analysisResult = analysisResult;
+
     }
 
     @Override
@@ -60,16 +64,16 @@ public class ProgressBarForm extends BasePanel<String> {
         container.setOutputMarkupId(true);
         add(container);
 
-        String title = analysisResult.getItemPath();
-        IconWithLabel titleForm = new IconWithLabel(ID_FORM_TITLE, Model.of(title)) {
+        IModel<String> labelModel = createStringResource("${displayNameKey}", getModel());
+        IconWithLabel titleForm = new IconWithLabel(ID_FORM_TITLE, labelModel) {
             @Override
             protected String getIconCssClass() {
-                QName parentType = analysisResult.getParentType();
+                Class<?> parentType = ProgressBarForm.this.getModelObject().getType();
                 if (parentType == null) {
                     return super.getIconCssClass();
                 }
 
-                if (parentType.equals(UserType.COMPLEX_TYPE)) {
+                if (UserType.class.equals(parentType)) {
                     return GuiStyleConstants.CLASS_OBJECT_USER_ICON + " fa-sm";
                 } else {
                     return GuiStyleConstants.CLASS_CANDIDATE_ROLE_ICON + " fa-sm";
@@ -78,7 +82,7 @@ public class ProgressBarForm extends BasePanel<String> {
 
             @Override
             protected Component getSubComponent(String id) {
-                List<RoleAnalysisAttributeStatistics> attributeStatistics = analysisResult.getAttributeStatistics();
+                List<RoleAnalysisAttributeStatistics> attributeStatistics = ProgressBarForm.this.getModelObject().getAttributeStatistics();
                 if (attributeStatistics == null) {
                     return super.getSubComponent(id);
                 }
@@ -98,20 +102,20 @@ public class ProgressBarForm extends BasePanel<String> {
         repeatingProgressBar.setOutputMarkupId(true);
         container.add(repeatingProgressBar);
 
-        initProgressBars(analysisResult, repeatingProgressBar, container);
+        initProgressBars(repeatingProgressBar, container);
 
     }
 
-    private void initProgressBars(@NotNull RoleAnalysisAttributeAnalysis analysisResult,
-            @NotNull RepeatingView repeatingProgressBar, WebMarkupContainer container) {
-        List<RoleAnalysisAttributeStatistics> roleAnalysisAttributeStructures = new ArrayList<>(analysisResult.getAttributeStatistics());
+    private void initProgressBars(@NotNull RepeatingView repeatingProgressBar, WebMarkupContainer container) {
+        //TODO incorrect model unwrapping.
+        List<RoleAnalysisAttributeStatistics> roleAnalysisAttributeStructures = new ArrayList<>(getModelObject().getAttributeStatistics());
         roleAnalysisAttributeStructures.sort(Comparator.comparingDouble(RoleAnalysisAttributeStatistics::getFrequency).reversed());
 
         int maxVisibleBars = 3;
         int totalBars = 0;
         int size = roleAnalysisAttributeStructures.size();
         Map<Double, List<RoleAnalysisAttributeStatistics>> map = new TreeMap<>(Comparator.reverseOrder());
-        if (size > 5 && analysisResult.isIsMultiValue()) {
+        if (size > 5 ) { //&& analysisResult.isIsMultiValue()) {
             roleAnalysisAttributeStructures.forEach((item) -> {
                 double frequency = item.getFrequency();
                 List<RoleAnalysisAttributeStatistics> list = map.getOrDefault(frequency, new ArrayList<>());

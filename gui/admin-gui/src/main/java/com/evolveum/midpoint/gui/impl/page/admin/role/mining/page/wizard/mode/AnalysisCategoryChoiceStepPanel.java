@@ -8,9 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard.mode;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.util.exception.CommonException;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -31,6 +29,10 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcedureType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
 @PanelType(name = "ra-category")
 @PanelInstance(identifier = "ra-category",
@@ -65,30 +67,43 @@ public class AnalysisCategoryChoiceStepPanel extends EnumWizardChoicePanel<Analy
     }
 
     @Override
-    protected void onTileClickPerformed(AnalysisCategoryMode value, AjaxRequestTarget target) {
-        analysisCategoryModel.setObject(value);
-        LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getAssignmentHolderDetailsModel()
-                .getObjectWrapperModel();
+    protected void onTileClickPerformed(AnalysisCategoryMode category, AjaxRequestTarget target) {
+        analysisCategoryModel.setObject(category);
 
-        PrismObjectWrapper<RoleAnalysisSessionType> objectWrapper = objectWrapperModel
-                .getObject();
+        Task task = getPageBase().createSimpleTask("prepare options");
+        OperationResult result = task.getResult();
 
-        PrismContainer<Containerable> property = objectWrapper.getObject()
-                .findContainer(RoleAnalysisSessionType.F_ANALYSIS_OPTION);
-
-        property.findProperty(RoleAnalysisOptionType.F_ANALYSIS_CATEGORY)
-                .setRealValue(value.resolveCategoryMode());
-        if (!value.requiresProcessModeConfiguration()) {
-            property.findProperty(RoleAnalysisOptionType.F_PROCESS_MODE)
-                    .setRealValue(value.getRequiredProcessModeConfiguration());
-            Task task = getPageBase().createSimpleTask("prepare options");
-            OperationResult result = task.getResult();
-            RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-            value.generateConfiguration(
-                    roleAnalysisService, objectWrapperModel, task, result);
+        PrismObjectWrapper<RoleAnalysisSessionType> sessionWrapper = getAssignmentHolderDetailsModel().getObjectWrapper();
+        RoleAnalysisSessionType session;
+        try {
+            session = sessionWrapper.getObjectApplyDelta().asObjectable();
+        } catch (CommonException e) {
+            session = sessionWrapper.getObjectOld().asObjectable();
         }
+
+        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+        if (analysisOption == null) {
+            analysisOption = new RoleAnalysisOptionType();
+            session.setAnalysisOption(analysisOption);
+        }
+        analysisOption.setAnalysisCategory(category.resolveCategoryMode());
+
+        if (!category.requiresProcessModeConfiguration()) {
+            session.getAnalysisOption().setProcessMode(category.getRequiredProcessModeConfiguration());
+        }
+
+
+        category.generateConfiguration(getPageBase().getRoleAnalysisService(), session, task, result);
+
+        reloadDefaultConfiguration(session);
+
         onSubmitPerformed(target);
     }
+
+    protected void reloadDefaultConfiguration(RoleAnalysisSessionType session) {
+
+    }
+
 
     protected boolean isRequiresProcessModeConfiguration() {
         if (analysisCategoryModel.getObject() == null) {

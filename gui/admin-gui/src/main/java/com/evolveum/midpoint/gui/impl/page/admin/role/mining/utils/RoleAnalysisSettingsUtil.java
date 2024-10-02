@@ -53,6 +53,7 @@ public class RoleAnalysisSettingsUtil {
 
         return switch (category) {
             case OUTLIERS_DEPARTMENT, DEPARTMENT -> "department";
+            case ATTRIBUTE_BASED -> "attribute";
             case BALANCED -> "balanced";
             case EXACT -> "exact";
             case EXPLORATION -> "exploration";

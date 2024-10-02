@@ -12,7 +12,12 @@
     <archetypeType>auxiliary</archetypeType>
     <archetypePolicy>
         <display>
-            <label>Trigger scanner task</label>
+            <label>
+                <orig>Trigger scanner task</orig>
+                <translation>
+                    <key>TriggerScannerTask.label</key>
+                </translation>
+            </label>
             <pluralLabel>
                 <orig>Trigger scanner task</orig>
                 <translation>

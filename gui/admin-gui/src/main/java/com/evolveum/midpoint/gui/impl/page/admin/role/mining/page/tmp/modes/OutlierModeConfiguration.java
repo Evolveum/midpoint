@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context.AbstractRoleAnalysisConfiguration;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -22,9 +23,10 @@ public class OutlierModeConfiguration extends AbstractRoleAnalysisConfiguration 
     RoleAnalysisService service;
     Task task;
     OperationResult result;
+
     public OutlierModeConfiguration(
             RoleAnalysisService service,
-            LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapper,
+            RoleAnalysisSessionType objectWrapper,
             Task task,
             OperationResult result) {
         super(objectWrapper);

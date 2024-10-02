@@ -5,13 +5,18 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <archetype oid="00000000-0000-0000-0000-000000000503"
-           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-           xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
     <name>Import task</name>
     <archetypePolicy>
         <display>
-            <label>Import task</label>
+            <label>
+                <orig>Import task</orig>
+                <translation>
+                    <key>ImportTask.label</key>
+                </translation>
+            </label>
             <pluralLabel>
                 <orig>Import tasks</orig>
                 <translation>
@@ -126,7 +131,7 @@
 
                             String description = midpoint.describeResourceObjectSet(task?.activity?.work?.getImport()?.resourceObjects)
                             if(StringUtils.isNotEmpty(description)) {
-                                return name + ': ' + description
+                            return name + ': ' + description
                             }
 
                             return name

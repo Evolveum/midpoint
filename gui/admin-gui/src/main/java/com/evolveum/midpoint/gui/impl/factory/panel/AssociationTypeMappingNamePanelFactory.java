@@ -34,7 +34,7 @@ public class AssociationTypeMappingNamePanelFactory extends MappingNamePanelFact
     }
 
     protected MappingNameValidator createValidator(PrismPropertyPanelContext<String> panelCtx) {
-        return new AssociationMappingNameValidator(panelCtx.getItemWrapperModel(), panelCtx.getPageBase());
+        return new AssociationMappingNameValidator(panelCtx.getItemWrapperModel());
     }
 
     @Override

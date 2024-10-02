@@ -35,7 +35,7 @@ public class ClusteringAttributeFactory extends AbstractInputGuiComponentFactory
 
     @Override
     public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
-        return RoleAnalysisSessionOptionType.F_CLUSTERING_ATTRIBUTE_SETTING.equals(wrapper.getItemName());
+        return AbstractAnalysisSessionOptionType.F_CLUSTERING_ATTRIBUTE_SETTING.equals(wrapper.getItemName());
     }
 
     @Override

@@ -13,8 +13,18 @@
     </description>
     <archetypePolicy>
         <display>
-            <label>Correlation case</label>
-            <pluralLabel>Correlation cases</pluralLabel>
+            <label>
+                <orig>Correlation case</orig>
+                <translation>
+                    <key>correlationCase.label</key>
+                </translation>
+            </label>
+            <pluralLabel>
+                <orig>Correlation cases</orig>
+                <translation>
+                    <key>correlationCase.pluralLabel</key>
+                </translation>
+            </pluralLabel>
             <icon>
                 <cssClass>fe fe-approver-object</cssClass> <!-- TODO -->
             </icon>
@@ -24,7 +34,12 @@
                 <panel id="3">
                     <identifier>caseWorkItems</identifier>
                     <display>
-                        <label>Workitems</label>
+                        <label>
+                            <orig>Workitems</orig>
+                            <translation>
+                                <key>Workitems.panel.title</key>
+                            </translation>
+                        </label>
                         <icon>
                             <cssClass>fa fa-circle</cssClass>
                         </icon>
@@ -36,7 +51,12 @@
                 <panel id="4">
                     <identifier>correlationContext</identifier>
                     <display>
-                        <label>Correlation</label>
+                        <label>
+                            <orig>Correlation</orig>
+                            <translation>
+                                <key>correlation.panel.label</key>
+                            </translation>
+                        </label>
                         <icon>
                             <cssClass>fa fa-circle</cssClass>
                         </icon>

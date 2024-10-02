@@ -20,35 +20,18 @@
         </propertiesRange>
         <minPropertiesOverlap>5</minPropertiesOverlap>
         <clusteringAttributeSetting>
-            <clusteringAttributeRule xsi:type="c:ClusteringAttributeRuleType">
-                <attributeIdentifier>org assignment</attributeIdentifier>
-                <isMultiValue>true</isMultiValue>
+            <clusteringAttributeRule>
+                <path>parentOrgRef</path>
                 <similarity>100.0</similarity>
                 <weight>1.0</weight>
             </clusteringAttributeRule>
         </clusteringAttributeSetting>
-        <analysisAttributeSetting>
-            <analysisAttributeRule xsi:type="c:AnalysisAttributeRuleType">
-                <attributeIdentifier>title</attributeIdentifier>
-                <propertyType>c:UserType</propertyType>
-            </analysisAttributeRule>
-            <analysisAttributeRule xsi:type="c:AnalysisAttributeRuleType">
-                <attributeIdentifier>archetype ref</attributeIdentifier>
-                <propertyType>c:UserType</propertyType>
-            </analysisAttributeRule>
-            <analysisAttributeRule xsi:type="c:AnalysisAttributeRuleType">
-                <attributeIdentifier>locality</attributeIdentifier>
-                <propertyType>c:UserType</propertyType>
-            </analysisAttributeRule>
-            <analysisAttributeRule xsi:type="c:AnalysisAttributeRuleType">
-                <attributeIdentifier>org assignment</attributeIdentifier>
-                <propertyType>c:UserType</propertyType>
-            </analysisAttributeRule>
-            <analysisAttributeRule xsi:type="c:AnalysisAttributeRuleType">
-                <attributeIdentifier>archetype ref</attributeIdentifier>
-                <propertyType>c:RoleType</propertyType>
-            </analysisAttributeRule>
-        </analysisAttributeSetting>
+        <userAnalysisAttributeSetting>
+            <path>c:title</path>
+            <path>c:parentOrgRef</path>
+            <path>c:archetypeRef</path>
+            <path>c:locality</path>
+        </userAnalysisAttributeSetting>
         <isIndirect>true</isIndirect>
         <detailedAnalysis>false</detailedAnalysis>
     </userModeOptions>

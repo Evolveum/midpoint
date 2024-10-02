@@ -11,14 +11,16 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ClusteringAttributeRuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
-
 import org.jetbrains.annotations.NotNull;
 
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.getAttributesForRoleAnalysis;
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.getAttributesForUserAnalysis;
+import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ClusteringAttributeRuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ClusteringAttributeSettingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Represents an attribute match with associated extension properties.
@@ -35,29 +37,44 @@ public class RoleAnalysisAttributeDefConvert implements Serializable {
         if (rule == null
                 || rule.getSimilarity() == null
                 || rule.getWeight() == null
-                || rule.getAttributeIdentifier() == null
-                || rule.isIsMultiValue() == null) {
+                || rule.getPath() == null) {
             return;
         }
 
-        this.isMultiValue = rule.isIsMultiValue();
+//        this.isMultiValue = rule.isIsMultiValue();
         this.similarity = rule.getSimilarity();
         this.weight = rule.getWeight();
 
         if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
-            for (RoleAnalysisAttributeDef attributesForRoleAnalysis : getAttributesForRoleAnalysis()) {
-                if (attributesForRoleAnalysis.getDisplayValue().equals(rule.getAttributeIdentifier())) {
-                    this.roleAnalysisAttributeDef = attributesForRoleAnalysis;
-                    this.attributeDisplayValue = attributesForRoleAnalysis.getDisplayValue();
-                }
-            }
+            //TODO load from system config? do we need it?
+//            for (RoleAnalysisAttributeDef attributesForRoleAnalysis : getAttributesForRoleAnalysis()) {
+//                ItemPathType attributePath = rule.getPath();
+//                if (attributePath == null) {
+//                    continue;
+//                }
+//                if (attributesForRoleAnalysis.getPath().equivalent(attributePath.getItemPath())) {
+//                    this.roleAnalysisAttributeDef = attributesForRoleAnalysis;
+//                    this.attributeDisplayValue = attributesForRoleAnalysis.getDisplayValue();
+//                }
+//            }
         } else {
-            for (RoleAnalysisAttributeDef attributesForRoleAnalysis : getAttributesForUserAnalysis()) {
-                if (attributesForRoleAnalysis.getDisplayValue().equals(rule.getAttributeIdentifier())) {
-                    this.roleAnalysisAttributeDef = attributesForRoleAnalysis;
-                    this.attributeDisplayValue = attributesForRoleAnalysis.getDisplayValue();
-                }
-            }
+            ItemPath path = rule.getPath().getItemPath();
+            PrismObjectDefinition<UserType> objectDef = PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+
+            RoleAnalysisAttributeDef attributeForUserAnalysis = new RoleAnalysisAttributeDef(path, objectDef.findItemDefinition(path));
+            this.isMultiValue = attributeForUserAnalysis.isMultiValue();
+            this.roleAnalysisAttributeDef = attributeForUserAnalysis;
+            this.attributeDisplayValue = attributeForUserAnalysis.getDisplayValue();
+//            for (RoleAnalysisAttributeDef attributesForRoleAnalysis : getAttributesForUserAnalysis()) {
+//                ItemPathType attributePath = rule.getPath();
+//                if (attributePath == null) {
+//                    continue;
+//                }
+//                if (attributesForRoleAnalysis.getPath().equivalent(attributePath.getItemPath())) {
+//                    this.roleAnalysisAttributeDef = attributesForRoleAnalysis;
+//                    this.attributeDisplayValue = attributesForRoleAnalysis.getDisplayValue();
+//                }
+//            }
         }
 
         this.similarity = similarity * 0.01;
@@ -65,8 +82,12 @@ public class RoleAnalysisAttributeDefConvert implements Serializable {
     }
 
     public static @NotNull List<RoleAnalysisAttributeDefConvert> generateMatchingRulesList(
-            @NotNull List<ClusteringAttributeRuleType> matchingRule,
+            ClusteringAttributeSettingType clusteringSettings,
             @NotNull RoleAnalysisProcessModeType processMode) {
+        if (clusteringSettings == null) {
+            return new ArrayList<>();
+        }
+        List<ClusteringAttributeRuleType> matchingRule = clusteringSettings.getClusteringAttributeRule();
         List<RoleAnalysisAttributeDefConvert> roleAnalysisAttributeDefConverts = new ArrayList<>();
         for (ClusteringAttributeRuleType rule : matchingRule) {
             RoleAnalysisAttributeDefConvert roleAnalysisAttributeDefConvert = new RoleAnalysisAttributeDefConvert(rule, processMode);

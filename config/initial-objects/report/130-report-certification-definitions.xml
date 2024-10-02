@@ -28,14 +28,24 @@
                 <name>owner</name>
                 <path>ownerRef</path>
                 <display>
-                    <label>Owner</label>
+                    <label>
+                        <orig>Owner</orig>
+                        <translation>
+                            <key>reportCertificationDefinitions.ownerColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <previousColumn>name</previousColumn>
             </column>
             <column id="4">
                 <name>campaigns</name>
                 <display>
-                    <label>Campaigns</label>
+                    <label>
+                        <orig>Campaigns</orig>
+                        <translation>
+                            <key>reportCertificationDefinitions.campaignsColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <previousColumn>owner</previousColumn>
                 <export>
@@ -50,7 +60,12 @@
             <column id="5">
                 <name>openCampaigns</name>
                 <display>
-                    <label>Open campaigns</label>
+                    <label>
+                        <orig>Open campaigns</orig>
+                        <translation>
+                            <key>reportCertificationDefinitions.openCampaignsColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <previousColumn>campaigns</previousColumn>
                 <export>
@@ -71,7 +86,12 @@
                 <name>lastStarted</name>
                 <path>lastCampaignStartedTimestamp</path>
                 <display>
-                    <label>Last started</label>
+                    <label>
+                        <orig>Last started</orig>
+                        <translation>
+                            <key>reportCertificationDefinitions.lastStartedColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <previousColumn>openCampaigns</previousColumn>
             </column>
@@ -79,7 +99,12 @@
                 <name>lastClosed</name>
                 <path>lastCampaignClosedTimestamp</path>
                 <display>
-                    <label>Last closed</label>
+                    <label>
+                        <orig>Last closed</orig>
+                        <translation>
+                            <key>reportCertificationDefinitions.lastClosedColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <previousColumn>lastStarted</previousColumn>
             </column>
@@ -100,12 +125,12 @@
                         import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType
 
                         midpoint.searchObjects(
-                                AccessCertificationCampaignType.class,
-                                prismContext.queryFor(AccessCertificationCampaignType.class)
-                                        .item(AccessCertificationCampaignType.F_DEFINITION_REF)
-                                        .ref(object.oid)
-                                        .build() as ObjectQuery,
-                                null)
+                            AccessCertificationCampaignType.class,
+                            prismContext.queryFor(AccessCertificationCampaignType.class)
+                                .item(AccessCertificationCampaignType.F_DEFINITION_REF)
+                                .ref(object.oid)
+                                .build() as ObjectQuery,
+                            null)
                     </code>
                 </script>
             </expression>

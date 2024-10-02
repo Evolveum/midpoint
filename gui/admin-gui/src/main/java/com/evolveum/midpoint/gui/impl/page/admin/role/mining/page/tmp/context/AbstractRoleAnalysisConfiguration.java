@@ -7,52 +7,32 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context;
 
-import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
-import com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-
-import org.apache.wicket.model.IModel;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.evolveum.midpoint.model.api.expr.MidpointFunctions.LOGGER;
 
 public abstract class AbstractRoleAnalysisConfiguration implements RoleAnalysisConfigurator {
 
-    RoleAnalysisProcessModeType processMode;
-    AbstractAnalysisSessionOptionType analysisSessionOption;
-    RoleAnalysisDetectionOptionType detectionOption;
-    ItemVisibilityHandler visibilityHandler;
-    LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapper;
+    private RoleAnalysisProcessModeType processMode;
+    private AbstractAnalysisSessionOptionType analysisSessionOption;
+    private RoleAnalysisDetectionOptionType detectionOption;
+    private ItemVisibilityHandler visibilityHandler;
+    private RoleAnalysisSessionType object;
 
-    public AbstractRoleAnalysisConfiguration(LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapper) {
-        this.objectWrapper = objectWrapper;
-        PrismObject<RoleAnalysisSessionType> object = objectWrapper.getObject().getObject();
-        RoleAnalysisSessionType realValue = object.getRealValue();
-        RoleAnalysisOptionType analysisOption = realValue.getAnalysisOption();
-        this.processMode = analysisOption.getProcessMode();
+    public AbstractRoleAnalysisConfiguration(RoleAnalysisSessionType objectWrapper) {
+        this.object = objectWrapper;
+        RoleAnalysisOptionType analysisOption = object.getAnalysisOption();
+        processMode = analysisOption.getProcessMode();
 
-        if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
-            this.analysisSessionOption = realValue.getRoleModeOptions();
-        } else {
-            this.analysisSessionOption = realValue.getUserModeOptions();
+        if (processMode != null) {
+            if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
+                this.analysisSessionOption = object.getRoleModeOptions();
+            } else {
+                this.analysisSessionOption = object.getUserModeOptions();
+            }
         }
 
-        this.detectionOption = realValue.getDefaultDetectionOption();
+        this.detectionOption = object.getDefaultDetectionOption();
     }
 
     public RoleAnalysisProcessModeType getProcessMode() {
@@ -79,82 +59,99 @@ public abstract class AbstractRoleAnalysisConfiguration implements RoleAnalysisC
         this.visibilityHandler = visibilityHandler;
     }
 
-    public LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> getObjectWrapper() {
-        return objectWrapper;
-    }
-
-    public void setObjectWrapper(LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapper) {
-        this.objectWrapper = objectWrapper;
-    }
-
+    //TODO load from system config
     public AnalysisAttributeSettingType getDefaultAnalysisAttributes() {
         AnalysisAttributeSettingType value = new AnalysisAttributeSettingType();
-        List<AnalysisAttributeRuleType> analysisAttributeRule = new ArrayList<>();
-        RoleAnalysisAttributeDef title = RoleAnalysisAttributeDefUtils.getTitle();
-        RoleAnalysisAttributeDef archetypeRef = RoleAnalysisAttributeDefUtils.getArchetypeRef();
-        RoleAnalysisAttributeDef locality = RoleAnalysisAttributeDefUtils.getLocality();
-        RoleAnalysisAttributeDef orgAssignment = RoleAnalysisAttributeDefUtils.getOrgAssignment();
+        value.getPath().add(UserType.F_TITLE.toBean());
+        value.getPath().add(UserType.F_PARENT_ORG_REF.toBean());
+        value.getPath().add(UserType.F_ARCHETYPE_REF.toBean());
+        value.getPath().add(UserType.F_LOCALITY.toBean());
 
-        analysisAttributeRule
-                .add(new AnalysisAttributeRuleType()
-                        .attributeIdentifier(title.getDisplayValue())
-                        .propertyType(UserType.COMPLEX_TYPE));
-        analysisAttributeRule
-                .add(new AnalysisAttributeRuleType()
-                        .attributeIdentifier(archetypeRef.getDisplayValue())
-                        .propertyType(UserType.COMPLEX_TYPE));
-        analysisAttributeRule
-                .add(new AnalysisAttributeRuleType()
-                        .attributeIdentifier(locality.getDisplayValue())
-                        .propertyType(UserType.COMPLEX_TYPE));
-        analysisAttributeRule
-                .add(new AnalysisAttributeRuleType()
-                        .attributeIdentifier(orgAssignment.getDisplayValue())
-                        .propertyType(UserType.COMPLEX_TYPE));
-        analysisAttributeRule
-                .add(new AnalysisAttributeRuleType()
-                        .attributeIdentifier(archetypeRef.getDisplayValue())
-                        .propertyType(RoleType.COMPLEX_TYPE));
+//        AnalysisAttributeRuleType rule = new AnalysisAttributeRuleType();
+//        rule.setTargetType(ArchetypeType.COMPLEX_TYPE);
+//        value.getAssignmentRule().add(rule);
 
-        value.getAnalysisAttributeRule().addAll(analysisAttributeRule);
+//        List<AnalysisAttributeRuleType> analysisAttributeRule = new ArrayList<>();
+//        RoleAnalysisAttributeDef title = RoleAnalysisAttributeDefUtils.getTitle();
+//        RoleAnalysisAttributeDef archetypeRef = RoleAnalysisAttributeDefUtils.getArchetypeRef();
+//        RoleAnalysisAttributeDef locality = RoleAnalysisAttributeDefUtils.getLocality();
+//        RoleAnalysisAttributeDef orgAssignment = RoleAnalysisAttributeDefUtils.getOrgAssignment();
+
+//        analysisAttributeRule
+//                .add(new AnalysisAttributeRuleType()
+//                        .attributeIdentifier(title.getDisplayValue())
+//                        .propertyType(UserType.COMPLEX_TYPE));
+//        analysisAttributeRule
+//                .add(new AnalysisAttributeRuleType()
+//                        .attributeIdentifier(archetypeRef.getDisplayValue())
+//                        .propertyType(UserType.COMPLEX_TYPE));
+//        analysisAttributeRule
+//                .add(new AnalysisAttributeRuleType()
+//                        .attributeIdentifier(locality.getDisplayValue())
+//                        .propertyType(UserType.COMPLEX_TYPE));
+//        analysisAttributeRule
+//                .add(new AnalysisAttributeRuleType()
+//                        .attributeIdentifier(orgAssignment.getDisplayValue())
+//                        .propertyType(UserType.COMPLEX_TYPE));
+//        analysisAttributeRule
+//                .add(new AnalysisAttributeRuleType()
+//                        .attributeIdentifier(archetypeRef.getDisplayValue())
+//                        .propertyType(RoleType.COMPLEX_TYPE));
+//
+//        value.getAnalysisAttributeRule().addAll(analysisAttributeRule);
 
         return value;
     }
 
-    protected IModel<? extends PrismContainerWrapper<AbstractAnalysisSessionOptionType>> getPrimaryOptionContainerFormModel(
-            @NotNull LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel) {
-        if (getProcessMode().equals(RoleAnalysisProcessModeType.ROLE)) {
-            return PrismContainerWrapperModel.fromContainerWrapper(objectWrapperModel,
-                    ItemPath.create(RoleAnalysisSessionType.F_ROLE_MODE_OPTIONS));
+    protected AbstractAnalysisSessionOptionType getPrimaryOptionContainerFormModel() {
+        if (RoleAnalysisProcessModeType.ROLE.equals(getProcessMode())) {
+            RoleAnalysisSessionOptionType roleModeOption = object.getRoleModeOptions();
+            if (roleModeOption == null) {
+                roleModeOption = new RoleAnalysisSessionOptionType();
+                object.setRoleModeOptions(roleModeOption);
+            }
+            return roleModeOption;
         }
-        return PrismContainerWrapperModel.fromContainerWrapper(objectWrapperModel,
-                ItemPath.create(RoleAnalysisSessionType.F_USER_MODE_OPTIONS));
-    }
 
-    protected IModel<? extends PrismContainerWrapper<RoleAnalysisDetectionOptionType>> getDetectionOptionFormModel(
-            @NotNull LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel
-    ) {
-        return PrismContainerWrapperModel.fromContainerWrapper(objectWrapperModel,
-                ItemPath.create(RoleAnalysisSessionType.F_DEFAULT_DETECTION_OPTION));
-    }
-
-    private void setNewPrimaryOptionValue(@NotNull PrismContainerValueWrapper<AbstractAnalysisSessionOptionType> sessionType,
-            ItemName itemName, Object realValue) throws SchemaException {
-        sessionType.findProperty(itemName).getValue().setRealValue(realValue);
-    }
-
-    private void setNewDetectionOptionValue(@NotNull PrismContainerValueWrapper<RoleAnalysisDetectionOptionType> sessionType,
-            ItemName itemName, Object realValue) throws SchemaException {
-
-        if (sessionType.findProperty(itemName) != null) {
-            sessionType.findProperty(itemName).getValue().setRealValue(realValue);
-        } else {
-            LOGGER.warn("Property not found: " + itemName);
+        UserAnalysisSessionOptionType userModeOption = object.getUserModeOptions();
+        if (userModeOption == null) {
+            userModeOption = new UserAnalysisSessionOptionType();
+            object.setUserModeOptions(userModeOption);
         }
+        return userModeOption;
+
+//            return PrismContainerWrapperModel.fromContainerWrapper(objectWrapperModel,
+//                    ItemPath.create(RoleAnalysisSessionType.F_ROLE_MODE_OPTIONS));
+//        }
+//        return PrismContainerWrapperModel.fromContainerWrapper(objectWrapperModel,
+//                ItemPath.create(RoleAnalysisSessionType.F_USER_MODE_OPTIONS));
     }
+
+//    protected IModel<? extends PrismContainerWrapper<RoleAnalysisDetectionOptionType>> getDetectionOptionFormModel(
+//            @NotNull LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel
+//    ) {
+//        return PrismContainerWrapperModel.fromContainerWrapper(objectWrapperModel,
+//                ItemPath.create(RoleAnalysisSessionType.F_DEFAULT_DETECTION_OPTION));
+//    }
+//
+//    private void setNewPrimaryOptionValue(@NotNull PrismContainerValueWrapper<AbstractAnalysisSessionOptionType> sessionType,
+//            ItemName itemName, Object realValue) throws SchemaException {
+//        sessionType.findProperty(itemName).getValue().setRealValue(realValue);
+//    }
+//
+//    private void setNewDetectionOptionValue(@NotNull PrismContainerValueWrapper<RoleAnalysisDetectionOptionType> sessionType,
+//            ItemName itemName, Object realValue) throws SchemaException {
+//
+//        if (sessionType.findProperty(itemName) != null) {
+//            sessionType.findProperty(itemName).getValue().setRealValue(realValue);
+//        } else {
+//            LOGGER.warn("Property not found: " + itemName);
+//        }
+//        return object.getUserModeOptions();
+//    }
 
     public void updatePrimaryOptions(
-            SearchFilterType query,
+            SearchFilterType filter,
             boolean isIndirect,
             RangeType propertiesRange,
             AnalysisAttributeSettingType analysisAttributeSetting,
@@ -164,21 +161,31 @@ public abstract class AbstractRoleAnalysisConfiguration implements RoleAnalysisC
             Integer minPropertiesOverlap,
             boolean detailedAnalysis) {
 
-        try {
-            PrismContainerValueWrapper<AbstractAnalysisSessionOptionType> primaryOptions = getPrimaryOptionContainerFormModel(
-                    objectWrapper).getObject().getValue();
-            setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_IS_INDIRECT, isIndirect);
-            setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_PROPERTIES_RANGE, propertiesRange);
-            setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_ANALYSIS_ATTRIBUTE_SETTING, analysisAttributeSetting);
-            setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_CLUSTERING_ATTRIBUTE_SETTING, clusteringAttributeSetting);
-            setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_SIMILARITY_THRESHOLD, similarityThreshold);
-            setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_MIN_MEMBERS_COUNT, minMembersCount);
-            setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_MIN_PROPERTIES_OVERLAP, minPropertiesOverlap);
-            setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_QUERY, query);
-            setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_DETAILED_ANALYSIS, detailedAnalysis);
-        } catch (SchemaException e) {
-            throw new RuntimeException(e);
-        }
+//        try {
+            AbstractAnalysisSessionOptionType sessionOptions = getPrimaryOptionContainerFormModel();
+            sessionOptions.isIndirect(isIndirect)
+                    .propertiesRange(propertiesRange)
+                    .userAnalysisAttributeSetting(analysisAttributeSetting)
+                    .clusteringAttributeSetting(clusteringAttributeSetting)
+                    .similarityThreshold(similarityThreshold)
+                    .minMembersCount(minMembersCount)
+                    .minPropertiesOverlap(minPropertiesOverlap)
+                    .detailedAnalysis(detailedAnalysis);
+            if (filter != null) {
+                sessionOptions.query(filter);
+            }
+//            setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_IS_INDIRECT, isIndirect);
+//            setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_PROPERTIES_RANGE, propertiesRange);
+//            setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_USER_ANALYSIS_ATTRIBUTE_SETTING, analysisAttributeSetting);
+//            setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_CLUSTERING_ATTRIBUTE_SETTING, clusteringAttributeSetting);
+//            setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_SIMILARITY_THRESHOLD, similarityThreshold);
+//            setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_MIN_MEMBERS_COUNT, minMembersCount);
+//            setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_MIN_PROPERTIES_OVERLAP, minPropertiesOverlap);
+//            setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_QUERY, query);
+//            setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_DETAILED_ANALYSIS, detailedAnalysis);
+//        } catch (SchemaException e) {
+//            throw new RuntimeException(e);
+//        }
     }
 
     public void updateDetectionOptions(
@@ -188,19 +195,15 @@ public abstract class AbstractRoleAnalysisConfiguration implements RoleAnalysisC
             RangeType frequencyRange,
             RoleAnalysisDetectionProcessType detectionProcessMode) {
 
-        try {
-            PrismContainerValueWrapper<RoleAnalysisDetectionOptionType> primaryOptions = getDetectionOptionFormModel(
-                    objectWrapper).getObject().getValue();
-            setNewDetectionOptionValue(primaryOptions, RoleAnalysisDetectionOptionType.F_MIN_ROLES_OCCUPANCY, minRolesOccupancy);
-            setNewDetectionOptionValue(primaryOptions, RoleAnalysisDetectionOptionType.F_MIN_USER_OCCUPANCY, minUserOccupancy);
-            if (sensitivity != null) {
-                setNewDetectionOptionValue(primaryOptions, RoleAnalysisDetectionOptionType.F_SENSITIVITY, sensitivity);
+            RoleAnalysisDetectionOptionType primaryOptions = object.getDefaultDetectionOption();
+            if (primaryOptions == null) {
+                primaryOptions = new RoleAnalysisDetectionOptionType();
+                object.setDefaultDetectionOption(primaryOptions);
             }
-            setNewDetectionOptionValue(primaryOptions, RoleAnalysisDetectionOptionType.F_FREQUENCY_RANGE, frequencyRange);
-            setNewDetectionOptionValue(primaryOptions, RoleAnalysisDetectionOptionType.F_DETECTION_PROCESS_MODE, detectionProcessMode);
-
-        } catch (SchemaException e) {
-            throw new RuntimeException(e);
-        }
+            primaryOptions.minRolesOccupancy(minRolesOccupancy)
+                    .minUserOccupancy(minUserOccupancy)
+                    .sensitivity(sensitivity)
+                    .frequencyRange(frequencyRange)
+                    .detectionProcessMode(detectionProcessMode);
     }
 }

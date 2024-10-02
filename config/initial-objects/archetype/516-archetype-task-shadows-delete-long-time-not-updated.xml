@@ -12,7 +12,12 @@
     <archetypeType>auxiliary</archetypeType>
     <archetypePolicy>
         <display>
-            <label>Delete long time not updated shadows task</label>
+            <label>
+                <orig>Delete long time not updated shadows task</orig>
+                <translation>
+                    <key>DeleteLongTimeNotUpdatedShadowsTask.label</key>
+                </translation>
+            </label>
             <pluralLabel>
                 <orig>Delete long time not updated shadows task</orig>
                 <translation>

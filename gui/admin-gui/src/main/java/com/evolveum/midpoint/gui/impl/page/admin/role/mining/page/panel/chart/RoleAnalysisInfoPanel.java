@@ -83,8 +83,6 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
     }
 
     private void initDistributionPanel() {
-        PageBase pageBase = (PageBase) getPage();
-        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
 
         RoleAnalysisIdentifyWidgetPanel distributionPanel = new RoleAnalysisIdentifyWidgetPanel(ID_DISTRIBUTION_PANEL,
                 createStringResource("Distribution.access.title"), getModelDistribution()) {
@@ -97,7 +95,8 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
 
             @Override
             protected @NotNull Component getBodyHeaderPanel(String id) {
-                PageBase pageBase = RoleAnalysisInfoPanel.this.getPageBase();
+
+                PageBase pageBase = getPageBase();
                 RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
                 Task task = pageBase.createSimpleTask("Count objects");
                 OperationResult result = task.getResult();
@@ -263,10 +262,10 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
             @Override
             protected @NotNull Component getBodyHeaderPanel(String id) {
                 List<ProgressBar> progressBars = new ArrayList<>();
-                PageBase pageBase = RoleAnalysisInfoPanel.this.getPageBase();
-                RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
-                Task task = pageBase.createSimpleTask("Prepare data");
+                RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
+                Task task = getPageBase().createSimpleTask("Prepare data");
                 OperationResult result = task.getResult();
+
                 int[] resolvedAndCandidateRoles = roleAnalysisService.computeResolvedAndCandidateRoles(task, result);
 
                 int resolved = resolvedAndCandidateRoles[0];

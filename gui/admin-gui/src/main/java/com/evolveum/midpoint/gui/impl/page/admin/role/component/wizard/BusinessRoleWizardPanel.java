@@ -8,7 +8,11 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard;
 
 import java.util.*;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -83,6 +87,19 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Abstr
                                 WebComponentUtil.getDisplayNameOrName(role)));
             }
 
+            ObjectQuery query = PrismContext.get().queryFor(RoleType.class)
+                    .item(AssignmentHolderType.F_ARCHETYPE_REF).ref(SystemObjectsType.ARCHETYPE_APPLICATION_ROLE.value())
+                    .build();
+
+            List<RoleType> prepareRoles = new ArrayList<>(candidateRoles.stream()
+                    .map(candidateRole -> candidateRole.asObjectable()).toList());
+
+            Task task = getPageBase().createSimpleTask("Load roles for migration");
+
+            //TODO fix me. This is not correct way how to do this. Wrong position.
+            roleAnalysisService.loadSearchObjectIterative(getPageBase().getModelService(),
+                    RoleType.class, query, null, prepareRoles, task, task.getResult());
+
             steps.add(new AccessApplicationRoleStepPanel(getHelper().getDetailsModel(), selectedItems) {
                 @Override
                 protected void onSubmitPerformed(AjaxRequestTarget target) {
@@ -112,18 +129,10 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Abstr
                     }
                 }
 
+
                 @Override
                 protected SelectableBeanObjectDataProvider<RoleType> createProvider(
                         SelectableBeanObjectDataProvider<RoleType> defaultProvider) {
-
-                    List<RoleType> prepareRoles = new ArrayList<>(candidateRoles.stream()
-                            .map(candidateRole -> candidateRole.asObjectable()).toList());
-                    ObjectQuery customQuery = getCustomQuery();
-                    Task task = getPageBase().createSimpleTask("Load roles for migration");
-
-                    //TODO fix me. This is not correct way how to do this. Wrong position.
-                    roleAnalysisService.loadSearchObjectIterative(getPageBase().getModelService(),
-                            RoleType.class, customQuery, null, prepareRoles, task, task.getResult());
 
                     return new SelectableBeanObjectDataProvider<>(
                             BusinessRoleWizardPanel.this, new HashSet<>(prepareRoles)) {

@@ -342,7 +342,7 @@ public abstract class ItemWrapperImpl<I extends Item<?, ?>, VW extends PrismValu
         }
 
         if (isMultiValue()) {
-            throw new SchemaException("Attempt to get sngle value from multi-value property.");
+            throw new SchemaException("Attempt to get single value from multi-value property.");
         }
 
         return getValues().iterator().next();

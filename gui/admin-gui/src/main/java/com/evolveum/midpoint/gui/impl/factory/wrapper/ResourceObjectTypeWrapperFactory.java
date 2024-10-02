@@ -11,7 +11,9 @@ import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.duplication.ContainerableDuplicateResolver;
 import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
+import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
 import jakarta.annotation.PostConstruct;
@@ -48,8 +50,9 @@ public class ResourceObjectTypeWrapperFactory extends PrismContainerWrapperFacto
         @NotNull ResourceObjectTypeDefinitionType duplicatedBean = duplicate.asContainerable();
 
         String name;
+        String intent = ResourceTypeUtil.fillDefault(originalBean.getIntent());
         if (StringUtils.isEmpty(originalBean.getDisplayName())) {
-            name = LocalizationUtil.translateEnum(duplicatedBean.getKind()) + "(" + originalBean.getIntent() + ")";
+            name = LocalizationUtil.translateEnum(duplicatedBean.getKind()) + "(" + intent + ")";
         } else {
             name = originalBean.getDisplayName();
         }
@@ -59,7 +62,7 @@ public class ResourceObjectTypeWrapperFactory extends PrismContainerWrapperFacto
         duplicatedBean
                 .displayName(copyOf)
                 .lifecycleState(SchemaConstants.LIFECYCLE_PROPOSED)
-                .intent(LocalizationUtil.translate("DuplicationProcessHelper.copyOf", new Object[]{originalBean.getIntent()}))
+                .intent(LocalizationUtil.translate("DuplicationProcessHelper.copyOf", new Object[]{intent}))
                 ._default(null)
                 .description(copyOf +
                         (originalBean.getDescription() == null ? "" : (System.lineSeparator() + originalBean.getDescription())));

@@ -5,13 +5,18 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <archetype oid="00000000-0000-0000-0000-000000000171"
-           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-           xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
     <name>Collection report</name>
     <archetypePolicy>
         <display>
-            <label>Collection report</label>
+            <label>
+                <orig>Collection report</orig>
+                <translation>
+                    <key>collectionReport.label</key>
+                </translation>
+            </label>
             <pluralLabel>
                 <orig>Collection reports</orig>
                 <translation>
@@ -34,7 +39,12 @@
                     <identifier>engine</identifier>
                     <displayOrder>11</displayOrder>
                     <display>
-                        <label>Engine</label>
+                        <label>
+                            <orig>Engine</orig>
+                            <translation>
+                                <key>engine.panel.label</key>
+                            </translation>
+                        </label>
                         <cssClass>fa fa-microchip</cssClass>
                         <icon>
                             <cssClass>fa fa-microchip</cssClass>
@@ -43,7 +53,12 @@
                     <container id="7">
                         <identifier>engineContainer</identifier>
                         <display>
-                            <label>Engine</label>
+                            <label>
+                                <orig>Engine</orig>
+                                <translation>
+                                    <key>engine.panel.label</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="8">
                             <path>objectCollection/condition</path>
@@ -60,7 +75,12 @@
                     <identifier>collection</identifier>
                     <displayOrder>12</displayOrder>
                     <display>
-                        <label>Collection</label>
+                        <label>
+                            <orig>Collection</orig>
+                            <translation>
+                                <key>collection.panel.label</key>
+                            </translation>
+                        </label>
                         <cssClass>fa fa-filter</cssClass>
                         <icon>
                             <cssClass>fa fa-filter</cssClass>
@@ -77,7 +97,12 @@
                 <panel id="4">
                     <identifier>view</identifier>
                     <display>
-                        <label>View</label>
+                        <label>
+                            <orig>View</orig>
+                            <translation>
+                                <key>view.panel.label</key>
+                            </translation>
+                        </label>
                         <cssClass>fa fa-eye</cssClass>
                         <icon>
                             <cssClass>fa fa-eye</cssClass>
@@ -88,7 +113,12 @@
                 <panel id="5">
                     <identifier>parameters</identifier>
                     <display>
-                        <label>Parameter</label>
+                        <label>
+                            <orig>Parameter</orig>
+                            <translation>
+                                <key>parameter.panel.label</key>
+                            </translation>
+                        </label>
                         <cssClass>fa fa-th</cssClass>
                         <icon>
                             <cssClass>fa fa-th</cssClass>
@@ -99,7 +129,12 @@
                 <panel id="6">
                     <identifier>subreport</identifier>
                     <display>
-                        <label>Subreport</label>
+                        <label>
+                            <orig>Subreport</orig>
+                            <translation>
+                                <key>subreport.panel.label</key>
+                            </translation>
+                        </label>
                         <cssClass>fa fa-th</cssClass>
                         <icon>
                             <cssClass>fa fa-th</cssClass>

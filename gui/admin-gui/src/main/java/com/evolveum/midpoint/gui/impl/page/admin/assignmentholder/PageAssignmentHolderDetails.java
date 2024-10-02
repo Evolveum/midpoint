@@ -204,7 +204,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
 
     private void applyTemplate(CompiledObjectCollectionView collectionViews) {
         PrismObject<AH> assignmentHolder = getObjectDetailsModels().getObjectWrapper().getObjectOld();
-//        PrismObject<AH> assignmentHolder;
+
         if (assignmentHolder == null) {
             try {
                 assignmentHolder = getPrismContext().createObject(PageAssignmentHolderDetails.this.getType());

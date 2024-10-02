@@ -40,7 +40,12 @@
                 <name>object</name>
                 <path>objectRef</path>
                 <display>
-                    <label>Object</label>
+                    <label>
+                        <orig>Object</orig>
+                        <translation>
+                            <key>reportCertificationCases.objectColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <export>
                     <expression>
@@ -60,7 +65,12 @@
                 <name>target</name>
                 <path>targetRef</path>
                 <display>
-                    <label>Target</label>
+                    <label>
+                        <orig>Target</orig>
+                        <translation>
+                            <key>reportCertificationCases.targetColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <previousColumn>object</previousColumn>
                 <export>
@@ -80,7 +90,12 @@
             <column id="4">
                 <name>campaignName</name>
                 <display>
-                    <label>Campaign</label>
+                    <label>
+                        <orig>Campaign</orig>
+                        <translation>
+                            <key>reportCertificationCases.campaignNameColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <previousColumn>target</previousColumn>
                 <export>
@@ -99,7 +114,12 @@
             <column id="5">
                 <name>reviewers</name>
                 <display>
-                    <label>Reviewers</label>
+                    <label>
+                        <orig>Reviewers</orig>
+                        <translation>
+                            <key>reportCertificationCases.reviewersColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <previousColumn>campaignName</previousColumn>
                 <export>
@@ -117,7 +137,12 @@
             <column id="6">
                 <name>lastReviewedOn</name>
                 <display>
-                    <label>Last reviewed on</label>
+                    <label>
+                        <orig>Last reviewed on</orig>
+                        <translation>
+                            <key>reportCertificationCases.lastReviewedOnColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <previousColumn>reviewers</previousColumn>
                 <export>
@@ -136,7 +161,12 @@
             <column id="7">
                 <name>reviewedBy</name>
                 <display>
-                    <label>Reviewed by</label>
+                    <label>
+                        <orig>Reviewed by</orig>
+                        <translation>
+                            <key>reportCertificationCases.reviewedByColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <previousColumn>lastReviewedOn</previousColumn>
                 <export>
@@ -156,7 +186,12 @@
                 <name>iteration</name>
                 <path>iteration</path>
                 <display>
-                    <label>Iteration</label>
+                    <label>
+                        <orig>Iteration</orig>
+                        <translation>
+                            <key>reportCertificationCases.iterationColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <previousColumn>reviewedBy</previousColumn>
             </column>
@@ -164,7 +199,12 @@
                 <name>inStageNumber</name>
                 <path>stageNumber</path>
                 <display>
-                    <label>In stage</label>
+                    <label>
+                        <orig>In stage</orig>
+                        <translation>
+                            <key>reportCertificationCases.inStageNumberColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <previousColumn>iteration</previousColumn>
             </column>
@@ -172,7 +212,12 @@
                 <name>outcome</name>
                 <path>outcome</path>
                 <display>
-                    <label>Outcome</label>
+                    <label>
+                        <orig>Outcome</orig>
+                        <translation>
+                            <key>reportCertificationCases.outcomeColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <previousColumn>inStageNumber</previousColumn>
                 <export>
@@ -190,7 +235,12 @@
             <column id="11">
                 <name>comments</name>
                 <display>
-                    <label>Comments</label>
+                    <label>
+                        <orig>Comments</orig>
+                        <translation>
+                            <key>reportCertificationCases.commentsColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <previousColumn>outcome</previousColumn>
                 <export>
@@ -210,7 +260,12 @@
                 <name>remediedTimestamp</name>
                 <path>remediedTimestamp</path>
                 <display>
-                    <label>Remedied on</label>
+                    <label>
+                        <orig>Remedied on</orig>
+                        <translation>
+                            <key>reportCertificationCases.remediedTimestampColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <previousColumn>comments</previousColumn>
             </column>

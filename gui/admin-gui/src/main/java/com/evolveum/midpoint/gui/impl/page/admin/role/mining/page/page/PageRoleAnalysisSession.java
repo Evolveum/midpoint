@@ -9,24 +9,12 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangesExecutorImpl;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-
-import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
@@ -40,17 +28,24 @@ import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignment
 import com.evolveum.midpoint.gui.impl.page.admin.component.InlineOperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.RoleAnalysisSessionOperationButtonPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.RoleAnalysisSessionSummaryPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context.AnalysisCategoryMode;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard.RoleAnalysisSessionWizardPanel;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
 
 //TODO correct authorizations
 @PageDescriptor(
@@ -235,9 +230,16 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
             @Override
             protected void initFragmentLayout() {
                 add(new RoleAnalysisSessionWizardPanel(ID_TEMPLATE, createObjectWizardPanelHelper()) {
+
                     @Override
-                    protected void finalSubmitPerform(@NotNull AjaxRequestTarget target, @NotNull TaskType taskType) {
-                        PageRoleAnalysisSession.this.submitWizardAndPerformAnalysis(target, taskType);
+                    protected AssignmentHolderDetailsModel<RoleAnalysisSessionType> reloadWrapperWithDefaultConfiguration(RoleAnalysisSessionType session) {
+                        reloadObjectDetailsModel(session.asPrismObject());
+                        return getObjectDetailsModels();
+                    }
+
+                    @Override
+                    protected void finalSubmitPerform(@NotNull AjaxRequestTarget target) {
+                        PageRoleAnalysisSession.this.submitWizardAndPerformAnalysis(target);
                     }
                 });
             }
@@ -245,39 +247,28 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
 
     }
 
-    private void submitWizardAndPerformAnalysis(AjaxRequestTarget target, TaskType taskType) {
+    private void submitWizardAndPerformAnalysis(AjaxRequestTarget target) {
         Task task = getPageBase().createSimpleTask(OP_PROCESS_CLUSTERING);
         OperationResult result = task.getResult();
 
-        Collection<ObjectDelta<? extends ObjectType>> deltas;
-        try {
-            deltas = getObjectDetailsModels().collectDeltas(result);
+        Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = saveOrPreviewPerformed(target, result, false, task);
+        PrismObject<RoleAnalysisSessionType> sessionTypeObject = getRoleAnalysisSession(executedDeltas);
 
-            Collection<ObjectDeltaOperation<? extends ObjectType>> objectDeltaOperations = new ObjectChangesExecutorImpl()
-                    .executeChanges(deltas, false, task, result, target);
+        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
 
-            String sessionOid = ObjectDeltaOperation.findAddDeltaOidRequired(objectDeltaOperations,
-                    RoleAnalysisSessionType.class);
-
-            RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-
-            PrismObject<RoleAnalysisSessionType> sessionTypeObject = roleAnalysisService.getSessionTypeObject(sessionOid, task, result);
-
-            if (sessionTypeObject != null) {
-                ModelInteractionService modelInteractionService = getPageBase().getModelInteractionService();
-                roleAnalysisService.executeClusteringTask(modelInteractionService, sessionTypeObject,
-                        null, null, task, result, taskType);
-            }
-        } catch (CommonException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't process clustering", e);
-            result.recordFatalError(
-                    createStringResource("RoleAnalysisSessionWizardPanel.message.clustering.error").getString()
-                    , e);
+        if (sessionTypeObject != null) {
+            ModelInteractionService modelInteractionService = getPageBase().getModelInteractionService();
+            roleAnalysisService.executeClusteringTask(modelInteractionService, sessionTypeObject,
+                    task, result);
         }
 
         setResponsePage(PageRoleAnalysis.class);
-        ((PageBase) getPage()).showResult(result);
+        showResult(result);
         target.add(getFeedbackPanel());
+    }
+
+    private PrismObject<RoleAnalysisSessionType> getRoleAnalysisSession(Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas) {
+        return (PrismObject<RoleAnalysisSessionType>) executedDeltas.iterator().next().getObjectDelta().getObjectToAdd();
     }
 
     public static @NotNull PrismContainerWrapperModel<RoleAnalysisSessionType, AbstractAnalysisSessionOptionType> getSessionOptionContainer(

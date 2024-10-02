@@ -19,8 +19,8 @@ public class AttributePathResult implements Serializable {
     Set<String> targetIdentifierValue = new HashSet<>();
     int totalRelation = 0;
     int maximumFrequency = 0;
-    boolean isMultiValue;
     RoleAnalysisAttributeDef itemDefinition;
+
     public AttributePathResult(Map<String, Integer> frequencyMap, int totalRelation) {
         this.frequencyMap = frequencyMap;
         this.totalRelation = totalRelation;
@@ -92,12 +92,13 @@ public class AttributePathResult implements Serializable {
     }
 
     public boolean isMultiValue() {
-        return isMultiValue;
+
+        return itemDefinition.isMultiValue();
     }
 
-    public void setMultiValue(boolean multiValue) {
-        isMultiValue = multiValue;
-    }
+//    public void setMultiValue(boolean multiValue) {
+//        isMultiValue = multiValue;
+//    }
 
     public RoleAnalysisAttributeDef getItemDefinition() {
         return itemDefinition;

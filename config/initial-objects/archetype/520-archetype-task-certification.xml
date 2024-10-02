@@ -5,12 +5,17 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <archetype oid="00000000-0000-0000-0000-000000000520"
-           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Certification-related task</name>
     <archetypePolicy>
         <display>
-            <label>Certification-related task</label>
+            <label>
+                <orig>Certification-related task</orig>
+                <translation>
+                    <key>CertificationRelatedTask.label</key>
+                </translation>
+            </label>
             <pluralLabel>
                 <orig>Certification-related tasks</orig>
                 <translation>

@@ -27,7 +27,7 @@ public class BirthrightCoverageModeConfiguration extends AbstractRoleAnalysisCon
 
     public BirthrightCoverageModeConfiguration(
             RoleAnalysisService service,
-            LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapper,
+            RoleAnalysisSessionType objectWrapper,
             Task task,
             OperationResult result) {
         super(objectWrapper);
