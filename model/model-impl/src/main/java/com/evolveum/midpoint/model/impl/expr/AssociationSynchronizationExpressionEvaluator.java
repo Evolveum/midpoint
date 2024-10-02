@@ -17,6 +17,8 @@ import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep.InboundMappingContextSpecification;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -122,9 +124,6 @@ class AssociationSynchronizationExpressionEvaluator
         @NotNull private final ResourceObjectInboundDefinition inboundDefinition;
 
         @NotNull private final Collection<AssignmentType> candidateAssignments;
-
-//        /** IDs of (existing) assignments that were seen by this processing. Other assignments in the range will be removed. */
-//        @NotNull private final Set<Long> assignmentsIdsSeen = new HashSet<>();
 
         Evaluation(
                 @NotNull Collection<? extends PrismValue> inputValues,
@@ -352,7 +351,7 @@ class AssociationSynchronizationExpressionEvaluator
                                 projectionContext.getCompositeObjectDefinitionRequired(),
                         inboundDefinition,
                         projectionContext.getResourceRequired(),
-                        projectionContext.getKey().getTypeIdentification(),
+                        createMappingContextSpecification(),
                         targetAssignment,
                         context.getTask(),
                         result);
@@ -511,7 +510,7 @@ class AssociationSynchronizationExpressionEvaluator
                 return new DefaultSingleShadowInboundsProcessingContextImpl<>(
                         associationValue,
                         resource,
-                        projectionContext.getKey().getTypeIdentification(),
+                        createMappingContextSpecification(),
                         targetAssignment,
                         ModelBeans.get().systemObjectCache.getSystemConfigurationBean(result),
                         context.getTask(),
@@ -520,6 +519,13 @@ class AssociationSynchronizationExpressionEvaluator
                                 projectionContext.getCompositeObjectDefinitionRequired(),
                         inboundDefinition,
                         false);
+            }
+
+            private @NotNull InboundMappingContextSpecification createMappingContextSpecification() {
+                return new InboundMappingContextSpecification(
+                        projectionContext.getKey().getTypeIdentification(),
+                        associationDefinition.getAssociationTypeName(),
+                        projectionContext.getTag());
             }
 
             private void executeDelete() {

@@ -4069,6 +4069,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return addObject(object, null, task, result);
     }
 
+    /** Not showing the ADD delta on the console. */
+    public String addObjectSilently(ObjectType objectBean, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
+        var object = objectBean.asPrismObject();
+        var executedDeltas = modelService.executeChanges(List.of(object.createAddDelta()), null, task, result);
+        object.setOid(ObjectDeltaOperation.findAddDeltaOid(executedDeltas, object));
+        return object.getOid();
+    }
+
     public String addObject(ObjectType object, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {

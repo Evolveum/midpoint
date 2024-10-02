@@ -445,7 +445,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
                     "Inbound mappings must have an explicit mapping specification; in %s", originObject);
             mappingSpecification = createDefaultSpecification();
         }
-        mappingAliasSpecifications = createMappingAliasSpecifications(mappingSpecification,mappingBean.getMappingAlias());
+        mappingAliasSpecifications = createMappingAliasSpecifications(mappingSpecification, mappingBean.getMappingAlias());
         now = builder.getNow();
         sources.addAll(builder.getAdditionalSources());
         parser = new MappingParser<>(this);
@@ -1682,7 +1682,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         return pushChanges;
     }
 
-    boolean shouldUseMatchingProvenance() {
+    private boolean shouldUseMatchingProvenance() {
         return getOutputDefinition() != null && getOutputDefinition().isMultiValue() && mappingBean.getName() != null;
     }
 
@@ -1693,6 +1693,8 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         return new MappingSpecificationType()
                 .definitionObjectRef(CloneUtil.cloneCloneable(spec.getDefinitionObjectRef()))
                 .objectType(CloneUtil.cloneCloneable(spec.getObjectType()))
+                .associationType(spec.getAssociationType())
+                .tag(spec.getTag())
                 .mappingName(alias);
     }
 

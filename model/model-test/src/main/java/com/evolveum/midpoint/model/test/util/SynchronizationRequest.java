@@ -162,7 +162,7 @@ public class SynchronizationRequest {
         if (taskCustomizer != null) {
             taskCustomizer.accept(syncTask);
         }
-        String taskOid = test.addObject(syncTask, task, result);
+        String taskOid = test.addObjectSilently(syncTask, task, result);
         test.waitForTaskCloseOrSuspend(taskOid, timeout);
 
         if (assertSuccess) {

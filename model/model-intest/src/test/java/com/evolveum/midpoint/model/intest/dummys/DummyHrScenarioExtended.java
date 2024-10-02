@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.intest.associations;
+package com.evolveum.midpoint.model.intest.dummys;
 
 import static com.evolveum.icf.dummy.resource.LinkClassDefinition.LinkClassDefinitionBuilder.aLinkClassDefinition;
 import static com.evolveum.icf.dummy.resource.LinkClassDefinition.Participant.ParticipantBuilder.aParticipant;
@@ -19,7 +19,10 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.midpoint.test.*;
 
-/** Represents the HR scenario residing on given dummy resource. Its richer than the default one, e.g. with cost centers. */
+/**
+ * Represents the HR scenario residing on given dummy resource. Its richer than the default one
+ * in {@link DummyHrScenario}, enhanced by e.g. cost centers.
+ */
 @SuppressWarnings("WeakerAccess") // there are a lot of constants that will be eventually used from the outside
 public class DummyHrScenarioExtended extends AbstractDummyScenario {
 
@@ -88,6 +91,7 @@ public class DummyHrScenarioExtended extends AbstractDummyScenario {
             public static final AttrName VALID_FROM = ri("validFrom");
             public static final AttrName VALID_TO = ri("validTo");
             public static final AttrName NOTE = ri("note");
+            public static final AttrName RESPONSIBILITY = ri("responsibility");
         }
 
         public static class LinkNames {
@@ -100,6 +104,7 @@ public class DummyHrScenarioExtended extends AbstractDummyScenario {
             controller.addAttrDef(oc, AttributeNames.VALID_FROM.local(), ZonedDateTime.class, false, false);
             controller.addAttrDef(oc, AttributeNames.VALID_TO.local(), ZonedDateTime.class, false, false);
             controller.addAttrDef(oc, AttributeNames.NOTE.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.RESPONSIBILITY.local(), String.class, false, true);
             controller.getDummyResource().addStructuralObjectClass(OBJECT_CLASS_NAME.local(), oc);
         }
 

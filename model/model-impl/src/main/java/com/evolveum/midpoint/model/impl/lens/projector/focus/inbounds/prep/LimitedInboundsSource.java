@@ -35,7 +35,8 @@ public class LimitedInboundsSource extends InboundsSource {
 
     @NotNull private final SingleShadowInboundsProcessingContext<?> ctx;
 
-    public LimitedInboundsSource(@NotNull SingleShadowInboundsProcessingContext<?> ctx) throws SchemaException, ConfigurationException {
+    public LimitedInboundsSource(@NotNull SingleShadowInboundsProcessingContext<?> ctx)
+            throws SchemaException, ConfigurationException {
         super(
                 InboundSourceData.forShadowLikeValue(
                         ctx.getShadowLikeValue(),
@@ -43,7 +44,7 @@ public class LimitedInboundsSource extends InboundsSource {
                         ctx.getObjectDefinitionRequired()),
                 ctx.getInboundDefinition(),
                 ctx.getResource(),
-                ctx.getTypeIdentification(),
+                ctx.getMappingContextSpecification(),
                 ctx.toString());
         this.ctx = ctx;
     }
