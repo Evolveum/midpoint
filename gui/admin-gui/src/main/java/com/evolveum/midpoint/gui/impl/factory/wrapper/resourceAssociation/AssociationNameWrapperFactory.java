@@ -5,12 +5,13 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.factory.wrapper;
+package com.evolveum.midpoint.gui.impl.factory.wrapper.resourceAssociation;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.impl.factory.wrapper.PrismPropertyWrapperFactoryImpl;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -19,11 +20,15 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTypeDefinitionType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
+import javax.xml.namespace.QName;
+
 @Component
-public class MappingNameWrapperFactory extends PrismPropertyWrapperFactoryImpl<String> {
+public class AssociationNameWrapperFactory extends PrismPropertyWrapperFactoryImpl<QName> {
 
     @Override
     public <C extends Containerable> boolean match(ItemDefinition<?> def, PrismContainerValue<C> parent) {
@@ -31,11 +36,11 @@ public class MappingNameWrapperFactory extends PrismPropertyWrapperFactoryImpl<S
             return false;
         }
 
-        if (!def.getItemName().equivalent(MappingType.F_NAME)) {
+        if (!def.getItemName().equivalent(ShadowAssociationTypeDefinitionType.F_NAME)) {
             return false;
         }
 
-        if (parent == null || !MappingType.class.isAssignableFrom(parent.getCompileTimeClass())) {
+        if (parent == null || !ShadowAssociationTypeDefinitionType.class.isAssignableFrom(parent.getCompileTimeClass())) {
             return false;
         }
 
@@ -43,14 +48,14 @@ public class MappingNameWrapperFactory extends PrismPropertyWrapperFactoryImpl<S
     }
 
     @Override
-    public PrismPropertyWrapper<String> createWrapper(PrismContainerValueWrapper<?> parent, Item childItem, ItemStatus status, WrapperContext context) throws SchemaException {
-        PrismPropertyWrapper<String> wrapper = super.createWrapper(parent, childItem, status, context);
+    public PrismPropertyWrapper<QName> createWrapper(PrismContainerValueWrapper<?> parent, Item childItem, ItemStatus status, WrapperContext context) throws SchemaException {
+        PrismPropertyWrapper<QName> wrapper = super.createWrapper(parent, childItem, status, context);
         if (parent.getStatus() == ValueStatus.NOT_CHANGED
                 && wrapper.getStatus() == ItemStatus.NOT_CHANGED
                 && childItem.getDefinition().isSingleValue()
                 && !childItem.getValues().isEmpty()
                 && childItem.getValue() != null
-                && StringUtils.isNotEmpty(childItem.getValue().getRealValue())) {
+                && childItem.getValue().getRealValue() != null) {
             wrapper.setReadOnly(true);
         }
         return wrapper;

@@ -33,8 +33,6 @@ import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-
 public class MappingNameValidator implements IValidator<String> {
 
     private static final Trace LOGGER = TraceManager.getTrace(MappingNameValidator.class);

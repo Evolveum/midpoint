@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.basic;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.model.IModel;
@@ -58,5 +60,17 @@ public class BasicSettingResourceAssociationTypeStepPanel
     @Override
     public VisibleEnableBehaviour getBackBehaviour() {
         return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
+    }
+
+    @Override
+    protected ItemMandatoryHandler getMandatoryHandler() {
+        return this::checkMandatory;
+    }
+
+    protected boolean checkMandatory(ItemWrapper itemWrapper) {
+        if (itemWrapper.getItemName().equals(ShadowAssociationTypeDefinitionType.F_NAME)) {
+            return true;
+        }
+        return itemWrapper.isMandatory();
     }
 }

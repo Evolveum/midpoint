@@ -12,8 +12,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.impl.validator.MappingNameValidator;
 import com.evolveum.midpoint.gui.impl.validator.ObjectTypeMappingNameValidator;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractMappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
 import org.springframework.stereotype.Component;
@@ -33,7 +31,7 @@ public class ResourceObjectTypeMappingNamePanelFactory extends MappingNamePanelF
     }
 
     protected MappingNameValidator createValidator(PrismPropertyPanelContext<String> panelCtx) {
-        return new ObjectTypeMappingNameValidator(panelCtx.getItemWrapperModel(), panelCtx.getPageBase());
+        return new ObjectTypeMappingNameValidator(panelCtx.getItemWrapperModel());
     }
 
     @Override
