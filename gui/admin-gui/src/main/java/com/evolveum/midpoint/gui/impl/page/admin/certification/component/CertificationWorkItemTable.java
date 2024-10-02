@@ -16,6 +16,8 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.impl.component.action.CertItemResolveAction;
 
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertificationGuiConfigContext;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -61,7 +63,6 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
     private static final String DOT_CLASS = CertificationWorkItemTable.class.getName() + ".";
     private static final String OPERATION_LOAD_ACCESS_CERT_DEFINITION = DOT_CLASS + "loadAccessCertificationDefinition";
     private static final String OPERATION_LOAD_CERTIFICATION_CONFIG = DOT_CLASS + "loadCertificationConfiguration";
-    private static final String OPERATION_RECORD_COMMENT = DOT_CLASS + "recordComment";
     private static final String OPERATION_LOAD_MULTISELECT_CONFIG = DOT_CLASS + "loadMultiselectConfig";
 
     public CertificationWorkItemTable(String id) {
@@ -72,9 +73,13 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
         super(id, AccessCertificationWorkItemType.class, configurationType);
     }
 
+    @Override
+    protected boolean useNewColumnConfiguration() {
+        return true;
+    }
 
     @Override
-    protected List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> createDefaultColumns() {
+    protected List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> getPredefinedColumns() {
         return createColumns();
     }
 
@@ -136,7 +141,12 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
     }
 
     private List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> createColumns() {
-        return ColumnUtils.getDefaultCertWorkItemColumns(!isMyCertItems(), showOnlyNotDecidedItems());
+        CertificationGuiConfigContext context = new CertificationGuiConfigContext();
+        context.setViewAllItems(!isMyCertItems());
+        context.setNotDecidedOnly(showOnlyNotDecidedItems());
+        context.setPageBase(getPageBase());
+
+        return CertMiscUtil.createCertItemsColumns(getObjectCollectionView(), context);//ColumnUtils.getDefaultCertWorkItemColumns(!isMyCertItems(), showOnlyNotDecidedItems());
     }
 
     private List<AbstractGuiAction<AccessCertificationWorkItemType>> getCertItemActions() {
@@ -196,60 +206,34 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
         return null;
     }
 
+//    @Override
+//    protected IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String> createCustomExportableColumn(
+//            IModel<String> displayModel, GuiObjectColumnType guiObjectColumn, ExpressionType expression) {
+//        ItemPath path = WebComponentUtil.getPath(guiObjectColumn);
+//
+//        if (ItemPath.create(AccessCertificationWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_COMMENT)
+//                .equivalent(path)) {
+//            String propertyExpression = "realValue" + "." + AccessCertificationWorkItemType.F_OUTPUT.getLocalPart() + "."
+//                    + AbstractWorkItemOutputType.F_COMMENT.getLocalPart();
+//            return new DirectlyEditablePropertyColumn<>(
+//                    createStringResource("PageCertDecisions.table.comment"), propertyExpression) {
+//                @Serial private static final long serialVersionUID = 1L;
+//
+//                @Override
+//                public void onBlur(AjaxRequestTarget target,
+//                        IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> model) {
+//                    recordCommentPerformed(target, model.getObject());
+//                }
+//            };
+//        }
+//        return super.createCustomExportableColumn(displayModel, guiObjectColumn, expression);
+//    }
+
     @Override
-    protected IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String> createCustomExportableColumn(
-            IModel<String> displayModel, GuiObjectColumnType guiObjectColumn, ExpressionType expression) {
-        ItemPath path = WebComponentUtil.getPath(guiObjectColumn);
-
-        if (ItemPath.create(AccessCertificationWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_COMMENT)
-                .equivalent(path)) {
-            String propertyExpression = "realValue" + "." + AccessCertificationWorkItemType.F_OUTPUT.getLocalPart() + "."
-                    + AbstractWorkItemOutputType.F_COMMENT.getLocalPart();
-            return new DirectlyEditablePropertyColumn<>(
-                    createStringResource("PageCertDecisions.table.comment"), propertyExpression) {
-                @Serial private static final long serialVersionUID = 1L;
-
-                @Override
-                public void onBlur(AjaxRequestTarget target,
-                        IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> model) {
-                    recordCommentPerformed(target, model.getObject());
-                }
-            };
-        }
-        return super.createCustomExportableColumn(displayModel, guiObjectColumn, expression);
+    protected boolean shouldCheckForNameColumn() {
+        return false;
     }
 
-
-    private void recordCommentPerformed(AjaxRequestTarget target, PrismContainerValueWrapper<AccessCertificationWorkItemType> certItemWrapper) {
-        if (certItemWrapper == null) {
-            return;
-        }
-        OperationResult result = new OperationResult(OPERATION_RECORD_COMMENT);
-        try {
-            AccessCertificationWorkItemType certItem = certItemWrapper.getRealValue();
-            if (certItem == null) {
-                return;
-            }
-            //todo check if comment was really changed
-            //for now certItemWrapper.findProperty(ItemPath.create(AccessCertificationWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_COMMENT))
-            //returns null so that we cannot analyze the delta
-            Task task = getPageBase().createSimpleTask(OPERATION_RECORD_COMMENT);
-            String comment = certItem.getOutput() != null ? certItem.getOutput().getComment() : null;
-            CertMiscUtil.recordCertItemResponse(
-                    certItem, null, comment, result, task, getPageBase());
-
-        } catch (Exception ex) {
-            LOGGER.error("Couldn't record comment for certification work item", ex);
-            result.recordFatalError(ex);
-        } finally {
-            result.computeStatusIfUnknown();
-        }
-
-        if (!result.isSuccess()) {
-            showResult(result);
-        }
-        target.add(this);
-    }
 
     private ContainerListDataProvider<AccessCertificationWorkItemType> createProvider(IModel<Search<AccessCertificationWorkItemType>> searchModel) {
         Collection<SelectorOptions<GetOperationOptions>> options = getPageBase()

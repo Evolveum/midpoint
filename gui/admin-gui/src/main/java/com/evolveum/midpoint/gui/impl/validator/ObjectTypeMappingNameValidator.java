@@ -42,13 +42,12 @@ public class ObjectTypeMappingNameValidator extends MappingNameValidator {
         }
 
         ResourceObjectTypeDefinitionType objectTypeBean = objectType.getRealValue();
-        if (alreadyExistMapping(
+        alreadyExistMapping(
                 objectType,
                 LocalizationUtil.translate(
                         "ObjectTypeMappingNameValidator.sameValue",
                         new Object[] { value, GuiDisplayNameUtil.getDisplayName(objectTypeBean) }),
                 value,
-                validatable)) {
-        }
+                validatable);
     }
 }

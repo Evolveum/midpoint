@@ -16,7 +16,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.task.api.Task;
@@ -104,59 +103,5 @@ public class MappingNameValidator implements IValidator<String> {
         }
 
         return false;
-    }
-
-    protected final <C extends Containerable> void alreadyExistMapping(
-            C bean, PrismContainerDefinition<C> def, String errorMessage, String value, IValidatable<String> validatable, PageBase pageBase) {
-
-        @NotNull PrismContainer<C> parent;
-        try {
-            parent = def.instantiate();
-            bean.asPrismContainerValue().setParent(parent);
-            bean.asPrismContainerValue().applyDefinition(def);
-        } catch (SchemaException e) {
-            LOGGER.error("Couldn't apply definition to association bean", e);
-            return ;
-        }
-
-        Task task = pageBase.createSimpleTask("createWrapperForAssociation");
-        WrapperContext context = new WrapperContext(task, task.getResult());
-        context.setObjectStatus(ItemStatus.NOT_CHANGED);
-        context.setShowEmpty(true);
-        context.setCreateIfEmpty(false);
-
-        try {
-            ItemWrapper parentWrapper = pageBase.createItemWrapper(parent, ItemStatus.NOT_CHANGED, context);
-
-            PrismContainerValueWrapper wrapper = pageBase.createValueWrapper(
-                    parentWrapper, bean.asPrismContainerValue(), ValueStatus.NOT_CHANGED, context);
-            int numberOfSameRef = WebPrismUtil.getNumberOfSameMappingNames(wrapper, value);
-
-            if (numberOfSameRef > 0) {
-
-                ValidationError error = new ValidationError();
-                error.setMessage(errorMessage);
-                validatable.error(error);
-            }
-        } catch (SchemaException e) {
-            LOGGER.error("Couldn't create wrapper for " + bean, e);
-        }
-    }
-
-    protected final ResourceSchema getResourceSchema(PageBase pageBase) {
-        ResourceSchema schema = null;
-        PrismPropertyWrapper<String> item = getItemModel().getObject();
-        try {
-            schema = ResourceSchemaFactory.getCompleteSchema(
-                    (ResourceType) item.findObjectWrapper().getObjectOld().asObjectable(), LayerType.PRESENTATION);
-        } catch (Exception e) {
-            LOGGER.debug("Couldn't get complete resource schema", e);
-        }
-
-        if (schema == null) {
-            schema = ResourceDetailsModel.getResourceSchema(item.findObjectWrapper(), pageBase);
-        }
-
-        return schema;
     }
 }

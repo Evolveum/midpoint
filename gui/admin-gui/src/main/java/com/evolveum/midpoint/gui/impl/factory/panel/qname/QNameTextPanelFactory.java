@@ -36,14 +36,6 @@ public class QNameTextPanelFactory extends DropDownChoicePanelFactory implements
             return false;
         }
 
-        if (ItemPath.create(
-                ResourceType.F_SCHEMA_HANDLING,
-                SchemaHandlingType.F_ASSOCIATION_TYPE,
-                ShadowAssociationTypeDefinitionType.F_NAME).equivalent(
-                wrapper.getPath().namedSegmentsOnly())) {
-            return true;
-        }
-
         if (wrapper.getParentContainerValue(SimulatedReferenceTypeParticipantType.class) != null
                 && (SimulatedReferenceTypeParticipantType.F_PRIMARY_BINDING_ATTRIBUTE_REF.equivalent(wrapper.getItemName())
                 || SimulatedReferenceTypeParticipantType.F_SECONDARY_BINDING_ATTRIBUTE_REF.equivalent(wrapper.getItemName())
