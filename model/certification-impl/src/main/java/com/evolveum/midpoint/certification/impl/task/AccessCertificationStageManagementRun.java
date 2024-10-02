@@ -87,7 +87,6 @@ public abstract class AccessCertificationStageManagementRun<
         updateHelper = getActivityHandler().getUpdateHelper();
         reviewersHelper = getActivityHandler().getReviewersHelper();
 
-
         String campaignOid = getWorkDefinition().getCertificationCampaignRef().getOid();
         campaign = getBeans().repositoryService.getObject(AccessCertificationCampaignType.class, campaignOid, null, result).asObjectable();
         handler = getActivityHandler().getCertificationManager().findCertificationHandler(campaign);

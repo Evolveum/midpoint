@@ -121,7 +121,12 @@
                 <name>roleColumn</name>
                 <path>assignment</path>
                 <display>
-                    <label>Role</label>
+                    <label>
+                        <orig>Role</orig>
+                        <translation>
+                            <key>reportUserList.roleColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <export>
                     <expression>
@@ -148,7 +153,12 @@
                 <name>orgColumn</name>
                 <path>assignment</path>
                 <display>
-                    <label>Organization</label>
+                    <label>
+                        <orig>Organization</orig>
+                        <translation>
+                            <key>reportUserList.orgColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <export>
                     <expression>
@@ -175,7 +185,12 @@
                 <name>accountColumn</name>
                 <path>linkRef</path>
                 <display>
-                    <label>Account</label>
+                    <label>
+                        <orig>Account</orig>
+                        <translation>
+                            <key>reportUserList.accountColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <export>
                     <expression>
@@ -188,11 +203,11 @@
                                 if (input != null){
                                     list = new ArrayList();
                                     for (linkRef in input){
-                                        shadow = midpoint.getObject(ShadowType.class, linkRef.getOid(),
-                                        SelectorOptions.createCollection(GetOperationOptions.createNoFetch().resolveNames(true)));
-                                        list.add(shadow.getName().getOrig() + "(Resource: " + shadow.getResourceRef().getTargetName()?.getOrig() + ")");
-                                    }
-                                    return list;
+                                    shadow = midpoint.getObject(ShadowType.class, linkRef.getOid(),
+                                    SelectorOptions.createCollection(GetOperationOptions.createNoFetch().resolveNames(true)));
+                                    list.add(shadow.getName().getOrig() + "(Resource: " + shadow.getResourceRef().getTargetName()?.getOrig() + ")");
+                                }
+                                return list;
                                 }
                             </code>
                         </script>

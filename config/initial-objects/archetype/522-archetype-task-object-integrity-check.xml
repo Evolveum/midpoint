@@ -12,7 +12,12 @@
     <archetypeType>auxiliary</archetypeType>
     <archetypePolicy>
         <display>
-            <label>Object integrity check task</label>
+            <label>
+                <orig>Object integrity check task</orig>
+                <translation>
+                    <key>ObjectIntegrityCheckTask.label</key>
+                </translation>
+            </label>
             <pluralLabel>
                 <orig>Object integrity check task</orig>
                 <translation>

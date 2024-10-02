@@ -12,7 +12,12 @@
     <archetypeType>auxiliary</archetypeType>
     <archetypePolicy>
         <display>
-            <label>Execute change task (one delta applicable for many objects)</label>
+            <label>
+                <orig>Execute change task (one delta applicable for many objects)</orig>
+                <translation>
+                    <key>ExecuteChangeTask.label</key>
+                </translation>
+            </label>
             <pluralLabel>
                 <orig>Execute change task (one delta applicable for many objects)</orig>
                 <translation>

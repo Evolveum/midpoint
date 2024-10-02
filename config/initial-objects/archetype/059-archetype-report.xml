@@ -11,9 +11,17 @@
     <name>Report</name>
     <archetypePolicy>
         <display>
-            <label>Report</label>
+            <label>
+                <orig>Report</orig>
+                <translation>
+                    <key>report.label</key>
+                </translation>
+            </label>
             <pluralLabel>
                 <orig>Report</orig>
+                <translation>
+                    <key>report.pluralLabel</key>
+                </translation>
             </pluralLabel>
             <icon>
                 <cssClass>fa fa-chart-pie</cssClass>
@@ -52,7 +60,12 @@
                     <identifier>fileFormat</identifier>
                     <displayOrder>20</displayOrder>
                     <display>
-                        <label>File format</label>
+                        <label>
+                            <orig>File format</orig>
+                            <translation>
+                                <key>fileFormat.panel.label</key>
+                            </translation>
+                        </label>
                         <cssClass>fas fa-file-alt</cssClass>
                         <icon>
                             <cssClass>fas fa-file-alt</cssClass>

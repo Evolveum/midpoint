@@ -36,7 +36,12 @@
     </inducement>
     <archetypePolicy>
         <display>
-            <label>Execute deltas task (background processing for change execution)</label>
+            <label>
+                <orig>Execute deltas task (background processing for change execution)</orig>
+                <translation>
+                    <key>ExecuteDeltaTask.label</key>
+                </translation>
+            </label>
             <pluralLabel>
                 <t:orig>Execute deltas task (background processing for change execution)</t:orig>
                 <t:translation>

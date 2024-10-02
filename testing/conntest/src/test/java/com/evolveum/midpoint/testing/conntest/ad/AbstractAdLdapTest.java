@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.testing.conntest.ad;
 
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -141,6 +142,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapTest
         binaryAttributeDetector.addBinaryAttribute(ATTRIBUTE_OBJECT_GUID_NAME);
         binaryAttributeDetector.addBinaryAttribute(ATTRIBUTE_UNICODE_PWD_NAME);
 
+        // TODO push this to upper classes after RC3
+        CommonInitialObjects.addMarks(this, initTask, initResult);
     }
 
 

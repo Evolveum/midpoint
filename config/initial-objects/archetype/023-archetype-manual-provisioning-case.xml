@@ -15,8 +15,18 @@
     </description>
     <archetypePolicy>
         <display>
-            <label>Manual provisioning case</label>
-            <pluralLabel>Manual provisioning cases</pluralLabel>
+            <label>
+                <orig>Manual provisioning case</orig>
+                <translation>
+                    <key>manualProvisioningCases.label</key>
+                </translation>
+            </label>
+            <pluralLabel>
+                <orig>Manual provisioning cases</orig>
+                <translation>
+                    <key>manualProvisioningCases.pluralLabel</key>
+                </translation>
+            </pluralLabel>
             <icon>
                 <cssClass>far fa-hand-paper</cssClass>
             </icon>
@@ -26,7 +36,12 @@
                 <panel id="3">
                     <identifier>manualCase</identifier>
                     <display>
-                        <label>Manual case</label>
+                        <label>
+                            <orig>Manual case</orig>
+                            <translation>
+                                <key>manualCase.panel.label</key>
+                            </translation>
+                        </label>
                         <icon>
                             <cssClass>fa fa-circle-o</cssClass>
                         </icon>
@@ -37,7 +52,12 @@
                 <panel id="4">
                     <identifier>caseWorkItems</identifier>
                     <display>
-                        <label>Workitems</label>
+                        <label>
+                            <orig>Workitems</orig>
+                            <translation>
+                                <key>Workitems.panel.title</key>
+                            </translation>
+                        </label>
                         <icon>
                             <cssClass>fa fa-circle-o</cssClass>
                         </icon>

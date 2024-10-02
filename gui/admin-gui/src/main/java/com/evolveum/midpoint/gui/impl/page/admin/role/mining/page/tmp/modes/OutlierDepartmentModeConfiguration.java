@@ -29,14 +29,14 @@ public class OutlierDepartmentModeConfiguration extends AbstractRoleAnalysisConf
 
     public OutlierDepartmentModeConfiguration(
             RoleAnalysisService service,
-            LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapper,
+            RoleAnalysisSessionType objectWrapper,
             Task task,
             OperationResult result) {
         super(objectWrapper);
         this.service = service;
         this.task = task;
         this.result = result;
-        this.objectWrapper = objectWrapper;
+//        this.objectWrapper = objectWrapper;
     }
 
     @Override
@@ -67,11 +67,11 @@ public class OutlierDepartmentModeConfiguration extends AbstractRoleAnalysisConf
         return new RangeType().min(minPropertyCount).max(maxPropertyCount);
     }
 
+    //TODO let the user choose the department archetype or root for department structure
     private @NotNull ClusteringAttributeSettingType createClusteringSetting() {
-        RoleAnalysisAttributeDef orgAssignment = RoleAnalysisAttributeDefUtils.getOrgAssignment();
         ClusteringAttributeSettingType clusteringSetting = new ClusteringAttributeSettingType();
         ClusteringAttributeRuleType rule = new ClusteringAttributeRuleType()
-                .attributeIdentifier(orgAssignment.getDisplayValue())
+                .path(FocusType.F_PARENT_ORG_REF.toBean())
                 .isMultiValue(true)
                 .weight(1.0)
                 .similarity(100.0);

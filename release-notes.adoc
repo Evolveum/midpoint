@@ -31,7 +31,7 @@ TODO
 
 === New Features and Major Improvements
 
-* Shadow caching
+* xrefv:/midpoint/reference/master/resources/attribute-caching/[Shadow caching]
 * Native Repository Support for `searchContainersIteratively` for all container types
 ** Removed upper record limit for  reports for Assignments, Certfication Cases, Certification Work items and others.
 ** Changed transaction isolation from READ_COMMITED to REPEATABLE_READ.
@@ -40,10 +40,11 @@ TODO
 This allows to store secrets in external systems, such as HashiCorp Vault, AWS Secrets Manager, Azure Key Vault, etc.
 For more information see xrefv:/midpoint/reference/master/security/credentials/secrets-provider-configuration.adoc[].
 ** Adding support for GUI of passwords in connector configuration and password of focus (visible only when it is configured in xml)
-* Improvements regard shadow associations (work in progress)
-** Draft of the native associations support in ConnId (1.5.3.0-M1).
-** Draft of the new style of configuring simulated associations (via capabilities).
-** Draft of the new style of configuring associations handling: mapping from associations to assignments using specific correlation and synchronization rules.
+* Improvements regarding xrefv:/midpoint/reference/master/resources/entitlements/[shadow associations]:
+** Support for native object references in ConnId (1.6.0.0-RC1).
+** New style of configuring simulated object references (via capabilities).
+** New style of configuring associations handling: mapping from associations to assignments using specific correlation and synchronization rules.
+** Added wizard support for association configuration in resources.
 
 * Query Support for searching in value metadata of objects
 ** Native Repository: Object metadata stored in `metadata` property of `MetadataType` are also indexed and searchable as value metadata. Eg. original `metadata/creatorRef` is `@metadata/storage/creatorRef` as value metadata path.
@@ -131,6 +132,7 @@ More details can be found in the xrefv:/midpoint/reference/master/misc/notificat
 * Added the ability to configure UI form of the authentication sequence module with a label, description and external link.
 More information can be found in the xref:/midpoint/reference/security/authentication/flexible-authentication/modules/sequence/#authenticationsequencemoduletype[Authentication Sequence Module].
 * 'Resource object types' panel identifier changed from 'schemaHandling' to 'resourceObjectTypes' and panel was moved from top level menu item to submenu of new top level menu item 'Schema handling'. The 'schemaHandling' identifier is now used for the top level menu item.
+* Added missing indexes for extension poly-string properties and shadow attributes for generic repositories (Oracle, MS SQL Server). For more info see SQL upgrade scripts.
 
 === Releases Of Other Components
 

@@ -16,6 +16,7 @@ import com.evolveum.midpoint.gui.impl.prism.panel.ItemWrapperComparator;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPasswordPropertyPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismPropertyPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismReferencePanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormRoleAnalysisAttributeSettingPanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ProtectedStringTypeWrapperImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.processor.*;
@@ -452,7 +453,9 @@ public class WebPrismUtil {
     public static ItemPanel createVerticalPropertyPanel(String id, IModel<? extends ItemWrapper<?, ?>> model, ItemPanelSettings origSettings) {
         ItemPanel propertyPanel;
         ItemPanelSettings settings = origSettings != null ? origSettings.copy() : null;
-        if (model.getObject() instanceof ProtectedStringTypeWrapperImpl) {
+        if (model.getObject().getParent() != null && AbstractAnalysisSessionOptionType.F_USER_ANALYSIS_ATTRIBUTE_SETTING.equivalent(model.getObject().getParent().getDefinition().getItemName())) {
+            propertyPanel = new VerticalFormRoleAnalysisAttributeSettingPanel(id, (IModel<PrismPropertyWrapper<ItemPathType>>) model, settings);
+        } else if (model.getObject() instanceof ProtectedStringTypeWrapperImpl) {
             propertyPanel = new VerticalFormPasswordPropertyPanel(
                     id, (IModel<PrismPropertyWrapper<ProtectedStringType>>) model, settings);
         } else if (model.getObject() instanceof PrismPropertyWrapper) {

@@ -12,11 +12,15 @@ import static com.evolveum.midpoint.gui.api.GuiStyleConstants.CLASS_OBJECT_USER_
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context.AnalysisCategoryMode;
 
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -65,42 +69,27 @@ public class ProcessModeChoiceStepPanel extends EnumWizardChoicePanel<ProcessMod
 
     @Override
     protected void onTileClickPerformed(@NotNull ProcessMode value, AjaxRequestTarget target) {
-        RoleAnalysisProcessModeType mode;
-        if (value.equals(ProcessMode.ROLE)) {
-            mode = RoleAnalysisProcessModeType.ROLE;
-        } else {
-            mode = RoleAnalysisProcessModeType.USER;
+        Task task = getPageBase().createSimpleTask("prepare options");
+        OperationResult result = task.getResult();
+
+        PrismObjectWrapper<RoleAnalysisSessionType> objectWrapper = getAssignmentHolderDetailsModel().getObjectWrapper();
+        RoleAnalysisSessionType session;
+        try {
+            session = objectWrapper.getObjectApplyDelta().asObjectable();
+        } catch (CommonException e) {
+            session = objectWrapper.getObjectOld().asObjectable();
         }
+        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+        analysisOption.setProcessMode(ProcessMode.ROLE == value ? RoleAnalysisProcessModeType.ROLE : RoleAnalysisProcessModeType.USER);
+        AnalysisCategoryMode categoryMode = AnalysisCategoryMode.resolveCategoryMode(session);
+        categoryMode.generateConfiguration(getPageBase().getRoleAnalysisService(), session, task, result);
 
-        LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getAssignmentHolderDetailsModel()
-                .getObjectWrapperModel();
-
-        PrismObjectWrapper<RoleAnalysisSessionType> objectWrapper = getAssignmentHolderDetailsModel()
-                .getObjectWrapper();
-
-        PrismContainer<Containerable> property = objectWrapper.getObject()
-                .findContainer(RoleAnalysisSessionType.F_ANALYSIS_OPTION);
-        property.findProperty(RoleAnalysisOptionType.F_PROCESS_MODE)
-                .setRealValue(mode);
-
-        Containerable realValue = property.getRealValue();
-
-        if (realValue instanceof RoleAnalysisOptionType analysisOptionType) {
-            RoleAnalysisCategoryType analysisCategory = analysisOptionType.getAnalysisCategory();
-            if (analysisCategory != null) {
-                Task task = getPageBase().createSimpleTask("prepare options");
-                OperationResult result = task.getResult();
-                RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-                AnalysisCategoryMode.generateConfiguration(
-                        roleAnalysisService, analysisCategory, objectWrapperModel, task, result);
-            } else {
-                throw new IllegalStateException("Unexpected null value (expected RoleAnalysisCategoryType != null): " + realValue);
-            }
-        } else {
-            throw new IllegalStateException("Unexpected value (expected RoleAnalysisOptionType): " + realValue);
-        }
-
+        reloadDefaultConfiguration(session);
         onSubmitPerformed(target);
+    }
+
+    protected void reloadDefaultConfiguration(RoleAnalysisSessionType sessionType) {
+
     }
 
     public enum ProcessMode implements TileEnum {

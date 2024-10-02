@@ -152,7 +152,7 @@ public class RoleAnalysisContainerPanel<AH extends AssignmentHolderType> extends
             return ItemVisibility.AUTO;
         } else {
             if (path.equivalent(ItemPath.create(RoleAnalysisSessionType.F_ROLE_MODE_OPTIONS,
-                    AbstractAnalysisSessionOptionType.F_ANALYSIS_ATTRIBUTE_SETTING))) {
+                    AbstractAnalysisSessionOptionType.F_USER_ANALYSIS_ATTRIBUTE_SETTING))) {
                 return ItemVisibility.HIDDEN;
             } else if (path.equivalent(ItemPath.create(RoleAnalysisSessionType.F_ROLE_MODE_OPTIONS,
                     AbstractAnalysisSessionOptionType.F_CLUSTERING_ATTRIBUTE_SETTING))) {
@@ -161,7 +161,7 @@ public class RoleAnalysisContainerPanel<AH extends AssignmentHolderType> extends
                     AbstractAnalysisSessionOptionType.F_CLUSTERING_ATTRIBUTE_SETTING))) {
                 return ItemVisibility.HIDDEN;
             } else if (path.equivalent(ItemPath.create(RoleAnalysisSessionType.F_USER_MODE_OPTIONS,
-                    AbstractAnalysisSessionOptionType.F_ANALYSIS_ATTRIBUTE_SETTING))) {
+                    AbstractAnalysisSessionOptionType.F_USER_ANALYSIS_ATTRIBUTE_SETTING))) {
                 return ItemVisibility.HIDDEN;
             }
             return ItemVisibility.AUTO;

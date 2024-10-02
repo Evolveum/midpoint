@@ -14,6 +14,8 @@ import java.nio.file.Paths;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
+
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.opends.server.types.Entry;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,6 +104,8 @@ public class TestLdap extends AbstractLongTest {
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
+
+        CommonInitialObjects.SERVICE_ORIGIN_INTERNAL.init(this, initTask, initResult);
 
         // Users
         repoAddObjectFromFile(USER_BARBOSSA_FILE, initResult);

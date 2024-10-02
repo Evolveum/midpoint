@@ -80,6 +80,7 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
     private static final String OP_PERFORM_MIGRATION = DOT_CLASS + "performMigration";
 
     private BusinessRoleApplicationDto patternDeltas;
+    boolean isRmWizard = false;
 
     public PageRole() {
         super();
@@ -96,6 +97,7 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
     public PageRole(PrismObject<RoleType> role, BusinessRoleApplicationDto patternDeltas) {
         super(role);
         this.patternDeltas = patternDeltas;
+        this.isRmWizard = true;
     }
 
     @Override
@@ -157,9 +159,8 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
 
     @Override
     protected boolean canShowWizard() {
-
-        return !isHistoryPage() && !isEditObject()
-                && isApplicationOrBusinessRole();
+        return (!isHistoryPage() && !isEditObject()
+                && isApplicationOrBusinessRole()) || isRmWizard;
     }
 
     private boolean isApplicationOrBusinessRole() {

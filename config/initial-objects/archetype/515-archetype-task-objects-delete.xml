@@ -12,7 +12,12 @@
     <archetypeType>auxiliary</archetypeType>
     <archetypePolicy>
         <display>
-            <label>Delete objects task</label>
+            <label>
+                <orig>Delete objects task</orig>
+                <translation>
+                    <key>DeleteObjectsTask.label</key>
+                </translation>
+            </label>
             <pluralLabel>
                 <orig>Delete objects task</orig>
                 <translation>

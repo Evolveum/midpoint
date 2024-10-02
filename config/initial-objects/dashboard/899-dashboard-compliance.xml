@@ -7,9 +7,9 @@
   -->
 
 <dashboard xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-           oid="00000000-0000-0000-0001-000000001001">
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="00000000-0000-0000-0001-000000001001">
     <name>compliance-dashboard</name>
     <display>
         <label>
@@ -25,6 +25,9 @@
         <display>
             <label>
                 <orig>Understaffed security roles</orig>
+                <translation>
+                    <key>UnderstaffedSecurityRoles.label</key>
+                </translation>
             </label>
             <icon>
                 <cssClass>fa fa-person-arrow-down-to-line</cssClass>
@@ -91,6 +94,9 @@
         <display>
             <label>
                 <orig>Orphaned roles</orig>
+                <translation>
+                    <key>OrphanedRoles.label</key>
+                </translation>
             </label>
             <icon>
                 <cssClass>fa fa-user-xmark</cssClass>
@@ -142,6 +148,9 @@
         <display>
             <label>
                 <orig>Orphaned applications</orig>
+                <translation>
+                    <key>OrphanedApplications.label</key>
+                </translation>
             </label>
             <icon>
                 <cssClass>fa fa-user-xmark</cssClass>
@@ -193,6 +202,9 @@
         <display>
             <label>
                 <orig>Suspicious roles</orig>
+                <translation>
+                    <key>SuspiciousRoles.label</key>
+                </translation>
             </label>
             <icon>
                 <cssClass>fa fa-handcuffs</cssClass>
@@ -243,6 +255,9 @@
         <display>
             <label>
                 <orig>Suspicious users</orig>
+                <translation>
+                    <key>SuspiciousUsers.label</key>
+                </translation>
             </label>
             <icon>
                 <cssClass>fa fa-handcuffs</cssClass>
@@ -295,6 +310,9 @@
         <display>
             <label>
                 <orig>Information security roles</orig>
+                <translation>
+                    <key>InformationSecurityRoles.label</key>
+                </translation>
             </label>
             <icon>
                 <cssClass>fa fa-building-shield</cssClass>
@@ -325,6 +343,9 @@
         <display>
             <label>
                 <orig>Privileged roles</orig>
+                <translation>
+                    <key>PrivilegedRoles.label</key>
+                </translation>
             </label>
             <icon>
                 <cssClass>fa fa-circle-radiation</cssClass>

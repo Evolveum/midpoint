@@ -25,7 +25,8 @@ import java.util.Objects;
 @Entity
 @IdClass(RAExtPolyStringId.class)
 @Table(name = "m_assignment_ext_poly", indexes = {
-        @Index(name = "iAExtensionPolyString", columnList = "orig")
+        @Index(name = "iAExtensionPolyString", columnList = "orig"),
+        @Index(name = "iAExtensionPolyNorm", columnList = "orig")
 })
 public class RAExtPolyString extends RAExtBase<String> implements RAExtValue<String> {
 

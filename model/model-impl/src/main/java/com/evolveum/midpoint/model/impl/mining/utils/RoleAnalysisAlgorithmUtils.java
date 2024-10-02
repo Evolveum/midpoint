@@ -262,11 +262,8 @@ public class RoleAnalysisAlgorithmUtils {
         List<RoleAnalysisAttributeDef> userAnalysisAttributeDef = roleAnalysisService.resolveAnalysisAttributes(session, UserType.COMPLEX_TYPE);
         List<RoleAnalysisAttributeDef> roleAnalysisAttributeDef = roleAnalysisService.resolveAnalysisAttributes(session, RoleType.COMPLEX_TYPE);
 
-        if (userAnalysisAttributeDef != null && roleAnalysisAttributeDef != null) {
-            extractAttributeStatistics(roleAnalysisService, complexType, task, result, density, propertiesOidsSet,
-                    membersOidsSet, clusterStatistic, attributeAnalysisCache, userAnalysisAttributeDef, roleAnalysisAttributeDef);
-
-        }
+        extractAttributeStatistics(roleAnalysisService, complexType, task, result, density, propertiesOidsSet,
+                membersOidsSet, clusterStatistic, attributeAnalysisCache, userAnalysisAttributeDef, roleAnalysisAttributeDef);
 
         return clusterStatistic;
     }
@@ -281,8 +278,13 @@ public class RoleAnalysisAlgorithmUtils {
             Set<String> membersOidsSet,
             ClusterStatistic clusterStatistic,
             @NotNull AttributeAnalysisCache attributeAnalysisCache,
-            @NotNull List<RoleAnalysisAttributeDef> userAttributeDefSet,
-            @NotNull List<RoleAnalysisAttributeDef> roleAttributeDefSet) {
+            @Nullable List<RoleAnalysisAttributeDef> userAttributeDefSet,
+            @Nullable List<RoleAnalysisAttributeDef> roleAttributeDefSet) {
+
+        if (userAttributeDefSet == null && roleAttributeDefSet == null) {
+            return;
+        }
+
         Set<PrismObject<UserType>> users;
         Set<PrismObject<RoleType>> roles;
 
@@ -309,14 +311,17 @@ public class RoleAnalysisAlgorithmUtils {
                     .filter(Objects::nonNull).collect(Collectors.toSet());
         }
 
-        List<AttributeAnalysisStructure> userAttributeAnalysisStructures = roleAnalysisService
-                .userTypeAttributeAnalysisCached(users, userDensity, attributeAnalysisCache, userAttributeDefSet, task, result);
+        if (userAttributeDefSet != null && !userAttributeDefSet.isEmpty()) {
+            List<AttributeAnalysisStructure> userAttributeAnalysisStructures = roleAnalysisService
+                    .userTypeAttributeAnalysisCached(users, userDensity, attributeAnalysisCache, userAttributeDefSet, task, result);
+            clusterStatistic.setUserAttributeAnalysisStructures(userAttributeAnalysisStructures);
+        }
 
-        List<AttributeAnalysisStructure> roleAttributeAnalysisStructures = roleAnalysisService
-                .roleTypeAttributeAnalysis(roles, roleDensity, task, result, roleAttributeDefSet);
-
-        clusterStatistic.setUserAttributeAnalysisStructures(userAttributeAnalysisStructures);
-        clusterStatistic.setRoleAttributeAnalysisStructures(roleAttributeAnalysisStructures);
+        if (roleAttributeDefSet != null && !roleAttributeDefSet.isEmpty()) {
+            List<AttributeAnalysisStructure> roleAttributeAnalysisStructures = roleAnalysisService
+                    .roleTypeAttributeAnalysis(roles, roleDensity, task, result, roleAttributeDefSet);
+            clusterStatistic.setRoleAttributeAnalysisStructures(roleAttributeAnalysisStructures);
+        }
     }
 
     private @Nullable PrismObject<RoleAnalysisClusterType> prepareClusters(
@@ -523,8 +528,8 @@ public class RoleAnalysisAlgorithmUtils {
                 }
                 RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
                 roleAnalysisAttributeAnalysis.setDensity(density);
-                roleAnalysisAttributeAnalysis.setItemPath(roleAttributeAnalysisStructure.getItemPath());
-                roleAnalysisAttributeAnalysis.setIsMultiValue(roleAttributeAnalysisStructure.isMultiValue());
+                roleAnalysisAttributeAnalysis.setItemPath(roleAttributeAnalysisStructure.getItemPathType());
+//                roleAnalysisAttributeAnalysis.setIsMultiValue(roleAttributeAnalysisStructure.isMultiValue()); //TODO
                 roleAnalysisAttributeAnalysis.setDescription(roleAttributeAnalysisStructure.getDescription());
                 roleAnalysisAttributeAnalysis.setParentType(roleAttributeAnalysisStructure.getComplexType());
 
@@ -546,8 +551,8 @@ public class RoleAnalysisAlgorithmUtils {
                 }
                 RoleAnalysisAttributeAnalysis userAnalysisAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
                 userAnalysisAttributeAnalysis.setDensity(density);
-                userAnalysisAttributeAnalysis.setItemPath(userAttributeAnalysisStructure.getItemPath());
-                userAnalysisAttributeAnalysis.setIsMultiValue(userAttributeAnalysisStructure.isMultiValue());
+                userAnalysisAttributeAnalysis.setItemPath(userAttributeAnalysisStructure.getItemPathType());
+//                userAnalysisAttributeAnalysis.setIsMultiValue(userAttributeAnalysisStructure.isMultiValue()); //TODO
                 userAnalysisAttributeAnalysis.setParentType(userAttributeAnalysisStructure.getComplexType());
 
                 userAnalysisAttributeAnalysis.setDescription(userAttributeAnalysisStructure.getDescription());
@@ -589,13 +594,12 @@ public class RoleAnalysisAlgorithmUtils {
         List<RoleAnalysisAttributeDef> roleAnalysisAttributeDef = roleAnalysisService
                 .resolveAnalysisAttributes(session, RoleType.COMPLEX_TYPE);
 
-        if (userAnalysisAttributeDef == null || roleAnalysisAttributeDef == null) {
+        if (userAnalysisAttributeDef == null && roleAnalysisAttributeDef == null) {
             return detectedPatterns;
         }
 
         roleAnalysisService.resolveDetectedPatternsAttributesCached(detectedPatterns, userExistCache, roleExistCache,
-                attributeAnalysisCache, roleAnalysisAttributeDef, userAnalysisAttributeDef, task, result
-        );
+                attributeAnalysisCache, roleAnalysisAttributeDef, userAnalysisAttributeDef, task, result);
 
         return detectedPatterns;
     }
@@ -644,7 +648,7 @@ public class RoleAnalysisAlgorithmUtils {
                 case OVERAL_NOISE -> "Overall noise";
                 default -> "Non-category noise";
             };
-        }else {
+        } else {
             return "Non-category noise";
         }
     }
