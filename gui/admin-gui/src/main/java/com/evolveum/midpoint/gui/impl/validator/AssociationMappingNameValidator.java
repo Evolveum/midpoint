@@ -42,13 +42,12 @@ public class AssociationMappingNameValidator extends MappingNameValidator {
         }
 
         ShadowAssociationTypeDefinitionType associationTypeBean = associationType.getRealValue();
-        if (alreadyExistMapping(
+        alreadyExistMapping(
                 associationType,
                 LocalizationUtil.translate(
                         "ObjectTypeMappingNameValidator.sameValue",
                         new Object[] { value, GuiDisplayNameUtil.getDisplayName(associationTypeBean) }),
                 value,
-                validatable)) {
-        }
+                validatable);
     }
 }
