@@ -705,7 +705,14 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     }
 
     private List<IColumn<PO, String>> createColumns() {
-        List<IColumn<PO, String>> columns = collectColumns();
+        List<IColumn<PO, String>> columns = new ArrayList<>();
+        if (useNewColumnConfiguration()) {
+            addingCheckAndIconColumnIfExists(columns);
+            columns.addAll(getPredefinedColumns());
+        }
+        if (columns.isEmpty()) {
+            columns = collectColumns();
+        }
 
         if (!isPreview()) {
             IColumn<PO, String> actionsColumn = createActionsColumn();
@@ -714,6 +721,18 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             }
         }
         return columns;
+    }
+
+    //todo for now new column configuration is implemented only for AccessCertificationWorkItemType
+    //columns are defined with ColumnType annotation
+    protected boolean useNewColumnConfiguration() {
+        return false;
+    }
+
+    //todo for now is implemented only for AccessCertificationWorkItemType
+    //columns are defined with ColumnType annotation
+    protected List<IColumn<PO, String>> getPredefinedColumns() {
+        return new ArrayList<>();
     }
 
     protected IColumn<PO, String> createActionsColumn() {
@@ -775,7 +794,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             return initColumns();
         }
 
-        boolean checkForNameColumn = true;
+        boolean checkForNameColumn = shouldCheckForNameColumn();
         if (shouldIncludeDefaultColumns()) {
             columns = initColumns();
             checkForNameColumn = false;
@@ -815,6 +834,10 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         if (iconColumn != null) {
             columns.add(iconColumn);
         }
+    }
+
+    protected boolean shouldCheckForNameColumn() {
+        return true;
     }
 
     protected List<IColumn<PO, String>> getViewColumnsTransformed(List<GuiObjectColumnType> customColumns) {

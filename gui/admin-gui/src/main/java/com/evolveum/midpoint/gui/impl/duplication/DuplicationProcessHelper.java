@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.gui.impl.duplication;
 
 import java.io.Serial;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -8,7 +9,12 @@ import com.evolveum.midpoint.common.cleanup.CleanupPath;
 import com.evolveum.midpoint.common.cleanup.CleanupPathAction;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.util.ExpressionUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -25,12 +31,13 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SerializableBiConsumer;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /***
  * Contains method for creating and modifying new duplicated object.
  */
 public class DuplicationProcessHelper {
+
+    private static final Trace LOGGER = TraceManager.getTrace(DuplicationProcessHelper.class);
 
     /**
      * Adding new action for duplication of object to items menu.
@@ -136,6 +143,7 @@ public class DuplicationProcessHelper {
         cleanupProcessor.setPaths(List.of(new CleanupPath(CredentialsType.COMPLEX_TYPE, ItemPath.EMPTY_PATH, CleanupPathAction.REMOVE)));
         cleanupProcessor.process(duplicate);
         duplicate.setOid(null);
+        removeMappingAlias(duplicate.getValue());
         return duplicate;
     }
 
@@ -151,7 +159,61 @@ public class DuplicationProcessHelper {
         ObjectCleaner cleanupProcessor = new ObjectCleaner();
         cleanupProcessor.setRemoveContainerIds(true);
         cleanupProcessor.process(duplicate);
+        removeMappingAlias(duplicate);
         return duplicate;
+    }
+
+    /**
+     * Remove all mapping alias in container.
+     */
+    public static <C extends Containerable> void removeMappingAlias(PrismContainerValue<C> containerValue) {
+        if (containerValue == null) {
+            return;
+        }
+
+        List<Item<?, ?>> toRemoveItems = new ArrayList<>();
+        containerValue.getItems().forEach(item -> {
+            if (item == null) {
+                return;
+            }
+
+            if (item instanceof PrismContainer) {
+                item.getValues().forEach(value -> removeMappingAlias((PrismContainerValue<C>) value));
+                return;
+            }
+
+            if (item.getElementName().equivalent(MappingType.F_MAPPING_ALIAS)) {
+                toRemoveItems.add(item);
+                return;
+            }
+
+            if (item instanceof PrismProperty<?>
+                    && item.getDefinition() != null
+                    && QNameUtil.match(ExpressionType.COMPLEX_TYPE, item.getDefinition().getTypeName())
+                    && item.isSingleValue()
+                    && item.getValue() != null) {
+                try {
+                    AssociationSynchronizationExpressionEvaluatorType synchronizationEvaluator =
+                            ExpressionUtil.getAssociationSynchronizationExpressionValue(item.getValue().getRealValue());
+                    if (synchronizationEvaluator != null) {
+                        removeMappingAlias(synchronizationEvaluator.asPrismContainerValue());
+                        ExpressionUtil.updateAssociationSynchronizationExpressionValue(item.getValue().getRealValue(), synchronizationEvaluator);
+                        return;
+                    }
+
+                    AssociationConstructionExpressionEvaluatorType constructionEvaluator =
+                            ExpressionUtil.getAssociationConstructionExpressionValue(item.getValue().getRealValue());
+                    if (constructionEvaluator != null) {
+                        removeMappingAlias(constructionEvaluator.asPrismContainerValue());
+                        ExpressionUtil.updateAssociationConstructionExpressionValue(item.getValue().getRealValue(), constructionEvaluator);
+                    }
+                } catch (SchemaException e) {
+                    LOGGER.error("Couldn't process mapping in expression evaluator.", e);
+                }
+            }
+        });
+
+        toRemoveItems.forEach(item -> containerValue.remove(item));
     }
 
     private static <O extends ObjectType> O resolveObject(IModel<SelectableBean<O>> rowModel) {
