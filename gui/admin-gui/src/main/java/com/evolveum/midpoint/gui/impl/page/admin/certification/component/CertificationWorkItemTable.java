@@ -307,11 +307,11 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
             CompiledObjectCollectionView compiledView = new CompiledObjectCollectionView();
             compiledView.setContainerType(AccessCertificationWorkItemType.COMPLEX_TYPE);
 
-            if (campaignDefinitionView != null) {
-                getPageBase().getModelInteractionService().compileView(compiledView, campaignDefinitionView, task, result);
-            }
             if (defaultView != null) {
                 getPageBase().getModelInteractionService().compileView(compiledView, defaultView, task, result);
+            }
+            if (campaignDefinitionView != null) {
+                getPageBase().getModelInteractionService().compileView(compiledView, campaignDefinitionView, task, result);
             }
 
             return compiledView;
