@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.schema.util;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -43,6 +44,10 @@ public class ObjectSet<O extends ObjectType> implements Collection<O> {
     @SafeVarargs
     public static <O extends ObjectType> ObjectSet<O> of(O... objects) {
         return new ObjectSet<>(List.of(objects));
+    }
+
+    public static <O extends ObjectType> ObjectSet<O> ofPrismObjects(Collection<PrismObject<O>> objects) {
+        return new ObjectSet<>(ObjectTypeUtil.asObjectables(objects));
     }
 
     @Override
@@ -148,11 +153,23 @@ public class ObjectSet<O extends ObjectType> implements Collection<O> {
         return new ArrayList<>(objects.values());
     }
 
+    public @NotNull List<PrismObject<O>> asPrismObjectList() {
+        var list = new ArrayList<PrismObject<O>>(objects.size());
+        //noinspection unchecked
+        objects.values()
+                .forEach(object -> list.add((PrismObject<O>) object.asPrismObject()));
+        return list;
+    }
+
     public boolean containsOid(String oid) {
         return objects.containsKey(oid);
     }
 
     public O get(String oid) {
         return objects.get(oid);
+    }
+
+    public @NotNull Set<String> oidSet() {
+        return objects.keySet();
     }
 }

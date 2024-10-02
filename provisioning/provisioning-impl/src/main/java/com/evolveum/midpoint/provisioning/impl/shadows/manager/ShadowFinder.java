@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.ObjectSet;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 
@@ -124,7 +125,7 @@ public class ShadowFinder {
         ObjectQuery query = createQueryByPrimaryId(ctx, primaryIdentifier, objectClass);
 
         LOGGER.trace("Searching for shadow by primary identifier using query:\n{}", query.debugDumpLazily(1));
-        List<PrismObject<ShadowType>> shadowsFound = searchRepoShadows(query, zeroStalenessOptions(), result);
+        var shadowsFound = searchRepoShadows(query, zeroStalenessOptions(), result);
         LOGGER.trace("Found {} shadows (live or dead)", shadowsFound.size());
 
         PrismObject<ShadowType> liveShadow =
@@ -330,14 +331,17 @@ public class ShadowFinder {
         return q.item(ShadowType.F_RESOURCE_REF).ref(ctx.getResourceOid()).build();
     }
 
-    /** No side effects. */
+    /**
+     * Here we avoid using `distinct` option in repo, and will do the distinct manually.
+     * We assume that there are only a few results, as we use this method when looking by identifiers.
+     */
     private @NotNull List<PrismObject<ShadowType>> searchRepoShadows(
-            ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
+            ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            OperationResult result)
             throws SchemaException {
-        return repositoryService.searchObjects(
-                ShadowType.class,
-                query,
-                GetOperationOptions.updateToDistinct(options),
-                result);
+        var objects = repositoryService.searchObjects(ShadowType.class, query, options, result);
+        return ObjectSet.ofPrismObjects(objects)
+                .asPrismObjectList();
     }
 }
