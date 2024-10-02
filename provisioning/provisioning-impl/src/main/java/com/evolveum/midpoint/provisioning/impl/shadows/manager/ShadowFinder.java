@@ -7,13 +7,13 @@
 package com.evolveum.midpoint.provisioning.impl.shadows.manager;
 
 import static com.evolveum.midpoint.schema.processor.ShadowsNormalizationUtil.transformQueryValues;
-import static com.evolveum.midpoint.schema.GetOperationOptions.updateToDistinct;
 import static com.evolveum.midpoint.schema.GetOperationOptions.zeroStalenessOptions;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.util.ObjectSet;
 import com.evolveum.midpoint.schema.util.RawRepoShadow;
 
 import com.evolveum.midpoint.util.DebugUtil;
@@ -184,7 +184,7 @@ public class ShadowFinder {
             ProvisioningContext ctx, ObjectQuery query, String context, OperationResult result)
             throws SchemaException, ConfigurationException {
         LOGGER.trace("Searching for shadow {} using query:\n{}", context, query.debugDumpLazily(1));
-        List<PrismObject<ShadowType>> shadowsFound = searchRepoShadows(query, zeroStalenessOptions(), result); // no caching!
+        var shadowsFound = searchRepoShadows(query, zeroStalenessOptions(), result); // no caching!
         LOGGER.trace("Found {} shadows (live or dead)", shadowsFound.size());
 
         var rawRepoShadow = RawRepoShadow.selectLiveShadow(shadowsFound, context);
@@ -361,13 +361,17 @@ public class ShadowFinder {
         return q.item(ShadowType.F_RESOURCE_REF).ref(ctx.getResourceOid()).build();
     }
 
+    /**
+     * Here we avoid using `distinct` option in repo, and will do the distinct manually.
+     * We assume that there are only a few results, as we use this method when looking by identifiers.
+     */
     private @NotNull List<PrismObject<ShadowType>> searchRepoShadows(
-            ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
+            ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            OperationResult result)
             throws SchemaException {
-        return repositoryService.searchObjects(
-                ShadowType.class,
-                query,
-                updateToDistinct(options),
-                result);
+        var objects = repositoryService.searchObjects(ShadowType.class, query, options, result);
+        return ObjectSet.ofPrismObjects(objects)
+                .asPrismObjectList();
     }
 }
