@@ -16,9 +16,12 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBar;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisAttributesDto;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -175,10 +178,20 @@ public class RoleAnalysisSinglePartitionAnomalyResultTabPopup extends BasePanel<
                 return new RoleAnalysisWidgetsPanel(panelId, loadOutlierVsRoleMemberModel()) {
                     @Override
                     protected @NotNull Component getPanelComponent(String id1) {
+
+                        LoadableModel<RoleAnalysisAttributesDto> attributesModel = new LoadableModel<>(false) {
+                            @Override
+                            protected RoleAnalysisAttributesDto load() {
+                                return RoleAnalysisAttributesDto.fromAnomalyStatistics("RoleAnalysis.analysis.attribute.panel", getAnomalyModelStatistics());
+                            }
+                        };
                         RoleAnalysisAttributePanel roleAnalysisAttributePanel = new RoleAnalysisAttributePanel(id1,
-                                createStringResource("RoleAnalysis.analysis.attribute.panel"),
-                                null, roleAttributeAnalysisResult,
-                                null, userRoleMembersCompare) {
+                                attributesModel) {
+
+                            @Override
+                            protected @NotNull String getChartContainerStyle() {
+                                return "min-height:350px;";
+                            }
 
                             @Override
                             public Set<String> getPathToMark() {
@@ -733,6 +746,7 @@ public class RoleAnalysisSinglePartitionAnomalyResultTabPopup extends BasePanel<
                         if (confidenceDeviation == null) {
                             confidenceDeviation = 0.0;
                         }
+                        confidenceDeviation *= 100;
                         BigDecimal bd = new BigDecimal(confidenceDeviation);
                         bd = bd.setScale(2, RoundingMode.HALF_UP);
                         double pointsDensity = bd.doubleValue();

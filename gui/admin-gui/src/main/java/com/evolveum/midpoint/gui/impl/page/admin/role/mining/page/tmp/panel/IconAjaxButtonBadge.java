@@ -6,25 +6,24 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel;
 
-import java.io.Serial;
-
-import com.evolveum.midpoint.web.util.TooltipBehavior;
-
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxEventBehavior;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.Behavior;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.TITLE_CSS;
 
-public class IconAjaxButtonBadge extends BasePanel<String> {
+import java.io.Serial;
+
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxEventBehavior;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.IModel;
+
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.util.TooltipBehavior;
+
+public class IconAjaxButtonBadge extends BasePanel<RoleAnalysisAttributeAnalysisDto> {
 
     @Serial private static final long serialVersionUID = 1L;
 
@@ -32,19 +31,43 @@ public class IconAjaxButtonBadge extends BasePanel<String> {
     private static final String ID_TEXT = "label";
     private static final String ID_BADGE = "badge";
 
-    boolean isClicked;
-    boolean isUnique = false;
+    private static final String STATUS_ACTIVE = " active ";
 
-    public IconAjaxButtonBadge(String id, IModel<String> model, boolean isClicked) {
+    public IconAjaxButtonBadge(String id, IModel<RoleAnalysisAttributeAnalysisDto> model) {
         super(id, model);
-        this.isClicked = isClicked;
-        initLayout();
-        addClickBehavior();
-        onLoadComponent();
     }
 
-    protected void onLoadComponent() {
-    //override
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+
+        initLayout();
+        addClickBehavior();
+    }
+
+    private void initLayout() {
+        add(AttributeModifier.replace(CLASS_CSS, () ->
+                getModelObject().isSelected()
+                ? getButtonCssClass() + STATUS_ACTIVE
+                : getButtonCssClass()));
+
+        Label image = new Label(ID_ICON);
+        image.add(AttributeModifier.replace(CLASS_CSS, getIconCssClass()));
+        image.setOutputMarkupId(true);
+        add(image);
+
+        IModel<String> labelModel = createStringResource("${displayNameKey}", getModel());
+        Label label = new Label(ID_TEXT, labelModel);
+        label.add(AttributeModifier.append(TITLE_CSS, labelModel));
+        label.add(new TooltipBehavior());
+        label.setOutputMarkupId(true);
+        label.add(AttributeModifier.replace(CLASS_CSS, getLabelCssClass()));
+        add(label);
+
+        Label badge = new Label(ID_BADGE, getBadgeModel());
+        badge.add(AttributeModifier.replace(CLASS_CSS, getBadgeCssClass()));
+        badge.setOutputMarkupId(true);
+        add(badge);
     }
 
     private void addClickBehavior() {
@@ -56,71 +79,37 @@ public class IconAjaxButtonBadge extends BasePanel<String> {
         });
     }
 
-    private void initLayout() {
-        add(AttributeModifier.append(CLASS_CSS, getAdditionalCssClass()));
-
-        Label image = new Label(ID_ICON);
-        image.add(AttributeModifier.replace(CLASS_CSS, getIconCssClass()));
-        image.setOutputMarkupId(true);
-        image.add(new Behavior() {
-            @Override
-            public void onConfigure(Component component) {
-                image.add(AttributeModifier.replace(CLASS_CSS, getIconCssClass()));
-                super.onConfigure(component);
-            }
-        });
-        add(image);
-
-        Label label = new Label(ID_TEXT, getModel());
-        label.add(AttributeModifier.append(TITLE_CSS, getModel()));
-        label.add(new TooltipBehavior());
-        label.setOutputMarkupId(true);
-        label.add(AttributeModifier.replace(CLASS_CSS, getLabelCssClass()));
-        add(label);
-
-        Label badge = new Label(ID_BADGE, Model.of(getBadgeValue()));
-        badge.add(AttributeModifier.replace(CLASS_CSS, getBadgeCssClass()));
-        badge.setOutputMarkupId(true);
-        add(badge);
+    private String getButtonCssClass() {
+        return "d-flex align-items-center gap-1 btn btn-sm btn-pill rounded-pill";
     }
 
-    public String getBadgeValue() {
-        return "0";
+    public IModel<String> getBadgeModel() {
+        return () -> "(" + getModelObject().getAttributeValuesSize() + ")";
     }
 
     public String getIconCssClass() {
-        return "";
-    }
+        if (getModelObject().isSelected()) {
+            return "fa fa-check ml-1";
+        } else {
+            Class<?> type = getModelObject().getType();
+            if (type == null) {
+                return GuiStyleConstants.CLASS_ROLE_ANALYSIS_SESSION_ICON;
+            }
+            return (UserType.class.equals(type) ? GuiStyleConstants.CLASS_OBJECT_USER_ICON : GuiStyleConstants.CLASS_OBJECT_ROLE_ICON) + " ml-1";
+        }
 
-    public boolean isClicked() {
-        return isClicked;
-    }
-
-    public void setClicked(boolean clicked) {
-        isClicked = clicked;
     }
 
     protected void onClick(AjaxRequestTarget target) {
-    //override in subclass
+
     }
 
     protected String getBadgeCssClass() {
-        return null;
+        return "ml-auto mr-1";
     }
 
     protected String getLabelCssClass() {
-        return null;
+        return " text-truncate pill-label";
     }
 
-    protected String getAdditionalCssClass() {
-        return "d-flex align-items-center gap-2 ";
-    }
-
-    public boolean isUnique() {
-        return isUnique;
-    }
-
-    public void setUnique(boolean unique) {
-        isUnique = unique;
-    }
 }

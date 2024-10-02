@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.modes;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context.AbstractRoleAnalysisConfiguration;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -25,10 +23,10 @@ public class AdvancedModeConfiguration extends AbstractRoleAnalysisConfiguration
 
     public AdvancedModeConfiguration(
             RoleAnalysisService service,
-            LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel,
+            RoleAnalysisSessionType objectWrapper,
             Task task,
             OperationResult result) {
-        super(objectWrapperModel);
+        super(objectWrapper);
         this.service = service;
         this.task = task;
         this.result = result;
@@ -36,6 +34,9 @@ public class AdvancedModeConfiguration extends AbstractRoleAnalysisConfiguration
 
     @Override
     public void updateConfiguration() {
+        if (getProcessMode() == null) {
+            return;
+        }
         RangeType propertyRange = new RangeType()
                 .min(5.0)
                 .max(Double.valueOf(getMaxPropertyCount()));

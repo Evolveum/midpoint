@@ -67,6 +67,11 @@ public class RoleAnalysisIdentifyWidgetPanel extends BasePanel<List<IdentifyWidg
     public RoleAnalysisIdentifyWidgetPanel(String id, IModel<String> title, IModel<List<IdentifyWidgetItem>> model) {
         super(id, model);
         this.title = title;
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
         initLayout();
     }
 

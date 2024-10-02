@@ -7,6 +7,9 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard;
 
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPanel;
+
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
@@ -39,9 +42,8 @@ public class ClusteringRoleAnalysisSessionOptionWizardPanel extends AbstractForm
     @Override
     protected boolean checkMandatory(@NotNull ItemWrapper itemWrapper) {
         ItemName itemName = itemWrapper.getItemName();
-
         if (itemName.equivalent(AbstractAnalysisSessionOptionType.F_SIMILARITY_THRESHOLD)
-                || itemName.equivalent(AbstractAnalysisSessionOptionType.F_ANALYSIS_ATTRIBUTE_SETTING)
+                || itemName.equivalent(AbstractAnalysisSessionOptionType.F_USER_ANALYSIS_ATTRIBUTE_SETTING)
                 || itemName.equivalent(AbstractAnalysisSessionOptionType.F_CLUSTERING_ATTRIBUTE_SETTING)) {
             return false;
         }
@@ -56,7 +58,8 @@ public class ClusteringRoleAnalysisSessionOptionWizardPanel extends AbstractForm
 
             if (itemName.equals(AbstractAnalysisSessionOptionType.F_QUERY)
                     || itemName.equals(AbstractAnalysisSessionOptionType.F_IS_INDIRECT)
-                    || itemName.equals(AbstractAnalysisSessionOptionType.F_PROPERTIES_RANGE)) {
+                    || itemName.equals(AbstractAnalysisSessionOptionType.F_PROPERTIES_RANGE)
+                    || itemName.equals(AbstractAnalysisSessionOptionType.F_MAX_DISTANCE)) {
                 return ItemVisibility.HIDDEN;
             }
 
@@ -75,6 +78,16 @@ public class ClusteringRoleAnalysisSessionOptionWizardPanel extends AbstractForm
 
             return ItemVisibility.AUTO;
         };
+    }
+
+    @Override
+    protected boolean isVisibleSubContainer(PrismContainerWrapper c) {
+        return true;
+    }
+
+    @Override
+    protected boolean isShowEmptyButtonVisible() {
+        return false;
     }
 
     @Override

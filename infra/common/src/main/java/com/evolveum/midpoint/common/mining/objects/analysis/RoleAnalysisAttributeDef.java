@@ -11,15 +11,14 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.impl.PrismPropertyValueImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -32,19 +31,27 @@ import javax.xml.namespace.QName;
 public class RoleAnalysisAttributeDef implements Serializable {
 
     ItemPath path;
-    boolean isContainer;
+//    boolean isContainer;
     String displayValue;
     ObjectQuery query;
     Class<? extends ObjectType> targetClassType;
     Class<? extends ObjectType> associatedClassType;
 
+    private ItemDefinition<?> definition;
+
     IdentifierType identifierType;
+
+    public RoleAnalysisAttributeDef(ItemPath path,
+            ItemDefinition<?> definition) {
+        this.path = path;
+        this.definition = definition;
+    }
 
     public RoleAnalysisAttributeDef(ItemPath path,
             boolean isContainer,
             Class<? extends ObjectType> classType) {
         this.path = path;
-        this.isContainer = isContainer;
+//        this.isContainer = isContainer;
         this.targetClassType = classType;
     }
 
@@ -54,7 +61,7 @@ public class RoleAnalysisAttributeDef implements Serializable {
             Class<? extends ObjectType> classType,
             IdentifierType identifierType) {
         this.path = path;
-        this.isContainer = isContainer;
+//        this.isContainer = isContainer;
         this.displayValue = displayValue;
         this.targetClassType = classType;
         this.identifierType = identifierType;
@@ -65,16 +72,16 @@ public class RoleAnalysisAttributeDef implements Serializable {
     }
 
     public boolean isContainer() {
-        return isContainer;
+        return definition instanceof PrismContainerDefinition;
     }
 
     public void setPath(ItemPath path) {
         this.path = path;
     }
 
-    public void setContainer(boolean container) {
-        isContainer = container;
-    }
+//    public void setContainer(boolean container) {
+//        isContainer = container;
+//    }
 
     public String getDisplayValue() {
         return displayValue;
@@ -85,7 +92,7 @@ public class RoleAnalysisAttributeDef implements Serializable {
     }
 
     public String resolveSingleValueItem(@NotNull PrismObject<?> prismObject, @NotNull ItemPath itemPath) {
-        if (!isContainer) {
+        if (!isContainer()) {
             Item<PrismValue, ItemDefinition<?>> property = prismObject.findItem(itemPath);
             if (property != null) {
                 Object object = property.getRealValue();
@@ -95,6 +102,7 @@ public class RoleAnalysisAttributeDef implements Serializable {
         return null;
     }
 
+    //TODO
     public @NotNull Set<String> resolveMultiValueItem(@NotNull PrismObject<?> prismObject, @NotNull ItemPath itemPath) {
         Set<String> resolvedValues = new HashSet<>();
         Collection<Item<?, ?>> allItems = prismObject.getAllItems(itemPath);
@@ -102,9 +110,16 @@ public class RoleAnalysisAttributeDef implements Serializable {
             boolean isMultiValue = !item.isSingleValue();
 
             if (isMultiValue) {
+//                    return item.getRealValues()
+//                            .stream()
+//                            .filter(value -> value != null)
+//                            .map(value -> ((ObjectReferenceType) value).getOid())
+//                            .collect(Collectors.toSet());
                 Collection<?> realValues = item.getRealValues();
                 for (Object realValue : realValues) {
-                    if (realValue != null) {
+                    if (realValue instanceof ObjectReferenceType refValue) {
+                        resolvedValues.add(refValue.getOid());
+                    } else if (realValue != null) {
                         resolvedValues.add(realValue.toString());
                     }
                 }
@@ -135,7 +150,15 @@ public class RoleAnalysisAttributeDef implements Serializable {
     }
 
     public ObjectQuery getQuery(String value) {
-        return query;
+        if (definition instanceof PrismReferenceDefinition) {
+            return PrismContext.get().queryFor(UserType.class)
+                    .item(getPath()).ref(value)
+                    .build();
+        }
+        return PrismContext.get().queryFor(UserType.class)
+                .item(getPath()).eq(value)
+                .build();
+//        return query;
     }
 
     public void setQuery(ObjectQuery query) {
@@ -173,4 +196,11 @@ public class RoleAnalysisAttributeDef implements Serializable {
         return null;
     }
 
+    public boolean isMultiValue() {
+        return definition.isMultiValue();
+    }
+
+    public boolean isReference() {
+        return definition instanceof PrismReferenceDefinition;
+    }
 }

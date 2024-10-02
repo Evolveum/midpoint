@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel;
 
 import java.io.Serial;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.AttributeModifier;
@@ -39,6 +40,11 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
 
     public RoleAnalysisDetectedPatternDetails(String id, IModel<DetectedPattern> model) {
         super(id, model);
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
         initLayout();
     }
 
@@ -70,6 +76,7 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
     protected boolean isWidgetsPanelVisible() {
         return true;
     }
+
     protected String getCssClassForHeaderItemsContainer() {
         return "row";
     }
@@ -109,11 +116,12 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
         reductionLabel.setOutputMarkupId(true);
         headerItems.add(reductionLabel);
 
+        //TODO localizations
         InfoBoxModel infoBoxModelConfidence = new InfoBoxModel(GuiStyleConstants.THUMBS_UP,
-                "Confidence",
+                "Attribute score",
                 confidence.getObject(),
                 pattern.getItemsConfidence(),
-                "Confidence of the suggested role");
+                "Attribute score of the suggested role");
 
         RoleAnalysisInfoBox confidenceLabel = new RoleAnalysisInfoBox(headerItems.newChildId(), Model.of(infoBoxModelConfidence)) {
 
@@ -172,8 +180,17 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
         }
 
         if (userAttributeAnalysisResult != null || roleAttributeAnalysisResult != null) {
+
+            LoadableModel<RoleAnalysisAttributesDto> attributeModel = new LoadableModel<>(false) {
+                @Override
+                protected RoleAnalysisAttributesDto load() {
+                    return RoleAnalysisAttributesDto.loadFromDetectedPattern(getCardTitle(), getModelObject());
+                }
+            };
+
             RoleAnalysisAttributePanel roleAnalysisAttributePanel = new RoleAnalysisAttributePanel(ID_STATISTICS_PANEL,
-                    getCardTitleModel(), roleAttributeAnalysisResult, userAttributeAnalysisResult) {
+                    attributeModel) {
+
                 @Override
                 protected String getCssClassForCardContainer() {
                     String cssClassForCardContainer = RoleAnalysisDetectedPatternDetails.this.getCssClassForCardContainer();
@@ -208,8 +225,8 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
         return "col-12 col-sm-12 col-md-12 col-lg-6 col-xl-3 p-2";
     }
 
-    protected IModel<String> getCardTitleModel() {
-        return createStringResource("RoleAnalysisDetectedPatternDetails.panel.title");
+    protected String getCardTitle() {
+        return createStringResource("RoleAnalysisDetectedPatternDetails.panel.title").getString();
     }
 
     protected String getCssClassForStatisticsPanel() {

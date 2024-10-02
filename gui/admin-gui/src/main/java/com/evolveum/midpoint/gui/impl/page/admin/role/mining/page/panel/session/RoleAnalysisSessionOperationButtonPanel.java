@@ -30,8 +30,6 @@ import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.form.Form;
@@ -160,7 +158,7 @@ public class RoleAnalysisSessionOperationButtonPanel extends InlineOperationalBu
         }
 
         roleAnalysisService.executeClusteringTask(getPageBase().getModelInteractionService(), session.asPrismObject(),
-                null, null, task, result, new TaskType());
+                task, result);
 
         if (result.isWarning()) {
             warn(result.getMessage());

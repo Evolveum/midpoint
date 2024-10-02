@@ -184,7 +184,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
         if (topSessionPattern != null && sessionStatistic != null && !topSessionPattern.isEmpty()) {
             DetectedPattern pattern = topSessionPattern.get(0);
             initMiningPartNew(roleAnalysisService, session, task, result, sessionStatistic, container);
-            IconWithLabel titlePanel = new IconWithLabel(ID_CARD_TITLE, Model.of("Best role suggestion analysis")) {
+            IconWithLabel titlePanel = new IconWithLabel(ID_CARD_TITLE, Model.of("Best role suggestion analysis")) { //TODO localization
                 @Override
                 protected String getIconCssClass() {
                     return "fa fa-cube fa-sm";

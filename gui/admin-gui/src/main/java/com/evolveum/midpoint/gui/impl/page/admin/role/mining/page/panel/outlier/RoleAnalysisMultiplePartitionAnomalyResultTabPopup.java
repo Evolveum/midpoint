@@ -15,6 +15,9 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisAttributesDto;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -178,10 +181,20 @@ public class RoleAnalysisMultiplePartitionAnomalyResultTabPopup extends BasePane
                 return new RoleAnalysisWidgetsPanel(panelId, loadOutlierVsRoleMemberModel()) {
                     @Override
                     protected @NotNull Component getPanelComponent(String id1) {
+                        LoadableModel<RoleAnalysisAttributesDto> attributesModel = new LoadableModel<>(false) {
+                            @Override
+                            protected RoleAnalysisAttributesDto load() {
+                                return RoleAnalysisAttributesDto.ofCompare("RoleAnalysis.analysis.attribute.panel", roleAnalysisAttributeAnalysisResult, compareAttributeResult);
+                            }
+                        };
+
                         RoleAnalysisAttributePanel roleAnalysisAttributePanel = new RoleAnalysisAttributePanel(id1,
-                                createStringResource("RoleAnalysis.analysis.attribute.panel"),
-                                null, roleAnalysisAttributeAnalysisResult,
-                                null, compareAttributeResult) {
+                                attributesModel) {
+
+                            @Override
+                            protected @NotNull String getChartContainerStyle() {
+                                return "min-height:350px;";
+                            }
 
                             @Override
                             public Set<String> getPathToMark() {

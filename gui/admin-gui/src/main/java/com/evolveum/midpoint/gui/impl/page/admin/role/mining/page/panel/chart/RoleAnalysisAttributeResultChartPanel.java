@@ -12,9 +12,13 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.ChartType;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisAttributesDto;
+
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -24,14 +28,14 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisS
 import com.evolveum.wicket.chartjs.ChartConfiguration;
 import com.evolveum.wicket.chartjs.ChartJsPanel;
 
-public class RoleAnalysisAttributeResultChartPanel extends BasePanel<String> {
+public class RoleAnalysisAttributeResultChartPanel extends BasePanel<RoleAnalysisAttributesDto> {
 
     private static final String ID_CONTAINER_CHART = "container";
     private static final String ID_CHART = "chart";
     ChartType chartType = ChartType.SCATTER;
 
-    public RoleAnalysisAttributeResultChartPanel(String id) {
-        super(id);
+    public RoleAnalysisAttributeResultChartPanel(String id, IModel<RoleAnalysisAttributesDto> chartModel) {
+        super(id, chartModel);
     }
 
     @Override
@@ -62,32 +66,27 @@ public class RoleAnalysisAttributeResultChartPanel extends BasePanel<String> {
     }
 
     private RoleAnalysisAttributeResultChartModel getRoleAnalysisStatistics() {
-        return new RoleAnalysisAttributeResultChartModel(new LoadableDetachableModel<>() {
-            @Override
-            protected List<RoleAnalysisSimpleModel> load() {
-                return prepareRoleAnalysisData();
-            }
-        }, chartType) {
+        return new RoleAnalysisAttributeResultChartModel(new PropertyModel<>(getModel(), RoleAnalysisAttributesDto.F_CHART_MODEL), chartType) {
 
             @Override
             public boolean isCompare() {
-                return RoleAnalysisAttributeResultChartPanel.this.isCompare();
+                return RoleAnalysisAttributeResultChartPanel.this.getModelObject().isCompared();
             }
 
             @Override
             public String getXAxisTitle() {
                 return "Density";
-            }
+            } //TODO localization
 
             @Override
             public String getYAxisTitle() {
                 return "Analysed properties";
-            }
+            } //TODO localization
 
             @Override
             public String getDatasetUserLabel() {
                 return "Density";
-            }
+            } //TODO localization
 
         };
     }
@@ -95,12 +94,4 @@ public class RoleAnalysisAttributeResultChartPanel extends BasePanel<String> {
     protected String getChartContainerStyle(){
         return null;
     }
-    public @NotNull List<RoleAnalysisSimpleModel> prepareRoleAnalysisData() {
-        return new ArrayList<>();
-    }
-
-    public boolean isCompare() {
-        return false;
-    }
-
 }

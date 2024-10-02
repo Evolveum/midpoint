@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism;
 
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.getAttributeByDisplayValue;
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.getAttributeByItemPath;
 
 import java.io.Serializable;
 import java.util.HashSet;
@@ -15,11 +15,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -55,10 +58,13 @@ public class ClusterExplanation implements Serializable {
 
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
         RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
-        Set<String> ruleIdentifiers;
+        Set<ItemPath> ruleIdentifiers;
+
+        AbstractAnalysisSessionOptionType sessionOptionType;
 
         if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
             UserAnalysisSessionOptionType userModeOptions = session.getUserModeOptions();
+            sessionOptionType = userModeOptions;
             if (userModeOptions == null
                     || userModeOptions.getClusteringAttributeSetting() == null
                     || userModeOptions.getClusteringAttributeSetting().getClusteringAttributeRule() == null) {
@@ -67,6 +73,7 @@ public class ClusterExplanation implements Serializable {
             ruleIdentifiers = extractRuleIdentifiers(userModeOptions.getClusteringAttributeSetting().getClusteringAttributeRule());
         } else {
             RoleAnalysisSessionOptionType roleModeOptions = session.getRoleModeOptions();
+            sessionOptionType = roleModeOptions;
             if (roleModeOptions == null
                     || roleModeOptions.getClusteringAttributeSetting() == null
                     || roleModeOptions.getClusteringAttributeSetting().getClusteringAttributeRule() == null) {
@@ -83,28 +90,37 @@ public class ClusterExplanation implements Serializable {
             List<RoleAnalysisAttributeAnalysis> attributeAnalysisList = userAttributeResult.getAttributeAnalysis();
 
             for (RoleAnalysisAttributeAnalysis analysis : attributeAnalysisList) {
-                String itemPath = analysis.getItemPath();
-                if (ruleIdentifiers.contains(itemPath) && analysis.getDensity() == 100) {
+                ItemPathType itemPathType = analysis.getItemPath();
+                if (itemPathType == null) {
+                    continue;
+                }
+                ItemPath itemPath = itemPathType.getItemPath();
+                boolean isRuleItemPath = containRuleItemPath(ruleIdentifiers, itemPath);
+                if (isRuleItemPath && analysis.getDensity() == 100) {
                     List<RoleAnalysisAttributeStatistics> attributeStatisticsList = analysis.getAttributeStatistics();
                     if (attributeStatisticsList.size() == 1) {
                         RoleAnalysisAttributeStatistics attributeStatistic = attributeStatisticsList.get(0);
                         String value = attributeStatistic.getAttributeValue();
-                        RoleAnalysisAttributeDef attribute = getAttributeByDisplayValue(itemPath);
+                        RoleAnalysisAttributeDef attribute = getAttributeByItemPath(itemPath, sessionOptionType.getUserAnalysisAttributeSetting());
+
+                        if (attribute == null) {
+                            continue;
+                        }
 
                         String candidateName;
-                        if (attribute.getIdentifierType().equals(RoleAnalysisAttributeDef.IdentifierType.FINAL)) {
-                            if (value.isEmpty()) {
-                                candidateName = "unknown";
-                            }else {
-                                candidateName = itemPath + "-" + value;
-                            }
-                        } else {
+                        if (attribute.isReference()) {
                             PrismObject<? extends ObjectType> object;
                             object = roleAnalysisService.getObject(FocusType.class, value, task, result);
-
                             candidateName = object != null ? itemPath + "-" + object.getName() : itemPath + "-" + value;
+                        } else {
+                            if (value.isEmpty()) {
+                                candidateName = "unknown";
+                            } else {
+                                candidateName = itemPath + "-" + value;
+                            }
                         }
                         candidateNames.add(candidateName);
+
                     }
                 }
             }
@@ -113,21 +129,27 @@ public class ClusterExplanation implements Serializable {
             List<RoleAnalysisAttributeAnalysis> attributeAnalysisList = roleAttributeResult.getAttributeAnalysis();
 
             for (RoleAnalysisAttributeAnalysis analysis : attributeAnalysisList) {
-                String itemPath = analysis.getItemPath();
+                ItemPathType itemPathType = analysis.getItemPath();
+                if (itemPathType == null) {
+                    continue;
+                }
+                ItemPath itemPath = itemPathType.getItemPath();
                 if (ruleIdentifiers.contains(itemPath) && analysis.getDensity() == 100) {
                     List<RoleAnalysisAttributeStatistics> attributeStatisticsList = analysis.getAttributeStatistics();
                     if (attributeStatisticsList.size() == 1) {
                         RoleAnalysisAttributeStatistics attributeStatistic = attributeStatisticsList.get(0);
                         String value = attributeStatistic.getAttributeValue();
-                        RoleAnalysisAttributeDef attribute = getAttributeByDisplayValue(itemPath);
-
+                        RoleAnalysisAttributeDef attribute = getAttributeByItemPath(itemPath, sessionOptionType.getUserAnalysisAttributeSetting());
+                        if (attribute == null) {
+                            continue;
+                        }
                         String candidateName;
-                        if (attribute.getIdentifierType().equals(RoleAnalysisAttributeDef.IdentifierType.FINAL)) {
-                            candidateName = itemPath + "-" + value;
-                        } else {
+                        if (attribute.isReference()) {
                             PrismObject<? extends ObjectType> object;
                             object = roleAnalysisService.getObject(FocusType.class, value, task, result);
                             candidateName = object != null ? itemPath + "-" + object.getName() : itemPath + "-" + value;
+                        } else {
+                            candidateName = itemPath + "-" + value;
                         }
                         candidateNames.add(candidateName);
                     }
@@ -138,10 +160,23 @@ public class ClusterExplanation implements Serializable {
         return candidateNames.size() == 1 ? candidateNames.iterator().next() : null;
     }
 
-    private static @NotNull Set<String> extractRuleIdentifiers(@NotNull List<ClusteringAttributeRuleType> matchingRule) {
-        Set<String> ruleIdentifiers = new HashSet<>();
+    private static boolean containRuleItemPath(@NotNull Set<ItemPath> ruleIdentifiers, ItemPath itemPath) {
+        for (ItemPath ruleIdentifier : ruleIdentifiers) {
+            if (ruleIdentifier.equivalent(itemPath)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static @NotNull Set<ItemPath> extractRuleIdentifiers(@NotNull List<ClusteringAttributeRuleType> matchingRule) {
+        Set<ItemPath> ruleIdentifiers = new HashSet<>();
         for (ClusteringAttributeRuleType ruleType : matchingRule) {
-            ruleIdentifiers.add(ruleType.getAttributeIdentifier());
+            ItemPathType path = ruleType.getPath();
+            if (path == null) {
+                continue;
+            }
+            ruleIdentifiers.add(path.getItemPath());
         }
         return ruleIdentifiers;
     }

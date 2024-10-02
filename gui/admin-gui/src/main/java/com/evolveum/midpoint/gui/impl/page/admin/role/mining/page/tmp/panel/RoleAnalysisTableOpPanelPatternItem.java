@@ -177,6 +177,7 @@ public class RoleAnalysisTableOpPanelPatternItem extends BasePanel<DetectedPatte
         }
     }
 
+    //TODO localizations
     private void appendRoleSuggestionPanel(DetectedPattern pattern) {
         String formattedReductionFactorConfidence = String.format("%.0f", pattern.getMetric());
         String formattedItemConfidence = String.format("%.1f", pattern.getItemsConfidence());
@@ -185,9 +186,10 @@ public class RoleAnalysisTableOpPanelPatternItem extends BasePanel<DetectedPatte
         appendText("relations - ", null);
         appendIcon("fa fa-leaf", "color: green");
         appendText(" " + formattedItemConfidence + "% ", null);
-        appendText(" confidence", null);
+        appendText(" attribute score", null);
     }
 
+    //TODO localizations
     private void appendOutlierPanel(DetectedPattern pattern) {
         String overallConfidence = String.format("%.0f", pattern.getMetric());
         appendIcon("fa fa-exclamation-circle", "color: red;");

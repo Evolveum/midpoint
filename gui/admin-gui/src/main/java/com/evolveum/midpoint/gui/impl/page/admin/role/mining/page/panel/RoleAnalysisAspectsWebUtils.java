@@ -214,6 +214,7 @@ public class RoleAnalysisAspectsWebUtils {
         return preparePatternWidgetsModel(result, pageBase, topPatters);
     }
 
+    //TODO localizations
     @NotNull
     private static IModel<List<IdentifyWidgetItem>> preparePatternWidgetsModel(
             @NotNull OperationResult result,
@@ -237,7 +238,7 @@ public class RoleAnalysisAspectsWebUtils {
             String formattedItemConfidence = String.format("%.2f", itemsConfidence);
             String description =
                     relationsMetric +
-                            "x relationships with a confidence of  " +
+                            "x relationships with a attribute score of  " +
                             formattedItemConfidence + "%";
 
             String patternName = pageBase.createStringResource("RoleAnalysis.role.suggestion.title", (i + 1)).getString();

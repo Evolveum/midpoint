@@ -119,9 +119,19 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
         if (clusterStatistics != null) {
             RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = clusterStatistics.getUserAttributeAnalysisResult();
             RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult = clusterStatistics.getRoleAttributeAnalysisResult();
+
+            LoadableModel<RoleAnalysisAttributesDto> attributesModel = new LoadableModel<>(false) {
+                @Override
+                protected RoleAnalysisAttributesDto load() {
+                    return RoleAnalysisAttributesDto.loadFromCluster(
+                            createStringResource("RoleAnalysis.aspect.overview.page.title.clustering.attribute.analysis")
+                                    .getString(),
+                            getObjectDetailsModels().getObjectType());
+                }
+            };
+
             RoleAnalysisAttributePanel roleAnalysisAttributePanel = new RoleAnalysisAttributePanel(ID_PANEL,
-                    createStringResource("RoleAnalysis.aspect.overview.page.title.clustering.attribute.analysis"),
-                    roleAttributeAnalysisResult, userAttributeAnalysisResult) {
+                    attributesModel) {
 
                 @Override
                 protected boolean isCardTitleVisible() {

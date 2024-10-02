@@ -25,11 +25,21 @@ public class Select2MultiChoicePanel<T> extends InputPanel {
 
     private final IModel<Collection<T>> model;
     private final ChoiceProvider<T> provider;
+    private final int minimumInputLength;
 
     public Select2MultiChoicePanel(String id, IModel<Collection<T>> model, ChoiceProvider<T> provider) {
+        this(id, model, provider, 2);
+    }
+
+    public Select2MultiChoicePanel(
+            String id,
+            IModel<Collection<T>> model,
+            ChoiceProvider<T> provider,
+            int minimumInputLength) {
         super(id);
         this.model = model;
         this.provider = provider;
+        this.minimumInputLength = minimumInputLength;
     }
 
     @Override
@@ -41,7 +51,7 @@ public class Select2MultiChoicePanel<T> extends InputPanel {
     private void initLayout() {
         Select2MultiChoice<T> multiselect = new Select2MultiChoice<>(ID_SELECT, model, provider);
         multiselect.getSettings()
-                .setMinimumInputLength(2);
+                .setMinimumInputLength(minimumInputLength);
         multiselect.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         add(multiselect);
     }

@@ -10,6 +10,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -100,10 +102,10 @@ public class RoleAnalysisStackedAttributeChartModel extends LoadableModel<ChartC
 
 
         List<AttributeAnalysisStructure> objects = roleAnalysisModelsPositive.getObject();
-        Map<String, List<AttributeAnalysisStructure>> itemPathMap = objects.stream()
+        Map<ItemPath, List<AttributeAnalysisStructure>> itemPathMap = objects.stream()
                 .collect(Collectors.groupingBy(AttributeAnalysisStructure::getItemPath));
 
-        Map<String, List<AttributeAnalysisStructure>> sortedItemPathMap = itemPathMap.entrySet().stream()
+        Map<ItemPath, List<AttributeAnalysisStructure>> sortedItemPathMap = itemPathMap.entrySet().stream()
                 .sorted((entry1, entry2) -> {
                     double totalDensity1 = entry1.getValue().stream()
                             .mapToDouble(AttributeAnalysisStructure::getDensity)
@@ -121,8 +123,8 @@ public class RoleAnalysisStackedAttributeChartModel extends LoadableModel<ChartC
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
                         (oldValue, newValue) -> oldValue, LinkedHashMap::new));
 
-        for (Map.Entry<String, List<AttributeAnalysisStructure>> entry : sortedItemPathMap.entrySet()) {
-            String itemPath = entry.getKey();
+        for (Map.Entry<ItemPath, List<AttributeAnalysisStructure>> entry : sortedItemPathMap.entrySet()) {
+            ItemPath itemPath = entry.getKey();
             List<AttributeAnalysisStructure> filteredObjects = entry.getValue();
 
             if (filteredObjects.size() == 2) {
@@ -154,7 +156,7 @@ public class RoleAnalysisStackedAttributeChartModel extends LoadableModel<ChartC
                 }
             }
 
-            chartData.addLabel(itemPath);
+            chartData.addLabel(itemPath.toString());
         }
 
         chartData.addDataset(datasetRoles);
@@ -179,7 +181,7 @@ public class RoleAnalysisStackedAttributeChartModel extends LoadableModel<ChartC
         datasetRoles.setStack("stack1");
 
         List<AttributeAnalysisStructure> objects = roleAnalysisModelsNegative.getObject();
-        Map<String, List<AttributeAnalysisStructure>> itemPathMap = objects.stream()
+        Map<ItemPath, List<AttributeAnalysisStructure>> itemPathMap = objects.stream()
                 .collect(Collectors.groupingBy(AttributeAnalysisStructure::getItemPath));
 
         Collection<String> labels = chartData.getLabels();

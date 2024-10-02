@@ -95,9 +95,9 @@ public class AttributeAnalysisUtil {
             @NotNull OperationResult result) {
 
         int usersCount = prismUsers.size();
-        Map<String, AttributePathResult> attributeResultMap = new HashMap<>();
+        Map<ItemPath, AttributePathResult> attributeResultMap = new HashMap<>();
         for (PrismObject<UserType> prismUser : prismUsers) {
-            Map<String, AttributePathResult> userCache = userAnalysisCache.getMemberUserAnalysisCache(prismUser.getOid());
+            Map<ItemPath, AttributePathResult> userCache = userAnalysisCache.getMemberUserAnalysisCache(prismUser.getOid());
             if (userCache == null) {
                 analyzeAndCacheUserAttributes(itemDef, userAnalysisCache, prismUser);
             }
@@ -111,7 +111,7 @@ public class AttributeAnalysisUtil {
     private static void prepareUserAnalysisStructure(
             @NotNull RoleAnalysisServiceImpl roleAnalysisService,
             @NotNull List<AttributeAnalysisStructure> attributeAnalysisStructures,
-            @NotNull Map<String, AttributePathResult> attributeResultMap,
+            @NotNull Map<ItemPath, AttributePathResult> attributeResultMap,
             int usersCount,
             @NotNull Task task,
             @NotNull OperationResult result) {
@@ -128,7 +128,7 @@ public class AttributeAnalysisUtil {
             @NotNull List<RoleAnalysisAttributeDef> itemDef,
             @NotNull AttributeAnalysisCache userAnalysisCache,
             @NotNull PrismObject<UserType> prismUser) {
-        Map<String, AttributePathResult> targetUserCacheCandidate = new HashMap<>();
+        Map<ItemPath, AttributePathResult> targetUserCacheCandidate = new HashMap<>();
         extractAttributeStatistics(itemDef, prismUser, targetUserCacheCandidate);
         userAnalysisCache.putMemberUserAnalysisCache(prismUser.getOid(), targetUserCacheCandidate);
     }
@@ -136,20 +136,18 @@ public class AttributeAnalysisUtil {
     private static void extractAttributeStatistics(
             @NotNull List<RoleAnalysisAttributeDef> itemDef,
             @NotNull PrismObject<?> prismObject,
-            Map<String, AttributePathResult> targetUserCacheCandidate) {
+            Map<ItemPath, AttributePathResult> targetUserCacheCandidate) {
         for (RoleAnalysisAttributeDef item : itemDef) {
             ItemPath path = item.getPath();
             String displayValue = item.getDisplayValue();
-            boolean isContainer = item.isContainer();
 
-            AttributePathResult attributePathResult = targetUserCacheCandidate.computeIfAbsent(displayValue, k -> {
+            AttributePathResult attributePathResult = targetUserCacheCandidate.computeIfAbsent(path, k -> {
                 AttributePathResult newResult = new AttributePathResult(new HashMap<>(), 0);
-                newResult.setMultiValue(isContainer);
                 newResult.setItemDefinition(item);
                 return newResult;
             });
 
-            if (isContainer) {
+            if (item.isMultiValue()) {
                 Set<String> values = item.resolveMultiValueItem(prismObject, path);
                 for (String value : values) {
                     attributePathResult.incrementFrequency(value);
@@ -169,9 +167,8 @@ public class AttributeAnalysisUtil {
     private static void splitUserAttributeAnalysis(
             @NotNull AttributeAnalysisCache userAnalysisCache,
             @NotNull PrismObject<UserType> prismUser,
-            @NotNull Map<String, AttributePathResult> attributeResultMap) {
-        Map<String, AttributePathResult> userCache;
-        userCache = userAnalysisCache.getMemberUserAnalysisCache(prismUser.getOid());
+            @NotNull Map<ItemPath, AttributePathResult> attributeResultMap) {
+        Map<ItemPath, AttributePathResult> userCache = userAnalysisCache.getMemberUserAnalysisCache(prismUser.getOid());
 
         userCache.forEach((key, cachedValue) -> {
             AttributePathResult attributePathResult = attributeResultMap.get(key);
@@ -186,7 +183,7 @@ public class AttributeAnalysisUtil {
             Map<String, Integer> frequencyMap = new HashMap<>(cachedValue.getFrequencyMap());
             attributePathResult.addToTotalRelation(totalRelation);
             attributePathResult.splitFrequencyMap(frequencyMap);
-            attributePathResult.setMultiValue(multiValue);
+//            attributePathResult.setMultiValue(multiValue);
             attributePathResult.setItemDefinition(itemDefinition);
             attributePathResult.addTotalRelation(totalRelation);
 
@@ -202,11 +199,8 @@ public class AttributeAnalysisUtil {
             @NotNull OperationResult result) {
 
         int usersCount = prismUsers.size();
-
-        Map<String, AttributePathResult> attributeResultMap = new HashMap<>();
-
+        Map<ItemPath, AttributePathResult> attributeResultMap = new HashMap<>();
         for (PrismObject<UserType> prismUser : prismUsers) {
-
             extractAttributeStatistics(itemDef, prismUser, attributeResultMap);
         }
 
@@ -219,7 +213,7 @@ public class AttributeAnalysisUtil {
             @NotNull List<RoleAnalysisAttributeDef> itemDef,
             @NotNull List<AttributeAnalysisStructure> attributeAnalysisStructures, @NotNull Task task, @NotNull OperationResult result) {
         int rolesCount = prismRoles.size();
-        Map<String, AttributePathResult> attributeResultMap = new HashMap<>();
+        Map<ItemPath, AttributePathResult> attributeResultMap = new HashMap<>();
         for (PrismObject<RoleType> prismRole : prismRoles) {
             extractAttributeStatistics(itemDef, prismRole, attributeResultMap);
         }
@@ -312,6 +306,7 @@ public class AttributeAnalysisUtil {
         RoleAnalysisAttributeDef itemDefinition = attributePathResult.getItemDefinition();
         boolean isMultiValue = attributePathResult.isMultiValue();
         attributeAnalysisStructure.setAttributeStatistics(new ArrayList<>());
+
         frequencyMap.forEach((attributeSimpleValue, inGroupCount) -> {
             Integer inRepoCount = roleAnalysisService
                     .countObjects(objectClass, itemDefinition.getQuery(attributeSimpleValue), null,
