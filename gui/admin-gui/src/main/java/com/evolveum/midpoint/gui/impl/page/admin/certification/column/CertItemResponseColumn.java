@@ -82,7 +82,8 @@ public class CertItemResponseColumn extends AbstractCertificationItemColumn {
         };
     }
 
-    protected boolean isVisible() {
+    @Override
+    public boolean isVisible() {
         return super.isVisible() && context != null && !context.notDecidedOnly();
     }
 }

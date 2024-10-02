@@ -91,7 +91,7 @@ public class CertItemEditableCommentColumn extends AbstractCertificationItemColu
     }
 
     @Override
-    protected boolean isVisible() {
+    public boolean isVisible() {
         return getColumnConfig() != null && WebComponentUtil.getElementVisibility(getColumnConfig().getVisibility());
     }
 

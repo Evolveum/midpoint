@@ -52,7 +52,7 @@ public class CertItemReviewersColumn extends AbstractCertificationItemColumn {
     }
 
     @Override
-    protected boolean isVisible() {
+    public boolean isVisible() {
         return super.isVisible() && context != null && context.isViewAllItems();
     }
 }

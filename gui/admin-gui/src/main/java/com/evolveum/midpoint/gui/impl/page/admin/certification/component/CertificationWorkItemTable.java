@@ -73,9 +73,13 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
         super(id, AccessCertificationWorkItemType.class, configurationType);
     }
 
+    @Override
+    protected boolean useNewColumnConfiguration() {
+        return true;
+    }
 
     @Override
-    protected List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> createDefaultColumns() {
+    protected List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> getPredefinedColumns() {
         return createColumns();
     }
 

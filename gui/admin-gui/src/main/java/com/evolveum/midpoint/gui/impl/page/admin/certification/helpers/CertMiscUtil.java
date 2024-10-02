@@ -641,6 +641,8 @@ public class CertMiscUtil {
         }
         return guiColumns
                 .stream()
+                .sorted(Comparator.comparingInt(AbstractGuiColumn::getOrder))
+                .filter(AbstractGuiColumn::isVisible)
                 .map(column -> (IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>) column.createColumn())
                 .collect(Collectors.toList());
     }

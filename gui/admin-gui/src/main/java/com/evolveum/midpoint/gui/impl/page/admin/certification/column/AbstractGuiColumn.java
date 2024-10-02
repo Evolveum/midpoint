@@ -50,7 +50,7 @@ public abstract class AbstractGuiColumn<C extends Containerable, S extends Selec
         };
     }
 
-    protected boolean isVisible() {
+    public boolean isVisible() {
         return columnConfig == null || WebComponentUtil.getElementVisibility(columnConfig.getVisibility());
     }
 
@@ -61,5 +61,10 @@ public abstract class AbstractGuiColumn<C extends Containerable, S extends Selec
     public String getIdentifier() {
         ColumnType columnType = AbstractGuiColumn.this.getClass().getAnnotation(ColumnType.class);
         return columnType.identifier();
+    }
+
+    public int getOrder() {
+        ColumnType columnType = AbstractGuiColumn.this.getClass().getAnnotation(ColumnType.class);
+        return columnType.display() != null ? columnType.display().order() : 0;
     }
 }
