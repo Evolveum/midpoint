@@ -11,6 +11,7 @@ import java.io.File;
 import java.util.List;
 import java.util.stream.Stream;
 
+import com.evolveum.midpoint.model.impl.mining.utils.DebugOutlierDetectionEvaluation;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -45,6 +46,7 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
             Integer processedObjectCount,
             Integer innerOutlierCount,
             Integer outerOutlierCount,
+            Double f1score,
             Double maxOutlierConfidence
     ) {}
 
@@ -210,12 +212,14 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
         Integer expectedObjectsCount = 410;
         Integer expectedInnerOutlierCount = 3;
         Integer expectedOuterOutlierCount = 0;
+        Double expectedF1score = 0.0967741935483871; // TODO: find out why f1 is so low
         Double expectedTopOutlierConfidence = 75.98929597636382;
 
         OutlierDetectionResult expectedResult = new OutlierDetectionResult(
                 expectedObjectsCount,
                 expectedInnerOutlierCount,
                 expectedOuterOutlierCount,
+                expectedF1score,
                 expectedTopOutlierConfidence
         );
 
@@ -224,7 +228,6 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
                 TASK_ROLE_ANALYSIS_PROCESS_SESSION_OUTLIER_PART_1,
                 expectedResult
         );
-
     }
 
     /**
@@ -240,12 +243,14 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
         Integer expectedObjectsCount = 410;
         Integer expectedInnerOutlierCount = 3;
         Integer expectedOuterOutlierCount = 241;
+        Double expectedF1score = 0.264026402640264; // TODO: find out why f1 is so low
         Double expectedTopOutlierConfidence = 79.3447630538118;
 
         OutlierDetectionResult expectedResult = new OutlierDetectionResult(
                 expectedObjectsCount,
                 expectedInnerOutlierCount,
                 expectedOuterOutlierCount,
+                expectedF1score,
                 expectedTopOutlierConfidence
         );
 
@@ -317,10 +322,19 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
                 .reduce(Double::max)
                 .orElseThrow();
 
+        var evaluation = new DebugOutlierDetectionEvaluation(
+                sessionId,
+                modelService,
+                roleAnalysisService,
+                createTask("evaluate outlier detection")
+        ).evaluate();
+        display(evaluation.toString());
+
         OutlierDetectionResult actualResult = new OutlierDetectionResult(
                 sessionStatistic.getProcessedObjectCount(),
                 innerOutliers.size(),
                 outerOutliers.size(),
+                evaluation.getF1Score(),
                 actualTopOutlierConfidence
         );
 

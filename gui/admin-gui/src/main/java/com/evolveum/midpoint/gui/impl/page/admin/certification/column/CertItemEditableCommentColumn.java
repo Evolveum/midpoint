@@ -31,7 +31,7 @@ import java.io.Serial;
 
 @ColumnType(identifier = "certItemEditableComment",
         applicableForType = AccessCertificationWorkItemType.class,
-        display = @PanelDisplay(label = "WorkItemsPanel.object", order = 80))
+        display = @PanelDisplay(label = "PageCertDecisions.table.comment", order = 80))
 public class CertItemEditableCommentColumn extends AbstractCertificationItemColumn {
 
     private static final Trace LOGGER = TraceManager.getTrace(CertItemEditableCommentColumn.class);
