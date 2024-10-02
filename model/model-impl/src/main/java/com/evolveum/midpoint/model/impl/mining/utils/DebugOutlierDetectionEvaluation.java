@@ -7,9 +7,7 @@ import java.util.stream.Stream;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OutlierClusterCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Evaluates outlier detection on RBAC generated dataset which contains outlier labels.
@@ -32,10 +30,10 @@ public class DebugOutlierDetectionEvaluation {
     ) {}
 
     // named outlier: identified by name
-    private final List<String> NAMED_OUTLIER_PREFIXES = Arrays.asList("Matuzalem", "Jumper", "Zombie", "Mask");
+    private static final List<String> NAMED_OUTLIER_PREFIXES = Arrays.asList("Matuzalem", "Jumper", "Zombie", "Mask");
 
     // noise outlier: identified by noise role, see InitialObjectsDefinition.NoiseApplicationBusinessAbstractRole
-    private final List<String> NOISE_ROLES_OIDS = Arrays.asList(
+    private static final List<String> NOISE_ROLES_OIDS = Arrays.asList(
             "c368b9a1-3c58-4d6f-9f86-a23ccf8a4f06",
             "6e42c7ab-4c75-4c17-bf69-63049315680c",
             "f659fe15-9e98-4468-9e7d-80eabe6253c9",
@@ -48,6 +46,7 @@ public class DebugOutlierDetectionEvaluation {
     private final ModelService modelService;
     private final RoleAnalysisService roleAnalysisService;
     private final Task task;
+    private RoleAnalysisSessionType session;
 
     private ConfusionMatrix confusionMatrix;
     private double precision, recall, f1score;
@@ -65,6 +64,7 @@ public class DebugOutlierDetectionEvaluation {
     }
 
     public DebugOutlierDetectionEvaluation evaluate() throws Exception {
+        session = getSession(sessionOid);
         var users = getSessionUsers(sessionOid);
         var innerOutliers = getOutliers(sessionOid, OutlierClusterCategoryType.INNER_OUTLIER);
         var outerOutliers = getOutliers(sessionOid, OutlierClusterCategoryType.OUTER_OUTLIER);
@@ -102,6 +102,7 @@ public class DebugOutlierDetectionEvaluation {
     public String toString() {
         return "DebugOutlierDetectionEvaluation{" +
                 "\n  sessionOid='" + sessionOid + "'" +
+                ",\n  sessionName=" + session.getName().toString() +
                 ",\n  confusionMatrix=" + confusionMatrix +
                 ",\n  precision=" + precision +
                 ",\n  recall=" + recall +
@@ -117,17 +118,33 @@ public class DebugOutlierDetectionEvaluation {
         return new ConfusionMatrix(tp, tn, fp, fn);
     }
 
-    private List<PredictionRecord> labelData(List<UserType> users, List<UserType> outliers) {
+    private List<PredictionRecord> labelData(List<UserType> users, List<UserType> outliers) throws Exception {
+        var usersWithNoise = getUsersWithNoiseRoleOids();
         return users
                 .stream()
                 .map(user -> {
                     var name = user.getName().toString();
                     var isNamedOutlier = NAMED_OUTLIER_PREFIXES.stream().anyMatch(user.getName().toString()::startsWith);
-                    var isNoiseRoleOutlier = user.getRoleMembershipRef().stream().anyMatch(r -> NOISE_ROLES_OIDS.contains(r.getOid()));
-                    var groundTruth = isNamedOutlier || isNoiseRoleOutlier;;
+                    var isNoiseRoleOutlier = usersWithNoise.contains(user.getOid());
+                    var groundTruth = isNamedOutlier || isNoiseRoleOutlier;
                     var prediction = outliers.stream().anyMatch(o -> o.getOid().equals(user.getOid()));
                     return new PredictionRecord(user.getOid(), name, groundTruth, prediction);
                 })
+                .toList();
+    }
+
+    private List<String> getUsersWithNoiseRoleOids() throws Exception {
+        var query = modelService.getPrismContext().queryFor(UserType.class)
+                .exists(UserType.F_ASSIGNMENT)
+                .block()
+                .item(AssignmentType.F_TARGET_REF)
+                .ref(NOISE_ROLES_OIDS.toArray(new String[0]))
+                .endBlock()
+                .build();
+        return modelService
+                .searchObjects(UserType.class, query, null, task, task.getResult())
+                .stream()
+                .map(u -> u.asObjectable().getOid())
                 .toList();
     }
 
@@ -167,5 +184,10 @@ public class DebugOutlierDetectionEvaluation {
             throw new RuntimeException(e);
         }
     }
+
+    private RoleAnalysisSessionType getSession(String sessionOid) throws Exception {
+        return modelService.getObject(RoleAnalysisSessionType.class, sessionOid, null, task, task.getResult()).getValue().asObjectable();
+    }
+
 
 }
