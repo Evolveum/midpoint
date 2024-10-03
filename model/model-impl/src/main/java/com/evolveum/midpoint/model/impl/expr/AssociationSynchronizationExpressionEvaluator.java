@@ -373,7 +373,8 @@ class AssociationSynchronizationExpressionEvaluator
             private void registerAssignmentsSeen(SimplifiedCorrelationResult correlationResult) {
                 var owner = correlationResult.getOwner();
                 if (owner != null) {
-                    // No metadata here - as for now; these assignments were not - in fact - created by this mapping
+                    // No metadata here, as for now; these assignments might or might not be, in fact, created by this mapping
+                    // see also MID-10084.
                     //noinspection unchecked
                     evaluatorResult.addToZeroSet(owner.asPrismContainerValue().clone());
                 }
