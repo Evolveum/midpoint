@@ -148,9 +148,9 @@ public interface ShadowAssociationDefinition
         return ShadowItemDefinition.super.findItemDefinition(path, clazz);
     }
 
-    @NotNull Collection<MappingType> getExplicitOutboundMappingBeans();
+    @NotNull Collection<MappingType> getOutboundMappingBeans();
 
-    @NotNull Collection<InboundMappingType> getExplicitInboundMappingBeans();
+    @NotNull Collection<InboundMappingType> getInboundMappingBeans();
 
     boolean isVisible(ExecutionModeProvider modeProvider);
 

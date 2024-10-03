@@ -62,6 +62,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.Nullable;
+
 import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
@@ -162,7 +164,9 @@ public class AssociationValuesTripleComputation {
         }
         var tripleForTarget = new ValueComputation(target).compute(mode);
         LOGGER.trace(" -> resulting triple for this target: {}", tripleForTarget);
-        triple.merge(tripleForTarget);
+        if (tripleForTarget != null) {
+            triple.merge(tripleForTarget);
+        }
     }
 
     private AssignmentTargetEligibility getEligibility(EvaluatedAssignmentTargetImpl target)
@@ -230,10 +234,9 @@ public class AssociationValuesTripleComputation {
                     "No path variables for %s", target);
         }
 
-        private PrismValueDeltaSetTriple<ShadowAssociationValue> compute(@NotNull PlusMinusZero mode)
+        private @Nullable PrismValueDeltaSetTriple<ShadowAssociationValue> compute(@NotNull PlusMinusZero mode)
                 throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
                 ConfigurationException, ObjectNotFoundException {
-            var resultingTriple = PrismContext.get().deltaFactory().<ShadowAssociationValue>createPrismValueDeltaSetTriple();
             for (var attrDefBean : outboundBean.getAttribute()) {
                 evaluateAttribute(attrDefBean, false);
             }
@@ -243,19 +246,24 @@ public class AssociationValuesTripleComputation {
             var associationDataObject = consolidate();
             ShadowAssociationValue associationValue;
             if (complexAssociation) {
-                associationValue =
-                        ShadowAssociationValue.fromAssociationDataObject(
-                                AbstractShadow.of(associationDataObject),
-                                associationDefinition);
+                associationValue = ShadowAssociationValue.fromAssociationDataObject(
+                        AbstractShadow.of(associationDataObject),
+                        associationDefinition);
+                if (associationValue.isEmpty()) {
+                    LOGGER.trace("Empty complex association value -> no output");
+                    return null;
+                }
             } else {
-                associationValue = ShadowAssociationValue.empty(associationDefinition);
                 var referenceAttributes = ShadowUtil.getAttributesContainer(associationDataObject).getReferenceAttributes();
                 if (referenceAttributes.isEmpty()) {
-                    return resultingTriple;
+                    LOGGER.trace("No reference attribute in the simple association value -> no output");
+                    return null;
                 }
                 var referenceAttribute = MiscUtil.extractSingletonRequired(referenceAttributes);
+                associationValue = ShadowAssociationValue.empty(associationDefinition);
                 associationValue.getOrCreateObjectsContainer().addAttribute(referenceAttribute.clone());
             }
+            var resultingTriple = PrismContext.get().deltaFactory().<ShadowAssociationValue>createPrismValueDeltaSetTriple();
             resultingTriple.addAllToSet(mode, List.of(associationValue));
             return resultingTriple;
         }
