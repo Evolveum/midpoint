@@ -5,7 +5,6 @@
 :page-wiki-metadata-create-date: 2017-04-19T11:57:52.623+02:00
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2017-04-19T12:03:10.715+02:00
-:page-since: "3.6"
 :page-upkeep-status: yellow
 
 After xref:/midpoint/reference/cases/escalation/[the escalation feature has been introduced for approvals], it is now available also for certification campaigns.

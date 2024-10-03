@@ -14,6 +14,8 @@ import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.test.util.TestUtil;
+
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -86,7 +88,10 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
             UserType.F_CREDENTIALS,
             UserType.F_ADMIN_GUI_CONFIGURATION,
             UserType.F_BEHAVIOR,
-            UserType.F_POLICY_EXCEPTION); //experimental
+            UserType.F_POLICY_EXCEPTION,
+            UserType.F_IDENTITIES,
+            UserType.F_EFFECTIVE_OPERATION_POLICY,
+            UserType.F_POLICY_STATEMENT); //experimental
     private static final List<ItemPath> BASIC_SHADOW_CONTAINERS_PATHS = Arrays.asList(
             ShadowType.F_EXTENSION,
             ShadowType.F_PENDING_OPERATION,
@@ -96,7 +101,9 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
             ShadowType.F_ACTIVATION,
             ShadowType.F_CREDENTIALS,
             ShadowType.F_POLICY_EXCEPTION,
-            ShadowType.F_CORRELATION);
+            ShadowType.F_CORRELATION,
+            ShadowType.F_EFFECTIVE_OPERATION_POLICY,
+            ShadowType.F_POLICY_STATEMENT);
     private static final List<ItemPath> BASIC_ORG_CONTAINERS_PATHS = Arrays.asList(
             OrgType.F_EXTENSION,
             OrgType.F_ASSIGNMENT,
@@ -110,7 +117,10 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
             OrgType.F_AUTOASSIGN,
             OrgType.F_CREDENTIALS,
             OrgType.F_BEHAVIOR,
-            ShadowType.F_POLICY_EXCEPTION);
+            OrgType.F_POLICY_EXCEPTION,
+            OrgType.F_IDENTITIES,
+            OrgType.F_EFFECTIVE_OPERATION_POLICY,
+            OrgType.F_POLICY_STATEMENT);
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -126,6 +136,30 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
     }
 
     @Test
+    public void test000PreparationAndSanity() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        assertNotNull("No model service", modelService);
+
+        // WHEN
+        when("Jack is assigned with account");
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
+
+        // THEN
+        then("One link (account) is created");
+        result.computeStatus();
+        display(result);
+        TestUtil.assertSuccess(result);
+
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User after change execution", userJack);
+        assertUserJack(userJack);
+        accountJackOid = getSingleLinkOid(userJack);
+    }
+
+    @Test
     public void test100CreateWrapperUserJack() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -138,6 +172,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
         PrismObjectWrapperFactory<UserType> factory = getServiceLocator(task).findObjectWrapperFactory(user.getDefinition());
         WrapperContext context = new WrapperContext(task, result);
+        context.setCreateIfEmpty(true);
         PrismObjectWrapper<UserType> objectWrapper = factory.createObjectWrapper(user, ItemStatus.NOT_CHANGED, context);
 
         then();
@@ -217,6 +252,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         ModelServiceLocator modelServiceLocator = getServiceLocator(task);
         PrismObjectWrapperFactory<UserType> factory = modelServiceLocator.findObjectWrapperFactory(user.getDefinition());
         WrapperContext context = new WrapperContext(task, result);
+        context.setCreateIfEmpty(true);
 
         PrismObjectWrapper<UserType> objectWrapper = factory.createObjectWrapper(user, ItemStatus.NOT_CHANGED, context);
 
@@ -340,6 +376,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         ModelServiceLocator modelServiceLocator = getServiceLocator(task);
         PrismObjectWrapperFactory<UserType> factory = modelServiceLocator.findObjectWrapperFactory(user.getDefinition());
         WrapperContext context = new WrapperContext(task, result);
+        context.setCreateIfEmpty(true);
         PrismObjectWrapper<UserType> objectWrapper =
                 factory.createObjectWrapper(user, ItemStatus.ADDED, context);
 
@@ -348,7 +385,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         WrapperTestUtil.fillInPropertyWrapper(modelServiceLocator, mainContainerValueWrapper, UserType.F_NAME, PrismTestUtil.createPolyString(USER_NEWMAN_USERNAME));
         WrapperTestUtil.fillInPropertyWrapper(modelServiceLocator, mainContainerValueWrapper, UserType.F_GIVEN_NAME, PrismTestUtil.createPolyString(USER_NEWMAN_GIVEN_NAME));
         WrapperTestUtil.fillInPropertyWrapper(modelServiceLocator, mainContainerValueWrapper, UserType.F_FAMILY_NAME, PrismTestUtil.createPolyString(USER_NEWMAN_FAMILY_NAME));
-        WrapperTestUtil.fillInPropertyWrapper(modelServiceLocator, mainContainerValueWrapper, UserType.F_EMPLOYEE_NUMBER, USER_NEWMAN_EMPLOYEE_NUMBER);
+        WrapperTestUtil.fillInPropertyWrapper(modelServiceLocator, mainContainerValueWrapper, UserType.F_PERSONAL_NUMBER, USER_NEWMAN_EMPLOYEE_NUMBER);
         WrapperTestUtil.fillInPropertyWrapper(modelServiceLocator, mainContainerValueWrapper, extensionPath(PIRACY_SHIP), USER_NEWMAN_SHIP);
 
         then();
@@ -397,7 +434,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         PrismAsserts.assertPropertyValue(objectToAdd, UserType.F_NAME, PrismTestUtil.createPolyString(USER_NEWMAN_USERNAME));
         PrismAsserts.assertPropertyValue(objectToAdd, UserType.F_GIVEN_NAME, PrismTestUtil.createPolyString(USER_NEWMAN_GIVEN_NAME));
         PrismAsserts.assertPropertyValue(objectToAdd, UserType.F_FAMILY_NAME, PrismTestUtil.createPolyString(USER_NEWMAN_FAMILY_NAME));
-        PrismAsserts.assertPropertyValue(objectToAdd, UserType.F_EMPLOYEE_NUMBER, USER_NEWMAN_EMPLOYEE_NUMBER);
+        PrismAsserts.assertPropertyValue(objectToAdd, UserType.F_PERSONAL_NUMBER, USER_NEWMAN_EMPLOYEE_NUMBER);
         PrismAsserts.assertPropertyValue(objectToAdd, extensionPath(PIRACY_SHIP), USER_NEWMAN_SHIP);
         PrismAsserts.assertItems(objectToAdd, 5);
     }
@@ -472,6 +509,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         ModelServiceLocator modelServiceLocator = getServiceLocator(task);
         PrismObjectWrapperFactory<O> factory = modelServiceLocator.findObjectWrapperFactory(object.getDefinition());
         WrapperContext context = new WrapperContext(task, result);
+        context.setCreateIfEmpty(true);
         if (ItemStatus.NOT_CHANGED == status) {
             context.setCreateIfEmpty(true);
             context.setShowEmpty(true);

@@ -9,10 +9,10 @@ package com.evolveum.midpoint.repo.sql.query;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.util.SingleLocalizableMessage;
+import com.evolveum.midpoint.repo.sqlbase.NativeOnlySupportedException;
 
+import jakarta.persistence.EntityManager;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Containerable;
@@ -41,6 +41,7 @@ import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
@@ -100,7 +101,7 @@ public class QueryInterpreter {
 
     public HibernateQuery interpret(ObjectQuery query, @NotNull Class<? extends Containerable> type,
             Collection<SelectorOptions<GetOperationOptions>> options, @NotNull PrismContext prismContext,
-            @NotNull RelationRegistry relationRegistry, boolean countingObjects, @NotNull Session session) throws QueryException {
+            @NotNull RelationRegistry relationRegistry, boolean countingObjects, @NotNull EntityManager em) throws QueryException {
 
         boolean distinctRequested = GetOperationOptions.isDistinct(SelectorOptions.findRootOptions(options));
         LOGGER.trace("Interpreting query for type '{}' (counting={}, distinctRequested={}), query:\n{}",
@@ -108,7 +109,7 @@ public class QueryInterpreter {
 
         // I'm sorry about the 7th parameter, but this will die with the old repo soon.
         InterpretationContext context = new InterpretationContext(this, type, prismContext,
-                relationRegistry, extItemDictionary, session, repoConfiguration.getDatabaseType());
+                relationRegistry, extItemDictionary, em, repoConfiguration.getDatabaseType());
         interpretQueryFilter(context, query);
         String rootAlias = context.getHibernateQuery().getPrimaryEntityAlias();
         ResultStyle resultStyle = getResultStyle(context);
@@ -138,7 +139,7 @@ public class QueryInterpreter {
         if (distinct && !distinctBlobCapable) {
             String subqueryText = "\n" + hibernateQuery.getAsHqlText(2, true);
             InterpretationContext wrapperContext = new InterpretationContext(
-                    this, type, prismContext, relationRegistry, extItemDictionary, session, repoConfiguration.getDatabaseType());
+                    this, type, prismContext, relationRegistry, extItemDictionary, em, repoConfiguration.getDatabaseType());
             try {
                 interpretPagingAndSorting(wrapperContext, query, false);
             } catch (QueryException e) {
@@ -269,7 +270,9 @@ public class QueryInterpreter {
             ProperDataSearchResult<?> searchResult = resolver.findProperDataDefinition(
                     baseEntityDefinition, path, definition, JpaDataNodeDefinition.class, context.getPrismContext());
             if (searchResult == null) {
-                throw new QueryException("Path for ExistsFilter (" + path + ") doesn't point to a hibernate entity or property within " + baseEntityDefinition);
+                var technicalMessage = "Path for ExistsFilter (" + path + ") doesn't point to a hibernate entity or property within " + baseEntityDefinition;
+                throwSpecificIfSupportedInNativeRepository(baseEntityDefinition, path, definition, technicalMessage);
+                throw new QueryException(technicalMessage);
             }
             return new ExistsRestriction(context, existsFilter, searchResult.getEntityDefinition(), parent);
         } else if (filter instanceof RefFilter) {
@@ -279,7 +282,9 @@ public class QueryInterpreter {
             ProperDataSearchResult searchResult = resolver.findProperDataDefinition(
                     baseEntityDefinition, path, definition, JpaReferenceDefinition.class, context.getPrismContext());
             if (searchResult == null) {
-                throw new QueryException("Path for RefFilter (" + path + ") doesn't point to a reference item within " + baseEntityDefinition);
+                var technicalMessage = "Path for RefFilter (" + path + ") doesn't point to a reference item within " + baseEntityDefinition;
+                throwSpecificIfSupportedInNativeRepository(baseEntityDefinition, path, definition, technicalMessage);
+                throw new QueryException(technicalMessage);
             }
             return new ReferenceRestriction(context, refFilter, searchResult.getEntityDefinition(),
                     parent, searchResult.getLinkDefinition());
@@ -291,11 +296,13 @@ public class QueryInterpreter {
             ProperDataSearchResult propDefRes = resolver.findProperDataDefinition(
                     baseEntityDefinition, path, definition, JpaPropertyDefinition.class, context.getPrismContext());
             if (propDefRes == null) {
-                String technicalMessage = "Couldn't find a proper data item to query, given base entity " +
-                        baseEntityDefinition + " and this filter: " + valFilter.debugDump();
+                String technicalMessage =
+                        "Couldn't find a proper data item to query, given base entity %s and this filter: %s".formatted(
+                                baseEntityDefinition, valFilter.debugDump());
+                throwSpecificIfSupportedInNativeRepository(baseEntityDefinition, path, definition, technicalMessage);
                 SingleLocalizableMessage message = new SingleLocalizableMessage(
                         "QueryModelMapping.item.not.searchable",
-                        new Object[]{definition != null ? definition.getItemName() : path.toStringStandalone()},
+                        new Object[] { definition != null ? definition.getItemName() : path.toStringStandalone() },
                         technicalMessage);
                 throw new QueryException(message);
             }
@@ -312,6 +319,18 @@ public class QueryInterpreter {
             throw new IllegalStateException("Trivial filters are not supported by QueryInterpreter: " + filter.debugDump());
         } else {
             throw new IllegalStateException("Unknown filter: " + filter.debugDump());
+        }
+    }
+
+    private void throwSpecificIfSupportedInNativeRepository(JpaEntityDefinition baseEntityDefinition, ItemPath path, ItemDefinition<?> definition, String technicalMessage) throws QueryException {
+        var schemaType = baseEntityDefinition.getJaxbClass();
+        var firstName = path.firstToNameOrNull();
+        if (firstName != null && NativeRepositoryFeatures.isSupported(schemaType, firstName)) {
+            SingleLocalizableMessage message = new SingleLocalizableMessage(
+                    "QueryModelMapping.item.only.native",
+                    new Object[] { definition != null ? definition.getItemName() : path.toStringStandalone() },
+                    technicalMessage);
+            throw new NativeOnlySupportedException(message);
         }
     }
 

@@ -68,7 +68,11 @@ public class SearchProducerWorker extends BaseWorker<ExportOptions, ObjectType> 
             };
 
             RepositoryService repository = context.getRepository();
-            repository.searchObjectsIterative(type.getClassDefinition(), query, handler, optionsBuilder.build(), true, operation.getResult());
+            if (repository.supports(type.getClassDefinition())) {
+                repository.searchObjectsIterative(type.getClassDefinition(), query, handler, optionsBuilder.build(), true, operation.getResult());
+            } else {
+                log.debug("Type {} is not supported on current repository", type);
+            }
         } catch (SchemaException ex) {
             log.error("Unexpected exception, reason: {}", ex, ex.getMessage());
         } catch (NinjaException ex) {

@@ -189,16 +189,12 @@ Specifying attribute values in assignments should be used only if no other mecha
 
 === Strong and Weak Constructions
 
-++++
-{% include since.html since="3.5" %}
-++++
-
 The default construction type is _strong_.
 It means that if such a construction is assigned to a user, the account will immediately get created.
 This is the expected behavior in vast majority of cases.
 However, there are cases when we do not want to immediately create an account.
 Maybe the construction just adds several attributes to existing account - if the user already has that account.
-Therefore since midPoint 3.5 there is a possibility to make the construction _weak_.
+Therefore, there is a possibility to make the construction _weak_.
 Weak constructions do not add new account immediately.
 If the weak construction is the only construction for a specific account it is simply ignored.
 Weak construction is applied only if there is another (strong) construction that adds the account.
@@ -279,10 +275,7 @@ Following example is looking up the group by name:
                     <expression>
                         <associationTargetSearch>
                             <filter>
-                                <q:equal>
-                                    <q:path>attributes/icfs:name</q:path>
-                                    <q:value>landlubers</q:value>
-                                </q:equal>
+                                <q:text>attributes/name = "landlubers"</q:text>
                             </filter>
                         </associationTargetSearch>
                     </expression>
@@ -313,14 +306,7 @@ In this case we can use algorithm to determine the name of the entitlement (grou
                     <expression>
                         <associationTargetSearch>
                             <filter>
-                                <q:equal>
-                                    <q:path>attributes/icfs:name</q:path>
-                                    <expression>
-                                        <script>
-                                            <code>'group-' + name</code>
-                                        </script>
-                                    </expression>
-                                </q:equal>
+                                <q:text>attributes/name = `"group-" + name`</q:text>
                             </filter>
                         </associationTargetSearch>
                     </expression>
@@ -403,7 +389,6 @@ Use assignmentPath instead.
 | Sequence of assignments from the focal object to the point of evaluation.
 (More exactly, each item in this sequence is an link:https://github.com/Evolveum/midpoint/blob/master/model/model-api/src/main/java/com/evolveum/midpoint/model/api/context/AssignmentPathSegment.java[AssignmentPathSegment].
 It is a structure that contains an assignment augmented with additional information, like the actual source and target objects.)
-Available since midPoint 3.6.
 See xref:/midpoint/reference/roles-policies/assignment/using-assignment-path-in-expressions/[Using Assignment Path in Expressions] and xref:/midpoint/reference/roles-policies/assignment/assignment-path-variables-example/[Assignment Path Variables Example]
 
 
@@ -412,10 +397,6 @@ See xref:/midpoint/reference/roles-policies/assignment/using-assignment-path-in-
 Use of these variables is xref:/midpoint/reference/roles-policies/assignment/assignment-path-variables-example/[illustrated on the example here].
 
 === The loginMode Variable
-
-++++
-{% include since.html since="3.9" %}
-++++
 
 At login time, many parts of assignments, e.g. constructions and focus mappings are *not* evaluated - because of performance as well as availability reasons.
 But sometimes even the evaluation of _conditions_ on paths to these elements might be time-consuming and even unavailable because of missing security context.
@@ -426,10 +407,6 @@ Conditions to targets that are irrelevant at this moment can then be quickly eva
 This variable is present also in target filtering expressions.
 
 === Construction Assignments in Generic Synchronization
-
-++++
-{% include since.html since="3.0" %}
-++++
 
 Things are getting a bit more complex when xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization] feature is used.
 In such a case we may want to create groups based on midPoint organizational units.

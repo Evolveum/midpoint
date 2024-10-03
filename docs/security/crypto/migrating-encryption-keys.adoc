@@ -5,8 +5,8 @@
 :page-wiki-metadata-create-date: 2018-10-16T18:36:49.744+02:00
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2018-10-16T18:58:52.421+02:00
-:page-since: 3.9
-:page-upkeep-status: yellow
+:page-keywords: [ 're-encrypt', 'reencrypt', 'encrypt']
+:page-upkeep-status: green
 
 There can be situations in which you need to re-encrypt all protected values with a current encryption key.
 A typical example is when the old key was compromised and you need to stop its use immediately.
@@ -19,58 +19,14 @@ Before attempting this operation you might want to check the current state of af
 The following task (link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/bulk-actions/list-encryption-keys.xml[samples/tasks/bulk-actions/list-encryption-keys.xml]) lists all objects that contain protected material along with the keys used.
 It can also report objects with sensitive data that is not encrypted (i.e. in the cleartext or hashed).
 
-.list-encryption-keys.xml
-[source,xml]
-----
-<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      oid="b427848b-ea98-4da1-acba-c16cbb0e9c22">
-    <name>List encryption keys</name>
-    <extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-               xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
-        <scext:executeScript>
-            <s:action>
-                <s:type>execute-script</s:type>
-                <s:parameter>
-                    <s:name>script</s:name>
-                    <value xsi:type="c:ScriptExpressionEvaluatorType">
-                        <c:code>
-                            import com.evolveum.midpoint.common.crypto.CryptoUtil
+.*list-encryption-keys.xml*
 
-                            midpoint.applyDefinition(input)
-                            keys = CryptoUtil.getEncryptionKeyNames(input.asPrismObject())
-                            clear = CryptoUtil.containsCleartext(input.asPrismObject())
-                            hashed = CryptoUtil.containsHashedData(input.asPrismObject())
-                            if (!keys.isEmpty() || clear || hashed) {
-                                append = ""
-                                if (clear) {
-                                    append += " [CLEARTEXT]"
-                                }
-                                if (hashed) {
-                                    append += " [HASHED]"
-                                }
-                                log.info(sprintf('Object: %-100s uses keys: %s%s', input, keys, append))
-                            }
-                        </c:code>
-                    </value>
-                </s:parameter>
-                <s:parameter>
-                    <s:name>quiet</s:name>
-                    <value>true</value>
-                </s:parameter>
-            </s:action>
-        </scext:executeScript>
-        <mext:useRepositoryDirectly>true</mext:useRepositoryDirectly>
-    </extension>
-    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>runnable</executionStatus>
-    <category>BulkActions</category>
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/iterative-scripting/handler-3</handlerUri>
-    <recurrence>single</recurrence>
-</task>
-----
+[%collapsible]
+====
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/bulk-actions/list-encryption-keys.xml[Git]
+
+sampleRef::samples/tasks/bulk-actions/list-encryption-keys.xml[]
+====
 
 The result looks like this:
 
@@ -94,49 +50,13 @@ And all objects except for `newuser1` use the key `A5yfWFgnD4euq3CgpdecmZPA/DE=`
 The following task (adapted from link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/bulk-actions/reencrypt-selected-objects.xml[samples/tasks/bulk-actions/task-reencrypt.xml]) will reencrypt all objects in "dry mode", meaning that it will not execute anything; it will just write out the objects that would get reencrypted.
 You could limit the set of objects processed by using `mext:objectType` and `mext:objectQuery` items.
 
-.task-reencrypt.xml (dry run)
-[source,xml]
-----
-<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-      xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
-      oid="172b3d9f-66f8-4731-b023-0e2d8ca5cd6f">
-    <name>Reencrypt selected objects</name>
-    <extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-               xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
-        <scext:executeScript>
-            <s:pipeline>
-                <s:action>
-                    <s:type>apply-definition</s:type>   <!-- needed for ResourceType and ShadowType objects -->
-                </s:action>
-                <s:action>
-                    <s:type>reencrypt</s:type>
-                    <!-- remove the following or set to false to execute the reencryption -->
-                    <s:parameter>
-                        <s:name>dryRun</s:name>
-                        <value>true</value>
-                    </s:parameter>
-                </s:action>
-            </s:pipeline>
-        </scext:executeScript>
-        <mext:useRepositoryDirectly>true</mext:useRepositoryDirectly>
-<!--    <mext:objectType>UserType</mext:objectType>
-        <mext:objectQuery>
-            <q:filter>
-                <q:equal>
-                    <q:path>name</q:path>
-                    <q:value>administrator</q:value>
-                </q:equal>
-            </q:filter>
-        </mext:objectQuery>  -->
-    </extension>
-    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>runnable</executionStatus>
-    <category>BulkActions</category>
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/iterative-scripting/handler-3</handlerUri>
-    <recurrence>single</recurrence>
-</task>
-----
+*.task-reencrypt.xml (dry run)*
+[%collapsible]
+====
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/bulk-actions/reencrypt-selected-objects-dry.xml[Git]
+
+sampleRef::samples/tasks/bulk-actions/reencrypt-selected-objects-dry.xml[]
+====
 
 The task (specifically, the `reencrypt` action) looks for objects that contain sensitive data stored in cleartext or encrypted by a key that is not the current one, and tries to re-encrypt them with the current encryption key.
 
@@ -157,34 +77,12 @@ Note that `newuser1` is not among objects to be updated, as it already has the c
 Now let's run the same task but with `dryRun` parameter removed, i.e.
 
 .task-reencrypt.xml (no dry run)
-[source,xml]
-----
-<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-      xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
-      oid="172b3d9f-66f8-4731-b023-0e2d8ca5cd6f">
-    <name>Reencrypt selected objects</name>
-    <extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-               xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
-        <scext:executeScript>
-            <s:pipeline>
-                <s:action>
-                    <s:type>apply-definition</s:type>   <!-- needed for ResourceType and ShadowType objects -->
-                </s:action>
-                <s:action>
-                    <s:type>reencrypt</s:type>
-                </s:action>
-            </s:pipeline>
-        </scext:executeScript>
-        <mext:useRepositoryDirectly>true</mext:useRepositoryDirectly>
-    </extension>
-    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>runnable</executionStatus>
-    <category>BulkActions</category>
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/iterative-scripting/handler-3</handlerUri>
-    <recurrence>single</recurrence>
-</task>
-----
+[%collapsible]
+====
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/bulk-actions/reencrypt-selected-objects-no-dry.xml[Git]
+
+sampleRef::samples/tasks/bulk-actions/reencrypt-selected-objects-no-dry.xml[]
+====
 
 The result is like this:
 
@@ -225,20 +123,20 @@ Instead of
 
 [source,xml]
 ----
-<mext:useRepositoryDirectly>true</mext:useRepositoryDirectly>
+<useRepositoryDirectly>true</useRepositoryDirectly>
 ----
 
 it is possible to use:
 
 [source,xml]
 ----
-<mext:searchOptions>
+<options>
     <option>
         <options>
             <noFetch>true</noFetch>
         </options>
     </option>
-</mext:searchOptions>
+</options>
 ----
 
 Both approaches should work.

@@ -364,7 +364,7 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected InputStream initStream() {
+            protected InputStream getInputStream() {
                 ReportDataType reportObject = getReportData();
                 if (reportObject != null) {
                     return PageCreatedReports.createReport(reportObject, this, getPageBase());

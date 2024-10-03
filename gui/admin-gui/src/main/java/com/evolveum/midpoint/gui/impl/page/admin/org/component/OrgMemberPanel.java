@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.org.component;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -43,7 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         applicableForOperation = OperationTypeType.MODIFY,
         display = @PanelDisplay(label = "pageRole.governance", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 70))
 public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(OrgMemberPanel.class);
 

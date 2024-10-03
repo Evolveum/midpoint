@@ -120,7 +120,7 @@ image:err-add-unsupported-filter.png[Error additional unsupported filter specifi
 [cols="15h,50" width=85%]
 |====
 | Request
-| Find all assignments of a role.
+| Query all assignments of a role.
 
 | Query
 | `assignment/targetRef matches (name="ABC:Admin")`
@@ -136,6 +136,32 @@ a| `assignment/targetRef/@ matches (name="ABC:Admin")`
 
 | Troubleshooting hints
 a|
+|====
+
+
+==== Additional unsupported filter specified: type=...
+
+image:err-add-unsupported-filter-type.png[Error - additional unsuported filter specified - type]
+
+[cols="15h,50" width=85%]
+|====
+| Request
+| Query all users who have any role assigned.
+
+| Query
+| `assignment/targetRef matches (type=RoleType)`
+
+| Error message
+| Additional unsupported filter specified: type=RoleType
+
+| Reason
+a| matches filter in query requires _"targetType"_ keyword to search for assigned object type.
+
+| Correct query
+a| `assignment/targetRef matches (targetType=RoleType)`
+
+| Troubleshooting hints
+a| See xref:../introduction.adoc#_querying_values_of_different_types[querying values of different types].
 |====
 
 
@@ -161,7 +187,7 @@ a| The schema defines enumerated value for this attribute. In this case the allo
 | `activation/lockoutStatus = "normal"`
 
 | Troubleshooting hints
-a| * Search for allowed values in schema definition. Schemas are described in
+a| Search for allowed values in schema definition. Schemas are described in
 xref:/midpoint/reference/schema/schemadoc.adoc[SchemaDoc].
 Select version according your midPoint version. +
 In this case search in schema "common/common-3" for "LockoutStatusType"
@@ -169,15 +195,14 @@ In this case search in schema "common/common-3" for "LockoutStatusType"
 |====
 
 === Couldn't count objects
-image:err-couldnt-count-objects.png[Error couldn't count objects]
 
 This is error message telling that processing of the query failed somehow during processing.
 
 To know why it failed you need to open the error message and see what happened in the messages below.
 
-==== Unknown matching rule 'stringIgnoreCase'
+==== Unsupported matching rule 'stringIgnoreCase'
 
-image:err-couldnt-count-objects.png[Error couldn't count objects]
+image:err-unsupported-matching-rule.png[Error unsupported matching rule]
 
 [cols="15h,50" width=85%]
 |====
@@ -188,8 +213,7 @@ image:err-couldnt-count-objects.png[Error couldn't count objects]
 | `locality =[stringIgnoreCase] "Edinburgh"`
 
 | Error message
-| Couldn't count objects +
-Unknown matching rule 'stringIgnoreCase'.
+| Unsupported matching rule 'stringIgnoreCase' for value type 'PolyStringType'.
 
 | Reason
 a| The matching rules relate to attribute type. +
@@ -204,3 +228,59 @@ a| * For more information about matching rules in query see xref:../introduction
 * List of all matching rules is defined in xref:/midpoint/reference/concepts/matching-rules.adoc[matching rules] page.
 
 |====
+
+==== Cannot invoke ..SubfilterOrValueContext.valueSet() because "subfilterOrValue" is null
+
+image:err-cannot-invoke-subfilter-value-is-null.png[Error cannot invoke subfilter - value is null]
+
+[cols="15h,50" width=85%]
+|====
+| Request
+| Find all users having name similar to "ang" using levenshtein distance search.
+
+| Query
+| `name levenshtein("ang",2,true)`
+
+| Error message
+| Cannot invoke "com.evolveum.axiom.lang.antlr.query.AxiomQueryParser$SubfilterOrValueContext.valueSet()" because "subfilterOrValue" is null
+
+| Reason
+a| The `levenshtein` is filter name. Not a function with parameters. +
+There is missing space between `levenshtein` filter name and `(`
+
+| Correct query
+| `name levenshtein ("ang",2,true)`
+
+| Troubleshooting hints
+a| xref:../introduction.adoc#_similarity_filters[Similarity search filters] require 3 attributes. The set of attributes is enclosed in brackets.
+
+|====
+
+
+==== QName value expected
+
+image:err-qname-value-expected.png[Error - QName value expected]
+
+[cols="15h,50" width=85%]
+|====
+| Request
+| Find all owners (find all users who have any assignment assigned as owner.)
+
+| Query
+| `assignment/targetRef matches ( relation="org:owner")`
+
+| Error message
+| QName value expected
+
+| Reason
+| Relation is of QName type. QName values are included in queries without quotation marks. +
+
+| Correct query
+| `assignment/targetRef matches (relation=org:owner)`  or +
+`assignment/targetRef matches (relation=owner)`
+
+| Troubleshooting hints
+| See xref:../introduction.adoc#_querying_values_of_different_types[querying values of different types]. +
+Additionally, namespaces are optional.
+|====
+

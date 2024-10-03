@@ -10,7 +10,6 @@ doc-type: config
 :page-wiki-metadata-create-date: 2017-04-24T14:10:04.599+02:00
 :page-wiki-metadata-modify-user: vera
 :page-wiki-metadata-modify-date: 2018-01-29T16:12:43.987+01:00
-:page-since: "3.6"
 :page-upkeep-status: yellow
 :page-toc: top
 
@@ -31,16 +30,11 @@ Following example shows the use of internal manual connector implementation:
     <name>Manual Resource</name>
     <connectorRef type="ConnectorType">
         <filter>
-            <q:equal>
-                <q:path>c:connectorType</q:path>
-                <q:value>ManualConnector</q:value>
-            </q:equal>
+            <q:text>connectorType = "ManualConnector"</q:text>
         </filter>
     </connectorRef>
 
-    <connectorConfiguration>
-        <conf:defaultAssignee>administrator</conf:defaultAssignee> <!-- EXPERIMENTAL !!! -->
-    </connectorConfiguration>
+    <connectorConfiguration/>
 
     <!-- Static schema definition -->
     <schema>
@@ -53,6 +47,10 @@ Following example shows the use of internal manual connector implementation:
              </xsd:schema>
           </definition>
     </schema>
+
+    <business>
+        <operatorRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/> <!-- administrator; this is the default -->
+    </business>
 
 </resource>
 ----
@@ -80,25 +78,17 @@ The following example shows combination of midPoint built-in manual connector an
 
     <connectorRef type="ConnectorType">
         <filter>
-            <q:equal>
-                <q:path>c:connectorType</q:path>
-                <q:value>ManualConnector</q:value>
-            </q:equal>
+            <q:text>connectorType = "ManualConnector"</q:text>
         </filter>
     </connectorRef>
 
-    <connectorConfiguration>
-        <conf:defaultAssignee>administrator</conf:defaultAssignee> <!-- EXPERIMENTAL !!! -->
-    </connectorConfiguration>
+    <connectorConfiguration/>
 
     <additionalConnector>
         <name>csv</name>
         <connectorRef type="ConnectorType">
             <filter>
-                <q:equal>
-                    <q:path>c:connectorType</q:path>
-                    <q:value>com.evolveum.polygon.connector.csv.CsvConnector</q:value>
-                </q:equal>
+                <q:text>connectorType = "com.evolveum.polygon.connector.csv.CsvConnector"</q:text>
             </filter>
         </connectorRef>
         <connectorConfiguration>
@@ -140,6 +130,10 @@ The following example shows combination of midPoint built-in manual connector an
     <consistency>
         <pendingOperationGracePeriod>PT15M</pendingOperationGracePeriod>
     </consistency>
+
+    <business>
+        <operatorRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/> <!-- administrator; this is the default -->
+    </business>
 
 </resource>
 ----

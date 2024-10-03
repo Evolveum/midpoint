@@ -9,6 +9,8 @@ package com.evolveum.midpoint.repo.sql.data.common.any;
 import java.util.Objects;
 import jakarta.persistence.*;
 
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -99,6 +101,7 @@ public class RExtItem {
         return type;
     }
 
+    @JdbcType(IntegerJdbcType.class)
     @Enumerated(EnumType.ORDINAL)
     public RItemKind getKind() {
         return kind;

@@ -30,7 +30,7 @@ image:advanced-query-select.png[Select Advanced query]
 You can test the queries directly in GUI. Starting in All users view. It is easy and straightforward.
 As an example, to select all users with given name starting with "J" just enter `givenName startsWith "J"` to search bar and click search button.
 
-Examples how to use the midPoint query in GUI can be found in xref:/midpoint/reference/concepts/query/midpoint-query-language/query-examples[Advanced search - EXAMPLES].
+Examples how to use the midPoint query in GUI can be found in xref:/midpoint/reference/concepts/query/midpoint-query-language/query-examples[Query - EXAMPLES].
 
 
 === Using in Configuration

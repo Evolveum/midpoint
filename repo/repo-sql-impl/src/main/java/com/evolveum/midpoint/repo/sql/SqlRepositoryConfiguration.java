@@ -451,7 +451,7 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
     private String getDefaultEmbeddedJdbcUrl() {
         return getDefaultEmbeddedJdbcUrlPrefix()
                 // TODO: Was used for 1.4.193, but do we really need it?
-//                + ";MVCC=FALSE" // Turn off MVCC, revert to table locking.
+                // + ";MVCC=FALSE" // Turn off MVCC, revert to table locking.
                 // Disable database closing on exit. By default, a database is closed when the last connection is closed.
                 + ";DB_CLOSE_ON_EXIT=FALSE"
                 // Both read locks and write locks are kept until the transaction commits.
@@ -459,7 +459,11 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
                 // This is experimental setting - let's resolve locking conflicts by midPoint itself
                 + ";LOCK_TIMEOUT=100"
                 // We want to store blob data i.e. full xml object right in table (it's often only a few kb)
-                + ";MAX_LENGTH_INPLACE_LOB=10240";
+                + ";MAX_LENGTH_INPLACE_LOB=10240"
+                // We are using "value" as name of column in m_audit_prop_value, "value" became a keyword
+                // Keywords can be converted to identifier via NON_KEYWORDS option, see:
+                // https://h2database.com/html/commands.html#set_non_keywords
+                + ";NON_KEYWORDS=VALUE";
     }
 
     private String getDerivedBaseDir() {

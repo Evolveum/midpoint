@@ -79,7 +79,7 @@ image::step-1-discovered-config.png[link=step-1-discovered-config.png, 100%, tit
 
 Click btn:[Next] to continue the resource configuration.
 
-WARNING: If you are using CSV connector and wizard fails in this step with error _"Connector initialization failed. Configuration error: Configuration error: Header in csv file doesn't contain unique attribute name as defined in configuration."_, it may be caused by presence of UTF-8 BOM characters in the file. See more xref:https://support.evolveum.com/work_packages/9497[here]. +
+WARNING: If you are using CSV connector and wizard fails in this step with error _"Connector initialization failed. Configuration error: Configuration error: Header in csv file doesn't contain unique attribute name as defined in configuration."_, it may be caused by presence of UTF-8 BOM characters in the file. See more https://support.evolveum.com/work_packages/9497/activity[here]. +
 To resolve the issue, remove the leading UTF-8 BOM characters from the csv file and start the wizard again. This can be done e.g. by copying the file content to a new file in text editor.
 
 Connector will return possible object types and their attributes (_schema_ and its _object classes_).

@@ -1,0 +1,182 @@
+---
+midpoint-feature: flexible-authentication
+doc-type: guide
+---
+= Basic concepts
+:page-nav-title: Concepts
+:page-wiki-metadata-create-user: lmarton
+:page-wiki-metadata-create-date: 2024-04-04T09:32:45.286+01:00
+:page-toc: top
+:toclevels: 3
+
+To better understand the configuration of flexible authentication, it is essential to familiarize ourselves with a few key terms.
+
+Flexible authentication is configured in a xref:/midpoint/reference/security/security-policy[Security Policy]. Security policy can be defined on different levels.
+There is a global level, when the security policy is defined in System Configuration.
+Since midPoint 4.7 it is also possible to define security policies for organizational unit and archetype.
+All security policies applicable for the user are merged together.
+The merging is performed after user identification, so after the first module which was able to find a user in the system.
+
+Base tag is _<authentication>_.  Configuration consists of modules and sequences.
+Element `module` is basic building block of the configuration.
+Each element has a configuration of a particular authentication module instance such as internal password-based authentication, SAML authentication and so on.
+Each module specified in the container must have unique identifier.
+Element `sequence` defines a sequence of authentication modules.
+The modules are invoked in order as they are specified in the sequence.
+The purpose of the sequence is to guide user through a complete authentication process.
+
+
+== Authentication module
+
+Authentication modules are the basic building blocks of flexible authentication.
+The easiest example of authentication module is the classic login form, found on many websites, which typically includes fields for a username or email and a password.
+This login form represents just one authentication module.
+There are others like LDAP, HTTP basic authentication, or Identity Provider server authentication, each with its own configuration settings.
+
+The following modules are supported:
+
+[%autowidth]
+|===
+| Name | Description
+
+| xref:/midpoint/reference/security/authentication/flexible-authentication/modules/loginForm[loginForm]
+| LoginForm module is used for interactive log-in of a user by using HTML forms.
+
+| xref:/midpoint/reference/security/authentication/flexible-authentication/modules/httpBasic[httpBasic]
+| Definition of HTTP BASIC authentication module (RFC 7617).
+
+| xref:/midpoint/reference/security/authentication/flexible-authentication/modules/httpSecQ[httpSecQ]
+| The module is used for quasi-interactive log-in of a user by answering a set of security questions. The HTTP SecQ mechanism is similar to HTTP BASIC mechanism.
+
+| xref:/midpoint/reference/security/authentication/flexible-authentication/modules/securityQuestionsForm[securityQuestionsForm]
+| The module is used for interactive log-in of a user by answering a set of security questions.
+
+| xref:/midpoint/reference/security/authentication/flexible-authentication/modules/mailNonce[mailNonce]
+| Module that sends randomly generated nonce in URL in mail message.
+
+| xref:/midpoint/reference/security/authentication/flexible-authentication/modules/archetypeSelection[archetypeSelection]
+| During this module processing the user can select an archetype which will be used in the following authentication modules in sequence.
+
+| xref:/midpoint/reference/security/authentication/flexible-authentication/modules/correlation[correlation]
+| Correlation module gives the possibility to find identity(es) (user object(s) for now) in midpoint using xref:/midpoint/reference/correlation/index.adoc[correlation] mechanism within authentication process.
+
+| xref:/midpoint/reference/security/authentication/flexible-authentication/modules/ldap[ldap]
+| LDAP authentication module supports authentication via LDAP server.
+
+| xref:/midpoint/reference/security/authentication/flexible-authentication/modules/httpHeader[httpHeader]
+| Pseudo-authentication for pre-authenticated users. Based on HTTP header values.
+
+| xref:/midpoint/reference/security/authentication/flexible-authentication/modules/saml2[saml2]
+| SAML2 authentication module supports authentication via Identity provider with SAML2.
+
+| xref:/midpoint/reference/security/authentication/flexible-authentication/modules/oidc[oidc]
+| OIDC authentication module supports authentication via Identity provider that supports OpenID connect.
+
+| xref:/midpoint/reference/security/authentication/flexible-authentication/modules/focusIdentification[focusIdentification]
+| Module that according to the specified attributes tries to find a user in midPoint.
+
+| xref:/midpoint/reference/security/authentication/flexible-authentication/modules/hint[hint]
+| The aim of the module is to provide the password hint (if defined) to the user.
+
+| xref:/midpoint/reference/security/authentication/flexible-authentication/modules/attributeVerification[attributeVerification]
+| The aim of the module is to check defined focus items if they match.
+
+| xref:/midpoint/reference/security/authentication/flexible-authentication/modules/duo[duo]
+| Module is used for 2FA authentication. Module use duo server for authentication via hardware key of mobile, tablet and so on.
+
+|===
+
+=== Necessity Configuration
+
+Each module in sequence can have its necessity defined. Following necessity levels are available:
+
+* `SUFFICIENT` - The module is sufficient for authentication to succeed.
+It is NOT required to succeed.
+If this module succeeds, the evaluation stops.
+The result is a success. Other modules are NOT evaluated.
+Except for the case when "required" module that was evaluated before has failed.
+If this module fails, the evaluation continues.
+Other modules are evaluated.
+* `REQUIRED` - The module is required.
+The module must succeed for the entire sequence to be successful.
+If this module succeeds, the evaluation continues.
+Other modules are evaluated.
+If this module fails, the evaluation continues.
+Other modules are evaluated.
+Final result of authentication sequence is a failure.
+* `REQUISITE` - The module is required.
+The module must succeed for the entire sequence to be successful.
+If this module succeeds, the evaluation continues.
+Other modules are evaluated.
+If this module fails, the evaluation stops with an error.
+Other modules are NOT evaluated.
+Final result of authentication sequence is a failure.
+* `OPTIONAL` - The module is optional.
+It is NOT required to succeed.
+Optional module does not really influence the result of the authentication.
+But it may be used to add some authentication attributes, it may be used to  cross-authenticate is SSO realms and so on.
+If this module succeeds, the evaluation continues.
+If this module fails, the evaluation continues.
+The result of the sequence is a failure only if this is the only module in the sequence, and it fails.
+
+
+
+== Authentication sequence and channel
+
+An authentication sequence consists of a chain of authentication modules, each with its specific order and configuration requirements within the sequence. These sequences are defined by channels.
+
+A channel represents a portion of Midpoint for which a particular authentication sequence is applicable. For instance, a channel can be associated with the GUI or a REST service. Additionally, each channel includes a URL suffix, which further specifies when this authentication sequence should be used.
+
+In essence, a channel determines which authentication sequence will be employed for an HTTP request.
+
+Flexible authentication encompasses the following channels:
+
+[%autowidth]
+|===
+| Request servlet suffix | Channel | Note
+
+|
+| http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user
+| Default one, represents GUI.
+No suffix specified.
+
+
+| /ws, /rest, /api
+| http://midpoint.evolveum.com/xml/ns/public/common/channels-3#rest
+|
+
+
+| /actuator
+| http://midpoint.evolveum.com/xml/ns/public/common/channels-3#actuator
+|
+
+
+| /resetPassword
+| http://midpoint.evolveum.com/xml/ns/public/common/channels-3#resetPassword
+|
+
+
+| /registration
+| http://midpoint.evolveum.com/xml/ns/public/common/channels-3#selfRegistration
+|
+
+| /invitation
+| http://midpoint.evolveum.com/xml/ns/public/common/channels-3#invitation
+|
+
+| /identityRecovery
+| http://midpoint.evolveum.com/xml/ns/public/common/channels-3#identityRecovery
+|
+
+
+|===
+
+Channels for _rest_ and _actuator_ default don't create audit records about session creation or termination.
+You can turn it on via setting _System Configuration_ ->  _audit_ -> _eventRecording_ -> _recordSessionlessAccess_.
+
+== Logout
+
+Midpoint supports logout by removing session and data connected with session. Removing session is provided by request to logout by user or termination of session after timeout.
+
+'httpHeader' and 'saml2' authentication modules support sending logout request to logout URL, but only for logout requested by user. For session timeout only its removing is supported.
+

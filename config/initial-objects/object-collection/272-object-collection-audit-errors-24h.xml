@@ -13,34 +13,11 @@
     <name>Error audit records in 24h</name>
     <type>AuditEventRecordType</type>
     <filter>
-        <!--  TODO: Convert to Axiom Query
         <q:text>
-            eventStage = "execution"
-            and outcome = "fatal_error"
-            and timestamp = `basic.addDuration(basic.currentDateTime(), "-P1D")
+            eventStage = 'execution'
+            and outcome = 'fatal_error'
+            and timestamp > `basic.addDuration(basic.currentDateTime(), "-P1D")`
         </q:text>
-        -->
-        <q:and>
-            <q:equal>
-                <q:path>eventStage</q:path>
-                <q:value>execution</q:value>
-            </q:equal>
-            <q:equal>
-                <q:path>outcome</q:path>
-                <q:value>fatal_error</q:value>
-            </q:equal>
-            <q:greater>
-                <q:path>timestamp</q:path>
-                <expression>
-                    <script>
-                        <code>
-                            calendar = basic.addDuration(basic.currentDateTime(), "-P1D");
-                            return calendar;
-                        </code>
-                    </script>
-                </expression>
-            </q:greater>
-        </q:and>
     </filter>
     <domain>
         <collectionRef oid="00000000-0000-0000-0001-000000000285" type="c:ObjectCollectionType"/>

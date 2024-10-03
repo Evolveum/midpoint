@@ -1,5 +1,4 @@
 = Relation Configuration
-:page-since: "3.9"
 :page-wiki-name: Relation Configuration
 :page-wiki-id: 26411123
 :page-wiki-metadata-create-user: semancik
@@ -10,7 +9,7 @@
 
 xref:index.adoc[Relation] is an important mechanism that is used at many places in midPoint.
 But perhaps the most important usage is to enable advanced features of xref:/midpoint/reference/roles-policies/rbac/[RBAC] and xref:/midpoint/reference/org/organizational-structure/[organizational structure management]. Older midPoint versions had hardcoded set of relations that could not be customized.
-MidPoint version 3.9 introduced partial configuration of relations.
+MidPoint provides partial configuration of relations.
 Now it is possible to add new relation that will be used by midPoint in addition to hardcoded relations.
 
 The relations are configured in xref:/midpoint/reference/concepts/system-configuration-object/[system configuration object]:
@@ -66,7 +65,7 @@ Changing existing (hardcoded) relations is *xref:/midpoint/versioning/experiment
 
 == Relation Behavior
 
-Since 3.9, midPoint allows to completely redefine object relations.
+MidPoint allows to completely redefine object relations.
 Instead of specific relation _names_ midPoint defines behavior depending on relation _kinds_. The following kinds are available (see link:https://github.com/Evolveum/midpoint/blob/3ddbf5288c0a78b8f7ad8b9712e451765c644dad/infra/schema/src/main/resources/xml/ns/public/common/common-core-3.xsd#L16296[RelationKindType]).
 
 [%autowidth]

@@ -5,7 +5,6 @@
 :page-wiki-metadata-create-date: 2017-07-18T14:34:44.163+02:00
 :page-wiki-metadata-modify-user: vera
 :page-wiki-metadata-modify-date: 2018-01-16T16:05:43.586+01:00
-:page-since: "3.7"
 :page-experimental: true
 :page-upkeep-status: yellow
 

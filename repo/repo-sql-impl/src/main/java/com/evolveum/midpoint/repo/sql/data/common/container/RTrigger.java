@@ -7,9 +7,9 @@
 package com.evolveum.midpoint.repo.sql.data.common.container;
 
 import java.util.Objects;
-import jakarta.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import jakarta.persistence.*;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
@@ -57,10 +57,9 @@ public class RTrigger implements Container<RObject> {
     }
 
     @Override
-    @Id
-    @MapsId("owner")
+    @MapsId
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(foreignKey = @ForeignKey(name = "fk_trigger_owner"))
+    @JoinColumn(name = "owner_oid", referencedColumnName = "oid", foreignKey = @ForeignKey(name = "fk_trigger_owner"))
     @NotQueryable
     public RObject getOwner() {
         return owner;

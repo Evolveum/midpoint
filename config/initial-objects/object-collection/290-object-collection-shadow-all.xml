@@ -11,9 +11,6 @@
                   oid="00000000-0000-0000-0001-000000000008">
     <name>All shadows</name>
     <type>ShadowType</type>
-    <filter>
-        <q:all/>
-    </filter>
     <getOptions>
         <option id="1">
             <options>

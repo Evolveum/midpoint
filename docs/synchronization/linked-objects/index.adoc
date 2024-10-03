@@ -509,16 +509,12 @@ An example:
     <executionMode>iterative</executionMode>
     <taskTemplateRef>
         <filter>
-            <q:inOid>
-                <expression>
-                    <script>
-                        <code>
+            <q:text>
+                . inOid ```
                             import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType
                             focus instanceof OrgType ? '9c50ac7e-73c0-45cf-85e7-9a94959242f9' : '9107b8a4-0a0a-4e82-a4c6-9d84034f9d6e'
-                        </code>
-                    </script>
-                </expression>
-            </q:inOid>
+                        ```
+            </q:text>
         </filter>
     </taskTemplateRef>
     ...

@@ -7,8 +7,7 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import static com.evolveum.midpoint.prism.PrismContainerValue.asPrismContainerValues;
-import static com.evolveum.midpoint.util.MiscUtil.argCheck;
-import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+import static com.evolveum.midpoint.util.MiscUtil.*;
 
 import java.util.*;
 import java.util.function.Function;
@@ -68,6 +67,9 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
      * into equivalence classes.
      */
     private final List<EquivalenceClass> equivalenceClasses = new ArrayList<>();
+
+    /** This is to check whether there is no conflict for single-valued items, see MID-9621. */
+    private final List<EquivalenceClass> equivalenceClassesBeingAddedForSingleValuedItem = new ArrayList<>();
 
     /**
      * Is the item an assignment (i.e. is path = c:assignment)?
@@ -175,6 +177,9 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
      */
     private final String contextDescription;
 
+    /** Definition of the item being consolidated. */
+    @NotNull private final D itemDefinition;
+
     /**
      * Operation result (currently needed for value metadata computation).
      * Experimentally we make this consolidator auto-closeable so the result is marked as closed automatically.
@@ -226,10 +231,13 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
         valueMetadataComputer = builder.valueMetadataComputer;
         contextDescription = builder.contextDescription;
 
-        argCheck(builder.itemDefinition != null, "No definition for %s", itemPath);
+        this.itemDefinition =
+                argNonNull(
+                        builder.itemDefinition,
+                        "No definition for %s", itemPath);
 
         //noinspection unchecked
-        itemDelta = (ItemDelta<V, D>) builder.itemDefinition.createEmptyDelta(itemPath);
+        itemDelta = (ItemDelta<V, D>) itemDefinition.createEmptyDelta(itemPath);
 
         // Must be the last instruction here (to avoid leaving result open in case of an exception)
         result = builder.result.createMinorSubresult(OP_CONSOLIDATE_TO_DELTA)
@@ -279,6 +287,15 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
             }
             setEstimatedOldValues();
             logEnd();
+
+            if (equivalenceClassesBeingAddedForSingleValuedItem.size() > 1) {
+                throw new SchemaException(
+                        "Strong mappings provided more than one value for single-valued item %s: %s".formatted(
+                                itemPath,
+                                equivalenceClassesBeingAddedForSingleValuedItem.stream()
+                                        .map(ec -> ec.getRepresentativeRealValue())
+                                        .toList()));
+            }
 
             return itemDelta;
         } catch (Throwable t) {
@@ -422,7 +439,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
         private void consolidate() throws ExpressionEvaluationException, SchemaException,
                 ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 
-            checkDeletionOfStrongValue();
+            warnIfDeletingStronglyMandatedValue();
 
             // This division is quite simplistic in the presence of metadata (yields).
             // But let's keep it for the time being.
@@ -477,6 +494,14 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
 
         private void addValueIfNeeded() throws CommunicationException, ObjectNotFoundException, SchemaException,
                 SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+
+            // Detecting conflicting values provided by strong mappings. Normally, this is checked on the deltas after
+            // consolidation. But if one of the conflicting values is stored in the existing item, the delta for it will not
+            // be produced. Hence, we have to check for conflicts explicitly. See MID-9621.
+            if (hasAtLeastOneStrongMapping && itemDefinition.isSingleValue()) {
+                LOGGER.trace("Including in uniqueness checking for single-valued item {}: {}", itemPath, equivalenceClass);
+                equivalenceClassesBeingAddedForSingleValuedItem.add(equivalenceClass);
+            }
 
             // Checking for presence of value0 in existing item (real or assumed)
 
@@ -593,17 +618,17 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
          */
         private void decideAccordingToMetadata(String situation) throws CommunicationException, ObjectNotFoundException,
                 SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-            MetadataBasedConsolidation metadataBasedConsolidation = new MetadataBasedConsolidation(situation);
-            metadataBasedConsolidation.consolidate();
+            new MetadataBasedConsolidation(situation)
+                    .consolidate();
         }
 
         private void classifyMappings(Collection<I> origins, boolean checkExclusiveness)
                 throws ExpressionEvaluationException {
             hasAtLeastOneStrongMapping = false;
             exclusiveMapping = null;
-            for (ItemValueWithOrigin<V,D> origin : origins) {
-                PrismValueDeltaSetTripleProducer<V,D> mapping = origin.getMapping();
-                if (mapping.getStrength() == MappingStrengthType.STRONG) {
+            for (var origin : origins) {
+                var mapping = origin.getMapping();
+                if (mapping.isStrong()) {
                     hasAtLeastOneStrongMapping = true;
                 }
                 if (checkExclusiveness && mapping.isExclusive()) {
@@ -641,16 +666,20 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
                     .collect(Collectors.toList());
         }
 
-        private void checkDeletionOfStrongValue() {
-            if (aprioriItemDelta != null && aprioriItemDelta.getValuesToDelete() != null &&
-                    ItemCollectionsUtil.contains(aprioriItemDelta.getValuesToDelete(), equivalenceClass.getRepresentative(), EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS)) {
+        /** When a-priori delta requests deleting a value mandated by strong mapping, we issue a warning. */
+        private void warnIfDeletingStronglyMandatedValue() {
+            if (aprioriItemDelta != null
+                    && ItemCollectionsUtil.contains(
+                            emptyIfNull(aprioriItemDelta.getValuesToDelete()),
+                            equivalenceClass.getRepresentative(),
+                            EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS)) {
                 checkIfStrong(equivalenceClass.zeroOrigins);
                 checkIfStrong(equivalenceClass.plusOrigins);
             }
         }
 
         private void checkIfStrong(Collection<I> origins) {
-            PrismValueDeltaSetTripleProducer<V, D> strongMapping = findStrongMapping(origins);
+            var strongMapping = findStrongMapping(origins);
             if (strongMapping != null) {
                 LOGGER.warn("Attempt to delete value {} from item {} but that value is mandated by a strong mapping {} (for {})",
                         equivalenceClass.getRepresentative(), itemPath, strongMapping.toHumanReadableDescription(), contextDescription);
@@ -708,7 +737,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
                 return newPresence;
             }
 
-            public void consolidate() throws CommunicationException, ObjectNotFoundException,
+            void consolidate() throws CommunicationException, ObjectNotFoundException,
                     SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
                 logStart();
                 for (YieldPresence yieldPresence : yieldPresences) {
@@ -1172,6 +1201,12 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
 
         private V getRepresentative() {
             return members.get(0);
+        }
+
+        private Object getRepresentativeRealValue() {
+            // Actually not sure whether the representative can be null
+            var representative = getRepresentative();
+            return representative != null ? representative.getRealValue() : null;
         }
 
         private boolean covers(V value) throws SchemaException {

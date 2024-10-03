@@ -34,10 +34,8 @@ public enum Database {
             org.hibernate.dialect.SQLServerDialect.class.getName()),
     ORACLE("oracle.jdbc.OracleDriver",
             MidPointOracleDialect.class.getName(),
-            org.hibernate.dialect.OracleDialect.class.getName(),
-            org.hibernate.dialect.Oracle8iDialect.class.getName(),
-            org.hibernate.dialect.Oracle9iDialect.class.getName(),
-            org.hibernate.dialect.Oracle10gDialect.class.getName());
+            org.hibernate.dialect.OracleDialect.class.getName()
+            );
 
     @NotNull List<String> drivers;
     @NotNull List<String> dialects;

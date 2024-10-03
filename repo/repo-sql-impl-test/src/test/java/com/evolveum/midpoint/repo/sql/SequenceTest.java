@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import jakarta.persistence.EntityManager;
 import org.hibernate.Session;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -185,10 +186,11 @@ public class SequenceTest extends BaseSQLRepoTest {
     private void concurrencyUniversal(String name, String sequenceFileName,
             long duration, WorkerThread[] workerThreads, boolean alwaysOrder) throws Exception {
 
-        Session session = getFactory().openSession();
+        EntityManager em = getFactory().createEntityManager();
+        Session session = em.unwrap(Session.class);
         session.doWork(connection ->
                 System.out.println(">>>>" + connection.getTransactionIsolation()));
-        session.close();
+        em.close();
 
         final File file = new File(TEST_DIR + sequenceFileName);
         PrismObject<SequenceType> sequence = prismContext.parseObject(file);

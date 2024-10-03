@@ -101,9 +101,10 @@ public class TestPageSystemConfiguration extends AbstractInitializedGuiIntegrati
         tester.assertRenderedPage(PageSystemBasic.class);
 
         final String mainFormPath = "detailsView:mainForm";
-        final String descriptionPath = "mainPanel:properties:container:1:values:0:value:valueForm:valueContainer:input:propertiesLabel:properties:1:property:values:0:value:valueForm:valueContainer:input:input";
+        final String descriptionPath = "mainPanel:properties:container:1:valuesContainer:values:0:value:valueForm:valueContainer:input:"
+                + "propertiesLabel:properties:1:property:valuesContainer:values:0:value:valueForm:valueContainer:input:input";
 
-        tester.clickLink(mainFormPath + ":mainPanel:properties:container:1:values:0:value:valueForm:valueContainer:input:propertiesLabel:showEmptyButton");
+        tester.clickLink(mainFormPath + ":mainPanel:properties:container:1:valuesContainer:values:0:value:valueForm:valueContainer:input:propertiesLabel:showEmptyButton");
 
         FormTester formTester = tester.newFormTester(mainFormPath, false);
         String des = "new description";

@@ -13,6 +13,8 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.apache.commons.lang3.Validate;
@@ -1209,8 +1211,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     @Override
     public boolean supports(@NotNull Class<? extends ObjectType> type) {
-        return !SimulationResultType.class.equals(type)
-                && !MarkType.class.equals(type);
+        return RObjectType.getByJaxbTypeIfExists(type) != null;
+
     }
 
     @Override

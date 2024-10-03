@@ -122,10 +122,14 @@ class EnforcerDecisionOperation extends EnforcerOperation {
             if (allowedItems.includesAllItems()) {
                 tracePhasedDecisionOperationNote(phase, "Allowing all items => operation allowed");
             } else {
-                // The object and delta must not contain any item that is not explicitly allowed.
+                // The object or delta must not contain any item that is not explicitly allowed.
                 tracePhasedDecisionOperationNote(phase, "Checking for allowed items: %s", allowedItems);
                 ItemDecisionOperation.SimpleTracer simpleTracer =
-                        (message, msgParams) -> tracePhasedDecisionOperationNote(phase, message, msgParams);
+                        (message, msgParams) ->
+                                tracePhasedDecisionOperationNote(
+                                        phase,
+                                        message.replace("{}", "%s"), // for LOGGER and .format based logging
+                                        msgParams);
                 var itemsDecision = new ItemDecisionOperation(simpleTracer).decideUsingAllowedItems(allowedItems, phase, params);
                 if (itemsDecision != AccessDecision.ALLOW) {
                     tracePhasedDecisionOperationNote(

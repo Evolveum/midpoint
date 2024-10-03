@@ -18,6 +18,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationAttemptDataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 
 import org.jetbrains.annotations.NotNull;
@@ -121,7 +122,7 @@ public abstract class PrismValueWrapperImpl<T> implements PrismValueWrapper<T> {
         return (V) newValue;
     }
 
-    private <V extends PrismValue> V getNewValueWithMetadataApplied() throws SchemaException {
+    protected <V extends PrismValue> V getNewValueWithMetadataApplied() throws SchemaException {
         if (getParent() != null && getParent().isProcessProvenanceMetadata()) {
             PrismContainerValue<ValueMetadataType> newYieldValue = WebPrismUtil.getNewYieldValue();
 

@@ -9,7 +9,6 @@ doc-type: intro
 :page-wiki-metadata-create-date: 2016-06-23T17:12:09.952+02:00
 :page-wiki-metadata-modify-user: chris83527
 :page-wiki-metadata-modify-date: 2019-07-03T15:56:56.460+02:00
-:page-since: "3.1.1"
 :page-upkeep-status: green
 
 Lookup tables are a mechanism how to manage selection and mapping of pre-defined value sets.

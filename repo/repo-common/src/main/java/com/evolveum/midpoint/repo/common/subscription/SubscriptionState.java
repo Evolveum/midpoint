@@ -15,16 +15,13 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.time.temporal.ChronoUnit;
 
-import com.evolveum.midpoint.util.DebugDumpable;
-
-import com.evolveum.midpoint.util.DebugUtil;
-
-import com.evolveum.midpoint.util.logging.Trace;
-
-import com.evolveum.midpoint.util.logging.TraceManager;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.VisibleForTesting;
+
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * The state of the subscription with regards to the current situation
@@ -155,6 +152,10 @@ public class SubscriptionState implements DebugDumpable, Serializable {
     /** Should we allow clustering? In production environments ONLY with an active subscription. */
     public boolean isClusteringAvailable() {
         return isActive() || !isProductionEnvironment();
+    }
+
+    public boolean isFooterVisible() {
+        return isInactiveOrDemo() || isInGracePeriod();
     }
 
     public @NotNull SystemFeatures getSystemFeatures() {

@@ -102,6 +102,10 @@ public abstract class SubscriptionId implements Serializable {
         throw new IllegalStateException("Malformed or no subscription: " + this);
     }
 
+    public @NotNull Type getType() {
+        throw new IllegalStateException("Malformed or no subscription: " + this);
+    }
+
     /** No information about the subscription exists. */
     private static class NoSubscriptionId extends SubscriptionId {
         private static final NoSubscriptionId INSTANCE = new NoSubscriptionId();
@@ -141,6 +145,11 @@ public abstract class SubscriptionId implements Serializable {
         }
 
         @Override
+        public @NotNull Type getType() {
+            return type;
+        }
+
+        @Override
         public String toString() {
             return "WellFormedSubscription{" +
                     "type=" + type +
@@ -158,7 +167,10 @@ public abstract class SubscriptionId implements Serializable {
         PLATFORM("02"),
         DEPLOYMENT("03"),
         DEVELOPMENT("04"),
-        DEMO("05");
+        DEMO("05"),
+        CONSULTING_PLATFORM("06"),
+        PRODUCT_SUPPORT_JP_MODEL("07"),
+        PRODUCT_SUPPORT_SAAS("08");
 
         private final String code;
 

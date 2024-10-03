@@ -1,0 +1,142 @@
+= Logging Configuration
+:page-display-order: 10
+
+MidPoint is using LogBack library for logging.
+LogBack has many logging options.
+However, only two are well-supported in midPoint: logging to file and logging to syslog.
+File logging is the default option, and it is well-supported both in midPoint core and in the user interface.
+Syslog logging is slightly more difficult to configure.
+
+
+
+MidPoint logging configuration is stored in the xref:/midpoint/reference/concepts/system-configuration-object/[System Configuration Object].
+There are two parts of the configuration: `appenders` and `class loggers`.
+
+== Appender configuration
+Appender is the component that writes log data to a file, console or sends them over the network.
+Default midPoint configuration is set up by using _file appender_ that writes the log data to `midpoint.log` file.
+
+[source, xml]
+----
+<systemConfiguration>
+    ...
+    <logging>
+
+        <appender xsi:type="c:FileAppenderConfigurationType">
+            <pattern>%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</pattern>
+            <name>MIDPOINT_LOG</name>
+            <fileName>${midpoint.home}/log/midpoint.log</fileName>
+            <filePattern>${midpoint.home}/log/midpoint-%d{yyyy-MM-dd}.%i.log</filePattern>
+            <maxHistory>10</maxHistory>
+            <maxFileSize>100MB</maxFileSize>
+            <append>true</append>
+        </appender>
+
+        ...
+    </logging>
+</systemConfiguration>
+----
+
+|===
+| Configuration item | Description
+
+| pattern
+| Defines the format used for logging each individual message.
+
+See link:https://logback.qos.ch/manual/layouts.html#ClassicPatternLayout[LogBack pattern layout documentation] for details.
+
+| name | The name of the appender used for referencing it from other parts of the confuguration.
+
+| fileName
+| Defines the name of the main log file.
+
+| filePattern
+| Defines the name pattern of the rolled-over (archived) log files.
+
+See link:https://logback.qos.ch/manual/appenders.html#tbrpFileNamePattern[LogBack fileNamePattern documentation] for details.
+
+| maxHistory
+| Controls the maximum number of archive files to keep, asynchronously deleting older files.
+
+See link:https://logback.qos.ch/manual/appenders.html#tbrpMaxHistory[LogBack maxHistory documentation] for details.
+
+| maxFileSize
+| Each time the current log file reaches maxFileSize before the current time period ends, it will be archived with an increasing index, starting at 0.
+
+See link:https://logback.qos.ch/manual/appenders.html#tbrpFileNamePattern[LogBack maxFileSize documentation] for details.
+
+| append
+| If true, events are appended at the end of an existing file.
+Otherwise, if append is false, any existing file is truncated.
+
+|===
+
+CAUTION: The `pattern` option adds printing stack traces by default in most cases.
+See link:https://logback.qos.ch/manual/layouts.html#nopex[%nopex conversion word] in LogBack documentation for details.
+
+== Class logger configuration
+
+Class loggers defines which Java packages will be logged and with what level of details.
+
+[source, xml]
+----
+<systemConfiguration>
+    ...
+    <logging>
+
+        <classLogger>
+            <level>INFO</level>
+            <appender>MIDPOINT_LOG</appender>
+            <package>com.evolveum.midpoint.model.impl.lens.Clockwork</package>
+        </classLogger>
+        <classLogger>
+             ...
+        </classLogger>
+        <rootLoggerAppender>MIDPOINT_LOG</rootLoggerAppender>
+        <rootLoggerLevel>INFO</rootLoggerLevel>
+
+        ...
+    </logging>
+</systemConfiguration>
+----
+
+|===
+| Configuration item | Description
+
+| level
+| Level of information that will be logged. See xref:log-levels.adoc[] for details.
+
+If level is omitted, `rootLoggerLevel` will be used.
+
+| appender
+| Defines which appender will be used for processing logs from this logger.
+
+If appender is omitted, `rootLoggerAppender` will be used.
+
+| package
+| All logs produced by specified Java package will be processed by this logger.
+See also xref:useful-loggers.adoc[].
+
+| rootLoggerAppender
+| Default appender that will be used for all class loggers unless the appender is specified there.
+
+| rootLoggerLevel
+| Default level that will be used for all class loggers unless the appender is specified there.
+
+|===
+
+
+== See Also
+
+* xref:/midpoint/reference/diag/logging/[Logging]
+
+* xref:/midpoint/reference/diag/logging/initial-logging/[Initial Logging Setup HOWTO]
+
+* xref:syslog-logging.adoc[]
+
+* xref:log-levels.adoc[]
+
+* xref:useful-loggers.adoc[]
+
+* xref:/midpoint/reference/concepts/system-configuration-object.adoc[System Configuration Object]
+

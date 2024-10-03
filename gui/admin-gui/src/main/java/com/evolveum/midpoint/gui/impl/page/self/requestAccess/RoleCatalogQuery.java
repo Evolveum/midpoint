@@ -52,4 +52,12 @@ public class RoleCatalogQuery implements Serializable {
     public void setParent(ObjectReferenceType parent) {
         this.parent = parent;
     }
+
+    public RoleCatalogQuery copy() {
+        RoleCatalogQuery copy = new RoleCatalogQuery();
+        copy.setType(type);
+        copy.setQuery(query);
+        copy.setParent(parent);
+        return copy;
+    }
 }

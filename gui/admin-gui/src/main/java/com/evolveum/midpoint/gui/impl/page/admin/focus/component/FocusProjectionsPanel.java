@@ -133,16 +133,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
 
                     @Override
                     protected ISelectableDataProvider<PrismContainerValueWrapper<ShadowType>> createProvider() {
-                        return new ProjectionsListProvider(FocusProjectionsPanel.this, getSearchModel(), loadShadowModel()) {
-                            @Override
-                            protected PageStorage getPageStorage() {
-                                PageStorage storage = getSession().getSessionStorage().getPageStorageMap().get(SessionStorage.KEY_FOCUS_PROJECTION_TABLE);
-                                if (storage == null) {
-                                    storage = getSession().getSessionStorage().initPageStorage(SessionStorage.KEY_FOCUS_PROJECTION_TABLE);
-                                }
-                                return storage;
-                            }
-                        };
+                        return new ProjectionsListProvider(FocusProjectionsPanel.this, getSearchModel(), loadShadowModel());
                     }
 
                     @Override

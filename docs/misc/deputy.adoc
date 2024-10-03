@@ -9,7 +9,6 @@ doc-type: intro
 :page-wiki-metadata-create-date: 2016-11-10T16:41:52.639+01:00
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2017-07-26T09:44:59.224+02:00
-:page-since: "3.5"
 :page-upkeep-status: yellow
 :page-toc: top
 

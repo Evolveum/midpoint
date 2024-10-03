@@ -30,9 +30,11 @@ public interface EvaluatedAssignmentTarget extends DebugDumpable, Serializable {
     // currently matches only default (member) relations - TODO clarify this
     boolean appliesToFocus();
 
-    // if this target applies to focus (by direct assignment or by some inducement)
-    // accepts all relations
-    // TODO clarify this
+    /**
+     * Returns {@code true} if this target applies to focus (by direct assignment or by some inducement).
+     * For the first non-delegation assignment path segment accepts all relations.
+     * The result is similar to those of {@code roleMembershipRef} plus {@code delegationRef}
+     */
     boolean appliesToFocusWithAnyRelation(RelationRegistry relationRegistry);
 
     /**

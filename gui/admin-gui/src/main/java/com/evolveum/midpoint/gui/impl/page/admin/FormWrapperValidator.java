@@ -14,6 +14,8 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 
+import com.evolveum.midpoint.gui.impl.prism.panel.DefaultContainerablePanel;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.form.Form;
@@ -53,6 +55,17 @@ public abstract class FormWrapperValidator<O extends ObjectType> implements IFor
         List<ItemWrapper> iws = listWrappersWithFormValidator().stream()
                 .filter(iw -> iw.getValues() != null)
                 .collect(Collectors.toList());
+
+        if (!iws.isEmpty()) {
+            form.visitChildren(DefaultContainerablePanel.class, (componentParent, iVisitParent) -> {
+                ((DefaultContainerablePanel)componentParent).visitChildren(FormComponent.class, (component, iVisit) -> {
+                    FormComponent<?> formComponent = (FormComponent<?>)component;
+                    if(formComponent.isVisible() && formComponent.isValid()) {
+                        formComponent.updateModel();
+                    }
+                });
+            });
+        }
 
         for (ItemWrapper iw : iws) {
             List<PrismValueWrapper> values = iw.getValues();

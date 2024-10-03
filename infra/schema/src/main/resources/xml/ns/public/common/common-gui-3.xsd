@@ -3587,6 +3587,38 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element minOccurs="0" name="showOnlyUserFriendlyMessages" type="xsd:boolean">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If set to true, only user-friendly messages will be shown in the GUI.
+                        This is useful for production systems to avoid showing internal error messages.
+                        If there's no user-friendly message, the default simple user-friendly message will be used.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>FeedbackMessagesHookType.showOnlyUserFriendlyMessages</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element minOccurs="0" name="disableOperationResultDownload" type="xsd:boolean">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If set to true, the operation result download will be disabled.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>FeedbackMessagesHookType.disableOperationResultDownload</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element minOccurs="0" name="displayOnlyTopLevelOperationResult" type="xsd:boolean">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If set to true, only top-level operation result will be displayed.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>FeedbackMessagesHookType.displayOnlyTopLevelOperationResult</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>

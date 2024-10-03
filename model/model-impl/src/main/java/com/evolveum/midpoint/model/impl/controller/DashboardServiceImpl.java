@@ -19,7 +19,6 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.CollectionStats;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -75,16 +74,21 @@ public class DashboardServiceImpl implements DashboardService {
     @Override
     public DashboardWidget createWidgetData(DashboardWidgetType widget, boolean useDisplaySource, Task task, OperationResult result)
             throws CommonException {
-
-        Validate.notNull(widget, "Widget is null");
-
-        DashboardWidget data = new DashboardWidget();
+        DashboardWidget data = createEmptyWidgetData(widget);
         getNumberMessage(widget, data, useDisplaySource, task, result);
+        LOGGER.debug("Widget Data: {}", data);
+        return data;
+    }
+
+    @Override
+    public DashboardWidget createEmptyWidgetData(DashboardWidgetType widget) {
+        Validate.notNull(widget, "Widget is null");
+        widget = widget.clone();
+        DashboardWidget data = new DashboardWidget();
         data.setWidget(widget);
         if (data.getDisplay() == null) {
             data.setDisplay(widget.getDisplay());
         }
-        LOGGER.debug("Widget Data: {}", data);
         return data;
     }
 

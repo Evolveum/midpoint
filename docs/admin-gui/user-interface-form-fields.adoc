@@ -202,10 +202,6 @@ Similarly as resource schema handling is used to modify the resource schema, xre
 
 === Form Validation
 
-++++
-{% include since.html since="3.8.1" %}
-++++
-
 
 In addition to hide or change multiplicity of the item, it is also possible to defined custom validation for their values.
 The example of such custom validation is show below:

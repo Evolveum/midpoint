@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+
 import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.prism.*;
@@ -101,6 +103,12 @@ public class ObjectValidator {
         return result;
     }
 
+    public <C extends Containerable> ValidationResult validate(PrismContainerValue<C> object) {
+        ValidationResult result = new ValidationResult();
+        object.accept(visitable -> visit(visitable, result));
+        return result;
+    }
+
     private void visit(Visitable visitable, ValidationResult result) {
         if (visitable instanceof Item<?, ?>) {
             visitItem((Item<?, ?>) visitable, result);
@@ -154,8 +162,8 @@ public class ObjectValidator {
         warn(result, item, StringUtils.join(messages, ", "));
     }
 
-    private void checkOid(ValidationResult result, PrismValue item, String oid) {
-        if (oid == null) {
+    public void checkOid(ValidationResult result, PrismValue item, String oid) {
+        if (oid == null || !warnIncorrectOid) {
             return;
         }
         try {
@@ -165,15 +173,30 @@ public class ObjectValidator {
         }
     }
 
+    public void checkOid(ValidationResult result, ItemPath item, String oid) {
+        if (oid == null || !warnIncorrectOid) {
+            return;
+        }
+        try {
+            UUID.fromString(oid);
+        } catch (IllegalArgumentException e) {
+            warn(result, item, "OID '" + oid + "' is not valid UUID");
+        }
+    }
+
     private <V extends PrismValue, D extends ItemDefinition<?>> void warn(ValidationResult result, Item<V, D> item, String message) {
+        msg(result, OperationResultStatus.WARNING, item != null ? item.getPath() : null, message);
+    }
+
+    private void warn(ValidationResult result, ItemPath item, String message) {
         msg(result, OperationResultStatus.WARNING, item, message);
     }
 
-    private <V extends PrismValue, D extends ItemDefinition<?>> void msg(ValidationResult result, OperationResultStatus status, Item<V, D> item, String message) {
+    private <V extends PrismValue, D extends ItemDefinition<?>> void msg(ValidationResult result, OperationResultStatus status, ItemPath item, String message) {
         ValidationItem resultItem = new ValidationItem();
         resultItem.setStatus(status);
         if (item != null) {
-            resultItem.setItemPath(item.getPath());
+            resultItem.setItemPath(item);
         }
         LocalizableMessage lMessage = new SingleLocalizableMessage(null, null, message);
         resultItem.setMessage(lMessage);

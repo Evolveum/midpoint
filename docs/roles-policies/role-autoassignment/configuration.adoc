@@ -6,8 +6,6 @@
 :page-wiki-metadata-create-date: 2017-11-03T09:36:37.509+01:00
 :page-wiki-metadata-modify-user: katkav
 :page-wiki-metadata-modify-date: 2020-06-10T10:38:09.162+02:00
-:page-since: "3.7"
-:page-since-improved: [ "4.2" ]
 :page-upkeep-status: yellow
 
 == Basic Mechanism

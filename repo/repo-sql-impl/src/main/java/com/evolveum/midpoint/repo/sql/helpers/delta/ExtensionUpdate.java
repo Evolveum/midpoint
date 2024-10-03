@@ -7,6 +7,14 @@
 
 package com.evolveum.midpoint.repo.sql.helpers.delta;
 
+import java.io.Serializable;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import jakarta.persistence.EntityManager;
+import org.hibernate.collection.spi.PersistentCollection;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -17,14 +25,6 @@ import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.helpers.modify.PrismEntityPair;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-
-import org.hibernate.Session;
-import org.hibernate.collection.spi.PersistentCollection;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.Serializable;
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Handles updates in extension (in objects and assignments), and shadow attributes.
@@ -128,12 +128,12 @@ abstract class ExtensionUpdate<E, ET> extends BaseUpdate {
                 ctx.attemptContext.noFetchExtensionValueInsertionAttempted = true; // to know that CVE can be caused because of this
             } else {
                 Serializable id = rValue.createId();
-                exists = ctx.session.get(rValue.getClass(), id) != null;
+                exists = ctx.entityManager.find(rValue.getClass(), id) != null;
             }
             if (!exists) {
                 //noinspection unchecked
                 ((Collection) dbCollection).add(rValue);
-                ctx.session.persist(rValue); // it looks that in this way we avoid SQL SELECT (at the cost of .persist that can be sometimes more costly)
+                ctx.entityManager.persist(rValue); // it looks that in this way we avoid SQL SELECT (at the cost of .persist that can be sometimes more costly)
             }
         }
     }
@@ -196,14 +196,14 @@ abstract class ExtensionUpdate<E, ET> extends BaseUpdate {
                 //
                 // We could try batching but I don't know how to do this in Hibernate. Using native queries is currently
                 // too complicated.
-                ctx.session.createQuery("delete from ROExtString where id in (:id)")
-                        .setParameterList("id", rValueIdList)
+                ctx.entityManager.createQuery("delete from ROExtString where id in (:id)")
+                        .setParameter("id", rValueIdList)
                         .executeUpdate();
             } else {
                 for (RAnyValue<?> value : rValuesToDelete) {
                     ROExtString s = (ROExtString) value;
-                    ctx.session.createQuery("delete from ROExtString where ownerOid = :ownerOid and "
-                            + "ownerType = :ownerType and itemId = :itemId and value = :value")
+                    ctx.entityManager.createQuery("delete from ROExtString where ownerOid = :ownerOid and "
+                                    + "ownerType = :ownerType and itemId = :itemId and value = :value")
                             .setParameter("ownerOid", s.getOwnerOid())
                             .setParameter("itemId", s.getItemId())
                             .setParameter("ownerType", s.getOwnerType())
@@ -233,7 +233,7 @@ abstract class ExtensionUpdate<E, ET> extends BaseUpdate {
 
         if (pairsFromDelta.isEmpty()) {
             // if there are not new values, we just remove existing ones
-            deleteFromCollectionAndDb(dbCollection, relevantInDb, ctx.session);
+            deleteFromCollectionAndDb(dbCollection, relevantInDb, ctx.entityManager);
             return;
         }
 
@@ -262,15 +262,15 @@ abstract class ExtensionUpdate<E, ET> extends BaseUpdate {
             }
         }
 
-        deleteFromCollectionAndDb(dbCollection, rValuesToDelete, ctx.session);
+        deleteFromCollectionAndDb(dbCollection, rValuesToDelete, ctx.entityManager);
         markNewValuesTransientAndAddToExistingNoFetchNoPersist(dbCollection, pairsToAdd);
     }
 
     private void deleteFromCollectionAndDb(Collection<? extends RAnyValue<?>> dbCollection,
-            Collection<? extends RAnyValue<?>> valuesToDelete, Session session) {
+            Collection<? extends RAnyValue<?>> valuesToDelete, EntityManager em) {
         //noinspection SuspiciousMethodCalls
         dbCollection.removeAll(valuesToDelete);     // do NOT use for handling regular ADD/DELETE value (fetches the whole collection)
-        valuesToDelete.forEach(session::delete);
+        valuesToDelete.forEach(em::remove);
     }
 
     // assignmentExtensionType will be used later

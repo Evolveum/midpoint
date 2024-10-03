@@ -13,7 +13,7 @@
     <parent>
         <artifactId>testing</artifactId>
         <groupId>com.evolveum.midpoint.testing</groupId>
-        <version>4.8.3-SNAPSHOT</version>
+        <version>4.8.5-SNAPSHOT</version>
     </parent>
 
     <artifactId>rest</artifactId>
@@ -107,18 +107,6 @@
             <artifactId>admin-gui</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.wicket</groupId>
-                    <artifactId>wicket-commons-fileupload</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.wicket</groupId>
-            <artifactId>wicket-commons-fileupload</artifactId>
-            <version>${wicket.version}</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -130,6 +118,12 @@
             <artifactId>admin-gui</artifactId>
             <version>${project.version}</version>
             <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.wicket</groupId>
+            <artifactId>wicket-tester</artifactId>
+            <version>${wicket.version}</version>
             <scope>test</scope>
         </dependency>
 

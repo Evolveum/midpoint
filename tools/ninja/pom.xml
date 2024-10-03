@@ -13,7 +13,7 @@
     <parent>
         <groupId>com.evolveum.midpoint.tools</groupId>
         <artifactId>tools</artifactId>
-        <version>4.8.3-SNAPSHOT</version>
+        <version>4.8.5-SNAPSHOT</version>
     </parent>
 
     <artifactId>ninja</artifactId>
@@ -146,11 +146,17 @@
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
+             <exclusions>
+		<exclusion>  <!-- declare the exclusion here -->
+		  <groupId>com.squareup.okio</groupId>
+		  <artifactId>okio-jvm</artifactId>
+		</exclusion>
+      </exclusions>
         </dependency>
         <dependency>
             <groupId>com.squareup.okio</groupId>
             <artifactId>okio-jvm</artifactId>
-            <version>3.0.0</version>
+            <version>3.4.0</version>
         </dependency>
 
         <dependency>

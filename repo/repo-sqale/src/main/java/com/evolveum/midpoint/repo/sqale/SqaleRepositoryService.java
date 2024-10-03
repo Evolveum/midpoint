@@ -722,6 +722,24 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         } else {
             ItemDeltaCollectionsUtil.checkConsistence(modifications, ConsistencyCheckScope.MANDATORY_CHECKS_ONLY);
         }
+
+
+
+        // additional check to prevent storing invalid reference OIDs
+        modifications.forEach(delta -> {
+            delta.accept(visitable -> {
+                if (visitable instanceof PrismReferenceValue prv) {
+                    String oid = prv.getOid();
+                    if (oid != null) {
+                        try {
+                            UUID.fromString(oid);
+                        } catch (IllegalArgumentException e) {
+                            throw new IllegalArgumentException("Cannot convert OID '" + oid + "' to UUID", e);
+                        }
+                    }
+                }
+            }, false);
+        });
     }
 
     private void logTraceModifications(@NotNull Collection<? extends ItemDelta<?, ?>> modifications) {
@@ -1962,6 +1980,9 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
         try {
             return executeAllocateContainerIdentifiers(type, oidUuid, howMany);
+        } catch (ObjectNotFoundException e) {
+            operationResult.recordHandledError(e);
+            throw e;
         } catch (RepositoryException | RuntimeException | SchemaException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {

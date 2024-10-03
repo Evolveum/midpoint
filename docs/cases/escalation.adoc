@@ -5,7 +5,6 @@
 :page-wiki-metadata-create-date: 2017-02-15T20:41:10.297+01:00
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2017-02-15T21:19:20.003+01:00
-:page-since: "3.6"
 :page-upkeep-status: orange
 
 When using workflows, it is often necessary to make sure all work items (and therefore, approval processes) are completed in a given time.

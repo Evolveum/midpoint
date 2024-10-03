@@ -9,7 +9,6 @@ doc-type: intro
 :page-wiki-metadata-create-date: 2016-11-28T18:57:31.417+01:00
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2017-01-30T20:39:14.801+01:00
-:page-since: "3.5"
 :page-upkeep-status: yellow
 
 MidPoint contains a special property to control object lifecycle: `lifecycleState`. This property specifies current lifecycle state of the object.

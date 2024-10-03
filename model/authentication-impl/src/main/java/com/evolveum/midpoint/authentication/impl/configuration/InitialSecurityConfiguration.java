@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.authentication.impl.configuration;
 
 import com.evolveum.midpoint.authentication.impl.MidpointAutowiredBeanFactoryObjectPostProcessor;
-import com.evolveum.midpoint.authentication.impl.session.MidpointSessionRegistry;
+import com.evolveum.midpoint.authentication.impl.session.MidpointSessionRegistryImpl;
 import com.evolveum.midpoint.authentication.api.RemoveUnusedSecurityFilterPublisher;
 import com.evolveum.midpoint.authentication.impl.session.SessionAndRequestScopeImpl;
 
@@ -27,7 +27,7 @@ public class InitialSecurityConfiguration {
 
     @Bean
     public SessionRegistry sessionRegistry(RemoveUnusedSecurityFilterPublisher removeUnusedSecurityFilterPublisher) {
-        return new MidpointSessionRegistry(removeUnusedSecurityFilterPublisher);
+        return new MidpointSessionRegistryImpl(removeUnusedSecurityFilterPublisher);
     }
 
     @Bean

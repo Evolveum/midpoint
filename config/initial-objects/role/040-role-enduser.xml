@@ -103,10 +103,7 @@
         <object id="21">
             <type>RoleType</type>
             <filter>
-                <q:equal>
-                    <q:path>requestable</q:path>
-                    <q:value>true</q:value>
-                </q:equal>
+                <q:text>requestable = true</q:text>
             </filter>
         </object>
         <!-- Note: for production use you should consider limiting the items that can be read. -->
@@ -136,10 +133,7 @@
         <target id="23">
             <type>RoleType</type>
             <filter>
-                <q:equal>
-                    <q:path>requestable</q:path>
-                    <q:value>true</q:value>
-                </q:equal>
+                <q:text>requestable = true</q:text>
             </filter>
         </target>
         <relation>org:default</relation>        <!-- only assignments with the default (member) relation can be requested -->

@@ -166,9 +166,7 @@ The last privilege could be added by adding action URI #closeCertificationCampai
       <object>
          <type>AccessCertificationDefinitionType</type>
          <filter>
-            <q:inOid>
-               <q:value>092c35f1-5bcd-477e-a95e-912f73314b02</q:value>		<!-- OID of the definition of XYZ campaigns -->
-            </q:inOid>
+            <q:text>. inOid "092c35f1-5bcd-477e-a95e-912f73314b02"</q:text>     <!-- OID of the definition of XYZ campaigns -->
          </filter>
       </object>
    </authorization>
@@ -180,12 +178,7 @@ The last privilege could be added by adding action URI #closeCertificationCampai
       <object>
          <type>AccessCertificationCampaignType</type>
          <filter>
-            <q:ref>
-               <q:path>definitionRef</q:path>
-               <q:value>
-                  <oid>092c35f1-5bcd-477e-a95e-912f73314b02</oid>
-               </q:value>
-            </q:ref>
+            <q:text>definitionRef matches (oid = "092c35f1-5bcd-477e-a95e-912f73314b02")</q:text>
          </filter>
       </object>
    </authorization>

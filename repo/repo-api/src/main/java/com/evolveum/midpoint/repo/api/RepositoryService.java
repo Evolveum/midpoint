@@ -632,6 +632,8 @@ public interface RepositoryService extends OrgTreeEvaluator, CaseSupportMixin, A
      * . To be used only for the new (native) repository.
      * . Currently, there is no "return unused identifiers" method. We assume the space of CIDs is huge.
      * We assume that the allocated identifiers will be used in majority of the cases.
+     *
+     * @throws ObjectNotFoundException If object is not found, exception is recorded as handled error.
      */
     <T extends ObjectType> @NotNull Collection<Long> allocateContainerIdentifiers(
             @NotNull Class<T> type,

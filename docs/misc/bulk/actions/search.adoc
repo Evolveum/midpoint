@@ -82,6 +82,7 @@ Overrides "noFetch" option in "options" property if present.
 <s:search>
     <s:type>UserType</s:type>
     <s:searchFilter>
+        <text>name = "jack"</text>
         <q:equal>
             <q:path>name</q:path>
             <q:value>jack</q:value>
@@ -98,16 +99,7 @@ Overrides "noFetch" option in "options" property if present.
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <s:type>ShadowType</s:type>
     <s:searchFilter>
-        <and xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
-            <ref>
-                <path>resourceRef</path>
-                <value xsi:type="c:ObjectReferenceType" oid="10000000-0000-0000-0000-000000000004"/>
-            </ref>
-            <equal>
-                <path>objectClass</path>
-                <value xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:AccountObjectClass</value>
-            </equal>
-        </and>
+        <text>resourceRef matches (oid = "00b9edf3-1f98-4363-b10a-24cc3efa57b4") and objectClass = "ri:AccountObjectClass"</text>
     </s:searchFilter>
     <s:parameter>
         <s:name>noFetch</s:name>
@@ -126,12 +118,7 @@ Overrides "noFetch" option in "options" property if present.
   <s:type>UserType</s:type>
   <s:query>
     <q:filter>
-      <q:substring>
-        <q:matching>polyStringNorm</q:matching>
-        <q:path>name</q:path>
-        <q:value>b</q:value>
-        <q:anchorStart>true</q:anchorStart>
-      </q:substring>
+      <q:text>name startsWith[polyStringNorm] "b"</q:text>
     </q:filter>
     <q:paging>
       <q:orderBy>name</q:orderBy>

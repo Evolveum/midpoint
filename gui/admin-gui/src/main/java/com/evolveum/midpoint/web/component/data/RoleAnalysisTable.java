@@ -356,14 +356,14 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
                 }
 
                 @Override
-                protected void onPageSizeChangePerformed(AjaxRequestTarget target) {
+                protected void onPageSizeChangePerformed(Integer newValue, AjaxRequestTarget target) {
                     Table table = findParent(Table.class);
                     UserProfileStorage.TableId tableId = table.getTableId();
 
                     if (tableId != null && table.enableSavePageSize()) {
-                        int pageSize = (int) getPageBase().getItemsPerPage(tableId);
+//                        int pageSize = (int) getPageBase().getItemsPerPage(tableId);
 
-                        table.setItemsPerPage(pageSize);
+                        table.setItemsPerPage(newValue);
                     }
                     target.appendJavaScript(applyTableScaleScript());
                     target.add(findParent(RoleAnalysisTable.PagingFooter.class));

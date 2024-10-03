@@ -1,11 +1,8 @@
 <objectCollection xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-        oid="00000000-0000-0000-0001-000000000284">
+                  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                  oid="00000000-0000-0000-0001-000000000284">
     <name>All audit records</name>
     <type>AuditEventRecordType</type>
-    <filter>
-        <q:all/>
-    </filter>
     <defaultView>
         <column id="1">
             <name>timestampColumn</name>

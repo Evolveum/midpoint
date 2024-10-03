@@ -6,15 +6,16 @@
  */
 package com.evolveum.midpoint.repo.sql.helpers;
 
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
+
 import java.util.Collection;
 import java.util.Iterator;
 
-import com.evolveum.midpoint.common.SequenceUtil;
-
-import org.hibernate.Session;
+import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.common.SequenceUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.sql.SerializationRelatedException;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
@@ -28,8 +29,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SequenceType;
-
-import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
 
 @Component
 public class SequenceHelper {
@@ -54,11 +53,11 @@ public class SequenceHelper {
         LOGGER.debug("Advancing sequence with oid '{}'.", oid);
         LOGGER_PERFORMANCE.debug("> advance sequence, oid={}", oid);
 
-        Session session = null;
+        EntityManager em = null;
         try {
-            session = baseHelper.beginTransaction();
+            em = baseHelper.beginTransaction();
 
-            PrismObject<SequenceType> prismObject = objectRetriever.getObjectInternal(session, SequenceType.class, oid, null, true);
+            PrismObject<SequenceType> prismObject = objectRetriever.getObjectInternal(em, SequenceType.class, oid, null, true);
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("OBJECT before:\n{}", prismObject.debugDump());
             }
@@ -75,22 +74,22 @@ public class SequenceHelper {
             rObject.setVersion(rObject.getVersion() + 1);
 
             objectUpdater.updateFullObject(rObject, prismObject);
-            session.merge(rObject);
+            em.merge(rObject);
 
             LOGGER.trace("Before commit...");
-            session.getTransaction().commit();
+            em.getTransaction().commit();
             LOGGER.trace("Committed!");
 
             return returnValue;
         } catch (ObjectNotFoundException | SchemaException ex) {
-            baseHelper.rollbackTransaction(session, ex, result, FATAL_ERROR);
+            baseHelper.rollbackTransaction(em, ex, result, FATAL_ERROR);
             throw ex;
         } catch (DtoTranslationException | RuntimeException ex) {
-            baseHelper.handleGeneralException(ex, session, result);                                            // should always throw an exception
+            baseHelper.handleGeneralException(ex, em, result);                                            // should always throw an exception
             throw new SystemException("Exception " + ex + " was not handled correctly", ex);        // ...so this shouldn't occur at all
         } finally {
-            baseHelper.cleanupSessionAndResult(session, result);
-            LOGGER.trace("Session cleaned up.");
+            baseHelper.cleanupManagerAndResult(em, result);
+            LOGGER.trace("EntityManager cleaned up.");
         }
     }
 
@@ -100,11 +99,11 @@ public class SequenceHelper {
         LOGGER.debug("Returning unused values of {} to a sequence with oid '{}'.", unusedValues, oid);
         LOGGER_PERFORMANCE.debug("> return unused values, oid={}, values={}", oid, unusedValues);
 
-        Session session = null;
+        EntityManager em = null;
         try {
-            session = baseHelper.beginTransaction();
+            em = baseHelper.beginTransaction();
 
-            PrismObject<SequenceType> prismObject = objectRetriever.getObjectInternal(session, SequenceType.class, oid, null, true);
+            PrismObject<SequenceType> prismObject = objectRetriever.getObjectInternal(em, SequenceType.class, oid, null, true);
             LOGGER.trace("OBJECT before:\n{}", prismObject.debugDumpLazily());
             SequenceType sequence = prismObject.asObjectable();
             int maxUnusedValues = sequence.getMaxUnusedValues() != null ? sequence.getMaxUnusedValues() : 0;
@@ -132,20 +131,20 @@ public class SequenceHelper {
             rObject.setVersion(rObject.getVersion() + 1);
 
             objectUpdater.updateFullObject(rObject, prismObject);
-            session.merge(rObject);
+            em.merge(rObject);
 
             LOGGER.trace("Before commit...");
-            session.getTransaction().commit();
+            em.getTransaction().commit();
             LOGGER.trace("Committed!");
         } catch (ObjectNotFoundException | SchemaException ex) {
-            baseHelper.rollbackTransaction(session, ex, result, FATAL_ERROR);
+            baseHelper.rollbackTransaction(em, ex, result, FATAL_ERROR);
             throw ex;
         } catch (DtoTranslationException | RuntimeException ex) {
-            baseHelper.handleGeneralException(ex, session, result);                                            // should always throw an exception
+            baseHelper.handleGeneralException(ex, em, result);                                            // should always throw an exception
             throw new SystemException("Exception " + ex + " was not handled correctly", ex);        // ...so this shouldn't occur at all
         } finally {
-            baseHelper.cleanupSessionAndResult(session, result);
-            LOGGER.trace("Session cleaned up.");
+            baseHelper.cleanupManagerAndResult(em, result);
+            LOGGER.trace("EntityManager cleaned up.");
         }
     }
 }

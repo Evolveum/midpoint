@@ -7,27 +7,29 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.evolveum.midpoint.repo.sql.util.RUtil;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
-import org.hibernate.Session;
-import org.hibernate.query.Query;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
-import org.testng.annotations.Test;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * @author lazyman
  */
-@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
+@ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class DeleteTest extends BaseSQLRepoTest {
 
@@ -85,11 +87,11 @@ public class DeleteTest extends BaseSQLRepoTest {
 
         AssertJUnit.assertTrue(result.isSuccess());
 
-        try (Session session = getFactory().openSession()) {
-            Query<?> query = session.createNativeQuery("select count(*) from m_trigger where owner_oid = ?");
+        try (EntityManager em = getFactory().createEntityManager()) {
+            Query query = em.createNativeQuery("select count(*) from m_trigger where owner_oid = ?");
             query.setParameter(1, oid);
 
-            Number count = (Number) query.uniqueResult();
+            Number count = RUtil.getSingleResultOrNull(query);
             AssertJUnit.assertEquals(count.longValue(), 0L);
         }
     }
@@ -107,7 +109,7 @@ public class DeleteTest extends BaseSQLRepoTest {
         result.recomputeStatus();
         AssertJUnit.assertTrue(result.isSuccess());
 
-        for (int i=0; i< objects.size(); i++ ){
+        for (int i = 0; i < objects.size(); i++) {
             repositoryService.deleteObject((Class) objects.get(i).getCompileTimeClass(), oids.get(i), result);
         }
 

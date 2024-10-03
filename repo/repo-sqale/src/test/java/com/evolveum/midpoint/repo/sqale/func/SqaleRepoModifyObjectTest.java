@@ -17,10 +17,18 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 
 import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NotNull;
+import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -3384,9 +3392,67 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 .containsEntry(extensionKey(extensionContainer, "int"), 510)
                 .containsEntry(extensionKey(extensionContainer, "string"), "510");
     }
-    // endregion
 
-    // region precondition and modify dynamically
+    @Test(description = "MID-9754")
+    public void test550reindexShadowsWithSameAttributeNameDifferentType() throws Exception {
+
+        OperationResult result = createOperationResult();
+
+        ItemName attrName = new ItemName(MidPointConstants.NS_RI, "conflicting");
+        ItemPath attrPath = ItemPath.create(ShadowType.F_ATTRIBUTES, attrName);
+
+
+        given("a shadow with string attribute `conflicting`");
+        ShadowType stringBased = new ShadowType().name("stringShadow")
+                .resourceRef(UUID.randomUUID().toString(), ResourceType.COMPLEX_TYPE)
+                .objectClass(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS)
+                .kind(ShadowKindType.ACCOUNT)
+                .intent("intent");
+        //noinspection RedundantTypeArguments // actually, it is needed because of ambiguity resolution
+        new ShadowAttributesHelper(stringBased)
+                .<String>set(attrName, DOMUtil.XSD_STRING, 0, 1, "jack");
+        var stringBasedOid = repositoryService.addObject(stringBased.asPrismObject(), null, result);
+
+
+        given("and a shadow with int attribute `conflicting`");
+        ShadowType dateBased = new ShadowType().name("dateShadow")
+                .resourceRef(UUID.randomUUID().toString(), ResourceType.COMPLEX_TYPE)
+                .objectClass(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS)
+                .kind(ShadowKindType.ACCOUNT)
+                .intent("intent");
+        //noinspection RedundantTypeArguments // actually, it is needed because of ambiguity resolution
+        new ShadowAttributesHelper(dateBased)
+                .<XMLGregorianCalendar>setOne(attrName, DOMUtil.XSD_DATETIME, 0, 1, XmlTypeConverter.createXMLGregorianCalendar());
+        var dateBasedOid = repositoryService.addObject(dateBased.asPrismObject(), null, result);
+
+        then("attributes read from repository are of correct respective types");
+        checkShadowCorrectness(attrPath, stringBasedOid, dateBasedOid, result);
+
+        when("shadows are reindexed");
+        repositoryService.modifyObject(ShadowType.class, stringBasedOid, Collections.emptyList(),
+                RepoModifyOptions.createForceReindex(), result);
+        repositoryService.modifyObject(ShadowType.class, dateBasedOid, Collections.emptyList(),
+                RepoModifyOptions.createForceReindex(), result);
+
+        then("attributes read from repository are of correct respective types");
+        checkShadowCorrectness(attrPath, stringBasedOid, dateBasedOid, result);
+    }
+
+    private void checkShadowCorrectness(ItemPath attrPath, String stringBasedOid, String dateBasedOid, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        var stringBasedAfter = repositoryService.getObject(ShadowType.class, stringBasedOid, GetOperationOptions.createRawCollection(), result);
+        var dateBasedAfter = repositoryService.getObject(ShadowType.class, dateBasedOid, GetOperationOptions.createRawCollection(), result);
+        assertThat(stringBasedAfter.getAllValues(attrPath))
+                .isNotEmpty()
+                .allMatch(v -> {
+                    return v.getRealValue() instanceof String;
+                }, "string shadow contains strings");
+        assertThat(dateBasedAfter.getAllValues(attrPath))
+                .isNotEmpty()
+                .allMatch(v -> {
+                    return v.getRealValue() instanceof XMLGregorianCalendar;
+                    }, "date shadow contains date");
+    }
+
     @Test
     public void test800ModifyWithPositivePrecondition() throws Exception {
         OperationResult result = createOperationResult();
@@ -3848,4 +3914,63 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 2);
     }
     // endregion
+
+
+    @Test(expectedExceptions = SystemException.class)
+    public void test992UpdateAssignmentWithWrongOid() throws Exception {
+        // GIVEN
+        final String targetOid = UUID.randomUUID().toString();
+
+        final ObjectReferenceType originalRef = new ObjectReferenceType()
+                .oid(targetOid)
+                .type(RoleType.COMPLEX_TYPE)
+                .relation(SchemaConstants.ORG_DEFAULT);
+
+        AssignmentType a = new AssignmentType();
+        a.setTargetRef(originalRef);
+
+        OperationResult result = new OperationResult("updateAssignmentWithWrongOid");
+
+        UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        ObjectDelta<UserType> delta = userObject.asPrismObject().createModifyDelta();
+        delta.addModificationAddContainer(UserType.F_ASSIGNMENT, a);
+
+        delta.addModificationDeleteContainer(
+                UserType.F_ASSIGNMENT, userObject.getAssignment().stream().map(i -> i.clone()).toList().toArray(new AssignmentType[0]));
+
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        try (JdbcSession session = sqlRepoContext.newJdbcSession()) {
+            QAssignment qa = new QAssignment("a");
+
+            UUID uuid = session.newQuery().select(qa.targetRefTargetOid)
+                    .from(qa)
+                    .where(qa.ownerOid.eq(SqaleUtils.oidToUuid(user1Oid))).fetchFirst();
+            AssertJUnit.assertEquals(SqaleUtils.oidToUuid(targetOid), uuid);
+        }
+
+        UserType user = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        AssertJUnit.assertEquals(1, user.getAssignment().size());
+
+        AssignmentType created = user.getAssignment().get(0);
+        AssertJUnit.assertEquals(targetOid, created.getTargetRef().getOid());
+
+        // WHEN
+        ObjectReferenceType newRef = new ObjectReferenceType()
+                .oid("1234")
+                .type(RoleType.COMPLEX_TYPE)
+                .relation(SchemaConstants.ORG_DEFAULT);
+
+        delta = user.asPrismObject().createModifyDelta();
+        ReferenceDelta refDelta = delta.createReferenceModification(ItemPath.create(UserType.F_ASSIGNMENT, created.getId(), AssignmentType.F_TARGET_REF));
+        refDelta.addValuesToAdd(newRef.asReferenceValue());
+        refDelta.addValueToDelete(originalRef.asReferenceValue().clone());
+
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        // THEN
+        AssertJUnit.fail("Should fail in repository service modify, since oid in targetRef is invalid");
+    }
 }

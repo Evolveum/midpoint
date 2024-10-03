@@ -8,13 +8,10 @@
 :page-upkeep-status: red
 :page-upkeep-note: is this s right concept to describe interfaces?
 
-*Version:* 4.4 +
 *Status:* Public +
 *Stability:* STABLE +
 *Platform:* Java +
 *Dependencies:* xref:/midpoint/reference/schema/[Data Model], Common schema +
-*Responsible person:* Radovan Semancik
-
 
 == Description
 
@@ -27,239 +24,24 @@ Implementation of this interface are enforcing a consistency of access control d
 For general introduction to interface concepts please see xref:/midpoint/architecture/concepts/common-interface-concepts/[Common Interface Concepts] page.
 
 
-== History
-
-[%autowidth]
-|===
-| Version | Date | Description | Change Author
-
-| 4.4
-| November 2021
-| Small formal changes. However, changed behavior due to Prism API changes.
-| Radovan Semancik et al.
-
-| 4.0
-| August 2019
-| Numerous changes, including incompatible changes (mostly because of Prism API changes).
-| Radovan Semancik et al.
-
-
-| 3.9
-| November 2018
-| Underlying data model changes, minor improvements
-| Radovan Semancik, Pavol Mederly
-
-
-| 3.8
-| June 2018
-| Underlying data model changes
-| Radovan Semancik, Pavol Mederly
-
-
-| 3.7
-| December 2017
-| Changes related to evaluated assignments and other parts of model context.
-| Radovan Semancik, Pavol Mederly
-
-
-| 3.6
-| July 2017
-| Numerous changes related to model context and governance features
-| Radovan Semancik, Pavol Mederly
-
-
-| 3.5
-| December 2016
-| Moved PolicyViolationException, identity merge, object comparison, etc.
-| Radovan Semancik, Pavol Mederly
-
-
-| 3.4
-| June 2016
-| Minor changes related to workitems and certifications
-| Pavol Mederly
-
-
-| 3.3
-| December 2015
-| Added searchShadowOwner method
-| Katka Valalikova
-
-
-| 3.2
-| August 2015
-| Minor extension in EvaluatedAssignment
-| Pavol Mederly
-
-
-| 3.1.1
-| April 2015
-| Minor changes in thrown exceptions
-| Radovan Semancik
-
-
-| 3.1
-| February 2015
-| Improved support for partial results, progress-reporting functionality, executed deltas.
-| Pavol Mederly, Radovan Semancik
-
-
-| 3.0
-| June 2014
-| Minor extension and adjustments.
-Update to adapt to midPoint 3.0 changes.
-| Radovan Semancik
-
-
-| 2.2
-| September 2013
-| First public version of this interface
-| Radovan Semancik
-
-
-| ...
-| ...
-| many revisions without formal versioning tracked only in source control history
-|  +
-
-
-
-| 0.1
-| September 2011
-| Initial version derived from xrefv:/midpoint/reference/before-4.8/legacy/soap/[IDM Model Web Service Interface]
-| Radovan Semancik
-
-
-|===
-
-
 == Artifacts
 
 [%autowidth]
 |===
-| Artifact | Version | Path/Link | Description
+| Artifact | Path/Link | Description
 
 | Interface definition
-| *master* +
-(latest  +
-development)
-| link:https://github.com/Evolveum/midpoint/blob/master/model/model-api/src/main/java/com/evolveum/midpoint/model/api/ModelService.java[https://github.com/Evolveum/midpoint/blob/master/model/model-api/src/main/java/com/evolveum/midpoint/model/api/ModelService.java]
+| link:https://github.com/Evolveum/midpoint/blob/{{page.midpointBranch}}/model/model-api/src/main/java/com/evolveum/midpoint/model/api/ModelService.java[https://github.com/Evolveum/midpoint/blob/{{page.midpointBranch}}/model/model-api/src/main/java/com/evolveum/midpoint/model/api/ModelService.java]
 | Well-commented Java definition of the interface.
 
 
-| Interface definition
-| *4.0*
-| link:https://github.com/Evolveum/midpoint/blob/v4.0/model/model-api/src/main/java/com/evolveum/midpoint/model/api/ModelService.java[https://github.com/Evolveum/midpoint/blob/v4.0/model/model-api/src/main/java/com/evolveum/midpoint/model/api/ModelService.java]
-| Well-commented Java definition of the interface.
-
-
-| Interface definition
-| *3.8*
-| link:https://github.com/Evolveum/midpoint/blob/v3.8/model/model-api/src/main/java/com/evolveum/midpoint/model/api/ModelService.java[https://github.com/Evolveum/midpoint/blob/v3.8/model/model-api/src/main/java/com/evolveum/midpoint/model/api/ModelService.java]
-| Well-commented Java definition of the interface.
-
-
-| Interface definition
-| *3.7.2*
-| link:https://github.com/Evolveum/midpoint/blob/v3.7.2/model/model-api/src/main/java/com/evolveum/midpoint/model/api/ModelService.java[https://github.com/Evolveum/midpoint/blob/v3.7.2/model/model-api/src/main/java/com/evolveum/midpoint/model/api/ModelService.java]
-| Well-commented Java definition of the interface.
-
-
-| Interface definition
-| *3.7.1*
-| link:https://github.com/Evolveum/midpoint/blob/v3.7.1/model/model-api/src/main/java/com/evolveum/midpoint/model/api/ModelService.java[https://github.com/Evolveum/midpoint/blob/v3.7.1/model/model-api/src/main/java/com/evolveum/midpoint/model/api/ModelService.java]
-| Well-commented Java definition of the interface.
-
-
-| Interface definition
-| *3.7*
-| link:https://github.com/Evolveum/midpoint/blob/v3.7/model/model-api/src/main/java/com/evolveum/midpoint/model/api/ModelService.java[https://github.com/Evolveum/midpoint/blob/v3.7/model/model-api/src/main/java/com/evolveum/midpoint/model/api/ModelService.java]
-| Well-commented Java definition of the interface.
-
-
-| Interface definition
-| *3.6*
-| link:https://github.com/Evolveum/midpoint/blob/v3.6/model/model-api/src/main/java/com/evolveum/midpoint/model/api/ModelService.java[https://github.com/Evolveum/midpoint/blob/v3.6/model/model-api/src/main/java/com/evolveum/midpoint/model/api/ModelService.java]
-| Well-commented Java definition of the interface.
-
-
-| Interface definition
-| *3.5*
-| link:https://github.com/Evolveum/midpoint/blob/v3.5/model/model-api/src/main/java/com/evolveum/midpoint/model/api/ModelService.java[https://github.com/Evolveum/midpoint/blob/v3.5/model/model-api/src/main/java/com/evolveum/midpoint/model/api/ModelService.java]
-| Well-commented Java definition of the interface.
-
-
-| Interface definition
-| *3.4*
-| link:https://github.com/Evolveum/midpoint/blob/v3.4/model/model-api/src/main/java/com/evolveum/midpoint/model/api/ModelService.java[https://github.com/Evolveum/midpoint/blob/v3.4/model/model-api/src/main/java/com/evolveum/midpoint/model/api/ModelService.java]
-| Well-commented Java definition of the interface.
-
-
-| Interface definition
-| *3.3*
-| link:https://github.com/Evolveum/midpoint/blob/v3.3/model/model-api/src/main/java/com/evolveum/midpoint/model/api/ModelService.java[https://github.com/Evolveum/midpoint/blob/v3.3/model/model-api/src/main/java/com/evolveum/midpoint/model/api/ModelService.java]
-| Well-commented Java definition of the interface.
-
-
+{% if page.midpointVersion == 'master' %}
+// TODO: javadoc link for master
+{% else %}
 | Interface documentation
-| *3.3*
-| link:http://www.evolveum.com/downloads/midpoint/3.3/midpoint-api-3.3-javadoc/com/evolveum/midpoint/model/api/ModelService.html[http://www.evolveum.com/downloads/midpoint/3.3/midpoint-api-3.3-javadoc/com/evolveum/midpoint/model/api/ModelService.html]
+| link:http://www.evolveum.com/downloads/midpoint/{{page.midpointVersion}}/midpoint-api-{{page.midpointVersion}}-javadoc/com/evolveum/midpoint/model/api/ModelService.html[http://www.evolveum.com/downloads/midpoint/{{page.midpointVersion}}/midpoint-api-{{page.midpointVersion}}-javadoc/com/evolveum/midpoint/model/api/ModelService.html]
 | Javadoc description of the interface
-
-
-| Interface definition
-| *3.2*
-| link:https://github.com/Evolveum/midpoint/blob/v3.2/model/model-api/src/main/java/com/evolveum/midpoint/model/api/ModelService.java[https://github.com/Evolveum/midpoint/blob/v3.2/model/model-api/src/main/java/com/evolveum/midpoint/model/api/ModelService.java]
-| Well-commented Java definition of the interface.
-
-
-| Interface documentation
-| *3.2*
-| link:http://www.evolveum.com/downloads/midpoint/3.2/midpoint-api-3.2-javadoc/com/evolveum/midpoint/model/api/ModelService.html[http://www.evolveum.com/downloads/midpoint/3.2/midpoint-api-3.2-javadoc/com/evolveum/midpoint/model/api/ModelService.html]
-| Javadoc description of the interface
-
-
-| Interface definition
-| *3.1.1*
-| link:https://github.com/Evolveum/midpoint/blob/v3.1.1/model/model-api/src/main/java/com/evolveum/midpoint/model/api/ModelService.java[https://github.com/Evolveum/midpoint/blob/v3.1.1/model/model-api/src/main/java/com/evolveum/midpoint/model/api/ModelService.java]
-| Well-commented Java definition of the interface.
-
-
-| Interface documentation
-| *3.1.1*
-| link:http://www.evolveum.com/downloads/midpoint/3.1.1/midpoint-api-3.1.1-javadoc/com/evolveum/midpoint/model/api/ModelService.html[http://www.evolveum.com/downloads/midpoint/3.1.1/midpoint-api-3.1.1-javadoc/com/evolveum/midpoint/model/api/ModelService.html]
-| Javadoc description of the interface
-
-
-| Interface definition
-| *3.1*
-| link:https://github.com/Evolveum/midpoint/blob/v3.1/model/model-api/src/main/java/com/evolveum/midpoint/model/api/ModelService.java[https://github.com/Evolveum/midpoint/blob/v3.1/model/model-api/src/main/java/com/evolveum/midpoint/model/api/ModelService.java]
-| Well-commented Java definition of the interface.
-
-
-| Interface documentation
-| *3.1*
-| link:http://www.evolveum.com/downloads/midpoint/3.1/midpoint-api-3.1-javadoc/com/evolveum/midpoint/model/api/ModelService.html[http://www.evolveum.com/downloads/midpoint/3.1/midpoint-api-3.1-javadoc/com/evolveum/midpoint/model/api/ModelService.html]
-| Javadoc description of the interface
-
-
-| Interface documentation
-| *3.0*
-| link:http://www.evolveum.com/downloads/midpoint/2.2.1/midpoint-api-2.2.1-javadoc/com/evolveum/midpoint/model/api/ModelService.html[http://www.evolveum.com/downloads/midpoint/3.0/midpoint-api-3.0-javadoc/com/evolveum/midpoint/model/api/ModelService.html]
-| Javadoc description of the interface
-
-
-| Interface documentation
-| *2.2.1*
-| link:http://www.evolveum.com/downloads/midpoint/2.2.1/midpoint-api-2.2.1-javadoc/com/evolveum/midpoint/model/api/ModelService.html[http://www.evolveum.com/downloads/midpoint/2.2.1/midpoint-api-2.2.1-javadoc/com/evolveum/midpoint/model/api/ModelService.html]
-| Javadoc description of the interface
-
-
-| Interface definition
-| *2.2*
-| link:http://git.evolveum.com/view/midpoint/v2.2/model/model-api/src/main/java/com/evolveum/midpoint/model/api/ModelService.java[http://git.evolveum.com/view/midpoint/v2.2/model/model-api/src/main/java/com/evolveum/midpoint/model/api/ModelService.java]
-| Well-commented Java definition of the interface.
-
+{% endif %}
 
 |===
 

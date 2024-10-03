@@ -13,6 +13,7 @@ import java.util.Objects;
 import jakarta.persistence.*;
 
 import org.apache.commons.lang3.Validate;
+import org.hibernate.annotations.JdbcType;
 import org.hibernate.annotations.NotFound;
 import org.hibernate.annotations.NotFoundAction;
 import org.hibernate.annotations.Persister;
@@ -29,6 +30,8 @@ import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
+import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
 
 /**
  * @author lazyman
@@ -75,8 +78,8 @@ public class RObjectReference<T extends RObject> implements ObjectReference, Ent
         this.trans = trans;
     }
 
-    @JoinColumn(foreignKey = @ForeignKey(name = "fk_reference_owner"))
-    @MapsId("owner")
+    @JoinColumn(name = "owner_oid", referencedColumnName = "oid", foreignKey = @ForeignKey(name = "fk_reference_owner"))
+    @MapsId("ownerOid")
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable
     public RObject getOwner() {
@@ -118,6 +121,7 @@ public class RObjectReference<T extends RObject> implements ObjectReference, Ent
     }
 
     @Id
+    @JdbcType(IntegerJdbcType.class)
     @Column(name = REFERENCE_TYPE, nullable = false)
     public RReferenceType getReferenceType() {
         return referenceType;
@@ -134,6 +138,7 @@ public class RObjectReference<T extends RObject> implements ObjectReference, Ent
      *
      * @return null if not defined, otherwise value from {@link com.evolveum.midpoint.repo.sql.data.common.other.RObjectType} enum
      */
+    @JdbcType(IntegerJdbcType.class)
     @Column(name = "targetType")
     @Enumerated(EnumType.ORDINAL)
     @Override

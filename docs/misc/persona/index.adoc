@@ -9,7 +9,6 @@ doc-type: intro
 :page-wiki-metadata-create-date: 2017-04-19T10:00:01.401+02:00
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2017-05-04T16:22:20.009+02:00
-:page-since: "3.6"
 :page-upkeep-status: yellow
 :page-toc: top
 

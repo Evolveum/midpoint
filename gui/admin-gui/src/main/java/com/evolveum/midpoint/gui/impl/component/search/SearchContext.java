@@ -121,4 +121,8 @@ public class SearchContext {
     public boolean isHistory() {
         return history;
     }
+
+    public boolean isReportCollectionSearch() {
+        return reportCollection != null;
+    }
 }

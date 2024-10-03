@@ -82,7 +82,7 @@ public class ContextLoader implements ProjectorProcessor {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
 
         for (int loadAttempt = 1; ; loadAttempt++) {
             Set<String> modifiedFocusOids = new HashSet<>();

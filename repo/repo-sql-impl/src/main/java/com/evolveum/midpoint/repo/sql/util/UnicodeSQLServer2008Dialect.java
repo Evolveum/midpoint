@@ -7,14 +7,14 @@
 
 package com.evolveum.midpoint.repo.sql.util;
 
-import org.hibernate.dialect.SQLServer2008Dialect;
+import org.hibernate.dialect.SQLServerDialect;
 
 import java.sql.Types;
 
 /**
  * @author lazyman
  */
-public class UnicodeSQLServer2008Dialect extends SQLServer2008Dialect {
+public class UnicodeSQLServer2008Dialect extends SQLServerDialect {
 
     private static final int MAX_LENGTH = 8000;
 

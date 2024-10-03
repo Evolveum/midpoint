@@ -1,8 +1,7 @@
-= Advanced search - EXAMPLES
+= Query - EXAMPLES
 :page-wiki-metadata-create-user: mspanik
 :page-since: "4.4"
 :page-since-improved: [ "4.5", "4.6", "4.7", "4.8" ]
-:page-alias: { "parent" : "/midpoint/guides/midpoint-query-examples", "title":"GUI search - EXAMPLES", "display-order" : 600}
 :page-display-order: 550
 
 Midpoint provides multiple mechanisms to xref:/midpoint/reference/concepts/query/[query] the data and search for information.
@@ -112,6 +111,13 @@ To search these attributes you need to include "extension/" in the attribute nam
 |Find users modified in specific second
 |`metadata/modifyTimestamp >= "2022-10-02T12:53:32"and metadata/modifyTimestamp < "2022-10-02T12:53:33"`
 |
+
+3+|*Search by object OID*
+
+|Find 1 object specified by its OID
+|`. inOid ("eb21455d-17cc-4390-a736-f1d6afa82057")`
+|The list of OIDs may contain one or more OIDs.
+
 |===
 
 === Search through assignments or inducements
@@ -151,6 +157,11 @@ This can't be used with assignments if roles have assigned archetypes.
 |Assignment attribute contains direct assignments only.
 
 Query is rather complex, because each user has at least one assignment assigned - archetype assignment.
+
+| Owners of roles (users with any role assigned as owner)
+| `assignment/targetRef matches (targetType=RoleType and relation=owner)`
+| Relation value is of QName type and therefore no quotation marks are used. The namespace (org:owner) is optional. +
+See xref:../introduction.adoc#_matches_filter_in_references[matches filter in references].
 
 |Users with account on specific resource
 |`linkRef/@ matches ( +

@@ -5,7 +5,6 @@
 :page-wiki-metadata-create-date: 2016-11-28T14:27:36.604+01:00
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2016-11-30T11:46:44.461+01:00
-:page-since: "3.5"
 :page-upkeep-status: yellow
 
 MidPoint contains mechanisms that can be used to manage lifecycle of the roles and role-like objects (xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/roletype/[roles], xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[orgs], xref:/midpoint/reference/misc/services/[services] and even xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[users]). Lifecycle management means that midPoint can apply constraints and xref:/midpoint/reference/roles-policies/policy-rules/[rules] to various lifecycle events such as creation of a new role, change of role definition, deletion and so on.

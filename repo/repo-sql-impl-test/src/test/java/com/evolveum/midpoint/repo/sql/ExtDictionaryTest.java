@@ -6,7 +6,7 @@
  */
 
 package com.evolveum.midpoint.repo.sql;
-
+import jakarta.persistence.EntityManager;
 import static org.testng.AssertJUnit.fail;
 
 import java.util.ArrayList;
@@ -20,13 +20,14 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.repo.sql.data.common.any.RExtItem;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
+@ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class ExtDictionaryTest extends BaseSQLRepoTest {
 
@@ -36,9 +37,11 @@ public class ExtDictionaryTest extends BaseSQLRepoTest {
 
     static class TestingThread extends Thread {
         Throwable throwable;
+
         TestingThread(Runnable target) {
             super(target);
         }
+
         @Override
         public void run() {
             try {
@@ -86,14 +89,14 @@ public class ExtDictionaryTest extends BaseSQLRepoTest {
                 }
             }
         }
-        Session session = open();
+        EntityManager em = open();
         //noinspection unchecked
-        List<RExtItem> extItems = session.createQuery("from RExtItem").list();
+        List<RExtItem> extItems = em.createQuery("from RExtItem").getResultList();
         System.out.println("ext items: " + extItems.size());
         for (RExtItem extItem : extItems) {
             System.out.println(extItem);
             logger.info("{}", extItem);
         }
-        session.close();
+        em.close();
     }
 }

@@ -17,7 +17,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import org.testng.annotations.BeforeClass;
 
 import java.io.File;
 import java.io.IOException;

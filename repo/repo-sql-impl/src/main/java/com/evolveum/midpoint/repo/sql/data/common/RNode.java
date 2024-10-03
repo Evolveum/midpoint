@@ -10,6 +10,7 @@ import jakarta.persistence.*;
 
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.JdbcType;
 import org.hibernate.annotations.Persister;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
@@ -22,6 +23,8 @@ import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
+
+import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
 
 @Entity
 @ForeignKey(name = "fk_node")
@@ -52,6 +55,7 @@ public class RNode extends RObject {
         return nameCopy;
     }
 
+    @JdbcType(IntegerJdbcType.class)
     @Enumerated(EnumType.ORDINAL)
     public RNodeOperationalState getOperationalState() {
         return operationalState;

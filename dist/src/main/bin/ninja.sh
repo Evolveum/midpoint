@@ -221,7 +221,7 @@ done
 # would be empty and considered a class name by the "java -jar" command.
 if [ -n "${JDBC_DRIVER:-}" ]; then
   echo "Using JDBC driver path: ${JDBC_DRIVER}" >&2
-  eval "${_RUNJAVA}" ${JAVA_OPTS} "-Dloader.path=${JDBC_DRIVER}" -jar "${BASE_DIR}/lib/ninja.jar" -m "${MIDPOINT_HOME}" "$@"
+  eval "${_RUNJAVA}" ${JAVA_OPTS} "-Dloader.path=${JDBC_DRIVER}" -jar "${BASE_DIR}/lib/ninja.jar" -m "${MIDPOINT_HOME}" \"\$@\"
 else
-  eval "${_RUNJAVA}" ${JAVA_OPTS} -jar "${BASE_DIR}/lib/ninja.jar" -m "${MIDPOINT_HOME}" "$@"
+  eval "${_RUNJAVA}" ${JAVA_OPTS} -jar "${BASE_DIR}/lib/ninja.jar" -m "${MIDPOINT_HOME}" \"\$@\"
 fi

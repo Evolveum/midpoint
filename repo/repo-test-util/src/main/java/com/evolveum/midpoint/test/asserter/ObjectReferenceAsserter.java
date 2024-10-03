@@ -50,7 +50,7 @@ public class ObjectReferenceAsserter<O extends ObjectType, R> extends AbstractAs
         this.resolvedTarget = resolvedTarget;
     }
 
-    protected PrismReferenceValue getRefVal() {
+    public PrismReferenceValue getRefVal() {
         return refVal;
     }
 

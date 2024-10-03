@@ -142,4 +142,8 @@ public class DashboardWidgetDto implements Serializable {
     public String getIconCssClass() {
         return iconCssClass;
     }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
 }

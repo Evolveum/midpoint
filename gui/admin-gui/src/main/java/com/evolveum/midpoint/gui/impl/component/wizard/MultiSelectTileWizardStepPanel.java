@@ -88,6 +88,11 @@ public abstract class MultiSelectTileWizardStepPanel<SI extends Serializable, O 
                     }
 
                     @Override
+                    protected boolean isFullTextSearchEnabled() {
+                        return MultiSelectTileWizardStepPanel.this.isFullTextSearchEnabled();
+                    }
+
+                    @Override
                     protected ContainerPanelConfigurationType getContainerConfiguration() {
                         return MultiSelectTileWizardStepPanel.this.getContainerConfiguration(getPanelType());
                     }
@@ -143,6 +148,10 @@ public abstract class MultiSelectTileWizardStepPanel<SI extends Serializable, O 
                 };
         tilesTable.setOutputMarkupId(true);
         add(tilesTable);
+    }
+
+    protected boolean isFullTextSearchEnabled() {
+        return true;
     }
 
     protected boolean skipSearch() {

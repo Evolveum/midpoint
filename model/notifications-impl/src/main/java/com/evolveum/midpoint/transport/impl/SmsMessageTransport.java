@@ -22,12 +22,20 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+
 import org.apache.commons.lang3.StringUtils;
+import org.apache.hc.client5.http.ContextBuilder;
+import org.apache.hc.client5.http.auth.AuthCache;
 import org.apache.hc.client5.http.auth.AuthScope;
+import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.impl.auth.BasicAuthCache;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
+import org.apache.hc.client5.http.impl.auth.BasicScheme;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.HttpHost;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.http.client.ClientHttpRequest;
@@ -182,6 +190,9 @@ public class SmsMessageTransport implements Transport<SmsTransportConfigurationT
                     result.computeStatus();
                     return;
                 } else {
+                    HttpHost host = HttpHost.create(URI.create(url));
+                    HttpHost pHost = StringUtils.isNotBlank(proxyHost) ? (proxyPort != null ? new HttpHost(proxyHost, proxyPort) : new HttpHost(proxyHost)) : null;
+
                     HttpClientBuilder builder = HttpClientBuilder.create();
                     String username = smsGatewayConfigurationType.getUsername();
                     ProtectedStringType password = smsGatewayConfigurationType.getPassword();
@@ -189,30 +200,41 @@ public class SmsMessageTransport implements Transport<SmsTransportConfigurationT
                     if (username != null) {
                         String plainPassword = password != null ? transportSupport.protector().decryptString(password) : null;
                         UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(username, plainPassword.toCharArray());
-                        provider.setCredentials(new AuthScope(null, null, -1, null, null), credentials);
+                        provider.setCredentials(new AuthScope(host, null, null), credentials);
                         builder = builder.setDefaultCredentialsProvider(provider);
                     }
                     String proxyUsername = smsGatewayConfigurationType.getProxyUsername();
                     ProtectedStringType proxyPassword = smsGatewayConfigurationType.getProxyPassword();
                     if (StringUtils.isNotBlank(proxyHost)) {
-                        HttpHost proxy;
-                        if (proxyPort != null) {
-                            proxy = new HttpHost(proxyHost, proxyPort);
-                        } else {
-                            proxy = new HttpHost(proxyHost);
-                        }
                         if (StringUtils.isNotBlank(proxyUsername)) {
                             String plainProxyPassword = proxyPassword != null ? transportSupport.protector().decryptString(proxyPassword) : null;
                             UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(proxyUsername, plainProxyPassword.toCharArray());
-                            provider.setCredentials(new AuthScope(proxy), credentials);
+                            provider.setCredentials(new AuthScope(pHost), credentials);
                         }
                         builder = builder.setDefaultCredentialsProvider(provider);
-                        builder = builder.setProxy(proxy);
+                        builder = builder.setProxy(pHost);
                     }
 
                     HttpClient client = builder.build();
                     HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(client);
-                    ClientHttpRequest request = requestFactory.createRequest(new URI(url), HttpUtil.toHttpMethod(method));
+
+                    // this is to setup preemptive authentication
+                    requestFactory.setHttpContextFactory((m, uri) -> {
+                        ContextBuilder ctxBuilder = ContextBuilder.create()
+                                .useCredentialsProvider(provider);
+                        if (username != null) {
+                            Credentials c = provider.getCredentials(new AuthScope(host, null, null), null);
+                            ctxBuilder = ctxBuilder.preemptiveBasicAuth(host, (UsernamePasswordCredentials) c);
+                        }
+                        if (proxyUsername != null) {
+                            Credentials c = provider.getCredentials(new AuthScope(pHost, null, null), null);
+                            ctxBuilder = ctxBuilder.preemptiveBasicAuth(pHost, (UsernamePasswordCredentials) c);
+                        }
+
+                        return ctxBuilder.build();
+                    });
+
+                    ClientHttpRequest request = requestFactory.createRequest(URI.create(url), HttpUtil.toHttpMethod(method));
                     setHeaders(request, headersList);
                     if (body != null) {
                         request.getBody().write(body.getBytes(encoding));

@@ -327,13 +327,12 @@ Following action URLs are used for object operations:
 
 [%autowidth]
 |===
-| Operation | URL | Description | Since
+| Operation | URL | Description
 
 | Read
 | `http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read`
 | All read operations: getting objects, searching objects, counting objects and so on. +
-Since midPoint 3.9 this is a short-cut for get and search authorizations (see below).
-| 3.0
+This is a short-cut for get and search authorizations (see below).
 
 
 | Get
@@ -343,8 +342,6 @@ This authorization applies to read operations where one specific object is retri
 Note: This authorization also applies to search results.
 While the search authorization governs what can be searched for and how the search filter can be specified, individual results of the search are _reduced_ by using `get` authorization.
 E.g. the properties of the object for which there is no get authorization are removed.
-| 3.9
-
 
 | Search
 | `http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#search`
@@ -352,8 +349,6 @@ E.g. the properties of the object for which there is no get authorization are re
 This authorization applies to read operations where many objects are searched to find objects that match particular criteria. +
 Note: Search authorization governs how the user can form a search filter and which objects are returned.
 But each search result is passing through additional _reduction_ by using get authorization (see above).
-| 3.9
-
 
 | Use
 | `http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#use`
@@ -362,27 +357,19 @@ This authorization allows to "use" an object according to its typical intention.
 Currently, it is supported for task templates (`TaskType` objects) during their instantiation.
 A typical example of such instantiation is their use for xref:/midpoint/reference/admin-gui/admin-gui-config/#custom-actions-for-object-lists[custom GUI actions for object lists].
 (But this authorization is checked any time a task template is instantiated using `midpoint.submitTaskFromTemplate(templateOid, customization)` method.)
-| 4.8
-
 
 | Add
 | `http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add`
 | Adding new objects.
 Creating entirely new object.
-| 3.0
-
 
 | Modify
 | `http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify`
 | Modifications of existing objects.
-| 3.0
-
 
 | Delete
 | `http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete`
 | Deleting objects.
-| 3.0
-
 
 | Raw operation
 | `http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#rawOperation`
@@ -393,8 +380,6 @@ This is *not* supposed to be used in normal operation.
 Raw operations are intended for initial system configuration, configuration changes, emergency recovery and so on. +
 Raw operation authorization is checked *in addition* to normal object operation.
 For example both `rawOperation` and `modify` authorization are needed to execute raw object modification.
-| 3.7
-
 
 | Partial execution
 | `http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#partialExecution`
@@ -403,15 +388,12 @@ This is often used to skip some parts of the processing such as approval process
 Partial execution can be used to go around the policies, therefore it is considered to be a sensitive operation that requires special authorization. +
 This authorization is checked *in addition* to normal object operation.
 For example both `partialExecution` and `modify` authorization are needed to execute partial object modification.
-| 3.7
-
 
 |===
 
-=== Read, Get and Search
+=== Read - Get and Search
 
-Up until midPoint 3.9 there was only one _read_ authorization that governed all the read operations.
-Since midPoint 3.9 there are two related, but distinct operations: _get_ and _search_.
+In midPoint, there are two related, but distinct authorizations _get_ and _search_ for all read operations.
 
 _Get_ authorization governs operations when a single specific object is retrieved.
 This is usually the `getObject()` operation that retrieves objects by their xref:/midpoint/devel/prism/concepts/object-identifier/[object identifier (OID)].
@@ -454,6 +436,7 @@ Only use this approach in case when the get authorization returns reasonable and
 
 ====
 
+Up until midPoint 3.9 there was only one _read_ authorization that governed all the read operations.
 The _read_ authorization is still supported for compatibility and convenience reasons.
 It can be understood as a shortcut for specifying both _get_ and _search_ authorizations.
 
@@ -548,10 +531,7 @@ E.g. the following authorization only applies to user objects that have locality
     <object>
         <type>UserType</type>
         <filter>
-            <q:equal>
-                <q:path>locality</q:path>
-                <q:value>Caribbean</q:value>
-            </q:equal>
+            <q:text>locality = "Caribbean"</q:text>
         </filter>
         <orgRef oid="1f82e908-0072-11e4-9532-001e8c717e5b"/>
     </object>
@@ -559,10 +539,6 @@ E.g. the following authorization only applies to user objects that have locality
 ----
 
 === Zone of Control
-
-++++
-{% include since.html since="3.9" %}
-++++
 
 Each authorization specify _zone of control_ over some part of midPoint objects.
 The _zone of control_ is the set of objects that the authorization allows access to.
@@ -581,10 +557,7 @@ For example let's have a look at following authorization:
     <phase>request</phase>
     <object>
         <filter>
-            <q:equal>
-               <q:path>subtype</q:path>
-               <q:value>employee</q:value>
-            </q:equal>
+            <q:text>subtype = "employee"</q:text>
         </filter>
     </object>
     <!-- Note: subtype property is not excluded here. User can modify it ... -->
@@ -650,10 +623,7 @@ E.g. the following authorization allows the assignment of application roles to a
     <target>
         <type>RoleType</type>
         <filter>
-            <q:equal>
-                <q:path>roleType</q:path>
-                <q:value>application</q:value>
-            </q:equal>
+            <q:text>roleType = "application"</q:text>
         </filter>
     </target>
 </authorization>
@@ -684,10 +654,6 @@ Therefore for the assign/unassign authorizations to work correctly, you have to 
 The default end user role is a good example for this.
 
 === Inducement Authorizations
-
-++++
-{% include since.html since="3.9" %}
-++++
 
 Assignment and unassignment authorization can be applied to inducements using the very same principles.
 There is an authorization clause `orderConstraints` that controls whether authorization applies to assignment, inducement or both.
@@ -734,10 +700,6 @@ MidPoint will adapt all its functionality to fit such authorizations.
 E.g. objects returned from midPoint will have only those readable fields.
 User interface will display input fields only for those items where the user is authorized to modify data and so on.
 
-++++
-{% include since.html since="3.7.1" %}
-++++
-
 Item specification is a very powerful tool to implement fine-grained access control in midPoint.
 But with great power come great responsibilities.
 Which means that the authorization system is also quite complex.
@@ -773,11 +735,6 @@ This also works assign/unassign authorizations.
 
 === Authorizations and Automatic Items
 
-++++
-{% include since.html since="3.6.1" %}
-++++
-
-// TODO should't we call these items 'operational' here?
 There are "automatic" item in midPoint that midPoint manages by itself.
 For example `roleMembershipRef` reference that contains a collection of direct and indirect role memberships for each focus.
 MidPoint will determine that automatically when assignments are evaluated.

@@ -217,8 +217,9 @@ class ShadowIntegrityCheckItemProcessor {
                     ShadowUtil.isKnown(shadowIntent) ?
                             refinedSchema.findObjectDefinition(kind, shadowIntent) :
                             refinedSchema.findDefaultDefinitionForKind(kind); // TODO this is really strange, fix this!
-            if (objectDefinition instanceof ResourceObjectTypeDefinition) {
-                context.setObjectTypeDefinition((ResourceObjectTypeDefinition) objectDefinition);
+            var typeDefinition = objectDefinition != null ? objectDefinition.getTypeDefinition() : null;
+            if (typeDefinition != null) {
+                context.setObjectTypeDefinition(typeDefinition);
             } else {
                 // TODO or warning only?
                 checkResult.recordError(ShadowStatistics.NO_OBJECT_CLASS_REFINED_SCHEMA,

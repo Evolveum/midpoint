@@ -96,10 +96,7 @@ The resource object should then look like this:
     <name>Async Provisioning Resource (Artemis JMS)</name>
     <connectorRef type="ConnectorType">
         <filter>
-            <q:equal>
-                <q:path>connectorType</q:path>
-                <q:value>AsyncProvisioningConnector</q:value>
-            </q:equal>
+            <q:text>connectorType = "AsyncProvisioningConnector"</q:text>
         </filter>
     </connectorRef>
     <connectorConfiguration>

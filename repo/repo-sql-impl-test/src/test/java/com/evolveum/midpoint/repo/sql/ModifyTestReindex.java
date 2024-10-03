@@ -11,9 +11,8 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import javax.xml.namespace.QName;
 
-import org.hibernate.Session;
-import org.hibernate.Transaction;
-import org.hibernate.query.Query;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -229,18 +228,18 @@ public class ModifyTestReindex extends ModifyTest {
 
         // break metadata in repo
 
-        Session session = factory.openSession();
+        EntityManager em = factory.createEntityManager();
 
-        System.out.println("definitions: " + session.createQuery("from RExtItem").list());
-        System.out.println("ext values: " + session.createQuery("from ROExtString").list());
+        System.out.println("definitions: " + em.createQuery("from RExtItem").getResultList());
+        System.out.println("ext values: " + em.createQuery("from ROExtString").getResultList());
 
-        Transaction transaction = session.beginTransaction();
-        Query<?> updateQuery = session.createQuery(
+        em.getTransaction().begin();
+        Query updateQuery = em.createQuery(
                 "update com.evolveum.midpoint.repo.sql.data.common.RObjectReference"
                         + " set targetType = null where ownerOid = '" + oid + "'");
         System.out.println("records modified = " + updateQuery.executeUpdate());
-        transaction.commit();
-        session.close();
+        em.getTransaction().commit();
+        em.close();
 
         // verify search is broken
 

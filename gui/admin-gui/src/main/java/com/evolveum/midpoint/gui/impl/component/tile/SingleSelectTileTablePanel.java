@@ -65,11 +65,6 @@ public class SingleSelectTileTablePanel<O extends ObjectType> extends TileTableP
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected PageStorage getPageStorage() {
-                return SingleSelectTileTablePanel.this.getPageStorage();
-            }
-
-            @Override
             protected ObjectQuery getCustomizeContentQuery() {
                 return getCustomQuery();
             }
@@ -151,11 +146,17 @@ public class SingleSelectTileTablePanel<O extends ObjectType> extends TileTableP
             @Override
             protected Search load() {
                 return new SearchBuilder(getType())
+                        .collectionView(getCompiledCollectionViewFromPanelConfiguration())
                         .modelServiceLocator(getPageBase())
                         .additionalSearchContext(getAdditionalSearchContext())
+                        .setFullTextSearchEnabled(isFullTextSearchEnabled())
                         .build();
             }
         };
+    }
+
+    protected boolean isFullTextSearchEnabled() {
+        return true;
     }
 
     protected SearchContext getAdditionalSearchContext() {

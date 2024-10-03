@@ -10,7 +10,6 @@ doc-type: intro
 :page-wiki-metadata-modify-user: vera
 :page-wiki-metadata-modify-date: 2020-03-31T14:52:37.580+02:00
 :page-toc: top
-:page-since: "3.0"
 :page-upkeep-status: yellow
 
 == Introduction

@@ -198,7 +198,7 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
         return !getModelObject().isReadOnly() && !isForcedPreview();
     }
 
-    private boolean isForcedPreview() {
+    protected boolean isForcedPreview() {
         GuiObjectDetailsPageType objectDetails = getPageBase().getCompiledGuiProfile()
                 .findObjectDetailsConfiguration(getModelObject().getCompileTimeClass());
         return objectDetails != null && DetailsPageSaveMethodType.FORCED_PREVIEW.equals(objectDetails.getSaveMethod());

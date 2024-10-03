@@ -9,14 +9,14 @@ package com.evolveum.midpoint.repo.sql.util;
 
 import org.hibernate.boot.Metadata;
 import org.hibernate.boot.model.relational.SqlStringGenerationContext;
-import org.hibernate.dialect.Oracle12cDialect;
+import org.hibernate.dialect.OracleDialect;
 import org.hibernate.mapping.Index;
 import org.hibernate.tool.schema.spi.Exporter;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class MidPointOracleDialect extends Oracle12cDialect {
+public class MidPointOracleDialect extends OracleDialect {
 
     private static final String INITRANS = " initrans 30";
 

@@ -10,8 +10,6 @@ doc-type: config
 :page-wiki-metadata-create-date: 2019-01-31T11:18:20.720+01:00
 :page-wiki-metadata-modify-user: katkav
 :page-wiki-metadata-modify-date: 2020-09-10T20:30:23.449+02:00
-:page-since: "4.0"
-:page-since-improved: [ "4.1", "4.2" ]
 :page-upkeep-status: green
 :page-toc: top
 
@@ -206,19 +204,13 @@ But placing `assignmentRelation` in inducement is the usual case.
 
 === Open and Closed Assignment Relations
 
-++++
-{% include since.html since="4.1" %}
-++++
-
 Assignment relation specifies which objects can be assignment to other objects.
 But how to interpret the situation when there is no assignment relation specified? This may mean two different things:
 
 * *Open* approach: Assignment relation is not used at all.
 Any assignments to any objects is possible.
 User interface will render a button that allows to assign any combination of target object and relation.
-This is the behavior compatible with midPoint 3.9 and earlier.
-And we still want to maintain that compatibility.
-This the only option for midPoint 4.0 and it is also the default behavior of later midPoint versions.
+This is the default behavior.
 
 * *Closed* approach: No assignment relations are possible.
 Only those relations that are explicitly specified should be allowed.
@@ -261,7 +253,7 @@ A similar property that can limit the "target" side of the relation (e.g. button
 
 [TIP]
 ====
-For midPoint 4.1 this can be configured only on per-archetype basis.
+Currently, this can be configured only on per-archetype basis.
 There is no global setting that can set open/close as a default for an entire system.
 The plan is to implement this later together with "inheritance" of object policy configurations in system configuration objects.
 E.g. object policy for UserType inheriting from object policy for ObjectType - and user archetypes inheriting from the User Type policy.
@@ -271,11 +263,11 @@ E.g. object policy for UserType inheriting from object policy for ObjectType - a
 === Order Constraints
 
 Assignment relation applies only to assignments by default.
-Therefore it controls when an assignment can be made.
+Therefore, it controls when an assignment can be made.
 It does not apply to inducements - yet.
 In later midPoint versions there will be an element that can specify "order constraints".
 In that case assignment relation could specify properties of inducements, including high-order inducements.
-However, the implementation in midPoint 4.0 is limited to assignments.
+However, the current implementation is limited to assignments.
 
 
 == Default Definition
@@ -304,18 +296,12 @@ This is the definition that is applied to non-archetyped objects of that particu
 And parts of that definition may also apply to archetyped objects, as this definition is merged with `archetypePolicy`. Of course, `archetypePolicy` will override any aspects of the default specification.
 But the aspects that are not defined in `archetypePolicy` are taken from the default global policy.
 
-In midPoint 4.0 there may be some limitations, e.g. changing global object icons or colors in the system configuration may not work properly.
-Those things were hardcoded in midPoint user interface for years.
-And as this is mostly a user interface functionality it is not easy to hunt down and fix all the issues.
-But those things should steadily improve in following midPoint versions.
-
-
 == Pre-Defined Archetypes
 
 MidPoint is designed to fit in many environments and those environments may be unlike each other is a very significant way.
 However, there are still few things that most of the environments have in common.
 There are types of objects that are used in almost any midPoint deployment.
-Therefore midPoint 4.0 has a few default archetypes that can be used as starting point for further midPoint configuration:
+Therefore, midPoint has a few default archetypes that can be used as starting point for further midPoint configuration:
 
 [%autowidth]
 |===
@@ -332,7 +318,6 @@ This may be (root-like) system administrator, application users and so on.
 | _none_
 | Archetype for xref:/midpoint/reference/schema/archetypes/person/[persons], which is used in xref:/midpoint/methodology/first-steps/[First Steps Methodology].
 
-Since version 4.8.
 
 | System Role
 | Role
@@ -397,21 +382,39 @@ Archetype can be used as a criterion in xref:/midpoint/reference/security/author
 
 == Multiple Archetypes
 
-++++
-{% include since.html since="4.2" %}
-++++
-
-
 MidPoint archetypes are strongly inspired by how LDAP objectClasses can be defined and used.
 Therefore, midPoint is designed to support three kinds of archetype:
 
-* abstract (not yet supported) - cannot be assigned directly to object, can be extended, can extend another abstract archetype
+* Structural
+** Represent the main class/type of the object (e.g. Person, Service account, Application) and defines its properties (including visuals), behavior, birthrights and so on.
+** It's expected to be practically static during the lifetime of the object. Typically, the object is created with the archetype and keeps it forever.
+** Only one can be assigned to the object directly.
+** Can be extended, can extend other structural or abstract archetypes.
 
-* structural - only one can be assigned to the object directly, can be extended, can extend other structural or abstract archetypes
+* Auxiliary
+** Can be assigned to the object with structural archetype assigned, object can have more than one auxiliary archetypes assigned
+** Allows you model more dynamic situations and complement the main (structural) archetype.
+   For example, if the structural archetype is Person, auxiliary archetypes can be Employee, Customer, Student, Volunteer, and so on.
 
-* auxiliary - can be assigned to the object with structural archetype assigned, object can have more than one auxiliary archetypes assigned
+* Abstract _(not yet supported)_
+** Cannot be assigned directly to object, can be extended, can extend another abstract archetype.
 
-Since version 4.2 it is possible to define hierarchy between structural archetypes, so there can be one parent which is extended by its child.
+Configuration is done using _archetypeType_ property that should not be changed if the archetype is already used.
+Default value is `structural`.
+
+.Archetype type configuration example
+[source,xml]
+----
+<archetype>
+    ...
+    <archetypeType>auxiliary</archetypeType>
+    ....
+</archetype>
+----
+
+=== Archetype Inheritance
+
+It is possible to define hierarchy between structural archetypes, so there can be one parent which is extended by its child.
 To define archetype inheritance, it is needed to point in the child archetype to its parent using _superArchetypeRef_ element, such as in the example below:
 
 .Archetype inheritance
@@ -424,13 +427,9 @@ To define archetype inheritance, it is needed to point in the child archetype to
 </archetype>
 ----
 
-
-=== Archetype Inheritance
-
 Using archetype inheritance, following practices apply:
 
 * basic archetype attributes, such as name, displayName, ... - those defined in archetype which is assigned directly to the object are used.
-
 
 * archetypePolicy - all archetype policies defined either in directly assigned archetype, or super archetypes are merged together.
 
@@ -725,7 +724,7 @@ After assigning _Reconciliation task_ archetype to a task, the merged archetype 
 
 == Limitations
 
-Following limitations for archetype functionality apply in midPoint 4.x:
+Following limitations for archetype functionality apply:
 
 * Archetype assignments must be *direct* and non-conditional.
 Indirect archetype assignments (e.g. inducement in in a role) is not supported.
@@ -734,9 +733,6 @@ Archetypes form a basic backbone of object type system.
 We will need to determine the exact types, schema and policies applying to a particular object to correctly evaluate the conditions and any other complex mechanisms.
 Allowing conditional archetype assignments may lead to all kinds of chicken-and-egg problems.
 Therefore, we are explicitly disallowing indirect and conditional archetype assignments.
-
-* MidPoint 4.0: Only User, Role, Org and Service archetypes are supported in 4.0. Archetypes are designed to work with many object types, including tasks and resources.
-MidPoint 4.4 and later supports archetypes for all assignment holder types.
 
 * Archetypes cannot be applied to archetypes.
 In theory, archetypes may be applied to archetypes themselves, creating meta-archetypes.
@@ -747,12 +743,8 @@ Therefore, use it at your own risk only.
 * An archetype can only be applied to one type.
 For example, `Employee` archetype can be applied to users, `Project` archetype can be applied to orgs, but there cannot be an archetype that is applied both to users and orgs.
 
-* MidPoint 4.0: Archetype assignments are not supposed to change during the lifetime of an object.
-Archetypes should be set once, ideally at the beginning of lifecycle (object created from GUI with an archetype, archetype set by inbound mapping, etc.).
-The archetype should be fixed and it should never change.
-That is expected behavior for midPoint 4.0.
-The behavior was later changed in subsequent midPoint releases.
-In midPoint 4.4, the archetypes can be changes, although in a rather controlled way.
+* Archetypes are typically set once, ideally at the beginning of lifecycle (object created from GUI with an archetype, archetype set by inbound mapping, etc.).
+Nevertheless, the archetypes can be changes, although in a rather controlled way.
 However, there still will be some limitations about archetype change.
 Change of archetype may mean change of object schema, therefore this will always be a sensitive operation.
 
@@ -793,13 +785,6 @@ Assignment relation is used in midPoint 4.0 mostly to render special button for 
 * Archetype colors are not applied in the user interface consistently.
 E.g. the color of "summary panel" on user details page will be red, regardless of the archetype, as red is currently color associated with users.
 This is planned to be improved later.
-
-* User type colors from 3.x are currently hardcoded in the system.
-Therefore users are displayed in the menu as red.
-The plan is to be able to configure this behavior in the future.
-
-* MidPoint 4.0: There was no user interface to conveniently manage archetype definitions.
-User interface is part of midPoint 4.4.
 
 
 Please see xref:/midpoint/features/planned/archetypes/[Archetype Improvements (Planned Feature)] for future plans regarding archetype functionality development.

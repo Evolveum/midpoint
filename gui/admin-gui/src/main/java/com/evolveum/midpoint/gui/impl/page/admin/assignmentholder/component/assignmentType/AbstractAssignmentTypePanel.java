@@ -81,10 +81,10 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     private IModel<PrismContainerWrapper<AssignmentType>> model;
     protected int assignmentsRequestsLimit = -1;
 
-    private Class<? extends Objectable> objectType;
+    private Class<? extends AssignmentHolderType> objectType;
     private String objectOid;
 
-    public AbstractAssignmentTypePanel(String id, IModel<PrismContainerWrapper<AssignmentType>> model, ContainerPanelConfigurationType config, Class<? extends Objectable> type, String oid) {
+    public AbstractAssignmentTypePanel(String id, IModel<PrismContainerWrapper<AssignmentType>> model, ContainerPanelConfigurationType config, Class<? extends AssignmentHolderType> type, String oid) {
         super(id, AssignmentType.class, config);
         this.model = model;
         this.objectType = type;
@@ -694,5 +694,9 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     @Override
     protected boolean isFulltextEnabled() {
         return isRepositorySearchEnabled();
+    }
+
+    protected final Class<? extends AssignmentHolderType> getAssignmentHolderType() {
+        return objectType;
     }
 }

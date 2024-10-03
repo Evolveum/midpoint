@@ -129,6 +129,20 @@
                 </filter>
             </protected>
             <configuredCapabilities>
+                <!-- MID-9765 -->
+                <cap:activation>
+                    <cap:status>
+                        <cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>
+                        <cap:enableValue/>
+                        <cap:disableValue>true</cap:disableValue>
+                    </cap:status>
+                    <cap:lockoutStatus>
+                        <!-- This is fake. But OpenDJ lockout attribute is not modifiable using normal LDAP operations. -->
+                        <cap:attribute>ri:pager</cap:attribute>
+                        <cap:normalValue/>
+                        <cap:lockedValue>1</cap:lockedValue>
+                    </cap:lockoutStatus>
+                </cap:activation>
                 <cap:pagedSearch>
                     <cap:defaultSortField>ri:uid</cap:defaultSortField>
                 </cap:pagedSearch>
@@ -258,26 +272,6 @@
 
     <capabilities>
         <configured>
-            <cap:activation>
-                <cap:status>
-                    <cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>
-                    <cap:enableValue/>
-                    <cap:disableValue>true</cap:disableValue>
-                </cap:status>
-                <cap:lockoutStatus>
-                    <!-- This is fake. But OpenDJ lockout attribute is not modifiable using normal LDAP operations. -->
-                    <cap:attribute>ri:pager</cap:attribute>
-                    <cap:normalValue/>
-                    <cap:lockedValue>1</cap:lockedValue>
-                </cap:lockoutStatus>
-            </cap:activation>
-            <!--
-            <cap:credentials>
-                <cap:password/>
-            </cap:credentials>
-            <cap:liveSync/>
-            <cap:testConnection/>
-            -->
             <cap:create/>
             <cap:read/>
             <cap:update>

@@ -163,7 +163,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
             TEST_DIR, "task-reconcile-dummy-single.xml", "10000000-0000-0000-5656-565600000004");
     private static final TestObject<TaskType> TASK_RECONCILE_DUMMY_FILTER = TestObject.file(
             TEST_DIR, "task-reconcile-dummy-filter.xml", "10000000-0000-0000-5656-565600000014");
-    private static final TestObject<TaskType> TASK_RECONCILE_DUMMY_AZURE = TestObject.file(
+    private static final TestTask TASK_RECONCILE_DUMMY_AZURE = TestTask.file(
             TEST_DIR, "task-reconcile-dummy-azure.xml", "10000000-0000-0000-5656-56560000a204");
     private static final TestObject<TaskType> TASK_RECONCILE_DUMMY_LIME = TestObject.file(
             TEST_DIR, "task-reconcile-dummy-lime.xml", "10000000-0000-0000-5656-565600131204");
@@ -296,6 +296,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         InternalMonitor.reset();
         InternalMonitor.setTrace(InternalOperationClasses.SHADOW_FETCH_OPERATIONS, true);
+
+        initTestObjects(initTask, initResult,
+                TASK_RECONCILE_DUMMY_AZURE); // other tasks will be migrated later
 
 //        DebugUtil.setDetailedDebugDump(true);
     }
@@ -1579,18 +1582,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
         reconciliationResultListener.clear();
 
-        // WHEN
         when();
-        importObject(TASK_RECONCILE_DUMMY_AZURE, task, result);
-
-        // THEN
-        then();
-
-        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE.oid);
+        TASK_RECONCILE_DUMMY_AZURE.rerun(result);
 
         then();
-
-        dumpStatistics(taskAfter);
+        dumpStatistics(getTask(TASK_RECONCILE_DUMMY_AZURE.oid));
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after reconcile", users);
@@ -1641,18 +1637,12 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
         reconciliationResultListener.clear();
 
-        // WHEN
         when();
-        restartTask(TASK_RECONCILE_DUMMY_AZURE.oid);
-
-        // THEN
-        then();
-
-        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE.oid);
-
-        dumpStatistics(taskAfter);
+        TASK_RECONCILE_DUMMY_AZURE.rerun(result);
 
         then();
+        dumpStatistics(getTask(TASK_RECONCILE_DUMMY_AZURE.oid));
+
         reconciliationResultListener.assertResult(RESOURCE_DUMMY_AZURE_OID, 0, 1, 0, 0);
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
@@ -1710,20 +1700,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
         reconciliationResultListener.clear();
 
-        // WHEN
         when();
-        restartTask(TASK_RECONCILE_DUMMY_AZURE.oid);
-
-        // THEN
-        then();
-
-        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE.oid);
-        assertTask(taskAfter, "after")
-                .assertSuccess();
-
-        dumpStatistics(taskAfter);
+        TASK_RECONCILE_DUMMY_AZURE.rerun(result);
 
         then();
+        dumpStatistics(getTask(TASK_RECONCILE_DUMMY_AZURE.oid));
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
 
@@ -1785,18 +1766,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
         reconciliationResultListener.clear();
 
-        // WHEN
         when();
-        restartTask(TASK_RECONCILE_DUMMY_AZURE.oid);
-
-        // THEN
-        then();
-
-        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE.oid);
-
-        dumpStatistics(taskAfter);
+        TASK_RECONCILE_DUMMY_AZURE.rerun(result);
 
         then();
+        dumpStatistics(getTask(TASK_RECONCILE_DUMMY_AZURE.oid));
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after reconcile", users);
@@ -1893,18 +1867,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
         reconciliationResultListener.clear();
 
-        // WHEN
         when();
-        restartTask(TASK_RECONCILE_DUMMY_AZURE.oid);
-
-        // THEN
-        then();
-
-        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE.oid);
-
-        dumpStatistics(taskAfter);
+        TASK_RECONCILE_DUMMY_AZURE.rerun(result);
 
         then();
+        dumpStatistics(getTask(TASK_RECONCILE_DUMMY_AZURE.oid));
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after reconcile", users);
@@ -1967,16 +1934,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
         reconciliationResultListener.clear();
 
-        // WHEN
         when();
-        restartTask(TASK_RECONCILE_DUMMY_AZURE.oid);
 
-        // THEN
-        then();
+        TASK_RECONCILE_DUMMY_AZURE.rerun(result);
 
-        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE.oid);
-
-        dumpStatistics(taskAfter);
+        dumpStatistics(getTask(TASK_RECONCILE_DUMMY_AZURE.oid));
 
         then();
 
@@ -2047,18 +2009,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
         reconciliationResultListener.clear();
 
-        // WHEN
         when();
-        restartTask(TASK_RECONCILE_DUMMY_AZURE.oid);
-
-        // THEN
-        then();
-
-        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE.oid);
-
-        dumpStatistics(taskAfter);
+        TASK_RECONCILE_DUMMY_AZURE.rerun(result);
 
         then();
+        dumpStatistics(getTask(TASK_RECONCILE_DUMMY_AZURE.oid));
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after reconcile", users);

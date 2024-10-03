@@ -66,4 +66,9 @@ public class TestOpenDjIncompletePassword extends TestOpenDj {
         PrismProperty<ProtectedStringType> valueProp = passwordContainer.findProperty(PasswordType.F_VALUE);
         assertTrue("Incomplete flag is NOT set for password value in " + provisioningShadow, valueProp.isIncomplete());
     }
+
+    @Override
+    protected boolean isActivationCapabilityClassSpecific() {
+        return false;
+    }
 }

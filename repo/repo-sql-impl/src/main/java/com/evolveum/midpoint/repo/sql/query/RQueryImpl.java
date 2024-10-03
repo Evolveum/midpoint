@@ -9,10 +9,12 @@ package com.evolveum.midpoint.repo.sql.query;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.repo.sql.util.RUtil;
+
+import jakarta.persistence.Query;
 import org.hibernate.HibernateException;
 import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
-import org.hibernate.query.Query;
 
 import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
 
@@ -22,9 +24,9 @@ import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
 public class RQueryImpl implements RQuery {
 
     private final HibernateQuery querySource; // only for diagnostic purposes
-    private final Query<?> query;
+    private final Query query;
 
-    public RQueryImpl(Query<?> query, HibernateQuery querySource) {
+    public RQueryImpl(Query query, HibernateQuery querySource) {
         Objects.requireNonNull(query, "Query must not be null.");
         this.query = query;
         this.querySource = querySource;
@@ -33,21 +35,21 @@ public class RQueryImpl implements RQuery {
     @Override
     public <T> List<T> list() throws HibernateException {
         //noinspection unchecked
-        return (List<T>) query.list();
+        return (List<T>) query.getResultList();
     }
 
     @Override
     public <T> T uniqueResult() throws HibernateException {
         //noinspection unchecked
-        return (T) query.uniqueResult();
+        return (T) RUtil.getSingleResultOrNull(query);
     }
 
     @Override
-    public ScrollableResults scroll(ScrollMode mode) throws HibernateException {
-        return query.scroll(mode);
+    public ScrollableResults<?> scroll(ScrollMode mode) throws HibernateException {
+        return query.unwrap(org.hibernate.query.Query.class).scroll(mode);
     }
 
-    public Query<?> getQuery() {
+    public Query getQuery() {
         return query;
     }
 

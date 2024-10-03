@@ -259,10 +259,10 @@ public class RequestAccess implements Serializable {
      * Matching will be done only based on targetRef (oid, type and relation)
      */
     private boolean matchAssignments(AssignmentType one, AssignmentType two) {
-        return matchAssignments(one, two, false);
+        return matchAssignments(one, two, true);
     }
 
-    private boolean matchAssignments(AssignmentType one, AssignmentType two, boolean ignoreRelation) {
+    private boolean matchAssignments(AssignmentType one, AssignmentType two, boolean checkRelation) {
         if (one == null && two == null) {
             return true;
         }
@@ -274,24 +274,24 @@ public class RequestAccess implements Serializable {
         ObjectReferenceType oneTarget = one.getTargetRef();
         ObjectReferenceType twoTarget = two.getTargetRef();
 
-        return referencesEqual(oneTarget, twoTarget, ignoreRelation);
+        return referencesEqual(oneTarget, twoTarget, checkRelation);
     }
 
     /**
      * @param assignments list of assignments to search from
      * @param assignment assignment used to find matching one
-     * @param ignoreRelation if true, relation will be ignored during matching
+     * @param checkRelation if true, relation will be ignored during matching
      * @return assignment from list that matches given assignment (based on targetRef)
      */
     private AssignmentType findMatchingAssignment(
-            Collection<AssignmentType> assignments, AssignmentType assignment, boolean ignoreRelation) {
+            Collection<AssignmentType> assignments, AssignmentType assignment, boolean checkRelation) {
 
         if (assignments == null || assignment == null) {
             return null;
         }
 
         return assignments.stream()
-                .filter(a -> referencesEqual(a.getTargetRef(), assignment.getTargetRef(), ignoreRelation))
+                .filter(a -> referencesEqual(a.getTargetRef(), assignment.getTargetRef(), checkRelation))
                 .findFirst()
                 .orElse(null);
     }
@@ -356,7 +356,7 @@ public class RequestAccess implements Serializable {
         }
 
         for (AssignmentType a : assignments) {
-            AssignmentType matching = findMatchingAssignment(templateAssignments, a, false);
+            AssignmentType matching = findMatchingAssignment(templateAssignments, a, true);
             this.templateAssignments.remove(matching);
 
             for (ObjectReferenceType ref : requestItems.keySet()) {
@@ -424,7 +424,7 @@ public class RequestAccess implements Serializable {
         }
 
         return assignments.stream()
-                .filter(a -> referencesEqual(a.getTargetRef(), targetRef, false))
+                .filter(a -> referencesEqual(a.getTargetRef(), targetRef, true))
                 .findFirst()
                 .orElse(null);
     }
@@ -715,7 +715,7 @@ public class RequestAccess implements Serializable {
 
         // check if we didn't remove last instance of assignment for specific role from requestedItems
         // if so we have to remove it from selectedAssignments as well
-        AssignmentType selected = findMatchingAssignment(templateAssignments, toRemove.getAssignment(), false);    // selected from role catalog
+        AssignmentType selected = findMatchingAssignment(templateAssignments, toRemove.getAssignment(), true);    // selected from role catalog
         boolean found = false;
         for (List<AssignmentType> list : requestItems.values()) {
             if (list.stream().anyMatch(a -> matchAssignments(a, selected))) {
@@ -1022,7 +1022,7 @@ public class RequestAccess implements Serializable {
     }
 
     public void updateSelectedAssignment(AssignmentType updated) {
-        AssignmentType matching = findMatchingAssignment(templateAssignments, updated, false);
+        AssignmentType matching = findMatchingAssignment(templateAssignments, updated, true);
         if (matching == null) {
             return;
         }
@@ -1052,14 +1052,34 @@ public class RequestAccess implements Serializable {
         return canAddTemplateAssignment(newTargetRef, constraints);
     }
 
+    private boolean hasSimilarMembership(List<ObjectReferenceType> memberships, ObjectReferenceType newTargetRef, boolean allowSameTarget, boolean allowSameRelation) {
+        List<ObjectReferenceType> equalMemberships = memberships.stream()
+                .filter(m -> referencesEqual(newTargetRef, m, false))
+                .toList();
+
+        if (equalMemberships.isEmpty()) {
+            return false;
+        }
+
+        if (!allowSameTarget) {
+            return true;
+        }
+
+        if (allowSameRelation) {
+            return false;
+        }
+
+        return equalMemberships.stream().anyMatch(r -> Objects.equals(r.getRelation(), newTargetRef.getRelation()));
+    }
+
     private boolean canAddTemplateAssignment(ObjectReferenceType newTargetRef, AssignmentConstraintsType constraints) {
         boolean allowSameTarget = isAllowSameTarget(constraints);
         boolean allowSameRelation = isAllowSameRelation(constraints);
 
-        // if everyone in "shopping cart" has already this assignment, we can't add it again
+        // if everyone in "shopping cart" has already this assignment, we can't add it again (this also depends on constraints)
         boolean allPoiHasMatching = true;
         for (List<ObjectReferenceType> memberships : existingPoiRoleMemberships.values()) {
-            boolean found = memberships.stream().anyMatch(m -> referencesEqual(newTargetRef, m, allowSameTarget, allowSameRelation));
+            boolean found = hasSimilarMembership(memberships, newTargetRef, allowSameTarget, allowSameRelation);
             if (!found) {
                 allPoiHasMatching = false;
             }
@@ -1076,27 +1096,11 @@ public class RequestAccess implements Serializable {
 
                     // we do care about relation in shopping cart, since we don't want to have multiple equals assignments for same role
                     // that would fully mess up shopping cart handling (removing, modification of assignments) - if assignments aren't unique
-                    return referencesEqual(newTargetRef, aTargetRef, allowSameTarget, false);
+                    return referencesEqual(newTargetRef, aTargetRef, true);
                 });
     }
 
-    private boolean containsReference(List<ObjectReferenceType> references, ObjectReferenceType ref, boolean ignoreRelation) {
-        if (references == null) {
-            return false;
-        }
-
-        return references.stream().anyMatch(r -> referencesEqual(r, ref, ignoreRelation));
-    }
-
-    private boolean referencesEqual(ObjectReferenceType one, ObjectReferenceType two) {
-        return referencesEqual(one, two, false, false);
-    }
-
-    private boolean referencesEqual(ObjectReferenceType one, ObjectReferenceType two, boolean ignoreRelation) {
-        return referencesEqual(one, two, false, ignoreRelation);
-    }
-
-    private boolean referencesEqual(ObjectReferenceType one, ObjectReferenceType two, boolean ignoreTarget, boolean ignoreRelation) {
+    private boolean referencesEqual(ObjectReferenceType one, ObjectReferenceType two, boolean checkRelation) {
         if (one == null && two == null) {
             return true;
         }
@@ -1110,12 +1114,8 @@ public class RequestAccess implements Serializable {
         }
 
         // oid & type already equal here
-        if (!ignoreTarget) {
+        if (!checkRelation) {
             return true;
-        }
-
-        if (ignoreRelation) {
-            return !ignoreTarget;
         }
 
         return Objects.equals(one.getRelation(), two.getRelation());

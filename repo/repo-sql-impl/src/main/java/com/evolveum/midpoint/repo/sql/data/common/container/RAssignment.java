@@ -9,13 +9,12 @@ package com.evolveum.midpoint.repo.sql.data.common.container;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import jakarta.persistence.Entity;
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.*;
-import javax.xml.datatype.XMLGregorianCalendar;
-
 import org.hibernate.annotations.*;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
@@ -36,6 +35,8 @@ import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
 
 @JaxbType(type = AssignmentType.class)
 @Entity
@@ -93,15 +94,15 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
     }
 
     @Override
-    @Id
-    @JoinColumn(foreignKey = @ForeignKey(name = "fk_assignment_owner"))
-    @MapsId("owner")
+    @JoinColumn(name = "owner_oid", referencedColumnName = "oid", foreignKey = @ForeignKey(name = "fk_assignment_owner"))
+    @MapsId
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable
     public RObject getOwner() {
         return owner;
     }
 
+    @Id
     @Override
     @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
     @OwnerIdGetter()
@@ -122,6 +123,7 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
         return id;
     }
 
+    @JdbcType(IntegerJdbcType.class)
     @Enumerated(EnumType.ORDINAL)
     public RAssignmentOwner getAssignmentOwner() {
         return assignmentOwner;
@@ -151,10 +153,13 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
     @com.evolveum.midpoint.repo.sql.query.definition.Any(jaxbNameLocalPart = "extension")
     @OneToOne(orphanRemoval = true)
     @Cascade({ org.hibernate.annotations.CascadeType.ALL })
-    @JoinColumns(value = {
-            @JoinColumn(name = "extOid", referencedColumnName = "owner_owner_oid"),
-            @JoinColumn(name = "extId", referencedColumnName = "owner_id")
-    }, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    @JoinColumns(
+            value = {
+                    @JoinColumn(name = "extOid", referencedColumnName = "owner_owner_oid"),
+                    @JoinColumn(name = "extId", referencedColumnName = "owner_id")
+            },
+            foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT)
+    )
     public RAssignmentExtension getExtension() {
         return extension;
     }

@@ -146,10 +146,6 @@ Introduced in midPoint 3.9.
 
 === Using empty username and password
 
-++++
-{% include since.html since="4.2" %}
-++++
-
 It is possible to connect to the database without specifying password or username or both.
 Examples are PostgreSQL trust authentication (though definitely not recommended for serious deployments) or Microsoft SQL Server with integrated security.
 
@@ -159,12 +155,8 @@ See bug:MID-5342[].
 
 == Schema creation and updating
 
-++++
-{% include since.html since="3.9" %}
-++++
 
-In midPoint 3.9 we have implemented a more flexible and powerful approach to schema validation and maintenance.
-It replaces the standard Hibernate ORM approach.
+Midpoint provides flexible and powerful approach to schema validation and maintenance.
 It is enabled by setting `hibernateHbm2ddl` parameter to `none`, which is now the default for non-H2 databases.
 
 What it does:
@@ -174,7 +166,6 @@ What it does:
 .. running standard Hibernate schema validation procedure (just like `validate` option for `hibernateHbm2ddl` would do),
 
 .. examining explicit schema version by looking at parameter `databaseSchemaVersion` in `m_global_metadata` table.
-This is a new table introduced in midPoint 3.9.
 
 . Then it acts upon these data, either by
 

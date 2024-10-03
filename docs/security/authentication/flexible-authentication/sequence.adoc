@@ -1,0 +1,261 @@
+---
+midpoint-feature: flexible-authentication
+doc-type: config
+---
+= Authentication Sequence
+:page-nav-title: Sequence
+:page-wiki-name: Flexible Authentication Configuration
+:page-wiki-id: 41517151
+:page-wiki-metadata-create-user: lskublik
+:page-wiki-metadata-create-date: 2019-11-25T09:32:45.286+01:00
+:page-toc: top
+:toclevels: 3
+:page-visibility: hidden
+// Hidden page, because it's just copy of configuration page
+
+
+Sequence consists of following elements:
+
+[%autowidth]
+|===
+| Name | Description | Required | Type
+
+| `name`
+| Unique name of the authentication sequence.
+This name is fact a short identifier.
+It is supposed to give some idea about purpose of the sequence to system administrator.
+But it is not supposed to be used as a user-friendly label.
+Sequence name must be unique.
+
+*`name` attribute is DEPRECATED, use `identifier` instead.*
+| true
+| _String_
+
+| `identifier`
+| Unique identifier of the authentication sequence.
+Short identifier.
+It is supposed to give some idea about purpose of the sequence to system administrator.
+But it is not supposed to be used as a user-friendly label.
+Sequence name must be unique.
+| true
+| _String_
+
+| `description`
+| Free form description of the sequence (administrator comment).
+| false
+| _String_
+
+
+| `channel`
+| Specification of channel for authentication sequence.
+| false
+| _AuthenticationSequenceChannelType_
+
+
+| `requireAssignmentTarget`
+| Required assignment target.
+This authentication sequence is applicable only to users that have active assignment with this target (and relation).
+If the sequence is attempted on a user that does not have this assignment then the authentication will fail.
+| false
+| _ObjectReferenceType_
+
+
+| `nodeGroup`
+| Required node group.
+This authentication sequence is applicable only to node group that have active assignment with this archetype.
+| false
+| _ObjectReferenceType_
+
+
+| `module`
+| Specification of authentication module in the sequence.
+| true
+| _AuthenticationSequenceModuleType_
+
+
+| `focusBehaviorUpdate`
+| Option for updating focus authentication behaviour attributes.
+| false
+| _FocusBehaviorUpdateType_
+
+|===
+
+== FocusBehaviorUpdateType
+
+We can enable/disable updating of focus authentication behavior (such as information about last login time) during every login, or we can use option for updating behaviour only when login failed and during success login after failed login. Default value is 'enabled'. Possible values are:
+
+[%autowidth]
+|===
+| Value | Description
+
+| `enabled`
+| Behaviour attributes will be updated every login.
+
+
+| `disabled`
+| Authentication behaviour attributes will not be updated during login.
+
+
+| `failureOnly`
+| Authentication behaviour attributes will be updated when login failed and when login will be success, but previous login was failed and midPoint needs to update attributes as is number of login fails and lockout state.
+
+|===
+
+== AuthenticationSequenceChannelType
+
+Channel specification for authentication sequence.
+It specifies whether this sequence is usable for a specific channel (user/GUI, REST, etc.) _AuthenticationSequenceChannelType_ contains following attributes:
+
+[%autowidth]
+|===
+| Name | Description | Required | Type
+
+| `channelId`
+| Name (URI) of the channel.
+| true
+| _String_
+
+
+| `description`
+| Free form description (administrator comment).
+| false
+| _String_
+
+
+| `default`
+| Specifies whether this sequence is the default sequence for a specified channel. +
+The default sequence will be chosen in case that specific sequence was not requested, e.g. by using URL suffix.
+If this element is not present and only a single sequence is defined for a channel, then such sequence is considered to be the default. +
+If more than one sequence is specified then none of them is considered to be default.
+In that case this element must be used explicitly.
+| false
+| _boolean_
+
+
+| `urlSuffix`
+| URL suffix that can be used to select this authentication sequence specifically.
+| true
+| _String_
+
+|===
+
+
+== AuthenticationSequenceModuleType
+
+Specification of authentication module in the sequence.
+The authentication modules are evaluated in sequence (or in parallel if possible).
+At least one authentication module must succeed for authentication to be successful.
+If there are required or requisite modules in the sequence then all of them must succeed for the sequence to be successful.
+_AuthenticationSequenceModuleType_ contains following attributes:
+
+[%autowidth]
+|===
+| Name | Description | Required | Type
+
+| `name`
+| Reference to the authentication module name.
+Value of this element must match name of existing authentication module.
+
+*`name` attribute is DEPRECATED, use `identifier` instead.*
+| true
+| _String_
+
+| `identifier`
+| Reference to the authentication module identifier.
+Value of this element must match the identifier of existing authentication module.
+| true
+| _String_
+
+| `description`
+| Free form description (administrator comment).
+| false
+| _String_
+
+
+| `order`
+| Ordering number for the module.
+The modules are sorted according to those numbers.
+| false
+| 100
+
+
+| `necessity`
+| Necessity, i.e. the level of requirement, whether the module is mandatory or optional.
+| false
+| SUFFICIENT
+
+| `acceptEmpty`
+| Some modules might be automatically skipped if the concrete type of credentials is not defined.
+E.g. if there is no "hint" defined for the user, we can skip evaluation of the hint module.
+The same can apply for example for security questions.
+In case the module can be skipped, accept empty must be set to `true`. When such module exits and it is skipped, it is marked as CALLED_OFF in the sequence.
+| false
+| false
+
+|===
+
+There is one hard-coded behavior for modules which defines if the module itself is strong enough for authentication to succeed. FocusIdentification, Hint and AttributeVerification module are three specific modules, which are marked as not enough when exist on their own. Even when the sequence consist of other modules (sufficient) which were evaluated as failed and only those three (combination or one of them) succeed, the result of the authentication is failure.
+
+=== Necessity
+
+Each module defined in sequence can define its necessity. Following necessity levels are available:
+
+* `SUFFICIENT` - The module is sufficient for authentication to succeed.
+It is NOT required to succeed.
+If this module succeeds, the evaluation stops.
+The result is a success. Other modules are NOT evaluated.
+Except for the case when "required" module that was evaluated before has failed.
+If this module fails, the evaluation continues.
+Other modules are evaluated.
+* `REQUIRED` - The module is required.
+The module must succeed for the entire sequence to be successful.
+If this module succeeds, the evaluation continues.
+Other modules are evaluated.
+If this module fails, the evaluation continues.
+Other modules are evaluated.
+Final result of authentication sequence is a failure.
+* `REQUISITE` - The module is required.
+The module must succeed for the entire sequence to be successful.
+If this module succeeds, the evaluation continues.
+Other modules are evaluated.
+If this module fails, the evaluation stops with an error.
+Other modules are NOT evaluated.
+Final result of authentication sequence is a failure.
+* `OPTIONAL` - The module is optional.
+It is NOT required to succeed.
+Optional module does not really influence the result of the authentication.
+But it may be used to add some authentication attributes, it may be used to  cross-authenticate is SSO realms and so on.
+If this module succeeds, the evaluation continues.
+If this module fails, the evaluation continues.
+The result of the sequence is a failure only if this is the only module in the sequence, and it fails.
+
+The necessity levels might be combined. E.g. there might be a sequence consisting of three different modules each defined with different necessity level.
+The evaluation of the authentication is performed after each module.
+If `SUFFICIENT` module is found and its evaluation was successful, all previous modules are checked. In case, all previously `REQUIRED` and `REQUISITE` modules were successful, the authentication ends with the success. If any of them failed, authentication continues. All other modules defined in the sequence are evaluated and the result of the authentication is failure.
+
+If evaluation for `SUFFICIENT` module failed, authentication continues according to the sequence defined. In case, there are `REQUIRED` modules and all of them are successful, despite the `SUFFICIENT` module failed, authentication is evaluated as successful.
+Only if the `SUFFICIENT` module is last and its evaluation failed, the whole authentication is evaluated as failed. Last `SUFFICIENT` module in the sequence MUST be successful for authentication to succeed.
+
+If any of the `REQUISITE` modules failed, authentication stops and the result is failure.
+
+
+== Selecting the authentication sequence
+
+We can illustrate the authentication sequence flow with two examples.
+
+=== First scenario
+
+MidPoint receives an HTTP request with the URL `http://localhost:8080/midpoint/actuator/metrics`.
+
+It extracts the suffix 'actuator' from the URL and by it determines the channel (see table above).
+This channel is then used to search for the default authentication sequence associated with that channel.
+Once found, midPoint initializes the authentication sequence and, upon successful authentication, sends a request to the actuator service.
+
+=== Second scenario
+
+In the second scenario, midPoint receives an HTTP request with the URL `http://localhost:8080/midpoint/auth/emergency/users`.
+
+Here, it extracts the 'auth' suffix from the URL, which signifies the use of a specific authentication sequence.
+MidPoint then proceeds to search for the appropriate authentication sequence based on the next part of the URL, which, in this case, is 'emergency'.
+After successfully authenticating, midPoint sends a request to the service defined in the sequence configuration.
+For example, if it is a GUI, the request would be redirected to the users page in the GUI.

@@ -6,6 +6,10 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.INTENT_DEFAULT;
+import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ACCOUNT;
+
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -15,6 +19,7 @@ import java.io.File;
 import java.util.List;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.test.DummyTestResource;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -72,6 +77,10 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
             TEST_DIR, "resource-target-1.xml", "86100e19-1052-4913-8551-b2cef402c85d", "target-1");
     private static final DummyTestResource RESOURCE_TARGET_2 = new DummyTestResource(
             TEST_DIR, "resource-target-2.xml", "1f594726-59ce-4ed6-a6bb-e39a3d0770c7", "target-2");
+    private static final DummyTestResource RESOURCE_MAPPING_STRENGTHS = new DummyTestResource(
+            TEST_DIR, "resource-mapping-strengths.xml", "3bbe4c63-ff4f-489e-9a94-977adec4b24d",
+            "mapping-strengths",
+            c -> c.extendSchemaPirate());
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -83,7 +92,8 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
                 ARCHETYPE_PERSON,
                 RESOURCE_SOURCE,
                 RESOURCE_TARGET_1,
-                RESOURCE_TARGET_2);
+                RESOURCE_TARGET_2,
+                RESOURCE_MAPPING_STRENGTHS);
     }
 
     private enum FocusOperation {RECONCILE, RECOMPUTE}
@@ -198,7 +208,7 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
 
         cleanUpBeforeTest(task, result);
 
-        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, SchemaConstants.INTENT_DEFAULT, task, result);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, INTENT_DEFAULT, task, result);
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
         display("Jack with account", jack);
         assertEquals("Unexpected # of accounts for jack", 1, jack.asObjectable().getLinkRef().size());
@@ -306,7 +316,7 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
         display("Jack on start", jack);
         if (!jack.asObjectable().getAssignment().isEmpty()) {
-            unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_OID, SchemaConstants.INTENT_DEFAULT, task, result);
+            unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_OID, INTENT_DEFAULT, task, result);
             jack = getUser(USER_JACK_OID);
             display("Jack after initial unassign", jack);
         }
@@ -325,7 +335,7 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
     }
 
     private void cleanUpAfterTest(Task task, OperationResult result) throws Exception {
-        unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_OID, SchemaConstants.INTENT_DEFAULT, task, result);
+        unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_OID, INTENT_DEFAULT, task, result);
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
         display("Jack after cleanup", jack);
         assertEquals("Unexpected # of accounts for jack after cleanup", 0, jack.asObjectable().getLinkRef().size());
@@ -421,6 +431,81 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
 
         // TODO It is questionable if we should check "bring resource up and reconcile the user" scenario here,
         //  or if it's in the scope of more advanced consistency tests (like TestConsistencyMechanism in story tests).
+    }
+
+    /**
+     * There are mappings of various strengths.
+     *
+     * - fullname mapping is weak
+     * - description mapping is normal
+     * - location mapping is strong
+     *
+     * The resource is not reachable, and these mappings are executed in midPoint.
+     * Only the results of normal and strong mappings should be propagated to the resource.
+     *
+     * MID-9861
+     */
+    @Test
+    public void test310WeakMappingWithUnreachableResource() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = getTestNameShort();
+        var dummyResource = RESOURCE_MAPPING_STRENGTHS.getDummyResource();
+
+        given("a user with an account on the resource");
+        var user = new UserType()
+                .name(userName)
+                .assignment(RESOURCE_MAPPING_STRENGTHS.assignmentWithConstructionOf(ACCOUNT, INTENT_DEFAULT));
+        addObject(user, task, result);
+
+        and("attributes are set externally for the account and resource is made unreachable");
+        var account = dummyResource.getAccountByUsername(userName);
+        account.addAttributeValue(DummyAccount.ATTR_FULLNAME_NAME, "Mr. Dummy");
+        account.addAttributeValue(DummyAccount.ATTR_DESCRIPTION_NAME, "from dummy");
+        account.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "dummy");
+        dummyResource.setBreakMode(BreakMode.NETWORK);
+
+        when("respective properties are set in midPoint (to values different from the above ones)");
+        executeChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_FULL_NAME)
+                        .replace(PolyString.fromOrig("Mr. MidPoint"))
+                        .item(UserType.F_DESCRIPTION)
+                        .replace("from midpoint")
+                        .item(UserType.F_LOCALITY)
+                        .replace(PolyString.fromOrig("midpoint"))
+                        .asObjectDelta(user.getOid()),
+                null, task, result);
+
+        var shadow = findShadowByPrismName(userName, RESOURCE_MAPPING_STRENGTHS.controller.getResource(), result);
+        displayDumpable("shadow after user is changed but resource is unreachable", shadow);
+
+        and("resource is made reachable and pending changes are executed (via shadow refresh)");
+        dummyResource.setBreakMode(BreakMode.NONE);
+        provisioningService.refreshShadow(shadow, null, task, result);
+
+        then("full name should be kept intact, others should be changed");
+        assertDummyAccountByUsername(RESOURCE_MAPPING_STRENGTHS.name, userName)
+                .assertFullName("Mr. Dummy")
+                .assertDescription("from midpoint")
+                .assertLocation("midpoint");
+
+        when("resource is made unreachable again and the user is reconciled");
+        dummyResource.setBreakMode(BreakMode.NETWORK);
+        reconcileUser(user.getOid(), task, result);
+
+        shadow = findShadowByPrismName(userName, RESOURCE_MAPPING_STRENGTHS.controller.getResource(), result);
+        displayDumpable("shadow after user is reconciled but resource is unreachable", shadow);
+
+        and("resource is made reachable and pending changes are executed (via shadow refresh)");
+        dummyResource.setBreakMode(BreakMode.NONE);
+        provisioningService.refreshShadow(shadow, null, task, result);
+
+        then("full name should be kept intact, description should be changed");
+        assertDummyAccountByUsername(RESOURCE_MAPPING_STRENGTHS.name, userName)
+                .assertFullName("Mr. Dummy")
+                .assertDescription("from midpoint")
+                .assertLocation("midpoint");
     }
 
     /**

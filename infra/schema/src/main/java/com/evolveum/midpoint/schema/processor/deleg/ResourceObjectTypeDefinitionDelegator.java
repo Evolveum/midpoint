@@ -3,6 +3,7 @@ package com.evolveum.midpoint.schema.processor.deleg;
 import com.evolveum.midpoint.schema.processor.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 
 import org.jetbrains.annotations.NotNull;
@@ -54,6 +55,11 @@ public interface ResourceObjectTypeDefinitionDelegator extends ResourceObjectDef
     @Override
     default <T extends CapabilityType> @Nullable T getConfiguredCapability(Class<T> capabilityClass) {
         return delegate().getConfiguredCapability(capabilityClass);
+    }
+
+    @Override
+    default @Nullable CapabilityCollectionType getSpecificCapabilities() {
+        return delegate().getSpecificCapabilities();
     }
 
     @Override

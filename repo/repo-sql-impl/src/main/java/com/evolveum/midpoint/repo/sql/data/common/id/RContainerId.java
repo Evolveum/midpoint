@@ -24,12 +24,12 @@ public class RContainerId implements Serializable {
         this.ownerOid = oid;
     }
 
-    public Integer getId() {
-        return id;
-    }
-
     public String getOwnerOid() {
         return ownerOid;
+    }
+
+    public Integer getId() {
+        return id;
     }
 
     public void setId(Integer id) {

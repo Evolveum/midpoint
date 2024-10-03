@@ -1,14 +1,14 @@
 ---
 layout: release
-release-version: '4.8.3'
+release-version: '4.8.4'
 visibility: hidden
 ---
-= MidPoint 4.8 "Curie" - Update 3
-:release-version: 4.8.3
+= MidPoint 4.8 "Curie" - Update 4
+:release-version: 4.8.4
 :page-liquid:
 :page-toc: top
 
-Release {release-version} is a fifty-fifth midPoint release, code-named _Curie_.
+Release {release-version} is a fifty-ninth midPoint release, code-named _Curie_.
 The {release-version} release brings security, stability and miscellaneous bugfixes.
 
 ++++
@@ -27,8 +27,74 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 {% include release-dedication.html content=dedicationContent %}
 ++++
 
+== Changes with Respect To Version 4.8.3
+
+* Spring Boot/Hibernate upgrade
+** Spring Boot was upgraded to 3.3.2 and Hibernate ORM to 6.5.
+** H2 database was upgraded to 2.3.230. This version is not binary compatible with previous version, so export/import of whole repository would be necessary during upgrade.
+* Request access wizard multiple fixes
+** Person of interest existing target selection was replaced with new one when using manual selection. See bug:MID-9761[].
+** Search keywords used in the role catalog were not maintained. See bug:MID-9685[].
+** Improved shopping cart summary - list of users in tooltip now contains name. See bug:MID-9762[].
+** Fixed search filter - now using relation when listing roles of teammates. See bug:MID-9698[].
+* Missing translation for boolean values fixed. See bug:MID-9865[].
+* Fixed NPE during navigation when editing object on repository pages. See bug:MID-9677[].
+* Fixed search on home page - after redirect to list of objects old search filter was used. See bug:MID-9875[].
+* Added better validation for OID format for object and object references. See bug:MID-9852[].
+* Saving filter now doesn't trigger reconciliation, raw flag is used. See bug:MID-9744[].
+* Fixed initial-midpoint-home setup. See bug:MID-9885[].
+* When evaluating mappings, checking for conflicts for single-valued items was fixed (strengthened).
+See bug:MID-9621[] and xref:#_behavior_changes_since_4_8_3[behavior changes since 4.8.3].
+* Fixed getting currently logged users on another node. See bug:MID-9746[].
+* Fixed redirecting from the Preview Changes panel to the Details panel when the panel configuration doesn't contain panelType.
+See bug:MID-9699[].
+* Fixed missing value in lookup table for lifecycle state displayed in `LifecycleStatePanel`. See bug:MID-9637[].
+* Disabled full-text search for the Construction Step panel of the Role Wizard. See bug:MID-9693[].
+* Fixed saved search state of assignment panel on pages of different assignment holder type. See bug:MID-9457[].
+* Fixed memory leak in `MidpointAutowiredBeanFactoryObjectPostProcessor` caused by un-destroyed unused authentication filters.
+See bug:MID-9580[] and bug:MID-9834[].
+* Fixed full-text search panel for assignments panels that used a custom collection filter. See bug:MID-9692[].
+* Fixed updating of model before form validation by expression validator with dependency on another attribute. See bug:MID-9688[].
+* Fixed resolving container value id when adding two new assignments generated from scripts. See bug:MID-9743[].
+* Added a confirmation dialogue after changing the resource lifecycle state. See bug:MID-9315[].
+* Fixed configuration of the date/time parameters during report running. See bug:MID-9828[].
+* Fixed search filter saving on the tasks list page. See bug:MID-9751[].
+* Fixed Enter key behavior during the search in the popup window. See bug:MID-9831[].
+* Fixed localization of the confirmation messages during some member operations on the org. members panel. See bug:MID-9829[].
+* Improved a reset of the user's lockout status through GUI to clean up lockout expiration and failed attempts values as well. See bug:MID-9856[].
+* Improved page header styles for better layout of the title, breadcrumbs and other elements. See bug:MID-9742[].
+* Fixed "Rows per page" setting in the table view. See bug:MID-9766[].
+* Fixed "Out of memory" problem while producing a bulk action on the work items page. See bug:MID-9671[].
+* Added `verify-audit` action to Ninja which reports audits records with incorrect oids. See bug:MID-9450[].
+* Widgets which use filters supported only in native repository now display warning with reason instead of an empty state. See bug:MID-9854[].
+* Fixed import object issue, when previous version of role had only inducements and new version also has assignments. See bug:MID-9876[].
+* Fixed shopping cart details panel to show all the necessary properties. See bug:MID-9858[].
+* Fixed org. structure search in members. See bug:MID-9905[].
+* Fixed showing Save button when `#modify` execution-phase item-limited authorization is present. See bug:MID-9898[].
+* Improved the optimizing triggers creator, so that it works also throughout the cluster. See bug:MID-9368[].
+* Fixed incorrect displaying owner/approver relations in "All direct/indirect assignments" panel. See bug:MID-9467[].
+* Added `midpoint.isFocusDeleted()` method to allow keeping projections' data when focus is being deleted. See bug:MID-9669[].
+* Fixed `filter` option support in `ninja` command. See bug:MID-9881[].
+* Fixed `NullPointerException` in Midpoint Java Client. See bug:MID-9772[].
+* Fixed the "unlink" functionality for dead shadows. See bug:MID-9668[].
+* Fixed object-class-specific simulated activation. See bug:MID-9765[].
+* Fixed the behavior when manual resource operation `CaseType` object gets accidentally deleted. See bug:MID-9286[].
+* Fixed handling of null or blank values for mail recipients. See bug:MID-9791[].
+* Fixed unwanted deletion of historical `midpoint.log` files at startup. See bug:MID-9833[].
+* Upgraded DatabaseTable Connector to 1.5.2.0 version.
+* Upgraded CSV Connector to 2.8 version.
+* Upgraded LDAP and AD Connector to 3.7.2 version.
+
 == Changes with Respect To Version 4.8.2
 
+* Tomcat container work directory size growing issue fixed. See bug:MID-9430[].
+* GUI header layout improvements. See bug:MID-9579[].
+* Missing localization keys fixed in GUI. See bug:MID-9589[], bug:MID-9610[]
+* Request access wizard
+** Shopping cart summary
+*** Items duplication. See bug:MID-9672[]
+*** Items editor authorizations. See bug:MID-9673[]
+** Role catalog search improvements. See bug:MID-9598[], bug:MID-9686[]
 * New implementation and look of date time picker.
 * Fixed issue with Asynchronous Messaging Connector not working. See bug:MID-9512[].
 * Fixed issue with reporting of errors during search objects in table by axiom query. See bug:MID-9499[] and bug:MID-9400[].
@@ -37,6 +103,7 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 * Fixed `associationFromLink` evaluator for dead shadows. See bug:MID-9468[] and bug:MID-9487[].
 * Fixed handling of related object types that differ in associations. See bug:MID-9591[] and https://github.com/Evolveum/midpoint/commit/6c8ddc2fd1d44d44b6ef0bd49a2c29ece4b57742[this commit].
 * Fixed editing of configuration properties with `const` feature (via XML). See bug:MID-7918[].
+* Added `basic.setExtensionPropertyValues` method. See bug:MID-9554[].
 * Fixed and improved search behaviour for request access role catalog (role tree).
 Now scope and object type can be used to search. See bug:MID-9598[].
 * Fixed closing approval case with 'skip' outcome for last stage. See bug:MID-9533[].
@@ -46,6 +113,21 @@ Now scope and object type can be used to search. See bug:MID-9598[].
 * Adding check option for removing resource data on confirm popup of shadow removing. See bug:MID-9661[].
 * Hide full text search if isn't allow. See bug:MID-9457[].
 * Display all shadows in the table for projections when value for 'dead' search item is 'undefined'. See bug:MID-9659[]
+* Resolving the issue for creating a new member object with predefined by archetype options on members panel.
+* Resolving several issues for Self Credentials page.
+Now password propagation to resource takes into account the script, defined in resource for credentials, in case of the appropriate configuration.
+* Notification sending strategy was added to the general notifier configuration.
+It is possible to configure now if the notification message should be generated once and sent to all recipients in the same form or if the message should be generated for each recipient separately.
+More details can be found in the xrefv:/midpoint/reference/support-4.8/misc/notifications/general/#basic-structure-of-the-notification-definition[Basic structure of the notification definition].
+
+* Fixed edit of resource not working when using Query Language in particular filters. See bug:MID-9532[].
+* Fixed error when displaying particular deltas in history view and audit. See bug:MID-9547[].
+* Fixed error in Groovy scripts when `role.requestable` caused compilation error. See bug:MID-9658[].
+* Fixed incorrect conversion of XML PolyString filters in Query Playground to Query Language. See bug:MID-9413[].
+* Fixed search on Resource Object page - query language now supports attributes, basic search box is updated after switching Object Class. See bug:MID-9593[], bug:MID-9548[].
+** See xrefv:/midpoint/reference/support-4.8/concepts/query/midpoint-query-language/search-using-shadow-attributes/[Search Using Shadow Attributes] for details.
+* Fixed incorrect execution of Ref Filter with Target e.g. `assignment/targetRef matches (relation = manager and @ ( ... ))` in generic repository. See bug:MID-9592[].
+* Fixed Reindex tasks breaking  Simulation Results. See bug:MID-9435[].
 
 * Changes in initial objects:
 ** 250-object-collection-resource.xml: `All resources` object collection was updated with a filter to exclude resource templates.
@@ -90,7 +172,7 @@ See xrefv:/midpoint/reference/support-4.8/admin-gui/midpoint-jar-signature-statu
 - *subscribers who are in the renewal period*: none during the grace period of 90 days
 - *non-subscribers*: disabled cluster communication; if a non-H2 generic repository is used, the GUI would be disabled and the only option would be to set a subscription ID
 
-Please contact our xref:https://evolveum.com/partners/find-a-partner/[official partners] or mailto:sales@evolveum.com to inquire about your subscription options.
+Please contact our https://evolveum.com/partners/find-a-partner/[official partners] or mailto:sales@evolveum.com to inquire about your subscription options.
 
 * xrefv:/midpoint/reference/support-4.8/roles-policies/mining/[Role Mining] Analysis Optimization:
 - Improved efficiency and stability in Role Mining analysis.
@@ -278,13 +360,14 @@ Note that this resulted in migration from Java EE `javax` package names to `jaka
 
 === Releases Of Other Components
 
-* New version (1.5.1.0) of xref:/connectors/connectors/org.identityconnectors.databasetable.DatabaseTableConnector/[DatabaseTable Connector] was released and bundled with midPoint. The connector suggest all names of columns for configuration properties related with name of column.
+* New version (1.5.2.0) of xref:/connectors/connectors/org.identityconnectors.databasetable.DatabaseTableConnector/[DatabaseTable Connector] was released and bundled with midPoint. The connector suggest all names of columns for configuration properties related with name of column.
 
-* New version (2.7) of xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV Connector] was released and bundled with midPoint. The connector suggest all names of columns for configuration properties related with name of column.
+* New version (2.8) of xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV Connector] was released and bundled with midPoint. The connector suggest all names of columns for configuration properties related with name of column.
+** Fixed NPE with multivalue attributes when delimiter is not defined. (bug:MID-8609[]).
+** Fix UTF-8 BOM character in csv file during of discovery functions. (bug:MID-9497[] and bug:MID-9498[]).
 
-* New version (3.7) of LDAP connector bundle (including xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP Connector] and xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.ad.AdLdapConnector/[Active Directory Connector]) was released and bundled with midPoint.
-** This version improve processing of fetching existing entry when updating it in AD connector. (bug:MID-8929[]).
-** Adding configuration option for suppression of user parameter exceptions and log only a warning message.
+* New version (3.7.2) of LDAP connector bundle (including xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP Connector] and xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.ad.AdLdapConnector/[Active Directory Connector]) was released and bundled with midPoint.
+** Adding third error code for AD X_BIND_REQUIRED error. (bug:MID-9724[]).
 
 * Docker images will be released in Docker Hub soon after midPoint {release-version} release.
 
@@ -415,7 +498,7 @@ We are positive that midPoint can be successfully installed on other operating s
 Such installations can be used to for evaluation, demonstration or development purposes.
 However, we do not support these operating systems for production environments.
 The tooling for production use is not maintained, such as various run control (start/stop) scripts, low-level administration and migration tools, backup and recovery support and so on.
-Please see xref:/midpoint/install/platform-support/[] for details.
+Please see xref:/midpoint/install/bare-installation/platform-support/[] for details.
 
 Note that production deployments in Windows environments are supported only for LTS releases.
 
@@ -554,6 +637,8 @@ Following sections provide details regarding release {release-version}.
 
 === Upgrade From MidPoint 4.8.x
 
+When having multiple mappings targeting a single item, please check if there are any additional errors stemming from the strengthened (fixed) checks mentioned in xref:#_behavior_changes_since_4_8_3[behavior changes since 4.8.3].
+
 Please check if there is a need to add authorizations to specific users due to xref:#_behavior_changes_since_4_8_1[behavior changes since 4.8.1].
 
 === Upgrade From MidPoint 4.7.x
@@ -642,7 +727,7 @@ The following list contains a description of changes to the initial objects in t
 The complete new set of initial objects is in the `config/initial-objects` directory in both the source and binary distributions.
 
 _Actions required:_ Please review the changes and apply them appropriately to your configuration. Ninja can help with updating existing initial objects during upgrade procedure using `initial-objects` command.
-For more information see xrefv:/midpoint/reference/support-4.8/deployment/ninja/upgrade-with-ninja/#initial-objects[here].
+For more information see xrefv:/midpoint/reference/support-4.8/deployment/ninja/use-case/upgrade-with-ninja/#initial-objects[here].
 
 * References to removed `category`, `handlerUri`, and `reportOutputOid` properties of tasks were deleted: from task archetypes and from GUI configurations.
 See https://github.com/Evolveum/midpoint/commit/1fe4b60057d040f7424523cf24194bfcb7920f90[1fe4b6], https://github.com/Evolveum/midpoint/commit/b5a331b377a4fff0dbabd82e64da60f0b8c96c2b[b5a331], and https://github.com/Evolveum/midpoint/commit/6887e980c48e45a5ae22642932ed22e0c8b5f665[6887e9].
@@ -785,6 +870,15 @@ _Actions required:_
 * Inspect your configuration for deprecated items, and replace them by their suggested equivalents.
 Make sure you don't use any removed items.
 You can use `ninja` tool for this.
+
+[#_behavior_changes_since_4_8_3]
+=== Behavior Changes Since 4.8.3
+
+* Checking for conflicts for single-valued items was fixed (strengthened).
+In 4.8.3 and before, there were situations that two strong mappings produced different values for a given single-valued item, yet no error was produced.
+(If the item contained the same value that was produced by one of these mappings.)
+Such configurations are in principle unstable, so this kind of errors should be identified and fixed.
+Please see bug:MID-9621[] and https://github.com/Evolveum/midpoint/commit/607236b4d357c9aa67d563d13d434edba6c61d02[this commit].
 
 [#_behavior_changes_since_4_8_1]
 === Behavior Changes Since 4.8.1

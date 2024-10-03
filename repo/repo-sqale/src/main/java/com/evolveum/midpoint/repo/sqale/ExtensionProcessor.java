@@ -26,6 +26,8 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
+import static com.evolveum.midpoint.repo.sqale.jsonb.JsonbUtils.toRealValue;
+
 public class ExtensionProcessor {
 
     private final SqaleRepoContext repositoryContext;
@@ -183,7 +185,7 @@ public class ExtensionProcessor {
         Class<?> realValueType = ExtUtils.getRealValueClass(extItemInfo.valueType);
         if (realValueType != null && !realValueType.isAssignableFrom(realValue.getClass())) {
             throw new IllegalArgumentException("Incorrect real value type '"
-                    + realValue.getClass().getName() + "' for item " + extItemInfo.itemName);
+                    + realValue.getClass().getName() + "' for item " + extItemInfo.itemName + "expecting " + realValueType.getName());
         }
     }
 
@@ -229,16 +231,19 @@ public class ExtensionProcessor {
                 // variants are written in JSONB - but both variants are only written when single value is present
                 // and definition is not provided. If the multi-value is changed later the single-value variant
                 // is removed from JSONB (see code in ExtensionItemDeltaProcessor).
-                switch (mapping.cardinality) {
-                    case SCALAR:
-                        item.setRealValue(attribute.getValue());
-                        break;
-                    case ARRAY:
-                        List<?> value = (List<?>) attribute.getValue();
-                        item.setRealValues(value.toArray());
-                        break;
-                    default:
-                        throw new IllegalStateException("");
+                // Do not overwrite values from full object
+                if (item.isEmpty()) {
+                    switch (mapping.cardinality) {
+                        case SCALAR:
+                            item.setRealValue(toRealValue(attribute.getValue(), definition.getTypeName(), repositoryContext));
+                            break;
+                        case ARRAY:
+                            List<?> value = (List<?>) attribute.getValue();
+                            item.setRealValues(value.stream().map(v -> toRealValue(v, definition.getTypeName(), repositoryContext)).toArray());
+                            break;
+                        default:
+                            throw new IllegalStateException("");
+                    }
                 }
                 if (item.isIncomplete() && (item.getDefinition() == null || !item.getDefinition().isIndexOnly())) {
                     // Item was not fully serialized / probably indexOnly item.

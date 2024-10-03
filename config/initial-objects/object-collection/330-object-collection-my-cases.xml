@@ -10,26 +10,13 @@
     <name>My cases</name>
     <type>CaseType</type>
     <filter>
-        <!--  TODO: Convert to Axiom Query -->
-        <q:and>
-            <q:ref>
-                <q:path>requestorRef</q:path>
-                <expression>
-                    <script>
-                        <code>
-                            import com.evolveum.midpoint.xml.ns._public.common.common_3.*
-                            new ObjectReferenceType().oid(midpoint.principalOid)
-                        </code>
-                    </script>
-                </expression>
-            </q:ref>
-            <q:not>
-                <q:equal>
-                    <q:path>state</q:path>
-                    <q:value>closed</q:value>
-                </q:equal>
-            </q:not>
-        </q:and>
+        <q:text>
+            state != 'closed'
+            and requestorRef = ```
+                import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+                new ObjectReferenceType().oid(midpoint.principalOid)
+                ```
+        </q:text>
     </filter>
     <baseCollection>
         <collectionRef oid="00000000-0000-0000-0000-000000000341" relation="org:default" type="c:ArchetypeType"/>

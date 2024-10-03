@@ -5,27 +5,7 @@ The execution of an xref:../[activity] is primarily driven by the `executionMode
 
 == Execution Mode
 
-=== Before midPoint 4.7
-
-Before 4.7, it is specified like this:
-
-.Listing 1: Specifying activity execution mode before midPoint 4.7
-[source, xml]
-----
-<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-    <!-- ... -->
-    <activity>
-        <!-- ... -->
-        <executionMode>full</executionMode>
-    </activity>
-</task>
-----
-
-=== In midPoint 4.7 and After
-
-In midPoint 4.7, the new `execution` item was created, with the execution mode being one of its properties.
-
-.Listing 2: Specifying activity execution mode in midPoint 4.7
+.Listing 1: Specifying activity execution mode in midPoint 4.7
 [source, xml]
 ----
 <task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
@@ -89,23 +69,19 @@ Only the size of individual buckets is measured (if supported by the item provid
 
 == Other Execution Definition Items
 
-++++
-{% include since.html since="4.7" %}
-++++
-
 .Other execution definition items
 [%header]
 [%autowidth]
 |===
 | Item | Description
 | `configurationToUse`
-| Using `predefined` property, one can select either `production` or `development` configuration.
-| The former is the default one.
+| Using `predefined` property, one can select either `production` or `development` configuration. +
+ The former is the default one.
 |===
 
 An example:
 
-.Listing 3: Selecting the development configuration to be used by the activity
+.Listing 2: Selecting the development configuration to be used by the activity
 [source, xml]
 ----
 <task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">

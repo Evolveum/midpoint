@@ -5,7 +5,6 @@
 :page-wiki-metadata-create-date: 2018-06-21T15:39:42.654+02:00
 :page-wiki-metadata-modify-user: vix
 :page-wiki-metadata-modify-date: 2019-04-03T14:06:39.695+02:00
-:page-since: "3.9"
 :page-upkeep-status: yellow
 :page-alias: { "parent" : "/midpoint/guides/" }
 
@@ -56,10 +55,7 @@ Definition of object collection as a separate midPoint object:
     <name>empls</name>
     <type>UserType</type>
     <filter>
-        <q:equal>
-            <q:path>subtype</q:path>
-            <q:value>EMP</q:value>
-        </q:equal>
+        <q:text>subtype="EMP"</q:text>
     </filter>
 </objectCollection>
 ----

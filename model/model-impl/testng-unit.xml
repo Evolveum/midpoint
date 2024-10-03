@@ -60,6 +60,7 @@
             <class name="com.evolveum.midpoint.model.impl.misc.TestRelationRegistry"/>
             <class name="com.evolveum.midpoint.model.impl.misc.ShadowIntegrityCheckerTest"/>
             <class name="com.evolveum.midpoint.model.impl.misc.TestMiscellaneous"/>
+            <class name="com.evolveum.midpoint.model.impl.TestBugreports" />
         </classes>
     </test>
 </suite>

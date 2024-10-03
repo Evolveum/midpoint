@@ -8,16 +8,33 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import java.io.Serializable;
-import jakarta.persistence.*;
 
+import jakarta.persistence.*;
 import org.hibernate.annotations.DynamicUpdate;
-import org.hibernate.annotations.ForeignKey;
 
 import com.evolveum.midpoint.repo.sql.data.common.id.ROrgClosureId;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.query.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 
+@SqlResultSetMapping(name = "OrgClosureBasic",
+        columns = {
+                @ColumnResult(name = "descendant_oid", type = String.class),
+                @ColumnResult(name = "ancestor_oid", type = String.class),
+                @ColumnResult(name = "val", type = Integer.class),
+        }
+)
+@SqlResultSetMapping(name = "OrgClosureQuickCheck",
+        columns = {
+                @ColumnResult(name = "problems", type = Integer.class)
+        }
+)
+@SqlResultSetMapping(name = "OrgClosureCheckCycles",
+        columns = {
+                @ColumnResult(name = "descendant_oid", type = String.class),
+                @ColumnResult(name = "ancestor_oid", type = String.class),
+        }
+)
 @Ignore
 @IdClass(ROrgClosureId.class)
 @Entity
@@ -58,10 +75,9 @@ public class ROrgClosure implements Serializable {
         this.val = val;
     }
 
-    @MapsId("ancestorOid")
+    @MapsId
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumns({ @JoinColumn(name = "ancestor_oid", referencedColumnName = "oid") })
-    @ForeignKey(name = "fk_ancestor")
+    @JoinColumn(name = "ancestor_oid", referencedColumnName = "oid", foreignKey = @ForeignKey(name = "fk_ancestor"))
     @NotQueryable
     public RObject getAncestor() {
         return ancestor;
@@ -81,10 +97,9 @@ public class ROrgClosure implements Serializable {
         this.ancestor = ancestor;
     }
 
-    @MapsId("descendantOid")
+    @MapsId
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumns({ @JoinColumn(name = "descendant_oid", referencedColumnName = "oid") })
-    @ForeignKey(name = "fk_descendant")
+    @JoinColumn(name = "descendant_oid", referencedColumnName = "oid", foreignKey = @ForeignKey(name = "fk_descendant"))
     @NotQueryable
     public RObject getDescendant() {
         return descendant;
@@ -112,7 +127,6 @@ public class ROrgClosure implements Serializable {
         this.descendantOid = descendantOid;
     }
 
-    @Id
     @Column(name = "val")
     public int getVal() {
         return val;
@@ -129,13 +143,13 @@ public class ROrgClosure implements Serializable {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) { return true; }
-        if (obj == null || getClass() != obj.getClass()) { return false; }
+        if (this == obj) {return true;}
+        if (obj == null || getClass() != obj.getClass()) {return false;}
 
         ROrgClosure that = (ROrgClosure) obj;
 
-        if (ancestor != null ? !ancestor.equals(that.ancestor) : that.ancestor != null) { return false; }
-        if (descendant != null ? !descendant.equals(that.descendant) : that.descendant != null) { return false; }
+        if (ancestor != null ? !ancestor.equals(that.ancestor) : that.ancestor != null) {return false;}
+        if (descendant != null ? !descendant.equals(that.descendant) : that.descendant != null) {return false;}
 
         return true;
     }

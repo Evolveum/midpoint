@@ -17,6 +17,7 @@ import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.xml.namespace.QName;
@@ -80,25 +81,28 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 /**
  * Comprehensive test of assignment evaluator and processor.
  *
+ * ----
  * MMR1 -----------I------------------------------*
- * ^                                             |
- * |                                             I
- * |                                             V
- * MR1 -----------I-------------*-----> MR3      MR4
- * ^        MR2 --I---*        |        |        |
- * |         ^        I        I        I        I
- * |         |        V        V        V        V
- * R1 --I--> R2       O3       R4       R5       R6
+ * ^                                              |
+ * |                                              I
+ * |                                              V
+ * MR1 -----------I-------------*------> MR3      MR4
+ * ^        MR2 --I---*         |        |        |
+ * |         ^        I         I        I        I
+ * |         |        V         V        V        V
+ * R1 --I--> R2       O3        R4       R5       R6
  * ^
  * |
  * |
  * jack
+ * ----
  *
  * Straight line means assignment.
  * Line marked with "I" means inducement.
  *
  * Orders of these inducements are given by the levels of participants, so that each induced role belongs to jack, and each
  * induced metarole belongs to some role. So,
+ *
  * - inducement Rx->Ry is of order 1
  * - inducement MRx->MRy is of order 1
  * - inducement MRx->Ry is of order 2
@@ -129,12 +133,6 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 
     @Autowired private AssignmentProcessor assignmentProcessor;
     @Autowired private Clock clock;
-    @Autowired @Qualifier("modelObjectResolver") private ObjectResolver objectResolver;
-    @Autowired private MappingFactory mappingFactory;
-    @Autowired private MappingEvaluator mappingEvaluator;
-    @Autowired private ActivationComputer activationComputer;
-    @Autowired private ContextLoader contextLoader;
-    @Autowired private ModelBeans modelBeans;
 
     // first part
     private RoleType role1, role2, role4, role5, role6;
@@ -227,6 +225,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
                 "R4-0 R5-0 R6-0 R2-0 O3-0 MR2-1");
         assertAuthorizations(evaluatedAssignment, "R1 R2 O3 R4 R5 R6");
         assertGuiConfig(evaluatedAssignment, "R1 R2 O3 R4 R5 R6");
+
+        assertAppliesToFocusWithAnyRelation(evaluatedAssignment, "R1 R2 O3 R4 R5 R6");
 
         assertSerializable(context);
     }
@@ -361,23 +361,27 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         assertAuthorizations(evaluatedAssignment, "");
         assertGuiConfig(evaluatedAssignment, "");
 
+        assertAppliesToFocusWithAnyRelation(evaluatedAssignment, "R1");
+
         assertSerializable(context);
     }
 
     /**
+     * ----
      * MMR1 -----------I------------------------------*
-     * ^                                             |
-     * |                                             I
-     * |                                             V
-     * MR1 -----------I-------------*-----> MR3      MR4
-     * ^        MR2 --I---*        |        |        |
-     * |         ^        I        I        I        I
-     * |         |        V        V        V        V
-     * R1 --I--> R2       O3       R4       R5       R6
+     * ^                                              |
+     * |                                              I
+     * |                                              V
+     * MR1 -----------I-------------*-----> MR3       MR4
+     * ^        MR2 --I---*         |        |        |
+     * |         ^        I         I        I        I
+     * |         |        V         V        V        V
+     * R1 --I--> R2       O3        R4       R5       R6
      * ^
      * |
      * |
      * jack --D--> barbossa
+     * ----
      *
      * (D = deputy assignment)
      */
@@ -441,23 +445,27 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         assertAuthorizations(evaluatedAssignment, "R1 R2 O3 R4 R5 R6");
         assertGuiConfig(evaluatedAssignment, "R1 R2 O3 R4 R5 R6");
 
+        assertAppliesToFocusWithAnyRelation(evaluatedAssignment, "barbossa R1 R2 O3 R4 R5 R6");
+
         assertSerializable(context);
     }
 
     /**
+     * ----
      * MMR1 -----------I------------------------------*
-     * ^                                             |
-     * |                                             I
-     * |                                             V
+     * ^                                              |
+     * |                                              I
+     * |                                              V
      * MR1 -----------I-------------*-----> MR3      MR4
-     * ^        MR2 --I---*        |        |        |
-     * |         ^        I        I        I        I
-     * |         |        V        V        V        V
-     * R1 --I--> R2       O3       R4       R5       R6
+     * ^        MR2 --I---*         |        |        |
+     * |         ^        I         I        I        I
+     * |         |        V         V        V        V
+     * R1 --I--> R2       O3        R4       R5       R6
      * ^
      * |
      * |
      * jack --D--> guybrush --D--> barbossa
+     * ----
      *
      * (D = deputy assignment)
      */
@@ -595,19 +603,21 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     }
 
     /**
+     * ----
      * MMR1 -----------I------------------------------*
-     * ^                                             |
-     * |                                             I
-     * |                                             V
+     * ^                                              |
+     * |                                              I
+     * |                                              V
      * MR1 -----------I-------------*-----> MR3      MR4
-     * ^        MR2 --I---*        |        |        |
-     * |         ^        I        I        I        I
-     * |         |        V        V        V        V
-     * R1 --I--> R2       O3       R4       R5       R6
+     * ^        MR2 --I---*         |        |        |
+     * |         ^        I         I        I        I
+     * |         |        V         V        V        V
+     * R1 --I--> R2       O3        R4       R5       R6
      * ^
      * A
      * |
      * jack --D--> barbossa
+     * ----
      *
      * (D = deputy assignment) (A = approver)
      */
@@ -668,25 +678,29 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         assertAuthorizations(evaluatedAssignment, "");
         assertGuiConfig(evaluatedAssignment, "");
 
+        assertAppliesToFocusWithAnyRelation(evaluatedAssignment, "R1 barbossa");
+
         assertSerializable(context);
     }
 
     /**
      * Now disable some roles. Their administrative status is simply set to DISABLED.
      *
+     * ----
      * MMR1(D)---------I------------------------------*
-     * ^                                             |
-     * |                                             I
-     * |                                             V
+     * ^                                              |
+     * |                                              I
+     * |                                              V
      * MR1 -----------I-------------*-----> MR3(D)   MR4
-     * ^        MR2 --I---*        |        |        |
-     * |         ^        I        I        I        I
-     * |         |        V        V        V        V
-     * R1 --I--> R2(D)    O3       R4(D)    R5       R6
+     * ^        MR2 --I---*         |        |        |
+     * |         ^        I         I        I        I
+     * |         |        V         V        V        V
+     * R1 --I--> R2(D)    O3        R4(D)    R5       R6
      * ^
      * |
      * |
      * jack
+     * ----
      */
 
     @Test(enabled = FIRST_PART)
@@ -740,25 +754,29 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         assertAuthorizations(evaluatedAssignment, "R1");
         assertGuiConfig(evaluatedAssignment, "R1");
 
+        assertAppliesToFocusWithAnyRelation(evaluatedAssignment, "R1 R2 R4");
+
         assertSerializable(context);
     }
 
     /**
      * In a similar way, let's disable some assignments. Their administrative status is simply set to DISABLED.
      *
+     * ----
      * MMR1 -----------I------------------------------*
-     * ^                                             |
-     * |                                             I
-     * |                                             V
+     * ^                                              |
+     * |                                              I
+     * |                                              V
      * MR1 -----------I-------------*-(D)-> MR3      MR4
-     * ^        MR2 --I---*        |        |        |
-     * |         ^        I        I        I        I(D)
-     * |         |        V        V        V        V
-     * R1-I(D)-> R2       O3       R4       R5       R6
+     * ^        MR2 --I---*         |        |        |
+     * |         ^        I         I        I        I(D)
+     * |         |        V         V        V        V
+     * R1-I(D)-> R2       O3        R4       R5       R6
      * ^
      * |
      * |
      * jack
+     * ----
      */
 
     @Test(enabled = FIRST_PART)
@@ -810,6 +828,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         assertAuthorizations(evaluatedAssignment, "R1 R4");
         assertGuiConfig(evaluatedAssignment, "R1 R4");
 
+        assertAppliesToFocusWithAnyRelation(evaluatedAssignment, "R1 R4");
+
         assertSerializable(context);
     }
 
@@ -817,19 +837,21 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
      * Let's attach some conditions to assignments and roles. "+" condition means that it will be satisfied only in jack's new state.
      * "-" condition will be satisfied only in jack's old state. "0" condition will be never satisfied.
      *
-     * MMR1------------I------------------------------*
-     * ^                                             |
-     * (+)                                            I
-     * |                                             V
+     * ----
+     * MMR1-------------I--------------------------------*
+     *  ^                                                |
+     * (+)                                               I
+     *  |                                                V
      * (+)MR1 -----------I-------------*-----> MR3(0)   MR4(-)
-     * ^        MR2 --I---*        |        |        |
-     * (+)        ^   (+)  I        I        I        I
-     * |         |        V        V        V        V
-     * R1 --I--> R2       O3       R4(D)    R5       R6
+     *  ^        MR2 --I---*           |         |       |
+     * (+)        ^   (+)  I           I         I       I
+     *  |         |        V           V         V       V
+     * R1 --I--> R2       O3           R4(D)     R5      R6
      * ^     (-)
      * |
      * |
      * jack
+     * ----
      */
 
     @Test(enabled = FIRST_PART)
@@ -892,26 +914,30 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         assertAuthorizations(evaluatedAssignment, "R1");
         assertGuiConfig(evaluatedAssignment, "R1");
 
+        assertAppliesToFocusWithAnyRelation(evaluatedAssignment, "R1 R4");
+
         assertSerializable(context);
     }
 
     /**
      * Testing targets with multiple incoming paths.
      *
+     * ----
      * MMR7 -------I--------*
-     * ^^                  |
-     * ||                  |
-     * |+--------+         |
-     * |         |         V
+     *  ^^                  |
+     *  ||                  |
+     *  |+--------+         |
+     *  |         |         V
      * MR7       MR8       MR9
-     * ^         ^         |
-     * |         |         |
-     * |         |         V
+     *  ^         ^         |
+     *  |         |         |
+     *  |         |         V
      * R7 --I--> R8        R9
-     * ^
-     * |
-     * |
+     *  ^
+     *  |
+     *  |
      * jack
+     * ----
      */
 
     @Test(enabled = SECOND_PART)
@@ -1032,21 +1058,25 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         assertAuthorizations(evaluatedAssignment, "R7 R8 R9");
         assertGuiConfig(evaluatedAssignment, "R7 R8 R9");
 
+        assertAppliesToFocusWithAnyRelation(evaluatedAssignment, "R7 R8 R9 R9");
+
         assertSerializable(context);
     }
 
     /**
      * Testing assignment path variables
      *
+     * ----
      * MetaroleCrewMember (C3) -----I-----> MetarolePerson (C4) --I--+
-     * ^            ^                       ^     ^                |
-     * |            |                       |     |                |
-     * |            |                       |     |                V
-     * (C1) Pirate --I--> Sailor (C2)              Man  Woman           Human (C5)
-     * ^                                    |
-     * | +----------------------------------+
-     * | |             (added later)
+     *  ^            ^                       ^     ^                |
+     *  |            |                       |     |                |
+     *  |            |                       |     |                V
+     * (C1) Pirate --I--> Sailor (C2)      Man  Woman           Human (C5)
+     *  ^                                    |
+     *  | +----------------------------------+
+     *  | |             (added later)
      * jack
+     * ----
      *
      * Assume these constructions:
      * - C1 giving each Pirate some account (attached via inducement)
@@ -1624,16 +1654,18 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     }
 
     /**
+     * ----
      * Org1 -----I----+
-     * ^            | (orderConstraints 1..N)
-     * |            | (reset summary to 1)
-     * |            V
+     *   ^            | (orderConstraints 1..N)
+     *   |            | (reset summary to 1)
+     *   |            V
      * Org11        Admin
-     * ^
-     * |
-     * (approver)
-     * |
+     *   ^
+     *   |
+     *  (approver)
+     *   |
      * jack
+     * ----
      */
 
     @Test(enabled = FOURTH_PART)
@@ -1678,15 +1710,17 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     }
 
     /**
+     * ----
      * Org2 -----I----+
-     * ^            | (orderConstraints: manager: 1)
-     * |            | (reset default to 0)
-     * |            V
+     *   ^            | (orderConstraints: manager: 1)
+     *   |            | (reset default to 0)
+     *   |            V
      * Org21        Admin
-     * ^
-     * |
-     * |
+     *   ^
+     *   |
+     *   |
      * jack
+     * ----
      *
      * Target policy rules from Admin are not taken into account. (That's probably OK,
      * because Admin is not matched for the focus neither.)
@@ -1736,15 +1770,17 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     }
 
     /**
+     * ----
      * Org2 -----I----+
-     * ^            | (orderConstraints: manager: 1)
-     * |            | (reset default to 0)
-     * |            V
+     *   ^            | (orderConstraints: manager: 1)
+     *   |            | (reset default to 0)
+     *   |            V
      * Org21        Admin
-     * ^
+     *   ^
      * (manager)
-     * |
+     *   |
      * jack
+     * ----
      */
 
     @Test(enabled = FOURTH_PART)
@@ -1791,17 +1827,19 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     }
 
     /**
+     * ----
      * Org4 -----I----+
-     * ^            | (orderConstraints: any)
-     * |            | (focusType = UserType)
-     * |            | (reset approver to 0)
-     * |            | (reset default to 1)
-     * |            V
+     *   ^            | (orderConstraints: any)
+     *   |            | (focusType = UserType)
+     *   |            | (reset approver to 0)
+     *   |            | (reset default to 1)
+     *   |            V
      * Org41        Admin
-     * ^
+     *   ^
      * (approver)
-     * |
+     *   |
      * jack
+     * ----
      *
      * As for target evaluation order, it is:
      *
@@ -2386,6 +2424,23 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     private void assertGuiConfig(EvaluatedAssignmentImpl<? extends FocusType> evaluatedAssignment, String text) {
         assertUnsortedListsEquals("Wrong gui configurations", getList(text),
                 evaluatedAssignment.getAdminGuiConfigurations(), AdminGuiConfigurationType::getPreferredDataLanguage);
+    }
+
+    private void assertAppliesToFocusWithAnyRelation(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, String text) {
+        assertUnsortedListsEquals("Wrong 'applies to focus with any relation'",
+                getList(text),
+                selectTargets(evaluatedAssignment, t -> t.appliesToFocusWithAnyRelation(relationRegistry)),
+                o -> o.getName().getOrig());
+    }
+
+    private Collection<ObjectType> selectTargets(
+            EvaluatedAssignmentImpl<UserType> evaluatedAssignment, Predicate<EvaluatedAssignmentTargetImpl> predicate) {
+        return evaluatedAssignment.getRoles()
+                .getNonNegativeValues()
+                .stream()
+                .filter(predicate)
+                .map(target -> target.getTarget().asObjectable())
+                .collect(Collectors.toList());
     }
 
     private <T> void assertUnsortedListsEquals(String message, Collection<String> expected, Collection<T> real, Function<T, String> nameExtractor) {

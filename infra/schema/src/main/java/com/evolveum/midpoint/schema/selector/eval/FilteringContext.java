@@ -44,6 +44,8 @@ public class FilteringContext extends SelectorProcessingContext {
     /** TODO explain and revise the use of this (not sure about its exact form) */
     private final boolean maySkipOnSearch;
 
+    private final boolean referencedBySupported;
+
     @NotNull final FilterCollector filterCollector;
 
     public FilteringContext(
@@ -55,6 +57,7 @@ public class FilteringContext extends SelectorProcessingContext {
             @Nullable ObjectFilterExpressionEvaluator filterEvaluator,
             @NotNull ProcessingTracer<? super SelectorTraceEvent> tracer,
             @NotNull OrgTreeEvaluator orgTreeEvaluator,
+            boolean supportReferencedBy,
             @Nullable SubjectedEvaluationContext subjectedEvaluationContext,
             @Nullable OwnerResolver ownerResolver,
             @Nullable ObjectResolver objectResolver,
@@ -74,6 +77,7 @@ public class FilteringContext extends SelectorProcessingContext {
         this.originalFilter = originalFilter;
         this.maySkipOnSearch = maySkipOnSearch;
         this.filterCollector = filterCollector;
+        this.referencedBySupported = supportReferencedBy;
     }
 
     public @NotNull Class<?> getFilterType() {
@@ -149,10 +153,15 @@ public class FilteringContext extends SelectorProcessingContext {
                 filterEvaluator,
                 tracer,
                 orgTreeEvaluator,
+                referencedBySupported,
                 subjectedEvaluationContext,
                 ownerResolver,
                 objectResolver,
                 description.child(idDelta, textDelta),
                 delegatorSelection);
+    }
+
+    public boolean isReferencedBySupported() {
+        return referencedBySupported;
     }
 }

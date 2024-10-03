@@ -1,0 +1,39 @@
+= Module archetypeSelection
+:page-nav-title: Module archetypeSelection
+
+Archetype selection module is used during xref:/midpoint/reference/security/credentials/identity-recovery/index.adoc[Identity recovery] flow.
+During this module processing the user can select an archetype which will be used in the following authentication modules in sequence.
+
+[%autowidth]
+|===
+| Name | Description | Required | Type
+
+| `archetypeSelection`
+| Contains the only multivalue element `archetypeRef` which is used to configure a list of the archetypes
+| false
+| _ArchetypeSelectionType_
+
+| `allowUndefinedArchetype`
+| If true, then the user can proceed authentication process without specifying a particular archetype.
+
+If no, the particular archetype should be selected during Archetype selection module processing to proceed the authentication.
+| false
+| _boolean_
+|===
+
+
+.Example of archetypeSelection module
+[source,xml]
+----
+<archetypeSelection>
+    <identifier>archetype-selection</identifier>
+    <archetypeSelection>
+        <archetypeRef oid="4b18a1eb-75ed-40f7-bed1-11cf2a6ef7ba"/>  <!-- Student archetype -->
+        <archetypeRef oid="fd4fb0e1-0147-4431-a1c6-bc03ae5eacad"/>  <!-- Teacher archetype -->
+    </archetypeSelection>
+    <allowUndefinedArchetype>false</allowUndefinedArchetype>
+</archetypeSelection>
+----
+
+== See also
+* xref:/midpoint/reference/security/authentication/flexible-authentication/configuration/[Flexible Authentication]

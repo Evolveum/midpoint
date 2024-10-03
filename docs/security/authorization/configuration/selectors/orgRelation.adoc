@@ -1,5 +1,4 @@
 = Org Relation Clause
-:page-since: 3.4
 
 Selects objects that are members of any org, for which the subject has a specific relation.
 

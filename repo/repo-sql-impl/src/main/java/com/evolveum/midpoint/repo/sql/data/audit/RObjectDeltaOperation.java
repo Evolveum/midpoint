@@ -21,6 +21,9 @@ import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
+
 /**
  * @author lazyman
  */
@@ -107,6 +110,7 @@ public class RObjectDeltaOperation implements ROperationResultFull, EntityState 
         return delta;
     }
 
+    @JdbcType(IntegerJdbcType.class)
     @Enumerated(EnumType.ORDINAL)
     public RChangeType getDeltaType() {
         return deltaType;
@@ -122,6 +126,7 @@ public class RObjectDeltaOperation implements ROperationResultFull, EntityState 
         return fullResult;
     }
 
+    @JdbcType(IntegerJdbcType.class)
     @Enumerated(EnumType.ORDINAL)
     public ROperationResultStatus getStatus() {
         return status;

@@ -8,6 +8,8 @@ package com.evolveum.midpoint.transport.impl;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -25,6 +27,8 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.commons.lang3.StringUtils;
 
 public class TransportUtil {
 
@@ -245,5 +249,17 @@ public class TransportUtil {
             choices++;
         }
         return choices;
+    }
+
+    public static Collection<String> filterBlankMailRecipients(Collection<String> recipients, String type, String subject) {
+        var nonBlank = new ArrayList<String>();
+        for (var recipient : recipients) {
+            if (StringUtils.isNotBlank(recipient)) {
+                nonBlank.add(recipient);
+            } else {
+                LOGGER.warn("Ignoring blank '{}' recipient in the mail message, subject: {}", type, subject);
+            }
+        }
+        return nonBlank;
     }
 }

@@ -545,7 +545,8 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
     }
 
     @Override
-    protected void unassignMembersPerformed(IModel<?> rowModel, QName relation, AjaxRequestTarget target) {
+    protected <AH extends AssignmentHolderType> void unassignMembersPerformed(IModel<SelectableBean<AH>> rowModel, QName relation,
+            AjaxRequestTarget target) {
         super.unassignMembersPerformed(rowModel, relation, target);
         target.add(getFeedback());
     }

@@ -11,12 +11,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import jakarta.persistence.*;
 
+import jakarta.persistence.*;
 import org.apache.commons.lang3.Validate;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.NotFound;
-import org.hibernate.annotations.NotFoundAction;
+import org.hibernate.annotations.JdbcType;
 import org.hibernate.annotations.Persister;
 
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
@@ -28,6 +26,8 @@ import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
+import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
 
 /**
  * @author lazyman
@@ -50,10 +50,17 @@ public class RCertWorkItemReference extends RReference {
     private Integer ownerOwnerId;                        // case ID
     private Integer ownerId;                            // work item ID
 
-    @ForeignKey(name = "fk_acc_cert_wi_ref_owner")      // max. 30 chars (Oracle)
-    @MapsId("workItem")
+    @MapsId
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable
+    @JoinColumns(
+            value = {
+                    @JoinColumn(name = "owner_owner_owner_oid", referencedColumnName = "owner_owner_oid"),
+                    @JoinColumn(name = "owner_owner_id", referencedColumnName = "owner_id"),
+                    @JoinColumn(name = "owner_id", referencedColumnName = "id")
+            },
+            foreignKey = @ForeignKey(name = "fk_acc_cert_wi_ref_owner")
+    )
     public RAccessCertificationWorkItem getOwner() {
         return owner;
     }
@@ -67,6 +74,7 @@ public class RCertWorkItemReference extends RReference {
         }
     }
 
+    @Id
     @Column(name = "owner_owner_owner_oid", length = RUtil.COLUMN_LENGTH_OID)
     @NotQueryable
     public String getOwnerOwnerOwnerOid() {
@@ -77,6 +85,7 @@ public class RCertWorkItemReference extends RReference {
         this.ownerOwnerOwnerOid = ownerOwnerOwnerOid;
     }
 
+    @Id
     @Column(name = "owner_owner_id", length = RUtil.COLUMN_LENGTH_OID)
     @NotQueryable
     public Integer getOwnerOwnerId() {
@@ -87,6 +96,7 @@ public class RCertWorkItemReference extends RReference {
         this.ownerOwnerId = ownerOwnerId;
     }
 
+    @Id
     @Column(name = "owner_id")
     @NotQueryable
     public Integer getOwnerId() {
@@ -97,7 +107,7 @@ public class RCertWorkItemReference extends RReference {
         this.ownerId = ownerId;
     }
 
-    @ForeignKey(name = "none")
+    @org.hibernate.annotations.ForeignKey(name = "none")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(referencedColumnName = "oid", updatable = false, insertable = false)
     // commented because of The NotFoundAction.IGNORE @ManyToOne and @OneToOne associations are always fetched eagerly. (HHH-12770)
@@ -120,6 +130,7 @@ public class RCertWorkItemReference extends RReference {
         return super.getRelation();
     }
 
+    @JdbcType(IntegerJdbcType.class)
     @Column(name = "targetType")
     @Enumerated(EnumType.ORDINAL)
     @Override

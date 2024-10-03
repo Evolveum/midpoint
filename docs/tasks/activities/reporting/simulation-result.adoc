@@ -1,5 +1,4 @@
 = Simulation Result
-:page-since: "4.7"
 
 This item defines whether we want to create a simulation result object for this particular activity run, and how it should look like.
 

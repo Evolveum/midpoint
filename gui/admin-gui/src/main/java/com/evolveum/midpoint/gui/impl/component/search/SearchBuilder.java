@@ -255,6 +255,9 @@ public class SearchBuilder<C extends Serializable> {
         AxiomQueryWrapper axiomWrapper = new AxiomQueryWrapper(getDefinitionOverride());
         AdvancedQueryWrapper advancedQueryWrapper = new AdvancedQueryWrapper(null);
         FulltextQueryWrapper fulltextQueryWrapper = new FulltextQueryWrapper(null);
+        if (AssignmentType.class.equals(type)) {
+            fulltextQueryWrapper = new AssignmentFulltextQueryWrapper(null);
+        }
 
         ObjectTypeSearchItemWrapper objectTypeSearchItemWrapper = new ObjectTypeSearchItemWrapper(mergedConfig.getObjectTypeConfiguration());
         objectTypeSearchItemWrapper.setAllowAllTypesSearch(isAllowedAllTypesSearch());

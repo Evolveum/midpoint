@@ -5,7 +5,6 @@
 :page-wiki-metadata-create-date: 2018-09-03T15:15:04.436+02:00
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2019-07-04T07:57:38.554+02:00
-:page-since: "3.9"
 :page-display-order: 300
 :page-upkeep-status: yellow
 
@@ -58,9 +57,6 @@ This is the line that should be written to CSV file.
 The second part i.e. `<customTransport>` writes the line into `data.csv` file.
 
 Notes:
-
-. The `event.focusPassword` method is present only in midPoint 3.9 and later.
-But other parts of this mechanism are present in midPoint 3.6.1 already.
 
 . There's a slight limitation of `event.getFocusPassword()` method: it cannot distinguish between "no change of password" and "password set to null value".
 A more elaborate analysis of model context would be needed if such a distinction was required.

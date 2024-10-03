@@ -35,10 +35,6 @@ The same can be achieved using midPoint Query Language.
 
 == Expressions
 
-++++
-{% include since.html since="3.7" %}
-++++
-
 xref:/midpoint/reference/expressions/expressions/[Expressions] can be used in authorization search filters:
 
 [source,xml]

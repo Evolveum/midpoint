@@ -1,0 +1,51 @@
+= Module attributeVerification
+:page-nav-title: Module attributeVerification
+
+Attribute verification authentication module.
+Module which can be used as additional to any of the previous authentication modules.
+The aim of the module is to check defined focus items if they match.
+The focus must be identified for this module to be used.
+This module is marked as not sufficient to live on its own.
+
+[%autowidth]
+|===
+| Name | Description | Required | Type
+
+| `item`
+| Structure defining which items to check if they match.
+| true
+| _ModuleItemConfigurationType_
+
+|===
+
+*ModuleItemConfigurationType consists of the following attributes:*
+
+[%autowidth]
+|===
+| Name | Description | Required | Type
+
+| `path`
+| The path to the focus attribute which should be checked if matches.
+| true
+| _ItemPathType_
+
+| `matchingRule`
+| Matching rule which should be used for this item while filtering or comparing the attribute values.
+| false
+| _QName_
+
+|===
+
+.Example of attributeVerification module
+[source,xml]
+----
+<attributeVerification>
+    <identifier>attributeVerification</identifier>
+    <item>
+        <path>extension/employeeCardID</path>
+    </item>
+</attributeVerification>
+----
+
+== See also
+* xref:/midpoint/reference/security/authentication/flexible-authentication/configuration/[Flexible Authentication]

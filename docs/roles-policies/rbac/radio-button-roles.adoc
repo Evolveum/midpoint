@@ -5,7 +5,6 @@
 :page-wiki-metadata-create-date: 2017-01-23T16:24:58.134+01:00
 :page-wiki-metadata-modify-user: vix
 :page-wiki-metadata-modify-date: 2019-10-10T11:23:19.896+02:00
-:page-since: "3.6"
 :page-upkeep-status: yellow
 :page-toc: top
 

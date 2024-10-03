@@ -232,10 +232,8 @@ public class AuthUtil {
         MidpointAuthentication oldAuthentication = getMidpointAuthentication();
 //        Authentication oldAuthentication = SecurityContextHolder.getContext().getAuthentication();
 //        if (oldAuthentication instanceof MidpointAuthentication
-        if (oldAuthentication.getAuthenticationChannel() != null
-                && SecurityPolicyUtil.DEFAULT_CHANNEL.equals(oldAuthentication.getAuthenticationChannel().getChannelId())) {
-            RemoveUnusedSecurityFilterPublisher.get().publishCustomEvent(
-                    oldAuthentication.getAuthModules());
+        if (oldAuthentication.getAuthenticationChannel() != null) {
+            RemoveUnusedSecurityFilterPublisher.get().publishCustomEvent(oldAuthentication.getAuthModules());
         }
         SecurityContextHolder.getContext().setAuthentication(null);
     }

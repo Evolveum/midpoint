@@ -161,6 +161,20 @@
                     <source>
                         <path>$c:user/c:organizationalUnit</path>
                     </source>
+                    <expression>
+                        <script>
+                            <!-- Source is multi-valued, target is single-valued; we should choose one value. -->
+                            <!-- Let's take the alphabetically first one. -->
+                            <!-- Ugly but do we have better option? -->
+                            <relativityMode>absolute</relativityMode>
+                            <code>
+                                (organizationalUnit as Collection)?.stream()
+                                        .sorted()
+                                        .findFirst()
+                                        .orElse(null)
+                            </code>
+                        </script>
+                    </expression>
                 </outbound>
             </attribute>
             <attribute>

@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.web.component.menu;
 
-import com.evolveum.midpoint.web.component.util.EnableBehaviour;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.IPageFactory;
 import org.apache.wicket.Session;

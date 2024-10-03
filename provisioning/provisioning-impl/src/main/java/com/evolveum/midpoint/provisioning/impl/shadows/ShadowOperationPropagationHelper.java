@@ -15,6 +15,8 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -89,6 +91,7 @@ class ShadowOperationPropagationHelper {
         ctx.setPropagation(true);
         ctx.applyAttributesDefinition(shadow);
         ctx.applyAttributesDefinition(aggregateDelta);
+        ctx.setOperationContext(new ProvisioningOperationContext()); // TODO are we able to set something meaningful there?
         LOGGER.trace("Merged operation for {}:\n{} ", shadow, aggregateDelta.debugDumpLazily(1));
 
         if (aggregateDelta.isAdd()) {

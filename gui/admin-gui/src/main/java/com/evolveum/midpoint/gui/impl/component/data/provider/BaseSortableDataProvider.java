@@ -39,7 +39,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DistinctSearchOptionType;
 
 /**
@@ -246,20 +245,7 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
     @Override
     public Iterator<? extends T> iterator(long first, long count) {
         Iterator<? extends T> iterator = internalIterator(first, count);
-        saveProviderPaging(getQuery(), createPaging(first, count));
-
         return iterator;
-    }
-
-    protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
-        PageStorage storage = getPageStorage();
-        if (storage != null) {
-            storage.setPaging(paging);
-        }
-    }
-
-    protected PageStorage getPageStorage() {
-        return null;
     }
 
     public abstract Iterator<? extends T> internalIterator(long first, long count);

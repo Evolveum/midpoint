@@ -11,6 +11,7 @@ import java.util.List;
 
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
@@ -84,7 +85,7 @@ public class PageRequestAccess extends PageSelf {
     }
 
     private List<WizardStep> createSteps() {
-        IModel<RequestAccess> model = () -> getSessionStorage().getRequestAccess();
+        LoadableDetachableModel<RequestAccess> model = getRequestAccessModel();
 
         PersonOfInterestPanel personOfInterest = new PersonOfInterestPanel(model, this);
         RelationPanel relationPanel = new RelationPanel(model, this);
@@ -92,5 +93,14 @@ public class PageRequestAccess extends PageSelf {
         ShoppingCartPanel shoppingCart = new ShoppingCartPanel(model, this);
 
         return Arrays.asList(personOfInterest, relationPanel, roleCatalog, shoppingCart);
+    }
+
+    private LoadableDetachableModel<RequestAccess> getRequestAccessModel() {
+        return new LoadableDetachableModel<>() {
+            @Override
+            protected RequestAccess load() {
+                return getSessionStorage().getRequestAccess();
+            }
+        };
     }
 }

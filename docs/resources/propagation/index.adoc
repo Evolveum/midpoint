@@ -9,7 +9,6 @@ doc-type: intro
 :page-wiki-metadata-create-date: 2018-01-05T15:46:25.794+01:00
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2018-01-05T16:00:16.907+01:00
-:page-since: "3.7.1"
 :page-upkeep-status: green
 
 MidPoint is quite an eager system.

@@ -10,7 +10,6 @@ doc-type: config
 :page-wiki-metadata-create-date: 2017-05-04T12:50:53.247+02:00
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2020-05-13T15:25:19.748+02:00
-:page-since: "3.6"
 :page-upkeep-status: green
 :page-toc: top
 
@@ -203,7 +202,7 @@ Therefore, the following authorization can be used to allow users to see their p
     </authorization>
 ----
 
-Since midPoint 3.6 this authorization is part of the default _End User_ role.
+This authorization is part of the default _End User_ role.
 
 However, the situation is more complicated when it comes to persona modifications.
 Personas are usually assigned in a form of roles.

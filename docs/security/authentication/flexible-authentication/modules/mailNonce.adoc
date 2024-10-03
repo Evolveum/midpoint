@@ -1,0 +1,34 @@
+= Module mailNonce
+:page-nav-title: Module mailNonce
+
+WARNING: From midPoint version 4.8, `mailNonce` module can't be the first module in the sequence. Before `mailNonce` module, we need to use authentication module for identification of the user, for example `focusIdentification`.
+
+Mail nonce authentication module.
+Module that sends randomly generated nonce in URL in mail message.
+This module contains next attribute:
+
+[%autowidth]
+|===
+| Name | Description | Required | Type
+
+| `credentialName`
+| Name of credential definition that should be used when validating password.
+This must point to a valid credential definition in the "credential" section of a security policy.
+If not specified then default password definition is used.
+| false
+| _String_
+
+|===
+
+
+.Example of mailNonce module
+[source,xml]
+----
+<mailNonce>
+    <identifier>mailNonce</identifier>
+    <credentialName>mailNonceCredential</credentialName>
+</mailNonce>
+----
+
+== See also
+* xref:/midpoint/reference/security/authentication/flexible-authentication/configuration/[Flexible Authentication]

@@ -133,7 +133,7 @@ public class OidcResourceServerModuleWebSecurityConfigurer<C extends RemoteModul
                 .authenticationEntryPoint(entryPoint)
                 .authenticationTrustResolver(new MidpointAuthenticationTrustResolverImpl());
 
-        SequenceAuditFilter sequenceAuditFilter = getObjectPostProcessor().postProcess(new SequenceAuditFilter());
+        SequenceAuditFilter sequenceAuditFilter = new SequenceAuditFilter();
         sequenceAuditFilter.setRecordOnEndOfChain(false);
         http.addFilterAfter(getObjectPostProcessor().postProcess(sequenceAuditFilter), FilterSecurityInterceptor.class);
     }

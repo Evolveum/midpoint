@@ -6,7 +6,6 @@
 :page-wiki-metadata-create-date: 2018-03-09T15:04:30.547+01:00
 :page-wiki-metadata-modify-user: michael
 :page-wiki-metadata-modify-date: 2020-02-21T14:24:26.071+01:00
-:page-since: "3.8"
 :page-upkeep-status: yellow
 :page-toc: top
 

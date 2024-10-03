@@ -242,9 +242,7 @@ An example of the filter-based predicate that is used to specify the domain of a
 ----
 <domain>
     <filter>
-        <q:equal>
-            <q:text>type = "c:UserType"</q:text>
-        </q:equal>
+        <q:text>type = "UserType"</q:text>
     </filter>
 </domain>
 ----
@@ -428,10 +426,7 @@ We can restrict the selection (or domain) of the original metric to cover only s
         </source>
         <selectionRestriction>
             <filter>
-                <q:equal>
-                    <q:path>after/attributes/ri:department</q:path> <!--1-->
-                    <q:value>Security services</q:value>
-                </q:equal>
+                <q:text>after/attributes/ri:department = "Security services"</q:text>   <!--1-->
             </filter>
         </selectionRestriction>
     </aggregation>

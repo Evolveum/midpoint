@@ -1,0 +1,53 @@
+= Troubleshooting Task Performance
+:page-wiki-name: Troubleshooting Task Performance
+
+Tasks are typically operate on large bulks of objects, utilizing large part of midPoint features and interacting with external systems though resources.
+Therefore, any performance issue is hard to locate.
+The root cause might be in midPoint configuration, hardware limitation, slow network connection, low database performance or slow response from resources.
+The debugging of such problems is not straightforward.
+It often requires searching for anomalies and examine them in detail, until the root cause will become obvious.
+
+== Environmental Performance of Task in GUI
+
+When the problematic task finishes or at least you are observing performance issues with it for some time, it's good to check its _environmental performance_.
+There are two sections that can give you and indication where the problem might be:
+
+* *Provisioning operations information* can give you a hint if communication with resources doesn't take longer then expected.
+* *Mappings evaluation information* can help you identify problems with mappings.
+
+Tips for evaluation:
+
+* There are no typical performance numbers.
+All depends on your environment and configuration.
+As a rule of thumb, look for irregularities, use common sense and compare with performance when everything runs as expected.
+* If everything is slower than expected, look for system-wide problem.
+For example, if all mappings are performing poorly maybe you don't have enough CPU or RAM.
+If all resources operations are taking long time, maybe the problem is in network.
+In both cases use the OS monitoring then you encounter the issue, to verify this suspicion.
+* Intimate knowledge your system and configuration can significantly help.
+Performance might be affected by other tasks running in parallel, you might have rate limiting firewall deployed and so on.
+It's always good to compare your observation with the knowledge you have and try to find a week spot.
+
+== Internal Performance of Task in GUI
+
+The internal performance of task contains even more details, but it might require internal knowledge of midPoint to interpret it properly, at least in some cases.
+Mostly you are looking for anomalies there, for example a particular operation that are taking too long.
+In general, we are recommending to use Evolveum's support services in order to get expert help with this evaluation.
+
+Typical steps when debugging together with Evolveum's experts:
+
+. Send the finalized task and describe the type of problems you are observing.
+. If possible you can store the snapshots of a task during its execution.
+Ideally having five to ten evenly distributed snapshots during the execution of the task.
+It will be used to evaluate the performance over time.
+.. A task is typically slower from beginning when the cache is not initialized, connection are not open and so on.
+.. Then it should run in full speed, but if there are any problems, often they are visible later in run when the performance is going gradually down.
+. If you have parallel tasks, send all related tasks objects, not just the main one.
+. Later in debugging you might be asked to provide additional information or run additional tests to pinpoint the problem.
+One of the tools on midPoint side is xref:/midpoint/reference/diag/troubleshooting/troubleshooting-with-traces/[]
+
+== Task Execution Reports
+
+You can configure xref:/midpoint/reference/tasks/activities/reporting/execution-reports/[task execution report] in order to monitor selected performance indicators of the task.
+This is typically useful in long term monitoring or in automated tests, but it can be used even for other debugging of you know, what you are looking for.
+Task execution reports are also very useful for debugging distribution to buckets for parallel tasks.

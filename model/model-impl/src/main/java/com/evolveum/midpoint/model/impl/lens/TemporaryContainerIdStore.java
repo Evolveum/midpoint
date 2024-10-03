@@ -19,6 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.io.Serializable;
 import java.util.*;
 
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
@@ -43,7 +44,7 @@ import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
  *
  * @see AssignmentIdStore
  */
-class TemporaryContainerIdStore<O extends ObjectType> {
+class TemporaryContainerIdStore<O extends ObjectType> implements Serializable {
 
     private static final Trace LOGGER = TraceManager.getTrace(TemporaryContainerIdStore.class);
 

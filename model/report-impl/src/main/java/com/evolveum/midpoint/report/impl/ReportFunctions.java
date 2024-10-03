@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.cases.api.AuditingConstants;
@@ -69,7 +70,7 @@ public class ReportFunctions {
 
     public ReportFunctions(PrismContext prismContext, SchemaService schemaService,
             ModelService modelService, TaskManager taskManager, ModelAuditService modelAuditService,
-            RepositoryService repositoryService, MidpointFunctions midpointFunctions) {
+            @Qualifier("cacheRepositoryService") RepositoryService repositoryService, MidpointFunctions midpointFunctions) {
         this.prismContext = prismContext;
         this.schemaService = schemaService;
         this.model = modelService;

@@ -10,10 +10,9 @@ import static com.evolveum.midpoint.repo.sqlbase.SupportedDatabase.SQLSERVER;
 
 import java.util.*;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.Session;
-import org.hibernate.query.BindableType;
-import org.hibernate.query.Query;
 import org.hibernate.transform.ResultTransformer;
 import org.hibernate.type.Type;
 import org.jetbrains.annotations.NotNull;
@@ -128,32 +127,20 @@ public class HibernateQuery {
     }
 
     @SuppressWarnings("rawtypes")
-    public Query getAsHqlQuery(Session session) {
+    public Query getAsHqlQuery(EntityManager em) {
         if (parentQuery != null) {
             throw new IllegalStateException("Generating query from non-root query object!");
         }
 
         String text = getAsHqlText(0, distinct);
         LOGGER.trace("HQL text generated:\n{}", text);
-        Query query = session.createQuery(text);
+        Query query = em.createQuery(text);
         for (Map.Entry<String, QueryParameterValue> parameter : parameters.entrySet()) {
             String name = parameter.getKey();
             QueryParameterValue parameterValue = parameter.getValue();
             LOGGER.trace("Parameter {} = {}", name, parameterValue.debugDump());
 
-            if (parameterValue.getValue() instanceof Collection) {
-                if (parameterValue.getType() instanceof BindableType) {
-                    query.setParameterList(name, (Collection) parameterValue.getValue(), (BindableType) parameterValue.getType());
-                } else {
-                    query.setParameterList(name, (Collection) parameterValue.getValue());
-                }
-            } else {
-                if (parameterValue.getType() instanceof BindableType) {
-                    query.setParameter(name, parameterValue.getValue(), (BindableType) parameterValue.getType());
-                } else {
-                    query.setParameter(name, parameterValue.getValue());
-                }
-            }
+            query.setParameter(name, parameterValue.getValue());
         }
         if (maxResults != null) {
             query.setMaxResults(maxResults);
@@ -163,7 +150,8 @@ public class HibernateQuery {
         }
         if (resultTransformer != null) {
             //noinspection deprecation
-            query.setResultTransformer(resultTransformer);
+            query.unwrap(org.hibernate.query.Query.class)
+                    .setResultTransformer(resultTransformer);
         }
         return query;
     }

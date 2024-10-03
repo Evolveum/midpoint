@@ -471,7 +471,7 @@ if [[ "$1" == "container" ]]; then
     eval "\"${_RUNJAVA}\"" \
       ${JAVA_OPTS} \
       -jar "\"${BASE_DIR}/lib/midpoint.jar\"" \
-      "$@" "&" 2>&1
+      \"\$@\" "&" 2>&1
   fi
 
   if [[ -n "${PID_FILE}" ]]; then
@@ -541,7 +541,7 @@ if [[ "$1" == "start" ]]; then
   eval "${_NOHUP}" "\"${_RUNJAVA}\"" \
     ${JAVA_OPTS} \
     -jar "\"${BASE_DIR}/lib/midpoint.jar\"" \
-    "$@" \
+    \"\$@\" \
     "&" >>"${BOOT_OUT}" 2>&1
 
   if [[ -n "${PID_FILE}" ]]; then

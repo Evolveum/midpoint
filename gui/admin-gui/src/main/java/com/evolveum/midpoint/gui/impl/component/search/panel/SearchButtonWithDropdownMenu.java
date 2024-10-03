@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.component.search.panel;
 
+import java.io.Serial;
 import java.util.List;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -24,7 +25,7 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 public abstract class SearchButtonWithDropdownMenu<E extends Enum> extends BasePanel<List<E>> {
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_SEARCH_BUTTON = "searchButton";
     private static final String ID_SEARCH_BUTTON_LABEL = "searchButtonLabel";
@@ -50,7 +51,7 @@ public abstract class SearchButtonWithDropdownMenu<E extends Enum> extends BaseP
     private void initLayout() {
         final AjaxSubmitLink searchButton = new AjaxSubmitLink(ID_SEARCH_BUTTON) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void onError(AjaxRequestTarget target) {
@@ -65,6 +66,11 @@ public abstract class SearchButtonWithDropdownMenu<E extends Enum> extends BaseP
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
                 searchPerformed(target);
+            }
+
+            @Override
+            public String getMarkupId() {
+                return ID_SEARCH_BUTTON;
             }
         };
         searchButton.setOutputMarkupId(true);
@@ -88,9 +94,9 @@ public abstract class SearchButtonWithDropdownMenu<E extends Enum> extends BaseP
         dropdownButton.setOutputMarkupId(true);
         dropdownButton.add(new VisibleEnableBehaviour(() -> true, () -> getModelObject().size() > 1));
         add(dropdownButton);
-        ListView<E> menuItems = new ListView<E>(ID_MENU_ITEMS, getModel()) {
+        ListView<E> menuItems = new ListView<>(ID_MENU_ITEMS, getModel()) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(ListItem<E> item) {

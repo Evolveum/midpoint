@@ -728,6 +728,14 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
             return this;
         }
 
+        public final <V> ShadowAttributesHelper setOne(
+                QName attributeName, QName type, int minOccurrence, int maxOccurrence,
+                V value) throws SchemaException {
+            attrsDefinition.createPropertyDefinition(attributeName, type, minOccurrence, maxOccurrence);
+            addExtensionValue(attributesContainer, attributeName.getLocalPart(), value);
+            return this;
+        }
+
         /**
          * Simplified version of {@link #set(QName, QName, int, int, Object...)} method.
          * Uses 0 for minOccurrence and maxOccurrence is 1 if one or no value is provided,

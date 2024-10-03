@@ -5,7 +5,6 @@
 :page-wiki-metadata-create-date: 2018-10-11T12:57:40.475+02:00
 :page-wiki-metadata-modify-user: chris83527
 :page-wiki-metadata-modify-date: 2019-02-18T14:31:58.362+01:00
-:page-since: "3.9"
 :page-upkeep-status: orange
 
 Post-initial import works in a similar manner to initial data import.

@@ -1,0 +1,20 @@
+= Module hint
+:page-nav-title: Module hint
+
+Hint authentication module.
+Special module which was implemented to be able to use it during resetting password.
+The aim of the module is to provide the password hint (if defined) to the user.
+This module is marked as not sufficient to live on its own.
+
+This module has no other configuration options.
+
+.Example of hint module
+[source,xml]
+----
+<hint>
+    <identifier>hintAuth</identifier>
+</hint>
+----
+
+== See also
+* xref:/midpoint/reference/security/authentication/flexible-authentication/configuration/[Flexible Authentication]

@@ -111,10 +111,6 @@ Therefore if administrative status is set to any non-empty value then the validi
 
 == Object Lifecycle
 
-++++
-{% include since.html since="3.5" %}
-++++
-
 Activation is also influenced by xref:/midpoint/reference/concepts/object-lifecycle/[object lifecycle]. The object behaves normally in `active` and `deprecated` lifecycle states.
 In these states the object activation is determined by the administrative status and validity.
 Object is considered to be non-active in any other lifecycle states (`draft`, `proposed`, `archived`, `failed` and any other custom state).

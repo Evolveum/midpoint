@@ -41,13 +41,13 @@ public abstract class AbstractMediumIdMatchCorrelationTest extends AbstractIdMat
     private static final TestObject<ObjectTemplateType> OBJECT_TEMPLATE_USER =
             TestObject.file(TEST_DIR, "object-template-user.xml", "bf275746-f2ce-4ae3-9e91-0c40e26422b7");
 
-    private static final CsvTestResource RESOURCE_SIS = new CsvTestResource(TEST_DIR, "resource-sis.xml",
+    public static final CsvTestResource RESOURCE_SIS = new CsvTestResource(TEST_DIR, "resource-sis.xml",
             "773991ae-4853-4e88-9cfc-b10bec750f3b", "resource-sis.csv",
             "sisId,firstName,lastName,born,nationalId");
-    private static final CsvTestResource RESOURCE_HR = new CsvTestResource(TEST_DIR, "resource-hr.xml",
+    public static final CsvTestResource RESOURCE_HR = new CsvTestResource(TEST_DIR, "resource-hr.xml",
             "084dfbfa-c465-421b-a2ac-2ab3afbf20ff", "resource-hr.csv",
             "HR_ID,FIRSTN,LASTN,DOB,NATIDENT");
-    private static final CsvTestResource RESOURCE_EXTERNAL = new CsvTestResource(TEST_DIR, "resource-external.xml",
+    public static final CsvTestResource RESOURCE_EXTERNAL = new CsvTestResource(TEST_DIR, "resource-external.xml",
             "106c248c-ce69-4274-845f-7fb391e1545a", "resource-external.csv",
             "EXT_ID,FIRSTN,LASTN,DOB,NATIDENT"); // schema similar to HR
 
@@ -168,6 +168,8 @@ public abstract class AbstractMediumIdMatchCorrelationTest extends AbstractIdMat
         resolveCase(aCase, johnOid, task, result);
 
         then("John should be updated");
+        assertSuccess(result);
+
         // @formatter:off
         assertUserAfter(findUserByUsernameFullRequired("smith1"))
                 .assertGivenName("John")

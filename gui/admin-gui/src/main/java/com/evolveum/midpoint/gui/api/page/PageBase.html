@@ -12,26 +12,20 @@
     <div wicket:id="mainPopup"/>
     <div class="wrapper">
         <nav wicket:id="mainHeader" class="main-header navbar navbar-expand border-bottom-0">
-            <ul class="navbar-nav navbar-left">
-                <li class="nav-item">
-                    <a wicket:id="menuToggle" class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
-                </li>
-                <li class="nav-item" style="min-width: 0;">
-                    <div class="ml-2 navbar-title" wicket:id="pageTitleContainer">
-                        <span class="page-title" wicket:id="pageTitle">
-                            <span wicket:id="deploymentName"/>
-                            <span wicket:id="pageTitleReal"/>
-                        </span>
-                    </div>
-                </li>
-                <li class="nav-item">
-                    <div class="ml-3 mt-2">
-                        <i id="ajax_busy" class="fas fa-sync fa-spin fa-lg" style="visibility: hidden;"></i>
-                    </div>
-                </li>
-            </ul>
-            <ul class="navbar-nav ml-auto navbar-right justify-content-end">
-                <li class="nav-item d-none d-md-inline" style="min-width: 0;width: fit-content;overflow: hidden;">
+            <div class="navbar-nav">
+                <a wicket:id="menuToggle" class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
+            </div>
+            <div class="ml-2 navbar-title" wicket:id="pageTitleContainer" role="heading" aria-level="1">
+                <span class="page-title" wicket:id="pageTitle">
+                    <span wicket:id="deploymentName"/>
+                    <span wicket:id="pageTitleReal"/>
+                </span>
+            </div>
+            <div class="ml-3 mt-2">
+                <i id="ajax_busy" class="fas fa-sync fa-spin fa-lg" style="visibility: hidden;"></i>
+            </div>
+            <div class="navbar-right justify-content-end">
+                <div class="nav-item d-none d-md-inline" style="min-width: 0;width: fit-content;overflow: hidden;">
                     <ol class="breadcrumb d-none d-xl-flex justify-content-end">
                         <li wicket:id="breadcrumb">
                             <a wicket:id="bcLink">
@@ -40,41 +34,43 @@
                             </a>
                         </li>
                     </ol>
-                </li>
-                <wicket:enclosure child="cartLink">
-                    <li class="nav-item" style="min-width: 0;width: fit-content;">
-                        <a class="nav-link" wicket:id="cartLink">
-                            <i class="fas fa-cart-shopping"></i>
-                            <span class="badge badge-danger navbar-badge" wicket:id="cartCount"/>
-                        </a>
+                </div>
+                <ul class="navbar-nav" role="menu">
+                    <wicket:enclosure child="cartLink">
+                        <li class="nav-item" style="min-width: 0;width: fit-content;">
+                            <a class="nav-link" wicket:id="cartLink">
+                                <i class="fas fa-cart-shopping"></i>
+                                <span class="badge badge-danger navbar-badge" wicket:id="cartCount"/>
+                            </a>
+                        </li>
+                    </wicket:enclosure>
+                    <wicket:remove>
+                        <li class="nav-item notification">
+                            <a class="nav-link">
+                                <i class="fas fa-bell"></i>
+                                <span class="badge badge-danger">1</span>
+                            </a>
+                        </li>
+                    </wicket:remove>
+                    <li class="nav-item dropdown" style="min-width: fit-content;width: fit-content;">
+                        <div wicket:id="locale"/>
                     </li>
-                </wicket:enclosure>
-                <wicket:remove>
-                <li class="nav-item notification">
-                    <a class="nav-link">
-                        <i class="fas fa-bell"></i>
-                        <span class="badge badge-danger">1</span>
-                    </a>
-                </li>
-                </wicket:remove>
-                <li class="nav-item dropdown" style="min-width: fit-content;width: fit-content;">
-                    <div wicket:id="locale"/>
-                </li>
-                <wicket:enclosure child="mode">
-                    <li class="nav-item" style="min-width: fit-content;width: fit-content;">
-                        <a class="nav-link" href="#" wicket:id="mode"/>
-                    </li>
-                </wicket:enclosure>
-                <wicket:enclosure child="logoutForm">
-                    <li class="nav-item" style="min-width: fit-content;width: fit-content;">
-                        <form method="post" wicket:id="logoutForm">
-                            <button type="submit" class="btn btn-link nav-link" wicket:message="title:PageBase.logout">
-                                <i class="fas fa-power-off"></i>
-                            </button>
-                        </form>
-                    </li>
-                </wicket:enclosure>
-            </ul>
+                    <wicket:enclosure child="mode">
+                        <li class="nav-item" style="min-width: fit-content;width: fit-content;">
+                            <a class="nav-link" href="#" wicket:id="mode"/>
+                        </li>
+                    </wicket:enclosure>
+                    <wicket:enclosure child="logoutForm">
+                        <li class="nav-item" style="min-width: fit-content;width: fit-content;">
+                            <form method="post" wicket:id="logoutForm">
+                                <button type="submit" class="btn btn-link nav-link" wicket:message="title:PageBase.logout">
+                                    <i class="fas fa-power-off"></i>
+                                </button>
+                            </form>
+                        </li>
+                    </wicket:enclosure>
+                </ul>
+            </div>
         </nav>
 
         <wicket:enclosure child="sidebarMenu">

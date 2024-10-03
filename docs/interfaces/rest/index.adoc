@@ -280,6 +280,56 @@ xref:/midpoint/reference/interfaces/midpoint-client-java/[MidPoint Client Librar
 6. xref:/midpoint/reference/interfaces/rest/operations/examples/access-request-approval/[Access request review]
 
 
+== Gotchas
+
+=== Storing of Authentication Events
+
+By default, *midPoint stores* the information about *authentication events* in midPoint focus objects.
+This behaviour should cause no problem in case of "standard" sign-in behaviour of users.
+Yet in the case of a service account leveraging the *REST* api, when *large amounts of authentication request* might occur, this stored information could build up quite quickly.
+
+Issues which could occur are *prolonged response times* in case of API calls.
+
+The default behaviour of storing such event after each login can be changed in midPoint configuration.
+Specifically in changing the "*focusBehaviorUpdate*" parameter of a "sequence" of your "securityPolicy".
+
+The possible values are:
+
+* *enabled*: Behaviour attributes will be updated every login.
+* *disabled*: Authentication behaviour attributes will not be updated during login.
+* *failureOnly*: Authentication behaviour attributes will be updated when login failed and when login will be success,
+but previous login was failed and midPoint need update attributes as is number of login fails
+and lockout state.
+
+.*Configuration Example*
+[%collapsible]
+====
+[source,xml]
+----
+<securityPolicy>
+<!--Other configuration parameters-->
+<!-- ... -->
+        <sequence>
+            <identifier>rest-default</identifier>
+            <channel>
+                <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#rest</channelId>
+                <default>true</default>
+                <urlSuffix>rest-default</urlSuffix>
+            </channel>
+            <module>
+                <identifier>httpBasic</identifier>
+                <order>1</order>
+                <necessity>sufficient</necessity>
+            </module>
+            <focusBehaviorUpdate>disabled</focusBehaviorUpdate>
+                <!--Authentication behaviour attributes will not be updated during login.-->
+        </sequence>
+<!-- ... -->
+<!--Other configuration parameters-->
+</securityPolicy>
+----
+====
+
 == See Also
 
 * xref:/midpoint/reference/interfaces/[Interfaces]

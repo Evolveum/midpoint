@@ -254,10 +254,6 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            protected PageStorage getPageStorage() {
-                return pageStorage;
-            }
         };
 
         UserProfileStorage.TableId tableId = UserProfileStorage.TableId.NOTIFICATION_TAB_MAIL_SERVER_TABLE;

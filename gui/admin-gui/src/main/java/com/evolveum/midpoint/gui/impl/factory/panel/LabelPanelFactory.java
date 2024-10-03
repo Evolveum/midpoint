@@ -48,6 +48,8 @@ public class LabelPanelFactory<T> implements GuiComponentFactory<PrismPropertyPa
             return new Label(panelCtx.getComponentId(), WebComponentUtil.createLocalizedModelForEnum((Enum<?>) object, panelCtx.getPageBase()));
         } else if (object instanceof PolyString) {
             return new Label(panelCtx.getComponentId(), LocalizationUtil.translatePolyString((PolyString) object));
+        } else if (object instanceof Boolean) {
+            return new Label(panelCtx.getComponentId(), WebComponentUtil.createLocalizedModelForBoolean((Boolean) object));
         }
 
         return new Label(panelCtx.getComponentId(), panelCtx.getRealValueStringModel());

@@ -1,0 +1,45 @@
+= Module correlation
+:page-nav-title: Module correlation
+
+Correlation module gives the possibility to find identity(es) (user object(s) for now) in midpoint using xref:/midpoint/reference/correlation/index.adoc[correlation] mechanism within authentication process.
+This module is used during xref:/midpoint/reference/security/credentials/identity-recovery/index.adoc[Identity recovery] flow as the second authentication module.
+
+The specified in the module correlators are processed one by one till the only identity is found by the correlators, or till the last correlator is proceeded. In case no identity is found after the last correlator, the list of candidates from the correlators results are considered to be a list of found identities.
+
+[%autowidth]
+|===
+| Name | Description | Required | Type
+
+| `correlator`
+| The definition of the correlator. Within this element `correlatorIdentifier` (should match 'name' attribute of the correlator set in object template) and `order` (the order during processing) are defined.
+| false
+| _CorrelationModuleConfigurationType_
+
+| `options`
+| Used to set some options for correlation module. For now contains the only `candidateLimit` element which restricts the maximum count of the found identities to the specified in this element number.
+| false
+| _CorrelationModuleOptionsType_
+|===
+
+
+.Example of correlation module
+[source,xml]
+----
+<correlation>
+    <identifier>correlation</identifier>
+    <correlator>
+        <correlatorIdentifier>family-name-only</correlatorIdentifier>
+        <order>1</order>
+    </correlator>
+    <correlator>
+        <correlatorIdentifier>family-and-given-name</correlatorIdentifier>
+        <order>2</order>
+    </correlator>
+    <options>
+        <candidateLimit>10</candidateLimit>
+    </options>
+</correlation>
+----
+
+== See also
+* xref:/midpoint/reference/security/authentication/flexible-authentication/configuration/[Flexible Authentication]

@@ -50,6 +50,7 @@ public class TestPageService extends AbstractInitializedGuiIntegrationTest {
     @Test
     public void test002testAddNewService() throws Exception {
         renderPage(PageService.class);
+        choiceArchetype(1);
 
         FormTester formTester = tester.newFormTester(MAIN_FORM, false);
         formTester.setValue(PATH_FORM_NAME, "newService");

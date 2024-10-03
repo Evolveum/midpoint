@@ -7,17 +7,16 @@
 package com.evolveum.midpoint.gui.api.component;
 
 import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractRoleSearchItemWrapper;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreeAssignablePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationSearchItemConfigurationType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
+import java.io.Serial;
 import java.util.Arrays;
 import java.util.List;
 
@@ -25,7 +24,7 @@ import java.util.List;
  * Created by honchar
  */
 public abstract class OrgTreeMemberPopupTabPanel extends MemberPopupTabPanel<OrgType> {
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_ORG_TREE_VIEW_PANEL = "orgTreeViewPanel";
 
@@ -38,7 +37,7 @@ public abstract class OrgTreeMemberPopupTabPanel extends MemberPopupTabPanel<Org
         super.onInitialize();
         OrgTreeAssignablePanel orgTreePanel = new OrgTreeAssignablePanel(
                 ID_ORG_TREE_VIEW_PANEL, true) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void onOrgTreeCheckBoxSelectionPerformed(AjaxRequestTarget target, IModel<TreeSelectableBean<OrgType>> rowModel) {

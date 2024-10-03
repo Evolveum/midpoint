@@ -26,7 +26,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.test.util.TestUtil;
 
-import org.hibernate.Session;
+import jakarta.persistence.EntityManager;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -423,21 +423,21 @@ public class ModifyTest extends BaseSQLRepoTest {
     }
 
     private void assertTaskOwner(String taskOid, String expectedOwnerOid) {
-        Session session = open();
+        EntityManager em = open();
         //noinspection unchecked
-        List<String> ownerOidList = session.createQuery("select t.ownerRefTask.targetOid from RTask t where t.oid = '" + taskOid + "'").list();
+        List<String> ownerOidList = em.createQuery("select t.ownerRefTask.targetOid from RTask t where t.oid = '" + taskOid + "'").getResultList();
         assertEquals("Wrong # of owner OIDs found", 1, ownerOidList.size());
         assertEquals("Wrong owner OID", expectedOwnerOid, ownerOidList.get(0));
-        close(session);
+        close(em);
     }
 
     private void assertUserEmployeeNumber(String userOid, String expectedValue) {
-        Session session = open();
+        EntityManager em = open();
         //noinspection unchecked
-        List<String> ownerOidList = session.createQuery("select u.employeeNumber from RUser u where u.oid = '" + userOid + "'").list();
+        List<String> ownerOidList = em.createQuery("select u.employeeNumber from RUser u where u.oid = '" + userOid + "'").getResultList();
         assertEquals("Wrong # of users found", 1, ownerOidList.size());
         assertEquals("Wrong employee number", expectedValue, ownerOidList.get(0));
-        close(session);
+        close(em);
     }
 
     @Test
@@ -910,15 +910,15 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         repositoryService.modifyObject(ShadowType.class, accountOid, itemDeltas, getModifyOptions(), result);
 
-        Session session = open();
-        List shadows = session.createQuery("from RShadow").list();
+        EntityManager em = open();
+        List shadows = em.createQuery("from RShadow").getResultList();
         logger.info("shadows:\n{}", shadows);
         //noinspection unchecked
-        List<Object[]> extStrings = session.createQuery("select e.owner.oid, e.itemId, e.value from ROExtString e").list();
+        List<Object[]> extStrings = em.createQuery("select e.owner.oid, e.itemId, e.value from ROExtString e").getResultList();
         for (Object[] extString : extStrings) {
             logger.info("-> {}", Arrays.asList(extString));
         }
-        close(session);
+        close(em);
 
         ObjectQuery query1 = prismContext.queryFor(ShadowType.class)
                 .item(ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR1_QNAME), def1).eq("value1")
@@ -927,10 +927,10 @@ public class ModifyTest extends BaseSQLRepoTest {
         logger.info("*** query1 result:\n{}", DebugUtil.debugDump(list1));
         assertEquals("Wrong # of query1 results", 1, list1.size());
 
-        session = open();
-        RObject obj = (RObject) session.createQuery("from RObject where oid = :o").setParameter("o", account.getOid()).getSingleResult();
+        em = open();
+        RObject obj = (RObject) em.createQuery("from RObject where oid = :o").setParameter("o", account.getOid()).getSingleResult();
         assertEquals(1, obj.getStrings().size());
-        close(session);
+        close(em);
 
         // delete
         itemDeltas = prismContext.deltaFor(ShadowType.class)
@@ -939,10 +939,10 @@ public class ModifyTest extends BaseSQLRepoTest {
                 .asItemDeltas();
         repositoryService.modifyObject(ShadowType.class, accountOid, itemDeltas, getModifyOptions(), result);
 
-        session = open();
-        obj = (RObject) session.createQuery("from RObject where oid = :o").setParameter("o", account.getOid()).getSingleResult();
+        em = open();
+        obj = (RObject) em.createQuery("from RObject where oid = :o").setParameter("o", account.getOid()).getSingleResult();
         assertEquals(0, obj.getStrings().size());
-        close(session);
+        close(em);
 
         // add
         itemDeltas = prismContext.deltaFor(ShadowType.class)
@@ -951,10 +951,10 @@ public class ModifyTest extends BaseSQLRepoTest {
                 .asItemDeltas();
         repositoryService.modifyObject(ShadowType.class, accountOid, itemDeltas, getModifyOptions(), result);
 
-        session = open();
-        obj = (RObject) session.createQuery("from RObject where oid = :o").setParameter("o", account.getOid()).getSingleResult();
+        em = open();
+        obj = (RObject) em.createQuery("from RObject where oid = :o").setParameter("o", account.getOid()).getSingleResult();
         assertEquals(1, obj.getStrings().size());
-        close(session);
+        close(em);
 
         // now test the "export" serialization option
 
@@ -1431,12 +1431,12 @@ public class ModifyTest extends BaseSQLRepoTest {
     }
 
     private void assertExtensionDateValue(String objectOid, int expected) {
-        Session session = open();
+        EntityManager em = open();
         //noinspection unchecked
-        List<Timestamp> values = session.createQuery("select d.value from ROExtDate d where d.ownerOid = '" + objectOid + "'").list();
+        List<Timestamp> values = em.createQuery("select d.value from ROExtDate d where d.ownerOid = '" + objectOid + "'").getResultList();
         System.out.println("Values: " + values);
         assertEquals("Wrong # of extension values found", expected, values.size());
-        close(session);
+        close(em);
     }
 
     /**

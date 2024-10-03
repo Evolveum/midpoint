@@ -1,0 +1,17 @@
+= Module httpSecQ
+:page-nav-title: Module httpSecQ
+
+Definition of HTTP SecQ module.
+The module is used for quasi-interactive log-in of a user by answering a set of security questions.
+The HTTP SecQ mechanism is similar to HTTP BASIC mechanism, but it is using security questions instead of password.
+
+.Example of httpBasic module
+[source,xml]
+----
+<httpSecQ>
+    <identifier>httpSecurityQuestions</identifier>
+</httpSecQ>
+----
+
+== See also
+* xref:/midpoint/reference/security/authentication/flexible-authentication/configuration/[Flexible Authentication]

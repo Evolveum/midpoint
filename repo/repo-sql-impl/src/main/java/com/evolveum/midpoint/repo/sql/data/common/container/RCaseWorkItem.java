@@ -11,12 +11,14 @@ import static com.evolveum.midpoint.repo.sql.data.common.container.RCaseWorkItem
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.ForeignKey;
 import jakarta.persistence.Table;
 import jakarta.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.*;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
@@ -62,9 +64,8 @@ public class RCaseWorkItem implements Container<RCase> {
     }
 
     @Override
-    @Id
-    @ForeignKey(name = "fk_case_wi_owner")
-    @MapsId("owner")
+    @MapsId
+    @JoinColumn(name = "owner_oid", referencedColumnName = "oid", foreignKey = @ForeignKey(name = "fk_case_wi_owner"))
     @ManyToOne(fetch = FetchType.LAZY)
     @OwnerGetter(ownerClass = RCase.class)
     public RCase getOwner() {
@@ -79,6 +80,7 @@ public class RCaseWorkItem implements Container<RCase> {
         }
     }
 
+    @Id
     @Override
     @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
     @OwnerIdGetter()
@@ -94,7 +96,6 @@ public class RCaseWorkItem implements Container<RCase> {
         this.ownerOid = ownerOid;
     }
 
-    @Override
     @Id
     @GeneratedValue(generator = "ContainerIdGenerator")
     @GenericGenerator(name = "ContainerIdGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator")
@@ -104,7 +105,6 @@ public class RCaseWorkItem implements Container<RCase> {
         return id;
     }
 
-    @Override
     public void setId(Integer id) {
         this.id = id;
     }
@@ -129,9 +129,8 @@ public class RCaseWorkItem implements Container<RCase> {
 
     @Where(clause = RCaseWorkItemReference.REFERENCE_TYPE + "= 0")
     @JaxbName(localPart = "assigneeRef")
-    @OneToMany(mappedBy = "owner", orphanRemoval = true)
-    @ForeignKey(name = "none")
-    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
+    @OneToMany(mappedBy = "owner", orphanRemoval = true, cascade = CascadeType.ALL)
+    @org.hibernate.annotations.ForeignKey(name = "none")
     public Set<RCaseWorkItemReference> getAssigneeRef() {
         return assigneeRef;
     }
@@ -142,9 +141,8 @@ public class RCaseWorkItem implements Container<RCase> {
 
     @Where(clause = RCaseWorkItemReference.REFERENCE_TYPE + "= 1")
     @JaxbName(localPart = "candidateRef")
-    @OneToMany(mappedBy = "owner", orphanRemoval = true)
-    @ForeignKey(name = "none")
-    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
+    @OneToMany(mappedBy = "owner", orphanRemoval = true, cascade = CascadeType.ALL)
+    @org.hibernate.annotations.ForeignKey(name = "none")
     public Set<RCaseWorkItemReference> getCandidateRef() {
         return candidateRef;
     }

@@ -21,8 +21,10 @@ When a certificate needs to be validate Java libraries check if the certificates
 For real deployments with public or private certification authorities all root and intermediate certificates in chain must be imported into midPoint keystore.
 ====
 
-The following procedure describes how to get server certificate into the trustore which makes it a trusted certificate.
+The following procedure describes how to get server certificate and import it into the trustore which makes it a trusted certificate. Basic steps to do:
 
+. Getting server certificate
+. Import the certificate
 
 == Getting server certificate
 

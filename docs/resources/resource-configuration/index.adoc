@@ -103,10 +103,7 @@ Using filters in smart references make it easy to define connector by type or ve
 <connectorRef type="ConnectorType">
         <description>Reference to the ICF LDAP connector by connectorType</description>
         <filter>
-            <q:equal>
-                <q:path>connectorType</q:path>
-                <q:value>org.identityconnectors.ldap.LdapConnector</q:value>
-            </q:equal>
+            <q:text>connectorType = "org.identityconnectors.ldap.LdapConnector"</q:text>
         </filter>
     </connectorRef>
 
@@ -219,7 +216,7 @@ There are used for internal midPoint optimizations.
                 ...
         </xsd:schema>
       </definition>
-    </schema>
+</schema>
 
 ----
 

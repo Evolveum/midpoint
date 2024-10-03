@@ -46,8 +46,13 @@ MidPoint will try to create the `midpoint.home` directory if it does not already
 |===
 | Directory / File | Description | Notes
 
+| connid-connectors/
+| location for all ConnId based connectors, use for adding or upgrading connectors in your MidPoint deployment
+| Some connectors are bundled with Midpoint or can be found in xref:/connectors/connectors/[Identity Connectors] section.
+
+
 | icf-connectors/
-| location for all link:http://wikis.sun.com/display/IdentityConnectors/Identity+Connectors+Framework[ICF] based connectors
+| location for all ICF based connectors (legacy, kept for support purposes)
 | Some connectors are bundled with Midpoint or can be found in xref:/connectors/connectors/[Identity Connectors] section.
 
 
@@ -73,7 +78,7 @@ MidPoint will try to create the `midpoint.home` directory if it does not already
 
 | `logback.xml`
 | startup logging configuration
-| See xref:/midpoint/reference/diag/initial-logging/[Initial Logging Setup HOWTO]
+| See xref:/midpoint/reference/diag/logging/initial-logging.adoc[Initial Logging Setup]
 
 
 | `config.xml`

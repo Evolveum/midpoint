@@ -143,7 +143,7 @@ class CollectionUpdate<R, V extends PrismValue, I extends Item<V, ?>, ID extends
         if (existingValue != null && repoValueToAdd instanceof EntityState) {
             LOGGER.trace("Value to add already exists in the object. So merging it with the repo. Value: {}", repoValueToAdd);
             //noinspection unchecked
-            return (R) ctx.session.merge(repoValueToAdd);
+            return ctx.entityManager.merge(repoValueToAdd);
         } else {
             return repoValueToAdd;
         }

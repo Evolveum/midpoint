@@ -12,6 +12,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import jakarta.annotation.PostConstruct;
+import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.metamodel.Attribute;
 import jakarta.persistence.metamodel.EntityType;
 import jakarta.persistence.metamodel.ManagedType;
@@ -19,7 +20,6 @@ import jakarta.persistence.metamodel.Metamodel;
 
 import javax.xml.namespace.QName;
 
-import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -42,7 +42,7 @@ public class EntityRegistry {
 
     private static final Trace LOGGER = TraceManager.getTrace(EntityRegistry.class);
 
-    @Autowired private SessionFactory sessionFactory;
+    @Autowired private EntityManagerFactory entityManagerFactory;
     @Autowired private PrismContext prismContext;
 
     private Metamodel metamodel;
@@ -59,7 +59,7 @@ public class EntityRegistry {
     public void init() {
         LOGGER.debug("Starting initialization");
 
-        metamodel = sessionFactory.getMetamodel();
+        metamodel = entityManagerFactory.getMetamodel();
 
         for (EntityType<?> entity : metamodel.getEntities()) {
             Class<?> javaType = entity.getJavaType();

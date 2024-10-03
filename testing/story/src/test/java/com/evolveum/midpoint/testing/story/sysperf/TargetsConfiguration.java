@@ -16,17 +16,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
-import com.evolveum.icf.dummy.resource.DummyGroup;
+import com.evolveum.icf.dummy.resource.*;
 
 import com.evolveum.midpoint.test.TestObject;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.icf.dummy.resource.ConflictException;
-import com.evolveum.icf.dummy.resource.DummyObjectClass;
-import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.DummyTestResource;
 
@@ -49,12 +45,16 @@ class TargetsConfiguration {
     private final int singleValuedMappings;
     private final int multiValuedMappings;
 
+    @NotNull private final OperationDelay operationDelay;
+
     private final List<DummyTestResource> generatedResources;
 
     private TargetsConfiguration() {
         numberOfResources = Integer.parseInt(System.getProperty(PROP_RESOURCES, "0"));
         singleValuedMappings = Integer.parseInt(System.getProperty(PROP_SINGLE_MAPPINGS, "0"));
         multiValuedMappings = Integer.parseInt(System.getProperty(PROP_MULTI_MAPPINGS, "0"));
+
+        operationDelay = OperationDelay.fromSystemProperties(PROP);
 
         generatedResources = generateDummyTestResources();
         generateRoleTargets();
@@ -72,6 +72,10 @@ class TargetsConfiguration {
         return numberOfResources;
     }
 
+    @NotNull OperationDelay getOperationDelay() {
+        return operationDelay;
+    }
+
     public static TargetsConfiguration setup() {
         TargetsConfiguration configuration = new TargetsConfiguration();
         System.out.println("Targets: " + configuration);
@@ -84,6 +88,7 @@ class TargetsConfiguration {
                 "numberOfResources=" + numberOfResources +
                 ", singleValuedMappings=" + singleValuedMappings +
                 ", multiValuedMappings=" + multiValuedMappings +
+                ", operationDelay=" + operationDelay +
                 '}';
     }
 
@@ -94,11 +99,12 @@ class TargetsConfiguration {
             String resourceDefinitionFile = createResourceDefinition(i, oid);
             resources.add(new DummyTestResource(TARGET_DIR, resourceDefinitionFile, oid, getResourceInstance(i),
                     controller -> {
+                        DummyResource dummyResource = controller.getDummyResource();
                         createAttributes(controller, A_SINGLE_NAME, singleValuedMappings, false);
                         createAttributes(controller, A_MULTI_NAME, multiValuedMappings, true);
-                        controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+                        controller.addAttrDef(dummyResource.getAccountObjectClass(),
                                 A_MEMBERSHIP, String.class, false, true);
-                        controller.addAttrDef(controller.getDummyResource().getGroupObjectClass(),
+                        controller.addAttrDef(dummyResource.getGroupObjectClass(),
                                 DummyGroup.ATTR_MEMBERS_NAME, String.class, false, true);
                     }));
         }

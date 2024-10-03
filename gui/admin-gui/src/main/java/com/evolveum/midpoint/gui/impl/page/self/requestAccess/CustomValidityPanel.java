@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
 import com.evolveum.midpoint.gui.impl.component.input.DateTimePickerPanel;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
@@ -53,11 +55,21 @@ public class CustomValidityPanel extends BasePanel<CustomValidity> {
 
     private void initLayout() {
         DateTimePickerPanel from = DateTimePickerPanel.createByDateModel(ID_FROM, new PropertyModel<>(getModel(), "from"));
+        from.add(new VisibleBehaviour(this::isFromFieldVisible));
         from.setOutputMarkupId(true);
         add(from);
 
         DateTimePickerPanel to = DateTimePickerPanel.createByDateModel(ID_TO, new PropertyModel<>(getModel(), "to"));
+        to.add(new VisibleBehaviour(this::isToFieldVisible));
         to.setOutputMarkupId(true);
         add(to);
+    }
+
+    protected boolean isFromFieldVisible() {
+        return true;
+    }
+
+    protected boolean isToFieldVisible() {
+        return true;
     }
 }

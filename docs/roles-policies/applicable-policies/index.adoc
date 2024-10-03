@@ -9,7 +9,6 @@ doc-type: intro
 :page-wiki-metadata-create-date: 2018-03-26T15:34:19.547+02:00
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2018-04-09T18:34:20.259+02:00
-:page-since: "3.8"
 :page-toc: top
 :page-alias: [ { "parent" : "/midpoint/reference/admin-gui/" } ]
 :page-upkeep-status: yellow

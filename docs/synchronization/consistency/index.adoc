@@ -9,7 +9,6 @@ doc-type: intro
 :page-wiki-metadata-create-date: 2012-11-22T09:54:51.391+01:00
 :page-wiki-metadata-modify-user: rpudil
 :page-wiki-metadata-modify-date: 2019-12-06T10:13:14.361+01:00
-:page-since: "3.9"
 :page-toc: top
 :page-upkeep-status: yellow
 
@@ -19,11 +18,11 @@ Consistency mechanism is a part of midPoint that takes care of cases when midPoi
 xref:/iam/idm-consistency/[Inconsistencies] form in these cases.
 Inconsistencies are the difference between what _midPoint thinks that should be_ and what _really is_.
 Inconsistencies may happen if midPoint wants to create an account but the resource is down,
-if midPoint try to create an account but it finds that the account already exists and in many more cases.
+if midPoint try to create an account, but it finds that the account already exists and in many more cases.
 These may be caused by network outages, resource downtime, changes that happen outside midPoint, parallel
 and concurrent execution of tasks and also by technology limitations (e.g. connector unable to report all the changes).
 In practice inconsistencies happen all the time.
-Therefore a mechanism to handle them is an essential part of any IDM solution.
+Therefore, a mechanism to handle them is an essential part of any IDM solution.
 
 Please see the xref:/iam/idm-consistency/[IDM Consistency] page for short introduction to one of the consistency issues
 and xref:/midpoint/reference/synchronization/consistency/theory/[Consistency Theory] for
@@ -286,7 +285,7 @@ and if the one with additional information is found, we try to process it and co
 This page describes consistency mechanism used in midPoint 3.9 and later versions.
 MidPoint has consistency mechanism since almost the beginning.
 However, the mechanism was revised and significantly updated in midPoint 3.9.
-For information about the earlier versions please see xref:/midpoint/reference/synchronization/consistency/leagacy/[Consistency mechanism (3.8 and earlier)] page.
+For information about the earlier versions please see xrefv:/midpoint/reference/before-4.8/synchronization/consistency/leagacy/[Consistency mechanism (3.8 and earlier)] page.
 
 == See Also
 

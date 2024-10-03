@@ -10,10 +10,7 @@ package com.evolveum.midpoint.repo.sql.helpers;
 import java.util.Collection;
 import java.util.Map;
 
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-
-import org.hibernate.Session;
+import jakarta.persistence.EntityManager;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -24,6 +21,8 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.GetContainerableIdOnlyResult;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
@@ -44,13 +43,13 @@ public class CaseManagementHelper {
     CaseWorkItemType updateLoadedCaseWorkItem(
             GetContainerableIdOnlyResult result,
             Map<String, PrismObject<CaseType>> ownersMap,
-            Session session,
+            EntityManager em,
             Collection<SelectorOptions<GetOperationOptions>> options)
             throws SchemaException, ObjectNotFoundException, DtoTranslationException {
 
         String ownerOid = result.getOwnerOid();
         Integer id = result.getId();
-        PrismObject<CaseType> aCase = resolveCase(ownerOid, ownersMap, session);
+        PrismObject<CaseType> aCase = resolveCase(ownerOid, ownersMap, em);
         PrismContainer<Containerable> workItemContainer = aCase.findContainer(CaseType.F_WORK_ITEM);
         if (workItemContainer == null) {
             throw new ObjectNotFoundException(
@@ -71,14 +70,14 @@ public class CaseManagementHelper {
 
     @NotNull
     private PrismObject<CaseType> resolveCase(
-            String caseOid, Map<String, PrismObject<CaseType>> cache, Session session)
+            String caseOid, Map<String, PrismObject<CaseType>> cache, EntityManager em)
             throws DtoTranslationException, ObjectNotFoundException, SchemaException {
 
         PrismObject<CaseType> aCase = cache.get(caseOid);
         if (aCase != null) {
             return aCase;
         }
-        aCase = objectRetriever.getObjectInternal(session, CaseType.class, caseOid, null, false);
+        aCase = objectRetriever.getObjectInternal(em, CaseType.class, caseOid, null, false);
         cache.put(caseOid, aCase);
         return aCase;
     }

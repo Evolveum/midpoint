@@ -14,7 +14,6 @@ import com.evolveum.midpoint.gui.api.component.FocusTypeAssignmentPopupTabPanel;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -38,7 +37,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -304,14 +302,40 @@ public class AssignmentHolderOperationalButtonsPanel<AH extends AssignmentHolder
 
     @Override
     protected boolean isSaveButtonVisible() {
-        return !ItemStatus.NOT_CHANGED.equals(getModelObject().getStatus()) || getModelObject().canModify() ||
-                isAuthorizedToModify(); //this check was added due to MID-9380
+        // Note: when adding objects, the status below is "ADDED", so the first condition causes the button to be visible.
+        // Hence, there's no need to ask for canAdd() here.
+        return !isForcedPreview()
+                && isObjectStatusAndAuthorizationVerifiedForModification();
     }
 
+    /**
+     * The same object status and authorization checks should be produced for
+     * both save and preview buttons visibility. Therefore, this method should be used
+     * as a part of the visibility check for both buttons.
+     * @return
+     */
+    protected boolean isObjectStatusAndAuthorizationVerifiedForModification() {
+        return getModelObject().getStatus() != ItemStatus.NOT_CHANGED
+                || isEditingObject() && (getModelObject().canModify() || isAuthorizedToModify());
+    }
+
+    /**
+     * This check was added due to MID-9380, MID-9898.
+     *
+     * It looks if there's an authorization to execute (any) modification.
+     *
+     * However, a better approach is probably to ask if there is a request authorization for operations that
+     * are not covered by specific item-level modification rights: `#assign`, `#unassign`, `#recompute`.
+     */
     protected boolean isAuthorizedToModify() {
         try {
-            return getPageBase().isAuthorized(ModelAuthorizationAction.MODIFY.getUrl(),
-                    AuthorizationPhaseType.EXECUTION, getModelObject().getObject(), null, null);
+            var object = getModelObject().getObject();
+            return getPageBase().isAuthorized(
+                    ModelAuthorizationAction.MODIFY.getUrl(),
+                    AuthorizationPhaseType.EXECUTION,
+                    object,
+                    object.createModifyDelta(), // this is because the delta must not be null
+                    null);
         } catch (Exception e) {
             return false;
         }

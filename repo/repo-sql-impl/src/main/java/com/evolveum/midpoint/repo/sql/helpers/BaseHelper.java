@@ -6,14 +6,15 @@
  */
 package com.evolveum.midpoint.repo.sql.helpers;
 
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
+
 import javax.sql.DataSource;
 
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-
 import com.google.common.base.Strings;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import org.hibernate.FlushMode;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hibernate.exception.ConstraintViolationException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,13 +28,12 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.TransactionIsolation;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.backoff.BackoffComputer;
 import com.evolveum.midpoint.util.backoff.ExponentialBackoffComputer;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
 
 /**
  * Core functionality needed in all members of SQL service family.
@@ -62,34 +62,36 @@ public class BaseHelper {
 
     @NotNull
     private final SqlRepositoryConfiguration sqlRepositoryConfiguration;
-    private final SessionFactory sessionFactory;
+    private final EntityManagerFactory entityManagerFactory;
     private final DataSource dataSource;
 
     @Autowired
     public BaseHelper(
             @NotNull SqlRepositoryConfiguration sqlRepositoryConfiguration,
-            SessionFactory sessionFactory,
+            EntityManagerFactory entityManagerFactory,
             DataSource dataSource) {
         this.sqlRepositoryConfiguration = sqlRepositoryConfiguration;
-        this.sessionFactory = sessionFactory;
+        this.entityManagerFactory = entityManagerFactory;
         this.dataSource = dataSource;
     }
 
-    public SessionFactory getSessionFactory() {
-        return sessionFactory;
+    public EntityManagerFactory getEntityManagerFactory() {
+        return entityManagerFactory;
     }
 
-    public Session beginReadOnlyTransaction() {
+    public EntityManager beginReadOnlyTransaction() {
         return beginTransaction(getConfiguration().getReadOnlyTransactionStatement());
     }
 
-    public Session beginTransaction() {
+    public EntityManager beginTransaction() {
         return beginTransaction(null);
     }
 
-    public Session beginTransaction(String startTransactionStatement) {
-        Session session = getSessionFactory().openSession();
-        session.beginTransaction();
+    public EntityManager beginTransaction(String startTransactionStatement) {
+        EntityManager em = getEntityManagerFactory().createEntityManager();
+        em.getTransaction().begin();
+
+        Session session = em.unwrap(Session.class);
 
         if (getConfiguration().getTransactionIsolation() == TransactionIsolation.SNAPSHOT) {
             LOGGER.trace("Setting transaction isolation level SNAPSHOT.");
@@ -104,7 +106,8 @@ public class BaseHelper {
             LOGGER.trace("Marking transaction as read only.");
             session.doWork(connection -> RUtil.executeStatement(connection, startTransactionStatement));
         }
-        return session;
+
+        return em;
     }
 
     @NotNull
@@ -112,13 +115,13 @@ public class BaseHelper {
         return sqlRepositoryConfiguration;
     }
 
-    void rollbackTransaction(Session session, Throwable ex, OperationResult result, OperationResultStatus status) {
+    void rollbackTransaction(EntityManager em, Throwable ex, OperationResult result, OperationResultStatus status) {
         String message = ex != null ? ex.getMessage() : "null";
-        rollbackTransaction(session, ex, message, result, status);
+        rollbackTransaction(em, ex, message, result, status);
     }
 
     void rollbackTransaction(
-            Session session, Throwable ex, String message, OperationResult result, OperationResultStatus status) {
+            EntityManager em, Throwable ex, String message, OperationResult result, OperationResultStatus status) {
         if (Strings.isNullOrEmpty(message) && ex != null) {
             message = ex.getMessage();
         }
@@ -127,20 +130,20 @@ public class BaseHelper {
             result.recordStatus(status, message, ex);
         }
 
-        if (session == null || session.getTransaction() == null || !session.getTransaction().isActive()) {
+        if (em == null || em.getTransaction() == null || !em.getTransaction().isActive()) {
             return;
         }
 
-        session.getTransaction().rollback();
+        em.getTransaction().rollback();
     }
 
-    public void cleanupSessionAndResult(Session session, OperationResult result) {
-        if (session != null && session.getTransaction().isActive()) {
-            session.getTransaction().commit();
+    public void cleanupManagerAndResult(EntityManager em, OperationResult result) {
+        if (em != null && em.getTransaction().isActive()) {
+            em.getTransaction().commit();
         }
 
-        if (session != null && session.isOpen()) {
-            session.close();
+        if (em != null && em.isOpen()) {
+            em.close();
         }
 
         if (result != null && result.isUnknown()) {
@@ -152,40 +155,40 @@ public class BaseHelper {
         handleGeneralException(ex, null, result);
     }
 
-    public void handleGeneralException(Throwable ex, Session session, OperationResult result) {
+    public void handleGeneralException(Throwable ex, EntityManager em, OperationResult result) {
         if (ex instanceof RuntimeException) {
-            handleGeneralRuntimeException((RuntimeException) ex, session, result);
+            handleGeneralRuntimeException((RuntimeException) ex, em, result);
         } else {
-            handleGeneralCheckedException(ex, session, result);
+            handleGeneralCheckedException(ex, em, result);
         }
         // just a marker to be obvious that this method never returns normally
         throw new IllegalStateException("Shouldn't get here");
     }
 
     public void handleGeneralRuntimeException(
-            RuntimeException ex, Session session, OperationResult result) {
+            RuntimeException ex, EntityManager em, OperationResult result) {
         LOGGER.debug("General runtime exception occurred.", ex);
 
         if (isFatalException(ex)) {
-            rollbackTransaction(session, ex, result, OperationResultStatus.FATAL_ERROR);
+            rollbackTransaction(em, ex, result, OperationResultStatus.FATAL_ERROR);
             if (ex instanceof SystemException) {
                 throw ex;
             } else {
                 throw new SystemException(ex.getMessage(), ex);
             }
         } else {
-            rollbackTransaction(session, ex, result, null);
+            rollbackTransaction(em, ex, result, null);
             // this exception will be caught and processed in logOperationAttempt,
             // so it's safe to pass any RuntimeException here
             throw ex;
         }
     }
 
-    public void handleGeneralCheckedException(Throwable ex, Session session, OperationResult result) {
+    public void handleGeneralCheckedException(Throwable ex, EntityManager em, OperationResult result) {
         LOGGER.error("General checked exception occurred.", ex);
 
         boolean fatal = !isExceptionRelatedToSerialization(ex);
-        rollbackTransaction(session, ex, result, fatal ? FATAL_ERROR : null);
+        rollbackTransaction(em, ex, result, fatal ? FATAL_ERROR : null);
         throw new SystemException(ex.getMessage(), ex);
     }
 

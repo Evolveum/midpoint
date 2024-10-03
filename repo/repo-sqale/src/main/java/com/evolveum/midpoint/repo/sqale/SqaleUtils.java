@@ -128,7 +128,10 @@ public class SqaleUtils {
     public static void handlePostgresException(Exception exception)
             throws ObjectAlreadyExistsException {
         PSQLException psqlException = ExceptionUtil.findCause(exception, PSQLException.class);
-
+        if (psqlException == null) {
+            // We can not specially handle this exception based on postgresql state, so it should be handled in caller.
+            return;
+        }
         String state = psqlException.getSQLState();
         String message = psqlException.getMessage();
         if (PSQLState.UNIQUE_VIOLATION.getState().equals(state)) {

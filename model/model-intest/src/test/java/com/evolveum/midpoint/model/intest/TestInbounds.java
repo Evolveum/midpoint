@@ -14,8 +14,13 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+
+import com.evolveum.midpoint.test.DummyTestResource;
+
+import com.evolveum.midpoint.util.exception.CommonException;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -45,7 +50,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestInbounds extends AbstractInitializedModelIntegrationTest {
 
-    public static final File TEST_DIR = new File("src/test/resources/contract");
+    public static final File TEST_DIR = new File("src/test/resources/inbounds");
+
+    /** Only for special test methods; others use common resources (green, orange, etc.) */
+    private static final DummyTestResource RESOURCE_DUMMY_INBOUNDS = new DummyTestResource(
+            TEST_DIR, "resource-dummy-inbounds.xml", "a237bf9c-5843-4f7a-ad35-75f4a1d17bee", "inbounds");
 
     private String jackEmployeeNumber;
     private String guybrushShadowOrangeOid;
@@ -56,6 +65,8 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
         setDefaultUserTemplate(USER_TEMPLATE_INBOUNDS_OID);
         assumeResourceAssigmentPolicy(RESOURCE_DUMMY_GREEN_OID, AssignmentPolicyEnforcementType.RELATIVE, false);
+
+        initTestObjects(initTask, initResult, RESOURCE_DUMMY_INBOUNDS);
     }
 
     @Test
@@ -101,7 +112,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
                 .assertDescription("Where's the rum?")
                 .assignments()
                     .single()
-                        .assertRole(ROLE_PIRATE_GREEN_OID)
+                        .assertRole(ROLE_PIRATE_GREEN_OID) // automatically assigned by the object template
                         .metadata()
                             .assertOriginMappingName("pirate-assignment")
                             .end()
@@ -140,7 +151,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
                 .assertDescription("Where's the rum?")
                 .assignments()
                     .single()
-                        .assertRole(ROLE_BUCCANEER_GREEN_OID)
+                        .assertRole(ROLE_BUCCANEER_GREEN_OID) // automatically assigned by the object template
                         .metadata()
                             .assertOriginMappingName("buccaneer-assignment")
                             .end()
@@ -153,7 +164,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
     }
 
     @Test
-    public void test103DeleteUserEmployeeTypeBartender() throws Exception {
+    public void test103DeleteUserEmployeeTypeBuccaneer() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -853,5 +864,51 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertNoDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME);
 
         assertNoShadow(guybrushShadowOrangeOid);
+    }
+
+    /** Tests conflicting inbound mappings for a new user. Somewhat related to MID-9621. */
+    @Test
+    public void test300ConflictingMappingsForNewUser() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = getTestNameShort();
+
+        given("account exists on resource");
+        RESOURCE_DUMMY_INBOUNDS.controller.addAccount(userName, "John Smith");
+
+        tryImportCheckingForFullNameConflict(userName, result);
+    }
+
+    /** Tests conflicting inbound mappings for existing user with value equal to one of mappings' output. MID-9621. */
+    @Test
+    public void test310ConflictingMappingsForExistingUserExistingValue() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = getTestNameShort();
+
+        given("account exists on resource, user exists in repo");
+        RESOURCE_DUMMY_INBOUNDS.controller.addAccount(userName, "John Smith");
+        addObject(
+                new UserType()
+                        .name(userName)
+                        .fullName("John Smith"),
+                task, result);
+
+        tryImportCheckingForFullNameConflict(userName, result);
+    }
+
+    private void tryImportCheckingForFullNameConflict(String userName, OperationResult result) throws CommonException, IOException {
+        when("account is imported");
+        importAccountsRequest()
+                .withResourceOid(RESOURCE_DUMMY_INBOUNDS.oid)
+                .withDefaultAccountType()
+                .withNameValue(userName)
+                .withNotAssertingSuccess()
+                .executeOnForeground(result);
+
+        then("there is a failure");
+        assertThatOperationResult(result)
+                .isFatalError()
+                .hasMessageContaining("Strong mappings provided more than one value for single-valued item fullName");
     }
 }

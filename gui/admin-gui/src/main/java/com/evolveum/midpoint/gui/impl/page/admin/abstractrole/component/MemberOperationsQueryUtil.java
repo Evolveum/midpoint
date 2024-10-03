@@ -100,7 +100,7 @@ public class MemberOperationsQueryUtil {
             @NotNull ObjectReferenceType targetObjectRef, @NotNull Collection<QName> relations) {
         argCheck(!relations.isEmpty(), "At least one relation must be specified");
         return relations.stream()
-                .map(relation -> targetObjectRef.relation(relation).asReferenceValue().clone())
+                .map(relation -> targetObjectRef.clone().relation(relation).asReferenceValue())
                 .collect(Collectors.toList());
     }
 

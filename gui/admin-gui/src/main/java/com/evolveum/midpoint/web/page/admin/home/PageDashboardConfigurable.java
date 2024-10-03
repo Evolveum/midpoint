@@ -10,6 +10,10 @@ import java.io.Serial;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.evolveum.midpoint.repo.sqlbase.NativeOnlySupportedException;
+
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -61,6 +65,8 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * @author skublik
  */
@@ -85,6 +91,8 @@ public class PageDashboardConfigurable extends PageDashboard {
     private static final String OPERATION_COMPILE_DASHBOARD_COLLECTION = DOT_CLASS + "compileDashboardCollection";
 
     private static final Map<String, Class<? extends WebPage>> LINKS_REF_COLLECTIONS;
+    private static final String NATIVE_ONLY_SUPPORTED_KEY = "PageDashboardConfigurable.widget.native.only";
+    private static final String UNSUPPORTED_KEY = "PageDashboardConfigurable.widget.unsupported";
 
     static {
         Map<String, Class<? extends WebPage>> map = new HashMap<>();
@@ -184,7 +192,6 @@ public class PageDashboardConfigurable extends PageDashboard {
             data.setTitle(widget.getNumberLabel());
             data.setDescription(widget.getMessage());
             data.setIcon(widget.getIconCssClass());
-
             return data;
         }) {
 
@@ -209,6 +216,7 @@ public class PageDashboardConfigurable extends PageDashboard {
 
     private IModel<DashboardWidgetDto> loadWidgetData(IModel<DashboardWidgetType> model) {
         return new LoadableModel<>(false) {
+
             @Override
             protected DashboardWidgetDto load() {
                 Task task = createSimpleTask("Get DashboardWidget");
@@ -221,16 +229,59 @@ public class PageDashboardConfigurable extends PageDashboard {
 
                     return new DashboardWidgetDto(dashboardWidget, PageDashboardConfigurable.this);
                 } catch (Exception e) {
-                    LOGGER.error("Couldn't get DashboardWidget with widget " + model.getObject().getIdentifier(), e);
-                    result.recordFatalError("Couldn't get widget, reason: " + e.getMessage(), e);
+                    var ret = new DashboardWidgetDto(null, PageDashboardConfigurable.this);
+                    var nativeOnlySupport = findNativeOnlyException(e);
+                    if (nativeOnlySupport != null) {
+                        // Here we can handle special case - that filter is only supported on native repository (and we are using generic)
+                        LOGGER.warn("Couldn't get DashboardWidget with widget {}. Uses features supported only native repository.",
+                                model.getObject().getIdentifier(), nativeOnlySupport.getMessage());
+                        result.recordHandledError(nativeOnlySupport.getLocalizedUserFriendlyMessage(), e);
+                        result.setUserFriendlyMessage(new SingleLocalizableMessage(
+                                NATIVE_ONLY_SUPPORTED_KEY, new Object[]{model.getObject().getIdentifier()}));
+
+
+                        return createUnsupportedWidget(model);
+                    } else {
+                        LOGGER.error("Couldn't get DashboardWidget with widget " + model.getObject().getIdentifier(), e);
+                        result.recordFatalError("Couldn't get widget, reason: " + e.getMessage(), e);
+                    }
+                    result.computeStatusIfUnknown();
+                    showResult(result);
+
+                    return ret;
                 }
-
-                result.computeStatusIfUnknown();
-                showResult(result);
-
-                return new DashboardWidgetDto(null, PageDashboardConfigurable.this);
             }
         };
+    }
+
+    private DashboardWidgetDto createUnsupportedWidget(IModel<DashboardWidgetType> model) {
+        // Let's modify widget to warning
+        var widget = model.getObject();
+        widget.setData(null);
+        var data = getDashboardService().createEmptyWidgetData(widget);
+        var display = data.getDisplay();
+        display.setColor("var(--warning)");
+        display.setCssStyle("color: var(--navy) !important;");
+        display.setIcon(new IconType().cssClass("fa fa-exclamation-triangle"));
+        var unsupportedShort = getLocalizationService().translate(UNSUPPORTED_KEY, new Object[]{}, getLocale());
+        data.setNumberMessage(unsupportedShort);
+        var ret = new DashboardWidgetDto(data, PageDashboardConfigurable.this);
+        var unsupportedLong = getLocalizationService().translate(NATIVE_ONLY_SUPPORTED_KEY, new Object[]{ret.getMessage()},getLocale());
+        ret.setMessage(unsupportedLong);
+        return ret;
+
+    }
+
+    @Nullable
+    static final NativeOnlySupportedException findNativeOnlyException(Exception e) {
+        Throwable next = e;
+        while (next != null) {
+            if (next instanceof NativeOnlySupportedException nativeOnly) {
+                return nativeOnly;
+            }
+            next = e.getCause();
+        }
+        return null;
     }
 
     private boolean isCollectionLoadable(DashboardWidgetType widget) {

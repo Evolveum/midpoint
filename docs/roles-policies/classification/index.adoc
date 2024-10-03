@@ -11,15 +11,23 @@ compliance:
             description: 'Description of an idea for limiting access to internal information using classification scheme'
         '5.16':
             description: 'Management of user clearances'
+        '6.1':
+            description: 'Using clearances to represent personnel screening'
+        '6.3':
+            description: 'Using clearances to represent security training'
+        '6.6':
+            description: 'Using clearances to represent non-disclosure agreement'
+        '8.3':
+            description: 'Ensuring that only users with appropriate clearances get access to sensitive information'
 ---
 = Information Classification and Clearances
 :page-toc: top
 :page-nav-title: Classification
 :page-since: "4.8"
 :page-experimental: true
-:page-upkeep-status: yellow
+:page-upkeep-status: green
 
-NOTE: For midPoint 4.8, this considered an experimental functionality.
+NOTE: For midPoint 4.8, information classification is considered an experimental functionality.
 The mechanism works in midPoint 4.8 as described here, and they are based on stable functionality.
 However, it is planned that the mechanism will be updated for a more modern approach in midPoint 4.9.
 Some changes to configuration will be needed when upgrading information classification configuration to midPoint 4.9.
@@ -29,15 +37,15 @@ MidPoint deployments that expect extensive use of information classification cap
 Information classification is a process in which organisations assess their data and systems, with regard to the necessary level of protection.
 The information is classified by assigning information _labels_ or _classifications_ to individual assets, such as databases, filesystems, applications or even individual files.
 
-For example, an application can be classified as "secret", denoting that the application contains secret information with elevated protection needs.
-The policy is set up to limit access to all applications labeled as "secret", requiring special security training as a pre-requisite for accessing the application.
+For example, an application can be classified as `secret`, denoting that the application contains secret information with elevated protection needs.
+The policy is set up to limit access to all applications labeled as `secret`, requiring special security training as a pre-requisite for accessing the application.
 All roles that give access to any secret applications are subject to the same policy as well.
 The policy is evaluated for all applications and roles.
 Even if a role definition is wrong, including access that it should not include, the policy makes sure that such role cannot be assigned to any user who did not complete the security training.
 
 == Implementation
 
-The configuration is based on two basic xref:../schema/archetypes/[archetypes]:
+MidPoint contains two pre-configured xref:/midpoint/reference/schema/archetypes/[archetypes]:
 
 * `Classification` archetype is used to set up classification schemes.
 It is used to define set of _classifications_ (_information labels_) that can be assigned to applications.
@@ -45,8 +53,8 @@ The classifications specify security requirements that must be met to be able to
 
 * `Clearance` archetype is used to define clearances.
 Clearances are objects which testify that security requirements were met by a particular user or organization.
-They represent knowledge gained at mandatory trainings (e.g. security training, health and safety briefing), non-disclosure agreements (NDA) in place, formal government clearances or professional certifications, user categories (internal/external).
-Clearances allow access to classified applications.
+They represent knowledge gained at mandatory trainings (e.g. security training, health and safety briefing), non-disclosure agreements (NDA) in place, screening, formal government clearances or professional certifications, user categories (internal/external) or other criteria.
+Clearances usually allow access to classified applications.
 
 The actual mechanism is based on combination of xref:../metaroles/[meta-roles] and xref:../policy-rules/[policy rules].
 Classifications act as meta-roles, specifying their security requirements in form of policy rules embedded in a second-level inducements.
@@ -74,16 +82,29 @@ Slovak transposition of European NIS1 directive specifies that all information s
 
 We want to set up following security policy:
 
-* Access to Category I systems can be granted to any qualified user, by the means of the usual midPoint process.
+* Access to Category I systems can be granted to any user, by the means of the usual midPoint process.
 The roles can be assigned directly by system administrator, requested by the user and approved, or automatically assigned by policy.
 No special security measures are applied.
 
-* Access to Category II systems can be provided only to users that have completed basic cybersecurity training.
+* Access to Category II systems can be provided only to employees or users that have signed explicit non-disclosure agreement (NDA).
 
-* Access to Category III systems can be provided only to users that have been explicitly cleared by security office.
+* Access to Category III systems can be provided only to users that have completed special security training.
 
 The policy is additive in such a way, that systems of Category II have to satisfy all requirements for both Category II and Category I.
 Systems of Category III have to satisfy requirements for all three categories.
+
+[TIP]
+.Configuration files
+====
+Full configuration files for this example can be found in xref:/midpoint/reference/samples/distribution-samples/[midPoint samples] in `classification/classification-nis1-sk` directory.
+
+Code snippets in this page are simplified for clarity.
+The snippets do not contain all the configuration necessary for full functionality in midPoint 4.8.
+Full configuration can be found in the samples (make sure to check out latest version in 4.8.x family).
+There are some workarounds for features of latest midPoint versions, features that are missing in midPoint 4.8.
+====
+
+=== Classification Scheme
 
 Firstly, we set up a classification framework.
 We create three roles representing the three classification categories.
@@ -135,15 +156,73 @@ We create three roles representing the three classification categories.
 </role>
 ----
 
-Now we can classify the applications.
-We can assign classification categories to applications using ordinary assignments:
+=== Applications
 
-.app-sensitive-register.xml
+Now we can classify the applications.
+We can assign classification categories to applications using ordinary assignments.
+Website application is classified as Category I:
+
+.website.xml
+[source,xml]
+----
+<service oid="45bb3cea-fde9-4590-812a-e86b37492bcd">
+    <name>Public Website</name>
+    <description>Company website, contains public information only.</description>
+    <assignment>
+        <!-- Application archetype -->
+        <targetRef oid="00000000-0000-0000-0000-000000000329" type="ArchetypeType" />
+    </assignment>
+    <assignment>
+        <!-- Category I classification -->
+        <targetRef oid="91a1bdf1-addc-4d34-b834-190938be3aca" type="RoleType" />
+    </assignment>
+</service>
+----
+
+Collaboration platform and management information system are classified as Category II:
+
+.collaboration-platform.xml
+[source,xml]
+----
+<service oid="183cdca7-91da-424c-9ef6-8b481f6aa57f">
+    <name>Collaboration platform</name>
+    <description>System for internal team collaboration. Contains meeting notes, memos, plans ... lots of internal stuff.</description>
+    <assignment>
+        <!-- Application archetype -->
+        <targetRef oid="00000000-0000-0000-0000-000000000329" type="ArchetypeType" />
+    </assignment>
+    <assignment>
+        <!-- Category II classification -->
+        <targetRef oid="71a7cb99-3a69-48e3-9521-d9a933c2b5c5" type="RoleType" />
+    </assignment>
+</service>
+----
+
+.management-information-system.xml
+[source,xml]
+----
+<service oid="c6fe76ed-102b-4736-8e32-7c1e57c852c7">
+    <name>Management information system</name>
+    <description>Internal information for management decision-making.</description>
+    <assignment>
+        <!-- Application archetype -->
+        <targetRef oid="00000000-0000-0000-0000-000000000329" type="ArchetypeType" />
+    </assignment>
+    <assignment>
+        <!-- Category II classification -->
+        <targetRef oid="71a7cb99-3a69-48e3-9521-d9a933c2b5c5" type="RoleType" />
+    </assignment>
+</service>
+----
+
+Restricted research database is classified as Category III:
+
+.restricted-research-database.xml
 [source,xml]
 ----
 <service oid="1a0b9b4b-dd86-464c-b077-9b9971424351">
-    <name>Sensitive Register</name>
-    <description>Database containing sensitive data.</description>
+    <name>Restricted research database</name>
+    <description>Database containing sensitive data on secret research projects.</description>
     <assignment>
         <!-- Application archetype -->
         <targetRef oid="00000000-0000-0000-0000-000000000329" type="ArchetypeType" />
@@ -155,17 +234,19 @@ We can assign classification categories to applications using ordinary assignmen
 </service>
 ----
 
+=== Policies and Clearances
+
 It is time to implement our security policy.
 As category I applications are pretty much free-for-all, we do not need to specify any special requirements for category I.
-For category II, we are going to require basic cybersecurity training.
-Therefore, we need to specify a clearance for _basic cybersecurity training_ first.
+For category II, we are going to require non-disclosure agreement (NDA).
+Therefore, we need to specify a `NDA` clearance first.
 
-.basic-cybersecurity-training.xml
+.nda.xml
 [source,xml]
 ----
-<role oid="5bb5c5b5-eca2-4129-b73f-34c0b0bd2736">
-    <name>Basic cybersecurity training</name>
-    <description>Clearance that attests that the user passed through training of basic information security practices.</description>
+<role oid="09360ff0-d506-4751-b13f-4e01422693ac">
+    <name>NDA</name>
+    <description>Non-disclosure agreement clearance, applied to organizations/users that have signed the agreement.</description>
     <assignment>
         <!-- Clearance archetype -->
         <targetRef oid="00000000-0000-0000-0000-000000000331" type="ArchetypeType"/>
@@ -173,13 +254,13 @@ Therefore, we need to specify a clearance for _basic cybersecurity training_ fir
 </role>
 ----
 
-We will assign this clearance to users that have completed the training.
+We will assign this clearance to users that have signed the NDA.
 The clearance can be assigned in any way that midPoint supports.
-E.g. it may be assigned manually after the training is completed, or automatically assigned based on user property mapped from HR system.
+E.g. it may be assigned manually after the NDA is signed, or automatically assigned based on user property mapped from HR system.
 
 Now we are going to specify security requirements of category II.
 We absolutely do *not* want to specify the requirements in every application.
-The policy states that _all_ category II systems require cybersecurity training, therefore we are going to specify policy that applied to _all_ categtory II systems.
+The policy states that _all_ category II systems require NDA, therefore we are going to specify policy that applied to _all_ categtory II systems.
 We are going to specify it at the most natural place: the definition of category II classification.
 We will use xref:../policy-rules/[policy rule] for this purpose:
 
@@ -202,16 +283,16 @@ We will use xref:../policy-rules/[policy rule] for this purpose:
             <order>2</order>
         </orderConstraint>
         <policyRule>
-            <name>required-cybersecurity-training</name>
+            <name>required-nda</name>
             <policyConstraints>
                 <hasNoAssignment>
                     <presentation>
                         <message>
-                            <fallbackMessage>Cybersecurity training required</fallbackMessage>
+                            <fallbackMessage>NDA required</fallbackMessage>
                         </message>
                     </presentation>
-                    <!-- Basic cybersecurity training clearance -->
-                    <targetRef oid="5bb5c5b5-eca2-4129-b73f-34c0b0bd2736" type="RoleType" />
+                    <!-- NDA clearance -->
+                    <targetRef oid="09360ff0-d506-4751-b13f-4e01422693ac" type="RoleType" />
                 </hasNoAssignment>
             </policyConstraints>
             <policyActions>
@@ -222,19 +303,47 @@ We will use xref:../policy-rules/[policy rule] for this purpose:
 </role>
 ----
 
-The policy rule prohibits assignment of privilege (policyAction=`enforce`) in case where the user does not have `Basic security training` clearance already assigned.
+The policy rule prohibits assignment of privilege (`policyAction` is set to `enforce`) in case where the user does not have `NDA` clearance already assigned.
 The policy rule is specified in second-order inducement, therefore it is applied to all applications that have the `Category II` classification.
-The second-order inducement is the usual mechanism used in configurations based on xref:../metaroles/[meta-roles], such as this one.
+The second-order inducement is the usual mechanism used in configurations based on xref:../metaroles/[meta-roles].
+Classifications naturally act as meta-roles for applications.
 
-Similarly, definition of category III can be extended with requirements for special security clearance.
-We define the clearance first:
+Explicit assignment of NDA clearance is perhaps a good method for external workers.
+However, employees usually have non-disclosure clause as part of their employment contract.
+There we can set up a policy that assumes that every employee already meets the requirements for NDA.
+In other words, presence of NDA is assumed for every employee.
+The most natural way to do that is to include (induce) NDA clearance in `Employee` archetype:
 
-.special-security-clearance.xml
+.employee.xml
 [source,xml]
 ----
-<role oid="147a93c6-c8c3-4430-9603-659ffeb5e544">
-    <name>Special security clearance</name>
-    <description>Special clearance awarded by security office, allowing access to sensitive information.</description>
+<archetype oid="7f7c8cb1-9da4-4845-bd17-49d705b8546a">
+    <name>Employee</name>
+    <description>Archetype for employees.</description>
+    ...
+    <inducement>
+        <description>Employees have non-disclosure clause in their contracts, therefore NDA clearance is assumed.</description>
+        <!-- NDA clearance -->
+        <targetRef oid="09360ff0-d506-4751-b13f-4e01422693ac" type="RoleType"/>
+    </inducement>
+</archetype>
+----
+
+As NDA clearance is induced by the employee archetype, every user with `Employee` archetype satisfies requirement for NDA clearance.
+Therefore, systems classified as Category II can be assigned to employees without any additional manual step.
+
+Similarly, definition of category III can be extended with requirements for special security training.
+We define the clearance first:
+
+.special-cybersecurity-training.xml
+[source,xml]
+----
+<role oid="5bb5c5b5-eca2-4129-b73f-34c0b0bd2736">
+    <name>Special cybersecurity training</name>
+    <description>
+        Clearance that attests that the user passed through special training of information security practices.
+        Requirement for granting access to restricted data.
+    </description>
     <assignment>
         <!-- Clearance archetype -->
         <targetRef oid="00000000-0000-0000-0000-000000000331" type="ArchetypeType"/>
@@ -263,16 +372,16 @@ We can use the approach described above the place requirement for the special cl
             <order>2</order>
         </orderConstraint>
         <policyRule>
-            <name>required-special-clearance</name>
+            <name>required-special-training</name>
             <policyConstraints>
                 <hasNoAssignment>
                     <presentation>
                         <message>
-                            <fallbackMessage>Special security clearance required</fallbackMessage>
+                            <fallbackMessage>Special cybersecurity training required</fallbackMessage>
                         </message>
                     </presentation>
-                    <!-- Special security clearance -->
-                    <targetRef oid="147a93c6-c8c3-4430-9603-659ffeb5e544" type="RoleType" />
+                    <!-- Special cybersecurity training clearance -->
+                    <targetRef oid="5bb5c5b5-eca2-4129-b73f-34c0b0bd2736" type="RoleType" />
                 </hasNoAssignment>
             </policyConstraints>
             <policyActions>
@@ -283,27 +392,12 @@ We can use the approach described above the place requirement for the special cl
 </role>
 ----
 
-The policy requires special clearance to gain access to any category III system.
+The policy requires special security training to gain access to any category III system.
 The clearance will probably be awarded to individual users by security office.
-However, some job roles or organizational units may be cleared implicitly, given by the nature of their job.
-For example, the clearance may be awarded automatically to all members of `Chief Audit Office` organizational unit.
-The usual inducement can be used for that:
-
-.chief-audit-office.xml
-[source,xml]
-----
-<org oid="03a7128d-42c8-4056-9f2e-171658562eeb">
-    <name>Chief Audit Office</name>
-    <inducement>
-        <!-- Special security clearance -->
-        <targetRef oid="147a93c6-c8c3-4430-9603-659ffeb5e544" type="RoleType" />
-    </inducement>
-</org>
-----
 
 As the categories are meant to form a hierarchy, the security requirements specified for the categories are cumulative.
 Access to category III systems can be granted only if all the explicit requirements for category III, category II and category I are satisfied.
-In our case, the access can be granted only if the user has both the security training and special clearance.
+In our case, the access can be granted only if the user has both the NDA and special training clearance.
 
 The policy specified in this way acts as an _ultimate_ policy.
 As long as application roles are properly associated with applications, it does not matter how business roles are defined for the policy to work.
@@ -314,6 +408,19 @@ NOTE: Application roles must have inducement to applications for the policy to w
 This is a general best practice in all cases that application roles are used.
 The roles must have inducement to applications, even if applications are "empty", not containing any construction statements.
 The applications are the objects that link the classifications and the roles, therefore it is essential to maintain the link.
+
+== Privileged Access Classification
+
+MidPoint contains a pre-defined classification `Privileged access`.
+This classification is meant to mark roles that provide privileged access to systems.
+
+.Privileged access
+TIP: Privileged access is defined as entitlement which allows the performance of activities that typical entities in the system cannot perform. See glossref:privileged-entitlement[].
+
+Classification `Privileged access` is an ordinary midPoint classification in its essence.
+It is meant to classify application roles that represent privileged entitlements of identity resources, such as `Domain Admins` or `root` groups.
+
+// TODO: How this classification is used, how to report all privileged access, dashboard, etc.
 
 == Further Tips
 
@@ -338,8 +445,6 @@ E.g. certify access to category III systems every 6 months, certify access to ca
 // TODO: create an example for this, after 4.9 when new certification settles in.
 // TODO: Refer from ISO 27001 5.12
 
-// TODO: Pre-defined classification "Privileged Access"
-
 // TODO: recommendation: model all "special" privileges or states as clearances, e.g. NDA, security trainings, clearances based on inspections and investigations. This means that they can be re-verified using ordinary certification. (ISO27001 5.16)
 
 == Limitations
@@ -348,6 +453,10 @@ The concept of classifications and clearances is based on existing stable midPoi
 However, there are limitation regarding _visibility_ of the policy.
 The classification labels are visible for applications that they are directly assigned to, yet they are not visible for roles.
 Generally speaking, visibility of policy rules and their execution is somehow limited in current midPoint versions.
+
+For midPoint 4.8, information classification is considered an experimental functionality.
+The mechanisms are likely to work well.
+However, manual changes to configuration will be needed when upgrading information classification configuration to midPoint 4.9.
 
 == See Also
 

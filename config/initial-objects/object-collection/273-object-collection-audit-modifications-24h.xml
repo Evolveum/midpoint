@@ -13,38 +13,11 @@
     <name>Modification audit records in 24h</name>
     <type>AuditEventRecordType</type>
     <filter>
-        <!--  TODO: Convert to Axiom Query -->
-        <q:and>
-            <q:equal>
-                <q:path>eventStage</q:path>
-                <q:value>execution</q:value>
-            </q:equal>
-            <q:or>
-                <q:equal>
-                    <q:path>eventType</q:path>
-                    <q:value>modifyObject</q:value>
-                </q:equal>
-                <q:equal>
-                    <q:path>eventType</q:path>
-                    <q:value>addObject</q:value>
-                </q:equal>
-                <q:equal>
-                    <q:path>eventType</q:path>
-                    <q:value>deleteObject</q:value>
-                </q:equal>
-            </q:or>
-            <q:greater>
-                <q:path>timestamp</q:path>
-                <expression>
-                    <script>
-                        <code>
-                            calendar = basic.addDuration(basic.currentDateTime(), "-P1D");
-                            return calendar;
-                        </code>
-                    </script>
-                </expression>
-            </q:greater>
-        </q:and>
+        <q:text>
+            eventStage = 'execution'
+            and ( eventType = 'modifyObject' or eventType = 'addObject' or eventType = 'deleteObject')
+            and timestamp > `basic.addDuration(basic.currentDateTime(), "-P1D")`
+        </q:text>
     </filter>
     <domain>
         <collectionRef oid="00000000-0000-0000-0001-000000000285" type="c:ObjectCollectionType"/>

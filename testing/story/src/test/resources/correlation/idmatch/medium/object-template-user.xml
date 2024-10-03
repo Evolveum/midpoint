@@ -69,9 +69,9 @@
                     <code>
                         import com.evolveum.midpoint.util.MiscUtil
 
-                        import static com.evolveum.midpoint.testing.story.correlation.TestInternalCorrelationMedium.RESOURCE_EXTERNAL
-                        import static com.evolveum.midpoint.testing.story.correlation.TestInternalCorrelationMedium.RESOURCE_HR
-                        import static com.evolveum.midpoint.testing.story.correlation.TestInternalCorrelationMedium.RESOURCE_SIS
+                        import static com.evolveum.midpoint.testing.story.correlation.TestIdMatchCorrelationMediumDummy.RESOURCE_EXTERNAL
+                        import static com.evolveum.midpoint.testing.story.correlation.TestIdMatchCorrelationMediumDummy.RESOURCE_HR
+                        import static com.evolveum.midpoint.testing.story.correlation.TestIdMatchCorrelationMediumDummy.RESOURCE_SIS
 
                         // The order of authoritativeness is: SIS, HR, external
 

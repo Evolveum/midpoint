@@ -5,7 +5,6 @@
 :page-wiki-metadata-create-date: 2017-11-07T18:43:19.039+01:00
 :page-wiki-metadata-modify-user: martin.lizner
 :page-wiki-metadata-modify-date: 2018-02-07T12:59:10.541+01:00
-:page-since: "3.7"
 
 == Getting Specific Path Segment
 

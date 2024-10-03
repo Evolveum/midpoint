@@ -10,14 +10,15 @@ package com.evolveum.midpoint.repo.sql.data.common.any;
 import java.util.Objects;
 import jakarta.persistence.*;
 
-import org.hibernate.annotations.ForeignKey;
-
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.id.ROExtLongId;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.query.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
 
 /**
  * @author lazyman
@@ -39,11 +40,10 @@ public class ROExtLong extends ROExtBase<Long> {
         this.value = value;
     }
 
-    @Id
-    @ForeignKey(name = "fk_object_ext_long")
-    @MapsId("owner")
+    @MapsId("ownerOid")
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable
+    @JoinColumn(name = "owner_oid", foreignKey = @ForeignKey(name = "fk_object_ext_long"))
     public RObject getOwner() {
         return super.getOwner();
     }
@@ -55,6 +55,7 @@ public class ROExtLong extends ROExtBase<Long> {
     }
 
     @Id
+    @JdbcType(IntegerJdbcType.class)
     @Column(name = "ownerType")
     @Enumerated(EnumType.ORDINAL)
     public RObjectExtensionType getOwnerType() {

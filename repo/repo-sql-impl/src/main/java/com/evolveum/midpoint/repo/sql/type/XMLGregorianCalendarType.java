@@ -7,19 +7,6 @@
 
 package com.evolveum.midpoint.repo.sql.type;
 
-import org.hibernate.HibernateException;
-import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.type.BasicTypeReference;
-import org.hibernate.type.StandardBasicTypes;
-import org.hibernate.type.descriptor.WrapperOptions;
-import org.hibernate.type.descriptor.java.AbstractTemporalJavaType;
-import org.hibernate.usertype.UserType;
-
-import jakarta.persistence.TemporalType;
-
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.Serializable;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -27,6 +14,16 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.hibernate.HibernateException;
+import org.hibernate.dialect.Dialect;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hibernate.type.SqlTypes;
+import org.hibernate.type.descriptor.jdbc.JdbcType;
+import org.hibernate.usertype.UserType;
 
 /**
  * @author lazyman
@@ -35,13 +32,11 @@ public class XMLGregorianCalendarType implements UserType<XMLGregorianCalendar> 
 
     public static final String NAME = "XMLGregorianCalendarType";
 
-    private static DatatypeFactory df = null;
-
-    private static final BasicTypeReference<Date> JPA_TYPE = StandardBasicTypes.TIMESTAMP;
+    private final static DatatypeFactory DATATYPE_FACTORY;
 
     static {
         try {
-            df = DatatypeFactory.newInstance();
+            DATATYPE_FACTORY = DatatypeFactory.newInstance();
         } catch (DatatypeConfigurationException dce) {
             throw new IllegalStateException("Exception while obtaining Datatype Factory instance", dce);
         }
@@ -62,9 +57,13 @@ public class XMLGregorianCalendarType implements UserType<XMLGregorianCalendar> 
 
     @Override
     public int getSqlType() {
-        return JPA_TYPE.getSqlTypeCode();
+        return SqlTypes.TIMESTAMP;
     }
 
+    @Override
+    public int getDefaultSqlPrecision(Dialect dialect, JdbcType jdbcType) {
+        return dialect.getDefaultTimestampPrecision();
+    }
 
     @Override
     public Class<XMLGregorianCalendar> returnedClass() {
@@ -151,7 +150,7 @@ public class XMLGregorianCalendarType implements UserType<XMLGregorianCalendar> 
         } else {
             GregorianCalendar gc = new GregorianCalendar();
             gc.setTimeInMillis(date.getTime());
-            return df.newXMLGregorianCalendar(gc);
+            return DATATYPE_FACTORY.newXMLGregorianCalendar(gc);
         }
     }
 

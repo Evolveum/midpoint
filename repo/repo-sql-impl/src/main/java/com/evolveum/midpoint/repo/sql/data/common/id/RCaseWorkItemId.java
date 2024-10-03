@@ -60,8 +60,8 @@ public class RCaseWorkItemId implements Serializable {
 
     @Override
     public String toString() {
-        return "RCertWorkItemId{" +
-                ", ownerOid=" + ownerOid +
+        return "RCaseWorkItemId{" +
+                "oid=" + ownerOid +
                 ", id=" + id +
                 '}';
     }

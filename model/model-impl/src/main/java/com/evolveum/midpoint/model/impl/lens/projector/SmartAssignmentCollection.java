@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 
 import java.util.*;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.AssignmentIdStore;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
@@ -327,18 +328,36 @@ public class SmartAssignmentCollection<F extends AssignmentHolderType>
         if (toGenerateList.isEmpty()) {
             return;
         }
-        Iterator<Long> allocated;
+        Iterator<Long> allocated = null;
         String focusOid = focusContext.getOid();
-        if (!focusContext.isPrimaryAdd() && focusOid != null) {
-            allocated =
-                    ModelBeans.get().cacheRepositoryService.allocateContainerIdentifiers(
-                                    focusContext.getObjectTypeClass(), focusOid, toGenerateList.size(), result)
-                            .iterator();
-        } else {
+
+        if (!isPrimaryAddNoOverwrite(focusContext) && focusOid != null) {
+            // We need to try allocate containers idenitifiers from repository, because repository tries to
+            // reuse preexisting containers IDs in add+overwrite for other elements in the objects.
+            // Currently, there is no easy way to get options
+            try {
+                allocated =
+                        ModelBeans.get().cacheRepositoryService.allocateContainerIdentifiers(
+                                        focusContext.getObjectTypeClass(), focusOid, toGenerateList.size(), result)
+                                .iterator();
+            } catch (ObjectNotFoundException e) {
+                if (!focusContext.isPrimaryAdd()) {
+                    // Object should exists, but was not found.
+                    throw e;
+                }
+                // We are doing add and object does not exists which is OK.
+            }
+        }
+        if (allocated == null) {
             // Object is not in repo. Let us provide any IDs that are not used among assignments yet.
             var max = allElements.stream()
                     .filter(element -> !element.isVirtual())
-                    .map(element -> element.getBuiltInAssignmentId())
+                    .map(element -> {
+                        if (element.getBuiltInAssignmentId() == null) {
+                            return assignmentIdStore.getKnownExternalId(element.getAssignment());
+                        }
+                        return element.getBuiltInAssignmentId();
+                    })
                     .filter(Objects::nonNull)
                     .mapToLong(Long::longValue)
                     .max()
@@ -359,5 +378,9 @@ public class SmartAssignmentCollection<F extends AssignmentHolderType>
 
     enum Mode {
         CURRENT, OLD, NEW, IN_ADD_OR_DELETE_DELTA
+    }
+
+    boolean isPrimaryAddNoOverwrite(LensFocusContext<F> focusContext) {
+        return focusContext.isPrimaryAdd() ? !ModelExecuteOptions.isOverwrite(focusContext.getLensContext().getOptions()) : false;
     }
 }

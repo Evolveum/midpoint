@@ -1,6 +1,5 @@
-= Migration of Tasks from 4.0/4.3 to 4.4
+= Migration of Tasks from 4.0/4.3
 :toc:
-:page-since: "4.4"
 :page-upkeep-status: green
 
 TIP: *TL;DR* See xref:#_doing_the_migration[Doing the migration] section.
@@ -128,10 +127,7 @@ An example:
         <mext:objectType>UserType</mext:objectType>
         <mext:objectQuery>
             <q:filter>
-                <q:equal>
-                    <q:path>subtype</q:path>
-                    <q:value>test</q:value>
-                </q:equal>
+                <q:text>subtype = "test"</q:text>
             </q:filter>
         </mext:objectQuery>
         <se:executeScript>
@@ -194,10 +190,7 @@ An example:
                     <type>UserType</type>
                     <query>
                         <q:filter>
-                            <q:equal>
-                                <q:path>subtype</q:path>
-                                <q:value>test</q:value>
-                            </q:equal>
+                            <q:text>subtype = "test"</q:text>
                         </q:filter>
                     </query>
                 </objects>

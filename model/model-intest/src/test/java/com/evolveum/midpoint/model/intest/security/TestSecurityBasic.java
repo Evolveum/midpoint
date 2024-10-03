@@ -16,9 +16,11 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.CaseService;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -130,6 +132,7 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
         assertReadDenyRaw();
         assertAddDeny();
         assertModifyDeny();
+        assertEmptyDeltaExecutionNotAuthorized(UserType.class, USER_GUYBRUSH_OID);
         assertDeleteDeny();
 
         assertReadCertCasesAllow();
@@ -2164,6 +2167,7 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
         assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
         assertModifyDeny();
+        assertEmptyDeltaExecutionAuthorized(UserType.class, USER_GUYBRUSH_OID);
         assertDeleteDeny();
 
         PrismObject<UserType> user = getUser(USER_JACK_OID);
@@ -2917,6 +2921,7 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
         assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
         assertModifyAllow();
+        assertEmptyDeltaExecutionAuthorized(UserType.class, USER_GUYBRUSH_OID);
         assertDeleteDeny();
 
         PrismObject<UserType> user = getUser(USER_JACK_OID);
@@ -2996,6 +3001,272 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
 
         assertGlobalStateUntouched();
     }
+
+    /**
+     * Jack is not owner of application role 1 (yet), attempt to assign should fail.
+     * #9985
+     */
+    @Test
+    public void test290AutzJackNoRoleOwnerAssign() throws Exception {
+		given();
+        cleanupAutzTest(USER_JACK_OID);
+
+        assignRole(USER_JACK_OID, ROLE_ROLE_OWNER_ASSIGN.oid);
+        unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null);
+
+        assertUserBefore(USER_JACK_OID)
+                .assertAssignments(1)
+                .assertLinks(0,0);
+        assertRoleBefore(ROLE_APPLICATION_1.oid);
+        assertRoleBefore(ROLE_APPLICATION_2.oid);
+
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        when();
+
+        assertReadAllow(NUMBER_OF_ALL_USERS + 1);
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+
+        assertUserAfter(USER_JACK_OID)
+                .assertAssignments(1)
+                .assignments()
+                    .assertRole(ROLE_ROLE_OWNER_ASSIGN.oid);
+
+        assertDeny("assign application role 1 to jack",
+        		(task,result) -> assignRole(USER_JACK_OID, ROLE_APPLICATION_1.oid, task, result));
+
+        assertUser(USER_JACK_OID, "after2")
+                .assertAssignments(1)
+                .assignments()
+                    .assertRole(ROLE_ROLE_OWNER_ASSIGN.oid);
+
+        assertDeny("assign application role 2 to jack",
+        		(task, result) -> assignRole(USER_JACK_OID, ROLE_APPLICATION_2.oid, task, result));
+
+        assertUser(USER_JACK_OID, "after3")
+                .assertAssignments(1)
+                .assignments()
+                .assertRole(ROLE_ROLE_OWNER_ASSIGN.oid);
+
+        assertGlobalStateUntouched();
+	}
+
+    /**
+     * Jack is owner of application role 1, attempt to assign should pass.
+     * #9985
+     */
+    @Test
+    public void test291AutzJackRoleOwnerAssign() throws Exception {
+        given();
+        cleanupAutzTest(USER_JACK_OID);
+
+        // Make Jack owner of role Application 1
+        assignRole(USER_JACK_OID, ROLE_APPLICATION_1.oid, RelationTypes.OWNER.getRelation());
+
+        assignRole(USER_JACK_OID, ROLE_ROLE_OWNER_ASSIGN.oid);
+        unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null);
+
+        assertUserBefore(USER_JACK_OID)
+                .assertLinks(0,0)
+                .assertAssignments(2)
+                .assignments()
+                    .assertRole(ROLE_ROLE_OWNER_ASSIGN.oid)
+                    .assertRole(ROLE_APPLICATION_1.oid, RelationTypes.OWNER.getRelation());
+
+
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        when();
+
+        assertReadAllow(NUMBER_OF_ALL_USERS + 1);
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+
+        assertUserAfter(USER_JACK_OID)
+                .assertAssignments(2)
+                .assignments()
+                .assertRole(ROLE_ROLE_OWNER_ASSIGN.oid)
+                .assertRole(ROLE_APPLICATION_1.oid, RelationTypes.OWNER.getRelation());
+
+        assertAllow("assign application role 1 to jack",
+                (task, result) -> assignRole(USER_JACK_OID, ROLE_APPLICATION_1.oid, task, result));
+
+        assertUser(USER_JACK_OID, "after2")
+                .assertAssignments(3)
+                .assignments()
+                .assertRole(ROLE_ROLE_OWNER_ASSIGN.oid)
+                .assertRole(ROLE_APPLICATION_1.oid, RelationTypes.MEMBER.getRelation())
+                .assertRole(ROLE_APPLICATION_1.oid, RelationTypes.OWNER.getRelation());
+
+        assertDeny("assign application role 2 to jack",
+                (task, result) -> assignRole(USER_JACK_OID, ROLE_APPLICATION_2.oid, task, result));
+
+        assertAllow("unassign application role 1 from jack",
+                (task, result) -> unassignRole(USER_JACK_OID, ROLE_APPLICATION_1.oid, task, result));
+
+        assertUser(USER_JACK_OID, "after3")
+                .assertAssignments(2)
+                .assignments()
+                .assertRole(ROLE_ROLE_OWNER_ASSIGN.oid)
+                .assertRole(ROLE_APPLICATION_1.oid, RelationTypes.OWNER.getRelation());
+
+        // TODO: change to assertAssignableRoleSpecification
+//                    RoleSelectionSpecification spec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
+        //        assertRoleTypes(spec);
+        //        assertFilter(spec.getFilter(), TypeFilter.class);
+        //        assertEquals("Wrong type filter type", RoleType.COMPLEX_TYPE, ((TypeFilter)spec.getFilter()).getType());
+        //        ObjectFilter subfilter = ((TypeFilter)spec.getFilter()).getFilter();
+        //        assertFilter(subfilter, RefFilter.class);
+        //        assertEquals(1, ((RefFilter)subfilter).getValues().size());
+        //        assertEquals("Wrong OID in ref filter", USER_JACK_OID, ((RefFilter)subfilter).getValues().get(0).getOid());
+
+
+        assertGlobalStateUntouched();
+    }
+
+    /**
+     * Jack is not owner of application role 1 (yet), attempt to list, read and modify the role should fail.
+     * #9985
+     */
+    @Test
+    public void test292AutzJackNoRoleOwnerFullControl() throws Exception {
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_ROLE_OWNER_FULL_CONTROL.oid);
+
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        assertUserBefore(USER_JACK_OID)
+                .assertLinks(0, 0)
+                .assertAssignments(1)
+                .assignments()
+                .assertRole(ROLE_ROLE_OWNER_FULL_CONTROL.oid);
+
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        when();
+
+        // Basic routine, given by "normal" authorizations
+        assertGetAllow(UserType.class, USER_JACK_OID);
+        assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
+        assertSearch(UserType.class, null, 1);
+        assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), 1);
+        assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), 0);
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+
+        assertUserAfter(USER_JACK_OID)
+                .assertAssignments(1)
+                .assignments()
+                .assertRole(ROLE_ROLE_OWNER_FULL_CONTROL.oid);
+
+        // This is what we are really testing here
+        assertGetDeny(RoleType.class, ROLE_APPLICATION_1.oid);
+        assertGetDeny(RoleType.class, ROLE_APPLICATION_2.oid);
+        assertSearch(RoleType.class, null, 0);
+        assertSearch(RoleType.class, createNameQuery(ROLE_APPLICATION_1.getNameOrig()), 0);
+        assertSearch(RoleType.class, createNameQuery(ROLE_APPLICATION_2.getNameOrig()), 0);
+
+
+        assertDeny("modify app1 role description",
+                (task, result) -> modifyObjectReplaceProperty(RoleType.class, ROLE_APPLICATION_1.oid, RoleType.F_DESCRIPTION, task, result,
+                        "decs change denied"));
+
+        assertDeny("modify app2 role description",
+                (task, result) -> modifyObjectReplaceProperty(RoleType.class, ROLE_APPLICATION_2.oid, RoleType.F_DESCRIPTION, task, result,
+                        "desc change denied"));
+
+        assertGlobalStateUntouched();
+    }
+
+
+    /**
+     * Jack is owner of application role 1, attempt to list, read and modify the role should pass.
+     * #9985
+     */
+    @Test() // #9985
+    public void test293AutzJackRoleOwnerFullControl() throws Exception {
+        skipIfNotNativeRepository();
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+
+        // Make Jack owner of role Application 1
+        assignRole(USER_JACK_OID, ROLE_APPLICATION_1.oid, RelationTypes.OWNER.getRelation());
+
+        assignRole(USER_JACK_OID, ROLE_ROLE_OWNER_FULL_CONTROL.oid);
+
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        assertUserBefore(USER_JACK_OID)
+                .assertLinks(0,0)
+                .assertAssignments(2)
+                .assignments()
+                    .assertRole(ROLE_ROLE_OWNER_FULL_CONTROL.oid)
+                    .assertRole(ROLE_APPLICATION_1.oid, RelationTypes.OWNER.getRelation());
+
+
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        when();
+
+
+        // Basic routine, given by "normal" authorizations
+        assertGetAllow(UserType.class, USER_JACK_OID);
+        assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
+        assertSearch(UserType.class, null, 1);
+        assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), 1);
+        assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), 0);
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+
+        assertUserAfter(USER_JACK_OID)
+                .assertAssignments(2)
+                .assignments()
+                .assertRole(ROLE_ROLE_OWNER_FULL_CONTROL.oid)
+                .assertRole(ROLE_APPLICATION_1.oid, RelationTypes.OWNER.getRelation());
+
+        // This is what we are really testing here
+        // TODO
+        assertGetAllow(RoleType.class, ROLE_APPLICATION_1.oid);
+        assertGetDeny(RoleType.class, ROLE_APPLICATION_2.oid);
+        assertSearch(RoleType.class, null, 1);
+        assertSearch(RoleType.class, createNameQuery(ROLE_APPLICATION_1.getNameOrig()), 1);
+        assertSearch(RoleType.class, createNameQuery(ROLE_APPLICATION_2.getNameOrig()), 0);
+
+        assertAllow("modify app1 role description",
+                (task, result) -> modifyObjectReplaceProperty(RoleType.class, ROLE_APPLICATION_1.oid, RoleType.F_DESCRIPTION, task, result,
+                        "Jack was here"));
+
+        assertDeny("modify app2 role description",
+                (task, result) -> modifyObjectReplaceProperty(RoleType.class, ROLE_APPLICATION_2.oid, RoleType.F_DESCRIPTION, task, result,
+                        "desc change denied"));
+
+        // TODO: change to assertAssignableRoleSpecification
+//                    RoleSelectionSpecification spec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
+        //        assertRoleTypes(spec);
+        //        assertFilter(spec.getFilter(), TypeFilter.class);
+        //        assertEquals("Wrong type filter type", RoleType.COMPLEX_TYPE, ((TypeFilter)spec.getFilter()).getType());
+        //        ObjectFilter subfilter = ((TypeFilter)spec.getFilter()).getFilter();
+        //        assertFilter(subfilter, RefFilter.class);
+        //        assertEquals(1, ((RefFilter)subfilter).getValues().size());
+        //        assertEquals("Wrong OID in ref filter", USER_JACK_OID, ((RefFilter)subfilter).getValues().get(0).getOid());
+
+        assertGlobalStateUntouched();
+	}
+
 
     @Test
     public void test295AutzJackAssignOrgRelation() throws Exception {
@@ -3172,6 +3443,7 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
         assertAddAllow(USER_HERMAN_FILE);
 
         assertModifyDeny();
+        assertEmptyDeltaExecutionAuthorized(UserType.class, USER_GUYBRUSH_OID);
 
         assertDeleteDeny();
 

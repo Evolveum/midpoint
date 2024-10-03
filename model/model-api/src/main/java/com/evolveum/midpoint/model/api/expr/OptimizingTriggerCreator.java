@@ -20,9 +20,15 @@ import org.jetbrains.annotations.NotNull;
  *  - If more requests to create triggers to the same object come before that time comes (minus some safety margin,
  *    e.g. 2 seconds), their creation is skipped.
  *
- *  Currently we deal only with the recompute triggers. Other types can be added as necessary.
+ * Currently we deal only with the recompute triggers. Other types can be added as necessary.
  *
- *  The deduplication currently assumes the requests are of the same kind (i.e. either name-based or OID-based).
+ * The deduplication works best if:
+ *
+ * - the requests are of the same kind (i.e. either name-based or OID-based);
+ * - the triggers are created on a single node, because the creators share a common state which is node-wide.
+ *
+ * But even if these conditions are not met, the extra triggers creation is still avoided, at the cost of extra
+ * read operations against the repository.
  */
 public interface OptimizingTriggerCreator {
 

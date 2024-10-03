@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.repo.sql.util;
 
 import java.io.*;
-import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
@@ -20,40 +19,33 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.SerializationOptions;
-
 import com.google.common.base.Strings;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.NonUniqueResultException;
+import jakarta.persistence.Query;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.metamodel.MappingMetamodel;
-import org.hibernate.metamodel.model.domain.internal.JpaMetamodelImpl;
-import org.hibernate.persister.entity.AbstractEntityPersister;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.persister.entity.Joinable;
-import org.hibernate.tuple.IdentifierProperty;
-import org.hibernate.tuple.entity.EntityMetamodel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation;
-import com.evolveum.midpoint.repo.sql.data.common.*;
-import com.evolveum.midpoint.repo.sql.data.common.any.*;
-import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
-import com.evolveum.midpoint.repo.sql.data.common.container.RAssignmentReference;
-import com.evolveum.midpoint.repo.sql.data.common.container.RTrigger;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
+import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
+import com.evolveum.midpoint.repo.sql.data.common.ROperationResult;
+import com.evolveum.midpoint.repo.sql.data.common.ROperationResultFull;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
-import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceType;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -168,60 +160,6 @@ public final class RUtil {
         }
 
         return Integer.parseInt(val);
-    }
-
-    /**
-     * This method is used to override "hasIdentifierMapper" in EntityMetaModels
-     * of entities which have composite id and class defined for it. It's
-     * workaround for bug as found in forum
-     * https://forum.hibernate.org/viewtopic.php?t=978915&highlight=
-     */
-    public static void fixCompositeIDHandling(SessionFactory sessionFactory) {
-        fixCompositeIdentifierInMetaModel(sessionFactory, RObjectDeltaOperation.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, ROrgClosure.class);
-
-        fixCompositeIdentifierInMetaModel(sessionFactory, ROExtDate.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, ROExtString.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, ROExtPolyString.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, ROExtReference.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, ROExtLong.class);
-
-        fixCompositeIdentifierInMetaModel(sessionFactory, RAssignmentExtension.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, RAExtDate.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, RAExtString.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, RAExtPolyString.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, RAExtReference.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, RAExtLong.class);
-
-        fixCompositeIdentifierInMetaModel(sessionFactory, RObjectReference.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, RAssignmentReference.class);
-
-        fixCompositeIdentifierInMetaModel(sessionFactory, RAssignment.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, RTrigger.class);
-        for (RObjectType type : ClassMapper.getKnownTypes()) {
-            fixCompositeIdentifierInMetaModel(sessionFactory, type.getClazz());
-        }
-    }
-
-    private static void fixCompositeIdentifierInMetaModel(
-            SessionFactory sessionFactory, Class<?> clazz) {
-        //sessionFactory.getMetamodel().entity(clazz);
-        ClassMetadata classMetadata = null; //sessionFactory.getClassMetadata(clazz);
-        if (classMetadata instanceof AbstractEntityPersister) {
-            AbstractEntityPersister persister = (AbstractEntityPersister) classMetadata;
-            EntityMetamodel model = persister.getEntityMetamodel();
-            IdentifierProperty identifier = model.getIdentifierProperty();
-
-            try {
-                Field field = IdentifierProperty.class.getDeclaredField("hasIdentifierMapper");
-                field.setAccessible(true);
-                field.set(identifier, true);
-                field.setAccessible(false);
-            } catch (Exception ex) {
-                throw new SystemException("Attempt to fix entity meta model with hack failed, reason: "
-                        + ex.getMessage(), ex);
-            }
-        }
     }
 
     public static void copyResultFromJAXB(QName itemName, OperationResultType jaxb,
@@ -358,12 +296,11 @@ public final class RUtil {
         return sb.toString();
     }
 
-    public static String getTableName(Class<?> hqlType, Session session) {
-        SessionFactory factory = session.getSessionFactory();
+    public static String getTableName(Class<?> hqlType, EntityManager entityManager) {
+        EntityManagerFactory factory = entityManager.getEntityManagerFactory();
         MappingMetamodel model = (MappingMetamodel) factory.getMetamodel();
         EntityPersister ep = model.getEntityDescriptor(hqlType); // model.entityPersister(hqlType);
-        if (ep instanceof Joinable) {
-            Joinable joinable = (Joinable) ep;
+        if (ep instanceof Joinable joinable) {
             return joinable.getTableName();
         }
 
@@ -476,13 +413,26 @@ public final class RUtil {
     }
 
     public static Object getRepoEnumValue(Object key) {
-         var mapped = ENUM_MAPPINGS.get(key);
-         return mapped != null ? mapped : key;
+        var mapped = ENUM_MAPPINGS.get(key);
+        return mapped != null ? mapped : key;
     }
 
     public static <C extends Enum<C>> void register(SchemaEnum<C> value) {
         if (value.getSchemaValue() != null) {
             ENUM_MAPPINGS.put(value.getSchemaValue(), value);
         }
+    }
+
+    public static <T> T getSingleResultOrNull(Query query) {
+        List<?> results = query.getResultList();
+        if (results.isEmpty()) {
+            return null;
+        }
+
+        if (results.size() > 1) {
+            throw new NonUniqueResultException("Expected single result, but got " + results.size());
+        }
+
+        return (T) results.get(0);
     }
 }

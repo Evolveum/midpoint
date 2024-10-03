@@ -1,0 +1,16 @@
+= Module securityQuestionsForm
+:page-nav-title: Module securityQuestionsForm
+
+Definition of "security questions form" module.
+The module is used for interactive log-in of a user by answering a set of security questions.
+
+.Example of securityQuestionsFrom module
+[source,xml]
+----
+<securityQuestionsForm>
+    <identifier>securityQuestions</identifier>
+</securityQuestionsForm>
+----
+
+== See also
+* xref:/midpoint/reference/security/authentication/flexible-authentication/configuration/[Flexible Authentication]

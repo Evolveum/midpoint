@@ -465,7 +465,7 @@ MIDPOINT_HOME='/var/old-mp-home' bin/ninja.sh -v export-audit -z -o audit-export
 If you use unbundled JDBC driver, check xref:/midpoint/reference/deployment/ninja[Ninja documentation] how to specify the JDBC JAR.
 
 You can also use filter to export only some audit events, typically by their timestamp.
-Following example uses Axiom language filter preceded by `%` (different parameter escaping may be needed if you don't use `bash`):
+Following example uses Midpoint query filter preceded by `%` (different parameter escaping may be needed if you don't use `bash`):
 
 [source,bash]
 ----

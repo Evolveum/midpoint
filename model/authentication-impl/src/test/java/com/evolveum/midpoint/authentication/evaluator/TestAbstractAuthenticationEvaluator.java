@@ -176,7 +176,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         ((CredentialsAuthenticationEvaluatorImpl) getAuthenticationEvaluator()).setPrincipalManager(new GuiProfiledPrincipalManager() {
 
             @Override
-            public <F extends FocusType, O extends ObjectType> PrismObject<F> resolveOwner(PrismObject<O> object) throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            public <F extends FocusType, O extends ObjectType> Collection<PrismObject<F>> resolveOwner(PrismObject<O> object) throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
                 return focusProfileService.resolveOwner(object);
             }
 
