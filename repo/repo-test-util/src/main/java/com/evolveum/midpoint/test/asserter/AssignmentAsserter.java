@@ -16,11 +16,14 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.prism.ValueSelector;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ActivationUtil;
 import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -252,5 +255,18 @@ public class AssignmentAsserter<R> extends AbstractAsserter<R> {
                 .as("validFrom in " + assignment)
                 .isEqualTo(expected);
         return this;
+    }
+
+    public ValueMetadataAsserter<AssignmentAsserter<R>> valueMetadata(ItemPath path, ValueSelector<?> valueSelector)
+            throws SchemaException {
+        return createValueMetadataAsserter(path, getValueMetadata(getAssignment().asPrismContainerValue(), path, valueSelector));
+    }
+
+    @NotNull
+    private ValueMetadataAsserter<AssignmentAsserter<R>> createValueMetadataAsserter(ItemPath path,
+            PrismContainer<ValueMetadataType> valueMetadata) {
+        var asserter = new ValueMetadataAsserter<>(valueMetadata, this, String.valueOf(path)); // TODO details
+        copySetupTo(asserter);
+        return asserter;
     }
 }

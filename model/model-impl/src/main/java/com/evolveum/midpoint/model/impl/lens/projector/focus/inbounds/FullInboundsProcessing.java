@@ -369,7 +369,8 @@ public class FullInboundsProcessing<F extends FocusType> extends AbstractInbound
                                 .implicitTargetPath(targetPath)
                                 .originType(OriginType.INBOUND)
                                 .originObject(this.projectionContext.getResource())
-                                .mappingSpecification(inboundsSource.createMappingSpec(builder.getMappingName()));
+                                .mappingSpecification(
+                                        inboundsSource.createMappingSpec(builder.getMappingName(), sourceIdi.getDefinition()));
 
                         return builder;
                     };

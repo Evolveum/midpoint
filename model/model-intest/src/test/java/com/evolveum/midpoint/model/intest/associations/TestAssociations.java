@@ -14,8 +14,11 @@ import java.util.Map;
 
 import com.evolveum.icf.dummy.resource.DummyObject;
 import com.evolveum.midpoint.model.intest.TestEntitlements;
-import com.evolveum.midpoint.model.intest.associations.DummyHrScenarioExtended.CostCenter;
-import com.evolveum.midpoint.model.intest.associations.DummyHrScenarioExtended.OrgUnit;
+import com.evolveum.midpoint.model.intest.dummys.DummyAdTrivialScenario;
+import com.evolveum.midpoint.model.intest.dummys.DummyDmsScenario;
+import com.evolveum.midpoint.model.intest.dummys.DummyHrScenarioExtended;
+import com.evolveum.midpoint.model.intest.dummys.DummyHrScenarioExtended.CostCenter;
+import com.evolveum.midpoint.model.intest.dummys.DummyHrScenarioExtended.OrgUnit;
 import com.evolveum.midpoint.model.intest.gensync.TestAssociationInbound;
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -40,8 +43,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
 
-import javax.xml.namespace.QName;
-
+import static com.evolveum.midpoint.model.intest.dummys.ScenariosConstants.*;
 import static com.evolveum.midpoint.model.test.CommonInitialObjects.MARK_MANAGED;
 import static com.evolveum.midpoint.model.test.CommonInitialObjects.MARK_UNMANAGED;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
@@ -70,18 +72,6 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
 
     private static final String ROLE_INDUCING_GROUP_TEMPLATE = "role-inducing-group-template.xml";
     private static final String ROLE_INDUCING_GROUP_TEMPLATE_2 = "role-inducing-group-template-2.xml";
-
-    private static final String NS_HR = "http://midpoint.evolveum.com/xml/ns/samples/hr";
-    private static final String NS_DMS = "http://midpoint.evolveum.com/xml/ns/samples/dms";
-
-    private static final ItemName HR_COST_CENTER = ItemName.from(NS_HR, "costCenter");
-
-    private static final String LEVEL_READ = "read";
-    private static final String LEVEL_WRITE = "write";
-    private static final String LEVEL_ADMIN = "admin";
-    private static final QName RELATION_READ = new QName(NS_DMS, LEVEL_READ);
-    private static final QName RELATION_WRITE = new QName(NS_DMS, LEVEL_WRITE);
-    private static final QName RELATION_ADMIN = new QName(NS_DMS, LEVEL_ADMIN);
 
     private static final String INTENT_PERSON = "person";
     private static final String INTENT_COST_CENTER = "costCenter";
@@ -116,6 +106,8 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
 
     private static final ItemName RI_APP_GROUP = ItemName.from(NS_RI, "appGroup");
     private static final ItemName RI_GENERIC_GROUP = ItemName.from(NS_RI, "genericGroup");
+
+    private static final ItemName RI_USER_DOCUMENT_ACCESS = ItemName.from(NS_RI, "userDocumentAccess");
 
     private static DummyHrScenarioExtended hrScenario;
     private static DummyDmsScenario dmsScenario;
@@ -575,6 +567,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                         .assertMappingName("accesses-inbound")
                         .assertMappingObjectOid(RESOURCE_DUMMY_DMS.oid)
                         .assertMappingObjectType(ResourceObjectTypeIdentification.ACCOUNT_DEFAULT)
+                        .assertMappingAssociationType(RI_USER_DOCUMENT_ACCESS)
                     .end()
                 .end()
                 .by().identifier("guide:write").find()
@@ -583,6 +576,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                         .assertMappingName("accesses-inbound")
                         .assertMappingObjectOid(RESOURCE_DUMMY_DMS.oid)
                         .assertMappingObjectType(ResourceObjectTypeIdentification.ACCOUNT_DEFAULT)
+                        .assertMappingAssociationType(RI_USER_DOCUMENT_ACCESS)
                     .end()
                 .end();
         // @formatter:on

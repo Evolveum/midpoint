@@ -71,7 +71,10 @@ public class FullInboundsSource extends InboundsSource {
                 sourceData,
                 inboundDefinition,
                 projectionContext.getResourceRequired(),
-                projectionContext.getKey().getTypeIdentification(),
+                new InboundMappingContextSpecification(
+                        projectionContext.getKey().getTypeIdentification(),
+                        null,
+                        projectionContext.getTag()),
                 projectionContext.getHumanReadableName());
         this.projectionContext = projectionContext;
         this.context = context;

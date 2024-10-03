@@ -15,10 +15,13 @@ import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.column.AbstractGuiColumn;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -53,7 +56,9 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 
+import org.apache.commons.lang3.reflect.ConstructorUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -612,5 +617,70 @@ public class CertMiscUtil {
                 .eq(TaskExecutionStateType.RUNNING)
                 .build();
         return WebModelServiceUtils.searchObjects(TaskType.class, query, null, result, pageBase);
+    }
+
+    public static List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> createCertItemsColumns(
+            CompiledObjectCollectionView view, CertificationGuiConfigContext context) {
+        PageBase pageBase = context.getPageBase();
+        List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> columns = new ArrayList<>();
+
+        List<AbstractGuiColumn<?, ?>> guiColumns = new ArrayList<>();
+        if (view != null) {
+            view.getColumns().forEach(columnConfig -> {
+                Class<? extends AbstractGuiColumn<?, ?>> columnClass = pageBase.findGuiColumn(columnConfig.getName());
+                AbstractGuiColumn<?, ?> column = instantiateColumn(columnClass, columnConfig, context);
+                if (column != null) {
+                    guiColumns.add(column);
+                }
+            });
+            if (view.isIncludeDefaultColumns()) {
+                addDefaultColumns(guiColumns, context);
+            }
+        } else {
+            addDefaultColumns(guiColumns, context);
+        }
+        return guiColumns
+                .stream()
+                .sorted(Comparator.comparingInt(AbstractGuiColumn::getOrder))
+                .filter(AbstractGuiColumn::isVisible)
+                .map(column -> (IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>) column.createColumn())
+                .collect(Collectors.toList());
+    }
+
+    private static List<AbstractGuiColumn<?, ?>> addDefaultColumns(List<AbstractGuiColumn<?, ?>> guiColumns,
+            CertificationGuiConfigContext context) {
+        PageBase pageBase = context.getPageBase();
+        pageBase
+                .findAllApplicableGuiColumns(AccessCertificationWorkItemType.class)
+                .forEach(columnClass -> {
+                    if (alreadyExistInColumnList(guiColumns, columnClass)) {
+                        return;
+                    }
+                    AbstractGuiColumn<?, ?> guiColumn = instantiateColumn(columnClass, null, context);
+                    if (guiColumn != null) {
+                        guiColumns.add(guiColumn);
+                    }
+                });
+
+        return guiColumns;
+    }
+
+    private static boolean alreadyExistInColumnList(List<AbstractGuiColumn<?, ?>> columns, Class<? extends AbstractGuiColumn> column) {
+        return columns
+                .stream()
+                .anyMatch(c -> c.getClass().equals(column));
+    }
+
+    private static AbstractGuiColumn<?, ?> instantiateColumn(Class<? extends AbstractGuiColumn> columnClass, GuiObjectColumnType columnConfig,
+            CertificationGuiConfigContext context) {
+        if (columnClass == null) {
+            return null;
+        }
+        try {
+            return ConstructorUtils.invokeConstructor(columnClass, columnConfig, context);
+        } catch (Throwable e) {
+            LOGGER.trace("No constructor found for column.", e);
+        }
+        return null;
     }
 }

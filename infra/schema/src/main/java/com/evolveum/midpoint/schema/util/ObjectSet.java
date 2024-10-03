@@ -153,6 +153,14 @@ public class ObjectSet<O extends ObjectType> implements Collection<O> {
         return new ArrayList<>(objects.values());
     }
 
+    public @NotNull List<PrismObject<O>> asPrismObjectList() {
+        var list = new ArrayList<PrismObject<O>>(objects.size());
+        //noinspection unchecked
+        objects.values()
+                .forEach(object -> list.add((PrismObject<O>) object.asPrismObject()));
+        return list;
+    }
+
     public boolean containsOid(String oid) {
         return objects.containsKey(oid);
     }

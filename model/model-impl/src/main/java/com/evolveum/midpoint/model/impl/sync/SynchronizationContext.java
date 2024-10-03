@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.impl.sync;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep.InboundMappingContextSpecification;
 import com.evolveum.midpoint.schema.processor.*;
 
 import com.evolveum.midpoint.schema.util.AbstractShadow;
@@ -100,6 +101,11 @@ public abstract class SynchronizationContext<F extends FocusType>
 
     /** Kind+intent, if known. */
     @Nullable private final ResourceObjectTypeIdentification typeIdentification;
+
+    @Override
+    public @NotNull InboundMappingContextSpecification getMappingContextSpecification() {
+        return new InboundMappingContextSpecification(typeIdentification, null, tag);
+    }
 
     /**
      * Definition of corresponding object (currently found by kind+intent).
@@ -417,6 +423,7 @@ public abstract class SynchronizationContext<F extends FocusType>
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
+        DebugUtil.debugDumpWithLabelLn(sb, "change", change, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "shadowedResourceObject", shadowedResourceObject, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "resource", resource, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "systemConfiguration", systemConfiguration, indent + 1);

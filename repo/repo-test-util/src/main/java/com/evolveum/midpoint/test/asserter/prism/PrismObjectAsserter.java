@@ -492,35 +492,9 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         return asserter;
     }
 
-    private PrismContainer<ValueMetadataType> getValueMetadata(ItemPath path, ValueSelector<? extends PrismValue> valueSelector) {
-        Object o = getObject().find(path);
-        if (o instanceof PrismValue) {
-            return ((PrismValue) o).getValueMetadataAsContainer();
-        } else if (o instanceof Item) {
-            Item<?, ?> item = (Item<?, ?>) o;
-            if (valueSelector == null) {
-                if (item.size() == 1) {
-                    return item.getValue().getValueMetadataAsContainer();
-                } else {
-                    throw new AssertionError("Item '" + path + "' has not a single value in " + getObject() +
-                            ": " + item.size() + " values: " + item);
-                }
-            } else {
-                //noinspection unchecked
-                PrismValue anyValue = item.getAnyValue((ValueSelector) valueSelector);
-                if (anyValue != null) {
-                    return anyValue.getValueMetadataAsContainer();
-                } else {
-                    throw new AssertionError("Item '" + path + "' has no value matching given selector in " + getObject() +
-                            ": " + item.size() + " values: " + item);
-                }
-            }
-        } else if (o != null) {
-            throw new AssertionError("Object '" + path + "' has no unexpected value matching given selector in " +
-                    getObject() + ": " + o);
-        } else {
-            throw new AssertionError("Item '" + path + "' not found in " + getObject());
-        }
+    private PrismContainer<ValueMetadataType> getValueMetadata(
+            ItemPath path, ValueSelector<? extends PrismValue> valueSelector) {
+        return getValueMetadata(getObject().getValue(), path, valueSelector);
     }
 
     public TriggersAsserter<O, ? extends PrismObjectAsserter<O,RA>, RA> triggers() {

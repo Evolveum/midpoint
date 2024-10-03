@@ -16,12 +16,17 @@ import java.util.stream.Collectors;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 
+import org.assertj.core.api.ObjectAssert;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.test.asserter.prism.PrismContainerValueAsserter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceAcquisitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceMetadataType;
+
+import org.jetbrains.annotations.Nullable;
+
+import javax.xml.namespace.QName;
 
 public class ProvenanceMetadataAsserter<RA extends AbstractAsserter<?>>
         extends PrismContainerValueAsserter<ProvenanceMetadataType, RA> {
@@ -90,9 +95,7 @@ public class ProvenanceMetadataAsserter<RA extends AbstractAsserter<?>>
     }
 
     public ProvenanceMetadataAsserter<RA> assertMappingObjectType(@NotNull ResourceObjectTypeIdentification expected) {
-        assertThat(getMappingSpecification())
-                .as("mapping spec")
-                .isNotNull()
+        assertMappingSpec()
                 .extracting(m -> m.getObjectType())
                 .as("mapping object type")
                 .isNotNull()
@@ -101,10 +104,30 @@ public class ProvenanceMetadataAsserter<RA extends AbstractAsserter<?>>
         return this;
     }
 
-    public ProvenanceMetadataAsserter<RA> assertMappingObjectOid(@NotNull String expected) {
-        assertThat(getMappingSpecification())
+    public ProvenanceMetadataAsserter<RA> assertMappingAssociationType(@Nullable QName expected) {
+        assertMappingSpec()
+                .extracting(m -> m.getAssociationType())
+                .as("mapping association type")
+                .isEqualTo(expected);
+        return this;
+    }
+
+    public ProvenanceMetadataAsserter<RA> assertMappingTag(@Nullable String expected) {
+        assertMappingSpec()
+                .extracting(m -> m.getTag())
+                .as("mapping tag")
+                .isEqualTo(expected);
+        return this;
+    }
+
+    private @NotNull ObjectAssert<MappingSpecificationType> assertMappingSpec() {
+        return assertThat(getMappingSpecification())
                 .as("mapping spec")
-                .isNotNull()
+                .isNotNull();
+    }
+
+    public ProvenanceMetadataAsserter<RA> assertMappingObjectOid(@NotNull String expected) {
+        assertMappingSpec()
                 .extracting(m -> Referencable.getOid(m.getDefinitionObjectRef()))
                 .as("mapping object OID")
                 .isEqualTo(expected);

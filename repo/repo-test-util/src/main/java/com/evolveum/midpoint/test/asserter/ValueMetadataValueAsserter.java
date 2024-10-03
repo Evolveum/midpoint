@@ -20,6 +20,10 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.prism.Referencable.getOid;
 
@@ -92,12 +96,24 @@ public class ValueMetadataValueAsserter<RA extends AbstractAsserter<?>>
         return this;
     }
 
+    public ValueMetadataValueAsserter<RA> assertNoMappingSpec() {
+        return provenance().assertNoMappingSpec().end();
+    }
+
     public ValueMetadataValueAsserter<RA> assertMappingName(String expected) {
         return provenance().assertMappingName(expected).end();
     }
 
     public ValueMetadataValueAsserter<RA> assertMappingObjectType(@NotNull ResourceObjectTypeIdentification expected) {
         return provenance().assertMappingObjectType(expected).end();
+    }
+
+    public ValueMetadataValueAsserter<RA> assertMappingAssociationType(@Nullable QName expected) {
+        return provenance().assertMappingAssociationType(expected).end();
+    }
+
+    public ValueMetadataValueAsserter<RA> assertMappingTag(@Nullable String expected) {
+        return provenance().assertMappingTag(expected).end();
     }
 
     public ValueMetadataValueAsserter<RA> assertMappingObjectOid(@NotNull String expected) {
@@ -119,6 +135,12 @@ public class ValueMetadataValueAsserter<RA extends AbstractAsserter<?>>
     public ValueMetadataValueAsserter<RA> assertRequestTimestampPresent() {
         assertThat(getProcessRequired().getRequestTimestamp()).as("request timestamp").isNotNull();
         return this;
+    }
+
+    private ProvenanceMetadataType getProvenanceRequired() {
+        var provenance = getBean().getProvenance();
+        assertThat(provenance).as("provenance metadata").isNotNull();
+        return provenance;
     }
 
     private ProcessMetadataType getProcessRequired() {
@@ -207,6 +229,15 @@ public class ValueMetadataValueAsserter<RA extends AbstractAsserter<?>>
         if (provisioning != null) {
             assertThat(provisioning.getLastProvisioningTimestamp()).as("last provisioning timestamp").isNull();
         }
+        return this;
+    }
+
+    public ValueMetadataValueAsserter<RA> assertAcquisitionChannel(String expected) {
+        var channels = getProvenanceRequired().getAcquisition().stream()
+                .map(a -> a.getChannel())
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        assertThat(channels).as("channels in acquisition").containsExactlyInAnyOrder(expected);
         return this;
     }
 
