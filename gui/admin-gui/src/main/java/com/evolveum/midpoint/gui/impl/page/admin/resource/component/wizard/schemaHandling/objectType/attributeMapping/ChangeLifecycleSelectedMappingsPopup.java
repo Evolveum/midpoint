@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attributeMapping;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.input.LifecycleStateFormPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismPropertyHeaderPanel;
 
@@ -112,6 +113,7 @@ public class ChangeLifecycleSelectedMappingsPopup extends SimplePopupable {
                 try {
                     PrismPropertyWrapper<Object> property = containerValue.findProperty(MappingType.F_LIFECYCLE_STATE);
                     property.getValue().setRealValue(selectedValue);
+                    WebComponentUtil.showToastForRecordedButUnsavedChanges(target, property);
                 } catch (SchemaException e) {
                     LOGGER.error("Couldn't find lifecycle state property in " + containerValue);
                 }

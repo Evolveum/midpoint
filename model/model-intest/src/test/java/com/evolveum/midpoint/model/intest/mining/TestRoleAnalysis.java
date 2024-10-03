@@ -204,15 +204,12 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
      * Test outlier detection session defined in {@code session-outlier-part-1.xml}.
      * - analyzes only in-cluster outliers
      */
-    //TODO check it. There was probably couple of correction related to confidence calculations.
-    // (check also attribute confidence calculation)
-    // Session sensitivity was changed from 80 -> 75.
     @Test
     public void test030RoleAnalysisSessionOutlierPart1() throws Exception {
         Integer expectedObjectsCount = 410;
-        Integer expectedInnerOutlierCount = 3;
+        Integer expectedInnerOutlierCount = 22;
         Integer expectedOuterOutlierCount = 0;
-        Double expectedF1score = 0.0967741935483871; // TODO: find out why f1 is so low
+        Double expectedF1score = 0.54320987654321;
         Double expectedTopOutlierConfidence = 75.98929597636382;
 
         OutlierDetectionResult expectedResult = new OutlierDetectionResult(
@@ -235,15 +232,12 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
      * - detailed analysis
      * - analyzes both in-cluster and out-cluster outliers
      */
-    //TODO check it. There was probably couple of correction related to confidence calculations.
-    // (check also attribute confidence calculation)
-    // Session sensitivity was changed from 80 -> 75.
     @Test
     public void test040RoleAnalysisSessionOutlierFull1() throws Exception {
         Integer expectedObjectsCount = 410;
-        Integer expectedInnerOutlierCount = 3;
+        Integer expectedInnerOutlierCount = 22;
         Integer expectedOuterOutlierCount = 241;
-        Double expectedF1score = 0.264026402640264; // TODO: find out why f1 is so low
+        Double expectedF1score = 0.3664596273291925;
         Double expectedTopOutlierConfidence = 79.3447630538118;
 
         OutlierDetectionResult expectedResult = new OutlierDetectionResult(

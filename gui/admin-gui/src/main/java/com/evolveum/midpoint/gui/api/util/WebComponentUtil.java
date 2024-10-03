@@ -4079,6 +4079,30 @@ public final class WebComponentUtil {
         }
     }
 
+    public static void showToastForRecordedButUnsavedChanges(AjaxRequestTarget target, PrismPropertyWrapper property) {
+        Collection<ItemDelta> deltas = List.of();
+        try {
+            deltas = property.getDelta();
+        } catch (SchemaException e) {
+            //couldn't get deltas of items
+        }
+
+        showToastForRecordedButUnsavedChanges(target, deltas);
+    }
+
+    private static void showToastForRecordedButUnsavedChanges(AjaxRequestTarget target, Collection<ItemDelta> deltas) {
+        if (!deltas.isEmpty()) {
+            new Toast()
+                    .warning()
+                    .title(PageBase.createStringResourceStatic("WebComponentUtil.recordedButUnsavedChanges.title").getString())
+                    .icon("fa fa-exclamation")
+                    .autohide(true)
+                    .delay(5_000)
+                    .body(PageBase.createStringResourceStatic("WebComponentUtil.recordedButUnsavedChanges.body").getString())
+                    .show(target);
+        }
+    }
+
     /**
      * @deprecated See {@link com.evolveum.midpoint.gui.api.util.LocalizationUtil}
      */

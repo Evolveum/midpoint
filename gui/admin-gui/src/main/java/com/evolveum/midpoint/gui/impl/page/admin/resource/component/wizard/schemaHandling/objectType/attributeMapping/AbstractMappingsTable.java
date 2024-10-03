@@ -16,8 +16,6 @@ import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperC
 import com.evolveum.midpoint.gui.impl.component.data.column.LifecycleStateColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.input.FocusDefinitionsMappingProvider;
-import com.evolveum.midpoint.gui.impl.component.input.Select2MultiChoicePanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardTable;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismValueWrapperImpl;
@@ -27,12 +25,14 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.Component;
@@ -257,7 +257,42 @@ public abstract class AbstractMappingsTable<P extends Containerable> extends Abs
             }
         };
         items.add(changeLifecycle);
+
         items.addAll(super.createInlineMenu());
+
+        InlineMenuItem changeMappingName = new InlineMenuItem(
+                createStringResource("AttributeMappingsTable.button.changeMappingName")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public VisibilityChecker getVisibilityChecker() {
+                return (rowModel, isHeader) -> {
+                    if (isHeader) {
+                        return false;
+                    }
+
+                    if(rowModel == null || rowModel.getObject() == null) {
+                        return false;
+                    }
+
+                    try {
+                        PrismPropertyWrapper<String> property =
+                                ((PrismContainerValueWrapper<MappingType>) rowModel.getObject()).findProperty(MappingType.F_NAME);
+                        return property.isReadOnly();
+                    } catch (SchemaException e) {
+                        LOGGER.error("Couldn't find name property in " + rowModel.getObject());
+                    }
+
+                    return false;
+                };
+            }
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return createChangeNameColumnAction();
+            }
+        };
+        items.add(changeMappingName);
         return items;
     }
 
@@ -272,6 +307,31 @@ public abstract class AbstractMappingsTable<P extends Containerable> extends Abs
                     return;
                 }
                 ChangeLifecycleSelectedMappingsPopup changePopup = new ChangeLifecycleSelectedMappingsPopup(
+                        getPageBase().getMainPopupBodyId(),
+                        selected) {
+                    @Override
+                    protected void applyChanges(AjaxRequestTarget target) {
+                        super.applyChanges(target);
+                        refreshTable(target);
+                    }
+                };
+
+                getPageBase().showMainPopup(changePopup, target);
+            }
+        };
+    }
+
+    private InlineMenuItemAction createChangeNameColumnAction() {
+        return new ColumnMenuAction() {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                IModel<PrismContainerValueWrapper<MappingType>> selected = getRowModel();
+                if (getRowModel().getObject() == null) {
+                    warn(createStringResource("MultivalueContainerListPanel.message.noItemsSelected").getString());
+                    target.add(getFeedbackPanel());
+                    return;
+                }
+                ChangeMappingNamePopup changePopup = new ChangeMappingNamePopup(
                         getPageBase().getMainPopupBodyId(),
                         selected) {
                     @Override
