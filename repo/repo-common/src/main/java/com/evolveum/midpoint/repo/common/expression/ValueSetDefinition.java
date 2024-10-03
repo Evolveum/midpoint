@@ -24,6 +24,8 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+
 /**
  * @author semancik
  */
@@ -38,7 +40,7 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition<
     private final String additionalVariableName;
     private final MappingSpecificationType mappingSpecification;
 
-    private final List<MappingSpecificationType> mappingAliasSpecification;
+    private final @NotNull List<MappingSpecificationType> mappingAliasSpecification;
     private final String localContextDescription;
     private final String shortDesc;
     private final Task task;
@@ -71,7 +73,7 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition<
         this.expressionFactory = expressionFactory;
         this.additionalVariableName = additionalVariableName;
         this.mappingSpecification = mappingSpecification;
-        this.mappingAliasSpecification = mappingAliasSpecification;
+        this.mappingAliasSpecification = emptyIfNull(mappingAliasSpecification);
         this.localContextDescription = localContextDescription;
         this.shortDesc = shortDesc;
         this.task = task;
@@ -127,22 +129,16 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition<
             return true;
         }
 
-        if (mappingAliasSpecification != null) {
-            for (var aliasSpec : mappingAliasSpecification) {
-                if ( ProvenanceMetadataUtil.valueHasMappingSpec(pval,aliasSpec)) {
-                    // Value matches mappingAlias
-                    return true;
-                }
-
+        for (var aliasSpec : mappingAliasSpecification) {
+            if (ProvenanceMetadataUtil.valueHasMappingSpec(pval, aliasSpec)) {
+                // Value matches mappingAlias
+                return true;
             }
         }
 
-        List<MappingSpecificationType> additional = setDefinitionBean.getAdditionalMappingSpecification();
-        if (additional != null) {
-            for (var mapping : additional) {
-                if (ProvenanceMetadataUtil.valueHasMappingSpec(pval, mapping)) {
-                    return true;
-                }
+        for (var additionalSpec : setDefinitionBean.getAdditionalMappingSpecification()) {
+            if (ProvenanceMetadataUtil.valueHasMappingSpec(pval, additionalSpec)) {
+                return true;
             }
         }
         return false;
@@ -250,12 +246,10 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition<
         if (ProvenanceMetadataUtil.hasMappingSpecification(md, mappingSpecification)) {
             return true;
         }
-        if (mappingAliasSpecification != null) {
-            for (var aliasSpec : mappingAliasSpecification) {
-                if ( ProvenanceMetadataUtil.hasMappingSpecification(md,aliasSpec)) {
-                    // Value matches mappingAlias
-                    return true;
-                }
+        for (var aliasSpec : mappingAliasSpecification) {
+            if (ProvenanceMetadataUtil.hasMappingSpecification(md, aliasSpec)) {
+                // Value matches mappingAlias
+                return true;
             }
         }
         if (setDefinitionBean != null && setDefinitionBean.getAdditionalMappingSpecification() != null) {
