@@ -46,4 +46,5 @@ public class MShadow extends MObject {
     public Integer disableReasonId;
     public Instant enableTimestamp;
     public Instant disableTimestamp;
+    public Instant lastLoginTimestamp;
 }

@@ -28,6 +28,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.InfraItemName;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 
@@ -192,7 +193,10 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 .kind(ShadowKindType.ACCOUNT)
                 .intent("intent")
                 .tag("tag")
-                .extension(new ExtensionType());
+                .extension(new ExtensionType())
+                .behavior(new ShadowBehaviorType()
+                        .lastLoginTimestamp("2024-01-01T01:00:00")
+                );
         addExtensionValue(shadow1.getExtension(), "string", "string-value");
         ItemName shadowAttributeName = new ItemName("https://example.com/p", "string-mv");
         ShadowAttributesHelper attributesHelper = new ShadowAttributesHelper(shadow1)
@@ -880,6 +884,15 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 f -> f.item(
                                 ItemPath.create(ShadowType.F_EFFECTIVE_MARK_REF, new ObjectReferencePathSegment(), MarkType.F_NAME))
                         .eq("protected"), shadow1Oid);
+    }
+
+    @Test
+    public void test180SearchShadowByLastLoginTimestamp() throws SchemaException {
+        when("searching for shadow owner by shadow OID");
+        searchObjectTest("have last login time before now", ShadowType.class,
+                f -> f.item(ShadowType.F_BEHAVIOR, ShadowBehaviorType.F_LAST_LOGIN_TIMESTAMP
+                                )
+                        .lt(XmlTypeConverter.createXMLGregorianCalendar()), shadow1Oid);
     }
 
     /**

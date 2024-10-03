@@ -82,6 +82,9 @@ public class QShadow extends QObject<MShadow> {
     public static final ColumnMetadata ACTIVATION_DISABLE_TIMESTAMP =
             ColumnMetadata.named("disableTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
 
+    public static final ColumnMetadata LAST_LOGIN_TIMESTAMP =
+            ColumnMetadata.named("lastLoginTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
+
     // columns and relations
 
     public final NumberPath<Integer> objectClassId =
@@ -129,6 +132,9 @@ public class QShadow extends QObject<MShadow> {
 
     public final DateTimePath<Instant> disableTimestamp =
             createInstant("disableTimestamp", ACTIVATION_DISABLE_TIMESTAMP);
+    public final DateTimePath<Instant> lastLoginTimestamp =
+            createInstant("lastLoginTimestamp", LAST_LOGIN_TIMESTAMP);
+
 
     public QShadow(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);
