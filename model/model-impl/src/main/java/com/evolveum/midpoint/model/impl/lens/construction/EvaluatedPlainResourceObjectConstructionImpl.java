@@ -95,18 +95,23 @@ public class EvaluatedPlainResourceObjectConstructionImpl<AH extends AssignmentH
 
         ResourceObjectDefinition objectDefinition = construction.getResourceObjectDefinitionRequired();
         for (var associationDefinition : objectDefinition.getAssociationDefinitions()) {
-            for (var explicitOutboundMappingBean : associationDefinition.getExplicitOutboundMappingBeans()) {
-                if (associationDefinition.isVisible(constructionEvaluation.task)) {
-                    var origin = ConfigurationItemOrigin.inResourceOrAncestor(construction.getResource());
-                    mappers.add(
-                            new AssociationMapper<>(
-                                    constructionEvaluation, associationDefinition,
-                                    MappingConfigItem.of(explicitOutboundMappingBean, origin),
-                                    OriginType.OUTBOUND, MappingKindType.OUTBOUND));
-                } else {
-                    LOGGER.trace("Skipping processing outbound mapping for association {} because it is not visible in current "
-                            + "execution mode", associationDefinition);
+            if (!associationDefinition.isVisible(constructionEvaluation.task)) {
+                LOGGER.trace("Skipping processing outbound mapping(s) for association {} because it is not visible in "
+                        + "current execution mode", associationDefinition);
+                continue;
+            }
+            for (var outboundMappingBean : associationDefinition.getOutboundMappingBeans()) {
+                if (outboundMappingBean.getExpression() == null) {
+                    // MID-10076: the GUI can create such incomplete mappings and save them, troubling background tasks
+                    LOGGER.debug("Skipping incomplete outbound mapping for association {}", associationDefinition);
+                    continue;
                 }
+                var origin = ConfigurationItemOrigin.inResourceOrAncestor(construction.getResource());
+                mappers.add(
+                        new AssociationMapper<>(
+                                constructionEvaluation, associationDefinition,
+                                MappingConfigItem.of(outboundMappingBean, origin),
+                                OriginType.OUTBOUND, MappingKindType.OUTBOUND));
             }
         }
         return mappers;

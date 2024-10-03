@@ -41,7 +41,8 @@ public class AsIsExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
 
         Source<V,D> source;
         if (context.getSources().isEmpty()) {
-            throw new ExpressionEvaluationException("asIs evaluator cannot work without a source in "+ context.getContextDescription());
+            throw new ExpressionEvaluationException(
+                    "asIs evaluator cannot work without a source in " + context.getContextDescription());
         }
         if (context.getSources().size() > 1) {
             //noinspection unchecked
@@ -49,8 +50,9 @@ public class AsIsExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
             if (defaultSource != null) {
                 source = defaultSource;
             } else {
-                throw new ExpressionEvaluationException("asIs evaluator cannot work with more than one source ("+ context.getSources().size()
-                    +" sources specified) without specification of a default source, in "+ context.getContextDescription());
+                throw new ExpressionEvaluationException(
+                        "asIs evaluator cannot work with more than one source (%d sources specified) without specification of a default source, in %s"
+                                .formatted(context.getSources().size(), context.getContextDescription()));
             }
         } else {
             //noinspection unchecked

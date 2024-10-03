@@ -137,6 +137,11 @@
                 <association>
                     <ref>ri:group</ref>
                     <outbound>
+                        <name>unfinished-outbound</name>
+                        <strength>strong</strength>
+                        <!-- MID-10076 -->
+                    </outbound>
+                    <outbound>
                         <name>groups-outbound</name>
                         <expression>
                             <associationConstruction>
@@ -150,6 +155,11 @@
                             </associationConstruction>
                         </expression>
                     </outbound>
+                    <inbound>
+                        <name>unfinished-inbound</name>
+                        <strength>strong</strength>
+                        <!-- MID-10076 -->
+                    </inbound>
                     <inbound>
                         <name>groups-inbound</name>
                         <expression>

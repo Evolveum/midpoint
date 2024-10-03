@@ -232,7 +232,17 @@ class MappedSourceItems<T extends Containerable> {
     private void createMappedItemForAssociation(@NotNull ShadowAssociationDefinition assocDef)
             throws SchemaException, ConfigurationException {
 
-        var inboundMappingBeans = assocDef.getExplicitInboundMappingBeans();
+        var inboundMappingBeans = assocDef.getInboundMappingBeans().stream()
+                .filter(bean -> {
+                    if (bean.getExpression() == null) {
+                        // MID-10076: the GUI can create such incomplete mappings and save them, troubling background tasks
+                        LOGGER.debug("Skipping incomplete inbound mapping for association {}", assocDef);
+                        return false;
+                    } else {
+                        return true;
+                    }
+                })
+                .toList();
         if (inboundMappingBeans.isEmpty()) {
             return;
         }

@@ -135,6 +135,7 @@ The As Is value is functionally almost identical to passing the value of `input`
 ----
 
 The As Is expression evaluator is the default evaluator that will be used if no expression is specified at all (e.g. in xref:/midpoint/reference/expressions/mappings/[mappings]).
+(An exception of this rule are inbound and outbound mappings for associations, where such default currently makes no sense.)
 
 === Path
 

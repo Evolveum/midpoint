@@ -140,16 +140,16 @@ public class ExpressionFactory implements Cache {
                     createExpression(expressionCI, outputDefinition, expressionProfile, shortDesc, task, result));
         } catch (TunnelException e) {
             Throwable cause = e.getCause();
-            if (cause instanceof SchemaException) {
-                throw (SchemaException) cause;
-            } else if (cause instanceof ConfigurationException) {
-                throw (ConfigurationException) cause;
-            } else if (cause instanceof ObjectNotFoundException) {
-                throw (ObjectNotFoundException) cause;
-            } else if (cause instanceof SecurityViolationException) {
-                throw (SecurityViolationException) cause;
-            } else if (cause instanceof RuntimeException) {
-                throw (RuntimeException) cause;
+            if (cause instanceof SchemaException schemaException) {
+                throw schemaException;
+            } else if (cause instanceof ConfigurationException configurationException) {
+                throw configurationException;
+            } else if (cause instanceof ObjectNotFoundException objectNotFoundException) {
+                throw objectNotFoundException;
+            } else if (cause instanceof SecurityViolationException securityViolationException) {
+                throw securityViolationException;
+            } else if (cause instanceof RuntimeException runtimeException) {
+                throw runtimeException;
             } else {
                 throw new SystemException(cause);
             }
