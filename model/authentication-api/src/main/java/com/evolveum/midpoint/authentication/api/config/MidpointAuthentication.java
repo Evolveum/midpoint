@@ -10,6 +10,7 @@ import java.util.*;
 import java.util.stream.Stream;
 
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -575,6 +576,15 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     }
 
     public int resolveParallelModules(HttpServletRequest request, int actualIndex) {
+        if (actualIndex < 0) {
+            return actualIndex;
+        }
+
+        if (getAuthenticationChannel() != null
+                && !SecurityUtil.isRestAndActuatorChannel(getAuthenticationChannel().getChannelId())) {
+            return actualIndex;
+        }
+
         String header = request.getHeader("Authorization");
         if (header == null) {
             return actualIndex;
