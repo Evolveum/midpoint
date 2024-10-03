@@ -30,7 +30,9 @@ xref:/book[MidPoint book] may be a good starting point instead.
 
 == Basic Structure
 
-Mapping consists of four basic parts:
+Mapping consists of five basic parts:
+
+* *Name* defines unique name of mapping. Name (with other additional attributes) is used in metadata to uniquely identify values emitted by this mapping. See xref:/midpoint/reference/concepts/metadata/[Metadata] page about details. This value should not be changed. (See <<Renaming a Mapping>> chapter if name needs to be changed.)
 
 * *Source* part defines the data sources of the mapping.
 These are usually understood as mapping input.
@@ -61,6 +63,7 @@ The mapping is represented in the XML/JSON form as follows:
 [source,xml]
 ----
 <mapping>
+    <name>givenName-familyName-to-cn</name>
     <source>
         <path>$focus/givenName</path>
     </source>
@@ -87,6 +90,7 @@ The mapping is represented in the XML/JSON form as follows:
 ----
 {
     "mapping" : {
+        "name" : "givenName-familyName-to-cn",
         "source" : [
             {
                 "path" : "$focus/givenName"
@@ -329,6 +333,8 @@ The xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[project
 
 The range definition does *not* influence mapping inputs or expression.
 The range is used when the mapping outputs are processed.
+
+Default range (if no explicit range is specified) are only values emmited by this mapping (as identified by xref:/midpoint/reference/concepts/metadata/#mapping-specification[provenance metadata]). 
 
 Please see xref:range/[] for detailed explanation of mapping range concepts.
 
@@ -1154,6 +1160,37 @@ Now imagine that there may be any number of input variables and that midPoint do
 We will not confuse the reader with a detailed explanation of the algorithm, and we will refer extremely curious readers to midPoint source code.
 The source code is the most precise documentation anyway.
 
+
+== Mapping Maintenance Tasks
+
+=== Renaming a Mapping
+
+Sometimes there could be a need to rename mapping after it was already in use and midPoint already contains the values emitted by this mapping.
+
+Mappings support processing and modifying values also with old mapping name by specifying `mappingAlias` in mapping, which will contain original name.
+
+The mapping alias will make sure, that also old values will be visible in range for the newly named mapping.
+
+
+
+.Original mapping definition
+[source, xml]
+----
+<mapping>
+  <name>oldMappingName</name>
+  ...
+</mapping>
+----
+
+.Correctly renamed mapping definition
+[source, xml]
+----
+<mapping>
+  <name>newMappingName</name>
+  <mappingAlias>oldMappingName<mappingAlias>
+----
+
+NOTE: This only works when only mapping name changed. If mapping processing same values was moved to different object template or resource you need to specify `target/set/additionalMappingSpecification` with coordinates of previous location of mapping.
 
 ==  See Also
 
