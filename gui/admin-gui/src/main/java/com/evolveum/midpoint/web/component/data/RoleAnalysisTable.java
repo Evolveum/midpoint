@@ -149,6 +149,7 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
     }
 
     //TODO check
+
     /**
      * Checks if the size of the main mining chunk has changed and if so, updates the data table columns accordingly.
      * This method is used to ensure that the data table columns are always in sync with the main mining chunk.
@@ -417,6 +418,7 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
                 return RoleAnalysisTable.this.getSelectedPatterns();
             }
 
+            @Override
             protected int getColumnCount() {
                 return getModelObject().getMainMiningChunk().size();
             }
@@ -591,11 +593,10 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
 
     protected boolean getMigrationButtonVisibility() {
         Set<RoleAnalysisCandidateRoleType> candidateRole = getCandidateRole();
-        if (candidateRole != null) {
-            if (candidateRole.size() > 1) {
-                return false;
-            }
+        if (candidateRole != null && candidateRole.size() > 1) {
+            return false;
         }
+
         if (getSelectedPatterns().size() > 1) {
             return false;
         }
@@ -625,7 +626,7 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
 
     }
 
-    public List<String> getCandidateRoleContainerId() {
+    public @Nullable List<String> getCandidateRoleContainerId() {
         StringValue stringValue = getPageBase().getPageParameters().get(PARAM_CANDIDATE_ROLE_ID);
         if (!stringValue.isNull()) {
             String[] split = stringValue.toString().split(",");
@@ -653,12 +654,14 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
 //    }
 
     protected void loadDetectedPattern(AjaxRequestTarget target) {
+        //override in subclass
     }
 
     //TODO check. When pattern is detected during user-permission table manipulation,
     // it is necessary to refresh operation panel, because new discovered
     // pattern is not part of the current operation panel model (TBD include or not).
     protected void onUniquePatternDetectionPerform(AjaxRequestTarget target) {
+        //override in subclass
     }
 
 }
