@@ -42,7 +42,7 @@ With outbound-only or inbound-only resources, `Unmanaged` and `Managed` marks ar
 
 .`Unmanaged` mark behavior
 |===
-|Add |Modify |Delete |Sync. inbound |Sync. outbound |Sync. membership inbound |Sync. membership outbound |Tolerant membership
+|Add |Modify |Delete |Inbound |Outbound |Membership inbound |Membership outbound |Tolerant membership
 
 |Disabled
 |Disabled
@@ -67,7 +67,7 @@ The inbound mechanisms are partially enabled to allow reacting on synchronizatio
 
 .`Managed` mark behavior
 |===
-|Add |Modify |Delete |Sync. inbound |Sync. outbound |Sync. membership inbound |Sync. membership outbound |Tolerant membership
+|Add |Modify |Delete |Inbound |Outbound |Membership inbound |Membership outbound |Tolerant membership
 
 |Enabled
 |Enabled
