@@ -31,6 +31,9 @@ public class VerticalFormClusteringAttributesPanel extends VerticalFormPrismCont
         ClusteringAttributeSelectorPanel panel = new ClusteringAttributeSelectorPanel(ID_ATTRIBUTES, getModel(), getAnalysisOption().getProcessMode()){
             @Override
             public boolean isEditable() {
+                if(getSettings() == null || getSettings().getEditabilityHandler() == null){
+                    return true;
+                }
                 return getSettings().getEditabilityHandler().isEditable(getModelObject());
             }
         };

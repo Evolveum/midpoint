@@ -37,6 +37,9 @@ public class VerticalFormAnalysisAttributesPanel extends VerticalFormPrismContai
         AnalysisAttributeSelectorPanel attributeSelectorPanel = new AnalysisAttributeSelectorPanel(ID_ATTRIBUTES, Model.of(property)){
             @Override
             public boolean isEditable() {
+                if(getSettings() == null || getSettings().getEditabilityHandler() == null){
+                    return true;
+                }
                 return getSettings().getEditabilityHandler().isEditable(getModelObject());
             }
         };
