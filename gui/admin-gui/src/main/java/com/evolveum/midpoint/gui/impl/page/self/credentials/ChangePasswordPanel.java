@@ -41,7 +41,6 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.FeedbackMessage;
-import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.PasswordTextField;
 import org.apache.wicket.model.IModel;
@@ -49,13 +48,14 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
+import java.io.Serial;
 import java.util.*;
 
 import org.jetbrains.annotations.NotNull;
 
 public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(ChangePasswordPanel.class);
 
@@ -76,7 +76,6 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
 
    protected String currentPasswordValue = null;
    protected ProtectedStringType newPasswordValue = new ProtectedStringType();
-   private String hintValue = null;
    protected LoadableDetachableModel<CredentialsPolicyType> credentialsPolicyModel;
     protected boolean savedPassword = false;
     protected ProgressDto progress = null;
@@ -93,7 +92,8 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
 
     private void initCredentialsPolicyModel() {
         credentialsPolicyModel = new LoadableDetachableModel<>() {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             protected CredentialsPolicyType load() {
                 Task task = getParentPage().createSimpleTask(OPERATION_LOAD_CREDENTIALS_POLICY);
@@ -103,8 +103,9 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
     }
 
     private void initLayout() {
-        IModel<String> currentPasswordModel = new IModel<String>() {
-            private static final long serialVersionUID = 1L;
+        IModel<String> currentPasswordModel = new IModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             public String getObject() {
                 return currentPasswordValue;
@@ -119,7 +120,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
                 new PasswordTextField(ID_CURRENT_PASSWORD_FIELD, currentPasswordModel);
         currentPasswordField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         currentPasswordField.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible() {
@@ -139,12 +140,20 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         Label passwordLabel = new Label(ID_PASSWORD_LABEL, createStringResource("PageSelfCredentials.passwordLabel1"));
         add(passwordLabel);
 
+        LoadableDetachableModel<List<StringLimitationResult>> limitationsModel = new LoadableDetachableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+            @Override
+            protected List<StringLimitationResult> load() {
+                return getLimitationsForActualPassword(newPasswordValue);
+            }
+        };
+
         PasswordPanel passwordPanel = new PasswordPanel(ID_PASSWORD_PANEL, Model.of(newPasswordValue), false, true, getModelObject().asPrismObject()) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void updatePasswordValidation(AjaxRequestTarget target) {
-                super.updatePasswordValidation(target);
+                limitationsModel.detach();
                 updateNewPasswordValuePerformed(target);
             }
 
@@ -166,14 +175,6 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         passwordPanel.getBaseFormComponent().add(new AttributeModifier("autofocus", ""));
         add(passwordPanel);
 
-        LoadableDetachableModel<List<StringLimitationResult>> limitationsModel = new LoadableDetachableModel<>() {
-            private static final long serialVersionUID = 1L;
-            @Override
-            protected List<StringLimitationResult> load() {
-                return getLimitationsForActualPassword(newPasswordValue);
-            }
-        };
-
         PasswordLimitationsPanel passwordLimitationsPanel = createLimitationPanel(ID_PASSWORD_VALIDATION_PANEL, limitationsModel);
         passwordLimitationsPanel.add(new VisibleBehaviour(() -> !isPasswordLimitationPopupVisible()));
         passwordLimitationsPanel.setOutputMarkupId(true);
@@ -182,7 +183,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         PasswordHintPanel hint = new PasswordHintPanel(ID_PASSWORD_HINT_PANEL,
                 new PropertyModel<>(getModel(), FocusType.F_CREDENTIALS + "." + CredentialsType.F_PASSWORD + "." + PasswordType.F_HINT),
                 Model.of(newPasswordValue), false) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected boolean hideHintValue() {
@@ -197,7 +198,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         AjaxSubmitButton changePasswordButton = new AjaxSubmitButton(ID_CHANGE_PASSWORD,
                 createStringResource("ChangePasswordPanel.changePasswordButton")) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onError(AjaxRequestTarget target) {
@@ -231,7 +232,8 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         return true;
     }
 
-    protected PasswordLimitationsPanel createLimitationPanel(String id, IModel<List<StringLimitationResult>> limitationsModel) {
+    protected PasswordLimitationsPanel createLimitationPanel(String id,
+            LoadableDetachableModel<List<StringLimitationResult>> limitationsModel) {
         return new PasswordLimitationsPanel(id, limitationsModel);
     }
 
@@ -274,10 +276,10 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
 
 
     private void changePasswordPerformed(AjaxRequestTarget target) {
-        ProtectedStringType currentPassword = null;
+        ProtectedStringType currentPassword;
         if (shouldCheckOldPassword()) {
             LOGGER.debug("Check old password");
-            if (currentPasswordValue == null || currentPasswordValue.trim().equals("")) {
+            if (currentPasswordValue == null || currentPasswordValue.trim().isEmpty()) {
                 new Toast()
                         .warning()
                         .autohide(false)
