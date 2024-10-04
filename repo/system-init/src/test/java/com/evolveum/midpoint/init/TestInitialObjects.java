@@ -59,7 +59,7 @@ public class TestInitialObjects extends AbstractUnitTest {
     public void mergeInitialObjects() throws Exception {
         List<FileMergeResult> results = new ArrayList<>();
 
-        testMergeOnFiles(INITIAL_OBJECTS_DIR.listFiles(), results);
+        testMergeOnFiles(new File[]{INITIAL_OBJECTS_DIR}, results);
 
         long success = results.stream().filter(r -> !r.problem()).count();
         long failed = results.size() - success;
@@ -81,7 +81,7 @@ public class TestInitialObjects extends AbstractUnitTest {
     public void testMergeOnFiles(File[] files, List<FileMergeResult> results) throws SchemaException, IOException, ConfigurationException {
         for (File file : files) {
             if (file.isDirectory()) {
-                testMergeOnFiles(file.listFiles(), results);
+                testMergeOnFiles(FileUtils.listFiles(file, new String[]{"json", "xml", "yaml"}, false).toArray(new File[0]), results);
             } else {
                 FileMergeResult result = testMergeOnFile(file);
                 results.add(result);
