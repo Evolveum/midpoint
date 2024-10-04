@@ -19,6 +19,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
 import java.util.List;
@@ -38,7 +39,7 @@ public class PasswordPolicyValidationPanel extends BasePanel<List<StringLimitati
             + "        });\n";
     private Model<Boolean> isAfterInitialization = Model.of(false);
 
-    public PasswordPolicyValidationPanel(String id, LoadableModel<List<StringLimitationResult>> model) {
+    public PasswordPolicyValidationPanel(String id, LoadableDetachableModel<List<StringLimitationResult>> model) {
         super(id, model);
     }
 
@@ -80,7 +81,8 @@ public class PasswordPolicyValidationPanel extends BasePanel<List<StringLimitati
         infoPanel.setOutputMarkupId(true);
         add(infoPanel);
 
-        PasswordLimitationsPanel validationPanel = new PasswordLimitationsPanel(ID_POLICY_VALIDATION_POPOVER, getModel());
+        PasswordLimitationsPanel validationPanel = new PasswordLimitationsPanel(ID_POLICY_VALIDATION_POPOVER,
+                (LoadableDetachableModel<List<StringLimitationResult>>) getModel());
         validationPanel.setOutputMarkupId(true);
         add(validationPanel);
     }
