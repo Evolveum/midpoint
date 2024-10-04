@@ -215,17 +215,18 @@ public interface CommonInitialObjects {
     TestObject<MarkType> MARK_SUSPICIOUS = TestObject.classPath(
             MARKS, "830-suspicious.xml", SystemObjectsType.MARK_SUSPICIOUS.value());
 
-    TestObject<MarkType> MARK_UNDERSTAFFED_SECURITY = TestObject.classPath(
-            MARKS, "831-understaffed-security.xml", SystemObjectsType.MARK_UNDERSTAFFED_SECURITY.value());
+//    TestObject<MarkType> MARK_UNDERSTAFFED_SECURITY = TestObject.classPath(
+//            MARKS, "831-understaffed-security.xml", SystemObjectsType.MARK_UNDERSTAFFED_SECURITY.value());
+//
+//    TestObject<MarkType> MARK_ORPHANED = TestObject.classPath(
+//            MARKS, "832-orphaned.xml", SystemObjectsType.MARK_ORPHANED.value());
+//
+//    TestObject<MarkType> MARK_NEGLECTED = TestObject.classPath(
+//            MARKS, "833-neglected.xml", SystemObjectsType.MARK_NEGLECTED.value());
+//
+//    TestObject<PolicyType> POLICY_INFORMATION_SECURITY_RESPONSIBILITY = TestObject.classPath(
+//            POLICIES, "333-classification-information-security-responsibility.xml", SystemObjectsType.CLASSIFICATION_INFORMATION_SECURITY_RESPONSIBILITY.value());
 
-    TestObject<MarkType> MARK_ORPHANED = TestObject.classPath(
-            MARKS, "832-orphaned.xml", SystemObjectsType.MARK_ORPHANED.value());
-
-    TestObject<MarkType> MARK_NEGLECTED = TestObject.classPath(
-            MARKS, "833-neglected.xml", SystemObjectsType.MARK_NEGLECTED.value());
-
-    TestObject<PolicyType> POLICY_INFORMATION_SECURITY_RESPONSIBILITY = TestObject.classPath(
-            POLICIES, "333-classification-information-security-responsibility.xml", SystemObjectsType.CLASSIFICATION_INFORMATION_SECURITY_RESPONSIBILITY.value());
 
     String PARAM_SIMULATION_RESULT_REF = "simulationResultRef";
     String PARAM_PATHS_TO_INCLUDE = "pathsToInclude";
@@ -357,10 +358,11 @@ public interface CommonInitialObjects {
                     MARK_ASSIGNMENT_STATE,
                     MARK_OBJECT_TIME_VALIDITY,
                     MARK_ASSIGNMENT_TIME_VALIDITY,
-                    MARK_SUSPICIOUS,
-                    MARK_UNDERSTAFFED_SECURITY,
-                    MARK_ORPHANED,
-                    MARK_NEGLECTED);
+                    MARK_SUSPICIOUS
+//                    MARK_UNDERSTAFFED_SECURITY,
+//                    MARK_ORPHANED,
+//                    MARK_NEGLECTED
+                    );
         } catch (CommonException | IOException | RuntimeException e) {
             throw e;
         } catch (Exception e) {
