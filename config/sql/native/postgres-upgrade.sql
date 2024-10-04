@@ -961,6 +961,14 @@ call apply_change(46, $aa$
                ON m_role_analysis_outlier (targetObjectRefRelationId);
 $aa$);
 
+call apply_change(47, $aa$
+    ALTER TABLE m_shadow
+       ADD COLUMN lastLoginTimestamp TIMESTAMPTZ;
+
+   CREATE INDEX m_shadow_default_lastLoginTimestamp_idx
+                      ON m_shadow_default (lastLoginTimestamp);
+$aa$);
+
 
 ---
 -- WRITE CHANGES ABOVE ^^

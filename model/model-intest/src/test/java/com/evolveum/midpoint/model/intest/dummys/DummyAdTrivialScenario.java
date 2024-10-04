@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.intest.associations;
+package com.evolveum.midpoint.model.intest.dummys;
 
 import static com.evolveum.icf.dummy.resource.LinkClassDefinition.LinkClassDefinitionBuilder.aLinkClassDefinition;
 import static com.evolveum.icf.dummy.resource.LinkClassDefinition.Participant.ParticipantBuilder.aParticipant;
@@ -47,6 +47,7 @@ public class DummyAdTrivialScenario extends AbstractDummyScenario {
 
         public static class AttributeNames {
             public static final AttrName NAME = icfsName();
+            public static final AttrName DESCRIPTION = ri("description");
         }
 
         public static class LinkNames {
@@ -55,6 +56,9 @@ public class DummyAdTrivialScenario extends AbstractDummyScenario {
 
         void initialize() {
             // Account class already exists
+            controller.addAttrDef(
+                    controller.getAccountObjectClass(), AttributeNames.DESCRIPTION.local(),
+                    String.class, false, false);
         }
 
         @Override

@@ -196,7 +196,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="modifyChannel" type="xsd:anyURI" minOccurs="0" maxOccurs="1">
+            <xsd:element name="modifyChannel" type="xsd:anyURI" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Channel in which the object was last modified.
@@ -812,7 +812,22 @@
     <xsd:complexType name="MappingSpecificationType">
         <xsd:annotation>
             <xsd:documentation>
-                See Axiom.
+                Specification of a mapping, typically used to identify the mapping that provided a particular focus value.
+
+                Note that we often are interested not only in a given mapping as such (as a piece of configuration), but
+                in the execution of the mapping in a specific context, yielding a particular value.
+
+                Some examples:
+
+                1. Execution of a mapping defined in a resource template inherited by multiple resources, or in an object type
+                inherited by multiple specific object types. The provenance metadata attached to values produced by this mapping
+                should point not only to the mapping as such, but to specific context in which the mapping was executed: specific
+                resource and/or specific object type. Otherwise (with a default provenance-based mapping ranges), the values
+                originating in individual executions of the mapping, would get overwritten by their siblings. Said in other words,
+                each mapping execution should have its own range.
+
+                2. Execution of a mapping against multiple shadows (in a multi-accounts resource). Again, by default, each
+                of the shadows - differentiated by shadow tag values - should have its own mapping range.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:operational>false</a:operational> <!-- intentionally -->
@@ -825,29 +840,65 @@
             <xsd:element name="definitionObjectRef" type="c:ObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Object in which the mapping resides.
+                        Object containing the mapping (that provided the particular value).
 
-                        Beware: when the mapping is related to a resource that uses a resource template, i.e., that has
-                        a super-resource, the actual (expanded, child) resource OID is provided here, even if the mapping
-                        physically resides in the super-resource.
+                        When the mapping is related to a resource that uses a resource template, i.e., that has
+                        a super-resource, the actual (expanded, i.e., child) resource OID is provided here, even if the mapping
+                        physically resides in the super-resource. See the description of this data type.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="objectType" type="c:ResourceObjectTypeIdentificationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Object type (like account/default) in which this mapping is defined.
+                        Object type (like account/default) under which the mapping is executed.
 
                         This is necessary to avoid requiring mapping name uniqueness across the whole resource, but
                         also to ensure working of mappings (1) inherited from the super-type to subtypes, (2) applied to
-                        multiple object types (like those in association types). Such mappings would have the same specification
-                        even when they are in fact executed as two distinct instances on different data.
+                        multiple object types (like those in association types). Each execution of such a mapping should
+                        have its own target range. See the description of this data type.
 
                         Currently provided for inbound mappings.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.9</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="mappingName" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="associationType" type="xsd:QName" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of the association type (like "ri:membership") in which this mapping is defined and evaluated.
+
+                        The presence of this property limits the required scope of uniqueness of inbound mapping names:
+                        it is sufficient for them to be unique within given association type.
+
+                        Currently provided for inbound mappings.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.9</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="tag" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The value of the tag for the shadow against which this mapping was executed.
+
+                        Currently provided for inbound mappings.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.9</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="mappingName" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of the mapping (that provided the value).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="mappingSpecification" type="tns:MappingSpecificationType"/>
@@ -1044,7 +1095,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <!-- TODO subpath flag, object type specification, object selector (?), etc -->
+            <!-- TODO sub-path flag, object type specification, object selector (?), etc -->
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>

@@ -445,7 +445,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
                     "Inbound mappings must have an explicit mapping specification; in %s", originObject);
             mappingSpecification = createDefaultSpecification();
         }
-        mappingAliasSpecifications = createMappingAliasSpecifications(mappingSpecification,mappingBean.getMappingAlias());
+        mappingAliasSpecifications = createMappingAliasSpecifications(mappingSpecification, mappingBean.getMappingAlias());
         now = builder.getNow();
         sources.addAll(builder.getAdditionalSources());
         parser = new MappingParser<>(this);
@@ -941,10 +941,13 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         if (valueMetadataComputer != null && valueMetadataComputer.supportsProvenance()) {
+            LOGGER.trace("Treating own yield in negative values, because we support provenance here.");
             restrictNegativeValuesToOwnYield();
             // Must come after the above method because this method creates some values in minus set.
             // We don't want these newly-added minus values to be processed by the above method.
             deleteOwnYieldFromNonNegativeValues();
+        } else {
+            LOGGER.trace("Not treating own yield in negative values, as provenance is not supported here.");
         }
 
         VariableBindingDefinitionType target = mappingBean.getTarget();
@@ -957,6 +960,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
             effectiveRangeSetDefBean = explicitRangeSetDefBean;
         }
         if (effectiveRangeSetDefBean == null) {
+            LOGGER.trace("No range set definition, skipping range check.");
             return;
         }
         String name;
@@ -971,8 +975,9 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
                 throw new IllegalStateException(
                         "Couldn't check range for mapping in " + contextDescription + ", as original target values are not known.");
             } else {
-                // This is mainly to cover corner cases like those in low-level tests
-                // (TestMappingDomain, TestMappingDynamicSimple)
+                LOGGER.trace(
+                        "No original target values, but no explicit range set definition either. Assuming low-level"
+                                + " tests like TestMappingDomain or TestMappingDynamicSimple. Skipping range check.");
                 return;
             }
         }
@@ -1125,10 +1130,11 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
             @NotNull OperationResult result) {
         if (outputTriple != null
                 && (outputTriple.presentInPlusSet(originalValue) || outputTriple.presentInZeroSet(originalValue))) {
+            LOGGER.trace("Value (in range) already present in plus or zero set, not adding to minus set: {}", originalValue);
             return;
         }
         if (expression != null && expression.doesVetoTargetValueRemoval(originalValue, result)) {
-            LOGGER.trace("Expression vetoed removal of value: {}", originalValue);
+            LOGGER.trace("Expression vetoed removal of value (in range): {}", originalValue);
             return;
         }
         // remove it!
@@ -1138,12 +1144,16 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
 
         V valueToDelete = (V) originalValue.clone();
         if (rangeSetDef.isYieldSpecific()) {
-            LOGGER.trace("A yield of original value is in the mapping range (while not in mapping result), adding it to minus set: {}", originalValue);
+            LOGGER.trace(
+                    "A yield of original value is in the mapping range (while not in mapping result), adding it to minus set: {}",
+                    originalValue);
             valueToDelete.<ValueMetadataType>getValueMetadataAsContainer()
                     .removeIf(md -> !rangeSetDef.hasMappingSpecification(md.asContainerable()));
             // TODO we could check if the minus set already contains the value we are going to remove
         } else {
-            LOGGER.trace("Original value is in the mapping range (while not in mapping result), adding it to minus set: {}", originalValue);
+            LOGGER.trace(
+                    "Original value is in the mapping range (while not in mapping result), adding it to minus set: {}",
+                    originalValue);
         }
         outputTriple.addToMinusSet(valueToDelete);
     }
@@ -1351,8 +1361,8 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         }
         //noinspection rawtypes
         Visitor visitor = visitable -> {
-            if (visitable instanceof PrismValue) {
-                ((PrismValue) visitable).recompute(PrismContext.get());
+            if (visitable instanceof PrismValue prismValue) {
+                prismValue.recompute(PrismContext.get());
             }
         };
         outputTriple.accept(visitor);
@@ -1682,7 +1692,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         return pushChanges;
     }
 
-    boolean shouldUseMatchingProvenance() {
+    private boolean shouldUseMatchingProvenance() {
         return getOutputDefinition() != null && getOutputDefinition().isMultiValue() && mappingBean.getName() != null;
     }
 
@@ -1693,6 +1703,8 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         return new MappingSpecificationType()
                 .definitionObjectRef(CloneUtil.cloneCloneable(spec.getDefinitionObjectRef()))
                 .objectType(CloneUtil.cloneCloneable(spec.getObjectType()))
+                .associationType(spec.getAssociationType())
+                .tag(spec.getTag())
                 .mappingName(alias);
     }
 

@@ -10,6 +10,7 @@ package com.evolveum.midpoint.schema.config;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -60,7 +61,26 @@ interface ConfigurationItemable<T extends Serializable & Cloneable> {
     default void checkNamespace(@NotNull QName name, String expectedNamespace) throws ConfigurationException {
         String realNamespace = name.getNamespaceURI();
         if (StringUtils.hasLength(realNamespace) && !expectedNamespace.equals(realNamespace)) {
-            throw configException("Expected namespace '%s', but got '%s'; in %s", expectedNamespace, name, DESC);
+            throw namespaceMismatchException(name, expectedNamespace);
+        }
+    }
+
+    private @NotNull ConfigurationException namespaceMismatchException(@NotNull QName name, String expectedNamespace) {
+        return configException(
+                "Expected namespace '%s', but got '%s' (local part: '%s'); in %s",
+                expectedNamespace, name.getNamespaceURI(), name.getLocalPart(), DESC);
+    }
+
+    /** Just like {@link QNameUtil#enforceNamespace(QName, String)} but throwing {@link ConfigurationException}. */
+    default @NotNull QName enforceNamespace(@NotNull QName name, @NotNull String requiredNamespace)
+            throws ConfigurationException {
+        var namespace = name.getNamespaceURI();
+        if (!StringUtils.hasLength(namespace)) {
+            return new QName(requiredNamespace, name.getLocalPart());
+        } else if (namespace.equals(requiredNamespace)) {
+            return name;
+        } else {
+            throw namespaceMismatchException(name, requiredNamespace);
         }
     }
 

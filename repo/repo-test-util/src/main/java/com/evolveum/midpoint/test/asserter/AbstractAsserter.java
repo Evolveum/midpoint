@@ -6,16 +6,18 @@
  */
 package com.evolveum.midpoint.test.asserter;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
+
 import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SimpleObjectResolver;
@@ -176,5 +178,38 @@ public abstract class AbstractAsserter<RA> {
         assertThat(realTags)
                 .as("event marks")
                 .containsExactlyInAnyOrderElementsOf(expectedTagsOids);
+    }
+
+    protected PrismContainer<ValueMetadataType> getValueMetadata(
+            PrismContainerValue<?> parent, ItemPath path, ValueSelector<? extends PrismValue> valueSelector) {
+        Object o = parent.find(path);
+        if (o instanceof PrismValue prismValue) {
+            return prismValue.getValueMetadataAsContainer();
+        } else if (o instanceof Item<?, ?> item) {
+            if (valueSelector == null) {
+                if (item.size() == 1) {
+                    return item.getValue().getValueMetadataAsContainer();
+                } else {
+                    throw new AssertionError(
+                            "Item '%s' has not a single value in %s: %d values: %s".formatted(
+                                    path, parent, item.size(), item));
+                }
+            } else {
+                //noinspection unchecked,rawtypes
+                PrismValue anyValue = item.getAnyValue((ValueSelector) valueSelector);
+                if (anyValue != null) {
+                    return anyValue.getValueMetadataAsContainer();
+                } else {
+                    throw new AssertionError(
+                            "Item '%s' has no value matching given selector in %s: %d values: %s".formatted(
+                                    path, parent, item.size(), item));
+                }
+            }
+        } else if (o != null) {
+            throw new AssertionError(
+                    "Object '%s' has no unexpected value matching given selector in %s: %s".formatted(path, parent, o));
+        } else {
+            throw new AssertionError("Item '%s' not found in %s".formatted(path, parent));
+        }
     }
 }

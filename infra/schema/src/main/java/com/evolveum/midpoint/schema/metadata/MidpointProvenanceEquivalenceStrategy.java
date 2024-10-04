@@ -15,6 +15,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -66,8 +67,11 @@ public class MidpointProvenanceEquivalenceStrategy implements EquivalenceStrateg
         } else if (mappingSpec1 == null || mappingSpec2 == null) {
             return false;
         } else {
-            return Objects.equals(mappingSpec1.getMappingName(), mappingSpec2.getMappingName()) &&
-                    refsEqual(mappingSpec1.getDefinitionObjectRef(), mappingSpec2.getDefinitionObjectRef());
+            return Objects.equals(mappingSpec1.getMappingName(), mappingSpec2.getMappingName())
+                    && refsEqual(mappingSpec1.getDefinitionObjectRef(), mappingSpec2.getDefinitionObjectRef())
+                    && Objects.equals(mappingSpec1.getObjectType(), mappingSpec2.getObjectType())
+                    && QNameUtil.match(mappingSpec1.getAssociationType(), mappingSpec2.getAssociationType())
+                    && Objects.equals(mappingSpec1.getTag(), mappingSpec2.getTag());
 //            && Objects.equals(mappingSpec1.getAssignmentId(), mappingSpec2.getAssignmentId());
         }
     }

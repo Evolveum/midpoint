@@ -106,6 +106,8 @@ public class QShadowMapping
                 .addItemMapping(ActivationType.F_ENABLE_TIMESTAMP,timestampMapper(q -> q.enableTimestamp))
                 .addItemMapping(ActivationType.F_DISABLE_TIMESTAMP, timestampMapper(q -> q.disableTimestamp))
         ;
+        addNestedMapping(F_BEHAVIOR, ShadowBehaviorType.class)
+                .addItemMapping(ShadowBehaviorType.F_LAST_LOGIN_TIMESTAMP, timestampMapper(q -> q.lastLoginTimestamp));
         // Item mapping to update the count, relation resolver for query with EXISTS filter.
         addItemMapping(F_PENDING_OPERATION, new SqaleItemSqlMapper<>(
                 ctx -> new CountItemDeltaProcessor<>(ctx, q -> q.pendingOperationCount)));
@@ -171,6 +173,10 @@ public class QShadowMapping
             row.disableReasonId = processCacheableUri(activation.getDisableReason());
             row.enableTimestamp = MiscUtil.asInstant(activation.getEnableTimestamp());
             row.disableTimestamp = MiscUtil.asInstant(activation.getDisableTimestamp());
+        }
+        var behavior = shadow.getBehavior();
+        if (behavior != null) {
+            row.lastLoginTimestamp = MiscUtil.asInstant(behavior.getLastLoginTimestamp());
         }
         return row;
     }

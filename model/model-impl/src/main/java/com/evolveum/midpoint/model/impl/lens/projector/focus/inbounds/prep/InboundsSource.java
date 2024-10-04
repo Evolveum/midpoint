@@ -10,33 +10,29 @@ package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.model.api.InboundSourceData;
-import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
-import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.schema.config.InboundMappingConfigItem;
-import com.evolveum.midpoint.schema.processor.*;
-
-import com.evolveum.midpoint.schema.result.OperationResult;
-
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.util.DebugDumpable;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.model.api.InboundSourceData;
 import com.evolveum.midpoint.model.api.identities.IdentityItemConfiguration;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.MappingEvaluationRequest;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.StopProcessingProjectionException;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.expression.Source;
+import com.evolveum.midpoint.schema.config.InboundMappingConfigItem;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -71,15 +67,8 @@ public abstract class InboundsSource implements DebugDumpable {
 
     @NotNull private final ResourceType resource;
 
-    /**
-     * For what object type we evaluate the mappings. Note that we are interested in the "top-level" type here: even if
-     * we are technically evaluating a mapping for `association/xyz` object type, we are interested in the type of (e.g.)
-     * `account/default` in which the association resides.
-     *
-     * Should be non-null in reasonable cases; only for really broken (unclassified, or without-resource)
-     * {@link LensProjectionContext}s it may be null. See the typology of projection contexts in {@link ProjectionContextKey}.
-     */
-    @Nullable private final ResourceObjectTypeIdentification typeIdentification;
+    /** Background information for value provenance metadata for related inbound mappings. */
+    @NotNull private final InboundMappingContextSpecification mappingContextSpecification;
 
     @NotNull final String humanReadableName;
 
@@ -89,13 +78,13 @@ public abstract class InboundsSource implements DebugDumpable {
             @NotNull InboundSourceData sourceData,
             @NotNull ResourceObjectInboundDefinition inboundDefinition,
             @NotNull ResourceType resource,
-            @Nullable ResourceObjectTypeIdentification typeIdentification,
+            @NotNull InboundMappingContextSpecification mappingContextSpecification,
             @NotNull String humanReadableName) {
         this.sourceData = sourceData;
         this.aPrioriDelta = sourceData.getAPrioriDelta();
         this.inboundDefinition = inboundDefinition;
         this.resource = resource;
-        this.typeIdentification = typeIdentification;
+        this.mappingContextSpecification = mappingContextSpecification;
         this.humanReadableName = humanReadableName;
     }
 
@@ -110,10 +99,6 @@ public abstract class InboundsSource implements DebugDumpable {
      */
     @NotNull ResourceType getResource() {
         return resource;
-    }
-
-    public @Nullable ResourceObjectTypeIdentification getTypeIdentification() {
-        return typeIdentification;
     }
 
     /** Returns human-readable name of the context, for logging/reporting purposes. */
@@ -290,10 +275,15 @@ public abstract class InboundsSource implements DebugDumpable {
         throw new UnsupportedOperationException("Not implemented for " + this);
     }
 
-    public MappingSpecificationType createMappingSpec(@Nullable String mappingName) {
+    public MappingSpecificationType createMappingSpec(@Nullable String mappingName, @NotNull ItemDefinition<?> sourceDefinition) {
         return new MappingSpecificationType()
                 .mappingName(mappingName)
                 .definitionObjectRef(ObjectTypeUtil.createObjectRef(resource))
-                .objectType(ResourceObjectTypeIdentification.asBean(typeIdentification));
+                .objectType(mappingContextSpecification.typeIdentificationBean())
+                .associationType(
+                        sourceDefinition instanceof ShadowAssociationDefinition assocDef ?
+                                assocDef.getAssociationTypeName() :
+                                mappingContextSpecification.associationTypeName())
+                .tag(mappingContextSpecification.shadowTag());
     }
 }

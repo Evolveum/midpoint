@@ -1845,6 +1845,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.9</a:since>
+                <a:naturalKey>name</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -5471,6 +5472,14 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="behavior" type="tns:ShadowBehaviorType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>ShadowType.behavior</a:displayName>
+                                <a:since>4.9</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -7485,5 +7494,33 @@
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="associationSynchronization" type="tns:AssociationSynchronizationExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
+
+    <xsd:complexType name="ShadowBehaviorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Shadow behavioral data.
+                In a more specific meaning: behavioral data of an agent (user or system), usually represented in midPoint by shadow.
+                This data structure records informational data about the agent's behavior, such as authentications, interaction with external systems and so on.
+                Such data are inherently _observed_, e.g. they are not configured by the user.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="lastLoginTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The date and time of last successful login attempt.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:operational>true</a:operational>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
 
 </xsd:schema>

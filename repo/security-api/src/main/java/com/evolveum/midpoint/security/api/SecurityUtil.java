@@ -447,6 +447,10 @@ public class SecurityUtil {
     }
 
     public static boolean isRecordSessionLessAccessChannel(String channel) {
+        return isRestAndActuatorChannel(channel);
+    }
+
+    public static boolean isRestAndActuatorChannel(String channel) {
         if (SchemaConstants.CHANNEL_REST_URI.equals(channel)
                 || SchemaConstants.CHANNEL_ACTUATOR_URI.equals(channel)) {
             return true;

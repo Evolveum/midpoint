@@ -31,16 +31,16 @@ TODO
 
 === New Features and Major Improvements
 
-* xrefv:/midpoint/reference/master/resources/attribute-caching/[Shadow caching]
+* xref:/midpoint/reference/resources/attribute-caching/[Shadow caching]
 * Native Repository Support for `searchContainersIteratively` for all container types
 ** Removed upper record limit for  reports for Assignments, Certfication Cases, Certification Work items and others.
 ** Changed transaction isolation from READ_COMMITED to REPEATABLE_READ.
 ** Changed storage strategy for complex container types - actual data stored inside their own table istead of parent object JSON.
 * Added support for external data in protected strings, that can be resolved via secrets providers.
 This allows to store secrets in external systems, such as HashiCorp Vault, AWS Secrets Manager, Azure Key Vault, etc.
-For more information see xrefv:/midpoint/reference/master/security/credentials/secrets-provider-configuration.adoc[].
+For more information see xref:/midpoint/reference/security/credentials/secrets-provider-configuration.adoc[].
 ** Adding support for GUI of passwords in connector configuration and password of focus (visible only when it is configured in xml)
-* Improvements regarding xrefv:/midpoint/reference/master/resources/entitlements/[shadow associations]:
+* Improvements regarding xref:/midpoint/reference/resources/entitlements/[shadow associations]:
 ** Support for native object references in ConnId (1.6.0.0-RC1).
 ** New style of configuring simulated object references (via capabilities).
 ** New style of configuring associations handling: mapping from associations to assignments using specific correlation and synchronization rules.
@@ -132,10 +132,10 @@ See xref:/midpoint/reference/admin-gui/midpoint-jar-signature-status/[MidPoint J
 Now password propagation to resource takes into account the script, defined in resource for credentials, in case of the appropriate configuration.
 * Notification sending strategy was added to the general notifier configuration.
 It is possible to configure now if the notification message should be generated once and sent to all recipients in the same form or if the message should be generated for each recipient separately.
-More details can be found in the xrefv:/midpoint/reference/master/misc/notifications/general/#basic-structure-of-the-notification-definition[Basic structure of the notification definition].
+More details can be found in the xref:/midpoint/reference/misc/notifications/general/#basic-structure-of-the-notification-definition[Basic structure of the notification definition].
 * Role wizard is now supported also for children of application and business roles (archetypes).
 * Dedicated data type for policy objects (xref:/midpoint/reference/schema/policy/[PolicyType])
-* Implementation of new task activities for opening next stage of certification campaign and certification remediation. More details can be found in the xrefv:/midpoint/reference/tasks/activities/work/[Work Definition (Types of Activities)].
+* Implementation of new task activities for opening next stage of certification campaign and certification remediation. More details can be found in the xref:/midpoint/reference/tasks/activities/work/[Work Definition (Types of Activities)].
 * Add a confirmation dialogue after changing the resource lifecycle state. See bug:MID-9315[].
 * Added the ability to modify selected object classes for resources via the Resource Schema panel. See bug:MID-8476[].
 * Renamed "Bulk actions" to "Actions" in GUI. See bug:MID-9619[].

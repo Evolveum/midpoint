@@ -7,22 +7,23 @@
 
 package com.evolveum.midpoint.model.impl.sync;
 
-import com.evolveum.midpoint.model.api.InboundSourceData;
-import com.evolveum.midpoint.schema.processor.*;
-
-import com.evolveum.midpoint.schema.util.AbstractShadow;
-
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 
+import com.evolveum.midpoint.model.api.InboundSourceData;
 import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.DefaultSingleShadowInboundsProcessingContextImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.SingleShadowInboundsProcessing;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.SingleShadowInboundsProcessingContext;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.DefaultSingleShadowInboundsProcessingContextImpl;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep.InboundMappingContextSpecification;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectInboundDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -58,9 +59,12 @@ public class PreMappingsEvaluator {
                 new DefaultSingleShadowInboundsProcessingContextImpl<>(
                         AbstractShadow.of(shadowedResourceObject),
                         resource,
-                        // We may reconsider if we shouldn't require type identification explicitly from the caller;
-                        // but for now, it seems that the type definition is derived straight from the SynchronizationPolicy
-                        objectTypeDefinition.getTypeIdentification(),
+                        new InboundMappingContextSpecification(
+                                // We may reconsider if we shouldn't require type identification explicitly from the caller; but
+                                // for now, it seems that the type definition is derived straight from the SynchronizationPolicy
+                                objectTypeDefinition.getTypeIdentification(),
+                                null,
+                                shadowedResourceObject.getTag()),
                         PrismContext.get().createObjectable(focusClass),
                         ModelBeans.get().systemObjectCache.getSystemConfigurationBean(result),
                         task,
@@ -80,7 +84,7 @@ public class PreMappingsEvaluator {
             @NotNull ResourceObjectDefinition resourceObjectDefinition,
             @NotNull ResourceObjectInboundDefinition inboundDefinition,
             @NotNull ResourceType resource,
-            @Nullable ResourceObjectTypeIdentification typeIdentification,
+            @NotNull InboundMappingContextSpecification mappingContextSpecification,
             @NotNull C targetObject,
             @NotNull Task task,
             @NotNull OperationResult result)
@@ -90,7 +94,7 @@ public class PreMappingsEvaluator {
                 new DefaultSingleShadowInboundsProcessingContextImpl<>(
                         associationValue,
                         resource,
-                        typeIdentification,
+                        mappingContextSpecification,
                         targetObject,
                         ModelBeans.get().systemObjectCache.getSystemConfigurationBean(result),
                         task,

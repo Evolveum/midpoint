@@ -232,7 +232,7 @@ class MappedSourceItems<T extends Containerable> {
     private void createMappedItemForAssociation(@NotNull ShadowAssociationDefinition assocDef)
             throws SchemaException, ConfigurationException {
 
-        var inboundMappingBeans = assocDef.getExplicitInboundMappingBeans();
+        var inboundMappingBeans = assocDef.getInboundMappingBeans();
         if (inboundMappingBeans.isEmpty()) {
             return;
         }

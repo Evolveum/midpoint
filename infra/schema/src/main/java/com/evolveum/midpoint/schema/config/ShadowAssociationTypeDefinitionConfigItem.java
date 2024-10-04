@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.QNameUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,11 +31,15 @@ public class ShadowAssociationTypeDefinitionConfigItem
     }
 
     public @NotNull QName getName() throws ConfigurationException {
-        return nonNull(value().getName(), "association class name");
+        return QNameUtil.enforceNamespace(getNameRaw(), NS_RI);
+    }
+
+    private @NotNull QName getNameRaw() throws ConfigurationException {
+        return nonNull(value().getName(), "association type name");
     }
 
     public @NotNull String getNameLocalPart() throws ConfigurationException {
-        return getLocalPart(getName(), NS_RI);
+        return getLocalPart(getNameRaw(), NS_RI);
     }
 
 //    public @NotNull Collection<? extends ResourceObjectTypeIdentification> getObjectTypeIdentifiers()

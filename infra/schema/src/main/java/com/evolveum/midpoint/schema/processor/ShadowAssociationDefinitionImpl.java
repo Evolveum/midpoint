@@ -64,6 +64,9 @@ public class ShadowAssociationDefinitionImpl
 
     @NotNull private final ItemName itemName;
 
+    /** Currently, we don't have a separate (internalized) association type definition. So let's keep at least the name. */
+    @NotNull private final QName associationTypeName;
+
     /** The definition of the attribute this association is based on. It exists even for legacy simulated associations. */
     @NotNull private final ShadowReferenceAttributeDefinition referenceAttributeDefinition;
 
@@ -99,6 +102,7 @@ public class ShadowAssociationDefinitionImpl
 
     private ShadowAssociationDefinitionImpl(
             @NotNull ItemName itemName,
+            @NotNull QName associationTypeName,
             @NotNull ShadowReferenceAttributeDefinition referenceAttributeDefinition,
             @Nullable ResourceObjectDefinition associationDataObjectDefinition,
             @Nullable ShadowAssociationDefinitionType modernAssociationDefinitionBean,
@@ -107,6 +111,7 @@ public class ShadowAssociationDefinitionImpl
             @Nullable Integer maxOccurs,
             @NotNull Multimap<QName, ShadowRelationParticipantType> objectParticipantMap) {
         this.itemName = itemName;
+        this.associationTypeName = associationTypeName;
         this.referenceAttributeDefinition = referenceAttributeDefinition;
         this.associationDataObjectDefinition = associationDataObjectDefinition;
         this.modernAssociationDefinitionBean = CloneUtil.toImmutable(modernAssociationDefinitionBean);
@@ -140,6 +145,8 @@ public class ShadowAssociationDefinitionImpl
                         simulatedReferenceTypeDefinition, updatedAttrDefBean);
         return new ShadowAssociationDefinitionImpl(
                 simulatedReferenceAttrDefinition.getItemName(),
+                // type name is the same as item name here (although may not be resource-wide unique)
+                simulatedReferenceAttrDefinition.getItemName(),
                 simulatedReferenceAttrDefinition,
                 null,
                 null,
@@ -172,6 +179,7 @@ public class ShadowAssociationDefinitionImpl
 
         return new ShadowAssociationDefinitionImpl(
                 associationName,
+                associationTypeDefinitionCI.getName(),
                 referenceAttributeDefinition,
                 associationDataObjectDefinition,
                 associationDefinitionCI.value(),
@@ -403,7 +411,7 @@ public class ShadowAssociationDefinitionImpl
     }
 
     @Override
-    public @NotNull Collection<MappingType> getExplicitOutboundMappingBeans() {
+    public @NotNull Collection<MappingType> getOutboundMappingBeans() {
         if (legacyInformation != null) {
             return MiscUtil.asListExceptForNull(legacyInformation.outboundMappingBean());
         }
@@ -414,7 +422,7 @@ public class ShadowAssociationDefinitionImpl
     }
 
     @Override
-    public @NotNull Collection<InboundMappingType> getExplicitInboundMappingBeans() {
+    public @NotNull Collection<InboundMappingType> getInboundMappingBeans() {
         if (legacyInformation != null) {
             return legacyInformation.inboundMappingBeans();
         }
@@ -461,7 +469,7 @@ public class ShadowAssociationDefinitionImpl
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     public @NotNull ShadowAssociationDefinitionImpl clone() {
         return new ShadowAssociationDefinitionImpl(
-                itemName, referenceAttributeDefinition, associationDataObjectDefinition,
+                itemName, associationTypeName, referenceAttributeDefinition, associationDataObjectDefinition,
                 modernAssociationDefinitionBean, modernAssociationTypeDefinitionBean, null,
                 maxOccurs, objectParticipantMap);
     }
@@ -1037,6 +1045,11 @@ public class ShadowAssociationDefinitionImpl
         return modernAssociationTypeDefinitionBean;
     }
 
+    @Override
+    public @NotNull QName getAssociationTypeName() {
+        return associationTypeName;
+    }
+
     private record LegacyAssociationTypeInformation(
             @Nullable MappingType outboundMappingBean,
             @NotNull List<InboundMappingType> inboundMappingBeans) implements Serializable {
@@ -1053,10 +1066,10 @@ public class ShadowAssociationDefinitionImpl
         if (getDisplayName() != null) {
             sb.append(",Disp");
         }
-        if (!getExplicitOutboundMappingBeans().isEmpty()) {
+        if (!getOutboundMappingBeans().isEmpty()) {
             sb.append(",OUT");
         }
-        if (!getExplicitInboundMappingBeans().isEmpty()) {
+        if (!getInboundMappingBeans().isEmpty()) {
             sb.append(",IN");
         }
         return sb.toString();

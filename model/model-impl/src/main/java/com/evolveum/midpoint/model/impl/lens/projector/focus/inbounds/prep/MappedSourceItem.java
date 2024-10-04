@@ -263,7 +263,7 @@ class MappedSourceItem<V extends PrismValue, D extends ItemDefinition<?>, T exte
                     .valuePolicySupplier(inboundsContext.createValuePolicySupplier())
                     .originType(OriginType.INBOUND)
                     .originObject(resource)
-                    .mappingSpecification(inboundsSource.createMappingSpec(mappingCI.getName()))
+                    .mappingSpecification(inboundsSource.createMappingSpec(mappingCI.getName(), itemDefinition))
                     .now(inboundsContext.env.now);
 
             if (!inboundsTarget.isFocusBeingDeleted()) {
