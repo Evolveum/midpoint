@@ -6,17 +6,20 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel;
 
-import java.io.Serial;
-
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemEditabilityHandler;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.RoleAnalysisRoleSessionOptions;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.RoleAnalysisUserSessionOptions;
 
-import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
+import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismContainerValuePanel;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 
+import com.evolveum.midpoint.web.model.PrismContainerValueWrapperModel;
+
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -64,52 +67,56 @@ public class RoleAnalysisSessionSettingPanel extends AbstractObjectMainPanel<Rol
 
     @Override
     protected void initLayout() {
-        @SuppressWarnings({ "rawtypes", "unchecked" })
-        SingleContainerPanel components = new SingleContainerPanel(ID_PANEL,
-                getObjectWrapperModel(),
-                getPanelConfiguration()) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            protected ItemVisibility getVisibility(@SuppressWarnings("rawtypes") ItemWrapper itemWrapper) {
-                return getBasicTabVisibility(itemWrapper.getPath());
-            }
-
-            @Override
-            protected ItemEditabilityHandler getEditabilityHandler() {
-                return wrapper -> false;
-            }
-        };
-        add(components);
-    }
-
-    private @NotNull ItemVisibility getBasicTabVisibility(@NotNull ItemPath path) {
-        RoleAnalysisCategoryType analysisCategory = null;
-        RoleAnalysisProcessModeType processMode = null;
         RoleAnalysisSessionType session = getObjectWrapper().getObject().getRealValue();
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
-        analysisCategory = analysisOption.getAnalysisCategory();
-        processMode = analysisOption.getProcessMode();
-
-
-        if (path.equivalent(ItemPath.create(RoleAnalysisSessionType.F_ROLE_MODE_OPTIONS,
-                AbstractAnalysisSessionOptionType.F_USER_ANALYSIS_ATTRIBUTE_SETTING))
-                || path.equivalent(ItemPath.create(RoleAnalysisSessionType.F_ROLE_MODE_OPTIONS,
-                AbstractAnalysisSessionOptionType.F_CLUSTERING_ATTRIBUTE_SETTING))
-                || path.equivalent(ItemPath.create(RoleAnalysisSessionType.F_USER_MODE_OPTIONS,
-                AbstractAnalysisSessionOptionType.F_CLUSTERING_ATTRIBUTE_SETTING))
-                || path.equivalent(ItemPath.create(RoleAnalysisSessionType.F_USER_MODE_OPTIONS,
-                AbstractAnalysisSessionOptionType.F_USER_ANALYSIS_ATTRIBUTE_SETTING))) {
-            return ItemVisibility.HIDDEN;
+        RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
+        ItemName itemName;
+        if (processMode == RoleAnalysisProcessModeType.ROLE) {
+            itemName = RoleAnalysisSessionType.F_ROLE_MODE_OPTIONS;
+        } else {
+            itemName = RoleAnalysisSessionType.F_USER_MODE_OPTIONS;
         }
 
-        if (processMode != null && processMode.equals(RoleAnalysisProcessModeType.ROLE)
-                && path.equivalent(ItemPath.create(RoleAnalysisSessionType.F_ROLE_MODE_OPTIONS,
-                AbstractAnalysisSessionOptionType.F_IS_INDIRECT))) {
-            return ItemVisibility.HIDDEN;
-        }
+        VerticalFormPrismContainerValuePanel<Containerable, PrismContainerValueWrapper<Containerable>> panel = new VerticalFormPrismContainerValuePanel<>(
+                ID_PANEL,
+                PrismContainerValueWrapperModel.fromContainerWrapper(getObjectWrapperModel(), itemName),
+                createItemPanelSettings()){
+            @Contract(pure = true)
+            @Override
+            protected @NotNull ItemEditabilityHandler getEditabilityHandler() {
+                return wrapper -> false;
+            }
 
-        return ItemVisibility.AUTO;
+            @Override
+            protected boolean isShowEmptyButtonVisible() {
+                return false;
+            }
+
+            @Override
+            protected boolean isVisibleSubContainer(PrismContainerWrapper<? extends Containerable> c) {
+                return true;
+            }
+        };
+
+        add(panel);
+    }
+
+    private @NotNull ItemPanelSettings createItemPanelSettings() {
+        ItemPanelSettings settings = new ItemPanelSettingsBuilder()
+                .visibilityHandler(getVisibilityHandler())
+                .mandatoryHandler(getMandatoryHandler())
+                .headerVisibility(false)
+                .editabilityHandler(wrapper -> false).build();
+        settings.setConfig(getPanelConfiguration());
+        return settings;
+    }
+
+    protected ItemVisibilityHandler getVisibilityHandler() {
+        return wrapper -> ItemVisibility.AUTO;
+    }
+
+    protected ItemMandatoryHandler getMandatoryHandler() {
+        return null;
     }
 
 }
