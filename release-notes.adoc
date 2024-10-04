@@ -140,11 +140,10 @@ More details can be found in the xrefv:/midpoint/reference/master/misc/notificat
 * Added the ability to modify selected object classes for resources via the Resource Schema panel. See bug:MID-8476[].
 * Renamed "Bulk actions" to "Actions" in GUI. See bug:MID-9619[].
 * Added the ability to configure UI form of the authentication sequence module with a label, description and external link.
-More information can be found in the xref:/midpoint/reference/security/authentication/flexible-authentication/modules/sequence/#authenticationsequencemoduletype[Authentication Sequence Module].
+More information can be found in the xref:/midpoint/reference/security/authentication/flexible-authentication/sequence/#authenticationsequencemoduletype[Authentication Sequence Module].
+The sample is located by the link xref:/midpoint/reference/security/authentication/flexible-authentication/configuration/#authenticationsequencemoduletype[Example of the default GUI sequence with configured login form].
 * 'Resource object types' panel identifier changed from 'schemaHandling' to 'resourceObjectTypes' and panel was moved from top level menu item to submenu of new top level menu item 'Schema handling'. The 'schemaHandling' identifier is now used for the top level menu item.
 * Added missing indexes for extension poly-string properties and shadow attributes for generic repositories (Oracle, MS SQL Server). For more info see SQL upgrade scripts.
-* Implemented the ability to configure login page form with custom title and description.
-Also, custom link can be added to the login page form.
 
 === Releases Of Other Components
 
