@@ -111,6 +111,13 @@ To search these attributes you need to include "extension/" in the attribute nam
 |Find users modified in specific second
 |`metadata/modifyTimestamp >= "2022-10-02T12:53:32"and metadata/modifyTimestamp < "2022-10-02T12:53:33"`
 |
+
+3+|*Search by object OID*
+
+|Find 1 object specified by its OID
+|`. inOid ("eb21455d-17cc-4390-a736-f1d6afa82057")`
+|The list of OIDs may contain one or more OIDs.
+
 |===
 
 === Search through assignments or inducements

@@ -162,7 +162,7 @@ In such a case, `applicableForOperation` must be set to `modify`.
 
 | container
 | NO
-| VirtualContainersSpeficiationType
+| VirtualContainersSpecificationType
 | Used to specify custom grouping of the attributes.
 According to it, virtual containers/sections are then generated in GUI.
 As an example, the user might need to reorganize attributes to some logic block such as personal info, basic info, additional info.
@@ -172,12 +172,13 @@ Basic info section will contain attributes describing organizationalUnit, emailA
 | panelType
 | NO
 | String
-| Unique identifier pointing to the panel which will be shown. There are built-in panels in midPoint mostly mentioned in the table (TODO ref to table), but also custom panel can be implemented and used here.
+| Unique identifier pointing to the panel which will be shown. There are built-in panels in midPoint mostly mentioned in the table (see chapter xref:#_built_in_panel_types[Built-in panel types] below), but also custom panel can be implemented and used here.
 
 | listView
 | NO
 | GuiObjectListViewType
-| This is experimental and only partially supported. It can be used with table panels to specify object collection that will be used to select object in the view and to specify columns which will the showing table have.
+| Specification of an explicit or implicit object collection that will be used to select objects in this view.
+If no collection is specified then all objects of a particular type has to be displayed. Definition of object type using `type` element is mandatory in that case.
 
 | panel
 | NO
@@ -202,6 +203,9 @@ Only one panel can be default. In midPoint, each object type has its default pan
 |===
 
 It is very important to be aware of difference between `identifier` and `panelType`. The attribute `identifier` points to the concrete instance of the panel idenfied by the `identifier`. This `identifier` is used to identify the same panel across different places where is might be configured and according to the `identifier` all related configurations are merged. The attribute `panelType` represents the type of the panel which will be instantiated and used to represent data. There might be different `panel` configurations with different `identifier` for the same `panelType`. In such a case, different menu links on details page will be generated and each will display instantiated `panelType` with the corresponding configuration in `panel`.
+
+[#_built_in_panel_types]
+==== Built-in panel types
 
 MidPoint itself comes with default panels with the identifiers specified. Those are stated in the tables below divided by the types for which they apply.
 As one of the options, the panels can be used and displayed on the self Dashboard page. It's considered that the object to which the panel is applied is principal focus. The statistic widgets on the self Dashboard page usually don't require object type to be specified, they are used just to display some information or to redirect the user to the appropriate page/panel.
@@ -1265,7 +1269,11 @@ However, the authorizations and the admin GUI configuration work together in sev
 E.g. end-users and administrators, both have the `basic` panel in the profile visible, but the attributes which are seen by end-users or administrators might differ.
 
 == Feedback Messages Hook
-Feedback messages hook configures operation result shown in GUI. Contains elements 'operationResultHook' and 'stackTraceVisibility'.
+
+Feedback messages hook configures how operation results are displayed in GUI.
+Contains elements 'operationResultHook' and 'stackTraceVisibility'.
+
+It can also be used to change what's displayed in operation results via options `showOnlyUserFriendlyMessages`, `disableOperationResultDownload` and `displayOnlyTopLevelOperationResult`.
 
 === Operation Result Hook
 'operationResultHook' attribute allows operation result preprocessing before it's shown in GUI.

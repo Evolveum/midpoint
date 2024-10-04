@@ -436,6 +436,15 @@ public class GuiProfileCompiler {
         if (feedbackMessagesHook.getStackTraceVisibility() != null) {
             composite.getFeedbackMessagesHook().setStackTraceVisibility(feedbackMessagesHook.getStackTraceVisibility());
         }
+        if (feedbackMessagesHook.getDisableOperationResultDownload() != null) {
+            composite.getFeedbackMessagesHook().setDisableOperationResultDownload(feedbackMessagesHook.getDisableOperationResultDownload());
+        }
+        if (feedbackMessagesHook.getShowOnlyUserFriendlyMessages() != null) {
+            composite.getFeedbackMessagesHook().setShowOnlyUserFriendlyMessages(feedbackMessagesHook.getShowOnlyUserFriendlyMessages());
+        }
+        if (feedbackMessagesHook.isDisplayOnlyTopLevelOperationResult() != null) {
+            composite.getFeedbackMessagesHook().setDisplayOnlyTopLevelOperationResult(feedbackMessagesHook.isDisplayOnlyTopLevelOperationResult());
+        }
     }
 
     private HomePageType getHomePageByFocusType(List<HomePageType> homePageList, QName type) {

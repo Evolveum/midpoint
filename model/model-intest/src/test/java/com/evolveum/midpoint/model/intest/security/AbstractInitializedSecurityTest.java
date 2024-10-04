@@ -80,6 +80,10 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
     protected static final TestObject<UserType> USER_ESTEVAN = TestObject.file(TEST_DIR, "user-estevan.xml", "00000000-0000-0000-0000-110000000012");
     protected static final TestObject<UserType> USER_CAPSIZE = TestObject.file(TEST_DIR, "user-capsize.xml", "bab2c6a8-5f2a-11e8-97d2-4fc12ba39043");
 
+    // loaded at the beginning, not modified by any test
+    protected static final TestObject<UserType> USER_ALEX = TestObject.file(TEST_DIR, "user-alex.xml", "90b46002-15df-4de5-b73b-2103860fb2b1");
+    protected static final TestObject<UserType> USER_BETTY = TestObject.file(TEST_DIR, "user-betty.xml", "64b3462b-a221-4a6f-9ad3-4bc4b622ccc5");
+
     // loaded ad-hoc (not in init)
     protected static final TestObject<UserType> USER_DEPUTY_1 = TestObject.file(TEST_DIR, "user-deputy-1.xml", "af69e388-88bd-43f9-9259-73676124c196");
     protected static final TestObject<UserType> USER_DEPUTY_2 = TestObject.file(TEST_DIR, "user-deputy-2.xml", "0223b993-b8bd-4599-8873-80d04b88a1ce");
@@ -166,6 +170,8 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
     protected static final TestObject<RoleType> ROLE_END_USER_WITH_PRIVACY = TestObject.file(TEST_DIR, "role-end-user-with-privacy.xml", "2abaef72-af5b-11e8-ae9a-b33bc5b8cb74");
     protected static final TestObject<RoleType> ROLE_APPROVER_UNASSIGN_ROLES = TestObject.file(TEST_DIR, "role-approver-unassign-roles.xml", "5d9cead8-3a2e-11e7-8609-f762a755b58e");
     protected static final TestObject<RoleType> ROLE_USE_TASK_TEMPLATES = TestObject.file(TEST_DIR, "role-use-task-templates.xml", "ac97ca9d-7bb6-44b3-8d10-3b309c97f866");
+    protected static final TestObject<RoleType> ROLE_ROLE_OWNER_FULL_CONTROL = TestObject.file(TEST_DIR, "role-role-owner-full-control.xml", "9c6e597e-dbd7-11e5-a538-97834c1cd5ba");
+    protected static final TestObject<RoleType> ROLE_ROLE_OWNER_ASSIGN = TestObject.file(TEST_DIR, "role-role-owner-assign.xml", "91b9e546-ded6-11e5-9e87-171d047c57d1");
     protected static final TestObject<OrgType> ORG_REQUESTABLE = TestObject.file(TEST_DIR, "org-requestable.xml", "8f2bd344-a46c-4c0b-aa34-db08b7d7f7f2");
     protected static final TestObject<OrgType> ORG_INDIRECT_PIRATE = TestObject.file(TEST_DIR, "org-indirect-pirate.xml", "59024142-5830-11e7-80e6-ffbee06efb45");
     protected static final TestObject<OrgType> ORG_CHEATERS = TestObject.file(TEST_DIR, "org-cheaters.xml", "944cef84-6570-11e7-8262-079921253d05");
@@ -196,8 +202,8 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
     protected static final XMLGregorianCalendar JACK_VALID_FROM_LONG_AGO = XmlTypeConverter.createXMLGregorianCalendar(10000L);
     protected static final XMLGregorianCalendar JACK_VALID_TO_LONG_AHEAD = XmlTypeConverter.createXMLGregorianCalendar(10000000000000L);
 
-    protected static final int NUMBER_OF_ALL_USERS = 11;
-    protected static final int NUMBER_OF_IMPORTED_ROLES = 76;
+    protected static final int NUMBER_OF_ALL_USERS = 13;
+    protected static final int NUMBER_OF_IMPORTED_ROLES = 78;
     protected static final int NUMBER_OF_ALL_ORGS = 11;
 
     protected String userRumRogersOid;
@@ -303,6 +309,8 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
         repoAdd(ROLE_UNASSIGN_SELF_REQUESTABLE, initResult);
         repoAdd(ROLE_APPROVER_UNASSIGN_ROLES, initResult);
         repoAdd(ROLE_USE_TASK_TEMPLATES, initResult);
+        repoAdd(ROLE_ROLE_OWNER_FULL_CONTROL, initResult);
+        repoAdd(ROLE_ROLE_OWNER_ASSIGN, initResult);
 
         repoAdd(ORG_REQUESTABLE, initResult);
         repoAdd(ORG_INDIRECT_PIRATE, initResult);
@@ -317,6 +325,10 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
         assignOrg(RoleType.class, ROLE_BUSINESS_3.oid, ORG_MINISTRY_OF_RUM_OID, initTask, initResult);
 
         repoAdd(USER_CHARLES, initResult);
+
+        // Imported via model in order to have also roleMembershipRef etc
+        initTestObjects(initTask, initResult,
+                USER_ALEX, USER_BETTY);
 
         PrismObject<UserType> userRum = createUser(USER_RUM_ROGERS_NAME, "Rum Rogers");
         addObject(userRum, initTask, initResult);
@@ -729,6 +741,7 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
 
     protected <O extends ObjectType> void assertModifyMetadataDeny(Class<O> type, String oid) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
         XMLGregorianCalendar oneHourAgo = XmlTypeConverter.addDuration(clock.currentTimeXMLGregorianCalendar(), "-PT1H");
+        var object = getObjectViaRepo(type, oid).asObjectable();
         assertModifyDenyOptions(type, oid, getMetadataPath(MetadataType.F_MODIFY_TIMESTAMP), null, oneHourAgo);
         assertModifyDenyOptions(type, oid, getMetadataPath(MetadataType.F_CREATE_CHANNEL), null, "hackHackHack");
     }

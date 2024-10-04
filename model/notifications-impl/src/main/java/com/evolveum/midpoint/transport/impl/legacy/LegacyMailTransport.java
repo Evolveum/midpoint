@@ -37,7 +37,7 @@ import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.SendingContext;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
 import com.evolveum.midpoint.notifications.api.transports.TransportSupport;
-import com.evolveum.midpoint.notifications.impl.util.MimeTypeUtil;
+import com.evolveum.midpoint.common.MimeTypeUtil;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -280,7 +280,7 @@ public class LegacyMailTransport implements Transport<GeneralTransportConfigurat
                         }
 
                         if (!fileName.contains(".")) {
-                            fileName += MimeTypeUtil.getDefaultExt(attachment.getContentType());
+                            fileName += MimeTypeUtil.getExtension(attachment.getContentType());
                         }
                         attachmentBody.setFileName(fileName);
                         if (!StringUtils.isBlank(attachment.getContentId())) {

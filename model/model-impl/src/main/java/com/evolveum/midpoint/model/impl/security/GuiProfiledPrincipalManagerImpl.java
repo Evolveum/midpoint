@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.evolveum.midpoint.authentication.api.MidpointSessionRegistry;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.security.api.ProfileCompilerOptions;
 
 import jakarta.annotation.PostConstruct;
@@ -28,7 +29,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
 import org.springframework.context.MessageSourceAware;
 import org.springframework.security.core.session.SessionInformation;
-import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -353,7 +353,7 @@ public class GuiProfiledPrincipalManagerImpl
     }
 
     @Override
-    public <F extends FocusType, O extends ObjectType> PrismObject<F> resolveOwner(PrismObject<O> object) {
+    public <F extends FocusType, O extends ObjectType> Collection<PrismObject<F>> resolveOwner(PrismObject<O> object) {
         if (object == null || object.getOid() == null) {
             return null;
         }
@@ -383,8 +383,21 @@ public class GuiProfiledPrincipalManagerImpl
             }
 
         } else if (object.canRepresent(AbstractRoleType.class)) {
-            // TODO: get owner from roleMembershipRef;relation=owner (MID-5689)
-
+            var prismRefs = SchemaService.get().relationRegistry().getAllRelationsFor(RelationKindType.OWNER)
+                    .stream().map(r -> {
+                        var ret = PrismContext.get().itemFactory().createReferenceValue(object.getOid(), object.getAnyValue().getTypeName());
+                        ret.setRelation(r);
+                        return ret;
+                    })
+                    .toList();
+            ObjectQuery query = PrismContext.get().queryFor(FocusType.class)
+                    .item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(prismRefs).build();
+            try {
+                return repositoryService.searchObjects((Class<F>)(Class) FocusType.class, query, createReadOnlyCollection(), result);
+            } catch (SchemaException e) {
+                LOGGER.warn("Cannot resolve owner of {}: {}", object, e.getMessage(), e);
+                return null;
+            }
         } else if (object.canRepresent(TaskType.class)) {
             ObjectReferenceType ownerRef = ((TaskType) (object.asObjectable())).getOwnerRef();
             if (ownerRef != null && ownerRef.getOid() != null && ownerRef.getType() != null) {
@@ -406,7 +419,7 @@ public class GuiProfiledPrincipalManagerImpl
             LifecycleStateModelType lifecycleModel = getLifecycleModel(owner, systemConfiguration);
             focusComputer.recompute(owner, lifecycleModel);
         }
-        return owner;
+        return Collections.singletonList(owner);
     }
 
     @Override

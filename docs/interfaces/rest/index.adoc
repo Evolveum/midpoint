@@ -284,13 +284,13 @@ xref:/midpoint/reference/interfaces/midpoint-client-java/[MidPoint Client Librar
 
 === Storing of Authentication Events
 
-By default, *midPoint stores* the information about *authentication events* of midPoint focus objects.
-This behaviour should cause no problem in case of "standard" sing in behaviour of users.
-Yet in the case of a service account leveraging the *REST* api, when *large amounts of auhtentication request* might occur, this stored information could build up quite quickly.
+By default, *midPoint stores* the information about *authentication events* in midPoint focus objects.
+This behaviour should cause no problem in case of "standard" sign-in behaviour of users.
+Yet in the case of a service account leveraging the *REST* api, when *large amounts of authentication request* might occur, this stored information could build up quite quickly.
 
 Issues which could occur are *prolonged response times* in case of API calls.
 
-The default behaviour of storing such event after each login can be change in midPoint configuration.
+The default behaviour of storing such event after each login can be changed in midPoint configuration.
 Specifically in changing the "*focusBehaviorUpdate*" parameter of a "sequence" of your "securityPolicy".
 
 The possible values are:

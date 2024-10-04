@@ -6,7 +6,7 @@
 :page-wiki-metadata-create-date: 2020-08-18T15:06:52.473+02:00
 :page-wiki-metadata-modify-user: lskublik
 :page-wiki-metadata-modify-date: 2020-09-07T09:26:13.342+02:00
-:page-upkeep-status: yellow
+:page-upkeep-status: green
 :page-upkeep-note: check TODO's after sampleRef is fully in prod remove links
 
 Please see xref:/midpoint/reference/misc/reports/configuration/#new-report[Report configuration] for basic information about configuration variables.
@@ -19,7 +19,6 @@ We need to create a report for audit events of modifications with a column for c
 
 Configuration for this use case consists only from the report itself, because we use an object collection from the initial objects.
 
-//TODO check after sampleRef is fully in prod
 .*Example Report Configuration*
 [%collapsible]
 ====
