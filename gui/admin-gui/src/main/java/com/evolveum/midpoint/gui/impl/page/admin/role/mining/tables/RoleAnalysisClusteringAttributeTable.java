@@ -226,6 +226,11 @@ public class RoleAnalysisClusteringAttributeTable extends BasePanel<PrismContain
                         }
 
                         @Override
+                        public double stepValue() {
+                            return 1.0;
+                        }
+
+                        @Override
                         public DisplayType getImage() {
                             DisplayType displayType = new DisplayType();
                             IconType iconType = new IconType();
@@ -271,7 +276,7 @@ public class RoleAnalysisClusteringAttributeTable extends BasePanel<PrismContain
 
     }
 
-    public boolean isEditable(){
+    public boolean isEditable() {
         return true;
     }
 }

@@ -44,7 +44,7 @@ public class NumberFormatSelectorPanel extends InputPanel {
         field.setEnabled(true);
         field.setMinimum(getRangeValidator().getMinimum());
         field.setMaximum(getRangeValidator().getMaximum());
-        field.setStep(0.05);
+        field.setStep(stepValue());
         field.add(AttributeModifier.append("onkeydown", "return false;"));
 
         field.add(getRangeValidator());
@@ -58,6 +58,9 @@ public class NumberFormatSelectorPanel extends InputPanel {
         });
     }
 
+    public double stepValue(){
+        return 0.05;
+    }
     public void onChangePerform(Double newValue) {
         valueModel.setObject(newValue);
     }
