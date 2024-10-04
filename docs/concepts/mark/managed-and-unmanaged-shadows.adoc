@@ -1,6 +1,7 @@
-= Managed and Unmanaged Shadows (TODO)
+= Managed and Unmanaged Shadows
 :page-toc: top
 :page-upkeep-status: green
+:page-since: "4.9"
 
 == Introduction
 
@@ -8,15 +9,86 @@
 
 #TODO review the whole document#
 
-== Marking
+`Unmanaged` and `Managed` marks are designed to help with the *migration* of objects from resource to midPoint during deployment.
+The migration usually contains several phases:
+
+. during the migration, we trust the resource and wish to import all objects and changes without modifying the resource objects themselves.
+`Unmanaged` mark can be used for the resource objects in this phase.
+
+. after the migration, we want to "switch" the direction and start to manage the objects in the resource, not using it as a source of data anymore.
+`Managed` mark can be used for the resource objects in this phase.
+
+NOTE: Usage of marks is not mandatory.
+They are designed to help you with the migration, but if you start managing the resource objects from midPoint without any need of migration, you do not need to use them.
+
+#TODO link to methodology#
+
+== Unmanaged Mark
+
+*Shadow object marked as `Unmanaged` is tolerated by midPoint, but not managed by it.*
+
+`Unmanaged` mark is suitable for situations, where the resource is used the authoritative source of objects and all outbound mechanisms should be ignored until the migration of resource objects to midPoint is completed and resource stops being the authoritative source.
+
+.`Unmanaged` mark behavior:
+|===
+|Add |Modify |Delete |Sync. inbound |Sync. outbound |Sync. membership inbound |Sync. membership outbound |Tolerant membership
+
+|Disabled
+|Disabled
+|Disabled
+|Enabled
+|Disabled
+|Enabled
+|Disabled
+|True
+
+|===
+
+
+== Managed Mark
+
+*Shadow object marked as `Managed` is managed by midPoint.
+MidPoint ignores changes on the resource for the objects or its membership.*
+
+`Managed` mark is suitable for situations, where the resource is being switched from being the authoritative source of objects to ordinary target system.
+From now on, all outbound mechanisms should work normally.
+The inbound mechanisms are partially enabled to allow reacting on synchronization situations, but the inbound mappings are ignored.
+
+.`Managed` mark behavior:
+|===
+|Add |Modify |Delete |Sync. inbound |Sync. outbound |Sync. membership inbound |Sync. membership outbound |Tolerant membership
+
+|Enabled
+|Enabled
+|Enabled
+|Enabled - except for mappings
+|Enabled
+|Disabled
+|Enabled
+|False
+
+|===
+
+== Marking Mechanisms
 
 We need a mechanism to set the mark on selected entitlement shadows.
-One option is to do that manually via GUI.
+One option is to do that manually via GUI for individual shadows.
 A better one is to use automatic marking facility in midPoint, potentially with overriding these marks manually via GUI.
+It is also possible to define a default operation policy for object type.
 
-Two typical options of setting up the mark are:
+=== Manual Marking of Individual Shadows
 
-.Setting the "unmanaged" mark for all new shadows
+TODO link to methodology or screenshots.
+
+Individual shadows can be marked using GUI when browsing resource shadows of specific resources.
+
+=== Marking Rules
+
+Marking rules can be used in various ways.
+
+One possible way is to mark all new shadows (applied in classification phase).
+
+.Setting the `Unmanaged` mark for all new shadows
 [source,xml]
 ----
 <objectType>
@@ -24,15 +96,18 @@ Two typical options of setting up the mark are:
     <intent>group</intent>
     <!-- delineation, attributes, etc -->
     <marking>
-        <markRef oid="00000000-0000-0000-0000-000000000806"/>
+        <markRef oid="00000000-0000-0000-0000-000000000805"/>
         <applicationTime>classification</applicationTime> <!--1-->
     </marking>
     <!-- ... -->
 </objectType>
 ----
-<1> This causes marking each newly classified or reclassified shadow as "unmanaged".
+<1> This causes marking each newly classified or reclassified shadow as `Unmanaged`.
 
-.Setting the "unmanaged" mark for selected shadows
+You can also configure midPoint to mark specific shadows using a filter with midPoint query language.
+This approach can be used to make/keep specific shadows `Unmanaged` even if all other shadows are already migrated to midPoint.
+
+.Setting the `Unmanaged` mark for selected shadows (matching criteria defined by a filter)
 [source,xml]
 ----
 <objectType>
@@ -40,7 +115,7 @@ Two typical options of setting up the mark are:
     <intent>group</intent>
     <!-- delineation, attributes, etc -->
     <marking>
-        <markRef oid="00000000-0000-0000-0000-000000000806"/>
+        <markRef oid="00000000-0000-0000-0000-000000000805"/>
         <pattern>
             <filter>
                 <q:text>attributes/info = "temporary"</q:text> <!--1-->
@@ -50,4 +125,98 @@ Two typical options of setting up the mark are:
     <!-- ... -->
 </objectType>
 ----
-<1> This causes marking each group that has the value of `temporary` in its `info` attribute as "unmanaged".
+<1> This causes marking each group that has the value of `temporary` in its `info` attribute as `Unmanaged`.
+
+=== Default Operation Policy
+
+You can define implicit behavior for all objects belonging to specific objectType using default operation policy.
+It defines behavior as if the specific mark was used for shadows.
+You can use default operation policy with marking rules or individual shadows marks which can override it.
+Therefore, you can configure the whole objectType as `Managed`, but specific groups can be still marked as `Unmanaged`.
+This approach is very useful during the migration of resource objects to midPoint.
+
+.Setting default operation policy to `Unmanaged` with an existing marking configuration
+[source,xml]
+----
+<objectType>
+    <kind>entitlement</kind>
+    <intent>group</intent>
+    <!-- delineation, attributes, etc -->
+    <marking>
+        <markRef oid="00000000-0000-0000-0000-000000000805"/>
+        <pattern>
+            <filter>
+                <q:text>attributes/info = "temporary"</q:text> <!--1-->
+            </filter>
+        </pattern>
+    </marking>
+    <!-- ... -->
+    <defaultOperationPolicy>
+        <policyRef oid="00000000-0000-0000-0000-000000000806"/> <!--2-->
+            <!-- Managed -->
+    </defaultOperationPolicy>
+</objectType>
+----
+<1> This causes marking each group that has the value of `temporary` in its `info` attribute as `Unmanaged`.
+<2> This causes all shadows except the explicitly marked ones to be considered as `Managed`
+
+NOTE: The default operation policy is empty.
+
+=== Marks and Lifecycle State
+
+During the migration, you typically need to be sure that nothing wrong is happening and want to use
+xref:/midpoint/reference/admin-gui/simulations/[simulations].
+For that reason, marks can be set with lifecycle state.
+
+For example, you are about to switch the default operation policy from `Unmanaged` to `Managed`, but there are background tasks running in your system, and you want to run a simulation first.
+
+.Migrating the default operation policy during production, not influencing background tasks
+[source,xml]
+----
+<objectType>
+    <kind>entitlement</kind>
+    <intent>group</intent>
+    <!-- delineation, attributes, etc -->
+    <!-- ... -->
+    <defaultOperationPolicy>
+        <policyRef oid="00000000-0000-0000-0000-000000000805"/> <!--1-->
+            <!-- Unmanaged -->
+        <lifecycleState>deprecated</lifecycleState>
+    </defaultOperationPolicy>
+    <defaultOperationPolicy>
+        <policyRef oid="00000000-0000-0000-0000-000000000806"/> <!--2-->
+            <!-- Managed -->
+        <lifecycleState>proposed</lifecycleState>
+    </defaultOperationPolicy>
+
+</objectType>
+----
+<1> Default operation policy `Unmanaged` is in `deprecated` lifecycle state. It is used by all running tasks.
+<2> Default operation policy `Managed` is in `proposed` lifecycle state. It is used only during simulations.
+
+After the simulation is finished to your satisfaction, you can switch the lifecycle states.
+
+.Migrating the default operation policy during production, not influencing background tasks
+[source,xml]
+----
+<objectType>
+    <kind>entitlement</kind>
+    <intent>group</intent>
+    <!-- delineation, attributes, etc -->
+    <!-- ... -->
+    <defaultOperationPolicy>
+        <policyRef oid="00000000-0000-0000-0000-000000000805"/> <!--1-->
+            <!-- Unmanaged -->
+        <lifecycleState>archived</lifecycleState>
+    </defaultOperationPolicy>
+    <defaultOperationPolicy>
+        <policyRef oid="00000000-0000-0000-0000-000000000806"/> <!--2-->
+            <!-- Managed -->
+        <lifecycleState>active</lifecycleState>
+    </defaultOperationPolicy>
+
+</objectType>
+----
+<1> Default operation policy `Unmanaged` is in `archived` lifecycle state. It is not used anymore.
+<2> Default operation policy `Managed` is active.
+
