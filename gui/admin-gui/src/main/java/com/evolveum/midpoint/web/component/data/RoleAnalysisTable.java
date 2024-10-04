@@ -125,6 +125,7 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
 
         };
         table.setOutputMarkupId(true);
+        table.setItemsPerPage(50);
         tableContainer.add(table);
         add(tableContainer);
 
