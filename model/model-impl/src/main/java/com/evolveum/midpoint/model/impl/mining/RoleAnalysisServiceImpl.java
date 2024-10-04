@@ -3325,16 +3325,22 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
         int resolvedPatternCount = 0;
         int candidateRolesCount = 0;
+
         for (PrismObject<RoleAnalysisClusterType> prismCluster : searchResultList) {
             RoleAnalysisClusterType cluster = prismCluster.asObjectable();
             List<ObjectReferenceType> resolvedPattern = cluster.getResolvedPattern();
+            int resolvedPatterns = 0;
             if (resolvedPattern != null) {
-                resolvedPatternCount += resolvedPattern.size();
+                resolvedPatterns = resolvedPattern.size();
+                resolvedPatternCount += resolvedPatterns;
             }
 
             List<RoleAnalysisCandidateRoleType> candidateRoles = cluster.getCandidateRoles();
             if (candidateRoles != null) {
                 candidateRolesCount += candidateRoles.size();
+                //there is no possibility to remove candidate roles from cluster so we can subtract resolved patterns.
+                // If it changes then we need to change this logic
+                candidateRolesCount -= resolvedPatterns;
             }
         }
 
