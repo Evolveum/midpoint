@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
+import java.io.Serial;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
@@ -96,7 +97,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     protected void addToHeader(WebMarkupContainer header) {
         LoadableDetachableModel<String> headerLabelModel = getLabelModel();
         AjaxButton labelComponent = new AjaxButton(ID_LABEL, headerLabelModel) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
             @Override
             public void onClick(AjaxRequestTarget target) {
                 onExpandClick(target);
