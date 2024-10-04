@@ -55,17 +55,26 @@ For more information see xref:/midpoint/reference/deployment/ninja/command/verif
 
 * Role mining
 ** Attribute Clustering Support:
-*** Enabled attribute clustering with customizable conditions, providing flexibility in defining attribute rules for clustering procedures. Available in advanced mode.
+*** Introduced support for attribute-based clustering with fully customizable conditions, providing greater flexibility for administrators to define and manage attribute rules for clustering processes.
 ** Attribute Analysis Functionality:
-*** Attribute analysis capabilities allowing the definition of attributes used for cluster and detected pattern analysis. Available in advanced mode.
+*** Added new attribute analysis capabilities that allow users to define which attributes are used in clustering and detected pattern analysis. This feature helps refine role suggestions based on more granular attribute sets.
 ** Indirect Access Right Clustering:
 *** Added support for clustering over indirect access rights.
 ** Detected Pattern Migration Improvements:
 *** Streamlined detected pattern migration process, enabling the creation of candidates from detected patterns. This allows the role definition to be refined.
 ** User Permission Table Enhancements:
-*** Expanded user permission table settings, providing administrators with additional control and customization options.
+*** Expanded the functionality of the user permission table with new options for working directly with role suggestions and candidate roles.
+*** Additional control options have been added, giving finer control over table settings and role management activities.
+*** New functionality allows administrators to detect and explore access patterns directly on the user permission table.
+** Predefined Role Mining Modes:
+*** Introduced multiple predefined modes for common role mining activities, simplifying the setup and execution of role mining tasks. These default modes are tailored to typical use cases, reducing configuration time and effort while maintaining flexibility for more complex scenarios.
 ** Performance and GUI Enhancements:
-*** Performance optimizations and user interface enhancements to improve overall user experience and efficiency.
+*** Significant performance optimizations and UI improvements have been introduced to enhance the overall user experience.
+These updates improve system efficiency, reduce load times, and offer a more intuitive interface for role mining activities.
+
+* Outlier detection
+** Added a new Outlier Detection feature, which automatically identifies users with unusual access patterns that deviate significantly from typical roles or groups. This functionality helps detect anomalies or potential security risks, allowing for deeper insights into access behavior and ensuring that access rights are aligned with organizational policies. Outlier detection can highlight users with excessive or atypical permissions, enabling quick action to review or adjust access levels for improved security and compliance.
+
 * Request access
 ** Role catalog (tree) now has search filter with scope and type selectable.
 Tree node search is now same for all nodes.
