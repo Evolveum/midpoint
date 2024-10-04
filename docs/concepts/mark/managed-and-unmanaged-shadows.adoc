@@ -5,21 +5,32 @@
 
 == Introduction
 
-#TODO please provide some methodological background here#
-
 #TODO review the whole document#
+
+When connecting a new resource, typically it is already populated with data you want to manage from midPoint.
+While midPoint synchronization concepts can be used easily in most of the cases, there are situations when you *cannot switch the direction of data propagation (authoritativeness) for all objects at the same time*.
+There might be, for example, set of groups still managed by a legacy IDM system which is still in operation, therefore you cannot migrate such groups immediately, while other groups need to be migrated now.
+Another case is a need of group-by-group migration.
+
+MidPoint cannot be configured to make resource exclusively authoritative for _some_ objects while midPoint is exclusively authoritative for _other_ objects of the same object type using only mappings and synchronization configuration.
 
 `Unmanaged` and `Managed` marks are designed to help with the *migration* of objects from resource to midPoint during deployment.
 The migration usually contains several phases:
 
-. during the migration, we trust the resource and wish to import all objects and changes without modifying the resource objects themselves.
+. during the migration, we trust the resource and wish to import (once or, more typically regularly, while the migration is in progress) all objects and their changes without allowing any operations from midPoint to the resource.
 `Unmanaged` mark can be used for the resource objects in this phase.
 
 . after the migration, we want to "switch" the direction and start to manage the objects in the resource, not using it as a source of data anymore.
 `Managed` mark can be used for the resource objects in this phase.
 
-NOTE: Usage of marks is not mandatory.
-They are designed to help you with the migration, but if you start managing the resource objects from midPoint without any need of migration, you do not need to use them.
+[NOTE]
+====
+*Usage of marks is not mandatory.*
+
+They are designed to help in environments where you need mixed inbound/outbound approach, which is typically during the migration of resource objects to midPoint with a goal of managing them from midPoint, eventually.
+
+With outbound-only or inbound-only resources, `Unmanaged` and `Managed` marks are not needed; midPoint behavior can be configured using strictly outbound or inbound mappings and appropriate synchronization reactions.
+====
 
 #TODO link to methodology#
 
@@ -29,9 +40,9 @@ They are designed to help you with the migration, but if you start managing the 
 
 `Unmanaged` mark is suitable for situations, where the resource is used the authoritative source of objects and all outbound mechanisms should be ignored until the migration of resource objects to midPoint is completed and resource stops being the authoritative source.
 
-.`Unmanaged` mark behavior:
+.`Unmanaged` mark behavior
 |===
-|Add |Modify |Delete |Sync. inbound |Sync. outbound |Sync. membership inbound |Sync. membership outbound |Tolerant membership
+|Add |Modify |Delete |Inbound |Outbound |Membership inbound |Membership outbound |Tolerant membership
 
 |Disabled
 |Disabled
@@ -54,9 +65,9 @@ MidPoint ignores changes on the resource for the objects or its membership.*
 From now on, all outbound mechanisms should work normally.
 The inbound mechanisms are partially enabled to allow reacting on synchronization situations, but the inbound mappings are ignored.
 
-.`Managed` mark behavior:
+.`Managed` mark behavior
 |===
-|Add |Modify |Delete |Sync. inbound |Sync. outbound |Sync. membership inbound |Sync. membership outbound |Tolerant membership
+|Add |Modify |Delete |Inbound |Outbound |Membership inbound |Membership outbound |Tolerant membership
 
 |Enabled
 |Enabled
@@ -69,16 +80,16 @@ The inbound mechanisms are partially enabled to allow reacting on synchronizatio
 
 |===
 
-== Marking Mechanisms
+== Marking Mechanism
 
-We need a mechanism to set the mark on selected entitlement shadows.
+A mechanism to set mark on selected entitlement shadows is needed.
 One option is to do that manually via GUI for individual shadows.
 A better one is to use automatic marking facility in midPoint, potentially with overriding these marks manually via GUI.
 It is also possible to define a default operation policy for object type.
 
 === Manual Marking of Individual Shadows
 
-TODO link to methodology or screenshots.
+#TODO link to methodology or screenshots.#
 
 Individual shadows can be marked using GUI when browsing resource shadows of specific resources.
 
@@ -164,11 +175,11 @@ NOTE: The default operation policy is empty.
 
 === Marks and Lifecycle State
 
-During the migration, you typically need to be sure that nothing wrong is happening and want to use
+During the migration, it is typically required to make sure that nothing wrong is happening with the help of
 xref:/midpoint/reference/admin-gui/simulations/[simulations].
 For that reason, marks can be set with lifecycle state.
 
-For example, you are about to switch the default operation policy from `Unmanaged` to `Managed`, but there are background tasks running in your system, and you want to run a simulation first.
+For example, the default operation policy is about to be switched from `Unmanaged` to `Managed`, but there are background tasks running in your system, and simulated reconciliation should be executed before that switch is made.
 
 .Migrating the default operation policy during production, not influencing background tasks
 [source,xml]
@@ -194,7 +205,7 @@ For example, you are about to switch the default operation policy from `Unmanage
 <1> Default operation policy `Unmanaged` is in `deprecated` lifecycle state. It is used by all running tasks.
 <2> Default operation policy `Managed` is in `proposed` lifecycle state. It is used only during simulations.
 
-After the simulation is finished to your satisfaction, you can switch the lifecycle states.
+After the simulation is finished, lifecycle states can be switched.
 
 .Migrating the default operation policy during production, not influencing background tasks
 [source,xml]

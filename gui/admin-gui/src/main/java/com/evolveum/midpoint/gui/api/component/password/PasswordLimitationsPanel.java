@@ -16,7 +16,9 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 
+import java.io.Serial;
 import java.util.List;
 
 /**
@@ -30,7 +32,7 @@ public class PasswordLimitationsPanel extends BasePanel<List<StringLimitationRes
     private static final String ID_VALIDATION_ITEMS = "validationItems";
     private static final String ID_VALIDATION_ITEM = "validationItem";
 
-    public PasswordLimitationsPanel(String id, IModel<List<StringLimitationResult>> model) {
+    public PasswordLimitationsPanel(String id, LoadableDetachableModel<List<StringLimitationResult>> model) {
         super(id, model);
     }
 
@@ -42,7 +44,7 @@ public class PasswordLimitationsPanel extends BasePanel<List<StringLimitationRes
 
     private void initLayout() {
         WebMarkupContainer validationContainer = new WebMarkupContainer(ID_VALIDATION_CONTAINER) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible() {
@@ -60,7 +62,7 @@ public class PasswordLimitationsPanel extends BasePanel<List<StringLimitationRes
 
         ListView<StringLimitationResult> validationItems = new ListView<>(ID_VALIDATION_ITEMS, getModel()) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(ListItem<StringLimitationResult> item) {
