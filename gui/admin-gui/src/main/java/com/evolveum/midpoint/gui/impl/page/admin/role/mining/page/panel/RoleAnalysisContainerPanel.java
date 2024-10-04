@@ -44,33 +44,6 @@ import org.jetbrains.annotations.NotNull;
 )
 
 @PanelInstance(
-        identifier = "sessionOptions",
-        applicableForType = RoleAnalysisSessionType.class,
-        display = @PanelDisplay(
-                label = "RoleAnalysisSessionType.sessionOptions",
-                icon = GuiStyleConstants.CLASS_OPTIONS_COGS,
-                order = 20
-        ),
-        childOf = RoleAnalysisRoleSessionOptions.class,
-        containerPath = "roleModeOptions",
-        type = "RoleAnalysisSessionOptionType",
-        expanded = true)
-
-@PanelInstance(
-        identifier = "sessionOptions",
-        applicableForType = RoleAnalysisSessionType.class,
-        display = @PanelDisplay(
-                label = "RoleAnalysisSessionType.sessionOptions",
-                icon = GuiStyleConstants.CLASS_OPTIONS_COG,
-                order = 20
-        ),
-        childOf = RoleAnalysisUserSessionOptions.class,
-        containerPath = "userModeOptions",
-        type = "UserAnalysisSessionOptionType",
-        expanded = true
-)
-
-@PanelInstance(
         identifier = "sessionDefaultDetectionOption",
         applicableForType = RoleAnalysisSessionType.class,
         display = @PanelDisplay(
