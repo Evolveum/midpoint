@@ -2559,7 +2559,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         }
 
         //TODO experiment
-        resolveNeighbours(data, defaultMaxFrequency);
+//        resolveNeighbours(data, defaultMaxFrequency);
         return zScoreData;
     }
 
