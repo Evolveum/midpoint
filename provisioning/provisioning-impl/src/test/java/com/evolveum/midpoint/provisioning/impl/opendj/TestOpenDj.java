@@ -874,8 +874,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         given("account is renamed on the resource");
         openDJController.executeRenameChange(new File(TEST_DIR, "rename.ldif").getPath());
 
-        Entry entry = openDJController.fetchEntry("uid=will123,ou=People,dc=example,dc=com");
-        assertNotNull("Entry with dn uid=will123,ou=People,dc=example,dc=com does not exist", entry);
+        openDJController.fetchEntryRequired("uid=will123,ou=People,dc=example,dc=com");
 
         then("old name is still present in the repo");
         assertRepoShadowNew(ACCOUNT_WILL_OID)
@@ -2323,9 +2322,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
         String accountDn = accountEntry.getDN().toString();
         assertEquals("Wrong account DN", ACCOUNT_MORGAN_DN, accountDn);
 
-        Entry groupEntry = openDJController.fetchEntry(GROUP_SWASHBUCKLERS_DN_ORIG);
+        Entry groupEntry = openDJController.fetchEntryRequired(GROUP_SWASHBUCKLERS_DN_ORIG);
         display("LDAP group", groupEntry);
-        assertNotNull("No LDAP group entry", groupEntry);
         openDJController.assertUniqueMember(groupEntry, accountDn);
 
         assertShadows(19);
@@ -2372,9 +2370,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
         String accountDn = accountEntry.getDN().toString();
         assertEquals("Wrong account DN", ACCOUNT_MORGAN_DN, accountDn);
 
-        Entry groupEntry = openDJController.fetchEntry(GROUP_SWASHBUCKLERS_DN_ORIG);
+        Entry groupEntry = openDJController.fetchEntryRequired(GROUP_SWASHBUCKLERS_DN_ORIG);
         display("LDAP group", groupEntry);
-        assertNotNull("No LDAP group entry", groupEntry);
         openDJController.assertUniqueMember(groupEntry, accountDn);
 
         assertShadows(19);
@@ -2511,9 +2508,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
                 result);
 
         then();
-        Entry groupEntry = openDJController.fetchEntry(GROUP_CORSAIRS_DN);
+        Entry groupEntry = openDJController.fetchEntryRequired(GROUP_CORSAIRS_DN);
         display("LDAP group", groupEntry);
-        assertNotNull("No LDAP group entry", groupEntry);
         openDJController.assertUniqueMember(groupEntry, ACCOUNT_MORGAN_DN);
 
         assertShadows(22);
@@ -2643,9 +2639,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
             assertTrue(ex.getMessage().contains(ACCOUNT_MORGAN_OID));
         }
 
-        Entry groupEntry = openDJController.fetchEntry(GROUP_SWASHBUCKLERS_DN_NORM);
+        Entry groupEntry = openDJController.fetchEntryRequired(GROUP_SWASHBUCKLERS_DN_NORM);
         display("LDAP group", groupEntry);
-        assertNotNull("No LDAP group entry", groupEntry);
         if (!hasNativeReferences()) {
             openDJController.assertNoUniqueMember(groupEntry, ACCOUNT_MORGAN_DN);
         } else {
