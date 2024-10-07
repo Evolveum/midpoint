@@ -15,6 +15,9 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+
+import com.evolveum.midpoint.prism.ItemModifyResult;
+
 import jakarta.persistence.metamodel.Attribute;
 import jakarta.persistence.metamodel.ManagedType;
 
@@ -291,18 +294,23 @@ class GeneralUpdate extends BaseUpdate {
         }
     }
 
-    private void updateBasicOrEmbedded(Attribute attribute) {
+    private void updateBasicOrEmbedded(Attribute<?, ?> attribute) {
         String attributeName = attribute.getName();
         PrismValue prismValue;
-        if (delta.isAdd()) {
-            prismValue = getSingleValue(attribute, delta.getValuesToAdd());
-        } else if (delta.isReplace()) {
-            if (!delta.getValuesToReplace().isEmpty()) {
-                prismValue = getSingleValue(attribute, delta.getValuesToReplace());
-            } else {
-                prismValue = null;
-            }
-        } else if (delta.isDelete()) {
+
+        Collection<ItemModifyResult<? extends PrismValue>> results = (Collection) delta.applyResults();
+        ItemModifyResult<? extends PrismValue> addModifyResult = results.stream()
+                .filter(r -> r.isAdded() || r.isModified())
+                .findFirst()
+                .orElse(null);
+        ItemModifyResult<? extends PrismValue> deleteResult = results.stream()
+                .filter(r -> r.isDeleted())
+                .findFirst()
+                .orElse(null);
+
+        if (addModifyResult != null) {
+            prismValue = addModifyResult.finalValue;
+        } else if (deleteResult != null) {
             // No values to add nor to replace, only deletions. Because we narrowed the delta before, we know that this delete
             // delta is relevant - i.e. after its application, the (single) value of property will be removed.
             prismValue = null;

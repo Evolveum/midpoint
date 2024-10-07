@@ -127,7 +127,7 @@ public class ObjectDeltaUpdater {
         }
 
         // the following will apply deltas to prismObject
-        handleObjectCommonAttributes(type, narrowedModifications, prismObject, object, idGenerator);
+        handleObjectCommonAttributes(type, narrowedModifications, prismObject, object);
 
         if (ctx.shadowPendingOperationModified) {
             ((RShadow) object).setPendingOperationCount(((ShadowType) prismObject.asObjectable()).getPendingOperation().size());
@@ -139,7 +139,7 @@ public class ObjectDeltaUpdater {
     }
 
     private <T extends ObjectType> void handleObjectCommonAttributes(Class<T> type, Collection<? extends ItemDelta<?, ?>> modifications,
-            PrismObject<T> prismObject, RObject object, ContainerValueIdGenerator idGenerator) throws SchemaException {
+            PrismObject<T> prismObject, RObject object) {
 
         // update version
         String strVersion = prismObject.getVersion();
@@ -155,21 +155,9 @@ public class ObjectDeltaUpdater {
         }
         object.setVersion(version);
 
-        // apply modifications, ids' for new containers already filled in delta values
-        for (ItemDelta<?, ?> modification : modifications) {
-            idGenerator.processModification(modification);
-            if (modification.getDefinition() == null || !modification.getDefinition().isIndexOnly()) {
-                modification.applyTo(prismObject);
-            } else {
-                // There's no point in applying modifications to index-only items; they are not serialized.
-                // (Presumably they are not indexed as well.)
-            }
-        }
+        // item deltas were already applied to prism object
 
         handleObjectTextInfoChanges(type, modifications, prismObject, object);
-
-        // generate ids for containers that weren't handled in previous step (not processed by repository)
-        //idGenerator.generate(prismObject);
 
         // normalize all relations
         ObjectTypeUtil.normalizeAllRelations(prismObject, relationRegistry);
