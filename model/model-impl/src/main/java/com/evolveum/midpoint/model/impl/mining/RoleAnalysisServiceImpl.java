@@ -58,7 +58,7 @@ import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttribut
 import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
 import com.evolveum.midpoint.common.mining.objects.chunk.*;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
-import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
+import com.evolveum.midpoint.common.mining.objects.detection.PatternDetectionOption;
 import com.evolveum.midpoint.common.mining.utils.RoleAnalysisCacheOption;
 import com.evolveum.midpoint.common.mining.utils.values.*;
 import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
@@ -913,7 +913,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     @Override
     public void recomputeClusterDetectionOptions(
             @NotNull String clusterOid,
-            @NotNull DetectionOption detectionOption,
+            @NotNull PatternDetectionOption detectionOption,
             @NotNull Task task,
             @NotNull OperationResult result) {
         RoleAnalysisDetectionOptionType roleAnalysisDetectionOptionType = new RoleAnalysisDetectionOptionType();

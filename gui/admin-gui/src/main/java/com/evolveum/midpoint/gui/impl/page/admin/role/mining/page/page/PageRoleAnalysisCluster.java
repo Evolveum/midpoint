@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
+import com.evolveum.midpoint.common.mining.objects.detection.PatternDetectionOption;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -154,7 +154,7 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
 
         PageBase pageBase = (PageBase) getPage();
         Task task = pageBase.createSimpleTask(OP_PATTERN_DETECTION);
-        DetectionOption detectionOption = new DetectionOption(cluster);
+        PatternDetectionOption detectionOption = new PatternDetectionOption(cluster);
         RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
 
         @NotNull String status = roleAnalysisService.recomputeAndResolveClusterOpStatus(clusterPrismObject.getOid(), result, task,

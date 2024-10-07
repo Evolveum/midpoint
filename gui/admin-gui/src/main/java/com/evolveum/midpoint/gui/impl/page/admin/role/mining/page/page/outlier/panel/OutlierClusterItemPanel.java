@@ -184,7 +184,7 @@ public class OutlierClusterItemPanel<T extends Serializable>
         MiningOperationChunk miningOperationChunk = roleAnalysisService.prepareBasicChunkStructure(cluster, null,
                 displayValueOption, RoleAnalysisProcessModeType.USER, null, result, task);
 
-        RangeType standardDeviation = detectionOption.getFrequencyRange();
+        RangeType standardDeviation = detectionOption.getStandardDeviation();
         Double sensitivity = detectionOption.getSensitivity();
         Double frequencyThreshold = detectionOption.getFrequencyThreshold();
 
