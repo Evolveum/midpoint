@@ -99,6 +99,20 @@ public class RoleAnalysisSessionDetectionOptionsWizardPanel extends AbstractForm
         return wrapper -> {
             ItemName itemName = wrapper.getItemName();
 
+            if(!isOutlierSession){
+                if(itemName.equivalent(RoleAnalysisDetectionOptionType.F_STANDARD_DEVIATION)){
+                    return ItemVisibility.HIDDEN;
+                }
+
+                if(itemName.equivalent(RoleAnalysisDetectionOptionType.F_FREQUENCY_THRESHOLD)){
+                    return ItemVisibility.HIDDEN;
+                }
+            }else {
+                if(itemName.equivalent(RoleAnalysisDetectionOptionType.F_FREQUENCY_RANGE)){
+                    return ItemVisibility.HIDDEN;
+                }
+            }
+
             if ((itemName.equivalent(RoleAnalysisDetectionOptionType.F_MIN_ROLES_OCCUPANCY)
                     || itemName.equivalent(RoleAnalysisDetectionOptionType.F_MIN_USER_OCCUPANCY)) && isOutlierSession) {
                 return ItemVisibility.HIDDEN;

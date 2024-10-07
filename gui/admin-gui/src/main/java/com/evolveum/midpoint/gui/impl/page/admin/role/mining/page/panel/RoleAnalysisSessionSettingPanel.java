@@ -14,7 +14,9 @@ import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismContainerValuePanel;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 
 import com.evolveum.midpoint.web.model.PrismContainerValueWrapperModel;
@@ -80,7 +82,7 @@ public class RoleAnalysisSessionSettingPanel extends AbstractObjectMainPanel<Rol
         VerticalFormPrismContainerValuePanel<Containerable, PrismContainerValueWrapper<Containerable>> panel = new VerticalFormPrismContainerValuePanel<>(
                 ID_PANEL,
                 PrismContainerValueWrapperModel.fromContainerWrapper(getObjectWrapperModel(), itemName),
-                createItemPanelSettings()){
+                createItemPanelSettings()) {
             @Contract(pure = true)
             @Override
             protected @NotNull ItemEditabilityHandler getEditabilityHandler() {
@@ -112,7 +114,22 @@ public class RoleAnalysisSessionSettingPanel extends AbstractObjectMainPanel<Rol
     }
 
     protected ItemVisibilityHandler getVisibilityHandler() {
-        return wrapper -> ItemVisibility.AUTO;
+        RoleAnalysisProcedureType analysisProcedureType;
+        PrismObject<RoleAnalysisSessionType> sessionPrism = getObjectWrapper().getObject();
+        RoleAnalysisOptionType analysisOption = sessionPrism.asObjectable().getAnalysisOption();
+        analysisProcedureType = analysisOption.getAnalysisProcedureType();
+
+        boolean isOutlierAnalysis = analysisProcedureType.equals(RoleAnalysisProcedureType.OUTLIER_DETECTION);
+
+        return wrapper -> {
+            ItemName itemName = wrapper.getItemName();
+            if (!isOutlierAnalysis
+                    && itemName.equivalent(ItemPath.create(AbstractAnalysisSessionOptionType.F_DETAILED_ANALYSIS))) {
+                return ItemVisibility.HIDDEN;
+            }
+
+            return ItemVisibility.AUTO;
+        };
     }
 
     protected ItemMandatoryHandler getMandatoryHandler() {
