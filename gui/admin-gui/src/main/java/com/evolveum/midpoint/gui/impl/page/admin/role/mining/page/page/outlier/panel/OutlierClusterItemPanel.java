@@ -157,8 +157,8 @@ public class OutlierClusterItemPanel<T extends Serializable>
         double minFrequency = 2;
         double maxFrequency = 2;
 
-        if (defaultDetectionOption != null && defaultDetectionOption.getFrequencyRange() != null) {
-            RangeType frequencyRange = defaultDetectionOption.getFrequencyRange();
+        if (defaultDetectionOption != null && defaultDetectionOption.getStandardDeviation() != null) {
+            RangeType frequencyRange = defaultDetectionOption.getStandardDeviation();
             if (frequencyRange.getMin() != null) {
                 minFrequency = frequencyRange.getMin().intValue();
             }
@@ -178,14 +178,15 @@ public class OutlierClusterItemPanel<T extends Serializable>
         }
 
         RoleAnalysisDetectionOptionType detectionOption = new RoleAnalysisDetectionOptionType();
-        detectionOption.setFrequencyRange(new RangeType().min(minFrequency).max(maxFrequency));
+        detectionOption.setStandardDeviation(new RangeType().min(minFrequency).max(maxFrequency));
         cluster.setDetectionOption(detectionOption);
 
         MiningOperationChunk miningOperationChunk = roleAnalysisService.prepareBasicChunkStructure(cluster, null,
                 displayValueOption, RoleAnalysisProcessModeType.USER, null, result, task);
 
-        RangeType frequencyRange = detectionOption.getFrequencyRange();
+        RangeType standardDeviation = detectionOption.getFrequencyRange();
         Double sensitivity = detectionOption.getSensitivity();
+        Double frequencyThreshold = detectionOption.getFrequencyThreshold();
 
         RoleAnalysisSortMode sortMode = displayValueOption.getSortMode();
         if (sortMode == null) {
@@ -195,8 +196,8 @@ public class OutlierClusterItemPanel<T extends Serializable>
 
         List<MiningRoleTypeChunk> roles = miningOperationChunk.getMiningRoleTypeChunks(sortMode);
 
-        if (frequencyRange != null) {
-            roleAnalysisService.resolveOutliersZScore(roles, frequencyRange, sensitivity);
+        if (standardDeviation != null) {
+            roleAnalysisService.resolveOutliersZScore(roles, standardDeviation, sensitivity, frequencyThreshold);
         }
 
         cluster.setRoleAnalysisSessionRef(

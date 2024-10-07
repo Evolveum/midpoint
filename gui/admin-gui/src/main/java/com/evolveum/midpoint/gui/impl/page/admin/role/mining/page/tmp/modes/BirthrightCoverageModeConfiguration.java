@@ -9,8 +9,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.modes;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context.AbstractRoleAnalysisConfiguration;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -64,7 +62,9 @@ public class BirthrightCoverageModeConfiguration extends AbstractRoleAnalysisCon
                 new RangeType()
                         .min(30.0)
                         .max(100.0),
-                RoleAnalysisDetectionProcessType.FULL);
+                RoleAnalysisDetectionProcessType.FULL,
+                null,
+                null);
     }
 
     public @NotNull Integer getMaxPropertyCount() {

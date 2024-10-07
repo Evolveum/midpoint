@@ -139,10 +139,11 @@ public class OutlierDetectionOutlineClusterModel {
         clusterStatistics.setRolesCount(countOfRoles);
 
         RoleAnalysisDetectionOptionType detectionOption = outlineModel.getDetectionOption();
-        RangeType frequencyRange = detectionOption.getFrequencyRange();
+        RangeType standardDeviation = detectionOption.getStandardDeviation();
+        Double frequencyThreshold = detectionOption.getFrequencyThreshold();
         Double sensitivity = detectionOption.getSensitivity();
         this.zScoreData = roleAnalysisService.resolveOutliersZScore(
-                tmpMiningRoleTypeChunks, frequencyRange, sensitivity);
+                tmpMiningRoleTypeChunks, standardDeviation, sensitivity, frequencyThreshold);
         this.similarityThreshold = usedFrequency.doubleValue() * 100;
     }
 

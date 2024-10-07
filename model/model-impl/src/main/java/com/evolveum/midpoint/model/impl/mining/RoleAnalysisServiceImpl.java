@@ -1026,9 +1026,10 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         MiningOperationChunk basicChunk = prepareBasicChunkStructure(cluster, filter, option, processMode, detectedPatterns, result, task);
 
         RoleAnalysisDetectionOptionType detectionOption = cluster.getDetectionOption();
-        RangeType frequencyRange = detectionOption.getFrequencyRange();
+        RangeType frequencyRange = detectionOption.getStandardDeviation();
+        Double frequencyThreshold = detectionOption.getFrequencyThreshold();
         Double sensitivity = detectionOption.getSensitivity();
-        resolveOutliersZScore(basicChunk.getMiningRoleTypeChunks(), frequencyRange, sensitivity);
+        resolveOutliersZScore(basicChunk.getMiningRoleTypeChunks(), frequencyRange, sensitivity, frequencyThreshold);
 
         return basicChunk;
     }
@@ -2488,8 +2489,9 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     public <T extends MiningBaseTypeChunk> ZScoreData resolveOutliersZScore(
             @NotNull List<T> data,
             @Nullable RangeType range,
-            @Nullable Double sensitivity) {
-        double defaultMaxFrequency = 0.5;
+            @Nullable Double sensitivity,
+            @Nullable Double frequencyThreshold) {
+        double defaultMaxFrequency = frequencyThreshold != null ? frequencyThreshold * 0.01 : 0.5;
 
         if (sensitivity == null) {
             sensitivity = 0.0;

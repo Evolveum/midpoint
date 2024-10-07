@@ -902,7 +902,9 @@ public interface RoleAnalysisService {
     <T extends MiningBaseTypeChunk> ZScoreData resolveOutliersZScore(
             @NotNull List<T> data,
             @Nullable RangeType range,
-            @Nullable Double sensitivity);
+            @Nullable Double sensitivity,
+            @Nullable Double frequencyThreshold);
+
     <T extends MiningBaseTypeChunk> double calculateZScoreConfidence(@NotNull T item, ZScoreData zScoreData);
 
     @Nullable Set<String> resolveUserValueToMark(

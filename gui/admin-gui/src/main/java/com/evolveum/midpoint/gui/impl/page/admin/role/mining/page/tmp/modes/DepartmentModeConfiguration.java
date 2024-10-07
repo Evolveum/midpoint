@@ -7,14 +7,8 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.modes;
 
-import com.evolveum.midpoint.prism.PrismObject;
-
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
-import com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context.AbstractRoleAnalysisConfiguration;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -57,7 +51,9 @@ public class DepartmentModeConfiguration extends AbstractRoleAnalysisConfigurati
                 2,
                 null,
                 createDetectionRange(),
-                RoleAnalysisDetectionProcessType.FULL);
+                RoleAnalysisDetectionProcessType.FULL,
+                null,
+                null);
     }
 
     private RangeType createPropertyRange() {
