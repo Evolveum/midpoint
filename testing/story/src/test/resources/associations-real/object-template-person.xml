@@ -1,0 +1,66 @@
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectTemplate
+        oid="00000000-0000-0000-0000-000000000380"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Person Object Template</name>
+    <iterationSpecification>
+        <maxIterations>99</maxIterations>
+        <tokenExpression>
+            <script>
+                <code>if (iteration == 0) {
+                    return ""
+                } else {
+                    // for 8+2 naming convention, we might want to use %02d instead
+                    //return sprintf("%02d", iteration+1)
+                    return iteration + 1
+                }</code>
+            </script>
+        </tokenExpression>
+    </iterationSpecification>
+    <mapping>
+        <name>generate-name-jsmith-8-2</name>
+        <lifecycleState>active</lifecycleState>
+        <strength>weak</strength>
+        <source>
+            <path>givenName</path>
+        </source>
+        <source>
+            <path>familyName</path>
+        </source>
+        <expression>
+            <script>
+                <code>tmpGivenName = basic.trim(basic.norm(basic.stringify(givenName)))
+                tmpFamilyName = basic.trim(basic.norm(basic.stringify(familyName)))
+                tmpGivenNameInitial = tmpGivenName?.take(1) // safe even with empty firstName (but not null)
+                return (tmpGivenNameInitial + tmpFamilyName?.replaceAll(" ", ""))?.take(8) + iterationToken // no spaces</code>
+            </script>
+        </expression>
+        <target>
+            <path>name</path>
+        </target>
+    </mapping>
+    <mapping>
+        <name>generate-fullname</name>
+        <strength>strong</strength>
+        <source>
+            <path>givenName</path>
+        </source>
+        <source>
+            <path>familyName</path>
+        </source>
+        <expression>
+            <script>
+                <code>basic.concatName(givenName, familyName)</code>
+            </script>
+        </expression>
+        <target>
+            <path>fullName</path>
+        </target>
+    </mapping>
+</objectTemplate>

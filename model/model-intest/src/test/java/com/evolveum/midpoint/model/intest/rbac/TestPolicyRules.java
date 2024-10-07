@@ -56,6 +56,10 @@ public class TestPolicyRules extends AbstractInitializedModelIntegrationTest {
     static final TestObject<PolicyType> ROLE_FRIENDLY_INTROVERT = TestObject.file(
             TEST_DIR, "role-friendly-introvert.xml", "111eddca-49ac-11ef-8749-cf1eec22a477");
 
+    static final TestObject<PolicyType> POLICY_INFORMATION_SECURITY_RESPONSIBILITY = TestObject.file(
+            TEST_DIR, "333-classification-information-security-responsibility.xml", "00000000-0000-0000-0000-000000000333");
+
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -67,7 +71,8 @@ public class TestPolicyRules extends AbstractInitializedModelIntegrationTest {
                     initTask, initResult,
                     CommonInitialObjects.ARCHETYPE_CLASSIFICATION,
                     CommonInitialObjects.ARCHETYPE_BUSINESS_ROLE,
-                    CommonInitialObjects.POLICY_INFORMATION_SECURITY_RESPONSIBILITY,
+//                    CommonInitialObjects.POLICY_INFORMATION_SECURITY_RESPONSIBILITY,
+                    POLICY_INFORMATION_SECURITY_RESPONSIBILITY,
                     POLICY_SKIPPER_LICENSE,
                     ROLE_SKIPPER,
                     ROLE_NAVY_CAPTAIN,
@@ -421,7 +426,8 @@ public class TestPolicyRules extends AbstractInitializedModelIntegrationTest {
         assertSuccess(result);
 
         assertRole(ROLE_BRIG_GUARD.oid, "Role after").assertEffectiveMarks(
-                SystemObjectsType.MARK_UNDERASSIGNED.value(), SystemObjectsType.MARK_UNDERSTAFFED_SECURITY.value()
+//                SystemObjectsType.MARK_UNDERASSIGNED.value(), SystemObjectsType.MARK_UNDERSTAFFED_SECURITY.value()
+                SystemObjectsType.MARK_UNDERASSIGNED.value()
         );
     }
 
@@ -463,7 +469,8 @@ public class TestPolicyRules extends AbstractInitializedModelIntegrationTest {
         assertSuccess(result);
 
         assertRole(ROLE_BRIG_GUARD.oid, "Role after").assertEffectiveMarks(
-                SystemObjectsType.MARK_UNDERASSIGNED.value(), SystemObjectsType.MARK_UNDERSTAFFED_SECURITY.value()
+//                SystemObjectsType.MARK_UNDERASSIGNED.value(), SystemObjectsType.MARK_UNDERSTAFFED_SECURITY.value()
+                SystemObjectsType.MARK_UNDERASSIGNED.value()
         );
         assertUserAfter(USER_JACK_OID).assignments().assertNoRole(ROLE_BRIG_GUARD.oid);
     }

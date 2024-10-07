@@ -1,0 +1,181 @@
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="07b20755-5b61-4fd9-afed-a819eb2ac686">
+    <name>HR</name>
+    <lifecycleState>active</lifecycleState>
+    <connectorRef>
+        <filter>
+            <q:text>connectorType = "com.evolveum.polygon.connector.csv.CsvConnector" and available = "true"</q:text>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+        <icfc:configurationProperties xmlns:cfg="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector">
+            <cfg:filePath>will-be-replaced-by-test-code</cfg:filePath> <!-- hr.csv -->
+            <cfg:fieldDelimiter>,</cfg:fieldDelimiter>
+            <cfg:quote>"</cfg:quote>
+            <cfg:uniqueAttribute>empnum</cfg:uniqueAttribute>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+    <schema>
+        <generationConstraints>
+            <generateObjectClass>ri:AccountObjectClass</generateObjectClass>
+        </generationConstraints>
+    </schema>
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <displayName>HR Person</displayName>
+            <default>true</default>
+            <delineation>
+                <objectClass>ri:AccountObjectClass</objectClass>
+                <filter>
+                    <q:text>attributes/empnum not startsWith "8"</q:text>
+                </filter>
+            </delineation>
+            <focus>
+                <type>UserType</type>
+                <archetypeRef oid="00000000-0000-0000-0000-000000000702" type="ArchetypeType"/>
+            </focus>
+            <attribute>
+                <ref>ri:empnum</ref>
+                <inbound>
+                    <name>empnum-to-name</name>
+                    <lifecycleState>archived</lifecycleState>
+                    <strength>weak</strength>
+                    <target>
+                        <path>name</path>
+                    </target>
+                </inbound>
+                <inbound>
+                    <name>empnum-to-persNumber</name>
+                    <strength>strong</strength>
+                    <target>
+                        <path>personalNumber</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:firstname</ref>
+                <inbound>
+                    <name>firstname-to-givenName</name>
+                    <strength>strong</strength>
+                    <target>
+                        <path>givenName</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:surname</ref>
+                <inbound>
+                    <name>surname-to-familyName</name>
+                    <strength>strong</strength>
+                    <target>
+                        <path>familyName</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:locality</ref>
+                <inbound>
+                    <name>locality-to-locality</name>
+                    <strength>strong</strength>
+                    <target>
+                        <path>locality</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:status</ref>
+                <inbound>
+                    <name>status-to-lifecycle-state</name>
+                    <strength>strong</strength>
+                    <expression>
+                        <script>
+                            <code>switch (input) {
+                                case 'In':
+                                    'active'
+                                    break
+                                case 'Long-term leave':
+                                    'suspended'
+                                    break
+                                case 'Former employee':
+                                    'archived'
+                                    break
+                            }</code>
+                        </script>
+                    </expression>
+                    <target>
+                        <path>lifecycleState</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:job</ref>
+                <inbound>
+                    <name>job-to-title</name>
+                    <lifecycleState>archived</lifecycleState>
+                    <strength>strong</strength>
+                    <target>
+                        <path>title</path>
+                    </target>
+                </inbound>
+                <inbound>
+                    <name>job-to-title-nice</name>
+                    <lifecycleState>active</lifecycleState>
+                    <strength>strong</strength>
+                    <expression>
+                        <script>
+                            <code>def separator = '#'
+                            if (input == null || input.indexOf(separator) == -1) {
+                                return input
+                            } else {
+                                return input.tokenize(separator)[1]
+                            }</code>
+                        </script>
+                    </expression>
+                    <target>
+                        <path>title</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <synchronization>
+                <reaction>
+                    <name>unmatched-add</name>
+                    <situation>unmatched</situation>
+                    <actions>
+                        <addFocus/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <name>linked-synchronize</name>
+                    <situation>linked</situation>
+                    <actions>
+                        <synchronize/>
+                    </actions>
+                </reaction>
+            </synchronization>
+        </objectType>
+    </schemaHandling>
+    <capabilities>
+        <configured xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+            <cap:create>
+                <cap:enabled>false</cap:enabled>
+            </cap:create>
+            <cap:update>
+                <cap:enabled>false</cap:enabled>
+            </cap:update>
+            <cap:delete>
+                <cap:enabled>false</cap:enabled>
+            </cap:delete>
+        </configured>
+    </capabilities>
+</resource>

@@ -1,0 +1,36 @@
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="00000000-0000-0000-0000-000000000702">
+    <name>Person</name>
+    <description>Archetype for person users.</description>
+    <assignment>
+        <identifier>holderType</identifier>
+        <assignmentRelation>
+            <holderType>UserType</holderType>
+        </assignmentRelation>
+    </assignment>
+    <inducement>
+        <construction>
+            <resourceRef oid="052a29b1-cde5-4546-9787-916e4a846f2e"/>
+            <kind>account</kind>
+            <intent>default</intent>
+        </construction>
+    </inducement>
+    <archetypePolicy>
+        <display>
+            <label>Person</label>
+            <pluralLabel>Persons</pluralLabel>
+            <tooltip>Person</tooltip>
+            <icon>
+                <cssClass>fa fa-user</cssClass>
+                <color>green</color>
+            </icon>
+        </display>
+        <objectTemplateRef oid="00000000-0000-0000-0000-000000000380"/>
+    </archetypePolicy>
+</archetype>

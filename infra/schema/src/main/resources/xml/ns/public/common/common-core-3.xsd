@@ -16750,13 +16750,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="00000000-0000-0000-0000-000000000333">
+<!--            <xsd:enumeration value="00000000-0000-0000-0000-000000000333">
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="CLASSIFICATION_INFORMATION_SECURITY_RESPONSIBILITY"/>
                     </xsd:appinfo>
                 </xsd:annotation>
-            </xsd:enumeration>
+            </xsd:enumeration> -->
             <xsd:enumeration value="00000000-0000-0000-0000-000000000501">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -17303,7 +17303,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="00000000-0000-0000-0000-000000000831">
+<!--            <xsd:enumeration value="00000000-0000-0000-0000-000000000831">
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="MARK_UNDERSTAFFED_SECURITY"/>
@@ -17323,7 +17323,7 @@
                         <jaxb:typesafeEnumMember name="MARK_NEGLECTED"/>
                     </xsd:appinfo>
                 </xsd:annotation>
-            </xsd:enumeration>
+            </xsd:enumeration> -->
             <xsd:enumeration value="00000000-0000-0000-0001-000000000001">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -17331,7 +17331,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="00000000-0000-0000-0001-000000000350">
+<!--            <xsd:enumeration value="00000000-0000-0000-0001-000000000350">
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="OBJECT_COLLECTION_ALL_INFORMATION_SECURITY_RESPONSIBILITIES"/>
@@ -17344,7 +17344,7 @@
                         <jaxb:typesafeEnumMember name="OBJECT_COLLECTION_SECURITY_UNDERSTAFFING"/>
                     </xsd:appinfo>
                 </xsd:annotation>
-            </xsd:enumeration>
+            </xsd:enumeration> -->
             <xsd:enumeration value="00000000-0000-0000-0001-000000000352">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -17366,13 +17366,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="00000000-0000-0000-0001-000000001001">
+<!--            <xsd:enumeration value="00000000-0000-0000-0001-000000001001">
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="DASHBOARD_COMPLIANCE"/>
                     </xsd:appinfo>
                 </xsd:annotation>
-            </xsd:enumeration>
+            </xsd:enumeration> -->
         </xsd:restriction>
     </xsd:simpleType>
 
