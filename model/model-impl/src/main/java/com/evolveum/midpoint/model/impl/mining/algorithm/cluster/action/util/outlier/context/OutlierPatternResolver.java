@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningBaseTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
-import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
+import com.evolveum.midpoint.common.mining.objects.detection.PatternDetectionOption;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.SimpleHeatPattern;
 
 /**
@@ -33,7 +33,7 @@ public class OutlierPatternResolver implements Serializable {
 
     public <T extends MiningBaseTypeChunk> List<SimpleHeatPattern> performSingleAnomalyCellDetection(
             @NotNull List<T> miningBaseTypeChunks,
-            @NotNull DetectionOption detectionOption,
+            @NotNull PatternDetectionOption detectionOption,
             List<String> requiredProperties,
             List<String> allowedProperties) {
 

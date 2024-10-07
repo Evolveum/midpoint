@@ -1,0 +1,2258 @@
+dn: cn=all-users,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+
+dn: cn=administrators,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: administrators
+description: Allows administrator access for group members. Standard AD management tasks are permitted.
+member: cn=dummy,o=whatever
+
+dn: cn=super-administrators,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: super-administrators
+description: Only privileged administrators might be members, based on CEO approval. Access to all AD management is permitted.
+member: cn=dummy,o=whatever
+
+dn: cn=printers-for-juniors,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: printers-for-juniors
+description: Group for printers, not for users! Allows grouping printers that should be available for company's junior staff positions.
+member: cn=dummy,o=whatever
+
+dn: cn=big-brothers,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: big-brothers
+description: Wise men and women, band of brothers and sisters. We are watching you!
+member: cn=dummy,o=whatever
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+
+dn: cn=legacy-group-1,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: legacy-group-1
+description: Legacy group 1
+businessCategory: legacy-group
+member: cn=dummy,o=whatever
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+
+dn: cn=legacy-group-2,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: legacy-group-2
+description: Legacy group 2
+businessCategory: legacy-group
+member: cn=dummy,o=whatever
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+
+dn: cn=legacy-group-3,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: legacy-group-3
+description: Legacy group 3
+businessCategory: legacy-group
+member: cn=dummy,o=whatever
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+
+###################################################################################################
+## for application "Area 52 Research Facility"
+## Owner: Geena Green
+###################################################################################################
+dn: cn=app:area52-research-facility:personnel-door,ou=appgroups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: app:area52-research-facility:personnel-door
+description: Access to main personnel door in Area 52 research facility.
+member: cn=dummy,o=whatever
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+
+###################################################################################################
+## for application "Weather Control"
+## Owner: Olaf Peterson
+###################################################################################################
+dn: cn=app:weather-control:developers,ou=appgroups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: app:weather-control:developers
+member: cn=dummy,o=whatever
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+
+###################################################################################################
+## for application "Weather Control"
+## Owner: Geena Green
+###################################################################################################
+dn: cn=app:weather-control:users,ou=appgroups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: app:weather-control:users
+member: cn=dummy,o=whatever
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+
+###################################################################################################
+## for application "Teleportation Device"
+## Owner: Geena Green
+###################################################################################################
+dn: cn=app:teleportation-device:users,ou=appgroups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: app:teleportation-device:users
+description: Provides access to teleportation device.
+member: cn=dummy,o=whatever
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+
+###################################################################################################
+## for application "Telekinesis Augmentation"
+## Owner: Geena Green
+###################################################################################################
+dn: cn=app:telekinesis-augmentation:developers,ou=appgroups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: app:telekinesis-augmentation:developers
+description: Provides access to telekinesis augmentation for developers.
+member: cn=dummy,o=whatever
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+
+###################################################################################################
+## for application "Telekinesis Augmentation"
+## Owner: Geena Green
+###################################################################################################
+dn: cn=app:telekinesis-augmentation:users,ou=appgroups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: app:telekinesis-augmentation:users
+description: Provides access to telekinesis augmentation for users of telekinesis.
+member: cn=dummy,o=whatever
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+
+###################################################################################################
+## for application "Time Travel"
+## Owner: Olaf Peterson
+###################################################################################################
+dn: cn=app:time-travel:developers,ou=appgroups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: app:time-travel:developers
+description: Provides lower-level access to time travel technology for developers.
+member: cn=dummy,o=whatever
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+
+###################################################################################################
+## for application "Time Travel"
+## Owner: Geena Green
+###################################################################################################
+dn: cn=app:time-travel:users,ou=appgroups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: app:time-travel:users
+description: Provides access to time travel technology for users.
+member: cn=dummy,o=whatever
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+
+###################################################################################################
+## for application "Invisibility Research"
+## Owner: Geena Green
+###################################################################################################
+dn: cn=app:invisibility-research:users,ou=appgroups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: app:invisibility-research:users
+description: Allows access to invisibility research results, manuals and devices for users.
+member: cn=dummy,o=whatever
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+
+###################################################################################################
+## for application "Invisibility Research"
+## Owner: Olaf Peterson
+###################################################################################################
+dn: cn=app:invisibility-research:developers,ou=appgroups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: app:invisibility-research:developers
+description: Provides lower-level access to invisibility research and technology for developers.
+member: cn=dummy,o=whatever
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+
+###################################################################################################
+## for application "Customer Conversion"
+## Owner: Olaf Peterson
+###################################################################################################
+dn: cn=app:customer-conversion:specialists,ou=appgroups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: app:customer-conversion:specialists
+member: cn=dummy,o=whatever
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+
+###################################################################################################
+## for application "Customer Conversion"
+## Owner: Olaf Peterson
+###################################################################################################
+dn: cn=app:customer-conversion:developers,ou=appgroups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: app:customer-conversion:developers
+member: cn=dummy,o=whatever
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+
+###################################################################################################
+## for application "Example Life Insurance"
+## Owner: Olaf Peterson
+###################################################################################################
+dn: cn=app:example-life-insurance:advisors,ou=appgroups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: app:example-life-insurance:advisors
+member: cn=dummy,o=whatever
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+
+###################################################################################################
+## for application "Example Life Insurance"
+## Owner: Olaf Peterson
+###################################################################################################
+dn: cn=app:example-life-insurance:risk-actuaries,ou=appgroups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: app:example-life-insurance:risk-actuaries
+member: cn=dummy,o=whatever
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+
+###################################################################################################
+## for application "Example Life Insurance"
+## Owner: Olaf Peterson
+###################################################################################################
+dn: cn=app:example-life-insurance:claim-adjusters,ou=appgroups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: app:example-life-insurance:claim-adjusters
+member: cn=dummy,o=whatever
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+
+###################################################################################################
+## for application "Project XX-26"
+## Owner: Olaf Peterson
+###################################################################################################
+dn: cn=app:project-xx26:developers,ou=appgroups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: app:project-xx26:developers
+member: cn=dummy,o=whatever
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+
+###################################################################################################
+## for application "Project X-26"
+## Owner: Olaf Peterson
+###################################################################################################
+dn: cn=app:project-xx26:users,ou=appgroups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: app:project-xx26:users
+member: cn=dummy,o=whatever
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+
+###################################################################################################
+## for application "Project X-26"
+## Owner: Olaf Peterson
+###################################################################################################
+dn: cn=app:project-xx26:stage2-users,ou=appgroups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: app:project-xx26:stage2-users
+member: cn=dummy,o=whatever
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+
+
+###################################################################################################
+## TODO 12.7.2024
+## TODO possible application groups: Mind reading; Mind tricking; Precognition; Sixth sense
+## TODO decide members
+## TODO possibly business role: ESP Professional containing all three roles.
+## for application "Extra-sensory Perception"
+## Owner: Olaf Peterson
+###################################################################################################
+
+dn: cn=all-users-100,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users-100
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+
+dn: cn=all-users-101,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users-101
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+
+dn: cn=all-users-102,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users-102
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+
+dn: cn=all-users-103,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users-103
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+
+dn: cn=all-users-104,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users-104
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+
+dn: cn=all-users-105,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users-105
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+
+dn: cn=all-users-106,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users-106
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+
+dn: cn=all-users-107,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users-107
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+
+dn: cn=all-users-108,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users-108
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+
+dn: cn=all-users-109,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users-109
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+
+dn: cn=all-users-110,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users-110
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+
+dn: cn=all-users-111,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users-111
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+
+dn: cn=all-users-112,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users-112
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+
+dn: cn=all-users-113,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users-113
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+
+dn: cn=all-users-114,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users-114
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+
+dn: cn=all-users-115,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users-115
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+
+dn: cn=all-users-116,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users-116
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+
+dn: cn=all-users-117,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users-117
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+
+dn: cn=all-users-118,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users-118
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+
+dn: cn=all-users-119,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users-119
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+
+dn: cn=all-users-120,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users-120
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+
+dn: cn=all-users-121,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users-121
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+
+dn: cn=all-users-122,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users-122
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+
+dn: cn=all-users-123,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users-123
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+
+dn: cn=all-users-124,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users-124
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+
+dn: cn=all-users-125,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users-125
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+
+dn: cn=all-users-126,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users-126
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+
+dn: cn=all-users-127,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users-127
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+
+dn: cn=all-users-128,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users-128
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+
+dn: cn=all-users-129,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users-129
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+
+dn: cn=all-users-130,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users-130
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+
+dn: cn=all-users-131,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users-131
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+
+dn: cn=all-users-132,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users-132
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+
+dn: cn=all-users-133,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users-133
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+
+dn: cn=all-users-134,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users-134
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+
+dn: cn=all-users-135,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users-135
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+
+dn: cn=all-users-136,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users-136
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+
+dn: cn=all-users-137,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users-137
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+
+dn: cn=all-users-138,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users-138
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+
+dn: cn=all-users-139,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: all-users-139
+description: Allows basic access for group members.
+member: cn=dummy,o=whatever
+member: cn=Alexander Freeman,ou=users,dc=example,dc=com
+member: cn=Alice Baker,ou=users,dc=example,dc=com
+member: cn=Amanda de Wries,ou=users,dc=example,dc=com
+member: cn=Ana Lopez,ou=users,dc=example,dc=com
+member: cn=Ashley Jackson,ou=users,dc=example,dc=com
+member: cn=Brad Carpenter,ou=users,dc=example,dc=com
+member: cn=Charles Whitehead,ou=users,dc=example,dc=com
+member: cn=David Iverson,ou=users,dc=example,dc=com
+member: cn=Diane Davis,ou=users,dc=example,dc=com
+member: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+member: cn=Ellen Jones,ou=users,dc=example,dc=com
+member: cn=Emma Jones,ou=users,dc=example,dc=com
+member: cn=Eva Mendez,ou=users,dc=example,dc=com
+member: cn=Frank Usher,ou=users,dc=example,dc=com
+member: cn=Frederick Smith,ou=users,dc=example,dc=com
+member: cn=Geena Green,ou=users,dc=example,dc=com
+member: cn=Jane Anderson,ou=users,dc=example,dc=com
+member: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+member: cn=John Smith,ou=users,dc=example,dc=com
+member: cn=John Smith-Walker,ou=users,dc=example,dc=com
+member: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+member: cn=Josef Zimmer,ou=users,dc=example,dc=com
+member: cn=Joseph Smith,ou=users,dc=example,dc=com
+member: cn=Laura Shepherd,ou=users,dc=example,dc=com
+member: cn=Lucy Rider,ou=users,dc=example,dc=com
+member: cn=Maria Schmitt,ou=users,dc=example,dc=com
+member: cn=Martin Knight,ou=users,dc=example,dc=com
+member: cn=Olaf Peterson,ou=users,dc=example,dc=com
+member: cn=Olivia Xander,ou=users,dc=example,dc=com
+member: cn=Patrick Anderson,ou=users,dc=example,dc=com
+member: cn=Peter Hunter,ou=users,dc=example,dc=com
+member: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+member: cn=Robert Nelson,ou=users,dc=example,dc=com
+member: cn=Robert Riley,ou=users,dc=example,dc=com
+member: cn=Sam Brown,ou=users,dc=example,dc=com
+member: cn=Scott Hoover,ou=users,dc=example,dc=com
+member: cn=Tom Walker,ou=users,dc=example,dc=com
+member: cn=Victoria Violet,ou=users,dc=example,dc=com
+

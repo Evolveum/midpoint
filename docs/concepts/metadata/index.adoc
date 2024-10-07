@@ -1,0 +1,252 @@
+= Value Metadata
+:page-toc: top
+:page-moved-from: /midpoint/reference/misc/value-metadata/
+
+
+== Introduction
+
+xref:/midpoint/devel/axiom/spec/#metadata[Value metadata] are data about data.
+They are stored as a part of the values and can contain additional information.
+
+Note, that value metadata are replacement `MetadataType` which was used for objects and assignments.
+
+== Usages
+
+The following table summarizes current usage of value metadata:
+
+[%autowidth]
+|===
+| Usage | Configuration | Storage/Notes
+
+| Basic Object metadata, capturing creation, modification, provenance of object. | No configuration. 
+| Stored in objects as `@metadata` element. Replaces `metadata` element. Automaticly migrated from `metadata` type. Object can have only one set of value metadata. Introduced in 4.9.
+| Assignment metadata capturing creation, modification, provenance of object.  
+| No configuration. Introduced in 4.9.
+| Stored in `assignment`, Assignment can have multiple sets of value metadata, each capturing different provenance of assignment (eg. added via role request and also added via mapping)-
+| Provenance metadata for multivalue properties | Enabled by default. | Stored with value inside the property. Introduced in 4.9.
+
+
+| IGA related assignment paths on role membership references
+| Enabled by default.
+Can be disabled in system configuration with `accessesMetadataEnabled`
+under `roleManagement` element.
+| Stored in `roleMembershipRef` as `assignmentpath` under `provenance`.
+If there are multiple assignment paths leading to the same role, each is present in its own metadata value.
+Introduced in 4.7.
+|===
+
+=== Storage Metadata
+
+The details when data were stored in midPoint repository. It is about the creation (timestamp, originator user, channel, taskRef) and the last modification (the same) of object or value.
+
+=== Process Metadata
+
+The details how the data were processed by midPoint processes/tasks.
+Only present if it was approved or otherwise processed by a "process".
+
+=== Provenance Metadata
+
+Provenance metadata provide information about origin of the value.
+Some parts of it also serve as the business key for (multivalued) value metadata.
+
+==== Mapping Specification
+
+xref:/midpoint/reference/expressions/expressions/script/[Mapping] that (immediately) provided the value. Can be used for any focus item targeted by mappings.
+
+This metadata are used to identify and ensure that mapping modifies only values it emitted.
+
+
+== How is it stored
+
+Valeu metadata is stored in a special container with name like `_metadata` or `@metadata` depending
+on the serialization format.
+
+=== Containers
+
+The provenance metadata are stored in `@metadata` container, (`getValueMetadata()` in Java and Groovy, `_metadata` in XML).
+
+In Java and Groovy, there are no changes to access values. Metadata can be access when working with `PrismPropertyValue` representation using `getValueMetadata()` method.
+
+.XML
+[source,xml]
+----
+<user ...>
+    <_metadata id="3">
+        <storage>
+            <createTimestamp>2024-08-23T09:23:04.204+02:00</createTimestamp>
+            <createChannel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#init</createChannel>
+            <modifyTimestamp>2024-09-25T15:05:17.112+02:00</modifyTimestamp>
+            <modifierRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                <!-- administrator -->
+            </modifierRef>
+            <modifyChannel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</modifyChannel>
+            <modifyTaskRef oid="49ea59bc-edcc-4c25-90b7-361874629188" relation="org:default" type="c:TaskType">
+                <!-- Add members to Role CRM Admin -->
+            </modifyTaskRef>
+        </storage>
+        <process>
+            <requestTimestamp>2024-08-23T09:23:03.638+02:00</requestTimestamp>
+        </process>
+    </_metadata>
+    <name>administrator</name>
+    ...
+----
+
+.JSON
+[source, json]
+----
+{
+  "user" : {
+    "@metadata" : {
+      "@ns" : "http://prism.evolveum.com/xml/ns/public/types-3",
+      "@id" : 3,
+      "storage" : {
+        "createTimestamp" : "2024-08-23T09:23:04.204+02:00",
+        "createChannel" : "http://midpoint.evolveum.com/xml/ns/public/common/channels-3#init",
+        "modifyTimestamp" : "2024-09-25T15:05:17.112+02:00",
+        "modifierRef" : {
+          "oid" : "00000000-0000-0000-0000-000000000002",
+          "relation" : "org:default",
+          "type" : "c:UserType"
+        },
+        "modifyChannel" : "http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user",
+        "modifyTaskRef" : {
+          "oid" : "49ea59bc-edcc-4c25-90b7-361874629188",
+          "relation" : "org:default",
+          "type" : "c:TaskType"
+        }
+      },
+      "process" : {
+        "requestTimestamp" : "2024-08-23T09:23:03.638+02:00"
+      }
+    },
+    "oid" : "00000000-0000-0000-0000-000000000002",
+    "version" : "21916",
+    "name" : "administrator",
+    "..." : "..."
+  }
+}
+----
+
+=== Simple properties
+
+In case of simple properties (string, polystring), the value with metadata is serialized as `@value`, `@metadata` pair (in case of XML it is pair of  `_value`, `_metadata` elements.)
+
+.XML
+[source, xml]
+----
+<organization>
+        <_value>Evolveum s.r.o</_value>
+        <_metadata id="62">
+            <provenance>
+                <acquisition id="63">
+                    <actorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                        <!-- administrator -->
+                    </actorRef>
+                    <channel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</channel>
+                    <timestamp>2024-10-03T15:42:14.729+02:00</timestamp>
+                </acquisition>
+            </provenance>
+        </_metadata>
+    </organization>
+----
+
+.JSON
+[source, json]
+----
+"organization" : {
+      "@value" : "Evolveum s.r.o",
+      "@metadata" : {
+        "@ns" : "http://prism.evolveum.com/xml/ns/public/types-3",
+        "@id" : 62,
+        "provenance" : {
+          "acquisition" : {
+            "@id" : 63,
+            "actorRef" : {
+              "oid" : "00000000-0000-0000-0000-000000000002",
+              "relation" : "org:default",
+              "type" : "c:UserType"
+            },
+            "channel" : "http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user",
+            "timestamp" : "2024-10-03T15:42:14.729+02:00"
+          }
+        }
+      }
+    }
+----
+
+
+=== roleMembershipRef example
+
+This is an example of value metadata on `roleMembershipRef` value stored in JSON format:
+
+[source,json]
+----
+"roleMembershipRef" : [
+  {
+    "@metadata" : {
+      "storage" : {
+        "createTimestamp" : "2023-03-07T11:11:37.249+01:00"
+      },
+      "provenance" : {
+        "assignmentPath" : {
+          "sourceRef" : {
+            "oid" : "0f493925-36b5-466a-8279-3ad822826b75",
+            "relation" : "org:default",
+            "type" : "c:UserType"
+          },
+          "segment" : {
+            "segmentOrder" : 1,
+            "assignmentId" : 1,
+            "targetRef" : {
+              "oid" : "d9a77300-2618-49af-b8e6-260ce530ef4f",
+              "relation" : "org:default",
+              "type" : "c:RoleType"
+            },
+            "matchingOrder" : true
+          }
+        }
+      }
+    },
+    "oid" : "d9a77300-2618-49af-b8e6-260ce530ef4f",
+    "relation" : "org:default",
+    "type" : "c:RoleType"
+  }
+]
+----
+
+The actual value of the reference are `oid`, `relation` and `type` items at the end of the example.
+JSON uses `@metadata` attribute to store the values of value metadata - possibly multiple values.
+Example showcases IGA-related value metadata storing the assignment path for the role.
+For the sake of how-is-it-stored example this is a small snippet for direct assignment,
+but there can be multiple assignment path segments leading to the indirect assignment.
+
+And this is the same refernce in XML representation - here using `_metadata` element:
+
+[source,xml]
+----
+<roleMembershipRef oid="d9a77300-2618-49af-b8e6-260ce530ef4f" relation="org:default" type="c:RoleType">
+    <_metadata>
+        <storage>
+            <createTimestamp>2023-03-07T11:11:37.249+01:00</createTimestamp>
+        </storage>
+        <provenance>
+            <assignmentPath>
+                <sourceRef oid="0f493925-36b5-466a-8279-3ad822826b75" relation="org:default" type="c:UserType"/>
+                <segment>
+                    <segmentOrder>1</segmentOrder>
+                    <assignmentId>1</assignmentId>
+                    <targetRef oid="d9a77300-2618-49af-b8e6-260ce530ef4f" relation="org:default" type="c:RoleType"/>
+                    <matchingOrder>true</matchingOrder>
+                </segment>
+            </assignmentPath>
+        </provenance>
+    </_metadata>
+</roleMembershipRef>
+----
+
+== See Also
+
+* xref:/midpoint/projects/midprivacy/phases/01-data-provenance-prototype/identity-metadata-in-a-nutshell/[Identity Metadata In A Nutshell]
+* xref:/midpoint/devel/axiom/spec/#metadata[Value metadata] in Axiom specification
+

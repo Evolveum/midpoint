@@ -98,6 +98,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
             ShadowType.F_EXTENSION,
             ShadowType.F_PENDING_OPERATION,
             ShadowType.F_ATTRIBUTES,
+            ShadowType.F_BEHAVIOR,
             ShadowType.F_TRIGGER,
             ShadowType.F_ASSOCIATIONS,
             ShadowType.F_ACTIVATION,

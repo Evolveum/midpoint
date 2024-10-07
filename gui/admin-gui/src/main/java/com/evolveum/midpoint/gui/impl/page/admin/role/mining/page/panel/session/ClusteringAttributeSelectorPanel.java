@@ -12,13 +12,14 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
@@ -79,7 +80,7 @@ public class ClusteringAttributeSelectorPanel extends InputPanel {
     @NotNull
     private Component getClusteringAttributeSettingsPanel() {
         RoleAnalysisClusteringAttributeTable clusteringAttributeTable = buildConfigureTablePanel();
-        clusteringAttributeTable.add(AttributeAppender.replace("class", "col-12 p-0"));
+        clusteringAttributeTable.add(AttributeModifier.replace("class", "col-12 p-0"));
 
         clusteringAttributeTable.setOutputMarkupId(true);
         clusteringAttributeTable.add(new VisibleBehaviour(() -> isSettingsPanelVisible));
@@ -92,7 +93,10 @@ public class ClusteringAttributeSelectorPanel extends InputPanel {
 
         RoleAnalysisClusteringAttributeTable clusteringAttributeTable = new RoleAnalysisClusteringAttributeTable(
                 ID_CONTAINER, rulesModel, true) {
-
+            @Override
+            public boolean isEditable() {
+                return ClusteringAttributeSelectorPanel.this.isEditable();
+            }
         };
         clusteringAttributeTable.setOutputMarkupId(true);
         return clusteringAttributeTable;
@@ -124,6 +128,7 @@ public class ClusteringAttributeSelectorPanel extends InputPanel {
                 target.add(ClusteringAttributeSelectorPanel.this);
             }
         });
+        multiselect.add(new EnableBehaviour(this::isEditable));
         add(multiselect);
 
     }
@@ -223,5 +228,9 @@ public class ClusteringAttributeSelectorPanel extends InputPanel {
 
     public IModel<PrismContainerWrapper<ClusteringAttributeSettingType>> getModel() {
         return model;
+    }
+
+    public boolean isEditable(){
+        return true;
     }
 }

@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningBaseTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
-import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
+import com.evolveum.midpoint.common.mining.objects.detection.PatternDetectionOption;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -27,11 +27,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class PatternStatistics<T extends MiningBaseTypeChunk> implements Serializable {
-
-    public static final String F_PATTERN_COUNT = "patternCount";
-    public static final String F_TOTAL_RELATIONS = "totalRelations";
-    public static final String F_TOP_PATTERN_RELATION = "topPatternRelation";
-    public static final String F_TOP_PATTERN_COVERAGE = "topPatternCoverage";
 
     private int patternCount = 0;
     private int totalRelations = 0;
@@ -54,7 +49,9 @@ public class PatternStatistics<T extends MiningBaseTypeChunk> implements Seriali
         List<T> additionalObjects = roleAnalysisObjectDto.getAdditionalMiningChunk();
 
         if (new HashSet<>(mustMeet).containsAll(members)) {
-            DetectionOption detectionOption = new DetectionOption(
+            //There is executing all size patterns detections,
+            // this is why we does not mirror pattern detection option from cluster settings. But think about 10% fq threshold
+            PatternDetectionOption detectionOption = new PatternDetectionOption(
                     10, 100, 2, 2);
             totalRelationOfPatternsForCell = new OutlierPatternResolver()
                     .performSingleCellDetection(RoleAnalysisProcessModeType.USER, additionalObjects, detectionOption, members, mustMeet);

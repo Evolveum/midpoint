@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.FormComponent;
@@ -65,6 +67,7 @@ public class AnalysisAttributeSelectorPanel extends InputPanel {
                 target.add(AnalysisAttributeSelectorPanel.this);
             }
         });
+        multiselect.add(new EnableBehaviour(this::isEditable));
         add(multiselect);
     }
 
@@ -111,6 +114,10 @@ public class AnalysisAttributeSelectorPanel extends InputPanel {
 
     private Select2MultiChoicePanel<?> getFormC() {
         return (Select2MultiChoicePanel<?>) get(getPageBase().createComponentPath(ID_MULTISELECT));
+    }
+
+    public boolean isEditable(){
+        return true;
     }
 
 }

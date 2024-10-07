@@ -35,13 +35,13 @@ public class ValueSelectorSliderPanelFactory extends AbstractInputGuiComponentFa
     @Override
     public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
         return RoleAnalysisSessionOptionType.F_SIMILARITY_THRESHOLD.equals(wrapper.getItemName())
-                || RoleAnalysisDetectionOptionType.F_SENSITIVITY.equals(wrapper.getItemName());
+                || RoleAnalysisDetectionOptionType.F_SENSITIVITY.equals(wrapper.getItemName())
+                || RoleAnalysisDetectionOptionType.F_FREQUENCY_THRESHOLD.equals(wrapper.getItemName());
     }
 
     @Override
     protected InputPanel getPanel(PrismPropertyPanelContext<Double> panelCtx) {
         RangeSliderPanel rangeSliderPanel = new RangeSliderPanel(panelCtx.getComponentId(), panelCtx.getRealValueModel());
-        rangeSliderPanel.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         rangeSliderPanel.setOutputMarkupId(true);
         return rangeSliderPanel;
     }

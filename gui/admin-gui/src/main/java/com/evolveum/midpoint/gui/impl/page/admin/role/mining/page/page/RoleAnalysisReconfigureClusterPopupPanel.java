@@ -108,6 +108,12 @@ public class RoleAnalysisReconfigureClusterPopupPanel
                     return wrapper -> {
                         ItemName itemName = wrapper.getItemName();
 
+                        if (itemName.equivalent(RoleAnalysisDetectionOptionType.F_SENSITIVITY)
+                                || itemName.equivalent(RoleAnalysisDetectionOptionType.F_STANDARD_DEVIATION)
+                                || itemName.equivalent(RoleAnalysisDetectionOptionType.F_FREQUENCY_THRESHOLD)) {
+                            return ItemVisibility.HIDDEN;
+                        }
+
                         if (itemName.equivalent(RoleAnalysisDetectionOptionType.F_MIN_ROLES_OCCUPANCY)
                                 || itemName.equivalent(RoleAnalysisDetectionOptionType.F_MIN_USER_OCCUPANCY)) {
 

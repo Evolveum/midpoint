@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContaine
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -189,8 +190,7 @@ public class RoleAnalysisClusteringAttributeTable extends BasePanel<PrismContain
 //                            rowModel.getObject().setWeight(newValue);
 //                        }
                     };
-
-                    field.setEnabled(true);
+                    field.add(new EnableBehaviour(() -> isEditable()));
                     item.add(field);
                 }
             }
@@ -226,6 +226,11 @@ public class RoleAnalysisClusteringAttributeTable extends BasePanel<PrismContain
                         }
 
                         @Override
+                        public double stepValue() {
+                            return 1.0;
+                        }
+
+                        @Override
                         public DisplayType getImage() {
                             DisplayType displayType = new DisplayType();
                             IconType iconType = new IconType();
@@ -240,6 +245,7 @@ public class RoleAnalysisClusteringAttributeTable extends BasePanel<PrismContain
 //                        }
                     };
 //                    field.setEnabled(rowModel.getObject().isIsMultiValue());
+                    field.add(new EnableBehaviour(() -> isEditable()));
                     item.add(field);
                 }
             }
@@ -270,4 +276,7 @@ public class RoleAnalysisClusteringAttributeTable extends BasePanel<PrismContain
 
     }
 
+    public boolean isEditable() {
+        return true;
+    }
 }

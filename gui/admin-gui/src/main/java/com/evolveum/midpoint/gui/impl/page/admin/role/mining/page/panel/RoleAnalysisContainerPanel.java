@@ -44,33 +44,6 @@ import org.jetbrains.annotations.NotNull;
 )
 
 @PanelInstance(
-        identifier = "sessionOptions",
-        applicableForType = RoleAnalysisSessionType.class,
-        display = @PanelDisplay(
-                label = "RoleAnalysisSessionType.sessionOptions",
-                icon = GuiStyleConstants.CLASS_OPTIONS_COGS,
-                order = 20
-        ),
-        childOf = RoleAnalysisRoleSessionOptions.class,
-        containerPath = "roleModeOptions",
-        type = "RoleAnalysisSessionOptionType",
-        expanded = true)
-
-@PanelInstance(
-        identifier = "sessionOptions",
-        applicableForType = RoleAnalysisSessionType.class,
-        display = @PanelDisplay(
-                label = "RoleAnalysisSessionType.sessionOptions",
-                icon = GuiStyleConstants.CLASS_OPTIONS_COG,
-                order = 20
-        ),
-        childOf = RoleAnalysisUserSessionOptions.class,
-        containerPath = "userModeOptions",
-        type = "UserAnalysisSessionOptionType",
-        expanded = true
-)
-
-@PanelInstance(
         identifier = "sessionDefaultDetectionOption",
         applicableForType = RoleAnalysisSessionType.class,
         display = @PanelDisplay(
@@ -110,7 +83,6 @@ public class RoleAnalysisContainerPanel<AH extends AssignmentHolderType> extends
     @Override
     protected void initLayout() {
 
-
         @SuppressWarnings({ "rawtypes", "unchecked" })
         SingleContainerPanel components = new SingleContainerPanel(ID_PANEL,
                 getObjectWrapperModel(),
@@ -131,41 +103,43 @@ public class RoleAnalysisContainerPanel<AH extends AssignmentHolderType> extends
     }
 
     private @NotNull ItemVisibility getBasicTabVisibility(@NotNull ItemPath path) {
-        RoleAnalysisCategoryType analysisCategory = null;
         RoleAnalysisProcessModeType processMode = null;
+        RoleAnalysisProcedureType analysisProcedureType = null;
         if (getObjectWrapper().getObject().getRealValue() instanceof RoleAnalysisSessionType session) {
             RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
-            analysisCategory = analysisOption.getAnalysisCategory();
+            analysisProcedureType = analysisOption.getAnalysisProcedureType();
             processMode = analysisOption.getProcessMode();
         }
 
-        if (processMode != null && processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
-            if (path.equivalent(ItemPath.create(RoleAnalysisSessionType.F_ROLE_MODE_OPTIONS,
-                    AbstractAnalysisSessionOptionType.F_IS_INDIRECT))) {
+        if (processMode != null && processMode.equals(RoleAnalysisProcessModeType.ROLE)
+                && path.equivalent(ItemPath.create(RoleAnalysisSessionType.F_ROLE_MODE_OPTIONS,
+                AbstractAnalysisSessionOptionType.F_IS_INDIRECT))) {
+            return ItemVisibility.HIDDEN;
+        }
+
+        assert analysisProcedureType != null;
+        boolean isOutlierDetection = analysisProcedureType.equals(RoleAnalysisProcedureType.OUTLIER_DETECTION);
+
+        if (!isOutlierDetection) {
+            if (path.equivalent(ItemPath.create(RoleAnalysisSessionType.F_DEFAULT_DETECTION_OPTION,
+                    RoleAnalysisDetectionOptionType.F_FREQUENCY_THRESHOLD))
+                    || path.equivalent(ItemPath.create(RoleAnalysisSessionType.F_DEFAULT_DETECTION_OPTION,
+                    RoleAnalysisDetectionOptionType.F_STANDARD_DEVIATION))
+                    || path.equivalent(ItemPath.create(RoleAnalysisSessionType.F_DEFAULT_DETECTION_OPTION))) {
+                return ItemVisibility.HIDDEN;
+            }
+        } else {
+            if (path.equivalent(ItemPath.create(RoleAnalysisSessionType.F_DEFAULT_DETECTION_OPTION,
+                    RoleAnalysisDetectionOptionType.F_FREQUENCY_RANGE))
+                    || path.equivalent(ItemPath.create(RoleAnalysisSessionType.F_DEFAULT_DETECTION_OPTION,
+                    RoleAnalysisDetectionOptionType.F_MIN_ROLES_OCCUPANCY))
+                    || path.equivalent(ItemPath.create(RoleAnalysisSessionType.F_DEFAULT_DETECTION_OPTION,
+                    RoleAnalysisDetectionOptionType.F_MIN_USER_OCCUPANCY))) {
                 return ItemVisibility.HIDDEN;
             }
         }
 
-        if (analysisCategory == null
-                || analysisCategory.equals(RoleAnalysisCategoryType.ADVANCED)
-                || analysisCategory.equals(RoleAnalysisCategoryType.DEPARTMENT)) {
-            return ItemVisibility.AUTO;
-        } else {
-            if (path.equivalent(ItemPath.create(RoleAnalysisSessionType.F_ROLE_MODE_OPTIONS,
-                    AbstractAnalysisSessionOptionType.F_USER_ANALYSIS_ATTRIBUTE_SETTING))) {
-                return ItemVisibility.HIDDEN;
-            } else if (path.equivalent(ItemPath.create(RoleAnalysisSessionType.F_ROLE_MODE_OPTIONS,
-                    AbstractAnalysisSessionOptionType.F_CLUSTERING_ATTRIBUTE_SETTING))) {
-                return ItemVisibility.HIDDEN;
-            } else if (path.equivalent(ItemPath.create(RoleAnalysisSessionType.F_USER_MODE_OPTIONS,
-                    AbstractAnalysisSessionOptionType.F_CLUSTERING_ATTRIBUTE_SETTING))) {
-                return ItemVisibility.HIDDEN;
-            } else if (path.equivalent(ItemPath.create(RoleAnalysisSessionType.F_USER_MODE_OPTIONS,
-                    AbstractAnalysisSessionOptionType.F_USER_ANALYSIS_ATTRIBUTE_SETTING))) {
-                return ItemVisibility.HIDDEN;
-            }
-            return ItemVisibility.AUTO;
-        }
+        return ItemVisibility.AUTO;
     }
 
 }

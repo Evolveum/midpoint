@@ -57,7 +57,9 @@ public class AdvancedModeConfiguration extends AbstractRoleAnalysisConfiguration
                 new RangeType()
                         .min(10.0)
                         .max(100.0),
-                RoleAnalysisDetectionProcessType.FULL);
+                RoleAnalysisDetectionProcessType.FULL,
+                null,
+                null);
     }
 
     public @NotNull Integer getMaxPropertyCount() {

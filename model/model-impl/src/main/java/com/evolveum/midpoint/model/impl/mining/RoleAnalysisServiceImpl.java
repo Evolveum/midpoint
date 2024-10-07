@@ -58,7 +58,7 @@ import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttribut
 import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
 import com.evolveum.midpoint.common.mining.objects.chunk.*;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
-import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
+import com.evolveum.midpoint.common.mining.objects.detection.PatternDetectionOption;
 import com.evolveum.midpoint.common.mining.utils.RoleAnalysisCacheOption;
 import com.evolveum.midpoint.common.mining.utils.values.*;
 import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
@@ -913,7 +913,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     @Override
     public void recomputeClusterDetectionOptions(
             @NotNull String clusterOid,
-            @NotNull DetectionOption detectionOption,
+            @NotNull PatternDetectionOption detectionOption,
             @NotNull Task task,
             @NotNull OperationResult result) {
         RoleAnalysisDetectionOptionType roleAnalysisDetectionOptionType = new RoleAnalysisDetectionOptionType();
@@ -1026,9 +1026,10 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         MiningOperationChunk basicChunk = prepareBasicChunkStructure(cluster, filter, option, processMode, detectedPatterns, result, task);
 
         RoleAnalysisDetectionOptionType detectionOption = cluster.getDetectionOption();
-        RangeType frequencyRange = detectionOption.getFrequencyRange();
+        RangeType frequencyRange = detectionOption.getStandardDeviation();
+        Double frequencyThreshold = detectionOption.getFrequencyThreshold();
         Double sensitivity = detectionOption.getSensitivity();
-        resolveOutliersZScore(basicChunk.getMiningRoleTypeChunks(), frequencyRange, sensitivity);
+        resolveOutliersZScore(basicChunk.getMiningRoleTypeChunks(), frequencyRange, sensitivity, frequencyThreshold);
 
         return basicChunk;
     }
@@ -2488,8 +2489,9 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     public <T extends MiningBaseTypeChunk> ZScoreData resolveOutliersZScore(
             @NotNull List<T> data,
             @Nullable RangeType range,
-            @Nullable Double sensitivity) {
-        double defaultMaxFrequency = 0.5;
+            @Nullable Double sensitivity,
+            @Nullable Double frequencyThreshold) {
+        double defaultMaxFrequency = frequencyThreshold != null ? frequencyThreshold * 0.01 : 0.5;
 
         if (sensitivity == null) {
             sensitivity = 0.0;
@@ -2559,7 +2561,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         }
 
         //TODO experiment
-        resolveNeighbours(data, defaultMaxFrequency);
+//        resolveNeighbours(data, defaultMaxFrequency);
         return zScoreData;
     }
 
@@ -3325,16 +3327,22 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
         int resolvedPatternCount = 0;
         int candidateRolesCount = 0;
+
         for (PrismObject<RoleAnalysisClusterType> prismCluster : searchResultList) {
             RoleAnalysisClusterType cluster = prismCluster.asObjectable();
             List<ObjectReferenceType> resolvedPattern = cluster.getResolvedPattern();
+            int resolvedPatterns = 0;
             if (resolvedPattern != null) {
-                resolvedPatternCount += resolvedPattern.size();
+                resolvedPatterns = resolvedPattern.size();
+                resolvedPatternCount += resolvedPatterns;
             }
 
             List<RoleAnalysisCandidateRoleType> candidateRoles = cluster.getCandidateRoles();
             if (candidateRoles != null) {
                 candidateRolesCount += candidateRoles.size();
+                //there is no possibility to remove candidate roles from cluster so we can subtract resolved patterns.
+                // If it changes then we need to change this logic
+                candidateRolesCount -= resolvedPatterns;
             }
         }
 

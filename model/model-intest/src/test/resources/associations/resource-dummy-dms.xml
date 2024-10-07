@@ -138,6 +138,14 @@
                 <association>
                     <ref>ri:access</ref>
                     <outbound>
+                        <!-- MID-10076 -->
+                        <name>unfinished-outbound</name>
+                        <strength>strong</strength>
+                        <expression>
+                            <associationConstruction/>
+                        </expression>
+                    </outbound>
+                    <outbound>
                         <expression>
                             <associationConstruction>
                                 <attribute>
@@ -165,6 +173,14 @@
                             </associationConstruction>
                         </expression>
                     </outbound>
+                    <inbound>
+                        <!-- MID-10076 -->
+                        <name>unfinished-inbound</name>
+                        <strength>strong</strength>
+                        <expression>
+                            <associationSynchronization/>
+                        </expression>
+                    </inbound>
                     <inbound>
                         <name>accesses-inbound</name>
                         <expression>

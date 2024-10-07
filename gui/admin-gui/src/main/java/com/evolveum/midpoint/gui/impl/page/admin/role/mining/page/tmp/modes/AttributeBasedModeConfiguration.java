@@ -51,7 +51,9 @@ public class AttributeBasedModeConfiguration extends AbstractRoleAnalysisConfigu
                 5,
                 null,
                 createDetectionRange(),
-                RoleAnalysisDetectionProcessType.FULL);
+                RoleAnalysisDetectionProcessType.FULL,
+                null,
+                null);
     }
 
     private RangeType createPropertyRange() {

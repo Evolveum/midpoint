@@ -18,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningBaseTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
-import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
+import com.evolveum.midpoint.common.mining.objects.detection.PatternDetectionOption;
 import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 
@@ -36,7 +36,7 @@ public class PatternResolver implements DetectionOperation, Serializable {
     public <T extends MiningBaseTypeChunk> @NotNull List<DetectedPattern> performDetection(
             @NotNull RoleAnalysisProcessModeType processMode,
             @NotNull List<T> miningBaseTypeChunks,
-            @NotNull DetectionOption detectionOption,
+            @NotNull PatternDetectionOption detectionOption,
             @NotNull RoleAnalysisProgressIncrement handler) {
 
         handler.enterNewStep("Pattern Detection");

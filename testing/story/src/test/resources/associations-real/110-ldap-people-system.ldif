@@ -1,0 +1,32 @@
+dn: cn=Mail Service Account,ou=users,dc=example,dc=com
+objectClass: inetOrgPerson
+cn: Mail Service Account
+sn: Service Account
+givenName: Mail
+uid: mail-svc
+userPassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
+dn: cn=Spam Assassin Service Account,ou=users,dc=example,dc=com
+objectClass: inetOrgPerson
+cn: Spam Assassin Service Account
+sn: Assassin
+givenName: Spam
+uid: spam-svc
+userPassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
+dn: cn=WWW Service Account,ou=users,dc=example,dc=com
+objectClass: inetOrgPerson
+cn: WWW Service Account
+sn: Service Account
+givenName: WWW
+uid: www-svc
+userPassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
+dn: cn=Test123,ou=users,dc=example,dc=com
+cn: Test123
+displayname: Test123
+givenname: Test123
+objectclass: inetOrgPerson
+sn: Test123
+uid: test123
+userpassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY

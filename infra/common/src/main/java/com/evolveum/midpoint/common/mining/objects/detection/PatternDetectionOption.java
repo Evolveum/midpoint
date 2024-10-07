@@ -7,7 +7,9 @@
 
 package com.evolveum.midpoint.common.mining.objects.detection;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RangeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisDetectionOptionType;
 
 import java.io.Serializable;
 
@@ -15,7 +17,7 @@ import java.io.Serializable;
  * The `DetectionOption` class represents detection options for role analysis. It includes parameters such as minimum
  * and maximum frequency thresholds, minimum users, and minimum roles.
  */
-public class DetectionOption implements Serializable {
+public class PatternDetectionOption implements Serializable {
 
     private final double minFrequencyThreshold;
     private final Integer minUsers;
@@ -38,17 +40,25 @@ public class DetectionOption implements Serializable {
         return minRoles;
     }
 
-    public DetectionOption(double minFrequencyThreshold, double maxFrequencyThreshold, Integer minUsers, Integer minRoles) {
+    public PatternDetectionOption(double minFrequencyThreshold, double maxFrequencyThreshold, Integer minUsers, Integer minRoles) {
         this.minFrequencyThreshold = minFrequencyThreshold;
         this.maxFrequencyThreshold = maxFrequencyThreshold;
         this.minUsers = minUsers;
         this.minRoles = minRoles;
     }
 
-    public DetectionOption(RoleAnalysisClusterType cluster) {
-        this.minFrequencyThreshold = cluster.getDetectionOption().getFrequencyRange().getMin();
-        this.maxFrequencyThreshold = cluster.getDetectionOption().getFrequencyRange().getMax();
-        this.minUsers = cluster.getDetectionOption().getMinUserOccupancy();
-        this.minRoles = cluster.getDetectionOption().getMinRolesOccupancy();
+    public PatternDetectionOption(RoleAnalysisClusterType cluster) {
+        RoleAnalysisDetectionOptionType detectionOption = cluster.getDetectionOption();
+        RangeType frequencyRange = detectionOption.getFrequencyRange();
+        if (frequencyRange == null) {
+            this.minFrequencyThreshold = 0;
+            this.maxFrequencyThreshold = 100;
+        } else {
+            this.minFrequencyThreshold = frequencyRange.getMin();
+            this.maxFrequencyThreshold = frequencyRange.getMax();
+        }
+
+        this.minUsers = detectionOption.getMinUserOccupancy();
+        this.minRoles = detectionOption.getMinRolesOccupancy();
     }
 }

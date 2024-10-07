@@ -1,0 +1,27 @@
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="0aebc929-52f6-4aeb-9bcc-335aa8e5951f">
+    <name>HR Reconciliation</name>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000501" type="ArchetypeType"/>
+    </assignment>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>closed</executionState>
+    <activity>
+        <work>
+            <reconciliation>
+                <resourceObjects>
+                    <resourceRef oid="07b20755-5b61-4fd9-afed-a819eb2ac686" type="ResourceType"/>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                </resourceObjects>
+            </reconciliation>
+        </work>
+    </activity>
+</task>

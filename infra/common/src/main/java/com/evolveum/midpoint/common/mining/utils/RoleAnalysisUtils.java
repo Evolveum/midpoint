@@ -18,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
-import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
+import com.evolveum.midpoint.common.mining.objects.detection.PatternDetectionOption;
 import com.evolveum.midpoint.common.mining.objects.statistic.ClusterStatistic;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -48,10 +48,15 @@ public class RoleAnalysisUtils {
     }
 
     @NotNull
-    public static DetectionOption loadDetectionOption(@NotNull RoleAnalysisDetectionOptionType detectionOptionType) {
-        Double min = detectionOptionType.getFrequencyRange().getMin();
-        Double max = detectionOptionType.getFrequencyRange().getMax();
-        return new DetectionOption(
+    public static PatternDetectionOption loadPatternDetectionOption(@NotNull RoleAnalysisDetectionOptionType detectionOptionType) {
+        RangeType frequencyRange = detectionOptionType.getFrequencyRange();
+        Double min = 0.0;
+        Double max = 100.0;
+        if(frequencyRange != null && frequencyRange.getMin() != null && frequencyRange.getMax() != null) {
+            min = frequencyRange.getMin();
+            max = frequencyRange.getMax();
+        }
+        return new PatternDetectionOption(
                 min,
                 max,
                 detectionOptionType.getMinUserOccupancy(),

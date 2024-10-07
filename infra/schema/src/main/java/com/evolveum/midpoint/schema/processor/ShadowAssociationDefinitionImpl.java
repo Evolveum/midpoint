@@ -411,7 +411,7 @@ public class ShadowAssociationDefinitionImpl
     }
 
     @Override
-    public @NotNull Collection<MappingType> getExplicitOutboundMappingBeans() {
+    public @NotNull Collection<MappingType> getOutboundMappingBeans() {
         if (legacyInformation != null) {
             return MiscUtil.asListExceptForNull(legacyInformation.outboundMappingBean());
         }
@@ -422,7 +422,7 @@ public class ShadowAssociationDefinitionImpl
     }
 
     @Override
-    public @NotNull Collection<InboundMappingType> getExplicitInboundMappingBeans() {
+    public @NotNull Collection<InboundMappingType> getInboundMappingBeans() {
         if (legacyInformation != null) {
             return legacyInformation.inboundMappingBeans();
         }
@@ -1066,10 +1066,10 @@ public class ShadowAssociationDefinitionImpl
         if (getDisplayName() != null) {
             sb.append(",Disp");
         }
-        if (!getExplicitOutboundMappingBeans().isEmpty()) {
+        if (!getOutboundMappingBeans().isEmpty()) {
             sb.append(",OUT");
         }
-        if (!getExplicitInboundMappingBeans().isEmpty()) {
+        if (!getInboundMappingBeans().isEmpty()) {
             sb.append(",IN");
         }
         return sb.toString();

@@ -13,7 +13,7 @@ xref:/midpoint/reference/repository/native-postgresql/[Native repository] with m
 This report demonstrates the following features:
 
 * xref:/midpoint/reference/concepts/query/#reference-query[Reference search] - we directly search for `roleMembershipRef` references.
-* xref:/midpoint/reference/misc/value-metadata/[Value metadata] - we work with extended assignment information stored inside value metadata in the reference values.
+* xref:/midpoint/reference/concepts/metadata/[Value metadata] - we work with extended assignment information stored inside value metadata in the reference values.
 * xref:/midpoint/reference/misc/reports/configuration/#subreports-generating-rows[Row generation] - we generate new rows depending on the number of value metadata values.
 * The report also shows a few interesting
 xref:/midpoint/reference/expressions/expressions/script/[script expressions]

@@ -1061,7 +1061,8 @@ CREATE TABLE m_shadow (
     correlationSituation CorrelationSituationType,
     disableReasonId INTEGER REFERENCES m_uri(id),
     enableTimestamp TIMESTAMPTZ,
-    disableTimestamp TIMESTAMPTZ
+    disableTimestamp TIMESTAMPTZ,
+    lastLoginTimestamp TIMESTAMPTZ
 
 ) PARTITION BY LIST (resourceRefTargetOid);
 
@@ -2608,4 +2609,4 @@ END $$;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_change(46, $$ SELECT 1 $$, true);
+call apply_change(47, $$ SELECT 1 $$, true);

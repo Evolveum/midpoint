@@ -1757,7 +1757,34 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-
+            <xsd:element name="standardDeviation" type="tns:RangeType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Serves as a confidence interval,
+                            providing a measure of statistical certainty by defining how much the values deviate
+                            from the mean. A lower standard deviation indicates that data points are closely clustered
+                            around the mean, while a higher value suggests a wider range of dispersion.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisDetectionOptionType.standardDeviation</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="frequencyThreshold" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Frequency threshold used for detection.
+                            If the condition is not met, then the objects are excluded.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisDetectionOptionType.frequencyThreshold</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="detectionProcessMode" type="tns:RoleAnalysisDetectionProcessType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>

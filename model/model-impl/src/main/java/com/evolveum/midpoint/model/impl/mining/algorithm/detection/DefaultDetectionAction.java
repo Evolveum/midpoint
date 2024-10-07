@@ -13,7 +13,7 @@ import java.util.List;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
-import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
+import com.evolveum.midpoint.common.mining.objects.detection.PatternDetectionOption;
 import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 
@@ -28,14 +28,14 @@ public class DefaultDetectionAction implements Serializable {
     private final DetectionOperation detectionType;
     private final RoleAnalysisProgressIncrement handler = new RoleAnalysisProgressIncrement("Pattern Detection: "
             + "DefaultDetectionAction", 6);
-    private final DetectionOption detectionOption;
+    private final PatternDetectionOption detectionOption;
 
     /**
      * Constructs a DefaultDetectionAction with the specified detection option.
      *
      * @param detectionOption The detection option that defines the specific detection operation.
      */
-    public DefaultDetectionAction(@NotNull DetectionOption detectionOption) {
+    public DefaultDetectionAction(@NotNull PatternDetectionOption detectionOption) {
         this.detectionOption = detectionOption;
         detectionType = new PatternResolver();
     }

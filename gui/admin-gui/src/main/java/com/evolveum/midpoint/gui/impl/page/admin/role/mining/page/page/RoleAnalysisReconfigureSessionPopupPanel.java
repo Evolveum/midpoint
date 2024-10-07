@@ -92,15 +92,10 @@ public class RoleAnalysisReconfigureSessionPopupPanel
                 return containerWrapperModel;
             }
 
+            @Override
             @SuppressWarnings("rawtypes")
             protected boolean checkMandatory(@NotNull ItemWrapper itemWrapper) {
-                ItemName itemName = itemWrapper.getItemName();
-                if (itemName.equivalent(RoleAnalysisDetectionOptionType.F_MIN_ROLES_OCCUPANCY)
-                        || itemName.equivalent(RoleAnalysisDetectionOptionType.F_MIN_USER_OCCUPANCY)
-                        || itemName.equivalent(RoleAnalysisDetectionOptionType.F_FREQUENCY_RANGE)) {
-                    return true;
-                }
-                return itemWrapper.isMandatory();
+                return false;
             }
 
             @Override
@@ -109,14 +104,19 @@ public class RoleAnalysisReconfigureSessionPopupPanel
                 LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getObjectWrapperModel();
                 RoleAnalysisOptionType option = resolveSessionAnalysisOption(objectWrapperModel);
                 RoleAnalysisProcedureType procedureType = option.getAnalysisProcedureType();
-
+                boolean isOutlierDetection = procedureType.equals(RoleAnalysisProcedureType.OUTLIER_DETECTION);
                 return wrapper -> {
                     ItemName itemName = wrapper.getItemName();
-
-                    if (itemName.equivalent(RoleAnalysisDetectionOptionType.F_MIN_ROLES_OCCUPANCY)
-                            || itemName.equivalent(RoleAnalysisDetectionOptionType.F_MIN_USER_OCCUPANCY)) {
-
-                        if (procedureType == RoleAnalysisProcedureType.OUTLIER_DETECTION) {
+                    if (!isOutlierDetection) {
+                        if (itemName.equivalent(RoleAnalysisDetectionOptionType.F_FREQUENCY_THRESHOLD)
+                                || itemName.equivalent(RoleAnalysisDetectionOptionType.F_STANDARD_DEVIATION)
+                                || itemName.equivalent(RoleAnalysisDetectionOptionType.F_SENSITIVITY)) {
+                            return ItemVisibility.HIDDEN;
+                        }
+                    } else {
+                        if (itemName.equivalent(RoleAnalysisDetectionOptionType.F_FREQUENCY_RANGE)
+                                || itemName.equivalent(RoleAnalysisDetectionOptionType.F_MIN_ROLES_OCCUPANCY)
+                                || itemName.equivalent(RoleAnalysisDetectionOptionType.F_MIN_USER_OCCUPANCY)) {
                             return ItemVisibility.HIDDEN;
                         }
                     }
@@ -251,7 +251,10 @@ public class RoleAnalysisReconfigureSessionPopupPanel
                             || itemName.equals(AbstractAnalysisSessionOptionType.F_MIN_MEMBERS_COUNT)
                             || itemName.equals(AbstractAnalysisSessionOptionType.F_SIMILARITY_THRESHOLD)
                             || itemName.equals(AbstractAnalysisSessionOptionType.F_CLUSTERING_ATTRIBUTE_SETTING)
-                            || itemName.equals(AbstractAnalysisSessionOptionType.F_USER_ANALYSIS_ATTRIBUTE_SETTING)) {
+                            || itemName.equals(AbstractAnalysisSessionOptionType.F_USER_ANALYSIS_ATTRIBUTE_SETTING)
+                            || itemName.equals(AbstractAnalysisSessionOptionType.F_MAX_DISTANCE)
+                            || itemName.equals(AbstractAnalysisSessionOptionType.F_DETAILED_ANALYSIS)
+                    ) {
                         return ItemVisibility.HIDDEN;
                     }
 

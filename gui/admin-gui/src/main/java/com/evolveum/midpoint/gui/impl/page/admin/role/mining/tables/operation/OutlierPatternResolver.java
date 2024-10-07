@@ -20,7 +20,7 @@ import com.evolveum.midpoint.common.mining.objects.chunk.MiningBaseTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
-import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
+import com.evolveum.midpoint.common.mining.objects.detection.PatternDetectionOption;
 import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 
@@ -165,7 +165,7 @@ public class OutlierPatternResolver implements Serializable {
     public <T extends MiningBaseTypeChunk> ListMultimap<String, SimpleHeatPattern> performDetection(
             @NotNull RoleAnalysisProcessModeType processMode,
             @NotNull List<T> miningBaseTypeChunks,
-            @NotNull DetectionOption detectionOption) {
+            @NotNull PatternDetectionOption detectionOption) {
 
         double minFrequency = detectionOption.getMinFrequencyThreshold() / 100;
         double maxFrequency = detectionOption.getMaxFrequencyThreshold() / 100;
@@ -257,7 +257,7 @@ public class OutlierPatternResolver implements Serializable {
     public <T extends MiningBaseTypeChunk> List<SimpleHeatPattern> performSingleCellDetection(
             @NotNull RoleAnalysisProcessModeType processMode,
             @NotNull List<T> miningBaseTypeChunks,
-            @NotNull DetectionOption detectionOption,
+            @NotNull PatternDetectionOption detectionOption,
             List<String> requiredProperties,
             List<String> allowedProperties) {
 
