@@ -34,7 +34,15 @@ public class VerticalFormAnalysisAttributesPanel extends VerticalFormPrismContai
         PrismPropertyWrapper<ItemPathType> property;
         property = getItemPathTypePrismPropertyWrapper();
 
-        AnalysisAttributeSelectorPanel attributeSelectorPanel = new AnalysisAttributeSelectorPanel(ID_ATTRIBUTES, Model.of(property));
+        AnalysisAttributeSelectorPanel attributeSelectorPanel = new AnalysisAttributeSelectorPanel(ID_ATTRIBUTES, Model.of(property)){
+            @Override
+            public boolean isEditable() {
+                if(getSettings() == null || getSettings().getEditabilityHandler() == null){
+                    return true;
+                }
+                return getSettings().getEditabilityHandler().isEditable(getModelObject());
+            }
+        };
         attributeSelectorPanel.setOutputMarkupId(true);
         return attributeSelectorPanel;
 

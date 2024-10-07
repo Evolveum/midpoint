@@ -96,7 +96,7 @@ public class RoleAnalysisObjectDto implements Serializable {
 
         }
 
-        this.displayValueOption = loadDispayValueOption(cluster, parameterTableSetting);
+        this.displayValueOption = loadDisplayValueOption(cluster, parameterTableSetting);
 
         //chunk mode
         this.miningOperationChunk = roleAnalysisService.prepareMiningStructure(
@@ -125,25 +125,24 @@ public class RoleAnalysisObjectDto implements Serializable {
         }
     }
 
-    private @NotNull DisplayValueOption loadDispayValueOption(@NotNull RoleAnalysisClusterType cluster, Integer parameterTableSetting) {
-//        RoleAnalysisClusterType cluster = getModelObject().asObjectable();
+    private @NotNull DisplayValueOption loadDisplayValueOption(@NotNull RoleAnalysisClusterType cluster, Integer parameterTableSetting) {
         AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
 
-        DisplayValueOption displayValueOption = new DisplayValueOption();
-        displayValueOption.setChunkMode(RoleAnalysisChunkMode.COMPRESS);
+        DisplayValueOption chunkDisplayValueOption = new DisplayValueOption();
+        chunkDisplayValueOption.setChunkMode(RoleAnalysisChunkMode.COMPRESS);
 
-        displayValueOption.setProcessMode(isRoleMode ? RoleAnalysisProcessModeType.ROLE : RoleAnalysisProcessModeType.USER);
+        chunkDisplayValueOption.setProcessMode(isRoleMode ? RoleAnalysisProcessModeType.ROLE : RoleAnalysisProcessModeType.USER);
 
 //        Integer parameterTableSetting = getParameterTableSetting();
         if (parameterTableSetting != null && parameterTableSetting == 1) {
-            displayValueOption.setFullPage(true);
+            chunkDisplayValueOption.setFullPage(true);
         }
 
         Integer rolesCount = clusterStatistics.getRolesCount();
         Integer usersCount = clusterStatistics.getUsersCount();
 
         if (rolesCount == null || usersCount == null) {
-            displayValueOption.setSortMode(RoleAnalysisSortMode.NONE);
+            chunkDisplayValueOption.setSortMode(RoleAnalysisSortMode.NONE);
         } else {
 
             int maxRoles;
@@ -158,24 +157,32 @@ public class RoleAnalysisObjectDto implements Serializable {
             }
             int max = Math.max(rolesCount, usersCount);
 
-            if (max <= 500) {
-                displayValueOption.setSortMode(RoleAnalysisSortMode.JACCARD);
-            } else {
-                displayValueOption.setSortMode(RoleAnalysisSortMode.FREQUENCY);
-            }
+            resolveDefaultSortMode(max, chunkDisplayValueOption);
 
-            if (rolesCount > maxRoles && usersCount > maxUsers) {
-                displayValueOption.setChunkMode(RoleAnalysisChunkMode.COMPRESS);
-            } else if (rolesCount > maxRoles) {
-                displayValueOption.setChunkMode(RoleAnalysisChunkMode.EXPAND_USER);
-            } else if (usersCount > maxUsers) {
-                displayValueOption.setChunkMode(RoleAnalysisChunkMode.EXPAND_ROLE);
-            } else {
-                displayValueOption.setChunkMode(RoleAnalysisChunkMode.EXPAND);
-            }
+            resolveDefaultChunkStructure(rolesCount, maxRoles, usersCount, maxUsers, chunkDisplayValueOption);
         }
 
-        return displayValueOption;
+        return chunkDisplayValueOption;
+    }
+
+    private static void resolveDefaultSortMode(int max, DisplayValueOption displayValueOption) {
+        if (max <= 500) {
+            displayValueOption.setSortMode(RoleAnalysisSortMode.JACCARD);
+        } else {
+            displayValueOption.setSortMode(RoleAnalysisSortMode.FREQUENCY);
+        }
+    }
+
+    private static void resolveDefaultChunkStructure(Integer rolesCount, int maxRoles, Integer usersCount, int maxUsers, DisplayValueOption displayValueOption) {
+        if (rolesCount > maxRoles || usersCount > maxUsers) {
+            displayValueOption.setChunkMode(RoleAnalysisChunkMode.COMPRESS);
+//            } else if (rolesCount > maxRoles) {
+//                displayValueOption.setChunkMode(RoleAnalysisChunkMode.EXPAND_USER);
+//            } else if (usersCount > maxUsers) {
+//                displayValueOption.setChunkMode(RoleAnalysisChunkMode.EXPAND_ROLE);
+        } else {
+            displayValueOption.setChunkMode(RoleAnalysisChunkMode.EXPAND);
+        }
     }
 
     public <B extends MiningBaseTypeChunk> List<B> getMainMiningChunk() {

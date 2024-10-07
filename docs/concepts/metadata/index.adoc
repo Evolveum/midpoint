@@ -1,5 +1,6 @@
 = Value Metadata
 :page-toc: top
+:page-moved-from: /midpoint/reference/misc/value-metadata/
 
 
 == Introduction
