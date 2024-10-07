@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<systemConfiguration oid="00000000-0000-0000-0000-000000000001"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>SystemConfiguration</name>
+    <logging>
+        <appender xsi:type="FileAppenderConfigurationType" name="IDM_LOG" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
+            <fileName>target/test.log</fileName>
+            <append>true</append>
+        </appender>
+        <rootLoggerAppender>IDM_LOG</rootLoggerAppender>
+        <rootLoggerLevel>INFO</rootLoggerLevel>
+    </logging>
+</systemConfiguration>

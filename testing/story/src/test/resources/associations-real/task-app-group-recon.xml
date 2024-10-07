@@ -1,0 +1,26 @@
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="02ad695f-500b-4a6b-b400-f33754fababf">
+    <name>AD application groups reconciliation (real)</name>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000501" type="ArchetypeType"/>
+    </assignment>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>closed</executionState>
+    <activity>
+        <work>
+            <reconciliation>
+                <resourceObjects>
+                    <resourceRef oid="052a29b1-cde5-4546-9787-916e4a846f2e"/>
+                    <kind>entitlement</kind>
+                    <intent>app-group</intent>
+                </resourceObjects>
+            </reconciliation>
+        </work>
+    </activity>
+</task>

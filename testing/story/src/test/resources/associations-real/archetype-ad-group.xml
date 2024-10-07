@@ -1,0 +1,82 @@
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<archetype
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="8053bbaa-6578-442d-a7a6-9c5b39b8a389">
+    <name>AD - ad-group</name>
+    <assignment>
+        <assignmentRelation>
+            <holderType>c:RoleType</holderType>
+        </assignmentRelation>
+    </assignment>
+    <inducement>
+        <construction>
+            <resourceRef oid="052a29b1-cde5-4546-9787-916e4a846f2e"/>
+            <kind>entitlement</kind>
+            <intent>ad-group</intent>
+        </construction>
+        <focusType>c:RoleType</focusType>
+    </inducement>
+    <inducement>
+        <construction>
+            <resourceRef oid="052a29b1-cde5-4546-9787-916e4a846f2e"/>
+            <kind>account</kind>
+            <intent>default</intent>
+        </construction>
+        <order>2</order>
+        <focusType>UserType</focusType>
+    </inducement>
+    <inducement>
+        <identifier>generate-role-properties-from-identifier</identifier>
+        <focusMappings>
+            <mapping>
+                <name>generate-name-from-identifier</name>
+                <strength>weak</strength>
+                <source>
+                    <path>identifier</path>
+                </source>
+                <expression>
+                    <script>
+                        <code>"ad:" + identifier</code>
+                    </script>
+                </expression>
+                <target>
+                    <path>name</path>
+                </target>
+            </mapping>
+            <mapping>
+                <name>generate-displayName-from-identifier</name>
+                <strength>strong</strength>
+                <source>
+                    <path>identifier</path>
+                </source>
+                <expression>
+                    <script>
+                        <code>"AD: " + identifier?.replace('-', ' ')?.capitalize()</code>
+                    </script>
+                </expression>
+                <target>
+                    <path>displayName</path>
+                </target>
+            </mapping>
+        </focusMappings>
+        <focusType>c:RoleType</focusType>
+    </inducement>
+    <archetypePolicy>
+        <display>
+            <label>AD Group Role</label>
+            <pluralLabel>AD Group Roles</pluralLabel>
+            <tooltip>AD Group Role</tooltip>
+            <icon>
+                <cssClass>fe fe-role</cssClass>
+                <color>olive</color>
+            </icon>
+        </display>
+    </archetypePolicy>
+</archetype>

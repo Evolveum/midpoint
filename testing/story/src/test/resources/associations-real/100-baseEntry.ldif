@@ -1,0 +1,19 @@
+dn: ou=appgroups,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: appgroups
+
+dn: ou=users,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: users
+
+dn: cn=idm,ou=Administrators,dc=example,dc=com
+objectclass: top
+objectclass: person
+cn: idm
+sn: IDM Administrator
+description: Special LDAP account used by the IDM
+  to access the LDAP data.
+userPassword: {SSHA}R5KF3K4X2FX5gkWKuDxm4M6gZyO0QgNF
+

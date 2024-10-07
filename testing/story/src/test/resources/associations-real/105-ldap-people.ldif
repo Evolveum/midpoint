@@ -1,0 +1,574 @@
+# uid simulates sAMAccountName
+# TODO uid _can_ simulate userPrincipalName, but if we do not want to create inbound mapping with script to import existing usernames, we do not want that
+# cn must be unique within the same container
+
+dn: cn=Alexander Freeman,ou=users,dc=example,dc=com
+cn: Alexander Freeman
+displayname: Alexander Freeman
+employeenumber: 1010
+givenname: Alexander
+initials: AF
+l: Fast River City
+objectclass: inetOrgPerson
+sn: Freeman
+title: Sales Representative
+uid: afreeman
+userpassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
+
+dn: cn=Alice Baker,ou=users,dc=example,dc=com
+cn: Alice Baker
+displayname: Alice Baker
+employeenumber: 1021
+givenname: Alice
+initials: AB
+l: White Stone City
+objectclass: inetOrgPerson
+sn: Baker
+st: Stone Sstate
+title: Chief Recruiting Officer
+uid: abaker
+userpassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
+
+dn: cn=Amanda de Wries,ou=users,dc=example,dc=com
+cn: Amanda de Wries
+displayname: Amanda de Wries
+employeenumber: 1030
+givenname: Amanda
+initials: AD
+l: Small Red Rock City
+objectclass: inetOrgPerson
+sn: de Wries
+st: Rocky State
+title: Senior Consultant
+uid: adewries
+userpassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
+
+dn: cn=Ana Lopez,ou=users,dc=example,dc=com
+cn: Ana Lopez
+displayname: Ana Lopez
+employeenumber: 1002
+givenname: Ana
+initials: AL
+l: Hot Lava City
+objectclass: inetOrgPerson
+sn: Lopez
+st: Lava State
+title: CFO
+uid: alopez
+userpassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
+
+dn: cn=Ashley Jackson,ou=users,dc=example,dc=com
+cn: Ashley Jackson
+displayname: Ashley Jackson
+employeenumber: 1029
+givenname: Ashley
+initials: AJ
+l: Hot Lava City
+objectclass: inetOrgPerson
+sn: Jackson
+st: Lava State
+title: Contract Termination Specialist
+uid: ajackson
+userpassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
+
+dn: cn=Brad Carpenter,ou=users,dc=example,dc=com
+cn: Brad Carpenter
+displayname: Brad Carpenter
+employeenumber: 1024
+givenname: Brad
+initials: BC
+l: Fast River City
+objectclass: inetOrgPerson
+sn: Carpenter
+st: Two River State
+title: Airborne Unit Coordinator
+uid: bcarpenter
+userpassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
+
+
+dn: cn=Charles Whitehead,ou=users,dc=example,dc=com
+cn: Charles Whitehead
+displayname: Charles Whitehead
+employeenumber: 1039
+givenname: Charles
+initials: CW
+l: Hot Lava City
+objectclass: inetOrgPerson
+sn: Whitehead
+st: Lava State
+title: Environment Adaptation Specialis
+uid: cwhitehe
+userpassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
+
+dn: cn=David Iverson,ou=users,dc=example,dc=com
+cn: David Iverson
+displayname: David Iverson
+employeenumber: 1022
+givenname: David
+initials: DI
+l: Small Red Rock City
+objectclass: inetOrgPerson
+roomnumber: disabled
+sn: Iverson
+st: Rocky State
+title: Service Development Specialist
+uid: diverson
+userpassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
+
+dn: cn=Diane Davis,ou=users,dc=example,dc=com
+cn: Diane Davis
+displayname: Diane Davis
+employeenumber: 1007
+givenname: Diane
+initials: DD
+l: Hot Lava City
+objectclass: inetOrgPerson
+sn: Davis
+st: Lava State
+title: Junior Consultant
+uid: ddavis
+userpassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
+
+dn: cn=Elisabeth Mason,ou=users,dc=example,dc=com
+cn: Elisabeth Mason
+displayname: Elisabeth Mason
+employeenumber: 1008
+givenname: Elisabeth
+initials: EM
+l: Small Red Rock City
+objectclass: inetOrgPerson
+sn: Mason
+st: Rocky State
+title: Accountant
+uid: emason
+userpassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
+
+dn: cn=Ellen Jones,ou=users,dc=example,dc=com
+cn: Ellen Jones
+displayname: Ellen Jones
+employeenumber: 1023
+givenname: Ellen
+initials: EJ
+l: Small Red Rock City
+objectclass: inetOrgPerson
+sn: Jones
+st: Rocky State
+title: Contract Termination Specialist
+uid: ejones
+userpassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
+
+dn: cn=Emma Jones,ou=users,dc=example,dc=com
+cn: Emma Jones
+displayname: Emma Jones
+employeenumber: 1027
+givenname: Emma
+initials: EJ
+l: Fast River City
+objectclass: inetOrgPerson
+sn: Jones
+st: 2 River State
+title: Careers Advisor
+uid: ejones27
+userpassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
+
+dn: cn=Eva Mendez,ou=users,dc=example,dc=com
+cn: Eva Mendez
+displayname: Eva Mendez
+employeenumber: 1037
+givenname: Eva
+initials: EM
+l: Hot Lava City
+objectclass: inetOrgPerson
+roomnumber: disabled
+sn: Mendez
+st: Lava State
+title: Junior Consultant
+uid: emendez
+userpassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
+
+dn: cn=Frank Usher,ou=users,dc=example,dc=com
+cn: Frank Usher
+displayname: Frank Usher
+employeenumber: 1017
+givenname: Frank
+initials: FU
+l: White Stone City
+objectclass: inetOrgPerson
+sn: Usher
+st: Stone State
+title: Agent Recruitment Specialist
+uid: fusher
+userpassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
+
+dn: cn=Frederick Smith,ou=users,dc=example,dc=com
+cn: Frederick Smith
+displayname: Frederick Smith
+employeenumber: 1040
+givenname: Frederick
+initials: FS
+l: Hot Lava City
+objectclass: inetOrgPerson
+sn: Smith
+st: Lava State
+title: Environment Adaptation Specialis
+uid: fsmith
+userpassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
+
+dn: cn=Geena Green,ou=users,dc=example,dc=com
+cn: Geena Green
+displayname: Geena Green
+employeenumber: 1001
+givenname: Geena
+initials: GG
+l: Hot Lava City
+objectclass: inetOrgPerson
+sn: Green
+st: Rocky State
+title: CEO
+uid: geena
+userpassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
+
+dn: cn=Jane Anderson,ou=users,dc=example,dc=com
+cn: Jane Anderson
+displayname: Jane Anderson
+employeenumber: 1016
+givenname: Jane
+initials: JA
+l: Hot Lava City
+objectclass: inetOrgPerson
+roomnumber: disabled
+sn: Anderson
+st: Lava State
+title: Junior Consultant
+uid: janderso
+userpassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
+
+dn: cn=Jennifer Jameson,ou=users,dc=example,dc=com
+cn: Jennifer Jameson
+displayname: Jennifer Jameson
+employeenumber: 1031
+givenname: Jennifer
+initials: JJ
+l: Hot Lava City
+objectclass: inetOrgPerson
+sn: Jameson
+st: Lava State
+title: Senior Consultant
+uid: jjameson
+userpassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
+
+dn: cn=John Smith,ou=users,dc=example,dc=com
+cn: John Smith
+displayname: John Smith
+employeenumber: 1019
+givenname: John
+initials: JS
+l: Hot Lava City
+objectclass: inetOrgPerson
+sn: Smith
+st: Lava State
+title: International Intervention Coordinator
+uid: jsmith
+userpassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
+
+dn: cn=John Smith-Walker,ou=users,dc=example,dc=com
+cn: John Smith-Walker
+displayname: John Smith-Walker
+employeenumber: 1035
+givenname: John
+initials: JS
+l: White Stone City
+objectclass: inetOrgPerson
+sn: Smith-Walker
+st: Stone tate
+title: Sales Representative
+uid: jsmithwa
+userpassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
+
+dn: cn=Jonathan Taylor,ou=users,dc=example,dc=com
+cn: Jonathan Taylor
+displayname: Jonathan Taylor
+employeenumber: 1028
+givenname: Jonathan
+initials: JT
+l: Fast River City
+objectclass: inetOrgPerson
+sn: Taylor
+st: Two River State
+title: Domestic Intervention Coordinator
+uid: jtaylor2
+userpassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
+
+dn: cn=Josef Zimmer,ou=users,dc=example,dc=com
+cn: Josef Zimmer
+displayname: Josef Zimmer
+employeenumber: 1009
+givenname: Josef
+initials: JZ
+l: Hot Lava City
+objectclass: inetOrgPerson
+sn: Zimmer
+st: Lava State
+title: Sales Representative
+uid: jzimmer
+userpassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
+
+dn: cn=Joseph Smith,ou=users,dc=example,dc=com
+cn: Joseph Smith
+displayname: Joseph Smith
+employeenumber: 1026
+givenname: Joseph
+initials: JS
+l: White Stone City
+objectclass: inetOrgPerson
+sn: Smith
+st: Stone State
+title: Expert Specialist
+uid: jsmith2
+userpassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
+
+dn: cn=Laura Shepherd,ou=users,dc=example,dc=com
+cn: Laura Shepherd
+displayname: Laura Shepherd
+employeenumber: 1034
+givenname: Laura
+initials: LS
+l: Hot Lava City
+objectclass: inetOrgPerson
+roomnumber: disabled
+sn: Shepherd
+st: Lava State
+title: Sales Representative
+uid: lshepher
+userpassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
+
+dn: cn=Lucy Rider,ou=users,dc=example,dc=com
+cn: Lucy Rider
+displayname: Lucy Rider
+employeenumber: 1015
+givenname: Lucy
+initials: LR
+l: Hot Lava City
+objectclass: inetOrgPerson
+sn: Rider
+title: HR Director
+uid: lrider
+userpassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
+
+dn: cn=Maria Schmitt,ou=users,dc=example,dc=com
+cn: Maria Schmitt
+displayname: Maria Schmitt
+employeenumber: 1036
+givenname: Maria
+initials: MS
+l: Hot Lava City
+objectclass: inetOrgPerson
+sn: Schmitt
+st: Lava State
+title: Junior Consultant
+uid: mschmitt
+userpassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
+dn: cn=Martin Knight,ou=users,dc=example,dc=com
+cn: Martin Knight
+displayname: Martin Knight
+employeenumber: 1006
+givenname: Martin
+initials: MK
+l: Hot Lava City
+objectclass: inetOrgPerson
+sn: Knight
+title: Junior Specialist
+uid: mknight
+userpassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
+dn: cn=Olaf Peterson,ou=users,dc=example,dc=com
+cn: Olaf Peterson
+displayname: Olaf Peterson
+employeenumber: 1013
+givenname: Olaf
+initials: OP
+l: Hot Lava City
+objectclass: inetOrgPerson
+sn: Peterson
+st: Lava State
+title: CTO
+uid: opeterso
+userpassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
+
+dn: cn=Olivia Xander,ou=users,dc=example,dc=com
+cn: Olivia Xander
+displayname: Olivia Xander
+employeenumber: 1020
+givenname: Olivia
+initials: OX
+l: Hot Lava City
+objectclass: inetOrgPerson
+roomnumber: disabled
+sn: Xander
+st: Lava State
+title: Agent Recruitment Specialist
+uid: oxander
+userpassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
+
+dn: cn=Patrick Anderson,ou=users,dc=example,dc=com
+cn: Patrick Anderson
+displayname: Patrick Anderson
+employeenumber: 1032
+givenname: Patrick
+initials: PA
+l: Hot Lava City
+objectclass: inetOrgPerson
+sn: Anderson
+st: Lava State
+title: Negotiation Specialist
+uid: panderson
+userpassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
+
+dn: cn=Peter Hunter,ou=users,dc=example,dc=com
+cn: Peter Hunter
+displayname: Peter Hunter
+employeenumber: 1004
+givenname: Peter
+initials: PH
+l: White Stone City
+objectclass: inetOrgPerson
+sn: Hunter
+st: Stone State
+title: HR Consultant
+uid: hunter
+userpassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
+
+dn: cn=Ricardo Pedroso,ou=users,dc=example,dc=com
+cn: Ricardo Pedroso
+displayname: Ricardo Pedroso
+employeenumber: 1038
+givenname: Ricardo
+initials: RP
+l: Hot Lava City
+objectclass: inetOrgPerson
+sn: Pedroso
+st: Lava State
+title: Expert Accountant
+uid: rpedroso
+userpassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
+
+dn: cn=Robert Nelson,ou=users,dc=example,dc=com
+cn: Robert Nelson
+displayname: Robert Nelson
+employeenumber: 1012
+givenname: Robert
+initials: RN
+l: Fast River City
+objectclass: inetOrgPerson
+sn: Nelson
+st: Two Rivrr State
+title: Service Development Specialist
+uid: rnelson
+userpassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
+
+dn: cn=Robert Riley,ou=users,dc=example,dc=com
+cn: Robert Riley
+displayname: Robert Riley
+employeenumber: 1025
+givenname: Robert
+initials: RR
+l: Fast River City
+objectclass: inetOrgPerson
+sn: Riley
+st: Two River State
+title: Careers Advisor
+uid: rriley
+userpassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
+
+dn: cn=Sam Brown,ou=users,dc=example,dc=com
+cn: Sam Brown
+displayname: Sam Brown
+employeenumber: 1018
+givenname: Sam
+initials: SB
+l: White Stone City
+objectclass: inetOrgPerson
+sn: Brown
+st: Stone State
+title: Agent Recruitment Specialist
+uid: sbrown
+userpassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
+
+dn: cn=Scott Hoover,ou=users,dc=example,dc=com
+cn: Scott Hoover
+displayname: Scott Hoover
+employeenumber: 1033
+givenname: Scott
+initials: SH
+l: Fast River City
+objectclass: inetOrgPerson
+sn: Hoover
+st: Two River State
+title: Negotiation Specialist
+uid: shoover
+userpassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
+
+dn: cn=Tom Walker,ou=users,dc=example,dc=com
+cn: Tom Walker
+displayname: Tom Walker
+employeenumber: 1014
+givenname: Tom
+initials: TW
+l: White Stone City
+objectclass: inetOrgPerson
+sn: Walker
+st: Stone State
+title: Junior Consultant
+uid: twalker
+userpassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
+
+dn: cn=Victoria Violet,ou=users,dc=example,dc=com
+cn: Victoria Violet
+displayname: Victoria Violet
+employeenumber: 1011
+givenname: Victoria
+initials: VV
+l: White Stone City
+objectclass: inetOrgPerson
+sn: Violet
+st: Stone State
+title: Sales Director
+uid: vviolet
+userpassword: {SSHA}nbiCSFRf7D89b9wZYLqzOKT6PBVHd4YY
+
