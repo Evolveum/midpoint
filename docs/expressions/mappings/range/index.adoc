@@ -21,63 +21,72 @@ The mapping range can be specified by using a `set` declaration in its target:
 
 [source,xml]
 ----
-        <mapping>
-            <expression>
-                ...
-            </expression>
-            <target>
-                <set>
-                    <predefined>all</predefined>
-                </set>
-            </target>
+<mapping>
+    <expression>
+        ...
+    </expression>
+    <target>
+        <set>
+            <predefined>all</predefined>
+        </set>
+    </target>
 ----
 
-Since midPoint 4.0 there is also an option to define sets using pre-defined specifications.
 The `predefined` element can take following values:
 
-* `all`: All possible elements will be part of the range.
+* `all`: All possible values will be part of the range.
 Which means that all other values (those not given by mappings) will be removed.
 This is also known as _non-tolerant_ behavior.
 
 * `none`: No value will be part of the range.
 The range is empty.
-Which means that no values will be removed.
+Which means that no values will be removed for the reason that it is not produced by a mapping.
 This is also known as _tolerant_ behavior.
 
-The pre-defined specifications can be used for the extreme cases.
-A finer specification can be created by using a condition:
+* `matchingProvenance`:
+The range contains the values created by this mapping in the past.
+They will be removed if not provided by the mapping again.
+This is the default behavior (for all multi-valued items, and all named mappings).
+
+The pre-defined specifications of `all` and `none` can be used for the extreme cases.
+The `matchingProvenance` is a reasonable default for multi-valued items with named mappings.
+
+If needed, a custom specification can be created by using a condition:
 
 [source,xml]
 ----
-        <mapping>
-            <expression>
-                ...
-            </expression>
-            <target>
-                <set>
-                    <condition>
-                        <script>
-                            <code>
-                                import com.evolveum.midpoint.schema.constants.*
-                                input.targetRef != null &amp;&amp; input.targetRef.relation == SchemaConstants.ORG_MANAGER
-                            </code>
-                        </script>
-                    </condition>
-                </set>
-            </target>
+<mapping>
+    <expression>
+        ...
+    </expression>
+    <target>
+        <set>
+            <condition>
+                <script>
+                    <code>
+                        import com.evolveum.midpoint.schema.constants.*
+                        input.targetRef?.relation == SchemaConstants.ORG_MANAGER
+                    </code>
+                </script>
+            </condition>
+        </set>
+    </target>
 ----
 
 Above mapping is an assignment mapping, target of the mapping is an `assignment` container.
 The range definition specifies that the mapping is authoritative for all assignments where target relation is _manager_.
 Therefore, if there is any manager assignment that is not result of this mapping then midPoint knows that such assignment may be removed.
 
+NOTE: The text below was written before `matchingProvenance` range specification was put into production use.
+Although it is still 100% valid, the same functionality could be attained via the use of the provenance metadata.
+We plan to adapt it later.
 
 == Single Mapping
 
 The usual way for automatic assignment of roles is use of xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mapping] with xref:/midpoint/reference/expressions/expressions/#assignment-target-search[assignmentTargetSearch] expression evaluator.
 The mapping takes `jobCode` attribute from the HR system.
 It transforms the `jobCode` to an assignment of midPoint role using the `assignmentTargetSearch` expression.
-The new assignment value is then store in user's `assignment` container, thus assigning the role.
+The new assignment value is then stored in user's `assignment` container, thus assigning the role.
 
 However, the `assignment` container is multi-valued.
 There are roles that are automatically assigned by an HR system.
@@ -168,9 +177,6 @@ As such cases are relatively common, there are pre-defined value set definitions
 | `matchingProvenance`
 | Mapping is authoritative only for the values that it produced.
 | Mapping will remove only the values that were created by the same mapping in the past.
-
-This option is xref:/midpoint/versioning/experimental/[experimental].
-It is a part of prototype functionality resulting from xref:/midpoint/projects/midprivacy/phases/01-data-provenance-prototype/[] project.
 
 |====
 

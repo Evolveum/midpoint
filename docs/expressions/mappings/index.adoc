@@ -32,7 +32,11 @@ xref:/book[MidPoint book] may be a good starting point instead.
 
 Mapping consists of five basic parts:
 
-* *Name* defines unique name of mapping. Name (with other additional attributes) is used in metadata to uniquely identify values emitted by this mapping. See xref:/midpoint/reference/concepts/metadata/[Metadata] page about details. This value should not be changed. (See <<Renaming a Mapping>> chapter if name needs to be changed.)
+* *Name* defines unique name of mapping.
+Name (with other additional attributes) is used in metadata to uniquely identify values emitted by this mapping.
+See xref:/midpoint/reference/concepts/metadata/[Metadata] page about details.
+This value should not be changed.
+(See <<Renaming a Mapping>> chapter if name needs to be changed.)
 
 * *Source* part defines the data sources of the mapping.
 These are usually understood as mapping input.
@@ -318,6 +322,7 @@ The most important part is _item path_, binding the mapping to the target item.
 Unlike mapping sources, there can be only one mapping target.
 
 
+[#_mapping_range]
 === Mapping Range
 
 The _range_ of a mapping (in a mathematical sense) is a set of values that are considered to be valid outputs of the mapping.
@@ -334,7 +339,7 @@ The xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[project
 The range definition does *not* influence mapping inputs or expression.
 The range is used when the mapping outputs are processed.
 
-Default range (if no explicit range is specified) are only values emmited by this mapping (as identified by xref:/midpoint/reference/concepts/metadata/#mapping-specification[provenance metadata]). 
+Default range (if no explicit range is specified) are only values emitted by this mapping (as identified by xref:/midpoint/reference/concepts/metadata/#mapping-specification[provenance metadata]).
 
 Please see xref:range/[] for detailed explanation of mapping range concepts.
 
@@ -1165,13 +1170,17 @@ The source code is the most precise documentation anyway.
 
 === Renaming a Mapping
 
-Sometimes there could be a need to rename mapping after it was already in use and midPoint already contains the values emitted by this mapping.
+Sometimes, a mapping may need to be renamed, e.g., when the original name no longer reflects the nature of the mapping.
+Or, when a new naming schema for mappings is introduced.
 
-Mappings support processing and modifying values also with old mapping name by specifying `mappingAlias` in mapping, which will contain original name.
+Normally, all that needs to be done is simply changing the name of the mapping.
+However, if the (default) xref:#_mapping_range[mapping range] based on the provenance metadata is used, we must be more careful, because the mapping name is used to "mark" the values provided by the mapping in their provenance metadata.
+The renamed mapping would no longer recognize values it created in the past as its own, resulting in keeping them untouched, even in situations when they need to be removed.
 
-The mapping alias will make sure, that also old values will be visible in range for the newly named mapping.
+So, if the mapping was in real use, and if there are (or may be) values produced by it, an extra action is required.
+A mapping can be instructed to recognize values produced by its original name by specifying `mappingAlias` property, containing mapping's original name or names.
 
-
+The mapping alias will make sure, that also old values will be visible in range for the renamed mapping.
 
 .Original mapping definition
 [source, xml]
@@ -1190,7 +1199,69 @@ The mapping alias will make sure, that also old values will be visible in range 
   <mappingAlias>oldMappingName<mappingAlias>
 ----
 
-NOTE: This only works when only mapping name changed. If mapping processing same values was moved to different object template or resource you need to specify `target/set/additionalMappingSpecification` with coordinates of previous location of mapping.
+NOTE: MidPoint GUI will supply the mapping alias automatically when the mapping is renamed through it.
+
+=== Other Changes
+
+The approach described above applies when only the mapping name changes.
+
+However, there are other situations when an analogous action has to be taken:
+
+. the mapping is moved to a different object: resource, object template, role, and so on;
+. the inbound mapping (defined in a resource object type) is moved to a different object type - or the object type in which it directly or indirectly (via association type) resides, is being renamed;
+. the inbound mapping (defined in a resource association type) is moved to a different association type - or the association type in which it resides, is being renamed;
+. shadow tags (for xref:/midpoint/reference/resources/multiaccounts/[multi-account resources]) are changed.
+
+The reason is that all this information, along with the mapping name, is present in the provenance metadata for mapping output values:
+
+.Sample provenance metadata for mapping output values
+[source, xml]
+----
+<provenance>
+    <mappingSpecification>
+        <definitionObjectRef oid="d77da617-ee78-46f7-8a15-cde88193308d" relation="org:default" type="c:ResourceType"/> <!--1-->
+        <objectType> <!--2-->
+            <kind>account</kind>
+            <intent>default</intent>
+        </objectType>
+        <associationType>ri:userDocumentAccess</associationType> <!--3-->
+        <mappingName>accesses-inbound</mappingName> <!--4-->
+    </mappingSpecification>
+</provenance>
+----
+<1> The resource using the mapping (not necessarily the one defining it - in the case of resource template being used).
+<2> Object type using the mapping (again, not necessarily the one defining it - if type inheritance is used).
+<3> The association type using the mapping.
+<4> The mapping name.
+
+If the only changed item is the mapping name, the `mappingAlias` described above can be used to deal with the different provenance metadata.
+For all other configuration changes (object, object type, association type), the original mapping specification or specifications have to be provided in the `target/set/additionalMappingSpecification` item.
+For example, let's assume that the above mentioned mapping was moved to a different resource, or that the object type intent was renamed from `default` to `person`, and/or that the association type was renamed from `userDocumentAccess` to `documentAccess`.
+The original metadata need to be specified as `additionalMappingSpecification` in the mapping, like this:
+
+.Sample additional provenance metadata for mapping output values
+[source, xml]
+----
+<mapping>
+    ...
+    <target>
+        <path>...</path>
+        <set>
+            <additionalMappingSpecification>
+                <definitionObjectRef oid="d77da617-ee78-46f7-8a15-cde88193308d" relation="org:default" type="c:ResourceType"/>
+                <objectType>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                </objectType>
+                <associationType>ri:userDocumentAccess</associationType>
+                <mappingName>accesses-inbound</mappingName>
+            </additionalMappingSpecification>
+        </set>
+    </target>
+</mapping>
+----
+
+NOTE: Shadow tags currently do not play nicely with this schema, see bug:MID-10095[].
 
 ==  See Also
 
