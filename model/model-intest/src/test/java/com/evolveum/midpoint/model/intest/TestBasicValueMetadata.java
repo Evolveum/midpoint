@@ -85,6 +85,7 @@ public class TestBasicValueMetadata extends AbstractEmptyModelIntegrationTest {
     private static final String CC_1000 = "cc1000";
 
     private static final String ORG_UNIT_MAPPING_NAME = "orgUnit-to-organizationalUnit";
+    private static final String ORG_UNIT_MAPPING_NAME_NEW = "orgUnit-to-organizationalUnit-new";
 
     private static final ResourceObjectTypeIdentification ACCOUNT_PERSON =
             ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, "person");
@@ -137,6 +138,8 @@ public class TestBasicValueMetadata extends AbstractEmptyModelIntegrationTest {
                 c.addAttrDef(c.getAccountObjectClass(), ATTR_LOGIN, String.class, false, false);
                 c.addAttrDef(c.getAccountObjectClass(), ATTR_ORG_UNIT, String.class, false, false);
             });
+
+    private static final File MULTI_INBOUND_220_FILE = new File(TEST_DIR, "resource-dummy-multi-inbound-220.xml");
 
     private static DummyAdTrivialScenario refactoringScenario;
     private static final DummyTestResource RESOURCE_DUMMY_FURIOUS_REFACTORING = new DummyTestResource(
@@ -600,6 +603,62 @@ public class TestBasicValueMetadata extends AbstractEmptyModelIntegrationTest {
 //        then("metadata are OK on organizationalUnit: 1st -> engineering");
 //        assertUserAfterByUsername(loginName)
 //                .assertOrganizationalUnits(ENGINEERING);
+    }
+
+    /**
+     * A mapping on the `multi-inbound` resource is renamed.
+     *
+     * We try to deal with it using `additionalMappingSpecification` (simulating the change of object or association type name).
+     *
+     * It is currently not possible (see MID-10095), as the additional specification is static - it cannot contain
+     * shadow tags, as they are specific to individual shadows being processed.
+     */
+    @Test(enabled = false) // MID-10095
+    public void test220RenameMapping() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var loginName = getTestNameShort();
+        var personalNumber = "220";
+
+        given("an account on 'multi-inbound' resource");
+        var account = RESOURCE_DUMMY_MULTI_INBOUND.controller.addAccount(loginName)
+                .addAttributeValue(ATTR_PERSONAL_NUMBER, personalNumber)
+                .addAttributeValue(ATTR_LOGIN, loginName)
+                .addAttributeValue(ATTR_ORG_UNIT, ENGINEERING);
+
+        when("accounts are imported");
+        importMultiInboundAccounts(result);
+
+        then("metadata are OK on organizationalUnit: engineering <- account");
+        assertUserByUsername(loginName, "after import")
+                .assertOrganizationalUnits(ENGINEERING)
+                .valueMetadata(UserType.F_ORGANIZATIONAL_UNIT, origValueSelector(ENGINEERING))
+                .singleValue()
+                .assertMappingObjectOid(RESOURCE_DUMMY_MULTI_INBOUND.oid)
+                .assertMappingName(ORG_UNIT_MAPPING_NAME)
+                .assertMappingObjectType(ACCOUNT_DEFAULT)
+                .assertMappingAssociationType(null)
+                .assertMappingTag(personalNumber);
+
+        when("the mapping is renamed");
+        updateHrResource(MULTI_INBOUND_220_FILE);
+
+        and("organization units is changed on the account and accounts are re-imported");
+        account.replaceAttributeValue(ATTR_ORG_UNIT, MANAGEMENT);
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_MULTI_INBOUND.oid);
+        importMultiInboundAccounts(result);
+
+        then("metadata are OK on organizationalUnit: management <- account (new provenance)");
+        assertUserByUsername(loginName, "after import")
+                .displayXml()
+                .assertOrganizationalUnits(MANAGEMENT)
+                .valueMetadata(UserType.F_ORGANIZATIONAL_UNIT, origValueSelector(MANAGEMENT))
+                .singleValue()
+                .assertMappingObjectOid(RESOURCE_DUMMY_MULTI_INBOUND.oid)
+                .assertMappingName(ORG_UNIT_MAPPING_NAME_NEW)
+                .assertMappingObjectType(ACCOUNT_DEFAULT)
+                .assertMappingAssociationType(null)
+                .assertMappingTag(personalNumber);
     }
 
     private void importMultiInboundAccounts(OperationResult result) throws CommonException, IOException {

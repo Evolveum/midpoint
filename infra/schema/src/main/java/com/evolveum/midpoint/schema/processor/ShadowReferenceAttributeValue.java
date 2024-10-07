@@ -281,4 +281,9 @@ public class ShadowReferenceAttributeValue extends PrismReferenceValueImpl {
     public String toString() {
         return "SRAV: " + super.toString() + (fullObject ? " (full)" : "");
     }
+
+    @Override
+    public void shortDump(StringBuilder sb) {
+        sb.append(this); // FIXME
+    }
 }
