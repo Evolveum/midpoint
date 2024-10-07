@@ -13,7 +13,7 @@
     <div wicket:id="container" class="d-flex ">
 
         <div class="p-0 col-5 d-flex">
-            <span class="pr-3 text-gray text-center"> <wicket:message key="RangeType.min"/> </span>
+            <div class="pr-3 text-gray text-center" wicket:id="minLabel"> </div>
             <input class="form-control form-control-sm" type="text" wicket:id="min">
         </div>
 
@@ -21,8 +21,8 @@
         </div>
 
         <div class="p-0 col-5 d-flex">
-            <span class="pr-3 text-gray text-center"> <wicket:message key="RangeType.max"/> </span>
-            <input class="form-control form-control-sm" type="text" wicket:id="max" pla>
+            <div class="pr-3 text-gray text-center" wicket:id="maxLabel"> </div>
+            <input class="form-control form-control-sm" type="text" wicket:id="max">
         </div>
 
     </div>
