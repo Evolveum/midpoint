@@ -150,15 +150,14 @@ public class ValueDisplayUtil {
                                 expressionString.replace(expressionString.indexOf("{"), expressionString.indexOf("}") + 1, "");
                             }
                         }
-                    } else {
-                        expressionString.append(msg);
                     }
                 });
             }
-            return createMessage(expressionString.toString());
-        } else {
-            return msg;
+            if (!expressionString.isEmpty()) {
+                return createMessage(expressionString.toString());
+            }
         }
+        return msg;
     }
 
     private static LocalizableMessage resourceAttributeDefinitionTypeToString(ResourceAttributeDefinitionType radt) {
