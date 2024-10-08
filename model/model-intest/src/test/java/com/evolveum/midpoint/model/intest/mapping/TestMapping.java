@@ -2641,7 +2641,7 @@ public class TestMapping extends AbstractMappingTest {
 
         then();
         result.computeStatus();
-        if (InternalsConfig.isShadowCachingOnByDefault()) {
+        if (InternalsConfig.isShadowCachingFullByDefault()) {
             assertSuccess(result);
         } else {
             TestUtil.assertPartialError(result);
@@ -2819,7 +2819,7 @@ public class TestMapping extends AbstractMappingTest {
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_LOCALITY, task, result, PolyString.fromOrig(LOCALITY_BOOTY_ISLAND));
 
         then();
-        if (InternalsConfig.isShadowCachingOnByDefault()) {
+        if (InternalsConfig.isShadowCachingFullByDefault()) {
             assertSuccess(result);
         } else {
             assertSuccess(result, 1); // there's hidden PARTIAL_ERROR deep inside
@@ -2847,7 +2847,7 @@ public class TestMapping extends AbstractMappingTest {
         assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
                 DRINK_GIN, DRINK_MEZCAL,
-                InternalsConfig.isShadowCachingOnByDefault() ?
+                InternalsConfig.isShadowCachingFullByDefault() ?
                         rumFrom(LOCALITY_BOOTY_ISLAND) : // the read operation was not needed
                         rumFrom(LOCALITY_SCABB_ISLAND));
     }

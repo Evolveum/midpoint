@@ -1177,7 +1177,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 
         // THEN
         then();
-        if (InternalsConfig.isShadowCachingOnByDefault()) {
+        if (InternalsConfig.isShadowCachingFullByDefault()) {
             // The 'not found' exception is caught on delta execution in this case, which is reported in more harsh way.
             assertPartialError(result);
         } else {

@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static com.evolveum.midpoint.schema.internals.InternalsConfig.isShadowCachingOnByDefault;
+import static com.evolveum.midpoint.schema.internals.InternalsConfig.isShadowCachingFullByDefault;
 
 import static org.testng.AssertJUnit.*;
 
@@ -1835,7 +1835,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         //
         // Either we fix this or recommend setting volatility=unpredictable for such situations.
         PrismAsserts.assertPropertyValue(
-                userAfter, UserType.F_DESCRIPTION, isShadowCachingOnByDefault() ? "Came from null" : "Imported user");
+                userAfter, UserType.F_DESCRIPTION, isShadowCachingFullByDefault() ? "Came from null" : "Imported user");
         assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
         assertAssignedRole(userAfter, ROLE_PIRATE_OID);
         assertAssignments(userAfter, 2);

@@ -412,7 +412,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
 
         assertSuccess(result);
         assertEquals(5, output.getFinalOutput().getData().size());
-        if (!InternalsConfig.isShadowCachingOnByDefault()) {
+        if (!InternalsConfig.isShadowCachingFullByDefault()) {
             assertAttributesNotFetched(output.getFinalOutput().getData());
         }
     }
@@ -450,7 +450,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
 
         assertSuccess(result);
         assertEquals(4, output.getFinalOutput().getData().size());
-        if (!InternalsConfig.isShadowCachingOnByDefault()) {
+        if (!InternalsConfig.isShadowCachingFullByDefault()) {
             assertAttributesNotFetched(output.getFinalOutput().getData());
         }
     }

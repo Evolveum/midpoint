@@ -1298,7 +1298,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         }
 
         TaskType taskObject = new TaskType();
-
+        // Copy channel from task, this allows GUI to set user channel (scripting could have different channel)
+        taskObject.channel(task.getChannel());
         String roleIdentifier;
         if (roleObject.getName() != null) {
             roleIdentifier = roleObject.getName().toString();
@@ -1347,7 +1348,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
         taskObject.setName(PolyStringType.fromOrig("Role migration: " + roleIdentifier));
         taskObject.setOid(UUID.randomUUID().toString());
-
+        // Copy channel from task which executed this code, this ensures that channel is kept correctly.
+        taskObject.setChannel(task.getChannel());
         ObjectReferenceType objectReferenceType = new ObjectReferenceType();
         objectReferenceType.setType(RoleType.COMPLEX_TYPE);
         objectReferenceType.setOid(roleObject.getOid());

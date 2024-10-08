@@ -196,7 +196,7 @@ public class TestServiceAccounts extends AbstractStoryTest {
 
         } catch (UnsupportedOperationException e) {
             then();
-            assertThat(InternalsConfig.isShadowCachingOnByDefault())
+            assertThat(InternalsConfig.isShadowCachingFullByDefault())
                     .as("shadow caching enforcement")
                     .isFalse();
             displayExpectedException(e);
@@ -205,7 +205,7 @@ public class TestServiceAccounts extends AbstractStoryTest {
             // The icfs:name -> name inbound mapping causes removal of the focus name, leading to this exception.
             // The mapping is executed only if caching is enabled, because otherwise we do not have the fresh data from
             // the resource (and the mapping is skipped). See MID-10057.
-            assertThat(InternalsConfig.isShadowCachingOnByDefault())
+            assertThat(InternalsConfig.isShadowCachingFullByDefault())
                     .as("shadow caching enforcement")
                     .isTrue();
             displayExpectedException(e);

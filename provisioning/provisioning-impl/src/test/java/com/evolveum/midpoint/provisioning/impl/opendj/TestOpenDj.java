@@ -29,6 +29,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.impl.polystring.DistinguishedNameNormalizer;
 
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.opends.server.types.Entry;
@@ -3330,7 +3332,10 @@ public class TestOpenDj extends AbstractOpenDjTest {
                 RESOURCE_OPENDJ_NO_READ_FILE, IntegrationTestTools.CONNECTOR_LDAP_TYPE, true, result);
 
         // The cached shadow contains some extra attributes. Invalidation makes that less serious.
-        invalidateShadowCacheIfNeeded(RESOURCE_OPENDJ_OID);
+        // (We do the invalidation not only if FULL shadow caching is enforced, but if ANY caching is enforced.)
+        if (InternalsConfig.isShadowCachingOnByDefault()) {
+            invalidateShadowCache(RESOURCE_OPENDJ_OID);
+        }
 
         try {
             provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
@@ -3364,7 +3369,10 @@ public class TestOpenDj extends AbstractOpenDjTest {
         addResourceFromFile(RESOURCE_OPENDJ_NO_DELETE_FILE, IntegrationTestTools.CONNECTOR_LDAP_TYPE, true, result);
 
         // The cached shadow contains some extra attributes. Invalidation makes that less serious.
-        invalidateShadowCacheIfNeeded(RESOURCE_OPENDJ_OID);
+        // (We do the invalidation not only if FULL shadow caching is enforced, but if ANY caching is enforced.)
+        if (InternalsConfig.isShadowCachingOnByDefault()) {
+            invalidateShadowCache(RESOURCE_OPENDJ_OID);
+        }
 
         try {
             provisioningService.deleteObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, task, result);
@@ -3382,7 +3390,10 @@ public class TestOpenDj extends AbstractOpenDjTest {
         addResourceFromFile(RESOURCE_OPENDJ_NO_UPDATE_FILE, IntegrationTestTools.CONNECTOR_LDAP_TYPE, true, result);
 
         // The cached shadow contains some extra attributes. Invalidation makes that less serious.
-        invalidateShadowCacheIfNeeded(RESOURCE_OPENDJ_OID);
+        // (We do the invalidation not only if FULL shadow caching is enforced, but if ANY caching is enforced.)
+        if (InternalsConfig.isShadowCachingOnByDefault()) {
+            invalidateShadowCache(RESOURCE_OPENDJ_OID);
+        }
 
         try {
             PropertyDelta<String> delta =

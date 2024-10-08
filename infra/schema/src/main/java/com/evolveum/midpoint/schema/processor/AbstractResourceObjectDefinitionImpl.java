@@ -828,18 +828,24 @@ public abstract class AbstractResourceObjectDefinitionImpl
         var defaultForCacheUse = CachedShadowsUseType.USE_FRESH;
         var defaultForTtl = "P1D";
         if (workingCopy.getCachingStrategy() == null) {
+            var cachingDefault = InternalsConfig.getShadowCachingDefault();
             if (readCachedCapabilityPresent) {
                 workingCopy.setCachingStrategy(CachingStrategyType.PASSIVE);
                 defaultForSimpleAttributesScope = ShadowSimpleAttributesCachingScopeType.ALL;
                 defaultForCredentialsScope = ShadowItemsCachingScopeType.NONE;
                 defaultForTtl = "P1000Y";
-            } else if (InternalsConfig.isShadowCachingFullByDefault()) {
+            } else if (cachingDefault == InternalsConfig.ShadowCachingDefault.FULL) {
                 // Currently used for testing
                 workingCopy.setCachingStrategy(CachingStrategyType.PASSIVE);
                 defaultForSimpleAttributesScope = ShadowSimpleAttributesCachingScopeType.ALL;
                 defaultForCacheUse = CachedShadowsUseType.USE_CACHED_OR_FRESH;
                 defaultForTtl = "P1000Y";
-            } else if (InternalsConfig.isShadowCachingOnByDefault()) {
+            } else if (cachingDefault == InternalsConfig.ShadowCachingDefault.FULL_BUT_USING_FRESH) {
+                // Currently used for testing
+                workingCopy.setCachingStrategy(CachingStrategyType.PASSIVE);
+                defaultForSimpleAttributesScope = ShadowSimpleAttributesCachingScopeType.ALL;
+                defaultForTtl = "P1000Y";
+            } else if (cachingDefault == InternalsConfig.ShadowCachingDefault.STANDARD) {
                 workingCopy.setCachingStrategy(CachingStrategyType.PASSIVE);
             } else {
                 workingCopy.setCachingStrategy(CachingStrategyType.NONE);

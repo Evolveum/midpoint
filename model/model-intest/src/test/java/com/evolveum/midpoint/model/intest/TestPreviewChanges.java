@@ -50,7 +50,7 @@ import java.util.List;
 import static com.evolveum.midpoint.model.test.CommonInitialObjects.MARK_PROJECTION_ACTIVATED;
 import static com.evolveum.midpoint.model.test.CommonInitialObjects.MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
-import static com.evolveum.midpoint.schema.internals.InternalsConfig.isShadowCachingOnByDefault;
+import static com.evolveum.midpoint.schema.internals.InternalsConfig.isShadowCachingFullByDefault;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRefWithFullObject;
 import static com.evolveum.midpoint.test.DummyResourceContoller.*;
@@ -879,7 +879,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertAccountDefaultDummyAttributeModify(accContext.getPrimaryDelta(),
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME,
                 // Note: the fullName mapping is not strong
-                isShadowCachingOnByDefault() ? new String[] { "Guybrush Threepwood" } : null, // old
+                isShadowCachingFullByDefault() ? new String[] { "Guybrush Threepwood" } : null, // old
                 null, // add
                 null, // delete
                 new String[] { "Mighty Pirate Guybrush Threepwood" });  // replace
@@ -1252,7 +1252,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         assertAccountDummyAttributeModify(accountSecondaryDelta,
                 RESOURCE_DUMMY_RELATIVE_NAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME,
-                isShadowCachingOnByDefault() ? new String[] { "tongue" } : null, // old
+                isShadowCachingFullByDefault() ? new String[] { "tongue" } : null, // old
                 new String[] { ROLE_PIRATE_WEAPON }, // add
                 null, // delete
                 null);  // replace
