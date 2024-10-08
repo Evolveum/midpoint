@@ -8,10 +8,11 @@
 package com.evolveum.midpoint.repo.sql.helpers.delta;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.repo.sql.helpers.modify.MapperContext;
@@ -67,24 +68,38 @@ class CollectionUpdate<R, V extends PrismValue, I extends Item<V, ?>, ID extends
     }
 
     public void execute() {
-        if (delta.isReplace()) {
-            replaceValues(delta.getValuesToReplace());
-        } else {
-            if (delta.isDelete()) {
-                deleteValues(delta.getValuesToDelete());
-            }
-            if (delta.isAdd()) {
-                addValues(delta.getValuesToAdd());
-            }
+        Collection<ItemModifyResult<V>> results = delta.applyResults();
+        if (results == null) {
+            return;
+        }
+
+        Map<ItemModifyResult.ActualApplyOperation, List<V>> changes = results.stream()
+                .collect(Collectors.groupingBy(
+                        r -> r.operation(),
+                        Collectors.mapping(r -> r.finalValue, Collectors.toList())
+                ));
+
+        deleteValues(changes.get(ItemModifyResult.ActualApplyOperation.DELETED));
+        addValues(changes.get(ItemModifyResult.ActualApplyOperation.ADDED));
+        modifyValues(changes.get(ItemModifyResult.ActualApplyOperation.MODIFIED));
+    }
+
+    private void modifyValues(Collection<V> valuesToModify) {
+        if (valuesToModify == null) {
+            return;
+        }
+
+        for (V valueToModify : valuesToModify) {
+            deleteExistingValue(valueToModify);
+            addValues(List.of(valueToModify));
         }
     }
 
-    private void replaceValues(Collection<V> valuesToReplace) {
-        targetCollection.clear();
-        addValues(valuesToReplace);
-    }
-
     private void addValues(Collection<V> valuesToAdd) {
+        if (valuesToAdd == null) {
+            return;
+        }
+
         loadTargetCollection();
         for (V valueToAdd : valuesToAdd) {
             R repoValueToAdd = mapToRepo(valueToAdd, true);
@@ -105,11 +120,12 @@ class CollectionUpdate<R, V extends PrismValue, I extends Item<V, ?>, ID extends
     }
 
     private void deleteValues(Collection<V> valuesToDelete) {
+        if (valuesToDelete == null) {
+            return;
+        }
+
         for (V valueToDelete : valuesToDelete) {
-            V existingValue = findExistingValue(valueToDelete);
-            if (existingValue != null) {
-                deleteExistingValue(existingValue);
-            }
+            deleteExistingValue(valueToDelete);
         }
     }
 

@@ -12,7 +12,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.util.convert.ConversionException;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
@@ -21,32 +20,25 @@ import com.evolveum.midpoint.web.component.prism.InputPanel;
 public class RangeSliderPanel extends InputPanel {
     private static final String ID_TEXT_FIELD = "slider_label";
     private static final String ID_SLIDER = "slider";
-    Integer sliderSimilarityValue;
-    private final ItemRealValueModel<Double> model;
 
     public RangeSliderPanel(String id, ItemRealValueModel<Double> realValueModel) {
         super(id);
 
-        this.model = realValueModel;
-
-        if (getModelSimilarity() == null) {
-            model.setObject((double) getDefaultValue());
-            sliderSimilarityValue = getDefaultValue();
-        } else {
-            sliderSimilarityValue = model.getObject().intValue();
+        if (getModelSimilarity(realValueModel) == null) {
+            realValueModel.setObject((double) getDefaultValue());
         }
 
         TextField<String> sliderLabel = new TextField<>(ID_TEXT_FIELD, new LoadableModel<>() {
             @Override
             protected String load() {
-                return sliderSimilarityValue + "%";
+                return realValueModel.getObject().intValue() + "%";
             }
         });
         sliderLabel.setOutputMarkupId(true);
         sliderLabel.setEnabled(false);
         add(sliderLabel);
 
-        FormComponent<Double> slider = new FormComponent<>(ID_SLIDER, model) {
+        FormComponent<Double> slider = new FormComponent<>(ID_SLIDER, realValueModel) {
             @Override
             public void convertInput() {
                 String input = getInput();
@@ -57,17 +49,11 @@ public class RangeSliderPanel extends InputPanel {
             }
 
             @Override
-            protected Double convertValue(String[] value) throws ConversionException {
-                return super.convertValue(value);
-            }
-
-            @Override
             protected void onInitialize() {
                 super.onInitialize();
                 add(new AjaxFormComponentUpdatingBehavior("input") {
                     @Override
                     protected void onUpdate(AjaxRequestTarget target) {
-                        sliderSimilarityValue = Integer.valueOf(getBaseFormComponent().getValue());
                         getBaseFormComponent().getValue();
                         target.add(sliderLabel);
                     }
@@ -76,23 +62,18 @@ public class RangeSliderPanel extends InputPanel {
         };
         slider.add(new AttributeModifier("min", getMinValueD()));
         slider.add(new AttributeModifier("max", getMaxValueD()));
-        slider.add(new AttributeModifier("value", getModelSimilarity()));
+        slider.add(new AttributeModifier("value", getModelSimilarity(realValueModel)));
         slider.add(new AttributeModifier("style", "width:" + getSliderWidth() + getSliderWidthUnit()));
         add(slider);
     }
 
-    public Double getModelSimilarity() {
-        return model.getObject();
+    public Double getModelSimilarity(ItemRealValueModel<Double> realValueModel) {
+        return realValueModel.getObject();
     }
 
     @Override
     public FormComponent<?> getBaseFormComponent() {
         return (FormComponent<?>) get(ID_SLIDER);
-    }
-
-    @Override
-    protected void onInitialize() {
-        super.onInitialize();
     }
 
     public int getMinValue() {

@@ -279,7 +279,7 @@ Once the persona is provisioned then the request-approval process works without 
 
 * Error handling: If more than one persona is provisioned at the same time then an error in one persona may cause the other persona not to be provisioned.
 
-* Construction merging: Currently only one persona construction is supported for each persona.
+* Construction merging: Currently only one persona construction is supported for each persona (note: persona is defined by its archetype).
 MidPoint cannot currently merge two persona constructions and apply them both.
 Attempt to assign two persona constructions that refer to the same persona at the same time will result in an error.
 

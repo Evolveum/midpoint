@@ -24,7 +24,7 @@ import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnaly
 import com.evolveum.midpoint.common.mining.objects.analysis.cache.RoleMemberCountCache;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
-import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
+import com.evolveum.midpoint.common.mining.objects.detection.PatternDetectionOption;
 import com.evolveum.midpoint.common.mining.utils.values.FrequencyItem;
 import com.evolveum.midpoint.common.mining.utils.values.ZScoreData;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
@@ -55,7 +55,7 @@ public class OutliersDetectionUtil {
             @NotNull OperationResult result) {
         RoleAnalysisDetectionOptionType detectionOption = session.getDefaultDetectionOption();
         Double sensitivity = detectionOption.getSensitivity();
-        if(sensitivity == null) {
+        if (sensitivity == null) {
             sensitivity = 0.8;
         }
         double requiredConfidence = roleAnalysisService.calculateOutlierConfidenceRequired(sensitivity);
@@ -231,7 +231,7 @@ public class OutliersDetectionUtil {
         RoleAnalysisPatternAnalysis patternInfo = new RoleAnalysisPatternAnalysis();
 
         //TODO take from session detection option
-        DetectionOption detectionOption = new DetectionOption(
+        PatternDetectionOption detectionOption = new PatternDetectionOption(
                 10, 100, 2, 2);
         List<SimpleHeatPattern> totalRelationOfPatternsForCell = new OutlierPatternResolver()
                 .performSingleAnomalyCellDetection(miningRoleTypeChunks, detectionOption,
@@ -446,19 +446,26 @@ public class OutliersDetectionUtil {
         RoleAnalysisDetectionOptionType defaultDetectionOption = session.getDefaultDetectionOption();
         double minFrequency = 2;
         double maxFrequency = 2;
+        double frequencyThreshold = 50.0;
 
-        if (defaultDetectionOption != null && defaultDetectionOption.getFrequencyRange() != null) {
-            RangeType frequencyRange = defaultDetectionOption.getFrequencyRange();
-            if (frequencyRange.getMin() != null) {
-                minFrequency = frequencyRange.getMin().intValue();
+        if (defaultDetectionOption != null) {
+            if (defaultDetectionOption.getStandardDeviation() != null) {
+                RangeType frequencyRange = defaultDetectionOption.getStandardDeviation();
+                if (frequencyRange.getMin() != null) {
+                    minFrequency = frequencyRange.getMin().intValue();
+                }
+                if (frequencyRange.getMax() != null) {
+                    maxFrequency = frequencyRange.getMax().intValue();
+                }
             }
-            if (frequencyRange.getMax() != null) {
-                maxFrequency = frequencyRange.getMax().intValue();
+            if (defaultDetectionOption.getFrequencyThreshold() != null) {
+                frequencyThreshold = defaultDetectionOption.getFrequencyThreshold();
             }
         }
 
         RoleAnalysisDetectionOptionType detectionOption = new RoleAnalysisDetectionOptionType();
-        detectionOption.setFrequencyRange(new RangeType().min(minFrequency).max(maxFrequency));
+        detectionOption.setStandardDeviation(new RangeType().min(minFrequency).max(maxFrequency));
+        detectionOption.setFrequencyThreshold(frequencyThreshold);
         return detectionOption;
     }
 
@@ -479,7 +486,7 @@ public class OutliersDetectionUtil {
 
         List<ObjectReferenceType> duplicates = userAccessDistribution.getDuplicates();
 
-        if(duplicates != null) {
+        if (duplicates != null) {
             List<ObjectReferenceType> duplicatedRoleAssignment = roleAnalysisOutlierType.getDuplicatedRoleAssignment();
             duplicatedRoleAssignment.addAll(CloneUtil.cloneCollectionMembers(duplicates));
         }
@@ -512,7 +519,8 @@ public class OutliersDetectionUtil {
         return clusterConfidence;
     }
 
-    public static double calculatePartitionAnomaliesConfidence(@NotNull Collection<DetectedAnomalyResult> detectedAnomalyResults) {
+    public static double calculatePartitionAnomaliesConfidence
+            (@NotNull Collection<DetectedAnomalyResult> detectedAnomalyResults) {
         double partitionAnomaliesConfidence = 0;
         for (DetectedAnomalyResult prepareRoleOutlier : detectedAnomalyResults) {
             Double confidence = prepareRoleOutlier.getStatistics().getConfidence();

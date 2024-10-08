@@ -21,10 +21,10 @@
             <button wicket:id="savedSearchMenu" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
                 <span class="caret"></span>
             </button>
-            <div class="dropdown-menu dropdown-menu-right" role="menu" wicket:id="savedFilterMenu">
+            <div class="dropdown-menu dropdown-menu-right" style="max-width: 500px;" role="menu" wicket:id="savedFilterMenu">
                 <label class="px-2 w-100 text-center"><wicket:message key="SearchPanel.savedFilters" /></label>
                 <div class="dropdown-item d-flex justify-content-between align-items-center saved-filter-item" wicket:id="savedFilterItem">
-                    <a wicket:id="savedFilterName" class="list-group-menu">
+                    <a wicket:id="savedFilterName" class="list-group-menu text-truncate d-inline-block">
                         <wicket:container wicket:id="savedFilterNameLabel" />
                     </a>
                     <a type="button" class="btn btn-xs delete-filter" wicket:id="savedFilterRemoveButton">

@@ -39,9 +39,10 @@
         <sensitivity>70.0</sensitivity>
         <minRolesOccupancy>2</minRolesOccupancy>
         <minUserOccupancy>2</minUserOccupancy>
-        <frequencyRange>
+        <frequencyThreshold>50.0</frequencyThreshold>
+        <standardDeviation>
             <min>2.0</min>
             <max>2.0</max>
-        </frequencyRange>
+        </standardDeviation>
     </defaultDetectionOption>
 </roleAnalysisSession>

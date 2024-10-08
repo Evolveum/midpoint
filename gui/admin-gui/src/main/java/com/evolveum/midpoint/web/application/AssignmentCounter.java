@@ -7,19 +7,18 @@
 package com.evolveum.midpoint.web.application;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
-import com.evolveum.midpoint.prism.PrismObject;
 
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
-import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 
@@ -34,16 +33,34 @@ public class AssignmentCounter<AH extends AssignmentHolderType> extends SimpleCo
     @Override
     public int count(AssignmentHolderDetailsModel<AH> objectDetailsModels, PageBase pageBase) {
         PrismObjectWrapper<AH> assignmentHolderWrapper = objectDetailsModels.getObjectWrapperModel().getObject();
-        AH object = assignmentHolderWrapper.getObject().asObjectable();
+        PrismContainerWrapper<AssignmentType> assignmentContainerWrapper = null;
+        try {
+            assignmentContainerWrapper = assignmentHolderWrapper.findContainer(AssignmentHolderType.F_ASSIGNMENT);
+        } catch (SchemaException e) {
+            return 0;
+        }
+        if (assignmentContainerWrapper == null) {
+            return 0;
+        }
+        List<PrismContainerValueWrapper<AssignmentType>> values = assignmentContainerWrapper.getValues();
 
-        List<AssignmentType> assignments = object.getAssignment();
         int count = 0;
-        for (AssignmentType assignment : assignments) {
+        for (PrismContainerValueWrapper<AssignmentType> assignmentVW : values) {
+            if (isNewlyAddedAssignment(assignmentVW)) {
+                continue;
+            }
+            AssignmentType assignment = assignmentVW.getRealValue();
             if (WebComponentUtil.isArchetypeAssignment(assignment) || WebComponentUtil.isDelegationAssignment(assignment)) {
                 continue;
             }
             count++;
         }
         return count;
+    }
+
+    //check if the assignment was newly added
+    //if true, then it is not counted
+    private boolean isNewlyAddedAssignment(PrismContainerValueWrapper<AssignmentType> assignmentVW) {
+        return ValueStatus.ADDED.equals(assignmentVW.getStatus());
     }
 }

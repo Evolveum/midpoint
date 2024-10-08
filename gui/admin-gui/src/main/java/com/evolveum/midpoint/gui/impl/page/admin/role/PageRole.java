@@ -14,6 +14,7 @@ import java.util.*;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;

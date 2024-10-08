@@ -58,7 +58,7 @@ import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttribut
 import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
 import com.evolveum.midpoint.common.mining.objects.chunk.*;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
-import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
+import com.evolveum.midpoint.common.mining.objects.detection.PatternDetectionOption;
 import com.evolveum.midpoint.common.mining.utils.RoleAnalysisCacheOption;
 import com.evolveum.midpoint.common.mining.utils.values.*;
 import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
@@ -913,7 +913,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     @Override
     public void recomputeClusterDetectionOptions(
             @NotNull String clusterOid,
-            @NotNull DetectionOption detectionOption,
+            @NotNull PatternDetectionOption detectionOption,
             @NotNull Task task,
             @NotNull OperationResult result) {
         RoleAnalysisDetectionOptionType roleAnalysisDetectionOptionType = new RoleAnalysisDetectionOptionType();
@@ -1026,9 +1026,10 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         MiningOperationChunk basicChunk = prepareBasicChunkStructure(cluster, filter, option, processMode, detectedPatterns, result, task);
 
         RoleAnalysisDetectionOptionType detectionOption = cluster.getDetectionOption();
-        RangeType frequencyRange = detectionOption.getFrequencyRange();
+        RangeType frequencyRange = detectionOption.getStandardDeviation();
+        Double frequencyThreshold = detectionOption.getFrequencyThreshold();
         Double sensitivity = detectionOption.getSensitivity();
-        resolveOutliersZScore(basicChunk.getMiningRoleTypeChunks(), frequencyRange, sensitivity);
+        resolveOutliersZScore(basicChunk.getMiningRoleTypeChunks(), frequencyRange, sensitivity, frequencyThreshold);
 
         return basicChunk;
     }
@@ -1297,7 +1298,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         }
 
         TaskType taskObject = new TaskType();
-
+        // Copy channel from task, this allows GUI to set user channel (scripting could have different channel)
+        taskObject.channel(task.getChannel());
         String roleIdentifier;
         if (roleObject.getName() != null) {
             roleIdentifier = roleObject.getName().toString();
@@ -1346,7 +1348,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
         taskObject.setName(PolyStringType.fromOrig("Role migration: " + roleIdentifier));
         taskObject.setOid(UUID.randomUUID().toString());
-
+        // Copy channel from task which executed this code, this ensures that channel is kept correctly.
+        taskObject.setChannel(task.getChannel());
         ObjectReferenceType objectReferenceType = new ObjectReferenceType();
         objectReferenceType.setType(RoleType.COMPLEX_TYPE);
         objectReferenceType.setOid(roleObject.getOid());
@@ -2488,8 +2491,9 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     public <T extends MiningBaseTypeChunk> ZScoreData resolveOutliersZScore(
             @NotNull List<T> data,
             @Nullable RangeType range,
-            @Nullable Double sensitivity) {
-        double defaultMaxFrequency = 0.5;
+            @Nullable Double sensitivity,
+            @Nullable Double frequencyThreshold) {
+        double defaultMaxFrequency = frequencyThreshold != null ? frequencyThreshold * 0.01 : 0.5;
 
         if (sensitivity == null) {
             sensitivity = 0.0;

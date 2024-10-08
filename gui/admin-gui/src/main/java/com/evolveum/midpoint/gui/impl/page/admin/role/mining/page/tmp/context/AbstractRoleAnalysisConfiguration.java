@@ -193,7 +193,9 @@ public abstract class AbstractRoleAnalysisConfiguration implements RoleAnalysisC
             Integer minUserOccupancy,
             Double sensitivity,
             RangeType frequencyRange,
-            RoleAnalysisDetectionProcessType detectionProcessMode) {
+            RoleAnalysisDetectionProcessType detectionProcessMode,
+            RangeType standardDeviation,
+            Double frequencyThreshold) {
 
             RoleAnalysisDetectionOptionType primaryOptions = object.getDefaultDetectionOption();
             if (primaryOptions == null) {
@@ -204,6 +206,8 @@ public abstract class AbstractRoleAnalysisConfiguration implements RoleAnalysisC
                     .minUserOccupancy(minUserOccupancy)
                     .sensitivity(sensitivity)
                     .frequencyRange(frequencyRange)
+                    .standardDeviation(standardDeviation)
+                    .frequencyThreshold(frequencyThreshold)
                     .detectionProcessMode(detectionProcessMode);
     }
 }

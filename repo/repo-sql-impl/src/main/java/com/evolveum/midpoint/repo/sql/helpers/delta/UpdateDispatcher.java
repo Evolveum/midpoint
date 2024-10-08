@@ -33,6 +33,11 @@ class UpdateDispatcher {
 
         LOGGER.trace("Processing delta with path '{}'", path);
 
+        ctx.idGenerator.processModification(delta);
+
+        // we'll apply delta to prism object so that we have ItemModifyResult available
+        delta.applyTo(prismObject);
+
         if (isObjectExtensionDelta(path) || isShadowAttributesDelta(path)) {
             if (delta.getPath().size() == 1) {
                 ObjectExtensionUpdate.handleWholeContainerDelta(object, delta, ctx);

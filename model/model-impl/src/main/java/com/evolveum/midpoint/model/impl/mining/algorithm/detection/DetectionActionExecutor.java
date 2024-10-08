@@ -21,7 +21,7 @@ import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
-import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
+import com.evolveum.midpoint.common.mining.objects.detection.PatternDetectionOption;
 import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
@@ -118,7 +118,7 @@ public class DetectionActionExecutor extends BaseAction {
         List<MiningUserTypeChunk> miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks(RoleAnalysisSortMode.NONE);
         handler.iterateActualStatus();
 
-        DetectionOption detectionOption = new DetectionOption(cluster);
+        PatternDetectionOption detectionOption = new PatternDetectionOption(cluster);
         List<DetectedPattern> detectedPatterns = executeDetection(miningRoleTypeChunks, miningUserTypeChunks,
                 processMode, detectionOption);
 
@@ -134,7 +134,7 @@ public class DetectionActionExecutor extends BaseAction {
     private List<DetectedPattern> executeDetection(@NotNull List<MiningRoleTypeChunk> miningRoleTypeChunks,
             @NotNull List<MiningUserTypeChunk> miningUserTypeChunks,
             @NotNull RoleAnalysisProcessModeType mode,
-            @NotNull DetectionOption detectionOption) {
+            @NotNull PatternDetectionOption detectionOption) {
         if (mode.equals(RoleAnalysisProcessModeType.USER)) {
             return detectionType.performDetection(mode, miningRoleTypeChunks, detectionOption, handler);
         } else if (mode.equals(RoleAnalysisProcessModeType.ROLE)) {

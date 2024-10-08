@@ -19,7 +19,7 @@ import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
-import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
+import com.evolveum.midpoint.common.mining.objects.detection.PatternDetectionOption;
 import com.evolveum.midpoint.common.mining.objects.statistic.ClusterStatistic;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
@@ -144,7 +144,7 @@ public class DefaultPatternResolver {
         List<MiningUserTypeChunk> miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks(
                 RoleAnalysisSortMode.NONE);
 
-        DetectionOption roleAnalysisSessionDetectionOptionType = loadDetectionOption(session.getDefaultDetectionOption());
+        PatternDetectionOption roleAnalysisSessionDetectionOptionType = loadPatternDetectionOption(session.getDefaultDetectionOption());
 
         possibleBusinessRole = new DefaultDetectionAction(roleAnalysisSessionDetectionOptionType)
                 .executeDetection(miningRoleTypeChunks, miningUserTypeChunks, mode);

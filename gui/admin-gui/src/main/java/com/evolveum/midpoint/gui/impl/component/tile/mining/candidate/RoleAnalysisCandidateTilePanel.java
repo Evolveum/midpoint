@@ -440,6 +440,7 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
                 @Override
                 protected void onSubmit(AjaxRequestTarget target) {
                     Task task = pageBase.createSimpleTask("countRoleMembers");
+
                     OperationResult result = task.getResult();
 
                     String taskOid = UUID.randomUUID().toString();

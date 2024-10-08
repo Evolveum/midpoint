@@ -24,7 +24,7 @@ import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningBaseTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
-import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
+import com.evolveum.midpoint.common.mining.objects.detection.PatternDetectionOption;
 import com.evolveum.midpoint.common.mining.utils.RoleAnalysisCacheOption;
 import com.evolveum.midpoint.common.mining.utils.values.ZScoreData;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
@@ -326,7 +326,7 @@ public interface RoleAnalysisService {
      */
     void recomputeClusterDetectionOptions(
             @NotNull String clusterOid,
-            @NotNull DetectionOption detectionOption,
+            @NotNull PatternDetectionOption detectionOption,
             @NotNull Task task,
             @NotNull OperationResult result);
 
@@ -902,7 +902,9 @@ public interface RoleAnalysisService {
     <T extends MiningBaseTypeChunk> ZScoreData resolveOutliersZScore(
             @NotNull List<T> data,
             @Nullable RangeType range,
-            @Nullable Double sensitivity);
+            @Nullable Double sensitivity,
+            @Nullable Double frequencyThreshold);
+
     <T extends MiningBaseTypeChunk> double calculateZScoreConfidence(@NotNull T item, ZScoreData zScoreData);
 
     @Nullable Set<String> resolveUserValueToMark(

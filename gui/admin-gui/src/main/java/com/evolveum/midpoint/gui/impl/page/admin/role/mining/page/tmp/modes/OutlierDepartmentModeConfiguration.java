@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.modes;
 
-import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
-import com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
@@ -56,9 +54,13 @@ public class OutlierDepartmentModeConfiguration extends AbstractRoleAnalysisConf
 
         updateDetectionOptions(2,
                 2,
-                0.7,
-                createDetectionRange(),
-                RoleAnalysisDetectionProcessType.SKIP);
+                70.0,
+                null,
+                RoleAnalysisDetectionProcessType.SKIP,
+                new RangeType()
+                        .min(2.0)
+                        .max(2.0),
+                50.0);
     }
 
     private RangeType createPropertyRange() {
@@ -79,12 +81,6 @@ public class OutlierDepartmentModeConfiguration extends AbstractRoleAnalysisConf
         return clusteringSetting;
     }
 
-    // TODO: We should probably use department mode for discovery of department roles.
-    //  For example roles that cover 90%+ of users in a department should be used as department inducement.
-    //  Also these structured classes should be used for migration process specification.
-    private RangeType createDetectionRange() {
-        return new RangeType().min(2.0).max(2.0);
-    }
 
     @Override
     public AbstractAnalysisSessionOptionType getAnalysisSessionOption() {

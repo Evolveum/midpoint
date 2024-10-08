@@ -27,7 +27,7 @@ import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningBaseTypeChunk;
-import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
+import com.evolveum.midpoint.common.mining.objects.detection.PatternDetectionOption;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChunkMode;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
@@ -161,8 +161,9 @@ public abstract class RoleAnalysisObjectColumn<A extends MiningBaseTypeChunk> ex
         return null;
     }
 
+    //Experimental method
     private String computeOutlierExperimentalInfo(@NotNull IModel<A> rowModel, String title) {
-        DetectionOption detectionOption = new DetectionOption(
+        PatternDetectionOption detectionOption = new PatternDetectionOption(
                 10, 100, 2, 2);
         //This is overhead operation. Just for testing.
         ListMultimap<String, SimpleHeatPattern> totalRelationOfPatternsForChunk = new OutlierPatternResolver()
