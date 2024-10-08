@@ -184,6 +184,10 @@ public class InternalsConfig {
         return shadowCachingDefault == ShadowCachingDefault.FULL;
     }
 
+    public static ShadowCachingDefault getShadowCachingDefault() {
+        return shadowCachingDefault;
+    }
+
     public static void set(Configuration internalsConfig) {
         if (internalsConfig.containsKey("developmentMode")) {
             boolean developmentMode = internalsConfig.getBoolean("developmentMode");
@@ -267,7 +271,10 @@ public class InternalsConfig {
         STANDARD("standard"),
 
         /** The default is caching of all data, with long TTL. To be used primarily in tests. */
-        FULL("full");
+        FULL("full"),
+
+        /** As {@link #FULL} but using fresh data, not cached ones. To be used primarily in tests. */
+        FULL_BUT_USING_FRESH("fullButUsingFresh");
 
         private final String stringValue;
 

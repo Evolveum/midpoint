@@ -4626,16 +4626,21 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected void invalidateShadowCacheIfNeeded(String resourceOid)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         if (InternalsConfig.isShadowCachingFullByDefault()) {
-            repositoryService.modifyObject(
-                    ResourceType.class,
-                    resourceOid,
-                    prismContext.deltaFor(ResourceType.class)
-                            .item(ResourceType.F_CACHE_INVALIDATION_TIMESTAMP)
-                            .replace(clock.currentTimeXMLGregorianCalendar())
-                            .asItemDeltas(),
-                    getTestOperationResult());
+            invalidateShadowCache(resourceOid);
         } else {
             // No need to invalidate; caching should either be off, or the test should take care of invalidation.
         }
+    }
+
+    protected void invalidateShadowCache(String resourceOid)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        repositoryService.modifyObject(
+                ResourceType.class,
+                resourceOid,
+                prismContext.deltaFor(ResourceType.class)
+                        .item(ResourceType.F_CACHE_INVALIDATION_TIMESTAMP)
+                        .replace(clock.currentTimeXMLGregorianCalendar())
+                        .asItemDeltas(),
+                getTestOperationResult());
     }
 }

@@ -465,7 +465,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         // When caching is enabled, the weak credentials mapping gets executed in wave 1, providing a generated password
         // along with a separate audit record. Actually, there is little we can do about this; it is inherently nondeterministic
         // behavior of inbound mappings.
-        dummyAuditService.assertRecords(InternalsConfig.isShadowCachingOnByDefault() ? 3 : 2);
+        dummyAuditService.assertRecords(InternalsConfig.isShadowCachingFullByDefault() ? 3 : 2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(3);

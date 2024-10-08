@@ -78,7 +78,7 @@ public class TestUnixTolerantAux extends TestUnix {
         dummyAuditService.assertSimpleRecordSanity();
         // When caching is not used, the posixAccount is first removed from organizationalUnit and then re-added.
         // When it is used, nothing like that occur.
-        dummyAuditService.assertRecords(InternalsConfig.isShadowCachingOnByDefault() ? 2 : 3);
+        dummyAuditService.assertRecords(InternalsConfig.isShadowCachingFullByDefault() ? 2 : 3);
         dummyAuditService.assertExecutionDeltas(2);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);

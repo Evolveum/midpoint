@@ -449,7 +449,7 @@ public class Expression<V extends PrismValue, D extends ItemDefinition<?>> {
      * We assume that expression evaluator keeps the state necessary to decide on this.
      */
     @Experimental
-    public boolean doesVetoTargetValueRemoval(@NotNull V value, @Nullable OperationResult result) {
+    public boolean doesVetoTargetValueRemoval(@NotNull V value, @NotNull OperationResult result) {
         return evaluator.doesVetoTargetValueRemoval(value, result);
     }
 

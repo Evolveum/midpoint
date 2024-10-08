@@ -419,7 +419,7 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
         reconcileUser(USER_JIM.oid, task, reconciliationResult);
 
         then("operation should be in progress (no error there)");
-        if (InternalsConfig.isShadowCachingOnByDefault()) {
+        if (InternalsConfig.isShadowCachingFullByDefault()) {
             assertSuccess(reconciliationResult);
         } else {
             assertInProgress(reconciliationResult);

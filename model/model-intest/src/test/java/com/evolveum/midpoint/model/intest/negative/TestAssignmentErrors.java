@@ -408,11 +408,11 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         try {
             testUserSharptoothChangePasswordError(
                     BreakMode.GENERIC, USER_SHARPTOOTH_PASSWORD_1_CLEAR, USER_SHARPTOOTH_PASSWORD_3_CLEAR,
-                    InternalsConfig.isShadowCachingOnByDefault() ?
+                    InternalsConfig.isShadowCachingFullByDefault() ?
                             OperationResultStatus.IN_PROGRESS : // when caching is on, there is no ConnId read op to fail
                             OperationResultStatus.FATAL_ERROR);
 
-            if (!InternalsConfig.isShadowCachingOnByDefault()) {
+            if (!InternalsConfig.isShadowCachingFullByDefault()) {
                 assertNotReached();
             }
         } catch (GenericConnectorException e) {

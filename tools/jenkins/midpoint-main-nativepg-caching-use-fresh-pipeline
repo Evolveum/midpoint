@@ -94,7 +94,7 @@ podTemplate(
 
                         mvn -B -ntp -Dmaven.test.failure.ignore -P sqale,dbtest,-dist clean install \
                             -Dmidpoint.repository.jdbcUrl=jdbc:postgresql://localhost:5432/midtest \
-                            -Dmidpoint.internals.shadowCachingDefault=standard
+                            -Dmidpoint.internals.shadowCachingDefault=fullButUsingFresh
 
                         if [ "${verbose}" -ge 1 ]
                         then
@@ -115,7 +115,7 @@ podTemplate(
                             -Dmidpoint.repository.jdbcUrl=jdbc:postgresql://localhost:5432/midtest \
                             -Dtest.config.file=test-config-new-repo.xml \
                             -Dfailsafe.args="-Xms2g -Xmx6g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED" \
-                            -Dmidpoint.internals.shadowCachingDefault=standard
+                            -Dmidpoint.internals.shadowCachingDefault=fullButUsingFresh
 
                         if [ "${verbose}" -ge 1 ]
                         then

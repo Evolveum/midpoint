@@ -1393,7 +1393,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     private void assertElaineShadowAdministrativeStatus() throws CommonException {
         PrismObject<ShadowType> accountShadow = getShadowModel(ACCOUNT_SHADOW_ELAINE_DUMMY_RED_OID);
         // The same as TestActivation.test130, see MID-9955.
-        if (InternalsConfig.isShadowCachingOnByDefault()) {
+        if (InternalsConfig.isShadowCachingFullByDefault()) {
             assertShadow(accountShadow, "after")
                     .assertAdministrativeStatus(ActivationStatusType.ENABLED);
         } else {

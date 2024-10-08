@@ -929,7 +929,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
         assertAdministrativeStatusDisabled(userJack);
         assertDummyEnabled("jack");
-        if (InternalsConfig.isShadowCachingOnByDefault()) {
+        if (InternalsConfig.isShadowCachingFullByDefault()) {
             // The outbound administrativeStatus mapping is STRONG, so the primary delta gets superseded by the computed value.
             assertDummyDisabled(RESOURCE_DUMMY_RED_NAME, "jack");
         } else {
@@ -1253,7 +1253,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
         // With caching disabled, MID-9955 causes that primary delta (-> disable) overrules the strong mapping.
         // With caching enabled, the bug does not manifest itself. Just as in test130.
-        boolean expectedStatusOnYellow = InternalsConfig.isShadowCachingOnByDefault();
+        boolean expectedStatusOnYellow = InternalsConfig.isShadowCachingFullByDefault();
         checkAdminStatusFor15x(userJack, true, false, expectedStatusOnYellow);
 
         // WHEN (2) - now let's do a reconciliation on both resources
@@ -2125,7 +2125,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertUser(userAfter, "user after")
                 .activation()
                 .assertAdministrativeStatus( // When caching is on, more inbounds are evaluated
-                        InternalsConfig.isShadowCachingOnByDefault() ? ActivationStatusType.ENABLED : null)
+                        InternalsConfig.isShadowCachingFullByDefault() ? ActivationStatusType.ENABLED : null)
                 .assertEffectiveStatus(ActivationStatusType.ENABLED);
 
         assertAssignedRoles(userAfter, ROLE_CARIBBEAN_PIRATE_OID, ROLE_CAPTAIN_OID);
@@ -2156,7 +2156,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertUserBefore(USER_RAPP_OID)
                 .activation()
                 .assertAdministrativeStatus( // When caching is on, more inbounds are evaluated
-                        InternalsConfig.isShadowCachingOnByDefault() ? ActivationStatusType.ENABLED : null)
+                        InternalsConfig.isShadowCachingFullByDefault() ? ActivationStatusType.ENABLED : null)
                 .assertEffectiveStatus(ActivationStatusType.ENABLED);
 
         // WHEN
@@ -2180,7 +2180,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
                 // For caching variant:
                 //   The status is ENABLED, so it's not touched by the weak inbound mapping.
                 .assertAdministrativeStatus(
-                        InternalsConfig.isShadowCachingOnByDefault() ?
+                        InternalsConfig.isShadowCachingFullByDefault() ?
                                 ActivationStatusType.ENABLED : ActivationStatusType.DISABLED)
                 .assertEffectiveStatus(ActivationStatusType.DISABLED);
 
