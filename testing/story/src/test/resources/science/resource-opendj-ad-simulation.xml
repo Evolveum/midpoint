@@ -9,17 +9,11 @@
 <!-- Resource definition for an embedded OpenDJ instance. -->
 
 <resource oid="10000000-0000-0000-0000-0000000001ad"
-          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-          xmlns:func="http://midpoint.evolveum.com/xml/ns/public/function/basic-3"
-          xmlns:ext="http://midpoint.evolveum.com/xml/ns/science/user/ext"
->
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:ext="http://midpoint.evolveum.com/xml/ns/science/user/ext">
 
     <name>Test AD (OpenDJ simulation)</name>
 
@@ -55,238 +49,239 @@
     </connectorConfiguration>
 
     <schemaHandling>
-      <objectType>
-         <intent>default</intent>
-         <displayName>Default Account</displayName>
-         <default>true</default>
-         <objectClass>ri:inetOrgPerson</objectClass>
-         <attribute>
-            <ref>ri:givenName</ref>
-            <displayName>Given Name</displayName>
-            <outbound>
-               <source>
-                  <path>givenName</path>
-               </source>
-            </outbound>
-         </attribute>
-         <attribute>
-            <ref>ri:sn</ref>
-            <displayName>Surname</displayName>
-            <outbound>
-               <source>
-                  <path>familyName</path>
-               </source>
-            </outbound>
-         </attribute>
-         <attribute>
-            <ref>ri:uid</ref>
-            <displayName>Login name</displayName>
-            <secondaryIdentifier>true</secondaryIdentifier>
-            <limitations>
-               <minOccurs>0</minOccurs>
-               <maxOccurs>1</maxOccurs>
-            </limitations>
-            <outbound>
-               <strength>weak</strength>
-               <source>
-                  <path>name</path>
-               </source>
-            </outbound>
-         </attribute>
-         <attribute>
-            <ref>ri:displayName</ref>
-            <displayName>Principal name</displayName>
-            <outbound>
-               <strength>weak</strength>
-               <source>
-                  <path>name</path>
-               </source>
-               <expression>
-                  <script>
-                     <code>name+'@domain.com'</code>
-                  </script>
-               </expression>
-            </outbound>
-         </attribute>
-         <attribute>
-            <ref>ri:mail</ref>
-            <outbound>
-               <source>
-                  <path>emailAddress</path>
-               </source>
-            </outbound>
-         </attribute>
-         <attribute>
-            <ref>ri:dn</ref>
-            <displayName>Distinguished Name</displayName>
-            <limitations>
-               <minOccurs>0</minOccurs>
-               <access>
-                  <read>true</read>
-                  <add>true</add>
-               </access>
-            </limitations>
-            <outbound>
-               <strength>weak</strength>
-               <source>
-                  <path>givenName</path>
-               </source>
-               <source>
-                  <path>familyName</path>
-               </source>
-               <expression>
-                  <script>
-                     <code>
-                        'CN='+givenName+' ' +familyName+iterationToken+',OU=People,DC=example,DC=com'
-                     </code>
-                  </script>
-               </expression>
-            </outbound>
-         </attribute>
-         <attribute>
-            <ref>ri:o</ref>
-            <displayName>Unix home directory</displayName>
-            <outbound>
-               <source>
-                  <path>extension/ext:aixHomeDir</path>
-               </source>
-            </outbound>
-         </attribute>
-         <attribute>
-            <ref>ri:ou</ref>
-            <displayName>Aix login shell</displayName>
-            <outbound>
-               <source>
-                  <path>extension/ext:aixDefaultShell</path>
-               </source>
-            </outbound>
-         </attribute>
-         <attribute>
-            <ref>ri:roomNumber</ref>
-            <displayName>Aix gecos</displayName>
-            <outbound>
-               <source>
-                  <path>extension/ext:aixDescription</path>
-               </source>
-            </outbound>
-         </attribute>
-         <attribute>
-            <ref>ri:title</ref>
-            <displayName>Aix user ID</displayName>
-            <outbound>
-               <source>
-                  <path>extension/ext:aixUserId</path>
-               </source>
-            </outbound>
-         </attribute>
-         <attribute>
-            <ref>ri:initials</ref>
-            <displayName>Logon script</displayName>
-            <outbound>
-               <strength>weak</strength>
-               <expression>
-                  <value>\someBatCommand.bat</value>
-               </expression>
-            </outbound>
-         </attribute>
-<!--          <attribute> -->
-<!--             <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:uid</ref> -->
-<!--             <displayName>Aix username</displayName> -->
-<!--             <outbound> -->
-<!--                <source> -->
-<!--                   <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">name</c:path> -->
-<!--                </source> -->
-<!--             </outbound> -->
-<!--          </attribute> -->
-         <attribute>
-            <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:employeeType</ref>
-            <displayName>AIX Group ID </displayName>
-            <outbound>
-               <strength>weak</strength>
-               <expression>
-                  <value>203</value>
-               </expression>
-            </outbound>
-         </attribute>
-         <dependency>
-             <resourceRef oid="10000000-1000-0000-0000-0000000004a0"/>
-             <strictness>relaxed</strictness>
-             <order>10</order>
-             <forceLoad>true</forceLoad>
-         </dependency>
-         <association>
-            <ref>ri:groups</ref>
-            <tolerant>true</tolerant>
+        <objectType>
+            <intent>default</intent>
+            <displayName>Default Account</displayName>
+            <default>true</default>
+            <objectClass>ri:inetOrgPerson</objectClass>
+            <attribute>
+                <ref>ri:givenName</ref>
+                <displayName>Given Name</displayName>
+                <outbound>
+                    <source>
+                        <path>givenName</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:sn</ref>
+                <displayName>Surname</displayName>
+                <outbound>
+                    <source>
+                        <path>familyName</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:uid</ref>
+                <displayName>Login name</displayName>
+                <secondaryIdentifier>true</secondaryIdentifier>
+                <limitations>
+                    <minOccurs>0</minOccurs>
+                    <maxOccurs>1</maxOccurs>
+                </limitations>
+                <outbound>
+                    <strength>weak</strength>
+                    <source>
+                        <path>name</path>
+                    </source>
+                </outbound>
+                <cached>false</cached> <!-- MID-10051 -->
+            </attribute>
+            <attribute>
+                <ref>ri:displayName</ref>
+                <displayName>Principal name</displayName>
+                <outbound>
+                    <strength>weak</strength>
+                    <source>
+                        <path>name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>name+'@domain.com'</code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:mail</ref>
+                <outbound>
+                    <source>
+                        <path>emailAddress</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:dn</ref>
+                <displayName>Distinguished Name</displayName>
+                <limitations>
+                    <minOccurs>0</minOccurs>
+                    <access>
+                        <read>true</read>
+                        <add>true</add>
+                    </access>
+                </limitations>
+                <outbound>
+                    <strength>weak</strength>
+                    <source>
+                        <path>givenName</path>
+                    </source>
+                    <source>
+                        <path>familyName</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>
+                                'CN='+givenName+' ' +familyName+iterationToken+',OU=People,DC=example,DC=com'
+                            </code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:o</ref>
+                <displayName>Unix home directory</displayName>
+                <outbound>
+                    <source>
+                        <path>extension/ext:aixHomeDir</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:ou</ref>
+                <displayName>Aix login shell</displayName>
+                <outbound>
+                    <source>
+                        <path>extension/ext:aixDefaultShell</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:roomNumber</ref>
+                <displayName>Aix gecos</displayName>
+                <outbound>
+                    <source>
+                        <path>extension/ext:aixDescription</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:title</ref>
+                <displayName>Aix user ID</displayName>
+                <outbound>
+                    <source>
+                        <path>extension/ext:aixUserId</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:initials</ref>
+                <displayName>Logon script</displayName>
+                <outbound>
+                    <strength>weak</strength>
+                    <expression>
+                        <value>\someBatCommand.bat</value>
+                    </expression>
+                </outbound>
+            </attribute>
+            <!--          <attribute> -->
+            <!--             <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:uid</ref> -->
+            <!--             <displayName>Aix username</displayName> -->
+            <!--             <outbound> -->
+            <!--                <source> -->
+            <!--                   <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">name</c:path> -->
+            <!--                </source> -->
+            <!--             </outbound> -->
+            <!--          </attribute> -->
+            <attribute>
+                <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:employeeType</ref>
+                <displayName>AIX Group ID </displayName>
+                <outbound>
+                    <strength>weak</strength>
+                    <expression>
+                        <value>203</value>
+                    </expression>
+                </outbound>
+            </attribute>
+            <dependency>
+                <resourceRef oid="10000000-1000-0000-0000-0000000004a0"/>
+                <strictness>relaxed</strictness>
+                <order>10</order>
+                <forceLoad>true</forceLoad>
+            </dependency>
+            <association>
+                <ref>ri:groups</ref>
+                <tolerant>true</tolerant>
+                <kind>entitlement</kind>
+                <intent>math</intent>
+                <intent>stats</intent>
+                <direction>objectToSubject</direction>
+                <associationAttribute>ri:uniqueMember</associationAttribute>
+                <valueAttribute>ri:dn</valueAttribute>
+            </association>
+            <iteration>
+                <maxIterations>5</maxIterations>
+            </iteration>
+            <activation>
+                <administrativeStatus>
+                    <outbound/>
+                    <inbound>
+                        <strength>weak</strength>
+                        <expression>
+                            <asIs/>
+                        </expression>
+                    </inbound>
+                </administrativeStatus>
+            </activation>
+        </objectType>
+        <objectType>
             <kind>entitlement</kind>
             <intent>math</intent>
+            <displayName>Science groups</displayName>
+            <default>true</default>
+            <objectClass>ri:groupOfUniqueNames</objectClass>
+        </objectType>
+        <objectType>
+            <kind>entitlement</kind>
             <intent>stats</intent>
-            <direction>objectToSubject</direction>
-            <associationAttribute>ri:uniqueMember</associationAttribute>
-            <valueAttribute>ri:dn</valueAttribute>
-         </association>
-         <iteration>
-            <maxIterations>5</maxIterations>
-         </iteration>
-         <activation>
-            <administrativeStatus>
-               <outbound/>
-               <inbound>
-                  <strength>weak</strength>
-                  <expression>
-                     <asIs/>
-                  </expression>
-               </inbound>
-            </administrativeStatus>
-         </activation>
-      </objectType>
-      <objectType>
-         <kind>entitlement</kind>
-         <intent>math</intent>
-         <displayName>Science groups</displayName>
-         <default>true</default>
-         <objectClass>ri:groupOfUniqueNames</objectClass>
-      </objectType>
-      <objectType>
-         <kind>entitlement</kind>
-         <intent>stats</intent>
-         <displayName>Science groups</displayName>
-         <default>false</default>
-         <objectClass>ri:groupOfUniqueNames</objectClass>
-      </objectType>
-   </schemaHandling>
+            <displayName>Science groups</displayName>
+            <default>false</default>
+            <objectClass>ri:groupOfUniqueNames</objectClass>
+        </objectType>
+    </schemaHandling>
 
-   <consistency>
+    <consistency>
         <avoidDuplicateValues>true</avoidDuplicateValues>
     </consistency>
 
-   <synchronization>
-      <objectSynchronization>
-         <enabled>true</enabled>
-         <correlation xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
-            <q:description>
-                        Correlation expression is a search query.
-                        Following search query will look for users that have "name"
-                        equal to the "sAMAccountName" attribute of the account. Simply speaking,
-                        it will look for match in usernames in the IDM and the resource.
-                        The correlation rule always looks for users, so it will not match
-                        any other object type.
-            </q:description>
-            <q:equal>
-               <q:matching>polyStringNorm</q:matching>
-               <q:path>name</q:path>
-               <expression>
-                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">$shadow/attributes/ri:uid</c:path>
-               </expression>
-            </q:equal>
-         </correlation>
-         <reaction>
-            <situation>unlinked</situation>
-            <synchronize>true</synchronize>
-            <action>
-               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
-            </action>
-         </reaction>
-      </objectSynchronization>
-   </synchronization>
+    <synchronization>
+        <objectSynchronization>
+            <enabled>true</enabled>
+            <correlation xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+                <q:description>
+                    Correlation expression is a search query.
+                    Following search query will look for users that have "name"
+                    equal to the "sAMAccountName" attribute of the account. Simply speaking,
+                    it will look for match in usernames in the IDM and the resource.
+                    The correlation rule always looks for users, so it will not match
+                    any other object type.
+                </q:description>
+                <q:equal>
+                    <q:matching>polyStringNorm</q:matching>
+                    <q:path>name</q:path>
+                    <expression>
+                        <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                                xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">$shadow/attributes/ri:uid</c:path>
+                    </expression>
+                </q:equal>
+            </correlation>
+            <reaction>
+                <situation>unlinked</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                </action>
+            </reaction>
+        </objectSynchronization>
+    </synchronization>
 </resource>

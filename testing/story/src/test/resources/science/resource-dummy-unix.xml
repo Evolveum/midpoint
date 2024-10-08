@@ -7,14 +7,12 @@
   -->
 
 <resource oid="10000000-1000-0000-0000-0000000004a0"
-          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
-          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">
 
     <name>Dummy Unix</name>
     <connectorRef type="c:ConnectorType">
@@ -32,7 +30,7 @@
         </filter>
     </connectorRef>
     <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
-                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
         <icfc:configurationProperties>
             <icfi:instanceId>unix</icfi:instanceId>
@@ -42,141 +40,135 @@
         </icfc:configurationProperties>
 
         <icfc:resultsHandlerConfiguration>
-             <icfc:enableFilteredResultsHandler>true</icfc:enableFilteredResultsHandler>
-             <icfc:enableCaseInsensitiveFilter>true</icfc:enableCaseInsensitiveFilter>
+            <icfc:enableFilteredResultsHandler>true</icfc:enableFilteredResultsHandler>
+            <icfc:enableCaseInsensitiveFilter>true</icfc:enableCaseInsensitiveFilter>
         </icfc:resultsHandlerConfiguration>
 
     </connectorConfiguration>
 
- <schemaHandling>
-      <objectType>
-         <kind>account</kind>
-         <intent>default</intent>
-         <displayName>Default Account</displayName>
-         <default>true</default>
-         <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:AccountObjectClass</objectClass>
-         <attribute>
-            <ref xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3">icfs:name</ref>
-            <displayName>Username</displayName>
-            <limitations>
-               <minOccurs>0</minOccurs>
-            </limitations>
-            <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">mr:stringIgnoreCase</matchingRule>
-            <outbound>
-               <strength>weak</strength>
-               <source>
-                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">name</c:path>
-               </source>
-            </outbound>
-         </attribute>
-         <attribute>
-            <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:Shell</ref>
-            <outbound>
-               <strength>weak</strength>
-               <source>
-                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                          xmlns:ext="http://midpoint.evolveum.com/xml/ns/science/user/ext">extension/ext:aixDefaultShell</c:path>
-               </source>
-            </outbound>
-            <inbound>
-               <target>
-                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                          xmlns:ext="http://midpoint.evolveum.com/xml/ns/science/user/ext">extension/ext:aixDefaultShell</c:path>
-               </target>
-            </inbound>
-         </attribute>
-         <attribute>
-            <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:SYSTEM</ref>
-            <outbound>
-               <strength>weak</strength>
-               <expression>
-                  <value>KRB5LDAP</value>
-               </expression>
-            </outbound>
-         </attribute>
-         <attribute>
-            <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:Dir</ref>
-            <inbound>
-               <target>
-                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                          xmlns:ext="http://midpoint.evolveum.com/xml/ns/science/user/ext">extension/ext:aixHomeDir</c:path>
-               </target>
-            </inbound>
-         </attribute>
-         <attribute>
-            <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:internalId</ref>
-            <limitations>
-               <access>
-                  <read>true</read>
-                  <add>true</add>
-                  <modify>false</modify>
-               </access>
-            </limitations>
-<!--             <outbound> -->
-<!--                <strength>weak</strength> -->
-<!--                <source> -->
-<!--                   <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" -->
-<!--                           xmlns:ext="http://midpoint.evolveum.com/xml/ns/science/user/ext">extension/ext:aixUserId</c:path> -->
-<!--                </source> -->
-<!--             </outbound> -->
-            <inbound>
-            <strength>strong</strength>
-               <target>
-                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                          xmlns:ext="http://midpoint.evolveum.com/xml/ns/science/user/ext">extension/ext:aixUserId</c:path>
-               </target>
-            </inbound>
-         </attribute>
-         <attribute>
-            <ref xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3">ri:Description</ref>
-            <displayName>Description</displayName>
-            <inbound>
-               <target>
-                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                          xmlns:ext="http://midpoint.evolveum.com/xml/ns/science/user/ext">$user/extension/ext:aixDescription</c:path>
-               </target>
-            </inbound>
-         </attribute>
-         <dependency>
-            <resourceRef oid="10000000-0000-0000-0000-0000000001ad"/>
-            <strictness>relaxed</strictness>
-         </dependency>
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <displayName>Default Account</displayName>
+            <default>true</default>
+            <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:AccountObjectClass</objectClass>
+            <attribute>
+                <ref xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3">icfs:name</ref>
+                <displayName>Username</displayName>
+                <limitations>
+                    <minOccurs>0</minOccurs>
+                </limitations>
+                <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                    <strength>weak</strength>
+                    <source>
+                        <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">name</c:path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:Shell</ref>
+                <outbound>
+                    <strength>weak</strength>
+                    <source>
+                        <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                                xmlns:ext="http://midpoint.evolveum.com/xml/ns/science/user/ext">extension/ext:aixDefaultShell</c:path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <target>
+                        <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                                xmlns:ext="http://midpoint.evolveum.com/xml/ns/science/user/ext">extension/ext:aixDefaultShell</c:path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:SYSTEM</ref>
+                <outbound>
+                    <strength>weak</strength>
+                    <expression>
+                        <value>KRB5LDAP</value>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:Dir</ref>
+                <inbound>
+                    <target>
+                        <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                                xmlns:ext="http://midpoint.evolveum.com/xml/ns/science/user/ext">extension/ext:aixHomeDir</c:path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:internalId</ref>
+                <limitations>
+                    <access>
+                        <read>true</read>
+                        <add>true</add>
+                        <modify>false</modify>
+                    </access>
+                </limitations>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                                xmlns:ext="http://midpoint.evolveum.com/xml/ns/science/user/ext">extension/ext:aixUserId</c:path>
+                    </target>
+                </inbound>
+                <cached>false</cached> <!-- MID-10051 -->
+            </attribute>
+            <attribute>
+                <ref xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3">ri:Description</ref>
+                <displayName>Description</displayName>
+                <inbound>
+                    <target>
+                        <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                                xmlns:ext="http://midpoint.evolveum.com/xml/ns/science/user/ext">$user/extension/ext:aixDescription</c:path>
+                    </target>
+                </inbound>
+            </attribute>
+            <dependency>
+                <resourceRef oid="10000000-0000-0000-0000-0000000001ad"/>
+                <strictness>relaxed</strictness>
+            </dependency>
 
-         <activation>
-            <administrativeStatus>
-               <outbound/>
-            </administrativeStatus>
-         </activation>
-      </objectType>
-   </schemaHandling>
+            <activation>
+                <administrativeStatus>
+                    <outbound/>
+                </administrativeStatus>
+            </activation>
+        </objectType>
+    </schemaHandling>
 
-   <synchronization>
-      <objectSynchronization>
-         <enabled>true</enabled>
-         <correlation xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
-            <q:description>
-                        Correlation expression is a search query.
-                        Following search query will look for users that have "name"
-                        equal to the "sAMAccountName" attribute of the account. Simply speaking,
-                        it will look for match in usernames in the IDM and the resource.
-                        The correlation rule always looks for users, so it will not match
-                        any other object type.
-            </q:description>
-            <q:equal>
-               <q:path>name</q:path>
-               <expression>
-                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3">$shadow/attributes/icfs:name</c:path>
-               </expression>
-            </q:equal>
-         </correlation>
-         <reaction>
-             <situation>unlinked</situation>
-             <synchronize>true</synchronize>
-             <action>
-                 <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
-             </action>
-         </reaction>
-      </objectSynchronization>
-   </synchronization>
-    </resource>
+    <synchronization>
+        <objectSynchronization>
+            <enabled>true</enabled>
+            <correlation xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+                <q:description>
+                    Correlation expression is a search query.
+                    Following search query will look for users that have "name"
+                    equal to the "sAMAccountName" attribute of the account. Simply speaking,
+                    it will look for match in usernames in the IDM and the resource.
+                    The correlation rule always looks for users, so it will not match
+                    any other object type.
+                </q:description>
+                <q:equal>
+                    <q:path>name</q:path>
+                    <expression>
+                        <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                                xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3">$shadow/attributes/icfs:name</c:path>
+                    </expression>
+                </q:equal>
+            </correlation>
+            <reaction>
+                <situation>unlinked</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                </action>
+            </reaction>
+        </objectSynchronization>
+    </synchronization>
+</resource>

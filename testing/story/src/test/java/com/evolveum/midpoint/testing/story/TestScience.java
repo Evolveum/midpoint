@@ -14,6 +14,8 @@ import java.io.File;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -266,10 +268,10 @@ public class TestScience extends AbstractStoryTest {
         assignRole(USER_JACK_OID, ROLE_STATISTICS_OID, task, result);
 
         // THEN
-        result.computeStatus();
-        if (!result.isInProgress()) {
-            display(result);
-            AssertJUnit.fail("Expected in progress result, but got "+result.getStatus());
+        if (InternalsConfig.isShadowCachingFullByDefault()) {
+            assertSuccess(result); // not reading from the resource, no error encountered
+        } else {
+            assertInProgress(result);
         }
         PrismObject<UserType> userJack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
         AssertJUnit.assertNotNull("User jack not found", userJack);
