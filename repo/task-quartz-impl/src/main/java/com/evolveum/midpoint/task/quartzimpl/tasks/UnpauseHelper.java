@@ -16,16 +16,13 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskSchedulingStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskUnpauseActionType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWaitingReasonType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
 import java.util.List;
 
 @Component
@@ -145,24 +142,56 @@ class UnpauseHelper {
             return false;
         }
 
-        List<TaskQuartzImpl> allPrerequisites = task.listSubtasks(result);
-        allPrerequisites.addAll(taskRetriever.listPrerequisiteTasks(task, result));
-
-        LOGGER.trace("Checking {} prerequisites for waiting task {}", allPrerequisites.size(), task);
-
-        for (Task prerequisite : allPrerequisites) {
-            if (!prerequisite.isClosed()) {
-                LOGGER.debug("Prerequisite {} of {} is not closed (scheduling state = {})",
-                        prerequisite, task, prerequisite.getSchedulingState());
-                return false;
-            }
+        var subtasks = task.listSubtasks(result);
+        if (!arePrerequisitesSatisfied(task, subtasks, true)) {
+            return false;
         }
-        LOGGER.debug("All prerequisites of {} are closed, unpausing the task", task);
+
+        var otherPrerequisites = taskRetriever.listPrerequisiteTasks(task, result);
+        if (!arePrerequisitesSatisfied(task, otherPrerequisites, false)) {
+            return false;
+        }
+
+        LOGGER.debug("All prerequisites of {} are satisfied, unpausing the task", task);
         try {
             return unpauseTask(task, result);
         } catch (PreconditionViolationException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Task cannot be unpaused because it is no longer in WAITING state -- ignoring", e, this);
+            LoggingUtils.logUnexpectedException(
+                    LOGGER, "Task cannot be unpaused because it is no longer in WAITING state -- ignoring", e, this);
             return false;
         }
+    }
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    private static boolean arePrerequisitesSatisfied(Task task, Collection<TaskQuartzImpl> prerequisites, boolean areSubtasks) {
+        LOGGER.trace("Checking {} prerequisites (are subtasks: {}) for waiting task {}", prerequisites.size(), areSubtasks, task);
+        for (Task prerequisite : prerequisites) {
+            // Checking if the task is a worker task. They have more relaxed rules for closing their parent.
+            // Note this is a slight violation of the layering principle (as the coordinator-worker relationship is dealt
+            // with in repo-common module), but probably OK for now.
+            var subtaskRole = areSubtasks ?
+                    prerequisite.getPropertyRealValue(
+                            TaskType.F_ACTIVITY_STATE.append(TaskActivityStateType.F_TASK_ROLE), TaskRoleType.class) :
+                    null; // we ignore the role if the prerequisite is not a subtask
+            if (subtaskRole == TaskRoleType.WORKER) {
+                // We are more relaxed here, as the coordinator will check the work state itself.
+                // If the work is not done, it will simply remain in the waiting state.
+                if (prerequisite.isRunning()) {
+                    LOGGER.debug(
+                            "Prerequisite {} of {} is not satisfied, as it is a running worker subtask (state: {}/{})",
+                            prerequisite, task, prerequisite.getExecutionState(), prerequisite.getSchedulingState());
+                    return false;
+                }
+            } else {
+                // Otherwise, we must wait for the prerequisite to be 100% done.
+                if (!prerequisite.isClosed()) {
+                    LOGGER.debug(
+                            "Prerequisite {} of {} is not satisfied, as it is not a worker subtask and not closed (state: {}/{})",
+                            prerequisite, task, prerequisite.getExecutionState(), prerequisite.getSchedulingState());
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }
