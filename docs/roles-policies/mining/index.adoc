@@ -198,7 +198,7 @@ Clusters also include statistical data about cluster members:
 
 == Starting a Session
 
-To get started, use one of the pre-configured role mining modes or explore advanced mode.
+To get started, use one of the pre-configured role mining presets or explore advanced options.
 
 === Role Mining Presets
 
