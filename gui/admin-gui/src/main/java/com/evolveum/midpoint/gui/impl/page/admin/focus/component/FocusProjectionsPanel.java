@@ -183,7 +183,9 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
 
                     @Override
                     protected IColumn<PrismContainerValueWrapper<ShadowType>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
-                        return createProjectionNameColumn(displayModel, customColumn, expression);
+                        return createProjectionNameColumn(
+                                displayModel == null ? createStringResource("ObjectType.name") : displayModel,
+                                customColumn, expression);
                     }
 
                     @Override
