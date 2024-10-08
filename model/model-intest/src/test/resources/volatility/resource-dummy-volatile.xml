@@ -124,7 +124,9 @@
             </attribute>
             <attribute>
                 <ref>ri:description</ref>
+                <cached>false</cached> <!-- MID-10051 -->
                 <inbound>
+                    <strength>strong</strength> <!-- MID-10051, this is necessary to force loading of the shadow -->
                     <target>
                         <path>description</path>
                     </target>

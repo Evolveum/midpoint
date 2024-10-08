@@ -72,6 +72,7 @@
             </attribute>
             <attribute>
                 <ref>ri:interests</ref>
+                <cached>false</cached> <!-- MID-10051 -->
                 <outbound>
                     <strength>strong</strength>
                     <source>

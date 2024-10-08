@@ -138,6 +138,7 @@
             </attribute>
             <attribute>
                 <ref>ri:internalId</ref>
+                <cached>false</cached> <!-- MID-10051 -->
                 <inbound>
                     <strength>strong</strength>
                     <target>

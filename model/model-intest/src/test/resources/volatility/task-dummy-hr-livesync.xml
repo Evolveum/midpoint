@@ -12,12 +12,8 @@
     <name>Live Sync: HR Dummy Resource</name>
     <taskIdentifier>10000000-0000-0000-5555-55550000f004</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionState>runnable</executionState>
+    <executionState>closed</executionState>
     <objectRef oid="10000000-0000-0000-0000-00000000f004" type="c:ResourceType"/>
-    <binding>tight</binding>
-    <schedule>
-        <interval>1</interval>
-    </schedule>
     <activity>
         <work>
             <liveSynchronization>
