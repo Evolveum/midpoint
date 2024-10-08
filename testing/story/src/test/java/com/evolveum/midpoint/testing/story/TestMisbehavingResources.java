@@ -153,6 +153,9 @@ public class TestMisbehavingResources extends AbstractStoryTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
+        // Without invalidation, there's no read operation regarding the resource, so the operation will not be retried.
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_OID);
+
         // WHEN
         when();
 
