@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 
 import org.jetbrains.annotations.NotNull;
@@ -111,6 +112,9 @@ public interface ShadowAttributeDefinition<
         }
         if (BigInteger.class.equals(typeClass)) {
             return false; // MID-10058
+        }
+        if (PolyString.class.equals(typeClass)) {
+            return false; // MID-10102
         }
 
         var override = isCached();
