@@ -243,10 +243,11 @@ public class PersonaProcessor {
         return true;
     }
 
-    private <F extends FocusType, T extends FocusType> void personaAdd(LensContext<F> context, PersonaKey key, PersonaConstruction<F> construction,
+    private <F extends FocusType, T extends FocusType> void personaAdd(
+            LensContext<F> context, PersonaKey key, PersonaConstruction<F> construction,
             Task task, OperationResult result)
-                    throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException,
-                    CommunicationException, ConfigurationException, SecurityViolationException {
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException,
+            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
         PrismObject<F> focus = context.getFocusContext().getObjectNew();
         LOGGER.debug("Adding persona {} for {} using construction {}", key, focus, construction);
         PersonaConstructionType constructionBean = construction.getConstructionBean();
@@ -282,7 +283,7 @@ public class PersonaProcessor {
         String targetOid = executePersonaDelta(targetDelta, focus.getOid(), task, result);
         target.setOid(targetOid);
 
-        link(context, target.asObjectable(), result);
+        link(context, target.asObjectable(), task, result);
     }
 
     private <F extends FocusType, T extends FocusType> void personaModify(LensContext<F> context, PersonaKey key, PersonaConstruction<F> construction,
@@ -322,7 +323,7 @@ public class PersonaProcessor {
 
         executePersonaDelta(targetDelta, focus.getOid(), task, result);
 
-        unlink(context, existingPersona, result);
+        unlink(context, existingPersona, task, result);
     }
 
     /**
@@ -342,7 +343,7 @@ public class PersonaProcessor {
         return evaluation.getItemDeltas();
     }
 
-    private <F extends FocusType>  void link(LensContext<F> context, FocusType persona, OperationResult result)
+    private <F extends FocusType> void link(LensContext<F> context, FocusType persona, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         ObjectDelta<F> delta = context.getFocusContext().getObjectNew().createModifyDelta();
         PrismReferenceValue refValue = prismContext.itemFactory().createReferenceValue();
@@ -350,10 +351,10 @@ public class PersonaProcessor {
         refValue.setTargetType(persona.asPrismObject().getDefinition().getTypeName());
         delta.addModificationAddReference(FocusType.F_PERSONA_REF, refValue);
 
-        repositoryService.modifyObject(delta.getObjectTypeClass(), delta.getOid(), delta.getModifications(), result);
+        executeOrSimulate(delta, context, task, result);
     }
 
-    private <F extends FocusType>  void unlink(LensContext<F> context, FocusType persona, OperationResult result)
+    private <F extends FocusType> void unlink(LensContext<F> context, FocusType persona, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         ObjectDelta<F> delta = context.getFocusContext().getObjectNew().createModifyDelta();
         PrismReferenceValue refValue = prismContext.itemFactory().createReferenceValue();
@@ -361,7 +362,19 @@ public class PersonaProcessor {
         refValue.setTargetType(persona.asPrismObject().getDefinition().getTypeName());
         delta.addModificationDeleteReference(FocusType.F_PERSONA_REF, refValue);
 
-        repositoryService.modifyObject(delta.getObjectTypeClass(), delta.getOid(), delta.getModifications(), result);
+        executeOrSimulate(delta, context, task, result);
+    }
+
+    private <F extends FocusType> void executeOrSimulate(
+            ObjectDelta<F> delta, LensContext<F> context, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        // TODO we should audit the delta execution (if persistent mode) or put into simulation result (if simulation mode)
+        //  see MID-10100
+        if (task.isExecutionFullyPersistent()) {
+            repositoryService.modifyObject(delta.getObjectTypeClass(), delta.getOid(), delta.getModifications(), result);
+        } else {
+            context.getFocusContextRequired().simulateDeltaExecution(delta);
+        }
     }
 
     private <O extends ObjectType> String executePersonaDelta(ObjectDelta<O> delta, String ownerOid, Task task, OperationResult parentResult)
