@@ -55,8 +55,8 @@ podTemplate(
                         command: 'cat',
                         resourceRequestCpu: params.BUILDER_CPU ?: '4',
                         resourceLimitCpu: params.BUILDER_CPU ?: '4',
-                        resourceRequestMemory: '8Gi',
-                        resourceLimitMemory: '8Gi') // see also -Xmx flag lower
+                        resourceRequestMemory: '10Gi',
+                        resourceLimitMemory: '10Gi') // see also -Xmx flag lower
         ]
 ) {
     node(POD_LABEL) {
