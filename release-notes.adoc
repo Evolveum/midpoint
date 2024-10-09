@@ -153,6 +153,7 @@ More information can be found in the xref:/midpoint/reference/security/authentic
 The sample is located by the link xref:/midpoint/reference/security/authentication/flexible-authentication/configuration/#authenticationsequencemoduletype[Example of the default GUI sequence with configured login form].
 * 'Resource object types' panel identifier changed from 'schemaHandling' to 'resourceObjectTypes' and panel was moved from top level menu item to submenu of new top level menu item 'Schema handling'. The 'schemaHandling' identifier is now used for the top level menu item.
 * Added missing indexes for extension poly-string properties and shadow attributes for generic repositories (Oracle, MS SQL Server). For more info see SQL upgrade scripts.
+* Fixed closing multi-node tasks when some nodes are not available. See bug:MID-10021[].
 
 === Releases Of Other Components
 
