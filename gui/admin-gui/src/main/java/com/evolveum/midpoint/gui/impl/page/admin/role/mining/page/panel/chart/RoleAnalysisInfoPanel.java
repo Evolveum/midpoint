@@ -16,6 +16,8 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.AnalysisInfoWidgetDto;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -58,7 +60,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-public class RoleAnalysisInfoPanel extends BasePanel<String> {
+public class RoleAnalysisInfoPanel extends BasePanel<AnalysisInfoWidgetDto> {
 
     private static final Trace LOGGER = TraceManager.getTrace(RoleAnalysisInfoPanel.class);
 
@@ -66,8 +68,8 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
     private static final String ID_OUTLIER_PANEL = "outlierPanel";
     private static final String ID_DISTRIBUTION_PANEL = "distributionPanel";
 
-    public RoleAnalysisInfoPanel(String id) {
-        super(id);
+    public RoleAnalysisInfoPanel(String id, IModel<AnalysisInfoWidgetDto> analysisInfoWidgetDto) {
+        super(id, analysisInfoWidgetDto);
     }
 
     @Override
@@ -145,10 +147,12 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
                                     protected String getIconCssClass() {
                                         return "fa fa-circle text-success fa-2xs align-middle";
                                     }
+
                                     @Override
                                     protected String getIconComponentCssStyle() {
                                         return "font-size:8px;margin-bottom:2px;";
                                     }
+
                                     @Override
                                     protected String getLabelComponentCssClass() {
                                         return "txt-toned";
@@ -182,10 +186,12 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
                                     protected String getIconCssClass() {
                                         return "fa fa-circle text-danger fa-2xs align-middle";
                                     }
+
                                     @Override
                                     protected String getIconComponentCssStyle() {
                                         return "font-size:8px;margin-bottom:2px;";
                                     }
+
                                     @Override
                                     protected String getLabelComponentCssClass() {
                                         return "txt-toned";
@@ -243,21 +249,22 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
 
     private void initInfoPatternPanel() {
 
-        if (getModelPatterns() == null) {
+        if (getModel() == null || getModelObject() == null || getModelObject().getPatternModelData() == null) {
             WebMarkupContainer roleAnalysisInfoOutlierPanel = new WebMarkupContainer(ID_PATTERN_PANEL);
             roleAnalysisInfoOutlierPanel.setOutputMarkupId(true);
             add(roleAnalysisInfoOutlierPanel);
             return;
         }
 
-        RoleAnalysisIdentifyWidgetPanel patternPanel = new RoleAnalysisIdentifyWidgetPanel(ID_PATTERN_PANEL,
-                createStringResource("Pattern.suggestions.title"), getModelPatterns()) {
+        if (getModel() == null || getModelObject() == null) {
+            WebMarkupContainer roleAnalysisInfoOutlierPanel = new WebMarkupContainer(ID_OUTLIER_PANEL);
+            roleAnalysisInfoOutlierPanel.setOutputMarkupId(true);
+            add(roleAnalysisInfoOutlierPanel);
+            return;
+        }
 
-            /*@Contract(pure = true)
-            @Override
-            protected @NotNull String getBodyHeaderPanelStyle() {
-                return "height:90px;";
-            }*/
+        RoleAnalysisIdentifyWidgetPanel patternPanel = new RoleAnalysisIdentifyWidgetPanel(ID_PATTERN_PANEL,
+                createStringResource("Pattern.suggestions.title"), Model.ofList(getModelObject().getPatternModelData())) {
 
             @Override
             protected @NotNull Component getBodyHeaderPanel(String id) {
@@ -301,10 +308,12 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
                                     protected String getIconCssClass() {
                                         return "fa fa-circle text-success fa-2xs align-middle";
                                     }
+
                                     @Override
                                     protected String getIconComponentCssStyle() {
                                         return "font-size:8px;margin-bottom:2px;";
                                     }
+
                                     @Override
                                     protected String getLabelComponentCssClass() {
                                         return "txt-toned";
@@ -338,10 +347,12 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
                                     protected String getIconCssClass() {
                                         return "fa fa-circle text-warning fa-2xs align-middle";
                                     }
+
                                     @Override
                                     protected String getIconComponentCssStyle() {
                                         return "font-size:8px;margin-bottom:2px;";
                                     }
+
                                     @Override
                                     protected String getLabelComponentCssClass() {
                                         return "txt-toned";
@@ -386,31 +397,17 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
 
     private void initInfoOutlierPanel() {
 
-        if (getModelOutliers() == null) {
+        if (getModel() == null || getModelObject() == null || getModelObject().getOutlierModelData() == null) {
             WebMarkupContainer roleAnalysisInfoOutlierPanel = new WebMarkupContainer(ID_OUTLIER_PANEL);
             roleAnalysisInfoOutlierPanel.setOutputMarkupId(true);
             add(roleAnalysisInfoOutlierPanel);
             return;
         }
-
         RoleAnalysisIdentifyWidgetPanel outlierPanel = new RoleAnalysisIdentifyWidgetPanel(ID_OUTLIER_PANEL,
-                createStringResource("Outlier.suggestions.title"), getModelOutliers()){
-            /*@Contract(pure = true)
-            @Override
-            protected @NotNull String getBodyHeaderPanelStyle() {
-                return "height:90px;";
-            }*/
+                createStringResource("Outlier.suggestions.title"), Model.ofList(getModelObject().getOutlierModelData())) {
         };
         outlierPanel.setOutputMarkupId(true);
         add(outlierPanel);
-    }
-
-    protected @Nullable IModel<List<IdentifyWidgetItem>> getModelOutliers() {
-        return null;
-    }
-
-    protected @Nullable IModel<List<IdentifyWidgetItem>> getModelPatterns() {
-        return null;
     }
 
     protected @Nullable IModel<List<IdentifyWidgetItem>> getModelDistribution() {
@@ -439,7 +436,6 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
         double finalAveragePerUser = averagePerUser;
 
         int usedRoles = (int) countAppliedDirectlyRoles();
-
 
         List<IdentifyWidgetItem> detailsModel = new ArrayList<>();
 

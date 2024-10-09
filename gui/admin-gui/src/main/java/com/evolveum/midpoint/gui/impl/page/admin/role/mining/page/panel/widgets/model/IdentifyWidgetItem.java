@@ -31,6 +31,7 @@ public class IdentifyWidgetItem implements Serializable {
     private final IModel<String> title;
     private final IModel<String> score;
     private final IModel<String> navigationReference;
+    boolean isLoading = false;
 
     transient ComponentType type;
 
@@ -137,5 +138,9 @@ public class IdentifyWidgetItem implements Serializable {
 
     public ComponentType getType() {
         return type;
+    }
+
+    public boolean isLoading() {
+        return isLoading;
     }
 }

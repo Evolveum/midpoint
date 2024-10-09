@@ -11,6 +11,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
 import com.evolveum.midpoint.common.mining.objects.statistic.UserAccessDistribution;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import com.google.common.collect.ListMultimap;
@@ -516,7 +517,6 @@ public interface RoleAnalysisService {
      * This method is used to execute a clustering task.
      * It creates a new cluster and stores it in the session.
      *
-     * @param processingTask The processing task.
      * @param modelInteractionService The model interaction service.
      * @param session The session under which the clustering task is executed.
      * @param task The task associated with this operation.
@@ -1140,5 +1140,9 @@ public interface RoleAnalysisService {
             @NotNull String sessionOid,
             @NotNull RoleAnalysisClusterCategory clusterType,
             @NotNull Task task,
+            @NotNull OperationResult result);
+
+    @Nullable SearchResultList<PrismObject<RoleAnalysisOutlierType>> searchOutliersRepo(
+            @Nullable ObjectQuery query,
             @NotNull OperationResult result);
 }
