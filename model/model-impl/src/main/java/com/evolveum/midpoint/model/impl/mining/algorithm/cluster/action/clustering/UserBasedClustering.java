@@ -71,7 +71,6 @@ public class UserBasedClustering implements Clusterable {
         int minUsersCount = userModeOptions.getMinMembersCount();
         Boolean isIndirect = userModeOptions.isIsIndirect();
         SearchFilterType query = userModeOptions.getQuery();
-        Integer maxDistance = userModeOptions.getMaxDistance();
 
         handler.enterNewStep(LOAD_DATA_STEP);
         handler.setOperationCountToProcess(1);
@@ -94,7 +93,7 @@ public class UserBasedClustering implements Clusterable {
         handler.iterateActualStatus();
         chunkMap.clear();
 
-        DistanceMeasure distanceMeasure = new JaccardDistancesMeasure(minRolesOverlap, maxDistance);
+        DistanceMeasure distanceMeasure = new JaccardDistancesMeasure(minRolesOverlap);
         DensityBasedClustering<DataPoint> dbscan = new DensityBasedClustering<>(similarityDifference,
                 minUsersCount, distanceMeasure, minRolesOverlap, ClusteringMode.BALANCED);
         List<Cluster<DataPoint>> clusters = dbscan.cluster(dataPoints, handler);
