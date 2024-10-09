@@ -1,11 +1,51 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
-  <!-- IMPORTANT: It may be bit weird, having first reason for suppresion, then the issue suppresed, but dependency-chek uses strict schema and they decided on that order of elements. When any of suppresion has notes and cve reordered, it will not load suppression file
+  <!-- IMPORTANT: It may be bit weird, having first reason for suppresion, then the issue suppresed,
+       but dependency-chek uses strict schema and they decided on that order of elements.
+       When any of suppresion has notes and cve reordered, it will not load suppression file
   -->
-
+  <suppress>
+      <notes>False Positive. Derby is not part of production build of midPoint, it is used only for testing.</notes>
+      <cve>CVE-2022-46337</cve>
+  </suppress>
+  
+  <suppress>
+      <notes>False Positive. Jetty is not part of production build of midPoint, it is used only for testing.</notes>
+      <cve>CVE-2023-36478</cve>
+      <cve>CVE-2023-44487</cve>
+      <cve>CVE-2023-40167</cve>
+      <cve>CVE-2023-36479</cve>
+      <cve>CVE-2023-41900</cve>
+  </suppress>
+  <suppress>
+      <notes>
+          False Positive. midPoint does not use crypto-js for any crypthographic functionality. crypto-js is transitive dependency
+          of pdfkit (whose functionality is also not used by midPoint), which is transitive dependency of AdminLTE
+      </notes>
+      <cve>CVE-2023-46233</cve>
+  </suppress>
+  <suppress>
+      <notes>
+          False Positive. CVE is disputed, since library is not used with untrusted data. Janino is not used with user supplied input.
+      </notes>
+      <cve>CVE-2023-33546</cve>
+  </suppress>
+  <suppress>
+      <notes>
+          False Positive. Jackson Databind in midPoint is not used to directly serialize untrusted graph of objects.
+      </notes>
+      <cve>CVE-2023-35116</cve>
+  </suppress>
+  <suppress>
+      <notes>
+          False Positive. Apache Ivy is transitive dependency via Groovy 4.0 All (intended for Groovy Scripting Support).
+          MidPoint and build system does not use Apache Ivy.
+      </notes>
+      <cve>CVE-2022-46751</cve>
+  </suppress>
   <suppress>
     <notes>
-      False Positive. CVE was withdrawn from NVD NIST, since investigation of original CVE showed it was not a security issue, but tooling still reports it as issue. 
+      False Positive. CVE was withdrawn from NVD NIST, since investigation of original CVE showed it was not a security issue, but tooling still reports it as issue.
     </notes>
     <cve>CVE-2021-23334</cve>
   </suppress>
@@ -23,7 +63,7 @@
   </suppress>
   <suppress>
     <notes>
-      False Positive. MidPoint binaries does not contain or use Berkeley DB Java Edition in deployment. It is only used in unit testing libraries.  
+      False Positive. MidPoint binaries does not contain or use Berkeley DB Java Edition in deployment. It is only used in unit testing libraries.
     </notes>
     <cve>CVE-2017-3604</cve>
     <cve>CVE-2017-3605</cve>
