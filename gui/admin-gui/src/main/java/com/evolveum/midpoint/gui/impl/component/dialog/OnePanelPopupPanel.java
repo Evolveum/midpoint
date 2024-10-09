@@ -31,7 +31,11 @@ public abstract class OnePanelPopupPanel extends SimplePopupable {
         this(id, null);
     }
     public OnePanelPopupPanel(String id, IModel<String> title){
-        super(id, 500, 600, title);
+        this(id, 500, 600, title);
+    }
+
+    public OnePanelPopupPanel(String id, int width, int height, IModel<String> title){
+        super(id, width, height, title);
         initLayout();
         initFooter();
     }

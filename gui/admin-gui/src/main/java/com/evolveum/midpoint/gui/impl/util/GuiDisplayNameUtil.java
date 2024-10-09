@@ -8,14 +8,16 @@ package com.evolveum.midpoint.gui.impl.util;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerable;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 import com.google.common.html.HtmlEscapers;
@@ -26,8 +28,6 @@ import org.apache.commons.text.StringEscapeUtils;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
@@ -272,7 +272,65 @@ public class GuiDisplayNameUtil {
         if (resourceItemDefinition.getDisplayName() != null && !resourceItemDefinition.getDisplayName().isEmpty()) {
             return resourceItemDefinition.getDisplayName();
         }
+
+        if (resourceItemDefinition.getRef() != null) {
+            return resourceItemDefinition.getRef().toString();
+        }
         return resourceItemDefinition.asPrismContainerValue().getParent().getPath().last().toString();
+    }
+
+    public static String getDisplayName(SynchronizationReactionType synchReaction) {
+        if (synchReaction == null) {
+            return null;
+        }
+
+        StringBuilder reactionName = new StringBuilder();
+        reactionName.append(
+                synchReaction.getSituation().stream()
+                        .map(situation -> LocalizationUtil.translateEnum(situation))
+                        .collect(Collectors.joining(", ")));
+
+        String actions = ((Collection<Item>)synchReaction.getActions().asPrismContainerValue().getItems()).stream()
+                .filter(item -> !item.isOperational() && !item.getValues().isEmpty())
+                .map(item -> WebPrismUtil.getLocalizedDisplayName(item)).collect(Collectors.joining(", "));
+
+
+        if (StringUtils.isNotEmpty(actions)) {
+            reactionName.append(" - ")
+                    .append(actions);
+        }
+        return reactionName.toString();
+    }
+
+    public static String getDisplayName(ItemSynchronizationReactionType synchReaction) {
+        if (synchReaction == null) {
+            return null;
+        }
+
+        StringBuilder reactionName = new StringBuilder();
+        reactionName.append(
+                synchReaction.getSituation().stream()
+                        .map(situation -> LocalizationUtil.translateEnum(situation))
+                        .collect(Collectors.joining(", ")));
+
+        String actions = ((List<Item>)synchReaction.asPrismContainerValue().getItems()).stream()
+                .filter(item -> !item.isOperational() && !item.getValues().isEmpty())
+                .map(item -> WebPrismUtil.getLocalizedDisplayName(item)).collect(Collectors.joining(", "));
+
+
+        if (StringUtils.isNotEmpty(actions)) {
+            reactionName.append(" - ")
+                    .append(actions);
+        }
+        return reactionName.toString();
+    }
+
+    public static String getDisplayName(DefaultOperationPolicyConfigurationType policy) {
+        if (policy == null || policy.getPolicyRef() == null || policy.getPolicyRef().getOid() == null) {
+            return null;
+        }
+
+        return WebComponentUtil.getDisplayNameOrName(policy.getPolicyRef());
     }
 
     public static String getDisplayName(MappingType mapping) {
@@ -328,7 +386,7 @@ public class GuiDisplayNameUtil {
             }
         }
         VariableBindingDefinitionType target = mapping.getTarget();
-        String targetDescription = target.getPath() != null ? target.getPath().toString() : null;
+        String targetDescription = target != null && target.getPath() != null ? target.getPath().toString() : null;
         String sourceDescription = sourceDescriptionBuilder.toString();
         if (StringUtils.isBlank(sourceDescription)) {
             sourceDescription = "(no sources)";
@@ -340,7 +398,7 @@ public class GuiDisplayNameUtil {
     }
 
     public static String getDisplayName(AbstractPredefinedActivationMappingType mapping) {
-            return WebPrismUtil.getLocalizedDisplayName((PrismContainer)mapping.asPrismContainerValue().getParent());
+        return WebPrismUtil.getLocalizedDisplayName((PrismContainer) mapping.asPrismContainerValue().getParent());
     }
 
     public static String getDisplayName(ProvenanceAcquisitionType acquisition) {

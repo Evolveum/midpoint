@@ -8,9 +8,11 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.dialog.OnePanelPopupPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
@@ -19,8 +21,10 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -29,6 +33,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
 import java.util.List;
@@ -70,7 +75,9 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
 
             @Override
             protected List<InlineMenuItem> createInlineMenu() {
-                return getDefaultMenuActions();
+                List<InlineMenuItem> actions = getDefaultMenuActions();
+                actions.add(createShowLifecycleStatesInlineMenu());
+                return actions;
             }
 
             @Override
@@ -146,6 +153,47 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
             }
         };
         form.add(objectTypesPanel);
+    }
+
+    private InlineMenuItem createShowLifecycleStatesInlineMenu() {
+        return new InlineMenuItem(createStringResource("SchemaHandlingObjectsPanel.button.showLifecycleStates")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<PrismContainerValueWrapper<C>>() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        OnePanelPopupPanel popupPanel = new OnePanelPopupPanel(
+                                getPageBase().getMainPopupBodyId(),
+                                1100,
+                                600,
+                                createStringResource("ContainerWithLifecyclePanel.popup.title")) {
+                            @Override
+                            protected WebMarkupContainer createPanel(String id) {
+                                return new ContainerWithLifecyclePanel<>(id, getRowModel());
+                            }
+
+                            @Override
+                            protected void processHide(AjaxRequestTarget target) {
+                                super.processHide(target);
+                                WebComponentUtil.showToastForRecordedButUnsavedChanges(target, getRowModel().getObject());
+                            }
+                        };
+
+                        getPageBase().showMainPopup(popupPanel, target);
+
+                    }
+                };
+            }
+
+            @Override
+            public boolean isHeaderMenuItem() {
+                return false;
+            }
+        };
     }
 
     protected ItemPath getPathForDisplayName() {
