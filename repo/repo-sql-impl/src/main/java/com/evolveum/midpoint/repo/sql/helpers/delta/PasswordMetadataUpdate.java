@@ -7,20 +7,13 @@
 
 package com.evolveum.midpoint.repo.sql.helpers.delta;
 
-import java.util.Set;
-
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.repo.sql.data.common.Metadata;
 import com.evolveum.midpoint.repo.sql.data.common.RFocus;
-import com.evolveum.midpoint.repo.sql.data.common.RFocusPhoto;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
-import com.evolveum.midpoint.repo.sql.helpers.mapper.Mapper;
 import com.evolveum.midpoint.repo.sql.helpers.modify.MapperContext;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 
 /**
  * Handles credentials/password/metadata updates.
@@ -43,7 +36,7 @@ class PasswordMetadataUpdate extends BaseUpdate {
             return;
         }
 
-        PrismValue value = delta.getAnyValue();
+        PrismValue value = getSingleValue();
 
         MapperContext context = new MapperContext();
         context.setRepositoryContext(beans.createRepositoryContext());
@@ -51,17 +44,4 @@ class PasswordMetadataUpdate extends BaseUpdate {
         context.setOwner(object);
         beans.prismEntityMapper.mapPrismValue(value, RFocus.class, context);
     }
-
-    private boolean isDelete() {
-        if (delta.isDelete()) {
-            return true;
-        }
-
-        if (delta.isReplace() && delta.getAnyValue() == null) {
-            return true;
-        }
-
-        return false;
-    }
-
 }
