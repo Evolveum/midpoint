@@ -942,7 +942,13 @@
                         Specification of associations for this object types. Associations do not always have the same physical
                         manifestation as attributes, i.e. they are not always directly visible on the raw resource object.
                         They may be represented implicitly e.g. in the form of group membership.
+
+                        DEPRECATED. Use association types (in schemaHandling) instead.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.9</a:deprecatedSince>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="volatility" type="tns:ResourceObjectVolatilityType" minOccurs="0">
@@ -3352,27 +3358,30 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="attribute" type="tns:ResourceAttributeDefinitionType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        NO INBOUND/OUTBOUND MAPPINGS HERE!
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="objectRef" type="tns:ResourceAttributeDefinitionType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        NO INBOUND/OUTBOUND MAPPINGS HERE!
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="activation" minOccurs="0" type="tns:ResourceActivationDefinitionType">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        NO INBOUND/OUTBOUND MAPPINGS HERE!
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
+            <!-- The following elements are probably useful, but they are not used in 4.9. Especially for activation, we have to
+                    think out how the mappings should be realized. -->
+
+            <!--<xsd:element name="attribute" type="tns:ResourceAttributeDefinitionType" minOccurs="0" maxOccurs="unbounded">-->
+            <!--    <xsd:annotation>-->
+            <!--        <xsd:documentation>-->
+            <!--            NO INBOUND/OUTBOUND MAPPINGS HERE! Only e.g. displayName and such. -->
+            <!--        </xsd:documentation>-->
+            <!--    </xsd:annotation>-->
+            <!--</xsd:element>-->
+            <!--<xsd:element name="objectRef" type="tns:ResourceAttributeDefinitionType" minOccurs="0" maxOccurs="unbounded">-->
+            <!--    <xsd:annotation>-->
+            <!--        <xsd:documentation>-->
+            <!--            NO INBOUND/OUTBOUND MAPPINGS HERE! Only e.g. displayName and such. -->
+            <!--        </xsd:documentation>-->
+            <!--    </xsd:annotation>-->
+            <!--</xsd:element>-->
+            <!--<xsd:element name="activation" minOccurs="0" type="tns:ResourceActivationDefinitionType">-->
+            <!--    <xsd:annotation>-->
+            <!--        <xsd:documentation>-->
+            <!--            NO INBOUND/OUTBOUND MAPPINGS HERE!-->
+            <!--        </xsd:documentation>-->
+            <!--    </xsd:annotation>-->
+            <!--</xsd:element>-->
             <xsd:element name="tolerant" minOccurs="0" type="xsd:boolean" default="true">
                 <xsd:annotation>
                     <xsd:documentation>
