@@ -1,0 +1,34 @@
+= Error Reporting in GUI
+
+One of the current security concerns is leaking technical and implementation details via verbose error reporting. In midPoint *error reporting with technical details* is necessary for some roles, such as integrators or administrators, but it may pose *security risk for less-privileged roles*.
+
+MidPoint allows you to customize which technical details are
+show to particular role by editing `adminGuiConfiguration/feedbackMessagesHook`.
+
+
+== Configuration Options
+
+The available customization properties of `adminGuiConfiguration/feedbackMessagesHook` are:
+
+`stackTraceVisibility`::
+Sets the visibility of java stack trace in error messages. This does not affect stack traces in logs, only in error messages.
+
+** `visible` (default) - stack traces are visible in error messages and on error pages.
+** `hidden` - stack trace are hidden in error messages and on error pages. 
+
+
+`showOnlyUserFriendlyMessages`::
+If only user friendly messages should be shown to user.
+** `true` - Shows only user friendly error messages (or generic error message if there is no user friendly message available in code)
+** `false` (default) - Shows user friendly message first, otherwise show technical message.
+
+
+`displayOnlyTopLevelOperationResult`::
+If only top-level result should be displayed and available to user.
+** `true` - Only top-level result is displayed. Detailed subresults are hidden.
+** `false` (default) - Full result tree is explorable in GUI. Subresults may contain more detailed technical information.
+
+`disableOperationResultDownload`::
+Enables / Disables operation result for error inspection. This result is not affected by previous options and always contains technical details.
+** `true` - Disable download of operation result.
+** `false` (default) - Download of operation result is available. Note that this may leak implementation and technical details.
