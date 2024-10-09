@@ -30,12 +30,7 @@ class OperationResultUpdate extends BaseUpdate {
             throw new SystemException("Bean is not instance of " + ROperationResult.class + ", shouldn't happen");
         }
 
-        PrismValue value;
-        if (delta.isDelete()) {
-            value = null;
-        } else {
-            value = delta.getAnyValue();
-        }
+        PrismValue value = isDelete() ? null : getSingleValue();
 
         MapperContext context = new MapperContext();
         context.setRepositoryContext(beans.createRepositoryContext());
@@ -52,5 +47,4 @@ class OperationResultUpdate extends BaseUpdate {
             mapper.map(null, context);
         }
     }
-
 }

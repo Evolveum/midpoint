@@ -29,12 +29,7 @@ class MetadataUpdate extends BaseUpdate {
     }
 
     void handleWholeContainerDelta() {
-        PrismValue value;
-        if (delta.isDelete()) {
-            value = null;
-        } else {
-            value = delta.getAnyValue();
-        }
+        PrismValue value = isDelete() ? null : getSingleValue();
 
         MapperContext context = new MapperContext();
         context.setRepositoryContext(beans.createRepositoryContext());
@@ -51,5 +46,4 @@ class MetadataUpdate extends BaseUpdate {
             mapper.map(null, context);
         }
     }
-
 }

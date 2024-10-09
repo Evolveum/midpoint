@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.repo.sql.helpers.delta;
 
+import java.util.Set;
+
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.repo.sql.data.common.RFocus;
@@ -15,8 +17,6 @@ import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.helpers.modify.MapperContext;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-
-import java.util.Set;
 
 /**
  * Handles jpegPhoto updates.
@@ -28,11 +28,10 @@ class PhotoUpdate extends BaseUpdate {
     }
 
     public void handlePropertyDelta() throws SchemaException {
-        if (!(object instanceof RFocus)) {
+        if (!(object instanceof RFocus focus)) {
             throw new SystemException("Bean is not instance of " + RFocus.class + ", shouldn't happen");
         }
 
-        RFocus focus = (RFocus) object;
         Set<RFocusPhoto> photos = focus.getJpegPhoto();
 
         if (isDelete()) {
@@ -40,13 +39,14 @@ class PhotoUpdate extends BaseUpdate {
             return;
         }
 
+        PrismValue value = getSingleValue();
+
         MapperContext context = new MapperContext();
 
         context.setRepositoryContext(beans.createRepositoryContext());
         context.setDelta(delta);
         context.setOwner(object);
 
-        PrismValue value = delta.getAnyValue();
         RFocusPhoto photo = beans.prismEntityMapper.map(value.getRealValue(), RFocusPhoto.class, context);
 
         if (delta.isAdd()) {
@@ -68,17 +68,4 @@ class PhotoUpdate extends BaseUpdate {
         RFocusPhoto oldPhoto = photos.iterator().next();
         oldPhoto.setPhoto(photo.getPhoto());
     }
-
-    private boolean isDelete() {
-        if (delta.isDelete()) {
-            return true;
-        }
-
-        if (delta.isReplace() && delta.getAnyValue() == null) {
-            return true;
-        }
-
-        return false;
-    }
-
 }
