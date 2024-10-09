@@ -29,13 +29,14 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 
 == Changes with Respect To Version 4.8.4
 
-* Added support for `owner` authorization clause. See bug:MID-9985[] and bug:MID-5689[]. 
+* Added support for `owner` authorization clause. See bug:MID-9985[] and bug:MID-5689[].
 * Native Repository: Fixed reindexing issues with index-only extensions and attributes, fixed reading of index-only attributes.
 See bug:MID-9754[].
 * Fixed session cookie customization via `var/application.yml`` and added same site cookie support. See bug:MID-9992[] and xref:/midpoint/reference/security/session-cookie/[Security: HTTP Session Cookie] for cookie options.
 * Added and fixed configuration options to limit technical error reporting for end-users. See bug:MID-9993[].
-* Ninja: Fixed confusing messages about unsupported types when used with generic repository. See bug:MID-9866[]. 
+* Ninja: Fixed confusing messages about unsupported types when used with generic repository. See bug:MID-9866[].
 * Upgraded LDAP and AD Connector to 3.7.3 version.
+* Fixed closing multi-node tasks when some nodes are not available. See bug:MID-10021[].
 
 == Changes with Respect To Version 4.8.3
 
