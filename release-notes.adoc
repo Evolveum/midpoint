@@ -1,10 +1,10 @@
 ---
 layout: release
-release-version: '4.8.4'
+release-version: '4.8.5'
 visibility: hidden
 ---
-= MidPoint 4.8 "Curie" - Update 4
-:release-version: 4.8.4
+= MidPoint 4.8 "Curie" - Update 5
+:release-version: 4.8.5
 :page-liquid:
 :page-toc: top
 
@@ -26,6 +26,16 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 {% endcapture %}
 {% include release-dedication.html content=dedicationContent %}
 ++++
+
+== Changes with Respect To Version 4.8.4
+
+* Added support for `owner` authorization clause. See bug:MID-9985[] and bug:MID-5689[]. 
+* Native Repository: Fixed reindexing issues with index-only extensions and attributes, fixed reading of index-only attributes.
+See bug:MID-9754[].
+* Fixed session cookie customization via `var/application.yml`` and added same site cookie support. See bug:MID-9992[] and xref:/midpoint/reference/security/session-cookie/[Security: HTTP Session Cookie] for cookie options.
+* Added and fixed configuration options to limit technical error reporting for end-users. See bug:MID-9993[].
+* Ninja: Fixed confusing messages about unsupported types when used with generic repository. See bug:MID-9866[]. 
+* Upgraded LDAP and AD Connector to 3.7.3 version.
 
 == Changes with Respect To Version 4.8.3
 
@@ -366,7 +376,7 @@ Note that this resulted in migration from Java EE `javax` package names to `jaka
 ** Fixed NPE with multivalue attributes when delimiter is not defined. (bug:MID-8609[]).
 ** Fix UTF-8 BOM character in csv file during of discovery functions. (bug:MID-9497[] and bug:MID-9498[]).
 
-* New version (3.7.2) of LDAP connector bundle (including xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP Connector] and xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.ad.AdLdapConnector/[Active Directory Connector]) was released and bundled with midPoint.
+* New version (3.7.3) of LDAP connector bundle (including xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP Connector] and xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.ad.AdLdapConnector/[Active Directory Connector]) was released and bundled with midPoint.
 ** Adding third error code for AD X_BIND_REQUIRED error. (bug:MID-9724[]).
 
 * Docker images will be released in Docker Hub soon after midPoint {release-version} release.
