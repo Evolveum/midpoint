@@ -15,7 +15,7 @@
         <similarityThreshold>80.0</similarityThreshold>
         <minMembersCount>10</minMembersCount>
         <propertiesRange>
-            <min>5.0</min>
+            <min>1.0</min>
             <max>249.0</max>
         </propertiesRange>
         <minPropertiesOverlap>2</minPropertiesOverlap>
