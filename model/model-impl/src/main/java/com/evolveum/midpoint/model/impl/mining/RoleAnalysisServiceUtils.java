@@ -390,7 +390,7 @@ public class RoleAnalysisServiceUtils {
     }
 
     @Nullable
-    protected static DetectedPattern findPatternWithBestConfidence(@NotNull List<DetectedPattern> detectedPatterns) {
+    public static DetectedPattern findPatternWithBestConfidence(@NotNull List<DetectedPattern> detectedPatterns) {
         double maxOverallConfidence = 0;
         DetectedPattern topDetectedPattern = null;
         for (DetectedPattern detectedPattern : detectedPatterns) {

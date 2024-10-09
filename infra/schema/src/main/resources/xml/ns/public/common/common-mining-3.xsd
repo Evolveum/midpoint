@@ -1207,15 +1207,16 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="maxDistance" type="xsd:int" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            Maximum distance between cluster members.
-                        </p>
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
+            <!--TODO think about this it should be different compare metric instead minPropertiesOverlap and maxDistance-->
+            <!--<xsd:element name="maxDistance" type="xsd:int" minOccurs="0">-->
+            <!--    <xsd:annotation>-->
+            <!--        <xsd:documentation>-->
+            <!--            <p>-->
+            <!--                Maximum distance between cluster members.-->
+            <!--            </p>-->
+            <!--        </xsd:documentation>-->
+            <!--    </xsd:annotation>-->
+            <!--</xsd:element>-->
 
             <xsd:element name="clusteringAttributeSetting" type="tns:ClusteringAttributeSettingType" minOccurs="0">
                 <xsd:annotation>

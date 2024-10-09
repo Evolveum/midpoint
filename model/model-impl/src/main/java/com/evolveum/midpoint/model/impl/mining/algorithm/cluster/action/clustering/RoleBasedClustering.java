@@ -69,7 +69,6 @@ public class RoleBasedClustering implements Clusterable {
         double similarityDifference = 1 - (similarityThreshold / 100);
         int minUsersOverlap = roleModeOptions.getMinPropertiesOverlap();
         int minRolesCount = roleModeOptions.getMinMembersCount();
-        Integer maxDistance = roleModeOptions.getMaxDistance();
         SearchFilterType query = roleModeOptions.getQuery();
         Boolean isIndirect = roleModeOptions.isIsIndirect();
 
@@ -92,7 +91,7 @@ public class RoleBasedClustering implements Clusterable {
         handler.iterateActualStatus();
         chunkMap.clear();
 
-        DistanceMeasure distanceMeasure = new JaccardDistancesMeasure(minUsersOverlap, maxDistance);
+        DistanceMeasure distanceMeasure = new JaccardDistancesMeasure(minUsersOverlap);
         DensityBasedClustering<DataPoint> dbscan = new DensityBasedClustering<>(
                 similarityDifference, minRolesCount, distanceMeasure, minUsersOverlap, ClusteringMode.BALANCED);
 

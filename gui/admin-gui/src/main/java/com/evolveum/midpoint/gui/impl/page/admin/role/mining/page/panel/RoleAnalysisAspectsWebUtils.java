@@ -2,6 +2,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel;
 
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisPartitionOverviewPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.widgets.model.IdentifyWidgetItem;
@@ -60,7 +61,7 @@ public class RoleAnalysisAspectsWebUtils {
     }
 
     @NotNull
-    private static IModel<List<IdentifyWidgetItem>> loadOutlierWidgetModels(
+    public static IModel<List<IdentifyWidgetItem>> loadOutlierWidgetModels(
             @NotNull PageBase pageBase,
             @NotNull List<RoleAnalysisOutlierType> outliers,
             boolean isCluster,
@@ -164,22 +165,27 @@ public class RoleAnalysisAspectsWebUtils {
 
     public static @NotNull IModel<List<IdentifyWidgetItem>> getSessionWidgetModelOutliers(
             @NotNull RoleAnalysisSessionType session,
-            @NotNull PageBase pageBase) {
-
+            @NotNull PageBase pageBase,
+            @NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull OperationResult result, LoadableModel<RoleAnalysisOutlierType> topOutliers) {
         String sessionOid = session.getOid();
-        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
-        Task task = pageBase.createSimpleTask("Get top session outliers");
-        OperationResult result = task.getResult();
+        Task task = pageBase.createSimpleTask("load outliers");
+
         List<RoleAnalysisOutlierType> topSessionOutliers = roleAnalysisService.getSessionOutliers(sessionOid, null, task, result);
         List<RoleAnalysisOutlierType> outliers = topSessionOutliers.subList(0, Math.min(topSessionOutliers.size(), 5));
 
+        topOutliers = outliers.isEmpty() ? null : new LoadableModel<>() {
+            @Override
+            protected RoleAnalysisOutlierType load() {
+                return outliers.get(0);
+            }
+        };
         List<IdentifyWidgetItem> detailsModel = new ArrayList<>();
         String targetPartitionOid = session.getOid();
         PolyStringType sessionName = session.getName();
         boolean isCluster = false;
 
         return loadOutlierWidgetModels(pageBase, outliers, isCluster, targetPartitionOid, sessionName, detailsModel);
-
     }
 
     public static @NotNull IModel<List<IdentifyWidgetItem>> getClusterWidgetModelPatterns(
@@ -241,7 +247,7 @@ public class RoleAnalysisAspectsWebUtils {
                             "x relationships with a attribute score of  " +
                             formattedItemConfidence + "%";
 
-            String patternName = pageBase.createStringResource("RoleAnalysis.role.suggestion.title", (i + 1)).getString();
+            String patternName = "Role suggestion #" + (i + 1);
             IdentifyWidgetItem identifyWidgetItem = new IdentifyWidgetItem(
                     IdentifyWidgetItem.ComponentType.PATTERN,
                     Model.of(GuiStyleConstants.CLASS_DETECTED_PATTERN_ICON),

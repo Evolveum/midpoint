@@ -163,9 +163,7 @@ public class RoleAnalysisReconfigureSessionPopupPanel
                 ItemName itemName = itemWrapper.getItemName();
                 return itemName.equivalent(AbstractAnalysisSessionOptionType.F_MIN_MEMBERS_COUNT)
                         || itemName.equivalent(AbstractAnalysisSessionOptionType.F_MIN_PROPERTIES_OVERLAP)
-                        || itemName.equivalent(AbstractAnalysisSessionOptionType.F_SIMILARITY_THRESHOLD)
-                        || itemName.equivalent(AbstractAnalysisSessionOptionType.F_USER_ANALYSIS_ATTRIBUTE_SETTING)
-                        || itemName.equivalent(AbstractAnalysisSessionOptionType.F_CLUSTERING_ATTRIBUTE_SETTING);
+                        || itemName.equivalent(AbstractAnalysisSessionOptionType.F_SIMILARITY_THRESHOLD);
             }
 
             @Contract(pure = true)
@@ -237,8 +235,7 @@ public class RoleAnalysisReconfigureSessionPopupPanel
             @Override
             protected boolean checkMandatory(@NotNull ItemWrapper itemWrapper) {
                 ItemName itemName = itemWrapper.getItemName();
-                return itemName.equivalent(AbstractAnalysisSessionOptionType.F_QUERY)
-                        || itemName.equivalent(AbstractAnalysisSessionOptionType.F_IS_INDIRECT)
+                return itemName.equivalent(AbstractAnalysisSessionOptionType.F_IS_INDIRECT)
                         || itemName.equivalent(AbstractAnalysisSessionOptionType.F_PROPERTIES_RANGE);
             }
 
@@ -252,7 +249,6 @@ public class RoleAnalysisReconfigureSessionPopupPanel
                             || itemName.equals(AbstractAnalysisSessionOptionType.F_SIMILARITY_THRESHOLD)
                             || itemName.equals(AbstractAnalysisSessionOptionType.F_CLUSTERING_ATTRIBUTE_SETTING)
                             || itemName.equals(AbstractAnalysisSessionOptionType.F_USER_ANALYSIS_ATTRIBUTE_SETTING)
-                            || itemName.equals(AbstractAnalysisSessionOptionType.F_MAX_DISTANCE)
                             || itemName.equals(AbstractAnalysisSessionOptionType.F_DETAILED_ANALYSIS)
                     ) {
                         return ItemVisibility.HIDDEN;

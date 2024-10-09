@@ -76,7 +76,6 @@ public class AdvancedClustering implements Clusterable {
         int maxUserOccupancy = sessionOptionType.getPropertiesRange().getMax().intValue();
         int minUsersOverlap = sessionOptionType.getMinPropertiesOverlap();
         int minRolesCount = sessionOptionType.getMinMembersCount();
-        Integer maxDistance = sessionOptionType.getMaxDistance();
         double similarityThreshold = sessionOptionType.getSimilarityThreshold();
         double similarityDifference = 1 - (similarityThreshold / 100);
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
@@ -97,7 +96,7 @@ public class AdvancedClustering implements Clusterable {
         }
 
         DistanceMeasure distanceMeasure = new JaccardDistancesMeasure(
-                minUsersOverlap, new HashSet<>(roleAnalysisAttributeDefConverts), 0, maxDistance);
+                minUsersOverlap, new HashSet<>(roleAnalysisAttributeDefConverts), 0);
 
         boolean ruleExist = !roleAnalysisAttributeDefConverts.isEmpty() && roleAnalysisAttributeDefConverts.get(0).getRoleAnalysisItemDef() != null;
 
@@ -127,7 +126,6 @@ public class AdvancedClustering implements Clusterable {
         double similarityDifference = 1 - (similarityThreshold / 100);
         int minRolesOverlap = sessionOptionType.getMinPropertiesOverlap();
         int minUsersCount = sessionOptionType.getMinMembersCount();
-        Integer maxDistance = sessionOptionType.getMaxDistance();
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
 
         List<RoleAnalysisAttributeDefConvert> roleAnalysisAttributeDefConverts = generateMatchingRulesList(
@@ -146,7 +144,7 @@ public class AdvancedClustering implements Clusterable {
         }
 
         DistanceMeasure distanceMeasure = new JaccardDistancesMeasure(
-                minRolesOverlap, new HashSet<>(roleAnalysisAttributeDefConverts), 0, maxDistance);
+                minRolesOverlap, new HashSet<>(roleAnalysisAttributeDefConverts), 0);
 
         boolean ruleExist = !roleAnalysisAttributeDefConverts.isEmpty() && roleAnalysisAttributeDefConverts.get(0).getRoleAnalysisItemDef() != null;
         ClusteringMode clusteringMode = getClusteringMode(analysisOption, ruleExist);

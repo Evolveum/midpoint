@@ -7,8 +7,6 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.aspects;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.*;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.RoleAnalysisAspectsWebUtils.getSessionWidgetModelOutliers;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.RoleAnalysisAspectsWebUtils.getSessionWidgetModelPatterns;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_DETECTED_PATER_ID;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_TABLE_SETTING;
 
@@ -19,6 +17,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.AnalysisInfoWidgetDto;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -45,7 +45,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.MetricValuePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisPartitionOverviewPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.widgets.component.RoleAnalysisIdentifyWidgetPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.widgets.model.IdentifyWidgetItem;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisDetectedPatternDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel.RoleAnalysisDistributionProgressPanel;
@@ -114,20 +113,31 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
             initRoleMiningPart(roleAnalysisService, session, task, result, sessionStatistic, container);
             initInfoPatternPanel(container);
         } else {
-            initOutlierPart(roleAnalysisService, session, task, result, sessionStatistic, container);
-            initInfoOutlierPanel(container);
+            AnalysisInfoWidgetDto analysisInfoWidgetDto = new AnalysisInfoWidgetDto();
+            PageBase pageBase = getPageBase();
+            OperationResult resultOp = new OperationResult("loadOutlierModels");
+
+            analysisInfoWidgetDto.loadSessionOutlierModels(getObjectDetailsModels().getObjectType(), pageBase, resultOp, roleAnalysisService, task);
+
+            LoadableModel<AnalysisInfoWidgetDto> model = new LoadableModel<>(false) {
+                @Override
+                protected AnalysisInfoWidgetDto load() {
+                    return analysisInfoWidgetDto;
+                }
+            };
+            initOutlierPart(roleAnalysisService, session, task, result, sessionStatistic, container, model);
+            initInfoOutlierPanel(container, model);
         }
 
     }
 
     private void initInfoPatternPanel(@NotNull WebMarkupContainer container) {
-
+        AnalysisInfoWidgetDto analysisInfoWidgetDto = new AnalysisInfoWidgetDto();
         OperationResult result = new OperationResult("loadTopClusterPatterns");
-        IModel<List<IdentifyWidgetItem>> modelPatterns = getSessionWidgetModelPatterns(getObjectDetailsModels().getObjectType(),
-                result, getPageBase(), 5);
+        analysisInfoWidgetDto.loadSessionPatternModels(getObjectDetailsModels().getObjectType(), getPageBase(), result);
 
         RoleAnalysisIdentifyWidgetPanel panel = new RoleAnalysisIdentifyWidgetPanel(ID_PATTERNS,
-                createStringResource("Pattern.suggestions.title"), modelPatterns) {
+                createStringResource("Pattern.suggestions.title"), Model.ofList(analysisInfoWidgetDto.getPatternModelData())) {
 
             @Override
             protected void onClickFooter(AjaxRequestTarget target) {
@@ -252,11 +262,10 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
         }
     }
 
-    private void initInfoOutlierPanel(@NotNull WebMarkupContainer container) {
-        IModel<List<IdentifyWidgetItem>> modelPatterns = getSessionWidgetModelOutliers(getObjectDetailsModels().getObjectType(),
-                getPageBase());
+    private void initInfoOutlierPanel(@NotNull WebMarkupContainer container, LoadableModel<AnalysisInfoWidgetDto> analysisInfoWidgetDto) {
+
         RoleAnalysisIdentifyWidgetPanel panel = new RoleAnalysisIdentifyWidgetPanel(ID_PATTERNS,
-                createStringResource("Outlier.suggestions.title"), modelPatterns) {
+                createStringResource("Outlier.suggestions.title"), Model.ofList(analysisInfoWidgetDto.getObject().getOutlierModelData())) {
 
             @Override
             protected Component getBodyHeaderPanel(String id) {
@@ -542,10 +551,12 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                                     protected String getIconCssClass() {
                                         return "fa fa-circle text-info fa-2xs align-middle";
                                     }
+
                                     @Override
                                     protected String getIconComponentCssStyle() {
                                         return "font-size:8px;margin-bottom:2px;";
                                     }
+
                                     @Override
                                     protected String getLabelComponentCssClass() {
                                         return "txt-toned";
@@ -580,10 +591,12 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                                     protected String getIconCssClass() {
                                         return "fa fa-circle text-warning fa-2xs align-middle";
                                     }
+
                                     @Override
                                     protected String getIconComponentCssStyle() {
                                         return "font-size:8px;margin-bottom:2px;";
                                     }
+
                                     @Override
                                     protected String getLabelComponentCssClass() {
                                         return "txt-toned";
@@ -932,10 +945,12 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                                     protected String getIconCssClass() {
                                         return " fa fa-circle text-info fa-2xs align-middle";
                                     }
+
                                     @Override
                                     protected String getIconComponentCssStyle() {
                                         return "font-size:8px;margin-bottom:2px;";
                                     }
+
                                     @Override
                                     protected String getLabelComponentCssClass() {
                                         return "txt-toned";
@@ -970,10 +985,12 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                                     protected String getIconCssClass() {
                                         return "fa fa-circle text-warning fa-2xs align-middle";
                                     }
+
                                     @Override
                                     protected String getIconComponentCssStyle() {
                                         return "font-size:8px;margin-bottom:2px;";
                                     }
+
                                     @Override
                                     protected String getLabelComponentCssClass() {
                                         return "txt-toned";
@@ -1098,46 +1115,26 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
             Task task,
             OperationResult result,
             RoleAnalysisSessionStatisticType sessionStatistic,
-            WebMarkupContainer container) {
+            WebMarkupContainer container,
+            LoadableModel<AnalysisInfoWidgetDto> analysisInfoWidgetDto) {
 
-        List<RoleAnalysisOutlierType> topSessionOutliers = roleAnalysisService.getSessionOutliers(session.getOid(), null, task, result);
+        initOutlierPartNew(roleAnalysisService, session, task, result, sessionStatistic, container);
 
-        if (topSessionOutliers != null && sessionStatistic != null && !topSessionOutliers.isEmpty()) {
-            initOutlierPartNew(roleAnalysisService, session, task, result, sessionStatistic, container);
+        IconWithLabel titlePanel = new IconWithLabel(ID_CARD_TITLE, Model.of("Best session outlier")) {
+            @Contract(pure = true)
+            @Override
+            protected @NotNull String getIconCssClass() {
+                return GuiStyleConstants.CLASS_ICON_OUTLIER + " fa-sm";
+            }
+        };
+        titlePanel.setOutputMarkupId(true);
+        container.add(titlePanel);
 
-            IconWithLabel titlePanel = new IconWithLabel(ID_CARD_TITLE, Model.of("Best session outlier")) {
-                @Contract(pure = true)
-                @Override
-                protected @NotNull String getIconCssClass() {
-                    return GuiStyleConstants.CLASS_ICON_OUTLIER + " fa-sm";
-                }
-            };
-            titlePanel.setOutputMarkupId(true);
-            container.add(titlePanel);
+        AjaxCompositedIconSubmitButton components = buildExplorePatternOutlier(Model.of(analysisInfoWidgetDto.getObject().getTopOutliers()));
+        container.add(components);
 
-            AjaxCompositedIconSubmitButton components = buildExplorePatternOutlier(topSessionOutliers.get(0));
-            container.add(components);
+        initOutlierPanel(container, session, analysisInfoWidgetDto);
 
-            initOutlierPanel(container, session, topSessionOutliers.get(0));
-
-        } else {
-
-            WebMarkupContainer panelContainer = new WebMarkupContainer(ID_PANEL_CONTAINER);
-            panelContainer.setOutputMarkupId(true);
-            container.add(panelContainer);
-
-            emptyPanel(ID_PANEL, panelContainer);
-
-            WebMarkupContainer headerItems = new WebMarkupContainer(ID_HEADER_ITEMS);
-            headerItems.setOutputMarkupId(true);
-            container.add(headerItems);
-
-            emptyPanel(ID_CARD_TITLE, container);
-
-            WebMarkupContainer exploreButton = new WebMarkupContainer(ID_EXPLORE_PATTERN_BUTTON);
-            exploreButton.setOutputMarkupId(true);
-            container.add(exploreButton);
-        }
     }
 
     private @NotNull AjaxCompositedIconSubmitButton buildExplorePatternButton(DetectedPattern pattern) {
@@ -1166,7 +1163,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
         return explorePatternButton;
     }
 
-    private @NotNull AjaxCompositedIconSubmitButton buildExplorePatternOutlier(RoleAnalysisOutlierType outlier) {
+    private @NotNull AjaxCompositedIconSubmitButton buildExplorePatternOutlier(IModel<RoleAnalysisOutlierType> outlier) {
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
                 GuiStyleConstants.CLASS_ICON_SEARCH, IconCssStyle.IN_ROW_STYLE);
         AjaxCompositedIconSubmitButton explorePatternButton = new AjaxCompositedIconSubmitButton(
@@ -1181,7 +1178,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                     return;
                 }
                 PageParameters parameters = new PageParameters();
-                String clusterOid = outlier.getOid();
+                String clusterOid = outlier.getObject().getOid();
                 parameters.add(OnePageParameterEncoder.PARAMETER, clusterOid);
 
                 Class<? extends PageBase> detailsPageClass = DetailsPageUtil
@@ -1217,38 +1214,53 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
         getPageBase().navigateToNext(detailsPageClass, parameters);
     }
 
-    public void initOutlierPanel(WebMarkupContainer container, RoleAnalysisSessionType session, RoleAnalysisOutlierType topSessionOutlier) {
+    public void initOutlierPanel(WebMarkupContainer container, RoleAnalysisSessionType session, LoadableModel<AnalysisInfoWidgetDto> topSessionOutlier) {
 
         WebMarkupContainer panelContainer = new WebMarkupContainer(ID_PANEL_CONTAINER);
         panelContainer.setOutputMarkupId(true);
         panelContainer.add(AttributeModifier.replace(CLASS_CSS, "card-body p-2 pt-3"));
         container.add(panelContainer);
 
-        if (topSessionOutlier == null) {
-            emptyPanel(ID_PANEL, panelContainer);
-            return;
-        }
-
         String sessionOid = session.getOid();
-        RoleAnalysisOutlierPartitionType outlierPartition = null;
-        List<RoleAnalysisOutlierPartitionType> outlierPartitions = topSessionOutlier.getOutlierPartitions();
-        for (RoleAnalysisOutlierPartitionType outlierPartitionNext : outlierPartitions) {
-            ObjectReferenceType partitionTargetSessionRef = outlierPartitionNext.getTargetSessionRef();
-            if (partitionTargetSessionRef.getOid().equals(sessionOid)) {
-                outlierPartition = outlierPartitionNext;
-                break;
-            }
-        }
 
+        LoadableModel<RoleAnalysisOutlierPartitionType> outlierPartitionTypeLoadableModel = new LoadableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected RoleAnalysisOutlierPartitionType load() {
+                RoleAnalysisOutlierType topOutliers = topSessionOutlier.getObject().getTopOutliers();
+                if (topOutliers == null) {
+                    return null;
+                }
+                RoleAnalysisOutlierPartitionType outlierPartition = null;
+                List<RoleAnalysisOutlierPartitionType> outlierPartitions = topOutliers.getOutlierPartitions();
+                for (RoleAnalysisOutlierPartitionType outlierPartitionNext : outlierPartitions) {
+                    ObjectReferenceType partitionTargetSessionRef = outlierPartitionNext.getTargetSessionRef();
+                    if (partitionTargetSessionRef.getOid().equals(sessionOid)) {
+                        outlierPartition = outlierPartitionNext;
+                        break;
+                    }
+                }
+                return outlierPartition;
+            }
+        };
+
+        RoleAnalysisPartitionOverviewPanel panel = buildTopoutlierPanel(topSessionOutlier, outlierPartitionTypeLoadableModel);
+
+        panel.setOutputMarkupId(true);
+        panelContainer.add(panel);
+    }
+
+    private static @NotNull RoleAnalysisPartitionOverviewPanel buildTopoutlierPanel(LoadableModel<AnalysisInfoWidgetDto> topSessionOutlier, LoadableModel<RoleAnalysisOutlierPartitionType> outlierPartitionTypeLoadableModel) {
         RoleAnalysisPartitionOverviewPanel panel = new RoleAnalysisPartitionOverviewPanel(ID_PANEL,
-                Model.of(outlierPartition), Model.of(topSessionOutlier)) {
+                outlierPartitionTypeLoadableModel, Model.of(topSessionOutlier.getObject().getTopOutliers())) {
+
             @Override
             protected @NotNull String replaceWidgetCssClass() {
                 return "col-12 col-xl-6 p-2";
             }
         };
-        panel.setOutputMarkupId(true);
-        panelContainer.add(panel);
+        return panel;
     }
 
     private static void emptyPanel(String idPanel, @NotNull WebMarkupContainer container) {

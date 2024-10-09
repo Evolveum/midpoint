@@ -162,7 +162,7 @@ public class RoleAnalysisIdentifyWidgetPanel extends BasePanel<List<IdentifyWidg
             WidgetRmChartComponent<DoughnutChartConfiguration> header = new WidgetRmChartComponent<>(
                     repeatingView.newChildId(), Model.of(), Model.of(dto));
             header.setOutputMarkupId(true);
-            header.add(AttributeAppender.append(CLASS_CSS,"col-auto p-0"));
+            header.add(AttributeAppender.append(CLASS_CSS, "col-auto p-0"));
             repeatingView.add(header);
         });
 
