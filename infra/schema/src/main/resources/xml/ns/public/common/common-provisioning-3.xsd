@@ -3349,6 +3349,9 @@
                     <xsd:documentation>
                         Outbound mapping(s) for the association.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ShadowAssociationDefinitionType.outbound</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="inbound" type="tns:InboundMappingType" minOccurs="0" maxOccurs="unbounded">
@@ -3356,6 +3359,9 @@
                     <xsd:documentation>
                         Inbound mapping(s) for the association.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ShadowAssociationDefinitionType.inbound</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <!-- The following elements are probably useful, but they are not used in 4.9. Especially for activation, we have to
@@ -7442,7 +7448,13 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="associationConstruction" type="tns:AssociationConstructionExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
+    <xsd:element name="associationConstruction" type="tns:AssociationConstructionExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:displayName>ExpressionType.associationConstruction</a:displayName>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
 
     <xsd:complexType name="AssociationSynchronizationExpressionEvaluatorType">
         <xsd:annotation>
@@ -7502,7 +7514,13 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="associationSynchronization" type="tns:AssociationSynchronizationExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
+    <xsd:element name="associationSynchronization" type="tns:AssociationSynchronizationExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:displayName>ExpressionType.associationSynchronization</a:displayName>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
 
     <xsd:complexType name="ShadowBehaviorType">
         <xsd:annotation>

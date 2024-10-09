@@ -1,0 +1,40 @@
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="d-flex flex-column">
+        <div class="d-flex flex-grow-1 flex-wrap btn-arch p-1 align-items-center" style="min-height: 39px;">
+            <div style="width:25px" class="cursor-pointer">
+                <i class="mr-1 fas" wicket:id="valueCollapseButton"/>
+            </div>
+            <div style="width:25px">
+                <i class="mr-1" wicket:id="valueIcon"/>
+            </div>
+            <div wicket:id="valueName" class="cursor-pointer"/>
+            <div class="ml-auto" wicket:id="lifecycleInput"/>
+        </div>
+        <div wicket:id="containersContainer">
+            <div class="d-flex flex-column" wicket:id="containers">
+                <div class="d-flex flex-grow-1 flex-wrap btn-arch p-1 align-items-center" style="margin-left:25px; min-height: 39px;" wicket:id="container">
+                    <div style="width:25px" class="cursor-pointer">
+                        <i class="mr-1 fas" wicket:id="containerCollapseButton"/>
+                    </div>
+                    <div style="width:25px">
+                        <i class="mr-1 fa fa-folder-tree"/>
+                    </div>
+                    <div wicket:id="containerName" class="cursor-pointer text-bold"/>
+                </div>
+                <div wicket:id="childContainer">
+                    <div wicket:id="child"/>
+                </div>
+            </div>
+        </div>
+    </div>
+</wicket:panel>
+</html>

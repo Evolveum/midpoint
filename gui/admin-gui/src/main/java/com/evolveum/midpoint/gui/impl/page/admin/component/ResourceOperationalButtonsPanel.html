@@ -10,13 +10,20 @@
 <wicket:panel>
     <wicket:extend>
         <fieldset class="objectButtons" wicket:id="resourceOperationsContainer">
-            <legend><wicket:message key="ResourceOperationalButtonsPanel.buttons.resource"/></legend>
+            <legend>
+                <wicket:message key="ResourceOperationalButtonsPanel.buttons.resource"/>
+            </legend>
             <a class="mr-2 btn btn-default btn-sm" wicket:id="resourceButtons"/>
         </fieldset>
         <wicket:enclosure child="lifecycleStatePanel">
             <fieldset class="objectButtons">
-                <legend><wicket:message key="ObjectType.lifecycleState"/></legend>
-                <div class="mr-2" wicket:id="lifecycleStatePanel"/>
+                <legend>
+                    <wicket:message key="ObjectType.lifecycleState"/>
+                </legend>
+                <div class="d-flex">
+                    <div class="mr-2" wicket:id="lifecycleStatePanel"/>
+                    <a class="mr-2 btn btn-default btn-sm" wicket:id="detailedLifecycle"/>
+                </div>
             </fieldset>
         </wicket:enclosure>
     </wicket:extend>
