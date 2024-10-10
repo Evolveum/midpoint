@@ -22,6 +22,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
+import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
+import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -168,5 +170,10 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType, M extends Ob
         }
 
         return null;
+    }
+
+    protected final SessionStorage getSessionStorage() {
+        MidPointAuthWebSession session = (MidPointAuthWebSession) getSession();
+        return session.getSessionStorage();
     }
 }

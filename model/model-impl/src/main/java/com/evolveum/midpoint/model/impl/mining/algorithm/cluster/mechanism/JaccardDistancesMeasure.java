@@ -15,14 +15,11 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.RoleAnalysisAttributeDefConvert;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.ExtensionProperties;
 
-import org.jetbrains.annotations.Nullable;
-
 /**
  * A distance measure implementation for calculating the Jaccard distance/similarity between two sets of values.
  */
 public class JaccardDistancesMeasure implements DistanceMeasure {
     private final int minIntersection;
-    private final Integer maxDifference;
     private final int minIntersectionAttributes;
     transient Set<RoleAnalysisAttributeDefConvert> attributesMatch;
 
@@ -30,21 +27,17 @@ public class JaccardDistancesMeasure implements DistanceMeasure {
      * Constructs a JaccardDistancesMeasure with the specified minimum intersection size for calculation.
      *
      * @param minIntersection The minimum intersection size required for Jaccard distance computation.
-     * @param maxDifference The maximum difference between the two sets of values.
      */
-    public JaccardDistancesMeasure(int minIntersection, @Nullable Integer maxDifference) {
+    public JaccardDistancesMeasure(int minIntersection) {
         this.minIntersection = minIntersection;
-        this.maxDifference = maxDifference;
         this.minIntersectionAttributes = 0;
     }
 
     public JaccardDistancesMeasure(int minIntersection,
             @NotNull Set<RoleAnalysisAttributeDefConvert> attributesMatch,
-            int minIntersectionAttributes,
-            @Nullable Integer maxDifference) {
+            int minIntersectionAttributes) {
         this.minIntersectionAttributes = minIntersectionAttributes;
         this.minIntersection = minIntersection;
-        this.maxDifference = maxDifference;
         this.attributesMatch = attributesMatch;
     }
 
@@ -83,10 +76,6 @@ public class JaccardDistancesMeasure implements DistanceMeasure {
         }
 
         int totalElements = largerSet.size() + setBunique;
-
-        if (maxDifference != null && totalElements > maxDifference) {
-            return 1;
-        }
 
         if (intersectionCount < minIntersection) {
             return 1;
@@ -192,19 +181,10 @@ public class JaccardDistancesMeasure implements DistanceMeasure {
     @Override
     public double computeSimpleDistance(@NotNull Set<String> valueA, @NotNull Set<String> valueB) {
         int intersectionSize = 0;
-        int uniqueElements = 0;
         for (String element : valueA) {
             if (valueB.contains(element)) {
                 intersectionSize++;
-            } else {
-                uniqueElements++;
             }
-        }
-
-        int totalElements = valueA.size() + uniqueElements;
-
-        if (maxDifference != null && totalElements > maxDifference) {
-            return 1;
         }
 
         if (intersectionSize < minIntersection) {

@@ -61,11 +61,13 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
 
     protected abstract File getPersonaObjectTemplateFile();
 
-    /** Testing preview of persona assignment. Personal links should not be created in the repo. MID-10080. */
+    /** Testing simulation of persona assignment. Personal links should not be created in the repo. MID-10080. */
     @Test
     public void test090AssignRolePersonaAdminToJackSimulated() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
+
+        skipIfNotNativeRepository();
 
         when("persona role is added in the simulation mode");
         var simResult =
@@ -94,6 +96,29 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
                                 .assertModified(UserType.F_ASSIGNMENT) // personaRef is not simulated now; see MID-10100
                                 .end())
                 .assertSize(2);
+    }
+
+    /**
+     * As {@link #test090AssignRolePersonaAdminToJackSimulated()} but using preview changes (to work on generic repo as well).
+     *
+     * MID-10080.
+     */
+    @Test
+    public void test095AssignRolePersonaAdminToJackPreview() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when("persona role is added (preview changes)");
+        previewChanges(
+                deltaFor(UserType.class)
+                        .asObjectDelta(USER_JACK_OID),
+                null, task, result);
+
+        then("no personaRef should be created");
+        assertSuccess(result);
+        assertPersonaLinks(getUser(USER_JACK_OID), 0); // preview -> no persona refs should be added
+
+        // TODO we should somehow support two model contexts here (that we currently do not)
     }
 
     @Test

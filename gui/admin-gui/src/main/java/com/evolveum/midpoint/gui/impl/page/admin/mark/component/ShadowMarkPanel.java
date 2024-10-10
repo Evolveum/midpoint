@@ -784,10 +784,6 @@ public class ShadowMarkPanel<O extends ObjectType> extends AbstractObjectMainPan
         return getSessionStorage().getPageStorageMap().get(storageKey);
     }
 
-    private SessionStorage getSessionStorage() {
-        return getPageBase().getSessionStorage();
-    }
-
     protected String getStorageKeyTabSuffix() {
         return getPanelConfiguration().getIdentifier();
     }
