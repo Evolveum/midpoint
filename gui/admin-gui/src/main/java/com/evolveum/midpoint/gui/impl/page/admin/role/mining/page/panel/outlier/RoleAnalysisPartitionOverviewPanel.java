@@ -68,7 +68,10 @@ public class RoleAnalysisPartitionOverviewPanel extends BasePanel<RoleAnalysisOu
     }
 
     private @NotNull Component getHeaderComponent(String id) {
-        RoleAnalysisOutlierType object = outlierModel.getObject();
+        if (getOutlierModel() == null || getOutlierModel().getObject() == null) {
+            return new WebMarkupContainer(id);
+        }
+        RoleAnalysisOutlierType object = getOutlierModel().getObject();
 
         PageBase pageBase = getPageBase();
         Task simpleTask = pageBase.createSimpleTask("Load object");
@@ -142,6 +145,10 @@ public class RoleAnalysisPartitionOverviewPanel extends BasePanel<RoleAnalysisOu
     }
 
     private @NotNull IModel<List<WidgetItemModel>> loadDetailsModel() {
+
+        if (getOutlierModel() == null || getOutlierModel().getObject() == null || getModelObject() == null) {
+            return Model.ofList(new ArrayList<>());
+        }
 
         RoleAnalysisOutlierType outlier = getOutlierModel().getObject();
         RoleAnalysisOutlierPartitionType partition = getModelObject();

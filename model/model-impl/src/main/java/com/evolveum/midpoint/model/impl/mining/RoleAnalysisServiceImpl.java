@@ -2094,7 +2094,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             detectedPattern.setItemConfidence(itemsConfidence);
         }
         long end = System.currentTimeMillis();
-        LOGGER.info("Time to resolve detected patterns attributes: {} ms", (end - start));
+        LOGGER.debug("Time to resolve detected patterns attributes: {} ms", (end - start));
     }
 
     @Override
@@ -3420,6 +3420,18 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             LOGGER.error("Couldn't search RoleAnalysisClusterType objects", e);
         }
         return clusters;
+    }
+
+    @Override
+    public SearchResultList<PrismObject<RoleAnalysisOutlierType>> searchOutliersRepo(
+            @Nullable ObjectQuery query,
+            @NotNull OperationResult result) {
+        try {
+            return repositoryService
+                    .searchObjects(RoleAnalysisOutlierType.class, null, null, result);
+        } catch (SchemaException e) {
+            throw new SystemException("Couldn't search RoleAnalysisOutlierType objects", e);
+        }
     }
 
 }

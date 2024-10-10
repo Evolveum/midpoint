@@ -22,6 +22,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulato
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -100,8 +101,15 @@ public enum AnomalyTableCategory implements Serializable {
                 RoleType role = object.getValue();
                 String oid = role.getOid();
                 List<DetectedAnomalyResult> detectedAnomalyResults = anomalyResultMap.get(oid);
+
+                if(detectedAnomalyResults.isEmpty()) {
+                    cellItem.add(new EmptyPanel(componentId));
+                    return;
+                }
+
                 if (detectedAnomalyResults.size() != 1) {
-                    throw new IllegalStateException("DetectedAnomalyResult is null or size is not 1");
+                    throw new IllegalStateException("Unexpected number of detected anomaly results for role "
+                                    + oid + ": " + detectedAnomalyResults.size());
                 }
                 DetectedAnomalyResult anomalyResult = anomalyResultMap.get(oid).get(0);
                 double confidence = anomalyResult.getStatistics().getConfidence();

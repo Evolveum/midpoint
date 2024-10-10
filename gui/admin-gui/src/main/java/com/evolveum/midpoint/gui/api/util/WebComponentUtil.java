@@ -4290,4 +4290,21 @@ public final class WebComponentUtil {
 
         return com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate(key);
     }
+
+    public static String getLabelForItemValue(PrismValueWrapper valueWrapper, PageBase pageBase){
+        if (valueWrapper == null) {
+            return "";
+        }
+
+        Object object = valueWrapper.getRealValue();
+        if (object instanceof Enum<?>) {
+            return WebComponentUtil.createLocalizedModelForEnum((Enum<?>) object, pageBase).getObject();
+        } else if (object instanceof PolyString) {
+            return com.evolveum.midpoint.gui.api.util.LocalizationUtil.translatePolyString((PolyString) object);
+        } else if (object instanceof Boolean) {
+            return WebComponentUtil.createLocalizedModelForBoolean((Boolean) object).getObject();
+        }
+
+        return valueWrapper.toShortString();
+    }
 }

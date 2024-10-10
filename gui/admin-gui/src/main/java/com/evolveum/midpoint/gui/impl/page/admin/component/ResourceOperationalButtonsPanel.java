@@ -9,7 +9,9 @@ package com.evolveum.midpoint.gui.impl.page.admin.component;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 
+import com.evolveum.midpoint.gui.impl.component.dialog.OnePanelPopupPanel;
 import com.evolveum.midpoint.gui.impl.component.input.LifecycleStatePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ContainerWithLifecyclePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceObjectsPanel;
 import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -24,6 +26,7 @@ import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import com.evolveum.midpoint.web.model.PrismContainerValueWrapperModel;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaHandlingType;
@@ -56,6 +59,7 @@ public abstract class ResourceOperationalButtonsPanel extends AssignmentHolderOp
     private static final String ID_RESOURCE_OPERATIONS_CONTAINER="resourceOperationsContainer";
     private static final String ID_RESOURCE_BUTTONS = "resourceButtons";
     private static final String ID_LIFECYCLE_STATE_PANEL = "lifecycleStatePanel";
+    private static final String ID_DETAILED_LIFECYCLE_BUTTON = "detailedLifecycle";
 
     public ResourceOperationalButtonsPanel(String id, LoadableModel<PrismObjectWrapper<ResourceType>> model) {
         super(id, model);
@@ -81,7 +85,47 @@ public abstract class ResourceOperationalButtonsPanel extends AssignmentHolderOp
         initResourceButtons(resourceButtons);
         resourceOperationsContainer.add(resourceButtons);
 
-        initLifecycleStatePanel(ID_LIFECYCLE_STATE_PANEL);
+        initLifecycleStatePanel();
+        initDetailedLifecycleButton();
+    }
+
+    private void initDetailedLifecycleButton() {
+        AjaxIconButton detailedLifecycle = new AjaxIconButton(ID_DETAILED_LIFECYCLE_BUTTON,
+                Model.of("fa fa-heart-pulse"),
+                createStringResource("SchemaHandlingObjectsPanel.button.showLifecycleStates")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                OnePanelPopupPanel popupPanel = new OnePanelPopupPanel(
+                        getPageBase().getMainPopupBodyId(),
+                        1100,
+                        600,
+                        createStringResource("ContainerWithLifecyclePanel.popup.title")) {
+                    @Override
+                    protected WebMarkupContainer createPanel(String id) {
+                        return new ContainerWithLifecyclePanel<>(
+                                id,
+                                PrismContainerValueWrapperModel.fromContainerWrapper(
+                                        ResourceOperationalButtonsPanel.this.getModel(),
+                                        ItemPath.EMPTY_PATH));
+                    }
+
+                    @Override
+                    protected void processHide(AjaxRequestTarget target) {
+                        super.processHide(target);
+                        WebComponentUtil.showToastForRecordedButUnsavedChanges(
+                                target,
+                                ResourceOperationalButtonsPanel.this.getModelObject().getValue());
+                    }
+                };
+
+                getPageBase().showMainPopup(popupPanel, target);
+            }
+        };
+        detailedLifecycle.showTitleAsLabel(true);
+        add(detailedLifecycle);
+
     }
 
     private void initResourceButtons(RepeatingView resourceButtons) {
@@ -134,10 +178,10 @@ public abstract class ResourceOperationalButtonsPanel extends AssignmentHolderOp
         resourceButtons.add(refreshSchema);
     }
 
-    private void initLifecycleStatePanel(String id) {
+    private void initLifecycleStatePanel() {
         PrismPropertyWrapperModel<ResourceType, String> model =
                 PrismPropertyWrapperModel.fromContainerWrapper(getModel(), ResourceType.F_LIFECYCLE_STATE);
-        LifecycleStatePanel lifecycleStatePanel = new LifecycleStatePanel(id, model) {
+        LifecycleStatePanel lifecycleStatePanel = new LifecycleStatePanel(ID_LIFECYCLE_STATE_PANEL, model) {
             @Override
             protected void onInitialize() {
                 super.onInitialize();
