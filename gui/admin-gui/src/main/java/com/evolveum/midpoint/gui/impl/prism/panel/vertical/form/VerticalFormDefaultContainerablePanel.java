@@ -15,6 +15,9 @@ import com.evolveum.midpoint.prism.Containerable;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
@@ -27,6 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainersSpe
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -44,7 +48,10 @@ import java.util.List;
  */
 public class VerticalFormDefaultContainerablePanel<C extends Containerable> extends DefaultContainerablePanel<C, PrismContainerValueWrapper<C>> {
 
+    private static final Trace LOGGER = TraceManager.getTrace(VerticalFormDefaultContainerablePanel.class);
+
     private static final String ID_PROPERTY = "property";
+    private static final String ID_REMOVE_VALUE = "removeValue";
     public static final String ID_FORM_CONTAINER = "formContainer";
     private static final String ID_SHOW_EMPTY_BUTTON_CONTAINER = "showEmptyButtonContainer";
 
@@ -84,6 +91,35 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
         labelShowEmpty.add(AttributeAppender.append("style", "cursor: pointer;"));
         labelShowEmpty.add(new VisibleBehaviour(() -> isShowMoreButtonVisible(nonContainerWrappers)));
         formContainer.add(labelShowEmpty);
+
+        AjaxLink<Void> removeButton = new AjaxLink<>(ID_REMOVE_VALUE) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                try {
+                    removeValue(VerticalFormDefaultContainerablePanel.this.getModelObject(), target);
+                } catch (SchemaException e) {
+                    LOGGER.error("Cannot remove value: {}", VerticalFormDefaultContainerablePanel.this.getModelObject());
+                    getSession().error("Cannot remove value " + VerticalFormDefaultContainerablePanel.this.getModelObject());
+                    target.add(getFeedbackPanel());
+                }
+            }
+        };
+        removeButton.add(new VisibleBehaviour(this::isRemoveValueButtonVisible));
+        removeButton.add(AttributeAppender.append("title", getString("VerticalFormDefaultContainerablePanel.removeValue")));
+        removeButton.setOutputMarkupId(true);
+        formContainer.add(removeButton);
+    }
+
+    protected boolean isRemoveValueButtonVisible() {
+        return getModelObject() != null
+                && getModelObject().getDefinition() != null
+                && getModelObject().getDefinition().isMultiValue()
+                && (getModelObject().getParent() == null || getModelObject().getParent().getValues().size() > 1);
+    }
+
+    protected void removeValue(PrismContainerValueWrapper<C> value, AjaxRequestTarget target) throws SchemaException {
     }
 
     protected void populateNonContainer(ListItem<? extends ItemWrapper<?, ?>> item) {
@@ -100,7 +136,7 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
         item.add(propertyPanel);
     }
 
-    private Boolean isNonContainerVisible(ListItem<? extends ItemWrapper<?,?>> item, ItemPanelSettings settings) {
+    private Boolean isNonContainerVisible(ListItem<? extends ItemWrapper<?, ?>> item, ItemPanelSettings settings) {
         if (!isVisibleVirtualValueWrapper()) {
             return false;
         }
@@ -143,7 +179,7 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
                 List<PrismContainerWrapper<? extends Containerable>> containers = modelObject.getContainers(getPanelConfiguration(), getPageBase());
 
                 if (config == null) {
-                    containers.removeIf(c -> c.isVirtual()  || !isVisibleSubContainer(c));
+                    containers.removeIf(c -> c.isVirtual() || !isVisibleSubContainer(c));
                 } else {
                     containers.removeIf(c -> (c.isVirtual() && c.getIdentifier() == null)
                             || (!c.isVirtual() && !isVisibleSubContainer(c)));
@@ -215,7 +251,7 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
     private VerticalFormPrismContainerPanel<?> createContainerPanel(IModel<PrismContainerWrapper<?>> wrapperModel, ItemPanelSettings settings) {
         if (QNameUtil.match(wrapperModel.getObject().getTypeName(), ClusteringAttributeSettingType.COMPLEX_TYPE)) {
             return new VerticalFormClusteringAttributesPanel("container", (IModel) wrapperModel, settings);
-        }else if (QNameUtil.match(wrapperModel.getObject().getTypeName(), AnalysisAttributeSettingType.COMPLEX_TYPE)) {
+        } else if (QNameUtil.match(wrapperModel.getObject().getTypeName(), AnalysisAttributeSettingType.COMPLEX_TYPE)) {
             return new VerticalFormAnalysisAttributesPanel("container", (IModel) wrapperModel, settings);
         }
         return new VerticalFormPrismContainerPanel<>("container", (IModel) wrapperModel, settings) {

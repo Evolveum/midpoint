@@ -66,6 +66,11 @@ public class VerticalFormPrismContainerValuePanel<C extends Containerable, CVW e
             protected boolean isShowEmptyButtonVisible() {
                 return VerticalFormPrismContainerValuePanel.this.isShowEmptyButtonVisible();
             }
+
+            @Override
+            protected boolean isRemoveValueButtonVisible() {
+                return false;
+            }
         };
         panel.setOutputMarkupId(true);
         valueContainer.add(panel);

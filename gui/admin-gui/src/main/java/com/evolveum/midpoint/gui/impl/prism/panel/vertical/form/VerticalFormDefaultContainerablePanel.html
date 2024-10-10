@@ -12,6 +12,12 @@
 
         <wicket:container wicket:id="propertiesLabel">
             <div wicket:enclosure="showEmptyButtonContainer" class="card-body border-top mb-0 p-3" wicket:id="formContainer">
+                <div class="d-flex">
+                    <button wicket:id="removeValue" class="ml-auto btn btn-tool text-danger" trigger="hover">
+                        <i class="fa fa-eraser pr-1"></i>
+                        <wicket:message key="VerticalFormDefaultContainerablePanel.removeValue"/>
+                    </button>
+                </div>
                 <wicket:container wicket:id="properties">
                     <div class="mb-3" wicket:id="property"/>
                 </wicket:container>
