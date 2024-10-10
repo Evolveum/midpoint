@@ -1001,8 +1001,6 @@ public interface RoleAnalysisService {
     ListMultimap<List<String>, String> loadUserForOutlierComparison(
             @NotNull RoleAnalysisService roleAnalysisService,
             List<String> outliersMembers,
-            int minRolesOccupancy,
-            int maxRolesOccupancy,
             @Nullable SearchFilterType query,
             @NotNull OperationResult result,
             @NotNull Task task);

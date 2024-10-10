@@ -34,12 +34,10 @@ public class DepartmentModeConfiguration extends AbstractRoleAnalysisConfigurati
 
     @Override
     public void updateConfiguration() {
-        RangeType propertyRange = createPropertyRange();
         ClusteringAttributeSettingType clusteringSetting = createClusteringSetting();
 
         updatePrimaryOptions(null, null, null,
                 false,
-                propertyRange,
                 getDefaultAnalysisAttributes(),
                 clusteringSetting,
                 0.0,
@@ -54,17 +52,11 @@ public class DepartmentModeConfiguration extends AbstractRoleAnalysisConfigurati
                 null);
     }
 
-    private RangeType createPropertyRange() {
-        double minPropertyCount = 2.0;
-        double maxPropertyCount = getMaxPropertyCount();
-        return new RangeType().min(minPropertyCount).max(maxPropertyCount);
-    }
-
     //TODO let the user choose the archetype or root for departmnet structre
     private @NotNull ClusteringAttributeSettingType createClusteringSetting() {
         ClusteringAttributeSettingType clusteringSetting = new ClusteringAttributeSettingType();
         ClusteringAttributeRuleType rule = new ClusteringAttributeRuleType()
-                .path(FocusType.F_PARENT_ORG_REF.toBean())
+                .path(ObjectType.F_PARENT_ORG_REF.toBean())
                 .isMultiValue(true)
                 .weight(1.0)
                 .similarity(100.0);
@@ -77,22 +69,6 @@ public class DepartmentModeConfiguration extends AbstractRoleAnalysisConfigurati
     //  Also these structured classes should be used for migration process specification.
     private RangeType createDetectionRange() {
         return new RangeType().min(90.0).max(100.0);
-    }
-
-    public @NotNull Integer getMaxPropertyCount() {
-        Class<? extends ObjectType> propertiesClass = UserType.class;
-        if (getProcessMode().equals(RoleAnalysisProcessModeType.USER)) {
-            propertiesClass = RoleType.class;
-        }
-
-        Integer maxPropertiesObjects;
-
-        maxPropertiesObjects = service.countObjects(propertiesClass, null, null, task, result);
-
-        if (maxPropertiesObjects == null) {
-            maxPropertiesObjects = 1000000;
-        }
-        return maxPropertiesObjects;
     }
 
 }

@@ -1200,18 +1200,6 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="propertiesRange" type="tns:RangeType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            Specifies the minimum and maximum required number of properties.
-                            If the condition is not met, the object is excluded.
-                            USER MODE - min role assign.
-                            ROLE MODE - min members count.
-                        </p>
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="minPropertiesOverlap" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>

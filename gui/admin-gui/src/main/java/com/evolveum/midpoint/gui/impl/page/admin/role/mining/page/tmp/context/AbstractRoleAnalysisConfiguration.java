@@ -155,7 +155,6 @@ public abstract class AbstractRoleAnalysisConfiguration implements RoleAnalysisC
             SearchFilterType roleSearchFilter,
             SearchFilterType assignmentSearchFilter,
             boolean isIndirect,
-            RangeType propertiesRange,
             AnalysisAttributeSettingType analysisAttributeSetting,
             ClusteringAttributeSettingType clusteringAttributeSetting,
             Double similarityThreshold,
@@ -166,7 +165,6 @@ public abstract class AbstractRoleAnalysisConfiguration implements RoleAnalysisC
 //        try {
             AbstractAnalysisSessionOptionType sessionOptions = getPrimaryOptionContainerFormModel();
             sessionOptions.isIndirect(isIndirect)
-                    .propertiesRange(propertiesRange)
                     .userAnalysisAttributeSetting(analysisAttributeSetting)
                     .clusteringAttributeSetting(clusteringAttributeSetting)
                     .similarityThreshold(similarityThreshold)
@@ -185,18 +183,6 @@ public abstract class AbstractRoleAnalysisConfiguration implements RoleAnalysisC
                 sessionOptions.setAssignmentSearchFilter(assignmentSearchFilter);
             }
 
-//            setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_IS_INDIRECT, isIndirect);
-//            setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_PROPERTIES_RANGE, propertiesRange);
-//            setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_USER_ANALYSIS_ATTRIBUTE_SETTING, analysisAttributeSetting);
-//            setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_CLUSTERING_ATTRIBUTE_SETTING, clusteringAttributeSetting);
-//            setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_SIMILARITY_THRESHOLD, similarityThreshold);
-//            setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_MIN_MEMBERS_COUNT, minMembersCount);
-//            setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_MIN_PROPERTIES_OVERLAP, minPropertiesOverlap);
-//            setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_QUERY, query);
-//            setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_DETAILED_ANALYSIS, detailedAnalysis);
-//        } catch (SchemaException e) {
-//            throw new RuntimeException(e);
-//        }
     }
 
     public void updateDetectionOptions(

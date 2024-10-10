@@ -3067,8 +3067,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     public ListMultimap<List<String>, String> loadUserForOutlierComparison(
             @NotNull RoleAnalysisService roleAnalysisService,
             List<String> outliersMembers,
-            int minRolesOccupancy,
-            int maxRolesOccupancy,
             @Nullable SearchFilterType userSearchFilter,
             @NotNull OperationResult result,
             @NotNull Task task) {

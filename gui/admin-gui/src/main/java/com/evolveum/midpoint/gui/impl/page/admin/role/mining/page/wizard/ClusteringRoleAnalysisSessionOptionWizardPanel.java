@@ -60,7 +60,6 @@ public class ClusteringRoleAnalysisSessionOptionWizardPanel extends AbstractForm
                     || itemName.equals(AbstractAnalysisSessionOptionType.F_ROLE_SEARCH_FILTER)
                     || itemName.equals(AbstractAnalysisSessionOptionType.F_ASSIGNMENT_SEARCH_FILTER)
                     || itemName.equals(AbstractAnalysisSessionOptionType.F_IS_INDIRECT)
-                    || itemName.equals(AbstractAnalysisSessionOptionType.F_PROPERTIES_RANGE)
                    ) {
                 return ItemVisibility.HIDDEN;
             }

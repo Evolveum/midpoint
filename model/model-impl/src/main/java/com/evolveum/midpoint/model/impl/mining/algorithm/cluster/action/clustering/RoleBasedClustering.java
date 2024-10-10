@@ -61,8 +61,6 @@ public class RoleBasedClustering implements Clusterable {
             @NotNull OperationResult result) {
 
         RoleAnalysisSessionOptionType roleModeOptions = session.getRoleModeOptions();
-        int minUserOccupancy = roleModeOptions.getPropertiesRange().getMin().intValue();
-        int maxUserOccupancy = roleModeOptions.getPropertiesRange().getMax().intValue();
         double similarityThreshold = roleModeOptions.getSimilarityThreshold();
         double similarityDifference = 1 - (similarityThreshold / 100);
         int minUsersOverlap = roleModeOptions.getMinPropertiesOverlap();

@@ -183,18 +183,6 @@ public class RoleAnalysisSessionBasicRoleModeWizardPanel
         }
     }
 
-    private void setMinPropertyRangeOption(int minUsers) {
-        PrismContainer<Containerable> container = getObjectWrapper().getObject()
-                .findContainer(RoleAnalysisSessionType.F_ROLE_MODE_OPTIONS);
-
-        PrismProperty<Object> property = container.findProperty(AbstractAnalysisSessionOptionType.F_PROPERTIES_RANGE);
-
-        if (property.getRealValue() instanceof RangeType rangeType) {
-            rangeType.setMin((double) minUsers);
-            property.setRealValue(rangeType);
-        }
-    }
-
     private void initArchetypeSelectionPanel() {
 //        IconWithLabel archetypeTitlePanel = new IconWithLabel(ID_TITLE_ARCHETYPE,
 //                createStringResource("RoleAnalysisSessionBasicRoleModeWizardPanel.archetype.title.label")) {
@@ -278,7 +266,6 @@ public class RoleAnalysisSessionBasicRoleModeWizardPanel
             @Override
             public void setObject(Integer object) {
                 super.setObject(object);
-                setMinPropertyRangeOption(object);
             }
         };
 

@@ -13,8 +13,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.jetbrains.annotations.NotNull;
-
 public class OutlierModeConfiguration extends AbstractRoleAnalysisConfiguration {
 
     RoleAnalysisService service;
@@ -34,16 +32,11 @@ public class OutlierModeConfiguration extends AbstractRoleAnalysisConfiguration 
 
     @Override
     public void updateConfiguration() {
-        RangeType propertyRange = new RangeType()
-                .min(5.0)
-                .max(Double.valueOf(getMaxPropertyCount()));
-
         //TODO after implementing use isIndirect
 //        boolean isIndirect = getProcessMode().equals(RoleAnalysisProcessModeType.USER);
 
-        updatePrimaryOptions(null,null, null,
+        updatePrimaryOptions(null, null, null,
                 false,
-                propertyRange,
                 getDefaultAnalysisAttributes(),
                 null,
                 80.0,
@@ -60,21 +53,4 @@ public class OutlierModeConfiguration extends AbstractRoleAnalysisConfiguration 
                         .max(2.0),
                 50.0);
     }
-
-    public @NotNull Integer getMaxPropertyCount() {
-        Class<? extends ObjectType> propertiesClass = UserType.class;
-        if (getProcessMode().equals(RoleAnalysisProcessModeType.USER)) {
-            propertiesClass = RoleType.class;
-        }
-
-        Integer maxPropertiesObjects;
-
-        maxPropertiesObjects = service.countObjects(propertiesClass, null, null, task, result);
-
-        if (maxPropertiesObjects == null) {
-            maxPropertiesObjects = 1000000;
-        }
-        return maxPropertiesObjects;
-    }
-
 }

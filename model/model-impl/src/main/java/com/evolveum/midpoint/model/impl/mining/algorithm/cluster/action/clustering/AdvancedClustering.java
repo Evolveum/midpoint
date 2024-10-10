@@ -72,8 +72,6 @@ public class AdvancedClustering implements Clusterable {
             @NotNull OperationResult result) {
         RoleAnalysisSessionOptionType sessionOptionType = session.getRoleModeOptions();
         Boolean isIndirect = sessionOptionType.isIsIndirect();
-        int minUserOccupancy = sessionOptionType.getPropertiesRange().getMin().intValue();
-        int maxUserOccupancy = sessionOptionType.getPropertiesRange().getMax().intValue();
         int minUsersOverlap = sessionOptionType.getMinPropertiesOverlap();
         int minRolesCount = sessionOptionType.getMinMembersCount();
         double similarityThreshold = sessionOptionType.getSimilarityThreshold();
@@ -88,9 +86,8 @@ public class AdvancedClustering implements Clusterable {
         SearchFilterType roleSearchFilter = sessionOptionType.getRoleSearchFilter();
         SearchFilterType assignmentSearchFilter = sessionOptionType.getAssignmentSearchFilter();
 
-        List<DataPoint> dataPoints = loadInitialData(modelService, roleAnalysisService, handler, isIndirect,
-                RoleAnalysisProcessModeType.ROLE, roleAnalysisAttributeDefConverts,
-                minUserOccupancy, maxUserOccupancy, userSearchFilter, roleSearchFilter, assignmentSearchFilter, task, result);
+        List<DataPoint> dataPoints = loadInitialData(roleAnalysisService, handler, isIndirect,
+                RoleAnalysisProcessModeType.ROLE, roleAnalysisAttributeDefConverts, userSearchFilter, roleSearchFilter, assignmentSearchFilter, task, result);
 
         if (dataPoints.isEmpty()) {
             LOGGER.warn("No data to process.");
@@ -122,8 +119,7 @@ public class AdvancedClustering implements Clusterable {
             @NotNull OperationResult result) {
         UserAnalysisSessionOptionType sessionOptionType = session.getUserModeOptions();
         Boolean isIndirect = sessionOptionType.isIsIndirect();
-        int minRolesOccupancy = sessionOptionType.getPropertiesRange().getMin().intValue();
-        int maxRolesOccupancy = sessionOptionType.getPropertiesRange().getMax().intValue();
+
         double similarityThreshold = sessionOptionType.getSimilarityThreshold();
         double similarityDifference = 1 - (similarityThreshold / 100);
         int minRolesOverlap = sessionOptionType.getMinPropertiesOverlap();
@@ -138,14 +134,12 @@ public class AdvancedClustering implements Clusterable {
         SearchFilterType roleSearchFilter = sessionOptionType.getRoleSearchFilter();
         SearchFilterType assignmentSearchFilter = sessionOptionType.getAssignmentSearchFilter();
 
-        List<DataPoint> dataPoints = loadInitialData(modelService,
+        List<DataPoint> dataPoints = loadInitialData(
                 roleAnalysisService,
                 handler,
                 isIndirect,
                 RoleAnalysisProcessModeType.USER,
                 roleAnalysisAttributeDefConverts,
-                minRolesOccupancy,
-                maxRolesOccupancy,
                 userSearchFilter,
                 roleSearchFilter,
                 assignmentSearchFilter,
@@ -173,14 +167,11 @@ public class AdvancedClustering implements Clusterable {
     }
 
     private @NotNull List<DataPoint> loadInitialData(
-            @NotNull ModelService modelService,
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisProgressIncrement handler,
             @NotNull Boolean isIndirect,
             @NotNull RoleAnalysisProcessModeType processMode,
             @NotNull List<RoleAnalysisAttributeDefConvert> roleAnalysisAttributeDefConverts,
-            int minProperties,
-            int maxProperties,
             @Nullable SearchFilterType userSearchFilter,
             @Nullable SearchFilterType roleSearchFilter,
             @Nullable SearchFilterType assignmentSearchFilter,
