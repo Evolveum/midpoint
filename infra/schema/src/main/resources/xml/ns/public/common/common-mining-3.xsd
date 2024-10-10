@@ -1260,6 +1260,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>AbstractAnalysisSessionOptionType.isIndirect</a:displayName>
+                        <a:experimental>true</a:experimental>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
