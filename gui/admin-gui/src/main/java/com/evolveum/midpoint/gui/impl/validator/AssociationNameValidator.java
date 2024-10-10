@@ -15,7 +15,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTypeDefinitionType;
 
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.validation.IValidatable;
@@ -23,7 +22,6 @@ import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 
 import javax.xml.namespace.QName;
-import java.util.List;
 
 public class AssociationNameValidator implements IValidator<QName> {
 
