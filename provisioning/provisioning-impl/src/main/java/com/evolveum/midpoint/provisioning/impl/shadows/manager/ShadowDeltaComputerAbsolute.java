@@ -390,38 +390,29 @@ class ShadowDeltaComputerAbsolute {
             return;
         }
 
-        if (MiscUtil.unorderedCollectionEquals(oldRepoProp.getRealValues(), expectedRepoPropRealValues)) {
+        PrismProperty<N> expectedRepoAttr = expectedRepoPropDef.instantiateFromUniqueRealValues(expectedRepoPropRealValues);
+        //noinspection unchecked
+        PropertyDelta<N> repoAttrDelta = ((PrismProperty<N>) oldRepoProp).diff(expectedRepoAttr);
+        if (repoAttrDelta == null || repoAttrDelta.isEmpty()) {
             LOGGER.trace("Not updating property {} because it is up-to-date in repo", attrDef.getItemName());
-            return;
-        }
-
-        if (attrDef.isSingleValue()) {
+        } else if (attrDef.isSingleValue()) {
             replaceRepoAttribute(
                     resourceObjectAttribute, expectedRepoPropRealValues, "the (single) property value is outdated");
         } else {
-            updateMultiValuedSimpleRepoAttribute(
-                    oldRepoProp, resourceObjectAttribute, expectedRepoPropDef, expectedRepoPropRealValues);
+            updateMultiValuedSimpleRepoAttribute(repoAttrDelta, resourceObjectAttribute, expectedRepoPropDef);
         }
     }
 
     private <T, N> void updateMultiValuedSimpleRepoAttribute(
-            @NotNull PrismProperty<?> oldRepoAttr,
+            @NotNull PropertyDelta<N> repoAttrDelta,
             @NotNull ShadowSimpleAttribute<T> resourceObjectAttribute,
-            @NotNull NormalizationAwareResourceAttributeDefinition<N> repoAttrDef,
-            @NotNull List<N> expectedRepoRealValues) {
-        PrismProperty<N> expectedRepoAttr = repoAttrDef.instantiateFromUniqueRealValues(expectedRepoRealValues);
-        //noinspection unchecked
-        PropertyDelta<N> repoAttrDelta = ((PrismProperty<N>) oldRepoAttr).diff(expectedRepoAttr);
-        if (repoAttrDelta != null && !repoAttrDelta.isEmpty()) {
-            repoAttrDelta.setParentPath(ShadowType.F_ATTRIBUTES);
-            LOGGER.trace("Going to update the new attribute {} in repo shadow because it's outdated", repoAttrDef.getItemName());
-            // The repo is update with a nice, relative delta. We need not bother with computing such delta
-            // for the in-memory update, as it is efficient enough also for "replace" version (hopefully)
-            PropertyDelta<T> attrDelta = resourceObjectAttribute.createReplaceDelta();
-            computedModifications.add(attrDelta, repoAttrDelta);
-        } else {
-            throw new IllegalStateException("Different content but non-empty delta?");
-        }
+            @NotNull NormalizationAwareResourceAttributeDefinition<N> repoAttrDef) {
+        repoAttrDelta.setParentPath(ShadowType.F_ATTRIBUTES);
+        LOGGER.trace("Going to update the new attribute {} in repo shadow because it's outdated", repoAttrDef.getItemName());
+        // The repo is update with a nice, relative delta. We need not bother with computing such delta
+        // for the in-memory update, as it is efficient enough also for "replace" version (hopefully)
+        PropertyDelta<T> attrDelta = resourceObjectAttribute.createReplaceDelta();
+        computedModifications.add(attrDelta, repoAttrDelta);
     }
     //endregion
 

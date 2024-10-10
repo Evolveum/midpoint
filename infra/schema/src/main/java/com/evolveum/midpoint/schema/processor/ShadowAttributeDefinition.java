@@ -107,12 +107,6 @@ public interface ShadowAttributeDefinition<
         }
 
         var typeClass = getTypeClass();
-        if (typeClass.isArray()) {
-            return false; // most probably a byte array, see MID-10059
-        }
-        if (BigInteger.class.equals(typeClass)) {
-            return false; // MID-10058
-        }
         if (PolyString.class.equals(typeClass)) {
             return false; // MID-10102
         }
