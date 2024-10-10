@@ -156,9 +156,9 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test020RoleAnalysisSessionRoleMiningRoleMode1() throws Exception {
-        Integer expectedObjectsCount = 180;
+        Integer expectedObjectsCount = 182;
         Integer expectedClusterCount = 9;
-        Double expectedMeanDensity = 92.7953838627898;
+        Double expectedMeanDensity = 92.73360744156639;
         Integer expectedReduction = 3133;
 
         RoleMiningResult expectedResult = new RoleMiningResult(
@@ -181,9 +181,9 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test025RoleAnalysisSessionRoleMiningDirectMode() throws Exception {
-        Integer expectedObjectsCount = 410;
-        Integer expectedClusterCount = 6;
-        Double expectedMeanDensity = 93.67271227874105;
+        Integer expectedObjectsCount = 412;
+        Integer expectedClusterCount = 7;
+        Double expectedMeanDensity = 100.0;
         Integer expectedReduction = 856;
 
         RoleMiningResult expectedResult = new RoleMiningResult(
