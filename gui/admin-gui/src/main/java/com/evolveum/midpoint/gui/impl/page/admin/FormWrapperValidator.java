@@ -60,7 +60,7 @@ public abstract class FormWrapperValidator<O extends ObjectType> implements IFor
             form.visitChildren(DefaultContainerablePanel.class, (componentParent, iVisitParent) -> {
                 ((DefaultContainerablePanel)componentParent).visitChildren(FormComponent.class, (component, iVisit) -> {
                     FormComponent<?> formComponent = (FormComponent<?>)component;
-                    if(formComponent.isVisible() && formComponent.isValid()) {
+                    if(formComponent.isVisibleInHierarchy() && formComponent.isValid()) {
                         formComponent.updateModel();
                     }
                 });
