@@ -6,9 +6,11 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_PATH;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.INTENT_DEFAULT;
 
-import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_PATH;
+import static com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification.ACCOUNT_DEFAULT;
+import static com.evolveum.midpoint.test.DummyResourceContoller.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ACCOUNT;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNull;
@@ -56,6 +58,13 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
     private static final DummyTestResource RESOURCE_DUMMY_INBOUNDS = new DummyTestResource(
             TEST_DIR, "resource-dummy-inbounds.xml", "a237bf9c-5843-4f7a-ad35-75f4a1d17bee", "inbounds");
 
+    /** Has both inbound and outbound mappings. Only for special test methods. */
+    private static final DummyTestResource RESOURCE_DUMMY_BIDIRECTIONAL = new DummyTestResource(TEST_DIR,
+            "resource-dummy-bidirectional.xml", "ffc01ae8-8b0f-4b9d-977b-2ae7a5d9ef1d", "bidirectional",
+            DummyResourceContoller::extendSchemaPirate);
+
+    private static final String LOCALITY_BRATISLAVA = "Bratislava";
+
     private String jackEmployeeNumber;
     private String guybrushShadowOrangeOid;
 
@@ -66,7 +75,8 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         setDefaultUserTemplate(USER_TEMPLATE_INBOUNDS_OID);
         assumeResourceAssigmentPolicy(RESOURCE_DUMMY_GREEN_OID, AssignmentPolicyEnforcementType.RELATIVE, false);
 
-        initTestObjects(initTask, initResult, RESOURCE_DUMMY_INBOUNDS);
+        RESOURCE_DUMMY_INBOUNDS.initAndTest(this, initTask, initResult);
+        RESOURCE_DUMMY_BIDIRECTIONAL.initAndTest(this, initTask, initResult);
     }
 
     @Test
@@ -925,5 +935,170 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertThatOperationResult(result)
                 .isFatalError()
                 .hasMessageContaining("Strong mappings provided more than one value for single-valued item fullName");
+    }
+
+    /**
+     * What should an inbound do if an account is unassigned?
+     *
+     * midPoint 4.9: Currently it does nothing, because - regardless of whether caching is on or off:
+     *
+     * - *Wave 0*: Skipping processing of inbound mappings: no a priori delta, no full shadow, no reconciliation,
+     * no dependent context, and it's not a delete operation
+     *
+     * - *Wave 1*: no projection context (removed because rotten)
+     */
+    @Test
+    public void test400UnassigningAccountWithInbounds() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = getTestNameShort();
+
+        given("a user with an account on resource");
+        var userOid = addObject(
+                new UserType()
+                        .name(userName)
+                        .locality(LOCALITY_BRATISLAVA)
+                        .assignment(RESOURCE_DUMMY_BIDIRECTIONAL.assignmentWithConstructionOf(ACCOUNT, INTENT_DEFAULT)),
+                task, result);
+        assertUserBefore(userOid)
+                .assertLocality(LOCALITY_BRATISLAVA)
+                .assertLiveLinks(1);
+
+        when("assignment is removed");
+        unassignAccount(UserType.class, userOid, RESOURCE_DUMMY_BIDIRECTIONAL.oid, INTENT_DEFAULT, task, result);
+
+        then("account is gone, the property is kept");
+        assertSuccess(result);
+        assertUserAfter(userOid)
+                .assertLocality(LOCALITY_BRATISLAVA)
+                .assertLiveLinks(0);
+    }
+
+    /**
+     * What should an inbound do if an account is unassigned but the resource is in maintenance mode
+     * (or unreachable for any other reason)?
+     *
+     * midPoint 4.9:
+     *
+     * - *Wave 0*: Skipping processing of inbound mappings: no a priori delta, no full shadow, no reconciliation,
+     * no dependent context, and it's not a delete operation
+     *
+     * - *Wave 1*: Skipping processing of inbound expressions for projection (...) because is is deleted and completed.
+     * (A new behavior in 4.9.)
+     */
+    @Test
+    public void test410UnassigningAccountWithInboundsInMaintenanceMode() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = getTestNameShort();
+
+        given("a user with an account on resource");
+        var userOid = addObject(
+                new UserType()
+                        .name(userName)
+                        .locality(LOCALITY_BRATISLAVA)
+                        .assignment(RESOURCE_DUMMY_BIDIRECTIONAL.assignmentWithConstructionOf(ACCOUNT, INTENT_DEFAULT)),
+                task, result);
+        assertUserBefore(userOid)
+                .assertLocality(LOCALITY_BRATISLAVA)
+                .assertLiveLinks(1);
+
+        when("assignment is removed while the resource is in maintenance mode");
+        turnMaintenanceModeOn(RESOURCE_DUMMY_BIDIRECTIONAL.oid, result);
+        try {
+            unassignAccount(UserType.class, userOid, RESOURCE_DUMMY_BIDIRECTIONAL.oid, INTENT_DEFAULT, task, result);
+
+            then("account is still there, the property is kept (but only if not caching)");
+            assertInProgress(result);
+            assertUserAfter(userOid)
+                    .assertLocality(LOCALITY_BRATISLAVA)
+                    .assertLiveLinks(1);
+        } finally {
+            turnMaintenanceModeOff(RESOURCE_DUMMY_BIDIRECTIONAL.oid, result);
+        }
+    }
+
+    /**
+     * What should an inbound do if an account is unlinked?
+     *
+     * midPoint 4.9: Currently it does nothing, because - regardless of whether caching is on or off:
+     *
+     * - *Wave 0*: Skipping processing of inbound mappings: no a priori delta, no full shadow, no reconciliation,
+     * no dependent context, and it's not a delete operation
+     *
+     * - *Wave 1*: Skipping processing of inbound mappings: no a priori delta, no full shadow, no reconciliation,
+     * no dependent context, and it's not a delete operation
+     */
+    @Test
+    public void test420UnlinkingAccountWithInbounds() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = getTestNameShort();
+
+        given("a user with an account on resource");
+        RESOURCE_DUMMY_BIDIRECTIONAL.controller.addAccount(userName, "John Smith")
+                .addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, LOCALITY_BRATISLAVA);
+        importAccountsRequest()
+                .withResourceOid(RESOURCE_DUMMY_BIDIRECTIONAL.oid)
+                .withTypeIdentification(ACCOUNT_DEFAULT)
+                .withNameValue(userName)
+                .executeOnForeground(result);
+
+        var asserter = assertUserBeforeByUsername(userName)
+                .assertLocality(LOCALITY_BRATISLAVA)
+                .assertLiveLinks(1);
+        var userOid = asserter.getOid();
+        var shadowOid = asserter.singleLink().getOid();
+
+        when("projection is unlinked");
+        unlink(UserType.class, userOid, shadowOid, task, result);
+
+        then("account is gone, the property is kept");
+        assertSuccess(result);
+        assertUserAfter(userOid)
+                .assertLocality(LOCALITY_BRATISLAVA)
+                .assertLiveLinks(0);
+    }
+
+    /**
+     * What should an inbound do if an account is deleted?
+     *
+     * midPoint 4.9: The mapping is evaluated and the property is removed:
+     *
+     * - *Wave 0*: We'll do the inbounds even we have no apriori delta nor full shadow, because the projection is being deleted
+     * (-> value is removed from the user)
+     *
+     * - *Wave 1*: Skipping processing of inbound expressions for projection (...) because is is deleted and completed
+     * (A new behavior in 4.9, fixing MID-10109.)
+     */
+    @Test
+    public void test430DeletingAccountWithInbounds() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = getTestNameShort();
+
+        given("a user with an account on resource");
+        RESOURCE_DUMMY_BIDIRECTIONAL.controller.addAccount(userName, "John Smith")
+                .addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, LOCALITY_BRATISLAVA);
+        importAccountsRequest()
+                .withResourceOid(RESOURCE_DUMMY_BIDIRECTIONAL.oid)
+                .withTypeIdentification(ACCOUNT_DEFAULT)
+                .withNameValue(userName)
+                .executeOnForeground(result);
+
+        var asserter = assertUserBeforeByUsername(userName)
+                .assertLocality(LOCALITY_BRATISLAVA)
+                .assertLiveLinks(1);
+        var userOid = asserter.getOid();
+        var shadowOid = asserter.singleLink().getOid();
+
+        when("projection is deleted");
+        deleteObject(ShadowType.class, shadowOid, task, result);
+
+        then("account is gone, locality is erased");
+        assertSuccess(result);
+        assertUserAfter(userOid)
+                .assertLocality(null)
+                .assertLiveLinks(0);
     }
 }

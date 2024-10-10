@@ -96,6 +96,19 @@ public class FullInboundsProcessing<F extends FocusType> extends AbstractInbound
                     result.recordNotApplicable("projection is gone");
                     continue;
                 }
+                // Normally, contexts whose shadows are deleted disappear in the wave following their deletion (as part of
+                // removing rotten contexts by the context loader; the key is that their linkRef are deleted or marked as
+                // "related"). However, there may be situations when the deletion is attempted but not executed
+                // because of the resource unavailability. The result (before this code was created) was that
+                // the inbound mappings were executed, created a difference in behavior - comparing to the case
+                // in which the deletion is executed successfully. The shadow caching uncovered this problem, as the
+                // inbounds no longer require a load-from-resource operation.
+                if (projectionContext.isDelete() && projectionContext.isCompleted()) {
+                    LOGGER.trace("Skipping processing of inbound expressions for projection {} because is is deleted and completed",
+                            lazy(projectionContext::getHumanReadableName));
+                    result.recordNotApplicable("projection is deleted and completed");
+                    continue;
+                }
                 if (!projectionContext.isCanProject()) {
                     LOGGER.trace("Skipping processing of inbound expressions for projection {}: "
                                     + "there is a limit to propagate changes only from resource {}",
