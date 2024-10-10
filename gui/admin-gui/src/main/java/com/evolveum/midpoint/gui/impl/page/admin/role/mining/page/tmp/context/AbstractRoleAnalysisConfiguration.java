@@ -151,7 +151,9 @@ public abstract class AbstractRoleAnalysisConfiguration implements RoleAnalysisC
 //    }
 
     public void updatePrimaryOptions(
-            SearchFilterType filter,
+            SearchFilterType userSearchFilter,
+            SearchFilterType roleSearchFilter,
+            SearchFilterType assignmentSearchFilter,
             boolean isIndirect,
             RangeType propertiesRange,
             AnalysisAttributeSettingType analysisAttributeSetting,
@@ -171,9 +173,18 @@ public abstract class AbstractRoleAnalysisConfiguration implements RoleAnalysisC
                     .minMembersCount(minMembersCount)
                     .minPropertiesOverlap(minPropertiesOverlap)
                     .detailedAnalysis(detailedAnalysis);
-            if (filter != null) {
-                sessionOptions.query(filter);
+            if (userSearchFilter != null) {
+                sessionOptions.setUserSearchFilter(userSearchFilter);
             }
+
+            if (roleSearchFilter != null) {
+                sessionOptions.setRoleSearchFilter(roleSearchFilter);
+            }
+
+            if (assignmentSearchFilter != null) {
+                sessionOptions.setAssignmentSearchFilter(assignmentSearchFilter);
+            }
+
 //            setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_IS_INDIRECT, isIndirect);
 //            setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_PROPERTIES_RANGE, propertiesRange);
 //            setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_USER_ANALYSIS_ATTRIBUTE_SETTING, analysisAttributeSetting);

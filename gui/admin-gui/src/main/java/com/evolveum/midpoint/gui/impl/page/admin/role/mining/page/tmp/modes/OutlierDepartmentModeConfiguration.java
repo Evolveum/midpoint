@@ -42,15 +42,13 @@ public class OutlierDepartmentModeConfiguration extends AbstractRoleAnalysisConf
         RangeType propertyRange = createPropertyRange();
         ClusteringAttributeSettingType clusteringSetting = createClusteringSetting();
 
-        updatePrimaryOptions(null,
+        updatePrimaryOptions(null,null, null,
                 false,
                 propertyRange,
                 getDefaultAnalysisAttributes(),
                 clusteringSetting,
                 80.0,
-                5,
-                2,
-                false);
+                5, 2, false);
 
         updateDetectionOptions(2,
                 2,

@@ -46,15 +46,13 @@ public class BirthrightCoverageModeConfiguration extends AbstractRoleAnalysisCon
             minOverlap = (int) Math.round(maxPropertyCount * defaultPercentageMembership / 100);
         }
 
-        updatePrimaryOptions(null,
+        updatePrimaryOptions(null,null, null,
                 false,
                 propertyRange,
                 getDefaultAnalysisAttributes(),
                 null,
                 70.0,
-                5,
-                minOverlap,
-                false);
+                5, minOverlap, false);
 
         updateDetectionOptions(5,
                 2,

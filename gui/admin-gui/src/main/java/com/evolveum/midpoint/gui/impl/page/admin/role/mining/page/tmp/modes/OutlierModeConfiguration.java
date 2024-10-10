@@ -41,15 +41,13 @@ public class OutlierModeConfiguration extends AbstractRoleAnalysisConfiguration 
         //TODO after implementing use isIndirect
 //        boolean isIndirect = getProcessMode().equals(RoleAnalysisProcessModeType.USER);
 
-        updatePrimaryOptions(null,
+        updatePrimaryOptions(null,null, null,
                 false,
                 propertyRange,
                 getDefaultAnalysisAttributes(),
                 null,
                 80.0,
-                5,
-                2,
-                false);
+                5, 2, false);
 
         //TODO there is inconsistency with role mining detection options (TBD)
         updateDetectionOptions(2,

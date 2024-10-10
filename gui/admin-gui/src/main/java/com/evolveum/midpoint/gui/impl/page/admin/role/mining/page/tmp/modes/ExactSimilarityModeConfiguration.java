@@ -38,15 +38,13 @@ public class ExactSimilarityModeConfiguration extends AbstractRoleAnalysisConfig
                 .min(2.0)
                 .max(Double.valueOf(getMaxPropertyCount()));
 
-        updatePrimaryOptions(null,
+        updatePrimaryOptions(null,null, null,
                 false,
                 propertyRange,
                 getDefaultAnalysisAttributes(),
                 null,
                 100.0,
-                2,
-                2,
-                false);
+                2, 2, false);
 
         updateDetectionOptions(2,
                 2,

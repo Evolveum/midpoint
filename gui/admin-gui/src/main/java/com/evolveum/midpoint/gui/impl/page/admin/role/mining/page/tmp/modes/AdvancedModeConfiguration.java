@@ -41,15 +41,13 @@ public class AdvancedModeConfiguration extends AbstractRoleAnalysisConfiguration
                 .min(5.0)
                 .max(Double.valueOf(getMaxPropertyCount()));
 
-        updatePrimaryOptions(null,
+        updatePrimaryOptions(null, null, null,
                 false,
                 propertyRange,
                 getDefaultAnalysisAttributes(),
                 null,
                 80.0,
-                10,
-                5,
-                false);
+                10, 5, false);
 
         updateDetectionOptions(5,
                 5,

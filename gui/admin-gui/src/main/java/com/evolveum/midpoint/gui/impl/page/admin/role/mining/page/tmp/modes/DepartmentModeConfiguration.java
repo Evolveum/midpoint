@@ -37,15 +37,13 @@ public class DepartmentModeConfiguration extends AbstractRoleAnalysisConfigurati
         RangeType propertyRange = createPropertyRange();
         ClusteringAttributeSettingType clusteringSetting = createClusteringSetting();
 
-        updatePrimaryOptions(null,
+        updatePrimaryOptions(null, null, null,
                 false,
                 propertyRange,
                 getDefaultAnalysisAttributes(),
                 clusteringSetting,
                 0.0,
-                2,
-                2,
-                false);
+                2, 2, false);
 
         updateDetectionOptions(2,
                 2,
