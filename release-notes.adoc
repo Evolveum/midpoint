@@ -37,6 +37,12 @@ See bug:MID-9754[].
 * Ninja: Fixed confusing messages about unsupported types when used with generic repository. See bug:MID-9866[].
 * Upgraded LDAP and AD Connector to 3.7.3 version.
 * Fixed closing multi-node tasks when some nodes are not available. See bug:MID-10021[].
+* Updated caniuse-lite (javascript). See bug:MID-9926[].
+* Updated and clarified documentation regarding compilation of admin GUI profile during login. See bug:MID-9776[].
+* Added support for new subscription types, see bug:MID-9640[].
+* Fixed upload/download of files (eg. jpegPhoto) where download didn't return proper Content-Type and file extension. See bug:MID-9990[].
+* Fixed stylesheets for saved searches menu in case name of search is too long. See bug:MID-10078[].
+* Fixed Internal error 500 in Preview Changes - serialization exception. See bug:MID-10028[].
 
 == Changes with Respect To Version 4.8.3
 
