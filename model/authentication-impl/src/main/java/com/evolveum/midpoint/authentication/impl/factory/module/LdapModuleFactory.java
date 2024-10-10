@@ -76,7 +76,9 @@ public class LdapModuleFactory extends AbstractModuleFactory<
         ctx.setUserDn(moduleType.getUserDn());
 
         try {
-            ctx.setPassword(protector.decryptString(moduleType.getUserPassword()));
+            if (moduleType.getUserPassword() != null) {
+                ctx.setPassword(protector.decryptString(moduleType.getUserPassword()));
+            }
         } catch (EncryptionException e) {
             LOGGER.error("Couldn't obtain clear string for configuration of LDAP user password from " + moduleType.getUserPassword());
         }

@@ -15,6 +15,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.*;
@@ -103,8 +105,9 @@ public class ReferenceIterativeSearch {
                     pagedQuery.getPaging().setMaxSize(maxSize - handledObjectsTotal);
                 }
 
-                pagedQuery.setFilter(
-                        lastRefFilter(lastProcessedRef, originalQuery.getFilter(), providedOrdering));
+                //simplify prevents confusion over ownedBy filter not found
+                pagedQuery.setFilter(ObjectQueryUtil.simplify(
+                        lastRefFilter(lastProcessedRef, originalQuery.getFilter(), providedOrdering)));
 
                 // we don't call public searchReferences to avoid subresults and query simplification
                 repoService.logSearchInputParameters(ObjectReferenceType.class, pagedQuery, "Search object iterative page");
