@@ -1,0 +1,94 @@
+= Outlier detection
+:page-toc: top
+:page-nav-title: Outlier detection
+:page-upkeep-status: green
+
+Outlier detection in xref:../rbac/[role-based access control] (RBAC) system refers to the process of identifying and handling roles or permissions that deviate from the expected or normal behavior.
+This can include roles that have excessive or unnecessary access privileges, or roles that have been assigned to users who do not typically require them.
+
+== Motivation
+
+Outlier detection helps to ensure the security and integrity of the system by identifying and addressing potential vulnerabilities or misconfigurations.
+It also helps to optimize the system by removing unnecessary or redundant roles, making it more efficient and easier to manage.
+
+== How it works
+
+In Midpoint is the outlier detection built on top of xref:../mining/[Role Mining] algorithm.
+After the successful clustering and pattern detection, the outlier detection algorithm is executed.
+This algorithm identifies anomalous data and decides whether to mark a user as an outlier based on multiple statistical measures.
+
+We can currently divide outliers to 2 main categories:
+
+1. Classified outliers - outliers that were identified within a data cluster. These outliers are visualized within a cluster and are easier to reason about.
+2. Unclassified outliers - anomalous users that are too unique so that they don't fall into any cluster, or they don't meet clustering criteria. We hypothesize that outliers in this category may currently have a higher rate of false positives.
+
+The algorithm only provides suggestions for outliers and does not take any further action.
+It is up to the user to analyze, assess, and decide the next step.
+
+== Outlier Detection Options
+
+In the Anomaly detection step you specify options below:
+
+* `Outlier confidence` - level of certainty used to classify a user as an outlier
+* `Standard deviation confidence interval` - controls z-score filter in anomaly detection
+* `Frequency threshold` - minimum frequency of a role within a cluster to be considered normal and not an anomaly
+
+By default, the algorithm doesn't analyze Unclassified outliers. Turn it on with `Include noise analysis` option in the Clustering Options
+
+== Technical Details
+
+The outlier detection algorithm can be summarized as follows:
+
+1. For each user find group of similar users
+2. Compute role frequencies within each group
+3. Utilize weighted z-score on the role frequency data to identify anomalies
+4. Apply min frequency threshold filter to the anomalies
+5. For each user that contain anomaly, compute overall outlier confidence
+6. Mark user as an outlier if it's overall confidence is greater than `Outlier confidence` threshold
+
+Overall confidence represents the level of certainty that a user is an outlier.
+It is derived from various statistical measures.
+The pseudocode below outlines how the overall confidence is calculated:
+
+[source, python]
+----
+anomaly_confidences = []
+
+for role in user.anomalies:
+    anomaly_confidence = mean(
+        distribution_confidence, # 1 - cummulative_prob(zscore)
+        pattern_confidence, # assignment_count(top_pattern) / assignment_count(cluster)
+        item_factor_confidence, # mean(attribute density for each user attribute)
+        role_member_confidence, # member_count(role) / size(cluster.users)
+        coverage_confidence, # user roles frequency in cluster
+    )
+    anomaly_confidences.append(anomaly_confidence)
+
+mean_anomaly_confidence = mean(anomaly_confidences)
+
+similar_users_confidence = mean(
+    assignment_freq, # user roles / all cluster roles
+    outlier_pattern_confidence, # assignment_count(top_pattern) / assignment_count(cluster)
+    average_item_factor, # user attribute density over joint attributes
+    cluster_density, # cluster density
+)
+
+overall_confidence = mean(mean_anomaly_confidence, similar_users_confidence)
+----
+
+== Glossary
+
+List of terms in context of outlier detection in Midpoint.
+
+* `Outlier` - user that deviates from normal
+* `Anomaly` - unusual user-role assignment
+* `Cluster` - group of similar users with respect to the clustering options
+* `Noise` - users that do not fall into any cluster
+* `Similar users` - users similar to a given user
+** if the user is part of `Cluster` - cluster members
+** if the user is part of `Noise` - close users computed solely on Jaccard distance, ignoring `Group by attributes` clustering option
+
+== See Also
+
+* xref:../mining/[]
+* xref:../rbac/[]

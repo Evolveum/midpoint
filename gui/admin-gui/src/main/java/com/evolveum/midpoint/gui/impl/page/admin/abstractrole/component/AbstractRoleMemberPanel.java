@@ -19,6 +19,8 @@ import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import com.evolveum.midpoint.web.component.dialog.*;
 
+import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -1628,10 +1630,6 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
     private PageStorage getPageStorage(String storageKey) {
         return getSessionStorage().getPageStorageMap().get(storageKey);
-    }
-
-    private SessionStorage getSessionStorage() {
-        return getPageBase().getSessionStorage();
     }
 
     protected String getStorageKeyTabSuffix() {
