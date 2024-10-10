@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.util.Collections;
 import javax.xml.XMLConstants;
 
+import com.evolveum.prism.xml.ns._public.annotation_3.AccessAnnotationType;
+
 import org.jetbrains.annotations.NotNull;
 import org.xml.sax.SAXException;
 
@@ -220,7 +222,8 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
         schemaRegistry.registerStaticNamespace("http://www.w3.org/2001/XMLSchema-instance", "xsi", false);
 
         // Prism Schemas
-        schemaRegistry.registerPrismSchemaResource("xml/ns/public/annotation-3.xsd", "a");
+        schemaRegistry.registerPrismSchemaResource("xml/ns/public/annotation-3.xsd", "a",
+                com.evolveum.prism.xml.ns._public.annotation_3.ObjectFactory.class.getPackage());
 
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/types-3.xsd", "t",
                 com.evolveum.prism.xml.ns._public.types_3.ObjectFactory.class.getPackage(), true);          // declared by default
