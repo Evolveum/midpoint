@@ -1148,11 +1148,31 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="query" type="q:SearchFilterType" minOccurs="0">
+            <xsd:element name="userSearchFilter" type="q:SearchFilterType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Specifies the query or filter applied to the objects.
+                            Specifies the query or filter applied to the UserType objects.
+                            Only the objects that match the filter are included in the analysis.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="roleSearchFilter" type="q:SearchFilterType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Specifies the query or filter applied to the RoleType objects.
+                            Only the objects that match the filter are included in the analysis.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="assignmentSearchFilter" type="q:SearchFilterType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Specifies the query or filter applied to the AssignmentType objects.
                             Only the objects that match the filter are included in the analysis.
                         </p>
                     </xsd:documentation>

@@ -1145,4 +1145,96 @@ public interface RoleAnalysisService {
     @Nullable SearchResultList<PrismObject<RoleAnalysisOutlierType>> searchOutliersRepo(
             @Nullable ObjectQuery query,
             @NotNull OperationResult result);
+
+    /**
+     * Searches for assignments based on the provided filters and process mode.
+     *
+     * @param userObjectFiler An optional filter to apply to the user objects.
+     * @param roleObjectFilter An optional filter to apply to the role objects.
+     * @param assignmentFilter An optional filter to apply to the assignment objects.
+     * @param processMode The process mode to determine whether to search in user mode or role mode.
+     * @param task The task in the context of which the operation is executed.
+     * @param result The result of the operation.
+     * @return A ListMultimap where the keys are either user OIDs or role OIDs, and the values are
+     * the corresponding role OIDs or user OIDs, depending on the process mode.
+     */
+    ListMultimap<String, String> assignmentSearch(
+            @Nullable ObjectFilter userObjectFiler,
+            @Nullable ObjectFilter roleObjectFilter,
+            @Nullable ObjectFilter assignmentFilter,
+            @NotNull RoleAnalysisProcessModeType processMode,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    /**
+     * Prepares a map of assignment chunks.
+     * If key objects has the same values, they are compressed.
+     *
+     * @param userSearchFiler An optional filter to apply to the user search.
+     * @param roleSearchFiler An optional filter to apply to the role search.
+     * @param assignmentSearchFiler An optional filter to apply to the assignment search.
+     * @param processMode The process mode to determine whether to search in user mode or role mode.
+     * @param task The task in the context of which the operation is executed.
+     * @param result The result of the operation.
+     * @return A ListMultimap where the keys are lists of role OIDs and the values are user OIDs.
+     */
+    ListMultimap<List<String>, String> prepareAssignmentChunkMapRolesAsKey(
+            @Nullable SearchFilterType userSearchFiler,
+            @Nullable SearchFilterType roleSearchFiler,
+            @Nullable SearchFilterType assignmentSearchFiler,
+            @NotNull RoleAnalysisProcessModeType processMode,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    /**
+     * Searches for user membership based on the provided filters and process mode.
+     *
+     * @param userObjectFiler An optional filter to apply to the user objects.
+     * @param roleObjectFilter An optional filter to apply to the role objects.
+     * @param assignmentFilter An optional filter to apply to the assignment objects.
+     * @param processMode The process mode to determine whether to search in user mode or role mode.
+     * @param task The task in the context of which the operation is executed.
+     * @param result The result of the operation.
+     * @return A ListMultimap where the keys are either user OIDs or role OIDs, and the values are
+     * the corresponding role OIDs or user OIDs, depending on the process mode.
+     */
+    ListMultimap<String, String> membershipSearch(
+            @Nullable ObjectFilter userObjectFiler,
+            @Nullable ObjectFilter roleObjectFilter,
+            @Nullable ObjectFilter assignmentFilter,
+            @NotNull RoleAnalysisProcessModeType processMode,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    /**
+     * Prepares a map of role membership chunks.
+     * If key objects have the same values, they are compressed.
+     *
+     * @param userSearchFiler An optional filter to apply to the user search.
+     * @param roleSearchFiler An optional filter to apply to the role search.
+     * @param assignmentSearchFiler An optional filter to apply to the assignment search.
+     * @param processMode The process mode to determine whether to search in user mode or role mode.
+     * @param task The task in the context of which the operation is executed.
+     * @param result The result of the operation.
+     * @return A ListMultimap where the keys are lists of role OIDs and the values are user OIDs.
+     */
+    ListMultimap<List<String>, String> prepareMembershipChunkMapRolesAsKey(
+            @Nullable SearchFilterType userSearchFiler,
+            @Nullable SearchFilterType roleSearchFiler,
+            @Nullable SearchFilterType assignmentSearchFiler,
+            @NotNull RoleAnalysisProcessModeType processMode,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    /**
+     * Transforms a SearchFilterType to an ObjectFilter for the specified object class.
+     *
+     * @param userSearchFiler An optional filter to apply to the user search.
+     * @param objectClass The class of the object to which the filter will be applied.
+     * @return The constructed ObjectFilter based on the provided SearchFilterType,
+     * or null if the filter is not provided or cannot be created.
+     */
+    @Nullable ObjectFilter transformSearchToObjectFilter(
+            @Nullable SearchFilterType userSearchFiler,
+            @NotNull Class<?> objectClass);
 }

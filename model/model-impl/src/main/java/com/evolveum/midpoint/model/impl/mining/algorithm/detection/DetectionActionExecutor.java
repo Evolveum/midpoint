@@ -98,20 +98,20 @@ public class DetectionActionExecutor extends BaseAction {
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
         RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
 
-        SearchFilterType filter = null;
+        SearchFilterType userSearchFilter = null;
         if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
             RoleAnalysisSessionOptionType roleModeOptions = session.getRoleModeOptions();
             if (roleModeOptions != null) {
-                filter = roleModeOptions.getQuery();
+                userSearchFilter = roleModeOptions.getUserSearchFilter();
             }
         } else if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
             UserAnalysisSessionOptionType userModeOptions = session.getUserModeOptions();
             if (userModeOptions != null) {
-                filter = userModeOptions.getQuery();
+                userSearchFilter = userModeOptions.getUserSearchFilter();
             }
         }
 
-        MiningOperationChunk miningOperationChunk = roleAnalysisService.prepareCompressedMiningStructure(cluster, filter,
+        MiningOperationChunk miningOperationChunk = roleAnalysisService.prepareCompressedMiningStructure(cluster, userSearchFilter,
                 true, processMode, result, task);
 
         List<MiningRoleTypeChunk> miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks(RoleAnalysisSortMode.NONE);

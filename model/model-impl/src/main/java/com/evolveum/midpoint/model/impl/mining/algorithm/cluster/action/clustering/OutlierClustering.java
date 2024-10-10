@@ -40,31 +40,6 @@ public class OutlierClustering implements Clusterable {
             @NotNull OperationResult result) {
 
         AdvancedClustering advancedClustering = new AdvancedClustering() {
-            @Override
-            public @NotNull ListMultimap<List<String>, String> loadUserModeData(
-                    @NotNull ModelService modelService,
-                    @NotNull Boolean isIndirect,
-                    int minRolesOccupancy,
-                    int maxRolesOccupancy,
-                    @Nullable SearchFilterType sessionOptionType,
-                    @NotNull Task task,
-                    @NotNull OperationResult result) {
-                return super.loadUserModeData(modelService, isIndirect, minRolesOccupancy, maxRolesOccupancy,
-                        sessionOptionType, task, result);
-            }
-
-            @Override
-            public @NotNull ListMultimap<List<String>, String> loadRoleModeData(
-                    @NotNull ModelService modelService,
-                    Boolean isIndirect,
-                    int minUserOccupancy,
-                    int maxUserOccupancy,
-                    @Nullable SearchFilterType sessionOptionType,
-                    @NotNull Task task,
-                    @NotNull OperationResult result) {
-                return super.loadRoleModeData(modelService, isIndirect, minUserOccupancy, maxUserOccupancy,
-                        sessionOptionType, task, result);
-            }
         };
 
         return advancedClustering.executeClustering(roleAnalysisService, modelService, session, handler, attributeAnalysisCache, task, result);

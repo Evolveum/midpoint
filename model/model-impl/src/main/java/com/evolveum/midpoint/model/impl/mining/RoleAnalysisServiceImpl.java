@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.model.impl.mining;
 
 import static com.evolveum.midpoint.model.impl.mining.RoleAnalysisServiceUtils.*;
+import static com.evolveum.midpoint.prism.PrismConstants.Q_ANY;
+import static com.evolveum.midpoint.prism.PrismConstants.T_SELF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.F_ASSIGNMENT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
 
@@ -16,7 +18,6 @@ import static java.util.Collections.singleton;
 import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformDefaultPattern;
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.*;
 import static com.evolveum.midpoint.common.mining.utils.algorithm.JaccardSorter.jacquardSimilarity;
-import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.ClusteringUtils.loadUserBasedMultimapData;
 import static com.evolveum.midpoint.model.impl.mining.analysis.AttributeAnalysisUtil.*;
 import static com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisUtils.*;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
@@ -36,8 +37,10 @@ import com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 
 import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
+import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.repo.api.AggregateQuery;
 
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.util.QNameUtil;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -77,10 +80,6 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -103,6 +102,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
     transient @Autowired ModelService modelService;
     transient @Autowired RepositoryService repositoryService;
+    transient @Autowired SchemaService schemaService;
 
     @Override
     public @Nullable PrismObject<UserType> getUserTypeObject(
@@ -225,6 +225,11 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result) {
         ListMultimap<String, String> roleMemberCache = ArrayListMultimap.create();
+//TODO try this
+//        ObjectQuery query = PrismContext.get().
+//                queryFor(AssignmentType.class).ownedBy(UserType.class).
+//                and()
+//                .item(AssignmentType.F_TARGET_REF).ref(clusterMembers.toArray(new String[0])).build();
 
         ObjectQuery query = PrismContext.get().queryFor(UserType.class)
                 .exists(F_ASSIGNMENT)
@@ -3064,11 +3069,11 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             List<String> outliersMembers,
             int minRolesOccupancy,
             int maxRolesOccupancy,
-            @Nullable SearchFilterType query,
+            @Nullable SearchFilterType userSearchFilter,
             @NotNull OperationResult result,
             @NotNull Task task) {
-        ListMultimap<List<String>, String> listStringListMultimap = loadUserBasedMultimapData(
-                modelService, minRolesOccupancy, maxRolesOccupancy, query, task, result);
+        ListMultimap<List<String>, String> listStringListMultimap = this.prepareAssignmentChunkMapRolesAsKey(
+                userSearchFilter, null, null, RoleAnalysisProcessModeType.USER, task, result);
 
         Iterator<Map.Entry<List<String>, String>> iterator = listStringListMultimap.entries().iterator();
         while (iterator.hasNext()) {
@@ -3432,6 +3437,296 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         } catch (SchemaException e) {
             throw new SystemException("Couldn't search RoleAnalysisOutlierType objects", e);
         }
+    }
+
+    @Override
+    public ListMultimap<String, String> membershipSearch(
+            @Nullable ObjectFilter userObjectFiler,
+            @Nullable ObjectFilter roleObjectFilter,
+            @Nullable ObjectFilter assignmentFilter,
+            @NotNull RoleAnalysisProcessModeType processMode,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        ObjectQuery membershipQuery = buildMembershipSearchObjectQuery(userObjectFiler, roleObjectFilter);
+
+        ListMultimap<String, String> userRolesMap = ArrayListMultimap.create();
+
+        boolean userMode = processMode.equals(RoleAnalysisProcessModeType.USER);
+
+        ObjectHandler<ObjectReferenceType> handler = (object, parentResult) -> {
+            PrismReferenceValue referenceValue = object.asReferenceValue();
+            if (referenceValue == null) {
+                LOGGER.error("Couldn't get reference value during membership search");
+                return true;
+            }
+            Objectable rootObjectable = referenceValue.getRootObjectable();
+            if (rootObjectable == null) {
+                LOGGER.error("Couldn't get root object during membership search");
+                return true;
+            }
+
+            Object ownerOid = rootObjectable.getOid();
+            String roleOid = referenceValue.getOid();
+
+            if (ownerOid == null) {
+                LOGGER.error("Owner oid retrieved null value during membership search");
+                return true;
+            }
+
+            if (roleOid == null) {
+                LOGGER.error("Target role oid retrieved null value during membership search");
+                return true;
+            }
+
+            if (userMode) {
+                userRolesMap.put(ownerOid.toString(), roleOid);
+            } else {
+                userRolesMap.put(roleOid, ownerOid.toString());
+
+            }
+            return true;
+        };
+
+        try {
+            modelService.searchReferencesIterative(membershipQuery, handler, null, task, result);
+        } catch (SchemaException | SecurityViolationException | ConfigurationException | ObjectNotFoundException |
+                ExpressionEvaluationException | CommunicationException e) {
+            throw new SystemException("Couldn't search assignments", e);
+        }
+
+        return userRolesMap;
+    }
+
+    /**
+     * Builds an ObjectQuery for membership search based on the provided user and role filters.
+     *
+     * @param userObjectFiler An optional filter to apply to the user objects.
+     * @param roleObjectFilter An optional filter to apply to the role objects.
+     * @return The constructed ObjectQuery for membership search.
+     */
+    private static ObjectQuery buildMembershipSearchObjectQuery(@Nullable ObjectFilter userObjectFiler, @Nullable ObjectFilter roleObjectFilter) {
+        S_FilterExit filter;
+
+        if (userObjectFiler != null) {
+            filter = PrismContext.get().queryForReferenceOwnedBy(UserType.class, AssignmentHolderType.F_ROLE_MEMBERSHIP_REF)
+                    .block()
+                    .filter(userObjectFiler)
+                    .endBlock();
+        } else {
+            filter = PrismContext.get().queryForReferenceOwnedBy(UserType.class, AssignmentHolderType.F_ROLE_MEMBERSHIP_REF);
+        }
+
+        if (roleObjectFilter != null) {
+            filter = filter
+                    .and()
+                    .ref(ItemPath.SELF_PATH, RoleType.COMPLEX_TYPE, null)
+                    .block()
+                    .filter(roleObjectFilter)
+                    .endBlock();
+
+        } else {
+            filter = filter
+                    .and()
+                    .item(T_SELF)
+                    .ref(null, RoleType.COMPLEX_TYPE, Q_ANY);
+        }
+
+        return filter.build();
+    }
+
+    @Override
+    public ListMultimap<String, String> assignmentSearch(
+            @Nullable ObjectFilter userObjectFiler,
+            @Nullable ObjectFilter roleObjectFilter,
+            @Nullable ObjectFilter assignmentFilter,
+            @NotNull RoleAnalysisProcessModeType processMode,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        ObjectQuery assignmentQuery = buildAssignmentSearchObjectQuery(userObjectFiler, roleObjectFilter, assignmentFilter);
+
+        ListMultimap<String, String> userRolesMap = ArrayListMultimap.create();
+
+        boolean userMode = processMode.equals(RoleAnalysisProcessModeType.USER);
+        ContainerableResultHandler<AssignmentType> handler;
+        handler = (object, parentResult) -> {
+            PrismContainerValue<?> prismContainerValue = object.asPrismContainerValue();
+
+            if (prismContainerValue == null) {
+                LOGGER.error("Couldn't get prism container value during assignment search");
+                return true;
+            }
+
+            Map<String, Object> userData = prismContainerValue.getUserData();
+
+            if (userData == null) {
+                LOGGER.error("Couldn't get user data during assignment search");
+                return true;
+            }
+
+            Object ownerOid = userData.get("ownerOid");
+            ObjectReferenceType targetRef = object.getTargetRef();
+            if (targetRef == null) {
+                LOGGER.error("Couldn't get target reference during assignment search");
+                return true;
+            }
+
+            String roleOid = targetRef.getOid();
+
+            if (ownerOid == null) {
+                LOGGER.error("Owner oid retrieved null value during assignment search");
+                return true;
+            }
+
+            if (roleOid == null) {
+                LOGGER.error("Target role oid retrieved null value during search");
+                return true;
+            }
+
+            if (userMode) {
+                userRolesMap.put(ownerOid.toString(), roleOid);
+            } else {
+                userRolesMap.put(roleOid, ownerOid.toString());
+            }
+
+            return true;
+        };
+
+        try {
+            modelService.searchContainersIterative(AssignmentType.class, assignmentQuery, handler, null, task, result);
+        } catch (SchemaException | SecurityViolationException | ConfigurationException | ObjectNotFoundException |
+                ExpressionEvaluationException | CommunicationException e) {
+            throw new SystemException("Couldn't search assignments", e);
+        }
+        return userRolesMap;
+    }
+
+    /**
+     * Builds an ObjectQuery for assignment search based on the provided user, role, and assignment filters.
+     *
+     * @param userObjectFiler An optional filter to apply to the user objects.
+     * @param roleObjectFilter An optional filter to apply to the role objects.
+     * @param assignmentFilter An optional filter to apply to the assignment objects.
+     * @return The constructed ObjectQuery for assignment search.
+     */
+    private static ObjectQuery buildAssignmentSearchObjectQuery(
+            @Nullable ObjectFilter userObjectFiler,
+            @Nullable ObjectFilter roleObjectFilter,
+            @Nullable ObjectFilter assignmentFilter) {
+        S_FilterExit filter;
+        if (userObjectFiler != null) {
+            filter = PrismContext.get().queryFor(AssignmentType.class)
+                    .ownedBy(UserType.class)
+                    .block()
+                    .filter(userObjectFiler)
+                    .endBlock();
+        } else {
+            filter = PrismContext.get().queryFor(AssignmentType.class)
+                    .ownedBy(UserType.class);
+        }
+        if (roleObjectFilter != null) {
+            filter = filter
+                    .and()
+                    .ref(AssignmentType.F_TARGET_REF)
+                    .type(RoleType.class)
+                    .block()
+                    .filter(roleObjectFilter)
+                    .endBlock();
+        } else {
+            filter = filter
+                    .and()
+                    .ref(AssignmentType.F_TARGET_REF)
+                    .type(RoleType.class)
+                    .block()
+                    .type(RoleType.class)
+                    .endBlock();
+        }
+
+        if (assignmentFilter != null) {
+            filter = filter
+                    .and()
+                    .filter(assignmentFilter);
+        }
+
+        return filter.build();
+    }
+
+    /**
+     * Prepares a map of assignment chunks.
+     * If key objects has the same values, they are compressed.
+     *
+     * @param userSearchFiler An optional filter to apply to the user search.
+     * @param roleSearchFiler An optional filter to apply to the role search.
+     * @param assignmentSearchFiler An optional filter to apply to the assignment search.
+     * @param processMode The process mode to determine whether to search in user mode or role mode.
+     * @param task The task in the context of which the operation is executed.
+     * @param result The result of the operation.
+     * @return A ListMultimap where the keys are lists of role OIDs and the values are user OIDs.
+     */
+    @Override
+    public ListMultimap<List<String>, String> prepareAssignmentChunkMapRolesAsKey(
+            @Nullable SearchFilterType userSearchFiler,
+            @Nullable SearchFilterType roleSearchFiler,
+            @Nullable SearchFilterType assignmentSearchFiler,
+            @NotNull RoleAnalysisProcessModeType processMode,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        ObjectFilter userObjectFilter = transformSearchToObjectFilter(userSearchFiler, UserType.class);
+        ObjectFilter roleObjectFilter = transformSearchToObjectFilter(roleSearchFiler, RoleType.class);
+        ObjectFilter assignmentFilter = transformSearchToObjectFilter(assignmentSearchFiler, AssignmentType.class);
+
+        ListMultimap<String, String> userRolesMap = assignmentSearch(userObjectFilter, roleObjectFilter, assignmentFilter, processMode, task, result);
+        ListMultimap<List<String>, String> compressedUsers = ArrayListMultimap.create();
+
+        for (String userOid : userRolesMap.keySet()) {
+            List<String> rolesOids = userRolesMap.get(userOid);
+            Collections.sort(rolesOids);
+            compressedUsers.put(rolesOids, userOid);
+        }
+        return compressedUsers;
+    }
+
+    @Override
+    public ListMultimap<List<String>, String> prepareMembershipChunkMapRolesAsKey(
+            @Nullable SearchFilterType userSearchFiler,
+            @Nullable SearchFilterType roleSearchFiler,
+            @Nullable SearchFilterType assignmentSearchFiler,
+            @NotNull RoleAnalysisProcessModeType processMode,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        ObjectFilter userObjectFilter = transformSearchToObjectFilter(userSearchFiler, UserType.class);
+        ObjectFilter roleObjectFilter = transformSearchToObjectFilter(roleSearchFiler, RoleType.class);
+        ObjectFilter assignmentFilter = transformSearchToObjectFilter(assignmentSearchFiler, AssignmentType.class);
+
+        ListMultimap<String, String> userRolesMap = this.membershipSearch(userObjectFilter, roleObjectFilter, assignmentFilter, processMode, task, result);
+        ListMultimap<List<String>, String> compressedUsers = ArrayListMultimap.create();
+
+        for (String userOid : userRolesMap.keySet()) {
+            List<String> rolesOids = userRolesMap.get(userOid);
+            Collections.sort(rolesOids);
+            compressedUsers.put(rolesOids, userOid);
+        }
+        return compressedUsers;
+    }
+
+    @Override
+    public @Nullable ObjectFilter transformSearchToObjectFilter(
+            @Nullable SearchFilterType userSearchFiler,
+            @NotNull Class<?> objectClass) {
+        if (userSearchFiler != null) {
+            try {
+                ObjectFilter objectFilter = PrismContext.get().getQueryConverter()
+                        .createObjectFilter(objectClass, userSearchFiler);
+                if (objectFilter != null) {
+                    return objectFilter;
+                }
+            } catch (SchemaException e) {
+                throw new SystemException("Couldn't create object filter", e);
+            }
+        }
+        return null;
     }
 
 }

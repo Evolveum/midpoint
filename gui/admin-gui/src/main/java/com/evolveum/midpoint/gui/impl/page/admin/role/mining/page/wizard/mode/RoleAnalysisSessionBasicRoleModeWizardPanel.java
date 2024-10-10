@@ -383,7 +383,7 @@ public class RoleAnalysisSessionBasicRoleModeWizardPanel
 
     private void setupQueryProperty(@NotNull PrismContainerValueWrapper<AbstractAnalysisSessionOptionType> sessionType,
             Object realValue) throws SchemaException {
-        sessionType.findProperty(AbstractAnalysisSessionOptionType.F_QUERY).getValue().setRealValue(realValue);
+        sessionType.findProperty(AbstractAnalysisSessionOptionType.F_USER_SEARCH_FILTER).getValue().setRealValue(realValue);
     }
 
     private @NotNull AjaxIconButton createChangeArchetypeButton() {

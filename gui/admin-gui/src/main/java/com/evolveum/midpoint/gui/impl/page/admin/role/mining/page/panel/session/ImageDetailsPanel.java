@@ -93,9 +93,9 @@ public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
             rowTitle = "Users";
             columnIcon = GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED;
             rowIcon = GuiStyleConstants.CLASS_OBJECT_USER_ICON_COLORED;
-            searchFilter = session.getRoleModeOptions().getQuery();
+            searchFilter = session.getRoleModeOptions().getUserSearchFilter();
         } else if (RoleAnalysisProcessModeType.USER.equals(processMode)) {
-            searchFilter = session.getUserModeOptions().getQuery();
+            searchFilter = session.getUserModeOptions().getUserSearchFilter();
         }
 
         String finalColumnIcon = columnIcon;

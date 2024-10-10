@@ -85,12 +85,12 @@ public class RoleAnalysisObjectDto implements Serializable {
             if (mode.equals(RoleAnalysisProcessModeType.ROLE)) {
                 RoleAnalysisSessionOptionType roleModeOptions = session.getRoleModeOptions();
                 if (roleModeOptions != null) {
-                    this.filter = roleModeOptions.getQuery();
+                    this.filter = roleModeOptions.getUserSearchFilter();
                 }
             } else if (mode.equals(RoleAnalysisProcessModeType.USER)) {
                 UserAnalysisSessionOptionType userModeOptions = session.getUserModeOptions();
                 if (userModeOptions != null) {
-                    this.filter = userModeOptions.getQuery();
+                    this.filter = userModeOptions.getUserSearchFilter();
                 }
             }
 

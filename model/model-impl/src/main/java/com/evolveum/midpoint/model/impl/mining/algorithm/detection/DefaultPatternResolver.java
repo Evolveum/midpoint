@@ -128,12 +128,12 @@ public class DefaultPatternResolver {
         if(mode.equals(RoleAnalysisProcessModeType.ROLE)){
             RoleAnalysisSessionOptionType roleModeOptions = session.getRoleModeOptions();
             if(roleModeOptions != null){
-                filter = roleModeOptions.getQuery();
+                filter = roleModeOptions.getUserSearchFilter();
             }
         }else if(mode.equals(RoleAnalysisProcessModeType.USER)){
             UserAnalysisSessionOptionType userModeOptions = session.getUserModeOptions();
             if(userModeOptions != null){
-                filter = userModeOptions.getQuery();
+                filter = userModeOptions.getUserSearchFilter();
             }
         }
 

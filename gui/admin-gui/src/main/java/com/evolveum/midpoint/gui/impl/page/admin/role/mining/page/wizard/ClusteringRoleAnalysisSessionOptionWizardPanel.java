@@ -56,7 +56,9 @@ public class ClusteringRoleAnalysisSessionOptionWizardPanel extends AbstractForm
         return wrapper -> {
             ItemName itemName = wrapper.getItemName();
 
-            if (itemName.equals(AbstractAnalysisSessionOptionType.F_QUERY)
+            if (itemName.equals(AbstractAnalysisSessionOptionType.F_USER_SEARCH_FILTER)
+                    || itemName.equals(AbstractAnalysisSessionOptionType.F_ROLE_SEARCH_FILTER)
+                    || itemName.equals(AbstractAnalysisSessionOptionType.F_ASSIGNMENT_SEARCH_FILTER)
                     || itemName.equals(AbstractAnalysisSessionOptionType.F_IS_INDIRECT)
                     || itemName.equals(AbstractAnalysisSessionOptionType.F_PROPERTIES_RANGE)
                    ) {

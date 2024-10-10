@@ -16,7 +16,6 @@ import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnaly
 
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -70,14 +69,21 @@ public class UserBasedClustering implements Clusterable {
         int minRolesOverlap = userModeOptions.getMinPropertiesOverlap();
         int minUsersCount = userModeOptions.getMinMembersCount();
         Boolean isIndirect = userModeOptions.isIsIndirect();
-        SearchFilterType query = userModeOptions.getQuery();
+        SearchFilterType userSearchFilter = userModeOptions.getUserSearchFilter();
+        SearchFilterType roleSearchFilter = userModeOptions.getRoleSearchFilter();
+        SearchFilterType assignmentSearchFilter = userModeOptions.getAssignmentSearchFilter();
 
         handler.enterNewStep(LOAD_DATA_STEP);
         handler.setOperationCountToProcess(1);
         //roles //users
-        ListMultimap<List<String>, String> chunkMap = loadData(modelService, isIndirect, minRolesOccupancy, maxRolesOccupancy,
-                query, result, task
-        );
+        ListMultimap<List<String>, String> chunkMap = loadUserBasedMultimapData(
+                roleAnalysisService,
+                isIndirect,
+                userSearchFilter,
+                roleSearchFilter,
+                assignmentSearchFilter,
+                task,
+                result);
 
         handler.iterateActualStatus();
 
@@ -100,23 +106,6 @@ public class UserBasedClustering implements Clusterable {
 
         return new RoleAnalysisAlgorithmUtils().processClusters(roleAnalysisService, dataPoints, clusters, session,
                 attributeAnalysisCache, handler, task, result);
-    }
-
-    @NotNull
-    public ListMultimap<List<String>, String> loadData(
-            @NotNull ModelService modelService,
-            @NotNull Boolean isIndirect,
-            int minRolesOccupancy,
-            int maxRolesOccupancy,
-            @Nullable SearchFilterType query,
-            @NotNull OperationResult result,
-            @NotNull Task task) {
-        if (isIndirect) {
-            return loadUserBasedMembershipMultimapData(modelService, minRolesOccupancy,
-                    maxRolesOccupancy, query, task, result);
-        }
-        return loadUserBasedMultimapData(modelService, minRolesOccupancy,
-                maxRolesOccupancy, query, task, result);
     }
 
 }
