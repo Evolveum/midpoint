@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -177,11 +179,17 @@ public class OutlierClusterItemPanel<T extends Serializable>
                     .oid(element).type(UserType.COMPLEX_TYPE));
         }
 
+        UserAnalysisSessionOptionType userModeOptions = session.getUserModeOptions();
+        SearchFilterType userSearchFilter = userModeOptions.getUserSearchFilter();
+        SearchFilterType roleSearchFilter = userModeOptions.getRoleSearchFilter();
+        SearchFilterType assignmentSearchFilter = userModeOptions.getAssignmentSearchFilter();
+
         RoleAnalysisDetectionOptionType detectionOption = new RoleAnalysisDetectionOptionType();
         detectionOption.setStandardDeviation(new RangeType().min(minFrequency).max(maxFrequency));
         cluster.setDetectionOption(detectionOption);
 
-        MiningOperationChunk miningOperationChunk = roleAnalysisService.prepareBasicChunkStructure(cluster, null,
+        MiningOperationChunk miningOperationChunk = roleAnalysisService.prepareBasicChunkStructure(cluster,
+                userSearchFilter, roleSearchFilter, assignmentSearchFilter,
                 displayValueOption, RoleAnalysisProcessModeType.USER, null, result, task);
 
         RangeType standardDeviation = detectionOption.getStandardDeviation();

@@ -21,6 +21,8 @@ import com.evolveum.midpoint.common.mining.utils.values.ZScoreData;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
 import com.google.common.collect.ListMultimap;
 import org.apache.commons.lang3.mutable.MutableDouble;
 import org.jetbrains.annotations.NotNull;
@@ -111,6 +113,7 @@ public class OutlierDetectionOutlineClusterModel {
 
         MiningOperationChunk tempMiningOperationChunk = prepareTemporaryOperationChunk(
                 roleAnalysisService,
+                session,
                 tempCluster,
                 task,
                 result);
@@ -211,22 +214,30 @@ public class OutlierDetectionOutlineClusterModel {
     @NotNull
     private MiningOperationChunk prepareTemporaryOperationChunk(
             @NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull RoleAnalysisSessionType session,
             @NotNull RoleAnalysisClusterType tempCluster,
             @NotNull Task task,
             @NotNull OperationResult result) {
+        //Outlier detection is always user-based
         DisplayValueOption displayValueOption = new DisplayValueOption();
         displayValueOption.setProcessMode(RoleAnalysisProcessModeType.USER);
         displayValueOption.setChunkMode(RoleAnalysisChunkMode.EXPAND);
         displayValueOption.setSortMode(RoleAnalysisSortMode.JACCARD);
         displayValueOption.setChunkAction(RoleAnalysisChunkAction.EXPLORE_DETECTION);
 
+        UserAnalysisSessionOptionType userModeOptions = session.getUserModeOptions();
+        SearchFilterType userSearchFilter = userModeOptions.getUserSearchFilter();
+        SearchFilterType roleSearchFilter = userModeOptions.getRoleSearchFilter();
+        SearchFilterType assignmentSearchFilter = userModeOptions.getAssignmentSearchFilter();
+
         RoleAnalysisSortMode sortMode = displayValueOption.getSortMode();
         if (sortMode == null) {
             displayValueOption.setSortMode(RoleAnalysisSortMode.NONE);
         }
 
-        return roleAnalysisService.prepareBasicChunkStructure(
-                tempCluster, null, displayValueOption, RoleAnalysisProcessModeType.USER, null, result, task);
+        return roleAnalysisService.prepareBasicChunkStructure(tempCluster,
+                userSearchFilter, roleSearchFilter, assignmentSearchFilter,
+                displayValueOption, RoleAnalysisProcessModeType.USER, null, result, task);
     }
 
     private void processClusterAttributeAnalysis(

@@ -350,7 +350,9 @@ public interface RoleAnalysisService {
      * Method for preparing a compressed mining structure for role analysis.
      *
      * @param cluster The cluster for which the mining structure is prepared.
-     * @param objectFilter The additional user filter.
+     * @param userSearchFilter The additional user filter.
+     * @param roleSearchFilter The additional role filter.
+     * @param assignmentSearchFilter The additional assignment filter.
      * @param fullProcess The full process flag.
      * If true, the entire structure is prepared.
      * If false, only a partial structure (members) is prepared.
@@ -361,7 +363,9 @@ public interface RoleAnalysisService {
      */
     @NotNull MiningOperationChunk prepareCompressedMiningStructure(
             @NotNull RoleAnalysisClusterType cluster,
-            @Nullable SearchFilterType objectFilter,
+            @Nullable SearchFilterType userSearchFilter,
+            @Nullable SearchFilterType roleSearchFilter,
+            @Nullable SearchFilterType assignmentSearchFilter,
             boolean fullProcess,
             @NotNull RoleAnalysisProcessModeType processMode,
             @NotNull OperationResult result,
@@ -369,7 +373,9 @@ public interface RoleAnalysisService {
 
     MiningOperationChunk prepareBasicChunkStructure(
             @NotNull RoleAnalysisClusterType cluster,
-            @Nullable SearchFilterType objectFilter,
+            @Nullable SearchFilterType userSearchFilter,
+            @Nullable SearchFilterType roleSearchFilter,
+            @Nullable SearchFilterType assignmentSearchFilter,
             @NotNull DisplayValueOption option,
             @NotNull RoleAnalysisProcessModeType processMode,
             @Nullable List<DetectedPattern> detectedPatterns,
@@ -379,7 +385,9 @@ public interface RoleAnalysisService {
      * Method for preparing a mining structure for role analysis.
      *
      * @param cluster The cluster for which the mining structure is prepared.
-     * @param filter The additional user filter.
+     * @param userSearchFilter The additional user filter.
+     * @param roleSearchFilter The additional role filter.
+     * @param assignmentSearchFilter The additional assignment filter.
      * @param option The display value option.
      * @param processMode The process mode.
      * @param result The operation result.
@@ -388,7 +396,9 @@ public interface RoleAnalysisService {
      */
     @NotNull MiningOperationChunk prepareMiningStructure(
             @NotNull RoleAnalysisClusterType cluster,
-            @Nullable SearchFilterType filter,
+            @Nullable SearchFilterType userSearchFilter,
+            @Nullable SearchFilterType roleSearchFilter,
+            @Nullable SearchFilterType assignmentSearchFilter,
             @NotNull DisplayValueOption option,
             @NotNull RoleAnalysisProcessModeType processMode,
             @NotNull List<DetectedPattern> detectedPatterns,
@@ -406,7 +416,9 @@ public interface RoleAnalysisService {
      * Method for preparing an expanded mining structure for role analysis.
      *
      * @param cluster The cluster for which the mining structure is prepared.
-     * @param searchFilter The additional user filter.
+     * @param userSearchFilter The additional user filter.
+     * @param roleSearchFilter The additional role filter.
+     * @param assignmentSearchFilter The additional assignment filter.
      * @param fullProcess The full process flag.
      * If true, the entire structure is prepared.
      * If false, only a partial structure (members) is prepared.
@@ -418,7 +430,9 @@ public interface RoleAnalysisService {
      */
     @NotNull MiningOperationChunk prepareExpandedMiningStructure(
             @NotNull RoleAnalysisClusterType cluster,
-            @Nullable SearchFilterType searchFilter,
+            @Nullable SearchFilterType userSearchFilter,
+            @Nullable SearchFilterType roleSearchFilter,
+            @Nullable SearchFilterType assignmentSearchFilter,
             boolean fullProcess,
             @NotNull RoleAnalysisProcessModeType processMode,
             @NotNull OperationResult result,

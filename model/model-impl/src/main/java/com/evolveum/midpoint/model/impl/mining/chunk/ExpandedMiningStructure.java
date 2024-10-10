@@ -44,19 +44,33 @@ public class ExpandedMiningStructure extends BasePrepareAction {
     public MiningOperationChunk executeOperation(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisClusterType cluster,
-            @Nullable SearchFilterType objectFilter,
+            @Nullable SearchFilterType userSearchFilter,
+            @Nullable SearchFilterType roleSearchFilter,
+            @Nullable SearchFilterType assignmentSearchFilter,
             boolean fullProcess,
             @NotNull RoleAnalysisProcessModeType mode,
             @NotNull OperationResult result,
             @NotNull Task task,
             @Nullable DisplayValueOption option) {
-        return this.executeAction(roleAnalysisService, cluster, objectFilter, fullProcess, mode, handler, task, result, option);
+        return this.executeAction(roleAnalysisService,
+                cluster,
+                userSearchFilter,
+                roleSearchFilter,
+                assignmentSearchFilter,
+                fullProcess,
+                mode,
+                handler,
+                task,
+                result,
+                option);
     }
 
     public @NotNull MiningOperationChunk prepareRoleBasedStructure(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisClusterType cluster,
-            @Nullable SearchFilterType objectFilter,
+            @Nullable SearchFilterType userSearchFilter,
+            @Nullable SearchFilterType roleSearchFilter,
+            @Nullable SearchFilterType assignmentSearchFilter,
             @NotNull RoleAnalysisProgressIncrement handler,
             @NotNull Task task,
             @NotNull OperationResult result,
@@ -92,7 +106,7 @@ public class ExpandedMiningStructure extends BasePrepareAction {
         }
 
         ListMultimap<String, String> mapRoleMembers = roleAnalysisService
-                .extractUserTypeMembers(userExistCache, objectFilter, membersOidSet, task, result);
+                .extractUserTypeMembers(userExistCache, userSearchFilter, membersOidSet, task, result);
 
         for (String clusterMember : membersOidSet) {
             List<String> users = mapRoleMembers.get(clusterMember);
@@ -195,7 +209,9 @@ public class ExpandedMiningStructure extends BasePrepareAction {
     public @NotNull MiningOperationChunk prepareUserBasedStructure(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisClusterType cluster,
-            @Nullable SearchFilterType objectFilter,
+            @Nullable SearchFilterType userSearchFilter,
+            @Nullable SearchFilterType roleSearchFilter,
+            @Nullable SearchFilterType assignmentSearchFilter,
             @NotNull RoleAnalysisProgressIncrement handler,
             @NotNull Task task,
             @NotNull OperationResult result,
@@ -330,7 +346,9 @@ public class ExpandedMiningStructure extends BasePrepareAction {
     public @NotNull MiningOperationChunk preparePartialRoleBasedStructure(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisClusterType cluster,
-            @Nullable SearchFilterType objectFilter,
+            @Nullable SearchFilterType userSearchFilter,
+            @Nullable SearchFilterType roleSearchFilter,
+            @Nullable SearchFilterType assignmentSearchFilter,
             @NotNull RoleAnalysisProgressIncrement handler,
             @NotNull Task task,
             @NotNull OperationResult result) {
@@ -345,7 +363,7 @@ public class ExpandedMiningStructure extends BasePrepareAction {
         ListMultimap<String, String> roleMap = ArrayListMultimap.create();
         List<ObjectReferenceType> members = cluster.getMember();
         Set<String> membersOidSet = new HashSet<>();
-        loadRoleMap(roleAnalysisService, objectFilter, members, roleExistCache, userExistCache, membersOidSet, userChunk, roleMap);
+        loadRoleMap(roleAnalysisService, userSearchFilter, members, roleExistCache, userExistCache, membersOidSet, userChunk, roleMap);
 
         //user //role
         ListMultimap<List<String>, String> roleChunk = prepareRoleChunkMap(roleMap.size(), roleMap);
@@ -360,7 +378,9 @@ public class ExpandedMiningStructure extends BasePrepareAction {
     public @NotNull MiningOperationChunk preparePartialUserBasedStructure(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisClusterType cluster,
-            @Nullable SearchFilterType objectFilter,
+            @Nullable SearchFilterType userSearchFilter,
+            @Nullable SearchFilterType roleSearchFilter,
+            @Nullable SearchFilterType assignmentSearchFilter,
             @NotNull RoleAnalysisProgressIncrement handler,
             @NotNull Task task,
             @NotNull OperationResult result) {

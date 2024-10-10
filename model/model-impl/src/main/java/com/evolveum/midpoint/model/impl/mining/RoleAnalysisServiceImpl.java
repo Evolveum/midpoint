@@ -949,19 +949,24 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     @Override
     public @NotNull MiningOperationChunk prepareCompressedMiningStructure(
             @NotNull RoleAnalysisClusterType cluster,
-            SearchFilterType objectFilter,
+            @Nullable SearchFilterType userSearchFilter,
+            @Nullable SearchFilterType roleSearchFilter,
+            @Nullable SearchFilterType assignmentSearchFilter,
             boolean fullProcess,
             @NotNull RoleAnalysisProcessModeType processMode,
             @NotNull OperationResult result,
             @NotNull Task task) {
-        return new CompressedMiningStructure().executeOperation(this,
-                cluster, objectFilter, fullProcess, processMode, result, task);
+        return new CompressedMiningStructure().executeOperation(this, cluster,
+                userSearchFilter, roleSearchFilter, assignmentSearchFilter,
+                fullProcess, processMode, result, task);
     }
 
     @Override
     public MiningOperationChunk prepareBasicChunkStructure(
             @NotNull RoleAnalysisClusterType cluster,
-            @Nullable SearchFilterType objectFilter,
+            @Nullable SearchFilterType userSearchFilter,
+            @Nullable SearchFilterType roleSearchFilter,
+            @Nullable SearchFilterType assignmentSearchFilter,
             @NotNull DisplayValueOption option,
             @NotNull RoleAnalysisProcessModeType processMode,
             @Nullable List<DetectedPattern> detectedPatterns,
@@ -975,29 +980,41 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         switch (chunkMode) {
             case EXPAND_ROLE -> {
                 miningRoleTypeChunks = new ExpandedMiningStructure()
-                        .executeOperation(this, cluster, objectFilter, true, processMode, result, task, option)
+                        .executeOperation(this, cluster,
+                                userSearchFilter, roleSearchFilter, assignmentSearchFilter,
+                                true, processMode, result, task, option)
                         .getMiningRoleTypeChunks(RoleAnalysisSortMode.NONE);
                 miningUserTypeChunks = new CompressedMiningStructure()
-                        .executeOperation(this, cluster, objectFilter, true, processMode, result, task)
+                        .executeOperation(this, cluster,
+                                userSearchFilter, roleSearchFilter, assignmentSearchFilter,
+                                true, processMode, result, task)
                         .getMiningUserTypeChunks(RoleAnalysisSortMode.NONE);
                 chunk = new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks);
             }
             case EXPAND_USER -> {
                 miningRoleTypeChunks = new CompressedMiningStructure()
-                        .executeOperation(this, cluster, objectFilter, true, processMode, result, task)
+                        .executeOperation(this, cluster,
+                                userSearchFilter, roleSearchFilter, assignmentSearchFilter,
+                                true, processMode, result, task)
                         .getMiningRoleTypeChunks(RoleAnalysisSortMode.NONE);
                 miningUserTypeChunks = new ExpandedMiningStructure()
-                        .executeOperation(this, cluster, objectFilter, true, processMode, result, task, option)
+                        .executeOperation(this, cluster,
+                                userSearchFilter, roleSearchFilter, assignmentSearchFilter,
+                                true, processMode, result, task, option)
                         .getMiningUserTypeChunks(RoleAnalysisSortMode.NONE);
                 chunk = new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks);
             }
             case COMPRESS -> {
                 chunk = new CompressedMiningStructure()
-                        .executeOperation(this, cluster, objectFilter, true, processMode, result, task);
+                        .executeOperation(this, cluster,
+                                userSearchFilter, roleSearchFilter, assignmentSearchFilter,
+                                true, processMode, result, task);
             }
             default -> {
                 chunk = new ExpandedMiningStructure()
-                        .executeOperation(this, cluster, objectFilter, true, processMode, result, task, option);
+                        .executeOperation(this, cluster,
+                                userSearchFilter, roleSearchFilter, assignmentSearchFilter,
+                                true, processMode, result, task, option);
             }
         }
         chunk.setProcessMode(processMode);
@@ -1021,14 +1038,18 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     @Override
     public @NotNull MiningOperationChunk prepareMiningStructure(
             @NotNull RoleAnalysisClusterType cluster,
-            @Nullable SearchFilterType filter,
+            @Nullable SearchFilterType userSearchFilter,
+            @Nullable SearchFilterType roleSearchFilter,
+            @Nullable SearchFilterType assignmentSearchFilter,
             @NotNull DisplayValueOption option,
             @NotNull RoleAnalysisProcessModeType processMode,
             @NotNull List<DetectedPattern> detectedPatterns,
             @NotNull OperationResult result,
             @NotNull Task task) {
 
-        MiningOperationChunk basicChunk = prepareBasicChunkStructure(cluster, filter, option, processMode, detectedPatterns, result, task);
+        MiningOperationChunk basicChunk = prepareBasicChunkStructure(cluster,
+                userSearchFilter, roleSearchFilter, assignmentSearchFilter,
+                option, processMode, detectedPatterns, result, task);
 
         RoleAnalysisDetectionOptionType detectionOption = cluster.getDetectionOption();
         RangeType frequencyRange = detectionOption.getStandardDeviation();
@@ -1081,14 +1102,17 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     @Override
     public @NotNull MiningOperationChunk prepareExpandedMiningStructure(
             @NotNull RoleAnalysisClusterType cluster,
-            @Nullable SearchFilterType searchFilter,
+            @Nullable SearchFilterType userSearchFilter,
+            @Nullable SearchFilterType roleSearchFilter,
+            @Nullable SearchFilterType assignmentSearchFilter,
             boolean fullProcess,
             @NotNull RoleAnalysisProcessModeType processMode,
             @NotNull OperationResult result,
             @NotNull Task task,
             @Nullable DisplayValueOption option) {
-        return new ExpandedMiningStructure().executeOperation(this, cluster, searchFilter, fullProcess,
-                processMode, result, task, option);
+        return new ExpandedMiningStructure().executeOperation(this, cluster,
+                userSearchFilter, roleSearchFilter, assignmentSearchFilter,
+                fullProcess, processMode, result, task, option);
     }
 
     @Override

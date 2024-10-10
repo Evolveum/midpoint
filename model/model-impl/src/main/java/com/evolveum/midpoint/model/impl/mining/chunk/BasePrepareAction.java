@@ -75,18 +75,18 @@ public abstract class BasePrepareAction implements MiningStructure {
 
         //TODO this is incorrect, remove after decision
         ItemPath path = ItemPath.create(UserType.F_NAME);
-        if(!containItemPath(appliedPaths, path)) {
+        if (!containItemPath(appliedPaths, path)) {
             RoleAnalysisAttributeDef roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, false, UserType.class);
             itemDef.add(roleAnalysisAttributeDef);
         }
 
         path = ItemPath.create(UserType.F_ASSIGNMENT);
-        if(!containItemPath(appliedPaths, path)) {
+        if (!containItemPath(appliedPaths, path)) {
             RoleAnalysisAttributeDef roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, true, null);
             itemDef.add(roleAnalysisAttributeDef);
         }
 
-        if(!containItemPath(appliedPaths, path)) {
+        if (!containItemPath(appliedPaths, path)) {
             path = ItemPath.create(UserType.F_ARCHETYPE_REF);
             RoleAnalysisAttributeDef roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, false, ArchetypeType.class);
             itemDef.add(roleAnalysisAttributeDef);
@@ -113,19 +113,19 @@ public abstract class BasePrepareAction implements MiningStructure {
 
         //TODO this is incorrect, remove after decision
         ItemPath path = ItemPath.create(RoleType.F_NAME);
-        if(!containItemPath(appliedPaths, path)) {
+        if (!containItemPath(appliedPaths, path)) {
             RoleAnalysisAttributeDef roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, false, RoleType.class);
             itemDef.add(roleAnalysisAttributeDef);
         }
 
         path = ItemPath.create(RoleType.F_LIFECYCLE_STATE);
-        if(!containItemPath(appliedPaths, path)) {
+        if (!containItemPath(appliedPaths, path)) {
             RoleAnalysisAttributeDef roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, false, RoleType.class);
             itemDef.add(roleAnalysisAttributeDef);
         }
 
         path = ItemPath.create(RoleType.F_ARCHETYPE_REF);
-        if(!containItemPath(appliedPaths, path)) {
+        if (!containItemPath(appliedPaths, path)) {
             RoleAnalysisAttributeDef roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, false, ArchetypeType.class);
             itemDef.add(roleAnalysisAttributeDef);
         }
@@ -135,7 +135,7 @@ public abstract class BasePrepareAction implements MiningStructure {
 
     private boolean containItemPath(@NotNull Set<ItemPath> appliedPaths, ItemPath path) {
         for (ItemPath appliedPath : appliedPaths) {
-            if(appliedPath.equivalent(path)) {
+            if (appliedPath.equivalent(path)) {
                 return true;
             }
         }
@@ -147,7 +147,9 @@ public abstract class BasePrepareAction implements MiningStructure {
      *
      * @param roleAnalysisService The role analysis service for performing the operation.
      * @param cluster The role analysis cluster to process.
-     * @param objectFilter The additional user filter.
+     * @param userSearchFilter The user search filter.
+     * @param roleSearchFilter The role search filter.
+     * @param assignmentSearchFilter The assignment search filter.
      * @param fullProcess Indicates whether a full process should be performed.
      * @param mode The role analysis process Mode.
      * @param handler The progress increment handler.
@@ -160,7 +162,9 @@ public abstract class BasePrepareAction implements MiningStructure {
     protected MiningOperationChunk executeAction(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisClusterType cluster,
-            SearchFilterType objectFilter,
+            @Nullable SearchFilterType userSearchFilter,
+            @Nullable SearchFilterType roleSearchFilter,
+            @Nullable SearchFilterType assignmentSearchFilter,
             boolean fullProcess,
             @NotNull RoleAnalysisProcessModeType mode,
             @NotNull RoleAnalysisProgressIncrement handler,
@@ -176,23 +180,33 @@ public abstract class BasePrepareAction implements MiningStructure {
         this.roleCacheOption = generateRoleCacheOption();
 
         if (fullProcess) {
-            return resolveFullChunkStructures(roleAnalysisService, cluster, objectFilter, mode, option);
+            return resolveFullChunkStructures(roleAnalysisService, cluster,
+                    userSearchFilter, roleSearchFilter, assignmentSearchFilter,
+                    mode, option);
         } else {
-            return resolvePartialChunkStructures(roleAnalysisService, objectFilter, cluster, mode);
+            return resolvePartialChunkStructures(roleAnalysisService,
+                    userSearchFilter, roleSearchFilter, assignmentSearchFilter,
+                    cluster, mode);
         }
     }
 
     @NotNull
     private MiningOperationChunk resolvePartialChunkStructures(
             @NotNull RoleAnalysisService roleAnalysisService,
-            @Nullable SearchFilterType objectFilter,
+            @Nullable SearchFilterType userSearchFilter,
+            @Nullable SearchFilterType roleSearchFilter,
+            @Nullable SearchFilterType assignmentSearchFilter,
             @NotNull RoleAnalysisClusterType cluster,
             @NotNull RoleAnalysisProcessModeType mode) {
         if (mode.equals(RoleAnalysisProcessModeType.USER)) {
-            return preparePartialUserBasedStructure(roleAnalysisService, cluster, objectFilter, handler, task, result);
+            return preparePartialUserBasedStructure(roleAnalysisService, cluster,
+                    userSearchFilter, roleSearchFilter, assignmentSearchFilter,
+                    handler, task, result);
 
         } else if (mode.equals(RoleAnalysisProcessModeType.ROLE)) {
-            return preparePartialRoleBasedStructure(roleAnalysisService, cluster, objectFilter, handler, task, result);
+            return preparePartialRoleBasedStructure(roleAnalysisService, cluster,
+                    userSearchFilter, roleSearchFilter, assignmentSearchFilter,
+                    handler, task, result);
         }
 
         return new MiningOperationChunk(new ArrayList<>(), new ArrayList<>());
@@ -202,13 +216,19 @@ public abstract class BasePrepareAction implements MiningStructure {
     private MiningOperationChunk resolveFullChunkStructures(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisClusterType cluster,
-            SearchFilterType objectFilter,
+            @Nullable SearchFilterType userSearchFilter,
+            @Nullable SearchFilterType roleSearchFilter,
+            @Nullable SearchFilterType assignmentSearchFilter,
             @NotNull RoleAnalysisProcessModeType mode,
             @Nullable DisplayValueOption option) {
         if (mode.equals(RoleAnalysisProcessModeType.USER)) {
-            return prepareUserBasedStructure(roleAnalysisService, cluster, objectFilter, handler, task, result, option);
+            return prepareUserBasedStructure(roleAnalysisService, cluster,
+                    userSearchFilter, roleSearchFilter, assignmentSearchFilter,
+                    handler, task, result, option);
         } else if (mode.equals(RoleAnalysisProcessModeType.ROLE)) {
-            return prepareRoleBasedStructure(roleAnalysisService, cluster, objectFilter, handler, task, result, option);
+            return prepareRoleBasedStructure(roleAnalysisService, cluster,
+                    userSearchFilter, roleSearchFilter, assignmentSearchFilter,
+                    handler, task, result, option);
         }
         return new MiningOperationChunk(new ArrayList<>(), new ArrayList<>());
     }

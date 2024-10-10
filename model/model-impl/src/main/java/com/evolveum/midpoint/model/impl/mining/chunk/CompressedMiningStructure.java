@@ -40,19 +40,25 @@ public class CompressedMiningStructure extends BasePrepareAction {
     public MiningOperationChunk executeOperation(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisClusterType cluster,
-            SearchFilterType objectFilter,
+            @Nullable SearchFilterType userSearchFilter,
+            @Nullable SearchFilterType roleSearchFilter,
+            @Nullable SearchFilterType assignmentSearchFilter,
             boolean fullProcess,
             @NotNull RoleAnalysisProcessModeType mode,
             @NotNull OperationResult result,
             @NotNull Task task) {
-        return this.executeAction(roleAnalysisService, cluster, objectFilter, fullProcess, mode, handler, task, result, null);
+        return this.executeAction(roleAnalysisService, cluster,
+                userSearchFilter,roleSearchFilter,assignmentSearchFilter,
+                fullProcess, mode, handler, task, result, null);
     }
 
     @Override
     public @NotNull MiningOperationChunk prepareRoleBasedStructure(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisClusterType cluster,
-            @Nullable SearchFilterType objectFilter,
+            @Nullable SearchFilterType userSearchFilter,
+            @Nullable SearchFilterType roleSearchFilter,
+            @Nullable SearchFilterType assignmentSearchFilter,
             @NotNull RoleAnalysisProgressIncrement handler,
             @NotNull Task task,
             @NotNull OperationResult result,
@@ -66,7 +72,7 @@ public class CompressedMiningStructure extends BasePrepareAction {
         Set<String> membersOidSet = new HashSet<>();
 
         List<ObjectReferenceType> members = cluster.getMember();
-        loadRoleMap(roleAnalysisService, objectFilter, members, roleExistCache, userExistCache, membersOidSet, userChunk, roleMap);
+        loadRoleMap(roleAnalysisService, userSearchFilter, members, roleExistCache, userExistCache, membersOidSet, userChunk, roleMap);
 
         int roleMapSize = roleMap.size();
         ListMultimap<List<String>, String> roleChunk = prepareRoleChunkMap(roleMapSize, roleMap);
@@ -83,7 +89,10 @@ public class CompressedMiningStructure extends BasePrepareAction {
     public @NotNull MiningOperationChunk prepareUserBasedStructure(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisClusterType cluster,
-            SearchFilterType objectFilter, @NotNull RoleAnalysisProgressIncrement handler,
+            @Nullable SearchFilterType userSearchFilter,
+            @Nullable SearchFilterType roleSearchFilter,
+            @Nullable SearchFilterType assignmentSearchFilter,
+            @NotNull RoleAnalysisProgressIncrement handler,
             @NotNull Task task,
             @NotNull OperationResult result,
             @Nullable DisplayValueOption option) {
@@ -112,7 +121,10 @@ public class CompressedMiningStructure extends BasePrepareAction {
     public @NotNull MiningOperationChunk preparePartialRoleBasedStructure(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisClusterType cluster,
-            @Nullable SearchFilterType objectFilter, @NotNull RoleAnalysisProgressIncrement handler,
+            @Nullable SearchFilterType userSearchFilter,
+            @Nullable SearchFilterType roleSearchFilter,
+            @Nullable SearchFilterType assignmentSearchFilter,
+            @NotNull RoleAnalysisProgressIncrement handler,
             @NotNull Task task,
             @NotNull OperationResult result) {
         Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
@@ -124,7 +136,7 @@ public class CompressedMiningStructure extends BasePrepareAction {
         Set<String> membersOidSet = new HashSet<>();
 
         List<ObjectReferenceType> members = cluster.getMember();
-        loadRoleMap(roleAnalysisService, objectFilter, members, roleExistCache, userExistCache, membersOidSet, userChunk, roleMap);
+        loadRoleMap(roleAnalysisService, userSearchFilter, members, roleExistCache, userExistCache, membersOidSet, userChunk, roleMap);
 
         int roleMapSize = roleMap.size();
         ListMultimap<List<String>, String> roleChunk = prepareRoleChunkMap(roleMapSize, roleMap);
@@ -138,7 +150,9 @@ public class CompressedMiningStructure extends BasePrepareAction {
     public @NotNull MiningOperationChunk preparePartialUserBasedStructure(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisClusterType cluster,
-            @Nullable SearchFilterType objectFilter,
+            @Nullable SearchFilterType userSearchFilter,
+            @Nullable SearchFilterType roleSearchFilter,
+            @Nullable SearchFilterType assignmentSearchFilter,
             @NotNull RoleAnalysisProgressIncrement handler,
             @NotNull Task task,
             @NotNull OperationResult result) {

@@ -50,7 +50,10 @@ public class RoleAnalysisObjectDto implements Serializable {
     private RoleAnalysisClusterType cluster;
 
     private Set<String> markedUsers = new HashSet<>();
-    SearchFilterType filter;
+
+    private SearchFilterType userSearchFilter = null;
+    private SearchFilterType roleSearchFilter = null;
+    private SearchFilterType assignmentSearchFilter = null;
 
     public RoleAnalysisObjectDto(RoleAnalysisClusterType cluster, List<DetectedPattern> detectedPatterns, Integer parameterTableSetting, PageBase pageBase) {
         loadObject(cluster, detectedPatterns, parameterTableSetting, pageBase);
@@ -85,12 +88,16 @@ public class RoleAnalysisObjectDto implements Serializable {
             if (mode.equals(RoleAnalysisProcessModeType.ROLE)) {
                 RoleAnalysisSessionOptionType roleModeOptions = session.getRoleModeOptions();
                 if (roleModeOptions != null) {
-                    this.filter = roleModeOptions.getUserSearchFilter();
+                    this.userSearchFilter = roleModeOptions.getUserSearchFilter();
+                    this.roleSearchFilter = roleModeOptions.getRoleSearchFilter();
+                    this.assignmentSearchFilter = roleModeOptions.getAssignmentSearchFilter();
                 }
             } else if (mode.equals(RoleAnalysisProcessModeType.USER)) {
                 UserAnalysisSessionOptionType userModeOptions = session.getUserModeOptions();
                 if (userModeOptions != null) {
-                    this.filter = userModeOptions.getUserSearchFilter();
+                    this.userSearchFilter = userModeOptions.getUserSearchFilter();
+                    this.roleSearchFilter = userModeOptions.getRoleSearchFilter();
+                    this.assignmentSearchFilter = userModeOptions.getAssignmentSearchFilter();
                 }
             }
 
@@ -101,7 +108,7 @@ public class RoleAnalysisObjectDto implements Serializable {
         //chunk mode
         this.miningOperationChunk = roleAnalysisService.prepareMiningStructure(
                 cluster,
-                filter,
+                userSearchFilter, roleSearchFilter, assignmentSearchFilter,
                 displayValueOption,
                 isRoleMode ? RoleAnalysisProcessModeType.ROLE : RoleAnalysisProcessModeType.USER,
                 detectedPatterns,
@@ -223,7 +230,7 @@ public class RoleAnalysisObjectDto implements Serializable {
         OperationResult result = task.getResult();
         this.miningOperationChunk = pageBase.getRoleAnalysisService().prepareMiningStructure(
                 cluster,
-                filter,
+                userSearchFilter, roleSearchFilter, assignmentSearchFilter,
                 displayValueOption,
                 isRoleMode ? RoleAnalysisProcessModeType.ROLE : RoleAnalysisProcessModeType.USER,
                 selectedPatterns,
