@@ -46,6 +46,7 @@ public class SqaleUtils {
      * full object is not present.
      *
      * THe owner oid knowledge is required for correctly computing filters in case of iterative search of containers
+     * NOTE: Role analysis tools use owner oid to get user oid from assignment search.
      */
     public static final String OWNER_OID = "ownerOid";
     public static final String FULL_ID_PATH = "containerIdPath";
