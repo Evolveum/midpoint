@@ -201,6 +201,8 @@ class ContextLoadOperation<F extends ObjectType> {
      * but was removed in the meantime.
      */
     private void removeRottenContexts() {
+        LOGGER.trace("Starting the removal of rotten projection contexts");
+        int removed = 0;
         Iterator<LensProjectionContext> projectionIterator = context.getProjectionContextsIterator();
         while (projectionIterator.hasNext()) {
             LensProjectionContext projectionContext = projectionIterator.next();
@@ -208,29 +210,38 @@ class ContextLoadOperation<F extends ObjectType> {
                 // We must never remove contexts with primary delta. Even though it fails later on.
                 // What the user wishes should be done (or at least attempted) regardless of the consequences.
                 // Vox populi vox dei.
+                LOGGER.trace(" - not removing the context with a primary delta {}", projectionContext);
                 continue;
             }
             if (projectionContext.getWave() >= context.getExecutionWave()) {
                 // We must not remove context from this and later execution waves. These haven't had the
                 // chance to be executed yet
+                LOGGER.trace(" - not removing the context with projection wave {} not less than the current one ({}): {}",
+                        projectionContext, projectionContext.getWave(), context.getExecutionWave());
                 continue;
             }
             if (projectionContext.isHigherOrder()) {
                 // HACK never rot higher-order context. TODO: check if lower-order context is rotten, the also rot this one
+                LOGGER.trace(" - not removing a higher-order context: {}", projectionContext);
                 continue;
             }
-            if (!projectionContext.isFresh()) {
-                LOGGER.trace("Removing rotten context {}", projectionContext.getHumanReadableName());
-
-                if (projectionContext.isToBeArchived()) {
-                    context.getHistoricResourceObjects().add(projectionContext.getKey());
-                }
-
-                context.getRottenExecutedDeltas().addAll(
-                        projectionContext.getExecutedDeltas());
-
-                projectionIterator.remove();
+            if (projectionContext.isFresh()) {
+                LOGGER.trace(" - not removing a fresh context: {}", projectionContext);
+                continue;
             }
+
+            LOGGER.trace(" + removing rotten context {}", projectionContext.getHumanReadableName());
+
+            if (projectionContext.isToBeArchived()) {
+                context.getHistoricResourceObjects().add(projectionContext.getKey());
+            }
+
+            context.getRottenExecutedDeltas().addAll(
+                    projectionContext.getExecutedDeltas());
+
+            projectionIterator.remove();
+            removed++;
         }
+        LOGGER.trace("Finished the removal of rotten projection contexts; removed: {}", removed);
     }
 }
