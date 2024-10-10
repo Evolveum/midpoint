@@ -23,6 +23,7 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
+import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.commons.lang3.StringUtils;
@@ -113,7 +114,8 @@ public class ContainerWithLifecyclePanel<C extends Containerable> extends BasePa
         valueIcon.setOutputMarkupId(true);
         add(valueIcon);
 
-        AjaxButton valueName = new AjaxButton(ID_VALUE_NAME, getValueNameModel()) {
+        IModel<String> nameModel = getValueNameModel();
+        AjaxButton valueName = new AjaxButton(ID_VALUE_NAME, nameModel) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 getWrapperModelObject().value.setExpanded(!getWrapperModelObject().value.isExpanded());
@@ -124,6 +126,8 @@ public class ContainerWithLifecyclePanel<C extends Containerable> extends BasePa
         };
         valueName.setOutputMarkupId(true);
         valueName.add(AttributeAppender.append("class", getWrapperModelObject().containers.isEmpty() ? "": "text-bold"));
+        valueName.add(AttributeAppender.append("title", nameModel));
+        valueName.add(new TooltipBehavior());
         add(valueName);
 
         PrismPropertyWrapperModel<C, String> lifecycleModel = PrismPropertyWrapperModel.fromContainerValueWrapper(getModel(), ObjectType.F_LIFECYCLE_STATE);
@@ -163,7 +167,7 @@ public class ContainerWithLifecyclePanel<C extends Containerable> extends BasePa
                 containerCollapseButton.setOutputMarkupId(true);
                 container.add(containerCollapseButton);
 
-                AjaxButton valueName = new AjaxButton(ID_CONTAINER_NAME, Model.of(item.getModelObject().getKey())) {
+                AjaxButton containerName = new AjaxButton(ID_CONTAINER_NAME, Model.of(item.getModelObject().getKey())) {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         item.getModelObject().getValue().setExpanded(!item.getModelObject().getValue().isExpanded());
@@ -172,8 +176,10 @@ public class ContainerWithLifecyclePanel<C extends Containerable> extends BasePa
                         target.add(ContainerWithLifecyclePanel.this);
                     }
                 };
-                valueName.setOutputMarkupId(true);
-                container.add(valueName);
+                containerName.add(AttributeAppender.append("title", Model.of(item.getModelObject().getKey())));
+                containerName.add(new TooltipBehavior());
+                containerName.setOutputMarkupId(true);
+                container.add(containerName);
 
                 WebMarkupContainer childContainer = new WebMarkupContainer(ID_CHILD_CONTAINER);
                 childContainer.setOutputMarkupId(true);
