@@ -7464,6 +7464,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     /**
      * Executes a {@link ProcedureCall} in {@link TaskExecutionMode#SIMULATED_PRODUCTION} mode.
      */
+    @SuppressWarnings("SameParameterValue")
     protected TestSimulationResult executeInProductionSimulationMode(
             SimulationDefinitionType simulationDefinition, Task task, OperationResult result, ProcedureCall simulatedCall)
             throws CommonException {
