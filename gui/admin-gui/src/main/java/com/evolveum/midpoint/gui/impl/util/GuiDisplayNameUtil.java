@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
+import com.google.common.html.HtmlEscapers;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -47,7 +48,7 @@ public class GuiDisplayNameUtil {
             try {
                 C containerable = prismContainerValue.asContainerable();
                 String displayName = (String) displayNameMethod.invoke(null, containerable);
-                return StringEscapeUtils.escapeHtml4(displayName);
+                return HtmlEscapers.htmlEscaper().escape(displayName);
             } catch (IllegalAccessException | InvocationTargetException e) {
                 LOGGER.warn("Cannot invoge getDisplayName() method for {}, fallback to default displayName", prismContainerValue);
             }
