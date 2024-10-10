@@ -10,14 +10,15 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.AbstractAssociationMappingContainerTableWizardPanel;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationDefinitionType;
+import com.evolveum.midpoint.web.util.ExpressionUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.model.IModel;
 
@@ -66,5 +67,13 @@ public abstract class AssociationInboundMappingContainerTableWizardPanel extends
             return getHelper().getExitLabel();
         }
         return super.getExitLabel();
+    }
+
+    @Override
+    protected void postProcessNewMapping(PrismContainerValue<MappingType> newValue) throws SchemaException {
+        newValue.asContainerable().beginExpression();
+        ExpressionUtil.updateAssociationSynchronizationExpressionValue(
+                newValue.asContainerable().getExpression(),
+                new AssociationSynchronizationExpressionEvaluatorType());
     }
 }

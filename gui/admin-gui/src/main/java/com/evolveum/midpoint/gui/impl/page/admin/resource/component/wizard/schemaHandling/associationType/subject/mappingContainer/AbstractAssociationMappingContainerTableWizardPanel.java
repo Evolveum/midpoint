@@ -97,6 +97,7 @@ public abstract class AbstractAssociationMappingContainerTableWizardPanel extend
                 PrismContainerWrapper<MappingType> containerWrapper = getContainerModel().getObject();
                 try {
                     PrismContainerValue<MappingType> newValue = containerWrapper.getItem().createNewValue();
+                    postProcessNewMapping(newValue);
 
                     PrismContainerValueWrapper<MappingType> valueWrapper = WebPrismUtil.createNewValueWrapper(
                             containerWrapper, newValue, getPageBase(), getAssignmentHolderDetailsModel().createWrapperContext());
@@ -116,6 +117,8 @@ public abstract class AbstractAssociationMappingContainerTableWizardPanel extend
         };
         add(table);
     }
+
+    protected abstract void postProcessNewMapping(PrismContainerValue<MappingType> newValue) throws SchemaException;
 
     protected IModel<String> getTitleLabelModel() {
         return getTextModel();
