@@ -135,7 +135,7 @@ public class PrismReferenceValueWrapperImpl<T extends Referencable> extends Pris
     @Override
     public Collection<ExecutedDeltaPostProcessor> getPreconditionDeltas(
             ModelServiceLocator serviceLocator, OperationResult result) throws CommonException {
-        if (newObjectModel == null) {
+        if (!isNewObjectModelCreated()) {
             return super.getPreconditionDeltas(serviceLocator, result);
         }
         processBeforeCreatingPreconditionDelta(newObjectModel, serviceLocator);
@@ -154,7 +154,7 @@ public class PrismReferenceValueWrapperImpl<T extends Referencable> extends Pris
      */
     public <O extends ObjectType> ObjectDetailsModels<O> getNewObjectModel(
             ContainerPanelConfigurationType config, ModelServiceLocator serviceLocator, OperationResult result) {
-        if (newObjectModel == null) {
+        if (!isNewObjectModelCreated()) {
 
             newObjectModel = createNewObjectModel(config, serviceLocator, result);
         }
@@ -221,11 +221,15 @@ public class PrismReferenceValueWrapperImpl<T extends Referencable> extends Pris
      * Clean details model for new object that should be added to reference value.
      */
     public void resetNewObjectModel() {
-        if (newObjectModel != null) {
+        if (isNewObjectModelCreated()) {
             newObjectModel.detach();
         }
         newObjectModel = null;
         newPrismObject = null;
+    }
+
+    public boolean isNewObjectModelCreated(){
+        return newObjectModel != null;
     }
 
     /**
