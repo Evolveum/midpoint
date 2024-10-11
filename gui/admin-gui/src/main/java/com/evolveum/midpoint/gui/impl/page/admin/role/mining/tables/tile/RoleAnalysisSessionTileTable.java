@@ -313,11 +313,6 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
             }
 
             @Override
-            protected String getTilesContainerAdditionalClass() {
-                return " ";
-            }
-
-            @Override
             protected ISortableDataProvider<?, ?> createProvider() {
                 return provider;
             }

@@ -4199,6 +4199,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     boolean isCached() {
-        return InternalsConfig.isShadowCachingOnByDefault();
+        return InternalsConfig.isShadowCachingFullByDefault();
     }
 }

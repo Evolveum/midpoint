@@ -155,6 +155,8 @@ public class DuplicationProcessHelper {
                         CloneStrategy.REUSE,
                         Collections.singletonList(container))
                 .iterator().next();
+        PrismContainer<C> parent = (PrismContainer<C>) container.getParent();
+        parent.getValues().add(duplicate);
         duplicate.setParent(container.getParent());
         ObjectCleaner cleanupProcessor = new ObjectCleaner();
         cleanupProcessor.setRemoveContainerIds(true);

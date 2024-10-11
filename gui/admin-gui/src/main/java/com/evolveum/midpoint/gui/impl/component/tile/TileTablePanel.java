@@ -371,7 +371,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
     }
 
     protected String getTilesContainerAdditionalClass() {
-        return "card-footer";
+        return null;
     }
 
     protected final boolean isTableVisible() {

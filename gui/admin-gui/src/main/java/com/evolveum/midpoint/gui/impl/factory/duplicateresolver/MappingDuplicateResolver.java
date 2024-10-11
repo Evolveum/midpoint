@@ -25,17 +25,30 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author lskublik
  */
 @Component
-public class AttributeMappingDuplicateResolver extends ContainerDuplicateResolver<MappingType> {
+public class MappingDuplicateResolver extends ContainerDuplicateResolver<MappingType> {
 
     @Override
     public <C extends Containerable> boolean match(ItemDefinition<?> def, PrismContainerValue<C> parent) {
-        return super.match(def)
-                && (QNameUtil.match(def.getItemName(),ResourceAttributeDefinitionType.F_OUTBOUND)
+        if (!super.match(def) || parent == null) {
+            return false;
+        }
+        if ((QNameUtil.match(def.getItemName(),ResourceAttributeDefinitionType.F_OUTBOUND)
                 || QNameUtil.match(def.getItemName(),ResourceAttributeDefinitionType.F_INBOUND))
-                && parent != null
                 && ItemPath.create(ResourceType.F_SCHEMA_HANDLING,
                     SchemaHandlingType.F_OBJECT_TYPE,
-                    ResourceObjectTypeDefinitionType.F_ATTRIBUTE).equivalent(parent.getPath().namedSegmentsOnly());
+                    ResourceObjectTypeDefinitionType.F_ATTRIBUTE).equivalent(parent.getPath().namedSegmentsOnly())) {
+            return true;
+        }
+
+        if (QNameUtil.match(def.getItemName(),MappingsType.F_MAPPING)
+                && (ItemPath.create(AbstractRoleType.F_INDUCEMENT,
+                AssignmentType.F_FOCUS_MAPPINGS).equivalent(parent.getPath().namedSegmentsOnly()))
+                || ItemPath.create(AssignmentHolderType.F_ASSIGNMENT,
+                AssignmentType.F_FOCUS_MAPPINGS).equivalent(parent.getPath().namedSegmentsOnly())) {
+            return true;
+        }
+
+        return false;
     }
 
     @Override

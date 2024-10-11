@@ -185,4 +185,9 @@ public abstract class SingleSelectTileTablePanel<O extends SelectableRow, T exte
         model.getObject().setSelected(!oldState);
         refresh(target);
     }
+
+    @Override
+    protected String getTilesContainerAdditionalClass() {
+        return "card-footer";
+    }
 }
