@@ -194,8 +194,10 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDum
     public static <T> Collection<T> findOptionsForPath(Collection<SelectorOptions<T>> options, @NotNull UniformItemPath path) {
         Collection<T> rv = new ArrayList<>();
         for (SelectorOptions<T> option : CollectionUtils.emptyIfNull(options)) {
-            if (path.equivalent(option.getUniformItemPathOrNull())) {
-                rv.add(option.getOptions());
+            if (path.isSuperPathOrEquivalent(option.getUniformItemPathOrNull())) {
+                if (option.getOptions() != null) {
+                    rv.add(option.getOptions());
+                }
             }
         }
         return rv;

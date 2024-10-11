@@ -11,7 +11,7 @@ import java.io.Serial;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
-import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertificationGuiConfigContext;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.ColumnTypeConfigContext;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -33,7 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectColumnType;
         display = @PanelDisplay(label = "WorkItemsPanel.displayName", order = 30))
 public class CertItemObjectDisplayNameColumn extends AbstractCertificationItemColumn {
 
-    public CertItemObjectDisplayNameColumn(GuiObjectColumnType columnConfig, CertificationGuiConfigContext context) {
+    public CertItemObjectDisplayNameColumn(GuiObjectColumnType columnConfig, ColumnTypeConfigContext context) {
         super(columnConfig, context);
     }
 

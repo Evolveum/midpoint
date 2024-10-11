@@ -417,7 +417,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
                         .warning()
                         .autohide(false)
                         .title(getString("ChangePasswordPanel.savePassword"))
-                        .body(getString(result.getMessage()))
+                        .body(getString(result.getMessage(), null, result.getMessage()))
                         .show(target);
             }
         } else {

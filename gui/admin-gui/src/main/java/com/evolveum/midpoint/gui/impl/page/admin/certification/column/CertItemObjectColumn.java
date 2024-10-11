@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.certification.column;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertificationGuiConfigContext;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.ColumnTypeConfigContext;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.web.application.ColumnType;
 import com.evolveum.midpoint.web.application.PanelDisplay;
@@ -30,7 +30,7 @@ import java.util.List;
         display = @PanelDisplay(label = "WorkItemsPanel.object", order = 20))
 public class CertItemObjectColumn extends AbstractCertificationItemColumn {
 
-    public CertItemObjectColumn(GuiObjectColumnType columnConfig, CertificationGuiConfigContext context) {
+    public CertItemObjectColumn(GuiObjectColumnType columnConfig, ColumnTypeConfigContext context) {
         super(columnConfig, context);
     }
 

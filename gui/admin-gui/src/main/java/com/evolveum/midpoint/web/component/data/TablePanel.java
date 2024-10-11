@@ -138,7 +138,7 @@ public class TablePanel<T> extends Panel implements Table {
 
     @Deprecated
     @Override
-    public void setCurrentPage(ObjectPaging paging) {
+    public void setCurrentPageAndSort(ObjectPaging paging) {
         WebComponentUtil.setCurrentPage(this, paging);
     }
 

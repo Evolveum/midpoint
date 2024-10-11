@@ -211,7 +211,7 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         return def != null && def.isDisableSorting() != null && def.isDisableSorting();
     }
 
-    protected ObjectPaging createPaging(long offset, long pageSize) {
+    public ObjectPaging createPaging(long offset, long pageSize) {
         Integer o = safeLongToInteger(offset);
         Integer size = safeLongToInteger(pageSize);
         List<ObjectOrdering> orderings = null;
@@ -226,15 +226,14 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
      */
     @NotNull
     protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
-        if (sortParam != null && sortParam.getProperty() != null) {
-            OrderDirection order = sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING;
-            return List.of(
-                    getPrismContext().queryFactory().createOrdering(
-                            getPrismContext().itemPathParser().asItemPath(sortParam.getProperty()),
-                            order));
-        } else {
+        if (sortParam == null || sortParam.getProperty() == null) {
             return List.of();
         }
+
+        OrderDirection order = sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING;
+        return List.of(
+                getPrismContext().queryFactory().createOrdering(
+                        getPrismContext().itemPathParser().asItemPath(sortParam.getProperty()), order));
     }
 
     public void clearCache() {

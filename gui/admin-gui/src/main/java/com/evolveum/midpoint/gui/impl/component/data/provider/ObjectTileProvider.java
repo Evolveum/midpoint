@@ -34,7 +34,7 @@ public class ObjectTileProvider
     }
 
     @Override
-    protected ObjectPaging createPaging(long offset, long pageSize) {
+    public ObjectPaging createPaging(long offset, long pageSize) {
         setSort(getDefaultSortParam(), getDefaultSortOrder());
         return super.createPaging(offset, pageSize);
     }

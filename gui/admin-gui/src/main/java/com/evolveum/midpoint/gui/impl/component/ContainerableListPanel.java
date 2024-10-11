@@ -11,8 +11,13 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.evolveum.midpoint.gui.impl.page.admin.certification.column.AbstractGuiColumn;
+
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.ColumnTypeConfigContext;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.reflect.ConstructorUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -418,13 +423,18 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             }
 
             @Override
-            protected Integer getConfiguredPagingSize() {
+            protected Integer getConfiguredPageSize() {
                 return getViewPagingMaxSize();
             }
 
             @Override
-            protected void savePagingNewValue(Integer newValue) {
-                setPagingSizeNewValue(newValue);
+            protected void savePagingNewValue(Integer newPageSize) {
+                setPagingSizeNewValue(newPageSize);
+            }
+
+            @Override
+            protected void onPagingChanged(ObjectPaging paging) {
+                ContainerableListPanel.this.onPagingChanged(paging);
             }
         };
         itemTable.setOutputMarkupId(true);
@@ -434,12 +444,21 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         if (getPageStorage() != null) {
             ObjectPaging pageStorage = getPageStorage().getPaging();
             if (pageStorage != null) {
-                itemTable.setCurrentPage(pageStorage);
+                itemTable.setCurrentPageAndSort(pageStorage);
             }
         }
         itemTable.setShowAsCard(showTableAsCard());
 
         return itemTable;
+    }
+
+    private void onPagingChanged(ObjectPaging paging) {
+        PageStorage storage = getPageStorage();
+        if (storage == null) {
+            return;
+        }
+
+        storage.setPaging(paging);
     }
 
     private void setPagingSizeNewValue(Integer newValue) {
@@ -584,7 +603,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         if (getPageStorage() != null) {
             ObjectPaging pageStorage = getPageStorage().getPaging();
             if (pageStorage != null) {
-                itemTable.setCurrentPage(pageStorage);
+                itemTable.setCurrentPageAndSort(pageStorage);
             }
         }
 
@@ -705,14 +724,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     }
 
     private List<IColumn<PO, String>> createColumns() {
-        List<IColumn<PO, String>> columns = new ArrayList<>();
-        if (useNewColumnConfiguration()) {
-            addingCheckAndIconColumnIfExists(columns);
-            columns.addAll(getPredefinedColumns());
-        }
-        if (columns.isEmpty()) {
-            columns = collectColumns();
-        }
+        List<IColumn<PO, String>> columns = collectColumns();
 
         if (!isPreview()) {
             IColumn<PO, String> actionsColumn = createActionsColumn();
@@ -721,18 +733,6 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             }
         }
         return columns;
-    }
-
-    //todo for now new column configuration is implemented only for AccessCertificationWorkItemType
-    //columns are defined with ColumnType annotation
-    protected boolean useNewColumnConfiguration() {
-        return false;
-    }
-
-    //todo for now is implemented only for AccessCertificationWorkItemType
-    //columns are defined with ColumnType annotation
-    protected List<IColumn<PO, String>> getPredefinedColumns() {
-        return new ArrayList<>();
     }
 
     protected IColumn<PO, String> createActionsColumn() {
@@ -851,6 +851,13 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         }
         IColumn<PO, String> column;
         for (GuiObjectColumnType customColumn : customColumns) {
+            AbstractGuiColumn<?, ?> predefinedColumn = findPredefinedColumn(customColumn);
+            if (predefinedColumn != null) {
+                if (predefinedColumn.isVisible() && !predefinedColumn.isDefaultColumn()) {
+                    columns.add((IColumn<PO, String>) predefinedColumn.createColumn());
+                }
+                continue;
+            }
             if (nothingToTransform(customColumn)) {
                 continue;
             }
@@ -879,6 +886,28 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
     private boolean nothingToTransform(GuiObjectColumnType customColumn) {
         return customColumn.getPath() == null && (customColumn.getExport() == null || customColumn.getExport().getExpression() == null);
+    }
+
+    protected AbstractGuiColumn<?, ?> findPredefinedColumn(GuiObjectColumnType customColumn) {
+        Class<? extends AbstractGuiColumn<?, ?>> columnClass = getPageBase().findGuiColumn(customColumn.getName());
+        return instantiatePredefinedColumn(columnClass, customColumn);
+    }
+
+    private AbstractGuiColumn<?, ?> instantiatePredefinedColumn(Class<? extends AbstractGuiColumn> columnClass,
+            GuiObjectColumnType columnConfig) {
+        if (columnClass == null) {
+            return null;
+        }
+        try {
+            return ConstructorUtils.invokeConstructor(columnClass, columnConfig, getColumnTypeConfigContext());
+        } catch (Throwable e) {
+            LOGGER.trace("No constructor found for column.", e);
+        }
+        return null;
+    }
+
+    protected ColumnTypeConfigContext getColumnTypeConfigContext() {
+        return null;
     }
 
     protected ItemDefinition<?> getContainerDefinitionForColumns() {
@@ -1283,7 +1312,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         table.getDataTable().getColumns().addAll(createColumns());
         table.addOrReplace(initSearch("header"));
         resetSearchModel();
-        table.setCurrentPage(null);
+        table.setCurrentPageAndSort(null);
     }
 
     public void resetSearchModel() {

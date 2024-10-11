@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource oid="ffc01ae8-8b0f-4b9d-977b-2ae7a5d9ef1d"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+
+    <name>resource-dummy-bidirectional</name>
+    <documentation>Contains both inbound and outbound mappings.</documentation>
+    <connectorRef type="c:ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+        <icfc:configurationProperties>
+            <icfi:instanceId>bidirectional</icfi:instanceId>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute>
+                <ref>icfs:name</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>name</path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <strength>weak</strength> <!-- not strong, to avoid failing when the account is gone (by explicit delete) -->
+                    <target>
+                        <path>name</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:location</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>locality</path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <path>locality</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <synchronization>
+                <reaction>
+                    <situation>unmatched</situation>
+                    <actions>
+                        <addFocus/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>unlinked</situation>
+                    <actions>
+                        <link/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>linked</situation>
+                    <situation>deleted</situation>
+                    <actions>
+                        <synchronize/>
+                    </actions>
+                </reaction>
+            </synchronization>
+        </objectType>
+    </schemaHandling>
+</resource>

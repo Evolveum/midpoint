@@ -556,7 +556,7 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
     }
 
     @Override
-    public void setCurrentPage(ObjectPaging paging) {
+    public void setCurrentPageAndSort(ObjectPaging paging) {
         WebComponentUtil.setCurrentPage(this, paging);
     }
 

@@ -955,7 +955,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         // this could be perhaps optimized some day).
         assertThat(accCtxDummyLimited.isFullShadow())
                 .as("fullShadow flag in " + keyDummyLimited)
-                .isEqualTo(!InternalsConfig.isShadowCachingOnByDefault());
+                .isEqualTo(!InternalsConfig.isShadowCachingFullByDefault());
 
         assertTrue("Wrong canProject for " + keyDummyLimited, accCtxDummyLimited.isCanProject());
 

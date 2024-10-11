@@ -11,16 +11,15 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.prism.panel.*;
 import com.evolveum.midpoint.prism.Containerable;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.Component;
-import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
-import org.w3c.dom.Attr;
 
 /**
  * @author katka
@@ -125,6 +124,11 @@ public class VerticalFormPrismContainerPanel<C extends Containerable> extends Pr
             @Override
             protected boolean isShowEmptyButtonVisible() {
                 return VerticalFormPrismContainerPanel.this.isShowEmptyButtonVisible();
+            }
+
+            @Override
+            protected void removeValue(PrismContainerValueWrapper<C> value, AjaxRequestTarget target) throws SchemaException {
+                VerticalFormPrismContainerPanel.this.removeValue(value, target);
             }
         };
         panel.setOutputMarkupId(true);

@@ -67,4 +67,12 @@ public abstract class AbstractGuiColumn<C extends Containerable, S extends Selec
         ColumnType columnType = AbstractGuiColumn.this.getClass().getAnnotation(ColumnType.class);
         return columnType.display() != null ? columnType.display().order() : 0;
     }
+
+    /**
+     * method is intended to differentiate between default view columns and custom columns
+     * @return
+     */
+    public boolean isDefaultColumn() {
+        return true;
+    }
 }
