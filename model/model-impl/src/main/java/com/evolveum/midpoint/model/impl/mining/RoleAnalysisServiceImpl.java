@@ -430,7 +430,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
         for (RoleAnalysisDetectionPatternType clusterDetectionType : roleAnalysisClusterDetectionTypes) {
             collection.add(clusterDetectionType.asPrismContainerValue());
-            max = Math.max(max, clusterDetectionType.getClusterMetric());
+            max = Math.max(max, clusterDetectionType.getReductionCount());
         }
 
         Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
@@ -563,7 +563,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
         ResultHandler<RoleAnalysisOutlierType> resultHandler = (object, parentResult) -> {
             RoleAnalysisOutlierType outlierObject = object.asObjectable();
-            List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getOutlierPartitions();
+            List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getPartition();
 
             try {
 
@@ -577,7 +577,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                     double anomalyObjectsConfidence = 0;
 
                     for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
-                        if (outlierPartition.getTargetClusterRef().getOid().equals(cluster.getOid())) {
+                        if (outlierPartition.getClusterRef().getOid().equals(cluster.getOid())) {
                             partitionToDelete = outlierPartition;
                         } else {
                             overallConfidence += outlierPartition.getPartitionAnalysis().getOverallConfidence();
@@ -601,7 +601,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                     var finalPartitionToDelete = new RoleAnalysisOutlierPartitionType()
                             .id(partitionToDelete.getId());
                     modifications.add(PrismContext.get().deltaFor(RoleAnalysisOutlierType.class)
-                            .item(RoleAnalysisOutlierType.F_OUTLIER_PARTITIONS).delete(
+                            .item(RoleAnalysisOutlierType.F_PARTITION).delete(
                                     finalPartitionToDelete)
                             .asItemDelta());
 
@@ -622,7 +622,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         };
 
         ObjectQuery query = PrismContext.get().queryFor(RoleAnalysisOutlierType.class)
-                .item(RoleAnalysisOutlierType.F_TARGET_OBJECT_REF).ref(member.stream()
+                .item(RoleAnalysisOutlierType.F_OBJECT_REF).ref(member.stream()
                         .map(AbstractReferencable::getOid).distinct().toArray(String[]::new))
                 .build();
 
@@ -2757,7 +2757,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull OperationResult result) {
         //TODO TARGET OBJECT REF IS NECESSARY (check git history)
 
-        ObjectReferenceType targetObjectRef = roleAnalysisOutlierType.getTargetObjectRef();
+        ObjectReferenceType targetObjectRef = roleAnalysisOutlierType.getObjectRef();
         PrismObject<FocusType> object = this
                 .getObject(FocusType.class, targetObjectRef.getOid(), task, result);
 
@@ -2985,7 +2985,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         ResultHandler<RoleAnalysisOutlierType> resultHandler = (outlier, lResult) -> {
 
             RoleAnalysisOutlierType outlierObject = outlier.asObjectable();
-            List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getOutlierPartitions();
+            List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getPartition();
             for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
                 ObjectReferenceType targetSessionRef = outlierPartition.getTargetSessionRef();
                 String oid = targetSessionRef.getOid();
@@ -3158,9 +3158,9 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         ResultHandler<RoleAnalysisOutlierType> resultHandler = (outlier, lResult) -> {
 
             RoleAnalysisOutlierType outlierObject = outlier.asObjectable();
-            List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getOutlierPartitions();
+            List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getPartition();
             for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
-                ObjectReferenceType targetClusterRef = outlierPartition.getTargetClusterRef();
+                ObjectReferenceType targetClusterRef = outlierPartition.getClusterRef();
                 String oid = targetClusterRef.getOid();
                 if (clusterOid.equals(oid)) {
                     if (category != null) {
@@ -3183,7 +3183,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             if (clusterOid == null) {
                 String outlierOid = cluster.getDescription();
                 ObjectQuery query = PrismContext.get().queryFor(RoleAnalysisOutlierType.class)
-                        .item(RoleAnalysisOutlierType.F_TARGET_OBJECT_REF)
+                        .item(RoleAnalysisOutlierType.F_OBJECT_REF)
                         .ref(outlierOid).build();
 
                 SearchResultList<PrismObject<RoleAnalysisOutlierType>> prismObjects = modelService.searchObjects(
@@ -3209,7 +3209,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull OperationResult result) {
 
         ObjectQuery query = PrismContext.get().queryFor(RoleAnalysisOutlierType.class)
-                .item(RoleAnalysisOutlierType.F_TARGET_OBJECT_REF)
+                .item(RoleAnalysisOutlierType.F_OBJECT_REF)
                 .ref(userOid).build();
 
         try {
@@ -3242,7 +3242,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         try {
             List<ItemDelta<?, ?>> modifications = new ArrayList<>();
             modifications.add(PrismContext.get().deltaFor(RoleAnalysisOutlierType.class)
-                    .item(RoleAnalysisOutlierType.F_OUTLIER_PARTITIONS).add(partition.clone())
+                    .item(RoleAnalysisOutlierType.F_PARTITION).add(partition.clone())
                     .asItemDelta());
 
             modifications.add(PrismContext.get().deltaFor(RoleAnalysisOutlierType.class)

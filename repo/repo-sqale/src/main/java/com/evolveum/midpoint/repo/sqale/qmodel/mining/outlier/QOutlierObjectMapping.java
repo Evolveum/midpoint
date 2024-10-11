@@ -27,7 +27,7 @@ public class QOutlierObjectMapping
         super(QOutlierData.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 RoleAnalysisOutlierType.class, QOutlierData.class, repositoryContext);
 
-        addRefMapping(RoleAnalysisOutlierType.F_TARGET_OBJECT_REF,
+        addRefMapping(RoleAnalysisOutlierType.F_OBJECT_REF,
                 q -> q.targetObjectRefTargetOid,
                 q -> q.targetObjectRefTargetType,
                 q -> q.targetObjectRefRelationId,
@@ -56,7 +56,7 @@ public class QOutlierObjectMapping
             RoleAnalysisOutlierType outlierObject, JdbcSession jdbcSession) {
         MOutlierObject row = super.toRowObjectWithoutFullObject(outlierObject, jdbcSession);
 
-        setReference(outlierObject.getTargetObjectRef(),
+        setReference(outlierObject.getObjectRef(),
                 o -> row.targetObjectRefTargetOid = o,
                 t -> row.targetObjectRefTargetType = t,
                 r -> row.targetObjectRefRelationId = r);

@@ -139,7 +139,7 @@ public class OutlierClusterItemPanel<T extends Serializable>
         List<ObjectReferenceType> similarObjects = similarObjectAnalysis.getSimilarObjects();
         Set<String> similarObjectOids = similarObjects.stream().map(ObjectReferenceType::getOid).collect(Collectors.toSet());
         String sessionOid = partition.getTargetSessionRef().getOid();
-        String userOid = outlier.getTargetObjectRef().getOid();
+        String userOid = outlier.getObjectRef().getOid();
 
         PageBase pageBase = getPageBase();
         RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();

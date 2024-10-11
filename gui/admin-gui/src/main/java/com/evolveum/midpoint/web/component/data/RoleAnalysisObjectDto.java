@@ -124,7 +124,7 @@ public class RoleAnalysisObjectDto implements Serializable {
                 cluster, null, task, result);
         if (searchResultList != null && !searchResultList.isEmpty()) {
             for (RoleAnalysisOutlierType outlier : searchResultList) {
-                ObjectReferenceType targetObjectRef = outlier.getTargetObjectRef();
+                ObjectReferenceType targetObjectRef = outlier.getObjectRef();
                 if (targetObjectRef != null && targetObjectRef.getOid() != null) {
                     markedUsers.add(targetObjectRef.getOid());
                 }

@@ -131,7 +131,7 @@ public class RoleAnalysisMultiplePartitionAnomalyResultTabPopup extends BasePane
                 OperationResult operationResult = task.getResult();
                 RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
                 List<RoleAnalysisOutlierPartitionType> partitions = getModelObject();
-                ObjectReferenceType userRef = getOutlierModelObject().getTargetObjectRef();
+                ObjectReferenceType userRef = getOutlierModelObject().getObjectRef();
                 DetectedAnomalyResult anomalyModelObject = getAnomalyModelObject();
                 ObjectReferenceType anomalyRef = anomalyModelObject.getTargetObjectRef();
 

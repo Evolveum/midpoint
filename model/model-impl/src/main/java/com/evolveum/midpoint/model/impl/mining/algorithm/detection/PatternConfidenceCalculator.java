@@ -66,7 +66,7 @@ public class PatternConfidenceCalculator implements Serializable {
     }
 
     public double calculateReductionFactorConfidence() {
-        Double clusterMetric = pattern.getClusterMetric();
+        Double clusterMetric = pattern.getReductionCount();
         return reductionFactorConfidence = (clusterMetric == null ? 0.0 : (clusterMetric / maxReduction) * 100);
     }
 

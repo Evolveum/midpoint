@@ -607,7 +607,7 @@ public class RoleAnalysisAlgorithmUtils {
     private double calculateMaxReduction(@NotNull List<RoleAnalysisDetectionPatternType> detectedPatterns) {
         double maxReduction = 0;
         for (RoleAnalysisDetectionPatternType detectedPattern : detectedPatterns) {
-            Double clusterMetric = detectedPattern.getClusterMetric();
+            Double clusterMetric = detectedPattern.getReductionCount();
             if (clusterMetric != null) {
                 maxReduction = Math.max(maxReduction, clusterMetric);
             }
