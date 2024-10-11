@@ -930,6 +930,8 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .withFailMessage("Oh my! Shadow is dead!")
                 .isNotEqualTo(Boolean.TRUE);
 
+        invalidateShadowCacheIfNeeded(RESOURCE_OPENDJ_OID);
+
         when();
         recomputeUser(USER_GUYBRUSH_OID, task, result);
 
@@ -1943,6 +1945,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         // WHEN (restore)
         when();
+        invalidateShadowCacheIfNeeded(RESOURCE_OPENDJ_OID); // this is needed to trigger shadow fetch operation
         reconcileUser(USER_ALICE_OID, task, result);
 
         // THEN
@@ -2152,6 +2155,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         // @formatter:on
 
         when();
+        invalidateShadowCacheIfNeeded(RESOURCE_OPENDJ_OID); // this is needed to trigger shadow fetch operation
         recomputeUser(USER_DONALD_OID, executeOptions().reconcile(), task, parentResult);
 
         then();
@@ -2221,6 +2225,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         recomputeUser(USER_DONALD_OID, null, task, parentResult);
 
         // To have the real effects (checked below)
+        invalidateShadowCacheIfNeeded(RESOURCE_OPENDJ_OID); // this is needed to trigger shadow fetch operation
         recomputeUser(USER_DONALD_OID, executeOptions().reconcile(), task, parentResult);
 
         assertModelShadow(shadowOid)
@@ -2723,7 +2728,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         openDJController.assumeRunning();
 
         // Enable the following line if the test is running standalone
-        //prepareOpenDjResource(task, result);
+        prepareOpenDjResource(task, result);
 
         UserType userBefore = createUserWithAssignedAccount(task, result);
 
@@ -2745,6 +2750,8 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         when("re-creating the account by re-assigning the construction");
         openDJController.start();
         modifyResourceAvailabilityStatus(AvailabilityStatusType.UP, result);
+
+        invalidateShadowCacheIfNeeded(RESOURCE_OPENDJ_OID); // this is needed to trigger shadow fetch operation
         recreateAssignment(userOid, assignmentNoIdNoMetadata, task, result);
 
         then("re-creating the account by re-assigning the construction");
@@ -2787,6 +2794,8 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         // --- re-creating the assignment ---
         when("re-creating the account by re-assigning the construction");
         turnMaintenanceModeOff(RESOURCE_OPENDJ_OID, result);
+
+        invalidateShadowCacheIfNeeded(RESOURCE_OPENDJ_OID); // this is needed to trigger shadow fetch operation
         recreateAssignment(userOid, assignmentNoIdNoMetadata, task, result);
 
         then("re-creating the account by re-assigning the construction");
@@ -2866,14 +2875,12 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
     private void recreateAssignment(String userOid, AssignmentType assignmentNoId, Task task, OperationResult result)
             throws CommonException {
-        ModelExecuteOptions options = ModelExecuteOptions.create()
-                .reconcile();
-
         executeChanges(
                 deltaFor(UserType.class)
                         .item(UserType.F_ASSIGNMENT).add(assignmentNoId.clone())
                         .asObjectDelta(userOid),
-                options, task, result);
+                ModelExecuteOptions.create().reconcile(),
+                task, result);
     }
 
     /**
