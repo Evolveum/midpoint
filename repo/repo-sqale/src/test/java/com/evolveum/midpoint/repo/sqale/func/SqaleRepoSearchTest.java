@@ -3223,6 +3223,34 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
+    public void test962SearchUsersExcludeAll() throws SchemaException {
+        OperationResult opResult = createOperationResult();
+
+        ObjectQuery query = PrismContext.get().queryFor(UserType.class).all().build();
+        given("users contains assignments, role memberships, and operation executions");
+
+        SearchResultList<UserType> result =
+                searchObjects(UserType.class, query, opResult);
+
+        assertThat(result).extracting(UserType::getRoleMembershipRef).anyMatch(v -> !v.isEmpty());
+        assertThat(result).extracting(UserType::getAssignment).anyMatch(v -> !v.isEmpty());
+        assertThat(result).extracting(UserType::getOperationExecution).anyMatch(v -> !v.isEmpty());
+        when("search options have DONT RETRIEVE for empty path");
+        var options = SchemaService.get().getOperationOptionsBuilder()
+                .item(ItemPath.EMPTY_PATH).dontRetrieve()
+                .build();
+        result = searchObjects(UserType.class, query, opResult, options);
+        assertThatOperationResult(opResult).isSuccess();
+
+        then("results should not contain assignments / role memberships and operation executions");
+        assertThat(result).extracting(UserType::getRoleMembershipRef).allMatch(List::isEmpty);
+        assertThat(result).extracting(UserType::getAssignment).allMatch(List::isEmpty);
+        assertThat(result).extracting(UserType::getOperationExecution).allMatch(List::isEmpty);
+        assertNotNull(result);
+    }
+
+
+    @Test
     public void test970IsAncestor() throws Exception {
         OperationResult operationResult = createOperationResult();
 
