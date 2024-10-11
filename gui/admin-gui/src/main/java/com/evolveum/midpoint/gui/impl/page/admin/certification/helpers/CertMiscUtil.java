@@ -620,35 +620,79 @@ public class CertMiscUtil {
     }
 
     public static List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> createCertItemsColumns(
-            CompiledObjectCollectionView view, CertificationGuiConfigContext context) {
+            CompiledObjectCollectionView view, ColumnTypeConfigContext context) {
         PageBase pageBase = context.getPageBase();
         List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> columns = new ArrayList<>();
 
         List<AbstractGuiColumn<?, ?>> guiColumns = new ArrayList<>();
-        if (view != null) {
-            view.getColumns().forEach(columnConfig -> {
-                Class<? extends AbstractGuiColumn<?, ?>> columnClass = pageBase.findGuiColumn(columnConfig.getName());
-                AbstractGuiColumn<?, ?> column = instantiateColumn(columnClass, columnConfig, context);
-                if (column != null) {
-                    guiColumns.add(column);
-                }
-            });
-            if (view.isIncludeDefaultColumns()) {
-                addDefaultColumns(guiColumns, context);
+
+        List<GuiObjectColumnType> viewColumns = getViewColumns(view);
+
+        viewColumns.forEach(columnConfig -> {
+            Class<? extends AbstractGuiColumn<?, ?>> columnClass = pageBase.findGuiColumn(columnConfig.getName());
+            AbstractGuiColumn<?, ?> column = instantiateColumn(columnClass, columnConfig, context);
+            if (column != null && column.isVisible()) {
+                guiColumns.add(column);
             }
-        } else {
-            addDefaultColumns(guiColumns, context);
-        }
+        });
         return guiColumns
                 .stream()
-                .sorted(Comparator.comparingInt(AbstractGuiColumn::getOrder))
-                .filter(AbstractGuiColumn::isVisible)
                 .map(column -> (IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>) column.createColumn())
                 .collect(Collectors.toList());
     }
 
+    private static List<GuiObjectColumnType> getViewColumns(CompiledObjectCollectionView view) {
+        List<GuiObjectColumnType> defaultColumns = getCertItemViewDefaultColumns();
+        if (view == null || view.getColumns() == null || view.getColumns().isEmpty()) {
+            return defaultColumns;
+        }
+        if (view.isIncludeDefaultColumns()) {
+            return applyCustomConfig(defaultColumns, view);
+        }
+        return new ArrayList<>();
+    }
+
+    private static List<GuiObjectColumnType> applyCustomConfig(List<GuiObjectColumnType> defaultColumns, CompiledObjectCollectionView view) {
+        if (view == null || view.getColumns() == null) {
+            return defaultColumns;
+        }
+        List<GuiObjectColumnType> columns = new ArrayList<>();
+        defaultColumns
+                .forEach(c -> {
+                    GuiObjectColumnType column = findColumnByName(view.getColumns(), c.getName());
+                    if (column == null) {
+                        columns.add(c);
+                    } else if (WebComponentUtil.getElementVisibility(column.getVisibility())) {
+                        columns.add(column);
+                    }
+                });
+        return columns;
+    }
+
+    private static GuiObjectColumnType findColumnByName(List<GuiObjectColumnType> columns, String name) {
+        if (columns == null) {
+            return null;
+        }
+        return columns.stream()
+                .filter(c -> c.getName().equals(name))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private static List<GuiObjectColumnType> getCertItemViewDefaultColumns() {
+        List<GuiObjectColumnType> defaultColumns = new ArrayList<>();
+        defaultColumns.add(new GuiObjectColumnType().name("certItemObject"));
+        defaultColumns.add(new GuiObjectColumnType().name("certItemObjectDisplayName"));
+        defaultColumns.add(new GuiObjectColumnType().name("certItemTarget"));
+        defaultColumns.add(new GuiObjectColumnType().name("certItemTargetDisplayName"));
+        defaultColumns.add(new GuiObjectColumnType().name("certItemReviewers"));
+        defaultColumns.add(new GuiObjectColumnType().name("certItemResponse"));
+        defaultColumns.add(new GuiObjectColumnType().name("certItemCommentIcon"));
+        return defaultColumns;
+    }
+
     private static List<AbstractGuiColumn<?, ?>> addDefaultColumns(List<AbstractGuiColumn<?, ?>> guiColumns,
-            CertificationGuiConfigContext context) {
+            ColumnTypeConfigContext context) {
         PageBase pageBase = context.getPageBase();
         pageBase
                 .findAllApplicableGuiColumns(AccessCertificationWorkItemType.class)
@@ -672,7 +716,7 @@ public class CertMiscUtil {
     }
 
     private static AbstractGuiColumn<?, ?> instantiateColumn(Class<? extends AbstractGuiColumn> columnClass, GuiObjectColumnType columnConfig,
-            CertificationGuiConfigContext context) {
+            ColumnTypeConfigContext context) {
         if (columnClass == null) {
             return null;
         }

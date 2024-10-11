@@ -16,11 +16,11 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.impl.component.action.CertItemResolveAction;
 
-import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertificationGuiConfigContext;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.column.AbstractGuiColumn;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.ColumnTypeConfigContext;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -30,7 +30,6 @@ import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProv
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
@@ -42,7 +41,6 @@ import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -74,12 +72,7 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
     }
 
     @Override
-    protected boolean useNewColumnConfiguration() {
-        return true;
-    }
-
-    @Override
-    protected List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> getPredefinedColumns() {
+    protected List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> createDefaultColumns() {
         return createColumns();
     }
 
@@ -141,12 +134,7 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
     }
 
     private List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> createColumns() {
-        CertificationGuiConfigContext context = new CertificationGuiConfigContext();
-        context.setViewAllItems(!isMyCertItems());
-        context.setNotDecidedOnly(showOnlyNotDecidedItems());
-        context.setPageBase(getPageBase());
-
-        return CertMiscUtil.createCertItemsColumns(getObjectCollectionView(), context);//ColumnUtils.getDefaultCertWorkItemColumns(!isMyCertItems(), showOnlyNotDecidedItems());
+        return CertMiscUtil.createCertItemsColumns(getObjectCollectionView(), getColumnTypeConfigContext());//ColumnUtils.getDefaultCertWorkItemColumns(!isMyCertItems(), showOnlyNotDecidedItems());
     }
 
     private List<AbstractGuiAction<AccessCertificationWorkItemType>> getCertItemActions() {
@@ -314,11 +302,36 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
                 getPageBase().getModelInteractionService().compileView(compiledView, campaignDefinitionView, task, result);
             }
 
+            sortCustomColumns(compiledView);
+
             return compiledView;
         } catch (Exception e) {
             LOGGER.error("Couldn't load certification work items view, ", e);
         }
         return null;
+    }
+
+    @Override
+    protected ColumnTypeConfigContext getColumnTypeConfigContext() {
+        ColumnTypeConfigContext context = new ColumnTypeConfigContext();
+        context.setViewAllItems(!isMyCertItems());
+        context.setNotDecidedOnly(showOnlyNotDecidedItems());
+        context.setPageBase(getPageBase());
+
+        return context;
+    }
+
+    //todo should be unified with MiscSchemaUtil.orderCustomColumns, it's difficult for now to implement this
+    //kind of sorting there
+    private void sortCustomColumns(CompiledObjectCollectionView view) {
+        if (view == null || view.getColumns() == null) {
+            return;
+        }
+        view.getColumns()
+                .sort(Comparator.comparingInt(c -> {
+                    AbstractGuiColumn<?, ?> predefinedColumn = findPredefinedColumn(c);
+                    return predefinedColumn != null ? predefinedColumn.getOrder() : 0;
+                }));
     }
 
     private GuiObjectListViewType getCollectionViewConfigurationFromCampaignDefinition(Task task, OperationResult result) {
