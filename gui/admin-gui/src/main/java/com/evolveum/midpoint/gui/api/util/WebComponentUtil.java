@@ -41,7 +41,9 @@ import org.apache.wicket.authroles.authorization.strategies.role.Roles;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
+import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.feedback.IFeedback;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -1733,6 +1735,15 @@ public final class WebComponentUtil {
         }
 
         table.getDataTable().setCurrentPage(page);
+
+        if (paging.hasOrdering() && (table.getDataTable().getDataProvider() instanceof SortableDataProvider provider)) {
+            ItemPath path = paging.getPrimaryOrderingPath();
+            if (path != null) {
+                OrderDirection direction = paging.getPrimaryOrderingDirection();
+                SortOrder order = direction == OrderDirection.DESCENDING ? SortOrder.DESCENDING : SortOrder.ASCENDING;
+                provider.setSort(path.toString(), order);
+            }
+        }
     }
 
     public static PageBase getPageBase(Component component) {

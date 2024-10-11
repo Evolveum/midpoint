@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.web.page.admin.configuration;
 
 import java.util.*;
-import javax.swing.*;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -75,7 +74,6 @@ import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugConfDialogDto
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugObjectItem;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.session.GenericPageStorage;
-import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -209,7 +207,7 @@ public class PageDebugList extends PageAdminConfiguration {
         table.setOutputMarkupId(true);
 
         GenericPageStorage storage = getSessionStorage().getConfiguration();
-        table.setCurrentPage(storage.getPaging());
+        table.setCurrentPageAndSort(storage.getPaging());
 
         mainForm.addOrReplace(table);
     }

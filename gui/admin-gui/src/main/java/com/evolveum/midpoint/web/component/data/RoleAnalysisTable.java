@@ -283,7 +283,7 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
     }
 
     @Override
-    public void setCurrentPage(ObjectPaging paging) {
+    public void setCurrentPageAndSort(ObjectPaging paging) {
         WebComponentUtil.setCurrentPage(this, paging);
     }
 

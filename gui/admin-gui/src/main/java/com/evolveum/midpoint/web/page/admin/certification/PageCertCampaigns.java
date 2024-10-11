@@ -233,7 +233,7 @@ public class PageCertCampaigns extends PageAdminCertification {
                     DataTable<?, ?> table = panel.getDataTable();
                     CertCampaignListItemDtoProvider provider = (CertCampaignListItemDtoProvider) table.getDataProvider();
                     provider.setQuery(page.createCampaignsQuery());
-                    panel.setCurrentPage(storage.getPaging());
+                    panel.setCurrentPageAndSort(storage.getPaging());
 
                     target.add((Component) panel);
                 }

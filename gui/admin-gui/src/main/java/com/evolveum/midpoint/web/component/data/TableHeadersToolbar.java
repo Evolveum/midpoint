@@ -43,7 +43,7 @@ public class TableHeadersToolbar<T> extends AjaxFallbackHeadersToolbar<String> {
 
             @Override
             protected void onSortChanged() {
-                getTable().setCurrentPage(0);
+                TableHeadersToolbar.this.onSortChanged();
             }
 
             @Override
@@ -70,6 +70,10 @@ public class TableHeadersToolbar<T> extends AjaxFallbackHeadersToolbar<String> {
                 }
             }
         };
+    }
+
+    protected void onSortChanged() {
+        getTable().setCurrentPage(0);
     }
 
     protected void refreshTable(AjaxRequestTarget target) {
