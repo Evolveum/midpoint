@@ -11,7 +11,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertificationGuiConfigContext;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.ColumnTypeConfigContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -38,7 +38,7 @@ public class CertItemEditableCommentColumn extends AbstractCertificationItemColu
     private static final String DOT_CLASS = CertItemEditableCommentColumn.class.getName() + ".";
     private static final String OPERATION_RECORD_COMMENT = DOT_CLASS + "recordComment";
 
-    public CertItemEditableCommentColumn(GuiObjectColumnType columnConfig, CertificationGuiConfigContext context) {
+    public CertItemEditableCommentColumn(GuiObjectColumnType columnConfig, ColumnTypeConfigContext context) {
         super(columnConfig, context);
     }
 
@@ -95,4 +95,7 @@ public class CertItemEditableCommentColumn extends AbstractCertificationItemColu
         return getColumnConfig() != null && WebComponentUtil.getElementVisibility(getColumnConfig().getVisibility());
     }
 
+    public boolean isDefaultColumn() {
+        return false;
+    }
 }
