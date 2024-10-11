@@ -6,7 +6,10 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.mining.cluster;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType.F_DETECTED_PATTERN;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType.F_ROLE_ANALYSIS_SESSION_REF;
+
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -17,17 +20,21 @@ import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 
 public class QClusterObjectMapping
-        extends QAssignmentHolderMapping<RoleAnalysisClusterType, QClusterData, MClusterObject> {
+        extends QAssignmentHolderMapping<RoleAnalysisClusterType, QClusterObject, MClusterObject> {
 
-    public static final String DEFAULT_ALIAS_NAME = "roleAnalysisCluster";
+    public static final String DEFAULT_ALIAS_NAME = "rac";
+
+    public static QClusterObjectMapping getInstance() {
+        throw new UnsupportedOperationException();
+    }
 
     public static QClusterObjectMapping init(@NotNull SqaleRepoContext repositoryContext) {
         return new QClusterObjectMapping(repositoryContext);
     }
 
     private QClusterObjectMapping(@NotNull SqaleRepoContext repositoryContext) {
-        super(QClusterData.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                RoleAnalysisClusterType.class, QClusterData.class, repositoryContext);
+        super(QClusterObject.TABLE_NAME, DEFAULT_ALIAS_NAME,
+                RoleAnalysisClusterType.class, QClusterObject.class, repositoryContext);
 
         addRefMapping(F_ROLE_ANALYSIS_SESSION_REF,
                 q -> q.parentRefTargetOid,
@@ -35,11 +42,14 @@ public class QClusterObjectMapping
                 q -> q.parentRefRelationId,
                 QObjectMapping::getObjectMapping);
 
+        addContainerTableMapping(F_DETECTED_PATTERN, QClusterDetectedPatternMapping.initMapping(repositoryContext),
+            joinOn( (cluster,pattern) -> cluster.oid.eq(pattern.ownerOid))
+        );
     }
 
     @Override
-    protected QClusterData newAliasInstance(String alias) {
-        return new QClusterData(alias);
+    protected QClusterObject newAliasInstance(String alias) {
+        return new QClusterObject(alias);
     }
 
     @Override
@@ -58,5 +68,13 @@ public class QClusterObjectMapping
                 r -> row.parentRefRelationId = r);
 
         return row;
+    }
+
+    @Override
+    public void storeRelatedEntities(@NotNull MClusterObject row, @NotNull RoleAnalysisClusterType schemaObject, @NotNull JdbcSession jdbcSession) throws SchemaException {
+        super.storeRelatedEntities(row, schemaObject, jdbcSession);
+        for (var detectedPattern :schemaObject.getDetectedPattern()) {
+            QClusterDetectedPatternMapping.get().insert(detectedPattern, row, jdbcSession);
+        }
     }
 }
