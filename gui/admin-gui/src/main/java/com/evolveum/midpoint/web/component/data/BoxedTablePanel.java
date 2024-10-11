@@ -7,9 +7,10 @@
 
 package com.evolveum.midpoint.web.component.data;
 
+import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.safeLongToInteger;
+
 import java.util.List;
 
-import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanContainerDataProvider;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -23,10 +24,13 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.data.provider.BaseSortableDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanContainerDataProvider;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
@@ -120,6 +124,13 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
                 Item<T> item = super.newRowItem(id, index, rowModel);
                 return customizeNewRowItem(item, rowModel);
             }
+
+            @Override
+            protected void onPageChanged() {
+                super.onPageChanged();
+
+                BoxedTablePanel.this.onPageChanged();
+            }
         };
         table.setOutputMarkupId(true);
         table.add(new VisibleBehaviour(this::isDataTableVisible));
@@ -131,7 +142,15 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
             @Override
             protected void refreshTable(AjaxRequestTarget target) {
                 super.refreshTable(target);
+
                 target.add(getFooter());
+            }
+
+            @Override
+            protected void onSortChanged() {
+                super.onSortChanged();
+
+                BoxedTablePanel.this.onSortChanged();
             }
         };
         headersTop.setOutputMarkupId(true);
@@ -151,12 +170,35 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         addOrReplace(createHeader(ID_HEADER));
     }
 
-    private int computeRefreshInterval() {
-        int refreshInterval = getAutoRefreshInterval();
-        if (refreshInterval != 0) {
-            return refreshInterval;
+    protected void onPageChanged() {
+        ObjectPaging paging = createObjectPaging();
+        onPagingChanged(paging);
+    }
+
+    protected void onSortChanged() {
+        ObjectPaging paging = createObjectPaging();
+        onPagingChanged(paging);
+    }
+
+    protected void onPagingChanged(ObjectPaging paging) {
+
+    }
+
+    private ObjectPaging createObjectPaging() {
+        DataTable<?, ?> dataTable = getDataTable();
+        IDataProvider<?> provider = dataTable.getDataProvider();
+
+        long page = dataTable.getCurrentPage();
+        long itemsPerPage = dataTable.getItemsPerPage();
+
+        if (provider instanceof BaseSortableDataProvider<?> baseProvider) {
+            return baseProvider.createPaging(page * itemsPerPage, itemsPerPage);
         }
-        return DEFAULT_REFRESH_INTERVAL;
+
+        Integer o = safeLongToInteger(page);
+        Integer size = safeLongToInteger(itemsPerPage);
+
+        return getPrismContext().queryFactory().createPaging(o * size, size);
     }
 
     public int getAutoRefreshInterval() {
@@ -167,7 +209,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         return false;
     }
 
-    public String   getAdditionalBoxCssClasses() {
+    public String getAdditionalBoxCssClasses() {
         return additionalBoxCssClasses;
     }
 
@@ -266,13 +308,13 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
             }
 
             @Override
-            protected Integer getConfiguredPagingSize() {
-                return BoxedTablePanel.this.getConfiguredPagingSize();
+            protected Integer getConfiguredPageSize() {
+                return BoxedTablePanel.this.getConfiguredPageSize();
             }
 
             @Override
-            protected void savePagingNewValue(Integer newValue) {
-                BoxedTablePanel.this.savePagingNewValue(newValue);
+            protected void setPageSize(Integer newPageSize) {
+                BoxedTablePanel.this.savePagingNewValue(newPageSize);
             }
         };
     }
@@ -281,7 +323,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         return true;
     }
 
-    protected Integer getConfiguredPagingSize() {
+    protected Integer getConfiguredPageSize() {
         return null;
     }
 
@@ -315,7 +357,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
     }
 
     @Override
-    public void setCurrentPage(ObjectPaging paging) {
+    public void setCurrentPageAndSort(ObjectPaging paging) {
         WebComponentUtil.setCurrentPage(this, paging);
     }
 
@@ -377,13 +419,13 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
             PagingSizePanel menu = new PagingSizePanel(ID_PAGE_SIZE) {
 
                 @Override
-                protected void onPageSizeChangePerformed(Integer newValue, AjaxRequestTarget target) {
+                protected void onPageSizeChangePerformed(Integer newPageSize, AjaxRequestTarget target) {
                     Table table = findParent(Table.class);
                     UserProfileStorage.TableId tableId = table.getTableId();
 
                     if (tableId != null && table.enableSavePageSize()) {
-                        table.setItemsPerPage(newValue);
-                        PagingFooter.this.savePagingNewValue(newValue);
+                        table.setItemsPerPage(newPageSize);
+                        PagingFooter.this.setPageSize(newPageSize);
                     }
                     target.add(findParent(PagingFooter.class));
                     target.add((Component) table);
@@ -391,7 +433,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 
                 @Override
                 protected Integer getConfiguredPagingSize() {
-                    return PagingFooter.this.getConfiguredPagingSize();
+                    return PagingFooter.this.getConfiguredPageSize();
                 }
             };
             // todo nasty hack, we should decide whether paging should be normal or "small"
@@ -424,11 +466,11 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
             return true;
         }
 
-        protected Integer getConfiguredPagingSize() {
+        protected Integer getConfiguredPageSize() {
             return null;
         }
 
-        protected void savePagingNewValue(Integer newValue) {
+        protected void setPageSize(Integer newPageSize) {
 
         }
     }

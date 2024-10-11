@@ -66,7 +66,7 @@ public class CombinedRelatedObjectsProvider extends RelatedObjectsProvider {
     }
 
     @Override
-    protected ObjectPaging createPaging(long offset, long pageSize) {
+    public ObjectPaging createPaging(long offset, long pageSize) {
         if (self.getObject() != null) {
             if (offset == 0) {
                 pageSize = pageSize - 1;
