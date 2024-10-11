@@ -195,7 +195,9 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDum
         Collection<T> rv = new ArrayList<>();
         for (SelectorOptions<T> option : CollectionUtils.emptyIfNull(options)) {
             if (path.isSuperPathOrEquivalent(option.getUniformItemPathOrNull())) {
-                rv.add(option.getOptions());
+                if (option.getOptions() != null) {
+                    rv.add(option.getOptions());
+                }
             }
         }
         return rv;
