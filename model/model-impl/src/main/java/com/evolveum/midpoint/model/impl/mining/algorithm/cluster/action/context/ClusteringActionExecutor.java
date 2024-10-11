@@ -198,14 +198,6 @@ public class ClusteringActionExecutor extends BaseAction {
 
         }
 
-        ObjectFilter userObjectFilter = roleAnalysisService.transformSearchToObjectFilter(userSearchFilter, UserType.class);
-        ObjectFilter roleObjectFilter = roleAnalysisService.transformSearchToObjectFilter(roleSearchFilter, RoleType.class);
-        ObjectFilter assignmentFilter = roleAnalysisService.transformSearchToObjectFilter(assignmentSearchFilter, AssignmentType.class);
-
-        ListMultimap<String, String> roleMembersMap = roleAnalysisService.assignmentSearch(
-                userObjectFilter, roleObjectFilter, assignmentFilter, RoleAnalysisProcessModeType.ROLE, task, result);
-        attributeAnalysisCache.setRoleMemberCache(Objects.requireNonNullElseGet(roleMembersMap, ArrayListMultimap::create));
-
         //TODO not just basic it must be connected to in and out outlier analysis (experimental)
         for (PrismObject<RoleAnalysisClusterType> clusterTypePrismObject : clusters) {
             long startTime = System.currentTimeMillis();

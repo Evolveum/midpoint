@@ -79,6 +79,7 @@ public class RoleBasedClustering implements Clusterable {
                 userSearchFilter,
                 roleSearchFilter,
                 assignmentSearchFilter,
+                attributeAnalysisCache,
                 task,
                 result);
 

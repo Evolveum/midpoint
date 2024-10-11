@@ -1165,6 +1165,7 @@ public interface RoleAnalysisService {
      * @param roleObjectFilter An optional filter to apply to the role objects.
      * @param assignmentFilter An optional filter to apply to the assignment objects.
      * @param processMode The process mode to determine whether to search in user mode or role mode.
+     * @param attributeAnalysisCache The cache for attribute analysis.
      * @param task The task in the context of which the operation is executed.
      * @param result The result of the operation.
      * @return A ListMultimap where the keys are either user OIDs or role OIDs, and the values are
@@ -1175,6 +1176,7 @@ public interface RoleAnalysisService {
             @Nullable ObjectFilter roleObjectFilter,
             @Nullable ObjectFilter assignmentFilter,
             @NotNull RoleAnalysisProcessModeType processMode,
+            @Nullable AttributeAnalysisCache attributeAnalysisCache,
             @NotNull Task task,
             @NotNull OperationResult result);
 
@@ -1186,6 +1188,7 @@ public interface RoleAnalysisService {
      * @param roleSearchFiler An optional filter to apply to the role search.
      * @param assignmentSearchFiler An optional filter to apply to the assignment search.
      * @param processMode The process mode to determine whether to search in user mode or role mode.
+     * @param attributeAnalysisCache The cache for attribute analysis.
      * @param task The task in the context of which the operation is executed.
      * @param result The result of the operation.
      * @return A ListMultimap where the keys are lists of role OIDs and the values are user OIDs.
@@ -1195,6 +1198,7 @@ public interface RoleAnalysisService {
             @Nullable SearchFilterType roleSearchFiler,
             @Nullable SearchFilterType assignmentSearchFiler,
             @NotNull RoleAnalysisProcessModeType processMode,
+            @Nullable AttributeAnalysisCache attributeAnalysisCache,
             @NotNull Task task,
             @NotNull OperationResult result);
 
@@ -1205,6 +1209,7 @@ public interface RoleAnalysisService {
      * @param roleObjectFilter An optional filter to apply to the role objects.
      * @param assignmentFilter An optional filter to apply to the assignment objects.
      * @param processMode The process mode to determine whether to search in user mode or role mode.
+     * @param attributeAnalysisCache The cache for attribute analysis.
      * @param task The task in the context of which the operation is executed.
      * @param result The result of the operation.
      * @return A ListMultimap where the keys are either user OIDs or role OIDs, and the values are
@@ -1215,7 +1220,7 @@ public interface RoleAnalysisService {
             @Nullable ObjectFilter roleObjectFilter,
             @Nullable ObjectFilter assignmentFilter,
             @NotNull RoleAnalysisProcessModeType processMode,
-            @NotNull Task task,
+            @Nullable AttributeAnalysisCache attributeAnalysisCache, @NotNull Task task,
             @NotNull OperationResult result);
 
     /**
@@ -1226,6 +1231,7 @@ public interface RoleAnalysisService {
      * @param roleSearchFiler An optional filter to apply to the role search.
      * @param assignmentSearchFiler An optional filter to apply to the assignment search.
      * @param processMode The process mode to determine whether to search in user mode or role mode.
+     * @param attributeAnalysisCache The cache for attribute analysis.
      * @param task The task in the context of which the operation is executed.
      * @param result The result of the operation.
      * @return A ListMultimap where the keys are lists of role OIDs and the values are user OIDs.
@@ -1235,6 +1241,7 @@ public interface RoleAnalysisService {
             @Nullable SearchFilterType roleSearchFiler,
             @Nullable SearchFilterType assignmentSearchFiler,
             @NotNull RoleAnalysisProcessModeType processMode,
+            @Nullable AttributeAnalysisCache attributeAnalysisCache,
             @NotNull Task task,
             @NotNull OperationResult result);
 
@@ -1249,4 +1256,46 @@ public interface RoleAnalysisService {
     @Nullable ObjectFilter transformSearchToObjectFilter(
             @Nullable SearchFilterType userSearchFiler,
             @NotNull Class<?> objectClass);
+
+    /**
+     * Searches for role members based on the provided filters and role members set.
+     *
+     * @param userSearchFiler       Optional filter for user search.
+     * @param roleSearchFiler       Optional filter for role search.
+     * @param assignmentSearchFiler Optional filter for assignment search.
+     * @param roleMembers           Set of role member identifiers.
+     * @param roleAsKey             Boolean flag to determine if roles should be used as keys in the result map.
+     * @param task                  The task in which the operation is performed.
+     * @param result                The operation result.
+     * @return                      A ListMultimap containing the role members mapped by either role or user identifiers.
+     */
+    @NotNull ListMultimap<String, String> assignmentRoleMemberSearch(
+            @Nullable SearchFilterType userSearchFiler,
+            @Nullable SearchFilterType roleSearchFiler,
+            @Nullable SearchFilterType assignmentSearchFiler,
+            @NotNull Set<String> roleMembers,
+            boolean roleAsKey,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    /**
+     * Searches for user access assignments based on the provided filters and user members set.
+     *
+     * @param userSearchFiler An optional filter to apply to the user search.
+     * @param roleSearchFiler An optional filter to apply to the role search.
+     * @param assignmentSearchFiler An optional filter to apply to the assignment search.
+     * @param userMembers A set of user member OIDs to be included in the search.
+     * @param userAsKey A boolean indicating whether users should be used as keys in the resulting map.
+     * @param task The task in the context of which the operation is executed.
+     * @param result The result of the operation.
+     * @return A ListMultimap where the keys are either user OIDs or role OIDs, depending on the value of userAsKey.
+     */
+    @NotNull ListMultimap<String, String> assignmentUserAccessSearch(
+            @Nullable SearchFilterType userSearchFiler,
+            @Nullable SearchFilterType roleSearchFiler,
+            @Nullable SearchFilterType assignmentSearchFiler,
+            @NotNull Set<String> userMembers,
+            boolean userAsKey,
+            @NotNull Task task,
+            @NotNull OperationResult result);
 }

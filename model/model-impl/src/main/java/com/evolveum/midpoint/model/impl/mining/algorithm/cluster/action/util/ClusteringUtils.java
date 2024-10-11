@@ -7,15 +7,13 @@
 
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util;
 
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidAssignment;
-
 import java.util.*;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
 
+import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 
-import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,7 +25,6 @@ import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.RoleAnal
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.ExtensionProperties;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -199,16 +196,17 @@ public class ClusteringUtils {
             @Nullable SearchFilterType userSearchFilter,
             @Nullable SearchFilterType roleSearchFilter,
             @Nullable SearchFilterType assignmentSearchFilter,
+            @NotNull AttributeAnalysisCache attributeAnalysisCache,
             @NotNull Task task,
             @NotNull OperationResult result) {
 
         if (Boolean.TRUE.equals(isIndirect)) {
             return roleAnalysisService.prepareMembershipChunkMapRolesAsKey(
-                    userSearchFilter, roleSearchFilter, assignmentSearchFilter, RoleAnalysisProcessModeType.ROLE, task, result);
+                    userSearchFilter, roleSearchFilter, assignmentSearchFilter, RoleAnalysisProcessModeType.ROLE, attributeAnalysisCache, task, result);
         }
 
         return roleAnalysisService.prepareAssignmentChunkMapRolesAsKey(
-                userSearchFilter, roleSearchFilter, assignmentSearchFilter, RoleAnalysisProcessModeType.ROLE, task, result);
+                userSearchFilter, roleSearchFilter, assignmentSearchFilter, RoleAnalysisProcessModeType.ROLE, attributeAnalysisCache, task, result);
     }
 
     @NotNull
@@ -218,16 +216,17 @@ public class ClusteringUtils {
             @Nullable SearchFilterType userSearchFilter,
             @Nullable SearchFilterType roleSearchFilter,
             @Nullable SearchFilterType assignmentSearchFilter,
+            @NotNull AttributeAnalysisCache attributeAnalysisCache,
             @NotNull Task task,
             @NotNull OperationResult result) {
 
         if (Boolean.TRUE.equals(isIndirect)) {
             return roleAnalysisService.prepareMembershipChunkMapRolesAsKey(
-                    userSearchFilter, roleSearchFilter, assignmentSearchFilter, RoleAnalysisProcessModeType.USER, task, result);
+                    userSearchFilter, roleSearchFilter, assignmentSearchFilter, RoleAnalysisProcessModeType.USER, attributeAnalysisCache, task, result);
         }
 
         return roleAnalysisService.prepareAssignmentChunkMapRolesAsKey(
-                userSearchFilter, roleSearchFilter, assignmentSearchFilter, RoleAnalysisProcessModeType.USER, task, result);
+                userSearchFilter, roleSearchFilter, assignmentSearchFilter, RoleAnalysisProcessModeType.USER, attributeAnalysisCache, task, result);
     }
 
 }

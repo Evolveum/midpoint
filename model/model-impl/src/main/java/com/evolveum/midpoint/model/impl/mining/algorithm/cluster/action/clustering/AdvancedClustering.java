@@ -87,7 +87,9 @@ public class AdvancedClustering implements Clusterable {
         SearchFilterType assignmentSearchFilter = sessionOptionType.getAssignmentSearchFilter();
 
         List<DataPoint> dataPoints = loadInitialData(roleAnalysisService, handler, isIndirect,
-                RoleAnalysisProcessModeType.ROLE, roleAnalysisAttributeDefConverts, userSearchFilter, roleSearchFilter, assignmentSearchFilter, task, result);
+                RoleAnalysisProcessModeType.ROLE, roleAnalysisAttributeDefConverts,
+                userSearchFilter, roleSearchFilter, assignmentSearchFilter,
+                attributeAnalysisCache, task, result);
 
         if (dataPoints.isEmpty()) {
             LOGGER.warn("No data to process.");
@@ -143,6 +145,7 @@ public class AdvancedClustering implements Clusterable {
                 userSearchFilter,
                 roleSearchFilter,
                 assignmentSearchFilter,
+                attributeAnalysisCache,
                 task,
                 result);
 
@@ -175,6 +178,7 @@ public class AdvancedClustering implements Clusterable {
             @Nullable SearchFilterType userSearchFilter,
             @Nullable SearchFilterType roleSearchFilter,
             @Nullable SearchFilterType assignmentSearchFilter,
+            @NotNull AttributeAnalysisCache attributeAnalysisCache,
             @NotNull Task task,
             @NotNull OperationResult result) {
 
@@ -189,6 +193,7 @@ public class AdvancedClustering implements Clusterable {
                     userSearchFilter,
                     roleSearchFilter,
                     assignmentSearchFilter,
+                    attributeAnalysisCache,
                     task,
                     result);
         } else {
@@ -198,6 +203,7 @@ public class AdvancedClustering implements Clusterable {
                     userSearchFilter,
                     roleSearchFilter,
                     assignmentSearchFilter,
+                    attributeAnalysisCache,
                     task,
                     result);
         }

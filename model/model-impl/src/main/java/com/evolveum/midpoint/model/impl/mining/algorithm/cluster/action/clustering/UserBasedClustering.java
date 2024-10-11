@@ -80,6 +80,7 @@ public class UserBasedClustering implements Clusterable {
                 userSearchFilter,
                 roleSearchFilter,
                 assignmentSearchFilter,
+                attributeAnalysisCache,
                 task,
                 result);
 

@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.model.impl.mining.chunk;
 
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidAssignment;
-
 import java.util.*;
 
 import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
@@ -21,7 +19,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
-import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 
@@ -74,20 +71,20 @@ public abstract class BasePrepareAction implements MiningStructure {
         }
 
         //TODO this is incorrect, remove after decision
-        ItemPath path = ItemPath.create(UserType.F_NAME);
+        ItemPath path = ItemPath.create(ObjectType.F_NAME);
         if (!containItemPath(appliedPaths, path)) {
             RoleAnalysisAttributeDef roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, false, UserType.class);
             itemDef.add(roleAnalysisAttributeDef);
         }
 
-        path = ItemPath.create(UserType.F_ASSIGNMENT);
+        path = ItemPath.create(AssignmentHolderType.F_ASSIGNMENT);
         if (!containItemPath(appliedPaths, path)) {
             RoleAnalysisAttributeDef roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, true, null);
             itemDef.add(roleAnalysisAttributeDef);
         }
 
         if (!containItemPath(appliedPaths, path)) {
-            path = ItemPath.create(UserType.F_ARCHETYPE_REF);
+            path = ItemPath.create(AssignmentHolderType.F_ARCHETYPE_REF);
             RoleAnalysisAttributeDef roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, false, ArchetypeType.class);
             itemDef.add(roleAnalysisAttributeDef);
         }
@@ -112,19 +109,19 @@ public abstract class BasePrepareAction implements MiningStructure {
         }
 
         //TODO this is incorrect, remove after decision
-        ItemPath path = ItemPath.create(RoleType.F_NAME);
+        ItemPath path = ItemPath.create(ObjectType.F_NAME);
         if (!containItemPath(appliedPaths, path)) {
             RoleAnalysisAttributeDef roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, false, RoleType.class);
             itemDef.add(roleAnalysisAttributeDef);
         }
 
-        path = ItemPath.create(RoleType.F_LIFECYCLE_STATE);
+        path = ItemPath.create(ObjectType.F_LIFECYCLE_STATE);
         if (!containItemPath(appliedPaths, path)) {
             RoleAnalysisAttributeDef roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, false, RoleType.class);
             itemDef.add(roleAnalysisAttributeDef);
         }
 
-        path = ItemPath.create(RoleType.F_ARCHETYPE_REF);
+        path = ItemPath.create(AssignmentHolderType.F_ARCHETYPE_REF);
         if (!containItemPath(appliedPaths, path)) {
             RoleAnalysisAttributeDef roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, false, ArchetypeType.class);
             itemDef.add(roleAnalysisAttributeDef);
@@ -233,82 +230,31 @@ public abstract class BasePrepareAction implements MiningStructure {
         return new MiningOperationChunk(new ArrayList<>(), new ArrayList<>());
     }
 
-    protected void loadRoleMap(
+    protected void resolveRoleTypeChunkCompress(
             @NotNull RoleAnalysisService roleAnalysisService,
-            @Nullable SearchFilterType objectFilter,
-            @NotNull List<ObjectReferenceType> members,
-            @NotNull Map<String, PrismObject<RoleType>> roleExistCache,
-            @NotNull Map<String, PrismObject<UserType>> userExistCache,
-            @NotNull Set<String> membersOidSet,
-            @NotNull ListMultimap<List<String>, String> userChunk,
-            @NotNull ListMultimap<String, String> roleMap) {
-        handler.setActive(true);
-        handler.enterNewStep("Map Roles");
-        handler.setOperationCountToProcess(members.size());
-
-        for (ObjectReferenceType member : members) {
-            handler.iterateActualStatus();
-
-            String membersOid = member.getOid();
-            PrismObject<RoleType> role = roleAnalysisService.cacheRoleTypeObject(roleExistCache, membersOid, task, result, getRoleCacheOption());
-            if (role != null) {
-                RoleType roleObject = role.asObjectable();
-                String lifecycleState = roleObject.getLifecycleState();
-
-                if (lifecycleState == null || lifecycleState.equals("active")) {
-                    membersOidSet.add(membersOid);
-                }
-            }
-        }
-
-        ListMultimap<String, String> mapRoleMembers = roleAnalysisService.extractUserTypeMembers(
-                userExistCache, objectFilter, membersOidSet, task, result);
-
-        for (String clusterMember : membersOidSet) {
-            List<String> users = mapRoleMembers.get(clusterMember);
-            Collections.sort(users);
-            userChunk.putAll(users, Collections.singletonList(clusterMember));
-            users.forEach(userOid -> roleMap.putAll(userOid, Collections.singletonList(clusterMember)));
-        }
-    }
-
-    @NotNull
-    protected ListMultimap<List<String>, String> prepareRoleChunkMap(int roleMapSize,
-            @NotNull ListMultimap<String, String> roleMap) {
-        handler.enterNewStep("Map Role Chunk");
-        handler.setOperationCountToProcess(roleMapSize);
-        ListMultimap<List<String>, String> roleChunk = ArrayListMultimap.create();
-        for (String key : roleMap.keySet()) {
-            handler.iterateActualStatus();
-            List<String> values = roleMap.get(key);
-            roleChunk.put(values, key);
-        }
-        return roleChunk;
-    }
-
-    protected void resolveRoleTypeChunk(
-            @NotNull RoleAnalysisService roleAnalysisService,
-            @NotNull ListMultimap<List<String>, String> chunkMap,
-            double membersCount,
-            @NotNull Set<String> membersOidSet,
+            @NotNull ListMultimap<List<String>, String> compressedUsers,
+            double allUsersInMiningStructureSize,
             @NotNull Map<String,
                     PrismObject<RoleType>> roleExistCache,
             @NotNull List<MiningRoleTypeChunk> miningRoleTypeChunks) {
         handler.enterNewStep("Process Role Structure");
-        handler.setOperationCountToProcess(chunkMap.size());
+        handler.setOperationCountToProcess(compressedUsers.size());
 
-        for (List<String> key : chunkMap.keySet()) {
+        for (List<String> usersOids : compressedUsers.keySet()) {
             handler.iterateActualStatus();
+            List<String> rolesOids = compressedUsers.get(usersOids);
 
-            List<String> roles = chunkMap.get(key);
-            key.retainAll(membersOidSet);
+            int usersCount = usersOids.size();
+            int rolesCount = rolesOids.size();
 
-            int rolesSize = roles.size();
-            String chunkName = "'" + rolesSize + "' Roles";
+            double frequency = Math.min(usersCount / allUsersInMiningStructureSize, 1);
+            FrequencyItem frequencyType = new FrequencyItem(frequency);
+
+            String chunkName = "'" + rolesCount + "' Roles";
             String iconColor = null;
-            if (rolesSize == 1) {
+            if (rolesCount == 1) {
                 PrismObject<RoleType> role = roleAnalysisService.cacheRoleTypeObject(
-                        roleExistCache, roles.get(0), task, result, getRoleCacheOption());
+                        roleExistCache, rolesOids.get(0), task, result, getRoleCacheOption());
                 chunkName = "NOT FOUND";
                 if (role != null) {
                     chunkName = role.getName().toString();
@@ -316,10 +262,8 @@ public abstract class BasePrepareAction implements MiningStructure {
                 }
             }
 
-            double frequency = Math.min(key.size() / membersCount, 1);
-            FrequencyItem frequencyType = new FrequencyItem(frequency);
-
-            MiningRoleTypeChunk miningRoleTypeChunk = new MiningRoleTypeChunk(roles, key, chunkName, frequencyType, RoleAnalysisOperationMode.EXCLUDE);
+            MiningRoleTypeChunk miningRoleTypeChunk = new MiningRoleTypeChunk(
+                    rolesOids, usersOids, chunkName, frequencyType, RoleAnalysisOperationMode.EXCLUDE);
 
             if (iconColor != null) {
                 miningRoleTypeChunk.setIconColor(iconColor);
@@ -331,29 +275,72 @@ public abstract class BasePrepareAction implements MiningStructure {
         }
     }
 
-    protected void resolveUserTypeChunk(
+    protected void resolveRoleTypeChunkExpanded(
             @NotNull RoleAnalysisService roleAnalysisService,
-            @NotNull Set<String> membersOidSet,
-            int mapSize,
-            @NotNull ListMultimap<List<String>, String> propertiesChunk,
+            @NotNull ListMultimap<String, String> expandRolesMap,
+            double allUsersInMiningStructureSize,
+            @NotNull Map<String,
+                    PrismObject<RoleType>> roleExistCache,
+            @NotNull List<MiningRoleTypeChunk> miningRoleTypeChunks) {
+        handler.enterNewStep("Process Role Structure");
+        handler.setOperationCountToProcess(expandRolesMap.size());
+
+        for (String roleOid : expandRolesMap.keySet()) {
+            handler.iterateActualStatus();
+            List<String> usersOids = expandRolesMap.get(roleOid);
+
+            int usersCount = usersOids.size();
+
+            double frequency = Math.min(usersCount / allUsersInMiningStructureSize, 1);
+            FrequencyItem frequencyType = new FrequencyItem(frequency);
+
+            String chunkName = "NOT FOUND";
+            String iconColor = null;
+            PrismObject<RoleType> role = roleAnalysisService.cacheRoleTypeObject(
+                    roleExistCache, roleOid, task, result, getRoleCacheOption());
+            if (role != null) {
+                chunkName = role.getName().toString();
+                iconColor = roleAnalysisService.resolveFocusObjectIconColor(role.asObjectable(), task, result);
+            }
+
+            MiningRoleTypeChunk miningRoleTypeChunk = new MiningRoleTypeChunk(
+                    Collections.singletonList(roleOid), usersOids, chunkName, frequencyType, RoleAnalysisOperationMode.EXCLUDE);
+
+            if (iconColor != null) {
+                miningRoleTypeChunk.setIconColor(iconColor);
+            }
+
+            miningRoleTypeChunks
+                    .add(miningRoleTypeChunk);
+
+        }
+    }
+
+    protected void resolveUserTypeChunkCompress(
+            @NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull ListMultimap<List<String>, String> compressedUsers,
+            int allRolesInMiningStructureSize,
             @NotNull Map<String, PrismObject<UserType>> userExistCache,
             @NotNull List<MiningUserTypeChunk> miningUserTypeChunks) {
-        int roleChunkSize = propertiesChunk.size();
-        handler.enterNewStep("Process User Structure");
-        handler.setOperationCountToProcess(roleChunkSize);
-        for (List<String> key : propertiesChunk.keySet()) {
-            handler.iterateActualStatus();
 
-            List<String> users = propertiesChunk.get(key);
-            key.retainAll(membersOidSet);
-            int size = key.size();
-            double frequency = Math.min(size / (double) mapSize, 1);
-            int userSize = users.size();
-            String chunkName = "'" + userSize + "' Users";
+        int compressedUsersSize = compressedUsers.size();
+        handler.enterNewStep("Process User Structure");
+        handler.setOperationCountToProcess(compressedUsersSize);
+
+        for (List<String> rolesOids : compressedUsers.keySet()) {
+            handler.iterateActualStatus();
+            List<String> usersOids = compressedUsers.get(rolesOids);
+
+            int usersCount = usersOids.size();
+            int rolesCount = rolesOids.size();
+
+            double frequency = Math.min(rolesCount / (double) allRolesInMiningStructureSize, 1);
+
+            String chunkName = "'" + usersCount + "' Users";
             String iconColor = null;
-            if (userSize == 1) {
+            if (usersCount == 1) {
                 PrismObject<UserType> user = roleAnalysisService.cacheUserTypeObject(
-                        userExistCache, users.get(0), task, result, getUserCacheOption());
+                        userExistCache, usersOids.get(0), task, result, getUserCacheOption());
                 chunkName = "NOT FOUND";
                 if (user != null) {
                     chunkName = user.getName().toString();
@@ -361,7 +348,8 @@ public abstract class BasePrepareAction implements MiningStructure {
                 }
             }
 
-            MiningUserTypeChunk miningUserTypeChunk = new MiningUserTypeChunk(users, key, chunkName, new FrequencyItem(frequency), RoleAnalysisOperationMode.EXCLUDE);
+            MiningUserTypeChunk miningUserTypeChunk = new MiningUserTypeChunk(
+                    usersOids, rolesOids, chunkName, new FrequencyItem(frequency), RoleAnalysisOperationMode.EXCLUDE);
 
             if (iconColor != null) {
                 miningUserTypeChunk.setIconColor(iconColor);
@@ -373,82 +361,43 @@ public abstract class BasePrepareAction implements MiningStructure {
         }
     }
 
-    protected void loadUserChunk(
+    protected void resolveUserTypeChunkExpand(
             @NotNull RoleAnalysisService roleAnalysisService,
-            @NotNull List<ObjectReferenceType> members,
+            @NotNull ListMultimap<String, String> expandedUsersMap,
+            int allRolesInMiningStructureSize,
             @NotNull Map<String, PrismObject<UserType>> userExistCache,
-            @NotNull Set<String> membersOidSet,
-            @NotNull Map<String, PrismObject<RoleType>> roleExistCache,
-            @NotNull ListMultimap<String, String> roleMap,
-            @NotNull ListMultimap<List<String>, String> userChunk) {
-        handler.setActive(true);
-        handler.enterNewStep("Map Users");
-        handler.setOperationCountToProcess(members.size());
-        for (ObjectReferenceType member : members) {
+            @NotNull List<MiningUserTypeChunk> miningUserTypeChunks) {
+
+        int compressedUsersSize = expandedUsersMap.size();
+        handler.enterNewStep("Process User Structure");
+        handler.setOperationCountToProcess(compressedUsersSize);
+
+        for (String userOid : expandedUsersMap.keySet()) {
             handler.iterateActualStatus();
+            List<String> rolesOids = expandedUsersMap.get(userOid);
 
-            String membersOid = member.getOid();
-            PrismObject<UserType> user = roleAnalysisService
-                    .cacheUserTypeObject(userExistCache, membersOid, task, result, getUserCacheOption());
-            if (user == null) {continue;}
-            membersOidSet.add(membersOid);
-            List<String> rolesOid = getRolesOidAssignment(user.asObjectable());
+            int rolesCount = rolesOids.size();
 
-            List<String> existingRolesAssignment = new ArrayList<>();
-            for (String roleId : rolesOid) {
-                PrismObject<RoleType> role = roleAnalysisService
-                        .cacheRoleTypeObject(roleExistCache, roleId, task, result, getRoleCacheOption());
-                if (role == null) {continue;}
-                RoleType roleObject = role.asObjectable();
-                String lifecycleState = roleObject.getLifecycleState();
+            double frequency = Math.min(rolesCount / (double) allRolesInMiningStructureSize, 1);
 
-                if (lifecycleState == null || lifecycleState.equals("active")) {
-                    existingRolesAssignment.add(roleId);
-                    roleMap.putAll(roleId, Collections.singletonList(membersOid));
-                }
+            String chunkName = "NOT FOUND";
+            String iconColor = null;
+            PrismObject<UserType> user = roleAnalysisService.cacheUserTypeObject(
+                    userExistCache, userOid, task, result, getUserCacheOption());
+            if (user != null) {
+                chunkName = user.getName().toString();
+                iconColor = roleAnalysisService.resolveFocusObjectIconColor(user.asObjectable(), task, result);
             }
 
-            Collections.sort(existingRolesAssignment);
-            userChunk.putAll(existingRolesAssignment, Collections.singletonList(membersOid));
+            MiningUserTypeChunk miningUserTypeChunk = new MiningUserTypeChunk(
+                    Collections.singletonList(userOid), rolesOids, chunkName, new FrequencyItem(frequency), RoleAnalysisOperationMode.EXCLUDE);
 
-        }
-    }
-
-    protected void loadPartialUserChunk(
-            @NotNull RoleAnalysisService roleAnalysisService,
-            @NotNull OperationResult result,
-            @NotNull RoleAnalysisProgressIncrement handler,
-            @NotNull Task task,
-            @NotNull List<ObjectReferenceType> members,
-            @NotNull Map<String, PrismObject<UserType>> userExistCache,
-            @NotNull Set<String> membersOidSet,
-            @NotNull Map<String, PrismObject<RoleType>> roleExistCache,
-            @NotNull ListMultimap<String, String> roleMap) {
-        handler.setActive(true);
-        handler.enterNewStep("Map Users");
-        handler.setOperationCountToProcess(members.size());
-        for (ObjectReferenceType member : members) {
-            handler.iterateActualStatus();
-
-            String oid = member.getOid();
-            PrismObject<UserType> user = roleAnalysisService.cacheUserTypeObject(userExistCache, oid, task, result, getUserCacheOption());
-            if (user == null) {
-                continue;
+            if (iconColor != null) {
+                miningUserTypeChunk.setIconColor(iconColor);
             }
-            membersOidSet.add(oid);
-            List<String> rolesOid = getRolesOidAssignment(user.asObjectable());
 
-            for (String roleId : rolesOid) {
-                PrismObject<RoleType> role = roleAnalysisService.cacheRoleTypeObject(roleExistCache, roleId, task, result, getRoleCacheOption());
-                if (role == null) {continue;}
-
-                RoleType roleObject = role.asObjectable();
-                String lifecycleState = roleObject.getLifecycleState();
-
-                if (lifecycleState == null || lifecycleState.equals("active")) {
-                    roleMap.putAll(roleId, Collections.singletonList(oid));
-                }
-            }
+            miningUserTypeChunks
+                    .add(miningUserTypeChunk);
 
         }
     }
