@@ -258,7 +258,10 @@ public class WebPrismUtil {
     }
 
     private static <C extends Containerable> boolean isUseAsEmptyValue(Class<?> typeClass) {
-        return typeClass != null && AbstractSynchronizationActionType.class.isAssignableFrom(typeClass);
+        return typeClass != null
+                && (AbstractSynchronizationActionType.class.isAssignableFrom(typeClass)
+                || AssociationSynchronizationExpressionEvaluatorType.class.isAssignableFrom(typeClass)
+                || AssociationConstructionExpressionEvaluatorType.class.isAssignableFrom(typeClass));
     }
 
     public static <C extends Containerable> PrismContainerValue<C> cleanupEmptyContainerValue(PrismContainerValue<C> value) {
@@ -556,7 +559,7 @@ public class WebPrismUtil {
 
     public static PrismContainerValue findContainerValueParent(@NotNull PrismContainerValue child, Class<? extends Containerable> clazz) {
         PrismContainerable parent = child.getParent();
-        if (parent == null || !(parent instanceof Item parentItem) ) {
+        if (parent == null || !(parent instanceof Item parentItem)) {
             return null;
         }
         return findContainerValueParent(parentItem, clazz);
@@ -577,6 +580,7 @@ public class WebPrismUtil {
 
         return findContainerValueParent(parentItem, clazz);
     }
+
     public static String createMappingTypeDescription(MappingType mapping) {
         return createMappingTypeDescription(mapping, true);
     }
@@ -590,7 +594,7 @@ public class WebPrismUtil {
         ExpressionType expressionBean = mapping.getExpression();
         String description = LocalizationUtil.translate(
                 "AbstractSpecificMappingTileTable.tile.description.prefix",
-                new Object[] {strength});
+                new Object[] { strength });
 
         if (showExpression) {
             ExpressionUtil.ExpressionEvaluatorType evaluatorType = null;
@@ -615,7 +619,7 @@ public class WebPrismUtil {
 
     public static String createMappingTypeStrengthHelp(MappingType mapping) {
         String strength = translateStrength(mapping);
-        return LocalizationUtil.translate("AbstractSpecificMappingTileTable.tile.help", new Object[]{strength});
+        return LocalizationUtil.translate("AbstractSpecificMappingTileTable.tile.help", new Object[] { strength });
     }
 
     private static String translateStrength(MappingType mapping) {
