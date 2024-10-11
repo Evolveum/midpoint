@@ -229,4 +229,9 @@ public class ReviewersTileTablePanel extends TileTablePanel<Tile<UserType>, User
     public Component getContent() {
         return this;
     }
+
+    @Override
+    protected String getTilesContainerAdditionalClass() {
+        return "card-footer";
+    }
 }

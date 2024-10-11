@@ -580,6 +580,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
                 }
             }
         }
+
     }
 
     protected void customizeFullObjectItemsToSkip(PathSet mutableSet) {

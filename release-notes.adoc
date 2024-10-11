@@ -338,23 +338,23 @@ We reserve the right not to support customized web browsers.
 | Component | Version | Description
 
 | Tomcat
-| 10.1.12
+| 10.1.28
 | Web container
 
 | ConnId
-| 1.5.1.10
+| 1.6.0.0-RC1
 | ConnId Connector Framework
 
 | xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP connector bundle]
-| 3.7
+| 3.8
 | LDAP and Active Directory
 
 | xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV connector]
-| 2.7
+| 3.8
 | Connector for CSV files
 
 | xref:/connectors/connectors/org.identityconnectors.databasetable.DatabaseTableConnector/[DatabaseTable connector]
-| 1.5.1.0
+| 1.5.2.0
 | Connector for simple database tables
 
 |===
