@@ -134,6 +134,11 @@ public class CreateActivationMappingPopup extends OnePanelPopupPanel {
             protected boolean showFooter() {
                 return false;
             }
+
+            @Override
+            protected String getTilesContainerAdditionalClass() {
+                return "card-footer";
+            }
         };
     }
 
