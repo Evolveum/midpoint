@@ -1263,6 +1263,10 @@ The original metadata need to be specified as `additionalMappingSpecification` i
 
 NOTE: Shadow tags currently do not play nicely with this schema, see bug:MID-10095[].
 
+NOTE: When both setting a `mappingAlias` or an `additionalMappingSpecification`, the value metadata computed previously (i.e., with the original mapping specification) are _not_ automatically migrated.
+That means that the mapping recognizes them as its own, but does not convert them into the up-to-date form.
+See bug:MID-10084[].
+
 ==  See Also
 
 * xref:/midpoint/reference/expressions/[Mappings and Expressions]
