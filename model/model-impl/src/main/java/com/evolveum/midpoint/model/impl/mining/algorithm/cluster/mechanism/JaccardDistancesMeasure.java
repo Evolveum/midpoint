@@ -53,6 +53,13 @@ public class JaccardDistancesMeasure implements DistanceMeasure {
             @NotNull Set<String> valueA,
             @NotNull Set<String> valueB) {
 
+        int valueASize = valueA.size();
+        int valueBSize = valueB.size();
+
+        if(valueASize < minIntersection || valueBSize < minIntersection) {
+            return 1;
+        }
+
         if (valueA.size() > valueB.size()) {
             return computeMetricDistance(valueA, valueB);
 
@@ -180,6 +187,10 @@ public class JaccardDistancesMeasure implements DistanceMeasure {
 
     @Override
     public double computeSimpleDistance(@NotNull Set<String> valueA, @NotNull Set<String> valueB) {
+        if(valueA.size() < minIntersection || valueB.size() < minIntersection) {
+            return 1;
+        }
+
         int intersectionSize = 0;
         for (String element : valueA) {
             if (valueB.contains(element)) {

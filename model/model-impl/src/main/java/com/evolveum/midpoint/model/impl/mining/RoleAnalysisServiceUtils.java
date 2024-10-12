@@ -590,8 +590,6 @@ public class RoleAnalysisServiceUtils {
                     .block()
                     .type(RoleType.class)
                     .filter(roleObjectFilter)
-                    .and().item(AssignmentType.F_TARGET_REF)
-                    .ref(roles.toArray(new String[0]))
                     .endBlock();
         } else {
             filter = filter
