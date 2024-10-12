@@ -27,10 +27,23 @@ public abstract class Clusterer<T extends Clusterable> {
 
     public abstract List<? extends Cluster<T>> cluster(Collection<T> var1, RoleAnalysisProgressIncrement handler);
 
+    //TODO make better structure (high cognitive complexity)
     @SuppressWarnings({ "ClassEscapesDefinedScope" })
-    public List<T> getNeighbors(T point, Collection<T> points, Set<ClusterExplanation> explanation, double eps, int minPts,
-            DensityBasedClustering.PointStatusWrapper pStatusWrapper) {
+    public List<T> getNeighbors(@NotNull T point, Collection<T> points, Set<ClusterExplanation> explanation, double eps, int minPts,
+            int minPropertiesOverlap, DensityBasedClustering.PointStatusWrapper pStatusWrapper) {
         List<T> neighbors = new ArrayList<>();
+
+        // Retrieve the properties of the given point
+        Set<String> pointProperties = point.getPoint();
+ /*        Check if the number of properties is less than the minimum required overlap
+         If the number of properties is less than the minimum required overlap,
+         set the point status to ACCESS_NOISE and return an empty list of neighbors
+         because the point is not suitable for minIntersection
+         conditions (there are not enough properties to meet the minimum overlap).*/
+        if(pointProperties.size() < minPropertiesOverlap){
+            pStatusWrapper.pStatus = OutlierNoiseCategoryType.ACCESS_NOISE;
+            return neighbors;
+        }
 
         return switch (clusteringMode) {
             case BALANCED -> {
