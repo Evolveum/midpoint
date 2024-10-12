@@ -7320,13 +7320,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="credentials" type="tns:ShadowItemsCachingScopeType" minOccurs="0" default="all">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Scope of the caching for credentials.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
+            <!-- TODO re-enable when MID-10050 is worked on -->
+            <!--<xsd:element name="credentials" type="tns:ShadowItemsCachingScopeType" minOccurs="0" default="all">-->
+            <!--    <xsd:annotation>-->
+            <!--        <xsd:documentation>-->
+            <!--            Scope of the caching for credentials.-->
+            <!--        </xsd:documentation>-->
+            <!--    </xsd:annotation>-->
+            <!--</xsd:element>-->
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>

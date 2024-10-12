@@ -447,6 +447,7 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
         return this;
     }
 
+    // To be used after MID-10050 is resolved.
     public ShadowAsserter<RA> assertNoPasswordIf(boolean condition) {
         if (condition) {
             PrismProperty<PolyStringType> passValProp = getPasswordValueProperty();
