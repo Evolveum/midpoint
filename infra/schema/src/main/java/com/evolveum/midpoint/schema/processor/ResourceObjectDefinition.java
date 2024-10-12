@@ -673,26 +673,14 @@ public interface ResourceObjectDefinition
 
     default @Nullable String getDefaultOperationPolicyOid(@NotNull TaskExecutionMode mode) throws ConfigurationException {
         var bean = getDefinitionBean();
-        var oldWay = bean.getDefaultOperationPolicyRef(); // TODO remove before 4.9 release
-        var newWay = bean.getDefaultOperationPolicy();
-        if (oldWay != null) {
-            if (!newWay.isEmpty()) {
-                throw new ConfigurationException(
-                        "Both old and new way of specifying default operation policy in %s: %s and %s".formatted(
-                                this, oldWay, newWay));
-            } else {
-                return getOid(oldWay);
-            }
-        } else {
-            var oids = newWay.stream()
-                    .filter(policy -> SimulationUtil.isVisible(policy.getLifecycleState(), mode))
-                    .map(policy -> getOid(policy.getPolicyRef()))
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toSet());
-            return MiscUtil.extractSingleton(
-                    oids,
-                    () -> new ConfigurationException(
-                            "Multiple OIDs for default operation policy in %s for %s: %s".formatted(this, mode, oids)));
-        }
+        var oids = bean.getDefaultOperationPolicy().stream()
+                .filter(policy -> SimulationUtil.isVisible(policy.getLifecycleState(), mode))
+                .map(policy -> getOid(policy.getPolicyRef()))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        return MiscUtil.extractSingleton(
+                oids,
+                () -> new ConfigurationException(
+                        "Multiple OIDs for default operation policy in %s for %s: %s".formatted(this, mode, oids)));
     }
 }

@@ -14556,8 +14556,6 @@
                     <xsd:documentation>
                         All shadows touched by given get/search operation (including the associated ones) will be reclassified.
                         Primarily useful for shadow management simulation.
-
-                        TO BE DEFINED BETTER. LIMITED SUPPORT. MAY CHANGE BEFORE 4.9 RELEASE.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="FORCED"/>

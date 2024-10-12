@@ -111,7 +111,7 @@ public class MidPointSpringApplication extends AbstractSpringBootApplication {
         System.setProperty("xml.catalog.className", "com.evolveum.midpoint.prism.impl.schema.CatalogImpl");
         String mode = args != null && args.length > 0 ? args[0] : null;
 
-        // FIXME temporary; implement more seriously before 4.9 release
+        // FIXME remove after MID-10117 is resolved
         InternalsConfig.shadowCachingDefaultDefault = InternalsConfig.ShadowCachingDefault.STANDARD;
 
         if (LOGGER.isDebugEnabled()) {

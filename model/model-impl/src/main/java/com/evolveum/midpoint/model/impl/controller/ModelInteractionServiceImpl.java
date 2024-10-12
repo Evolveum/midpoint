@@ -201,46 +201,6 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         }
     }
 
-    @Override
-    public <F extends ObjectType> ModelContext<F> previewChangesLegacy(
-            Collection<ObjectDelta<? extends ObjectType>> deltas,
-            ModelExecuteOptions options,
-            Task task,
-            Collection<ProgressListener> listeners,
-            OperationResult parentResult)
-            throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
-            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
-
-        if (ModelExecuteOptions.isRaw(options)) {
-            throw new UnsupportedOperationException("previewChanges is not supported in raw mode");
-        }
-
-        LOGGER.debug("Preview changes input:\n{}", DebugUtil.debugDumpLazily(deltas));
-        Collection<ObjectDelta<? extends ObjectType>> clonedDeltas = cloneDeltas(deltas);
-
-        OperationResult result = parentResult.createSubresult(PREVIEW_CHANGES);
-        LensContext<F> context = null;
-
-        var originalExecutionMode = switchModeToSimulationIfNeeded(task);
-        try {
-            RepositoryCache.enterLocalCaches(cacheConfigurationManager);
-            // used cloned deltas instead of origin deltas, because some of the
-            // values should be lost later..
-            context = contextFactory.createContext(clonedDeltas, options, task, result);
-            context = clockwork.previewChangesLegacy(context, listeners, task, result);
-
-            schemaTransformer.applySecurityToLensContext(context, task, result);
-        } finally {
-            LensUtil.reclaimSequences(context, cacheRepositoryService, result);
-
-            RepositoryCache.exitLocalCaches();
-
-            task.setExecutionMode(originalExecutionMode);
-        }
-
-        return context;
-    }
-
     private static @NotNull TaskExecutionMode switchModeToSimulationIfNeeded(Task task) {
         TaskExecutionMode executionMode = task.getExecutionMode();
         if (executionMode.isFullyPersistent()) {
