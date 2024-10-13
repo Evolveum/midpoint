@@ -27,6 +27,27 @@
             </reconciliation>
         </work>
         <reporting>
+            <!--<tracing>-->
+            <!--    <beforeItemCondition>-->
+            <!--        <interval>1</interval>-->
+            <!--    </beforeItemCondition>-->
+            <!--    <tracingProfile>-->
+            <!--        <name>functional-model-logging</name>-->
+            <!--        <fileNamePattern>functional-trace %{timestamp} %{focusName}</fileNamePattern>-->
+            <!--        <createRepoObject>true</createRepoObject>-->
+            <!--        <compressOutput>true</compressOutput>-->
+            <!--        <collectLogEntries>true</collectLogEntries>-->
+            <!--        <loggingOverride>-->
+            <!--            <levelOverride>-->
+            <!--                <logger>com.evolveum.midpoint.model</logger>-->
+            <!--                <level>TRACE</level>-->
+            <!--            </levelOverride>-->
+            <!--        </loggingOverride>-->
+            <!--        <tracingTypeProfile>-->
+            <!--            <level>normal</level>-->
+            <!--        </tracingTypeProfile>-->
+            <!--    </tracingProfile>-->
+            <!--</tracing>-->
             <reports>
 
                 <!-- This will produce (full) report on buckets processing. One bucket = one row. -->
