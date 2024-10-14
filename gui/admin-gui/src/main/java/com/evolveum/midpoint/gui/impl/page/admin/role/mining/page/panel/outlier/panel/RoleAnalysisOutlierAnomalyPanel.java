@@ -226,47 +226,47 @@ public class RoleAnalysisOutlierAnomalyPanel extends AbstractObjectMainPanel<Rol
                             }
                         };
                     }
-                },
-
-                new WidgetItemModel(createStringResource(""),
-                        Model.of("Sort")) {
-                    @Override
-                    public Component createValueComponent(String id) {
-                        Label label = new Label(id, "0 (todo)");
-                        label.add(AttributeAppender.append("class", " h4"));
-                        return label;
-                    }
-
-                    @Override
-                    public Component createDescriptionComponent(String id) {
-                        return new LabelWithHelpPanel(id, Model.of("Pending cert.")) {
-                            @Override
-                            protected IModel<String> getHelpModel() {
-                                return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");
-                            }
-                        };
-                    }
-                },
-
-                new WidgetItemModel(createStringResource(""),
-                        Model.of("Chart")) {
-                    @Override
-                    public Component createValueComponent(String id) {
-                        Label label = new Label(id, "0 (todo)");
-                        label.add(AttributeAppender.append("class", " h4"));
-                        return label;
-                    }
-
-                    @Override
-                    public Component createDescriptionComponent(String id) {
-                        return new LabelWithHelpPanel(id, Model.of("Closed cert.")) {
-                            @Override
-                            protected IModel<String> getHelpModel() {
-                                return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");
-                            }
-                        };
-                    }
                 }
+
+//                new WidgetItemModel(createStringResource(""),
+//                        Model.of("Sort")) {
+//                    @Override
+//                    public Component createValueComponent(String id) {
+//                        Label label = new Label(id, "0 (todo)");
+//                        label.add(AttributeAppender.append("class", " h4"));
+//                        return label;
+//                    }
+//
+//                    @Override
+//                    public Component createDescriptionComponent(String id) {
+//                        return new LabelWithHelpPanel(id, Model.of("Pending cert.")) {
+//                            @Override
+//                            protected IModel<String> getHelpModel() {
+//                                return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");
+//                            }
+//                        };
+//                    }
+//                },
+
+//                new WidgetItemModel(createStringResource(""),
+//                        Model.of("Chart")) {
+//                    @Override
+//                    public Component createValueComponent(String id) {
+//                        Label label = new Label(id, "0 (todo)");
+//                        label.add(AttributeAppender.append("class", " h4"));
+//                        return label;
+//                    }
+//
+//                    @Override
+//                    public Component createDescriptionComponent(String id) {
+//                        return new LabelWithHelpPanel(id, Model.of("Closed cert.")) {
+//                            @Override
+//                            protected IModel<String> getHelpModel() {
+//                                return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");
+//                            }
+//                        };
+//                    }
+//                }
         );
 
         return Model.ofList(detailsModel);

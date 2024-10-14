@@ -12,10 +12,7 @@ import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -475,12 +472,6 @@ public class RoleAnalysisServiceUtils {
             @Nullable ObjectFilter assignmentFilter) {
         S_FilterExit filter;
 
-//        ObjectFilter testUserFilter = PrismContext.get().queryFor(UserType.class)
-//                .item(UserType.F_TITLE).eq("Hr Clerk").buildFilter();
-//
-//        ObjectFilter testRoleFilter = PrismContext.get().queryFor(RoleType.class)
-//                .item(RoleType.F_ARCHETYPE_REF).ref("d212dcd9-b062-49fd-adbd-7815868f132c").buildFilter();
-
         if (userObjectFiler != null) {
             filter = PrismContext.get().queryFor(AssignmentType.class)
                     .ownedBy(UserType.class, AssignmentHolderType.F_ASSIGNMENT)
@@ -491,10 +482,11 @@ public class RoleAnalysisServiceUtils {
             filter = PrismContext.get().queryFor(AssignmentType.class)
                     .ownedBy(UserType.class);
         }
+
         if (roleObjectFilter != null) {
             filter = filter
                     .and()
-                    .ref(AssignmentType.F_TARGET_REF)
+                    .exists(AssignmentType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE)
                     .type(RoleType.class)
                     .block().filter(roleObjectFilter)
                     .endBlock();
@@ -566,9 +558,10 @@ public class RoleAnalysisServiceUtils {
             @Nullable ObjectFilter roleObjectFilter,
             @Nullable ObjectFilter assignmentFilter) {
         S_FilterExit filter;
+
         if (userObjectFiler != null) {
             filter = PrismContext.get().queryFor(AssignmentType.class)
-                    .ownedBy(UserType.class)
+                    .ownedBy(UserType.class, AssignmentHolderType.F_ASSIGNMENT)
                     .block()
                     .filter(userObjectFiler)
                     .endBlock();
@@ -585,20 +578,15 @@ public class RoleAnalysisServiceUtils {
         if (roleObjectFilter != null) {
             filter = filter
                     .and()
-                    .ref(AssignmentType.F_TARGET_REF)
+                    .exists(AssignmentType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE)
                     .type(RoleType.class)
-                    .block()
-                    .type(RoleType.class)
-                    .filter(roleObjectFilter)
+                    .block().filter(roleObjectFilter)
                     .endBlock();
         } else {
             filter = filter
                     .and()
                     .ref(AssignmentType.F_TARGET_REF)
-                    .type(RoleType.class)
-                    .block()
-                    .type(RoleType.class)
-                    .endBlock();
+                    .type(RoleType.class);
         }
 
         if (assignmentFilter != null) {
@@ -627,7 +615,7 @@ public class RoleAnalysisServiceUtils {
         S_FilterExit filter;
         if (userObjectFiler != null) {
             filter = PrismContext.get().queryFor(AssignmentType.class)
-                    .ownedBy(UserType.class)
+                    .ownedBy(UserType.class, AssignmentHolderType.F_ASSIGNMENT)
                     .block()
                     .id(users.toArray(new String[0]))
                     .and()
@@ -638,27 +626,18 @@ public class RoleAnalysisServiceUtils {
                     .ownedBy(UserType.class).block().id(users.toArray(new String[0])).endBlock();
         }
 
-//        filter = filter
-//                .and()
-//                .item(AssignmentType.F_TARGET_REF)
-//                .ref(users.toArray(new String[0]));
-
         if (roleObjectFilter != null) {
             filter = filter
                     .and()
-                    .ref(AssignmentType.F_TARGET_REF)
+                    .exists(AssignmentType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE)
                     .type(RoleType.class)
-                    .block()
-                    .filter(roleObjectFilter)
+                    .block().filter(roleObjectFilter)
                     .endBlock();
         } else {
             filter = filter
                     .and()
                     .ref(AssignmentType.F_TARGET_REF)
-                    .type(RoleType.class)
-                    .block()
-                    .type(RoleType.class)
-                    .endBlock();
+                    .type(RoleType.class);
         }
 
         if (assignmentFilter != null) {
