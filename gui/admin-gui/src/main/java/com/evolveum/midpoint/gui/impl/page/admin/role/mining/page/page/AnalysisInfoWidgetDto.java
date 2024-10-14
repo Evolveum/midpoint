@@ -152,7 +152,7 @@ public class AnalysisInfoWidgetDto implements Serializable {
         for (RoleAnalysisOutlierType topFiveOutlier : topFiveOutliers) {
 
             Set<String> anomalies = new HashSet<>();
-            List<RoleAnalysisOutlierPartitionType> outlierPartitions = topFiveOutlier.getOutlierPartitions();
+            List<RoleAnalysisOutlierPartitionType> outlierPartitions = topFiveOutlier.getPartition();
             RoleAnalysisOutlierPartitionType topPartition = null;
             for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
                 topPartition = resolveTopPartition(outlierPartition, topPartition);

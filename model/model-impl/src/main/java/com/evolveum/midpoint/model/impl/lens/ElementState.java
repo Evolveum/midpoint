@@ -102,9 +102,7 @@ class ElementState<O extends ObjectType> implements Serializable, Cloneable {
 
     /**
      * "Current" state of the object i.e. the one that was present when the current projection
-     * started. (I.e. when the Projector was entered, except for
-     * {@link Projector#projectAllWaves(LensContext, String, Task, OperationResult)}
-     * method.
+     * started. (I.e. when the Projector was entered.)
      *
      * It is typically filled-in by the context loader.
      *
@@ -130,8 +128,6 @@ class ElementState<O extends ObjectType> implements Serializable, Cloneable {
     /**
      * Expected state of the object after application of currentDelta i.e. item deltas computed
      * during current projection.
-     *
-     * This state is computed using the {@link LensProjectionContext#recompute()} method.
      */
     private PrismObject<O> newObject;
 

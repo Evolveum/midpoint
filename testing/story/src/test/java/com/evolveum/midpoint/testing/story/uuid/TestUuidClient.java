@@ -206,30 +206,6 @@ public class TestUuidClient extends AbstractUuidTest {
     }
 
     /**
-     * Kate has a name. But no OID.
-     *
-     * Since 4.8, this test is disabled, because now each new object has a pre-generated OID.
-     * TODO This feature will be removed in 4.9, anyway.
-     */
-    @Test(enabled = false)
-    public void test120AddKateWithRoleClient() throws Exception {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        PrismObject<UserType> user = createClientUser(null, USER_KATE_NAME, USER_KATE_GIVEN_NAME, USER_KATE_FAMILY_NAME, true);
-
-        // WHEN
-        addObject(user, task, result);
-
-        // THEN
-        assertSuccess(result);
-
-        PrismObject<UserType> userAfter = getUser(USER_KATE_NAME);
-        assertUser(userAfter, USER_WALLY_GIVEN_NAME, USER_WALLY_FAMILY_NAME);
-        assertLdapClient(userAfter, USER_WALLY_GIVEN_NAME, USER_WALLY_FAMILY_NAME);
-    }
-
-    /**
      * Wally already has OID. But no name.
      */
     @Test

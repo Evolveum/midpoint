@@ -69,14 +69,14 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
             if (visited.get(point) == null) {
                 PointStatusWrapper pStatusWrapper = new PointStatusWrapper(null);
 
-                List<T> neighbors = this.getNeighbors(point, points, explanation, this.eps, this.minPts, pStatusWrapper);
+                List<T> neighbors = this.getNeighbors(point, points, explanation, this.eps, this.minPts, this.minPropertiesOverlap, pStatusWrapper);
 
-                if(pStatusWrapper.pStatus == OutlierNoiseCategoryType.SUITABLE){
+                if (pStatusWrapper.pStatus == OutlierNoiseCategoryType.SUITABLE) {
                     Cluster<T> cluster = new Cluster<>();
                     Cluster<T> tCluster = this.expandCluster(cluster, point, neighbors, points, visited, explanation);
                     tCluster.setExplanations(explanation);
                     clusters.add(tCluster);
-                }else {
+                } else {
                     point.setPointStatus(pStatusWrapper.pStatus);
                     visited.put(point, pStatusWrapper.pStatus);
                 }
@@ -112,7 +112,9 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
             OutlierNoiseCategoryType pStatus = visited.get(current);
             if (pStatus == null) {
                 PointStatusWrapper pStatusWrapper = new PointStatusWrapper(null);
-                List<T> currentNeighbors = this.getNeighbors(current, points, explanation, this.eps, this.minPts, pStatusWrapper);
+                List<T> currentNeighbors = this.getNeighbors(current, points, explanation,
+                        this.eps, this.minPts, this.minPropertiesOverlap,
+                        pStatusWrapper);
                 int currentNeighborsCount = getNeightborsSize(currentNeighbors);
                 if (currentNeighborsCount >= this.minPts) {
                     this.merge(seeds, currentNeighbors);
@@ -146,7 +148,6 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
         }
 
     }
-
 
     static class PointStatusWrapper {
         public OutlierNoiseCategoryType pStatus;

@@ -13,8 +13,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.jetbrains.annotations.NotNull;
-
 public class ExactSimilarityModeConfiguration extends AbstractRoleAnalysisConfiguration {
 
     RoleAnalysisService service;
@@ -34,19 +32,12 @@ public class ExactSimilarityModeConfiguration extends AbstractRoleAnalysisConfig
 
     @Override
     public void updateConfiguration() {
-        RangeType propertyRange = new RangeType()
-                .min(2.0)
-                .max(Double.valueOf(getMaxPropertyCount()));
-
-        updatePrimaryOptions(null,
+        updatePrimaryOptions(null,null, null,
                 false,
-                propertyRange,
                 getDefaultAnalysisAttributes(),
                 null,
                 100.0,
-                2,
-                2,
-                false);
+                2, 2, false);
 
         updateDetectionOptions(2,
                 2,
@@ -57,25 +48,5 @@ public class ExactSimilarityModeConfiguration extends AbstractRoleAnalysisConfig
                 RoleAnalysisDetectionProcessType.FULL,
                 null,
                 null);
-    }
-
-    public @NotNull Integer getMaxPropertyCount() {
-        Class<? extends ObjectType> propertiesClass = UserType.class;
-        if (RoleAnalysisProcessModeType.USER.equals(getProcessMode())) {
-            propertiesClass = RoleType.class;
-        }
-
-        Integer maxPropertiesObjects;
-
-        maxPropertiesObjects = service.countObjects(propertiesClass, null, null, task, result);
-
-        if (maxPropertiesObjects == null) {
-            maxPropertiesObjects = 1000000;
-        }
-        return maxPropertiesObjects;
-    }
-
-    public @NotNull Integer getMinPropertyCount(Integer maxPropertiesObjects) {
-        return maxPropertiesObjects < 10 ? 1 : 10;
     }
 }

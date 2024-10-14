@@ -8,14 +8,16 @@
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.context;
 
 import java.util.List;
-import java.util.Set;
+import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
 
 import com.evolveum.midpoint.model.impl.mining.utils.DebugOutlierDetectionEvaluation;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,11 +36,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.Nullable;
-
-import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.ClusteringUtils.getExistingActiveRolesOidsSet;
-import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.ClusteringUtils.getRoleBasedRoleToUserMap;
 
 /**
  * Clustering action.
@@ -154,18 +151,22 @@ public class ClusteringActionExecutor extends BaseAction {
         sessionRef.setTargetName(session.getName());
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
         int processedObjectCount = 0;
-        SearchFilterType sessionUserQuery;
+
+        AbstractAnalysisSessionOptionType sessionOptions;
         QName complexType;
         if (analysisOption.getProcessMode().equals(RoleAnalysisProcessModeType.ROLE)) {
-            sessionUserQuery = session.getRoleModeOptions().getQuery();
+            sessionOptions = session.getRoleModeOptions();
             complexType = RoleType.COMPLEX_TYPE;
         } else {
-            sessionUserQuery = session.getUserModeOptions().getQuery();
+            sessionOptions = session.getUserModeOptions();
             complexType = UserType.COMPLEX_TYPE;
         }
 
-        double meanDensity = 0;
+        SearchFilterType userSearchFilter = sessionOptions.getUserSearchFilter();
+        SearchFilterType roleSearchFilter = sessionOptions.getRoleSearchFilter();
+        SearchFilterType assignmentSearchFilter = sessionOptions.getAssignmentSearchFilter();
 
+        double meanDensity = 0;
         int countOutliers = 0;
 
         handler.enterNewStep("Importing Clusters");
@@ -196,10 +197,6 @@ public class ClusteringActionExecutor extends BaseAction {
             );
 
         }
-
-        ModelService modelService = ModelBeans.get().modelService;
-        ListMultimap<String, String> roleMembersMap = loadRoleMembersMap(modelService, sessionUserQuery, task, result);
-        attributeAnalysisCache.setRoleMemberCache(roleMembersMap);
 
         //TODO not just basic it must be connected to in and out outlier analysis (experimental)
         for (PrismObject<RoleAnalysisClusterType> clusterTypePrismObject : clusters) {
@@ -252,17 +249,5 @@ public class ClusteringActionExecutor extends BaseAction {
         } catch (Exception e) {
             LOGGER.warn("Exception in outlier detection evaluation", e);
         }
-    }
-
-    public static @NotNull ListMultimap<String, String> loadRoleMembersMap(@NotNull ModelService modelService,
-            @Nullable SearchFilterType userQuery,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
-
-        Set<String> existingRolesOidsSet = getExistingActiveRolesOidsSet(modelService, task, result);
-
-        //role //user
-        return getRoleBasedRoleToUserMap(
-                modelService, userQuery, existingRolesOidsSet, task, result);
     }
 }

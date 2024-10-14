@@ -110,7 +110,7 @@ public class OutlierAttributeItemPanel<T extends Serializable>
         ObjectReferenceType targetSessionRef = partition.getTargetSessionRef();
 
         RoleAnalysisOutlierType outlier = getOutlierModel().getObject();
-        ObjectReferenceType targetUserRef = outlier.getTargetObjectRef();
+        ObjectReferenceType targetUserRef = outlier.getObjectRef();
         PrismObject<RoleAnalysisSessionType> session = roleAnalysisService.getSessionTypeObject(
                 targetSessionRef.getOid(), task, task.getResult());
         PrismObject<UserType> userPrismObject = roleAnalysisService.getUserTypeObject(

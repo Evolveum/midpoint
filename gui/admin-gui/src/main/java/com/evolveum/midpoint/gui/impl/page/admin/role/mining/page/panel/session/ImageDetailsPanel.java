@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -27,10 +29,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
@@ -82,7 +80,9 @@ public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
         RoleAnalysisSessionType session = parentClusterByOid.asObjectable();
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
         RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
-        SearchFilterType searchFilter = null;
+        SearchFilterType userSearchFilter = null;
+        SearchFilterType roleSearchFilter = null;
+        SearchFilterType assignmentSearchFilter = null;
 
         String columnTitle = "Users";
         String rowTitle = "Roles";
@@ -93,9 +93,15 @@ public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
             rowTitle = "Users";
             columnIcon = GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED;
             rowIcon = GuiStyleConstants.CLASS_OBJECT_USER_ICON_COLORED;
-            searchFilter = session.getRoleModeOptions().getQuery();
+            RoleAnalysisSessionOptionType roleModeOptions = session.getRoleModeOptions();
+            userSearchFilter = roleModeOptions.getUserSearchFilter();
+            roleSearchFilter = roleModeOptions.getRoleSearchFilter();
+            assignmentSearchFilter = roleModeOptions.getAssignmentSearchFilter();
         } else if (RoleAnalysisProcessModeType.USER.equals(processMode)) {
-            searchFilter = session.getUserModeOptions().getQuery();
+            UserAnalysisSessionOptionType userModeOptions = session.getUserModeOptions();
+            userSearchFilter = userModeOptions.getUserSearchFilter();
+            roleSearchFilter = userModeOptions.getRoleSearchFilter();
+            assignmentSearchFilter = userModeOptions.getAssignmentSearchFilter();
         }
 
         String finalColumnIcon = columnIcon;
@@ -129,7 +135,8 @@ public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
         add(columnHeader);
         add(rowHeader);
 
-        MiningOperationChunk miningOperationChunk = roleAnalysisService.prepareExpandedMiningStructure(cluster, searchFilter,
+        MiningOperationChunk miningOperationChunk = roleAnalysisService.prepareExpandedMiningStructure(cluster,
+                userSearchFilter, roleSearchFilter, assignmentSearchFilter,
                 true, processMode, result, task, null);
 
         CustomImageResource imageResource;

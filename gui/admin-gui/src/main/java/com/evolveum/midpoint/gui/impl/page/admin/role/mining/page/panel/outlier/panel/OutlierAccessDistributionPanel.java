@@ -72,7 +72,7 @@ public class OutlierAccessDistributionPanel extends AbstractObjectMainPanel<Role
 
     private RoleAnalysisWidgetsPanel loadDetailsPanel(@NotNull String id) {
         RoleAnalysisOutlierType outlier = getObjectWrapperObject().asObjectable();
-        ObjectReferenceType targetObjectRef = outlier.getTargetObjectRef();
+        ObjectReferenceType targetObjectRef = outlier.getObjectRef();
         String userOid = targetObjectRef.getOid();
 
         PageBase pageBase = getPageBase();

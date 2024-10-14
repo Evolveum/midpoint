@@ -37,13 +37,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestPasswordDefaultHashing extends AbstractPasswordTest {
 
-    @BeforeMethod
-    public void skipIfEnforcedCaching() {
-        if (InternalsConfig.isShadowCachingOnByDefault()) {
-            throw new SkipException("Skipping hashing-related password tests because the shadow caching is enabled");
-        }
-    }
-
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);

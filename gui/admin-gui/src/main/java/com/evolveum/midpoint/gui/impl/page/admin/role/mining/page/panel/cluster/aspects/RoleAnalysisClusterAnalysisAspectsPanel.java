@@ -925,9 +925,9 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
         ResultHandler<RoleAnalysisOutlierType> resultHandler = (outlier, lResult) -> {
 
             RoleAnalysisOutlierType outlierObject = outlier.asObjectable();
-            List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getOutlierPartitions();
+            List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getPartition();
             for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
-                ObjectReferenceType targetClusterRef = outlierPartition.getTargetClusterRef();
+                ObjectReferenceType targetClusterRef = outlierPartition.getClusterRef();
                 String oid = targetClusterRef.getOid();
                 if (clusterOid.equals(oid)) {
                     searchResultList.add(outlierPartition);

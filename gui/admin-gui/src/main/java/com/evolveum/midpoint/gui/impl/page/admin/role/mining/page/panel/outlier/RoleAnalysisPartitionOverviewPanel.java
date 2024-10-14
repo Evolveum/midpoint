@@ -78,7 +78,7 @@ public class RoleAnalysisPartitionOverviewPanel extends BasePanel<RoleAnalysisOu
         OperationResult result = simpleTask.getResult();
         RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
         PrismObject<UserType> userPrismObject = roleAnalysisService
-                .getUserTypeObject(object.getTargetObjectRef().getOid(), simpleTask, result);
+                .getUserTypeObject(object.getObjectRef().getOid(), simpleTask, result);
         if (userPrismObject == null) {
             return new WebMarkupContainer(id);
         }

@@ -61,7 +61,7 @@ public abstract class BasePattern implements Serializable {
                 .stream().map(AbstractReferencable::getOid).collect(java.util.stream.Collectors.toSet());
         this.users = detectionPattern.getUserOccupancy()
                 .stream().map(AbstractReferencable::getOid).collect(java.util.stream.Collectors.toSet());
-        this.metric = detectionPattern.getClusterMetric();
+        this.metric = detectionPattern.getReductionCount();
         this.id = detectionPattern.getId();
         if (id != null) {
             this.identifier = id.toString();

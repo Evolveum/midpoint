@@ -135,7 +135,7 @@ public class OutlierPartitionPage extends PageAdmin {
                     return null;
                 }
                 RoleAnalysisOutlierType outlier = outlierModel.getObject();
-                List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlier.getOutlierPartitions();
+                List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlier.getPartition();
                 if (outlierPartitions == null) {
                     return null;
                 }

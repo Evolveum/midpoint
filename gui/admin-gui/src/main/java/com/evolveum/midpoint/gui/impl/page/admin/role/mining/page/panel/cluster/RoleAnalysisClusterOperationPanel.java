@@ -128,11 +128,11 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
         List<RoleAnalysisOutlierType> searchResultList = roleAnalysisService.findClusterOutliers(cluster, null, task, result);
         for (RoleAnalysisOutlierType outlier : searchResultList) {
             Set<String> roles = new HashSet<>();
-            List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlier.getOutlierPartitions();
+            List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlier.getPartition();
             for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
-                if (outlierPartition.getTargetClusterRef() != null
-                        && outlierPartition.getTargetClusterRef().getOid() != null
-                        && outlierPartition.getTargetClusterRef().getOid().equals(cluster.getOid())) {
+                if (outlierPartition.getClusterRef() != null
+                        && outlierPartition.getClusterRef().getOid() != null
+                        && outlierPartition.getClusterRef().getOid().equals(cluster.getOid())) {
                     List<DetectedAnomalyResult> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();
                     for (DetectedAnomalyResult detectedAnomaly : detectedAnomalyResult) {
                         roles.add(detectedAnomaly.getTargetObjectRef().getOid());
@@ -141,7 +141,7 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
                     break;
                 }
             }
-            Set<String> users = Collections.singleton(outlier.getTargetObjectRef().getOid());
+            Set<String> users = Collections.singleton(outlier.getObjectRef().getOid());
             DetectedPattern detectedPattern = new DetectedPattern(roles, users, outlier.getOverallConfidence(), null) {
                 @Override
                 public ObjectReferenceType getOutlierRef() {

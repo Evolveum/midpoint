@@ -220,8 +220,7 @@ public class SecurityUtil {
         return noncePolicies.get(0);
     }
 
-    private static void copyDefaults(CredentialPolicyType defaults,
-            CredentialPolicyType target) {
+    private static void copyDefaults(CredentialPolicyType defaults, CredentialPolicyType target) {
         // Primitive, but efficient
         if (target.getHistoryLength() == null && defaults.getHistoryLength() != null) {
             target.setHistoryLength(defaults.getHistoryLength());

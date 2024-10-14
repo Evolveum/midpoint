@@ -4645,7 +4645,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         if (expectedPassword == null && credentials == null) {
             return;
         }
-        assertNotNull("Missing credentendials in repo shadow " + shadow, credentials);
+        assertNotNull("Missing credentials in repo shadow " + shadow, credentials);
         PasswordType passwordType = credentials.getPassword();
         if (expectedPassword == null && passwordType == null) {
             return;

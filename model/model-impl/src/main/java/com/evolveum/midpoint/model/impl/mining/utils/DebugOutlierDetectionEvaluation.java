@@ -161,7 +161,7 @@ public class DebugOutlierDetectionEvaluation {
     private List<UserType> getOutliers(String sessionOid, OutlierClusterCategoryType category) throws Exception {
         return roleAnalysisService.getSessionOutliers(sessionOid, category, task, task.getResult())
                 .stream()
-                .map(outlier -> this.getUser(outlier.getTargetObjectRef().getOid()))
+                .map(outlier -> this.getUser(outlier.getObjectRef().getOid()))
                 .toList();
     }
 
