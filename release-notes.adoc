@@ -43,6 +43,11 @@ See bug:MID-9754[].
 * Fixed upload/download of files (eg. jpegPhoto) where download didn't return proper Content-Type and file extension. See bug:MID-9990[].
 * Fixed stylesheets for saved searches menu in case name of search is too long. See bug:MID-10078[].
 * Fixed Internal error 500 in Preview Changes - serialization exception. See bug:MID-10028[].
+* Fixed resolving of authentication sequence when request contains 'Authorization' header. See bug:MID-10068[].
+* Fixed removal of value in form field on details panel (e.g. assignment or projection) when using custom expression validation. See bug:MID-10091[].
+* Fixed display of all resource schema classes instead of just object type classes in the resource schema panel. See bug:MID-10001[].
+* Fixed removal of unused authentication filters created by the rest authentication module invoked from the browser. See bug:MID-9580[].
+* Use the username from the identification authentication module in the LDAP authentication module. See bug:MID-10104[].
 
 == Changes with Respect To Version 4.8.3
 
