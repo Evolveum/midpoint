@@ -18,6 +18,9 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.AnalysisInfoWidgetDto;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.outlier.PageOutliers;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -56,9 +59,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class RoleAnalysisInfoPanel extends BasePanel<AnalysisInfoWidgetDto> {
 
@@ -405,6 +405,10 @@ public class RoleAnalysisInfoPanel extends BasePanel<AnalysisInfoWidgetDto> {
         }
         RoleAnalysisIdentifyWidgetPanel outlierPanel = new RoleAnalysisIdentifyWidgetPanel(ID_OUTLIER_PANEL,
                 createStringResource("Outlier.suggestions.title"), Model.ofList(getModelObject().getOutlierModelData())) {
+            @Override
+            protected void onClickFooter(AjaxRequestTarget target) {
+                getPageBase().navigateToNext(PageOutliers.class);
+            }
         };
         outlierPanel.setOutputMarkupId(true);
         add(outlierPanel);
