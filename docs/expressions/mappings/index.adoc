@@ -803,6 +803,7 @@ The properties can be accessed by the scripts in the mapping:
 ----
 
 
+[#_mapping_strength]
 == Mapping Strength
 
 Strength of the mapping defines how aggressively is the mapping be applied.

@@ -12,8 +12,8 @@
 Capabilities are definitions of a specific things that a resource can do.
 There is plethora of various resource types and configuration.
 Some resources can enable/disable an account, while others cannot.
-Some resource can provide live feed of changes, some can not.
-The `capabilities` section list the features that the resource has.
+Some resource can provide live feed of changes, some cannot.
+The `capabilities` section lists the features that the resource has.
 
 There are two sections of capabilities definition:
 
@@ -26,91 +26,89 @@ If this section is not present in the resource configuration it will be automati
 * *Configured capabilities* are decision of an administrator how to use native capabilities.
 This section can be used to disable native capabilities or add capabilities.
 Some capabilities can be _simulated_ by midPoint.
-E.g. A resource does not support account enable/disable directly.
+E.g., a resource does not support account enable/disable directly.
 But administrator know that the enable/disable may be done by flipping a boolean value of a specific attribute.
 Such simulated capability can be configured in this section.
 MidPoint will then pretend that the resource has the enable/disable ability.
 But each time the ability us used it will transparently convert the operation to modification of the special attribute.
 That's how midPoint simulates some capabilities.
 
-These two sections are added together to form *presented capabilities* (or just "capabilities"). These are all the features that the resource can do by itself (native capabilities), minus the capabilities that were disabled, plus the capabilities that are simulated.
+These two sections are added together to form *presented capabilities* (or just "capabilities").
+These are all the features that the resource can do by itself (native capabilities), minus the capabilities that were disabled, plus the capabilities that are simulated.
 GUI, IDM model and business logic will all work only with *presented capabilities*, whether the capability is native or simulated does not matter for such upper system layers.
 
-The following example shows a configuration for a simulated activation capability using OpenDJ "ri:ds-pwp-account-disabled" attribute (the value "true" means, the OpenDJ account is disabled; empty value means, the OpenDJ account is enabled) and a configuration for disabling "liveSync" capability.
-The resource would ignore tha "liveSync" capability as if it would not be supported by the connector.
+The following example shows a configuration for a simulated activation capability using OpenDJ `ri:ds-pwp-account-disabled` attribute (the value `true` means, the OpenDJ account is disabled; empty value means, the OpenDJ account is enabled) and a configuration for disabling `liveSync` capability.
+The resource would ignore tha `liveSync` capability as if it would not be supported by the connector.
 
 .LDAP Resource Capabilities Example
 [source,xml]
 ----
-    <capabilities>
-        <cachingMetadata>...</cachingMetadata>
-        <native>
-            <cap:script>
-                <cap:host>
-                    <cap:type>connector</cap:type>
-                </cap:host>
-            </cap:script>
-            <cap:credentials>
-                <cap:password/>
-            </cap:credentials>
-            <cap:testConnection/>
-            <cap:liveSync/>
-        </native>
-        <configured>
-            <cap:activation>
-                <cap:status>
-                    <cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>
-                    <cap:enableValue/>
-                    <cap:disableValue>true</cap:disableValue>
-                </cap:status>
-            </cap:activation>
-            <cap:liveSync>
-                <cap:enabled>false</cap:enabled>
-           </cap:liveSync>
-         </configured>
-    </capabilities>
-
+<capabilities>
+    <cachingMetadata>...</cachingMetadata>
+    <native>
+        <cap:script>
+            <cap:host>
+                <cap:type>connector</cap:type>
+            </cap:host>
+        </cap:script>
+        <cap:credentials>
+            <cap:password/>
+        </cap:credentials>
+        <cap:testConnection/>
+        <cap:liveSync/>
+    </native>
+    <configured>
+        <cap:activation>
+            <cap:status>
+                <cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>
+                <cap:enableValue/>
+                <cap:disableValue>true</cap:disableValue>
+            </cap:status>
+        </cap:activation>
+        <cap:liveSync>
+            <cap:enabled>false</cap:enabled>
+       </cap:liveSync>
+     </configured>
+</capabilities>
 ----
 
 The capabilities can be used also to disable provisioning operations on the resource, e.g. during imports, reconciliation etc.
-The following example shows a configuration for a resource, where no "create" or "delete" operations are possible, only "update".
-Attempt to create or delet any object on the resource would fail with an error.
+The following example shows a configuration for a resource, where no `create` or `delete` operations are possible, only `update`.
+Attempt to create or delete any object on the resource would fail with an error.
 
 [source,xml]
 ----
 <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
-  <configured>
-    <cap:create>
-      <cap:enabled>false</cap:enabled>
-    </cap:create>
-    <cap:update>
-      <cap:enabled>true</cap:enabled>
-    </cap:update>
-    <cap:delete>
-      <cap:enabled>false</cap:enabled>
-    </cap:delete>
-  </configured>
+    <configured>
+        <cap:create>
+            <cap:enabled>false</cap:enabled>
+        </cap:create>
+        <cap:update>
+            <cap:enabled>true</cap:enabled>
+        </cap:update>
+        <cap:delete>
+            <cap:enabled>false</cap:enabled>
+        </cap:delete>
+    </configured>
 </capabilities>
 ----
 
-Keep in mind the capabilities section works as override. For example if you explicitly override udpate and set enabled to true, you are explicitly setting the capability to read/replace mode. In case you would like to enable advanced logic for delta or addRemoveAttributeValues you have to set them explicitly to true. 
+Keep in mind the capabilities section works as override.
+For example if you explicitly override `update` and set `enabled` to `true`, you are explicitly setting the capability to read/replace mode.
+In case you would like to enable advanced logic for `delta` or `addRemoveAttributeValues` you have to set them explicitly to `true`.
 
 [source,xml]
 ----
 <configured xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
     <cap:update>
-      <cap:enabled>true</cap:enabled>
-      <cap:delta>true</cap:delta>
-      <cap:addRemoveAttributeValues>true</cap:addRemoveAttributeValues>
+        <cap:enabled>true</cap:enabled>
+        <cap:delta>true</cap:delta>
+        <cap:addRemoveAttributeValues>true</cap:addRemoveAttributeValues>
     </cap:update>
-</configured>    
+</configured>
 ----
 
 == Another example: Precise token value in Live synchronization
-
-++++
-{% include since.html since="4.0" %}
-++++
 
 As another example let's consider `preciseTokenValue` property in `cap:liveSync`  capability:
 
@@ -130,7 +128,6 @@ If this information is not present, midPoint restarts live synchronization (in c
 
 Some resources are known to provide precise token values, others are known of not doing so (e.g. for performance reasons).
 Others - e.g. those served by ScriptedSQL connector - depend on particular configuration of the connector.
-It is the responsibility of the connector user (that configures the resource) to know the behavior of the connector, and to
-correctly specify this capability in the resource definition.
+It is the responsibility of the connector user (that configures the resource) to know the behavior of the connector, and to correctly specify this capability in the resource definition.
 
 See also xref:/midpoint/reference/tasks/synchronization-tasks/live-synchronization.adoc[].
