@@ -284,6 +284,12 @@ Collection view can also contain columns and actions configuration.
             <defaultView>
                 <identifier>defaultCertItemsView</identifier>
                 <column>
+                    <name>certItemObject</name>
+                    <display>
+                        <label>Cert. item object</label>
+                    </display>
+                </column>
+                <column>
                     <name>stage</name>
                     <path>stageNumber</path>
                     <display>
@@ -322,6 +328,7 @@ Collection view can also contain columns and actions configuration.
 ----
 
 To learn more about actions configuration, please follow to xref:/midpoint/reference/roles-policies/certification/actions/[GUI Actions] page.
+To learn more about columns configuration, please follow to xref:/midpoint/reference/roles-policies/certification/columns-configuration/[Columns configuration] page.
 
 Object collection view configuration can be also defined within access certification definition (_view_ element).
 This configuration will be merged with the global one and applied to all campaigns created on the base of this definition.
