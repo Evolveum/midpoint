@@ -12,15 +12,10 @@ import java.util.UUID;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 
-public class MOutlierObject extends MObject {
+public class MOutlier extends MObject {
 
-    public UUID targetObjectRefTargetOid;
-    public MObjectType targetObjectRefTargetType;
-    public Integer targetObjectRefRelationId;
-
-    public UUID targetClusterRefTargetOid;
-    public MObjectType targetClusterRefTargetType;
-    public Integer targetClusterRefRelationId;
-
-
+    public UUID objectRefTargetOid;
+    public MObjectType objectRefTargetType;
+    public Integer objectRefRelationId;
+    public Double overallConfidence;
 }

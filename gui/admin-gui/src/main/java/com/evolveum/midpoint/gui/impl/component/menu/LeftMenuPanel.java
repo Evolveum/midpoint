@@ -17,6 +17,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.*;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysis;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.mining.PageRoleSuggestions;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.outlier.PageOutliers;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 
@@ -87,6 +88,8 @@ import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import org.jetbrains.annotations.NotNull;
 
 public class LeftMenuPanel extends BasePanel<Void> {
 
@@ -317,6 +320,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
         menu.addMainMenuItem(createNodesItems());
         menu.addMainMenuItem(createReportsItems());
         menu.addMainMenuItem(createSimulationItems());
+        menu.addMainMenuItem(createAnalyticsItems());
         menu.addMainMenuItem(createAuditItems());
 
         return menu;
@@ -398,16 +402,26 @@ public class LeftMenuPanel extends BasePanel<Void> {
         MainMenuItem roleMenu = createMainMenuItem("PageAdmin.menu.top.roles", GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED
         );
         createBasicAssignmentHolderMenuItems(roleMenu, PageTypes.ROLE);
+        return roleMenu;
+    }
+
+    private @NotNull MainMenuItem createAnalyticsItems() {
+        MainMenuItem roleMenu = createMainMenuItem("PageAdmin.menu.top.analytics", "fas fa-chart-line");
+
+//        createBasicAssignmentHolderMenuItems(roleMenu, PageTypes.ANALYTICS);
 
         roleMenu.addMenuItemAtIndex(new MenuItem("PageRoleAnalysis.menu.title",
                 GuiStyleConstants.CLASS_ROLE_ANALYSIS_SESSION_ICON,
                 PageRoleAnalysis.class), 1);
-        roleMenu.addMenuItem(new MenuItem("PageRoleAnalysisSession.menu.title",
-                GuiStyleConstants.CLASS_PLUS_CIRCLE,
-                PageRoleAnalysisSession.class));
         roleMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.outliers",
                 GuiStyleConstants.CLASS_OUTLIER_ICON,
                 PageOutliers.class));
+        roleMenu.addMenuItem(new MenuItem("PageAdmin.menu.role.suggestions",
+                GuiStyleConstants.CLASS_OBJECT_ROLE_ICON,
+                PageRoleSuggestions.class));
+        roleMenu.addMenuItem(new MenuItem("PageRoleAnalysisSession.menu.title",
+                GuiStyleConstants.CLASS_PLUS_CIRCLE,
+                PageRoleAnalysisSession.class));
 
         return roleMenu;
     }

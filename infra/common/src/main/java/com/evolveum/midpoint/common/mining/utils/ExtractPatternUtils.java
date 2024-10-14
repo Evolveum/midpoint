@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.common.mining.utils;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -95,6 +94,12 @@ public class ExtractPatternUtils {
                     .oid(cluster.getOid())
                     .type(RoleAnalysisClusterType.COMPLEX_TYPE)
                     .targetName(cluster.getName()));
+
+            ObjectReferenceType roleAnalysisSessionRef = cluster.getRoleAnalysisSessionRef();
+
+            if(roleAnalysisSessionRef != null) {
+                detectedPattern.setSessionRef(roleAnalysisSessionRef.clone());
+            }
 
             if (session != null) {
                 detectedPattern.setSessionRef(new ObjectReferenceType()

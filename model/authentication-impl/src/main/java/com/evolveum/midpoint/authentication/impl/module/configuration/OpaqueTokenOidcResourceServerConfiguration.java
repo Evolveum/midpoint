@@ -73,6 +73,8 @@ public class OpaqueTokenOidcResourceServerConfiguration extends RemoteModuleWebS
             builder.userNameAttributeName(opaqueTokenConfig.getNameOfUsernameClaim());
         }
 
+        builder.scope("openid");
+
         ClientRegistration clientRegistration = builder.build();
         configuration.introspector = new OpaqueTokenUserDetailsIntrospector(clientRegistration);
         return configuration;

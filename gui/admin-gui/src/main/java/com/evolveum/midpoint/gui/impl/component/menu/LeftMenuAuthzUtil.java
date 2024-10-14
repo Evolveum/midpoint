@@ -13,6 +13,7 @@ import java.util.Map;
 
 import com.evolveum.midpoint.gui.impl.page.admin.policy.PagePolicies;
 import com.evolveum.midpoint.gui.impl.page.admin.policy.PagePolicy;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.mining.PageRoleSuggestions;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.outlier.PageOutliers;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.page.admin.cases.PageCases;
@@ -61,6 +62,9 @@ public class LeftMenuAuthzUtil {
         pageAuthorizationMaps.put(PageOutliers.class,
                 Arrays.asList(AuthorizationConstants.AUTZ_UI_OUTLIERS_ALL_URL,
                         AuthorizationConstants.AUTZ_UI_OUTLIERS_URL));
+        pageAuthorizationMaps.put(PageRoleSuggestions.class,
+                Arrays.asList(AuthorizationConstants.AUTZ_UI_ROLE_SUGGESTIONS_ALL_URL,
+                        AuthorizationConstants.AUTZ_UI_ROLE_SUGGESTION_URL));
     }
 
     static {
@@ -92,6 +96,9 @@ public class LeftMenuAuthzUtil {
         viewsAuthorizationMaps.put(PageOutliers.class,
                 Arrays.asList(AuthorizationConstants.AUTZ_UI_OUTLIERS_ALL_URL,
                         AuthorizationConstants.AUTZ_UI_OUTLIERS_VIEW_URL));
+        viewsAuthorizationMaps.put(PageRoleSuggestions.class,
+                Arrays.asList(AuthorizationConstants.AUTZ_UI_ROLE_SUGGESTIONS_ALL_URL,
+                        AuthorizationConstants.AUTZ_UI_ROLE_SUGGESTIONS_VIEW_URL));
     }
 
     public static List<String> getAuthorizationsForPage(Class<? extends WebPage> pageClass) {

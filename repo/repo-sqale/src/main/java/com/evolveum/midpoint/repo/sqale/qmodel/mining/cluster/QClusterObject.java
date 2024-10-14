@@ -10,7 +10,6 @@ import java.sql.Types;
 
 import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.core.types.dsl.NumberPath;
-import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
@@ -20,7 +19,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 /**
  * Querydsl query type for {@value #TABLE_NAME} table.
  */
-public class QClusterData extends QAssignmentHolder<MClusterObject> {
+public class QClusterObject extends QAssignmentHolder<MClusterObject> {
 
     public static final String TABLE_NAME = "m_role_analysis_cluster";
 
@@ -42,11 +41,11 @@ public class QClusterData extends QAssignmentHolder<MClusterObject> {
     public final NumberPath<Integer> parentRefRelationId =
             createInteger("parentRefRelationId", PARENT_REF_TARGET_RELATION);
 
-    public QClusterData(String variable) {
+    public QClusterObject(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);
     }
 
-    public QClusterData(String variable, String schema, String table) {
+    public QClusterObject(String variable, String schema, String table) {
         super(MClusterObject.class, variable, schema, table);
     }
 

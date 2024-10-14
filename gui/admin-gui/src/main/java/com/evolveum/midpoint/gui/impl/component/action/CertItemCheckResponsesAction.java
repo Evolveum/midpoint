@@ -9,9 +9,17 @@ package com.evolveum.midpoint.gui.impl.component.action;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.component.CertResponseDetailsPanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerValueWrapperImpl;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.application.ActionType;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
@@ -51,6 +59,7 @@ public class CertItemCheckResponsesAction extends AbstractGuiAction<AccessCertif
 
         AccessCertificationWorkItemType workItem = workItems.get(0);
         AccessCertificationCaseType certCase = CertCampaignTypeUtil.getCase(workItem);
+
         if (certCase == null) {
             return;
         }
@@ -58,13 +67,57 @@ public class CertItemCheckResponsesAction extends AbstractGuiAction<AccessCertif
         if (campaign == null) {
             return;
         }
+
+        OperationResult result = new OperationResult("loadCertCase");
+        Task task = pageBase.createSimpleTask("loadCertCase");
         int currentStageNumber = or0(campaign.getStageNumber());
 
+        ObjectQuery query = pageBase.getPrismContext().queryFor(AccessCertificationCaseType.class)
+                .ownerId(campaign.getOid())
+                .build();
+        query.addFilter(createIdFilter(pageBase, certCase.getId()));
+        query.addFilter(createStageFilter(pageBase, currentStageNumber));
+        query.addFilter(createIterationFilter(pageBase, campaign.getIteration() == null ? 0 : campaign.getIteration()));
+
+        List<AccessCertificationCaseType> loadedCases;
+        PrismContainerValue<AccessCertificationCaseType> certCaseValue = null;
+        try {
+            loadedCases = WebModelServiceUtils.searchContainers(AccessCertificationCaseType.class, query, null, result, pageBase);
+            if (!loadedCases.isEmpty()) {
+                certCaseValue = loadedCases.get(0).asPrismContainerValue();
+            } else {
+                certCaseValue = certCase.asPrismContainerValue();
+            }
+        } catch (Exception e) {
+            certCaseValue = certCase.asPrismContainerValue();
+        }
         PrismContainerValueWrapper<AccessCertificationCaseType> caseWrapper =
-                new PrismContainerValueWrapperImpl<>(null, certCase.asPrismContainerValue(), ValueStatus.NOT_CHANGED);
+                new PrismContainerValueWrapperImpl<>(null, certCaseValue, ValueStatus.NOT_CHANGED);
             CertResponseDetailsPanel panel = new CertResponseDetailsPanel(pageBase.getMainPopupBodyId(),
                     Model.of(caseWrapper), currentStageNumber);
             pageBase.showMainPopup(panel, target);
     }
 
+    private ObjectFilter createIdFilter(PageBase pageBase, long caseId) {
+        return pageBase.getPrismContext().queryFor(AccessCertificationCaseType.class)
+                .id(caseId)
+                .build()
+                .getFilter();
+    }
+
+    private ObjectFilter createStageFilter(PageBase pageBase, int stageNumber) {
+        return pageBase.getPrismContext().queryFor(AccessCertificationCaseType.class)
+                .item(AccessCertificationCaseType.F_WORK_ITEM, AccessCertificationWorkItemType.F_STAGE_NUMBER)
+                .eq(stageNumber)
+                .build()
+                .getFilter();
+    }
+
+    private ObjectFilter createIterationFilter(PageBase pageBase, int iteration) {
+        return pageBase.getPrismContext().queryFor(AccessCertificationCaseType.class)
+                .item(AccessCertificationCaseType.F_WORK_ITEM, AccessCertificationWorkItemType.F_ITERATION)
+                .eq(iteration)
+                .build()
+                .getFilter();
+    }
 }
