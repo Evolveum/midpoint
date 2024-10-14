@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.web.page.admin.resources.dto;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 
 import java.io.Serializable;
@@ -33,15 +35,17 @@ public class ObjectClassDetailsDto implements Serializable{
     private String nativeObjectClass = VALUE_NOT_SPECIFIED;
     private boolean isDefault;
 
-    public ObjectClassDetailsDto(ResourceObjectTypeDefinition definition){
+    public ObjectClassDetailsDto(ResourceObjectDefinition definition){
         if (definition != null) {
             displayName = definition.getDisplayName() != null ? definition.getDisplayName() : VALUE_NOT_SPECIFIED;
             description = definition.getDescription() != null ? definition.getDescription() : VALUE_NOT_SPECIFIED;
-            kind = definition.getKind().value();
-            intent = definition.getIntent();
+            if (definition instanceof ResourceObjectTypeDefinition objectTypeDef) {
+                kind = objectTypeDef.getKind().value();
+                intent = objectTypeDef.getIntent();
+                isDefault = objectTypeDef.isDefaultForKind();
+            }
             String nativeObjectClassName = definition.getObjectClassDefinition().getNativeObjectClass();
             this.nativeObjectClass = nativeObjectClassName != null ? nativeObjectClassName : VALUE_NOT_SPECIFIED;
-            isDefault = definition.isDefaultForKind();
         }
     }
 

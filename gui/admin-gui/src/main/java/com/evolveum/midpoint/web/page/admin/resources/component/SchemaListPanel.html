@@ -64,29 +64,33 @@
                             </div>
                         </div>
 
-                        <div class="d-flex gap-3">
-                            <div>
-                                <label>
-                                    <wicket:message key="SchemaListPanel.details.kind"/>
-                                </label>
-                                <i wicket:id="kindTooltip" wicket:message="title:SchemaStep.tooltip.kind"/>
+                        <wicket:enclosure child="kind">
+                            <div class="d-flex gap-3">
+                                <div>
+                                    <label>
+                                        <wicket:message key="SchemaListPanel.details.kind"/>
+                                    </label>
+                                    <i wicket:id="kindTooltip" wicket:message="title:SchemaStep.tooltip.kind"/>
+                                </div>
+                                <div>
+                                    <span wicket:id="kind"/>
+                                </div>
                             </div>
-                            <div>
-                                <span wicket:id="kind"/>
-                            </div>
-                        </div>
+                        </wicket:enclosure>
 
-                        <div class="d-flex gap-3">
-                            <div>
-                                <label>
-                                    <wicket:message key="SchemaListPanel.details.intent"/>
-                                </label>
-                                <i wicket:id="intentTooltip" wicket:message="title:SchemaStep.tooltip.intent"/>
+                        <wicket:enclosure child="intent">
+                            <div class="d-flex gap-3">
+                                <div>
+                                    <label>
+                                        <wicket:message key="SchemaListPanel.details.intent"/>
+                                    </label>
+                                    <i wicket:id="intentTooltip" wicket:message="title:SchemaStep.tooltip.intent"/>
+                                </div>
+                                <div>
+                                    <span wicket:id="intent"/>
+                                </div>
                             </div>
-                            <div>
-                                <span wicket:id="intent"/>
-                            </div>
-                        </div>
+                        </wicket:enclosure>
                     </div>
 
                     <div class="flex-fill">
@@ -102,17 +106,19 @@
                             </div>
                         </div>
 
-                        <div class="d-flex gap-3">
-                            <div>
-                                <label>
-                                    <wicket:message key="SchemaListPanel.details.default"/>
-                                </label>
-                                <i wicket:id="isDefaultTooltip" wicket:message="title:SchemaStep.tooltip.isDefault"/>
+                        <wicket:enclosure child="isDefault">
+                            <div class="d-flex gap-3">
+                                <div>
+                                    <label>
+                                        <wicket:message key="SchemaListPanel.details.default"/>
+                                    </label>
+                                    <i wicket:id="isDefaultTooltip" wicket:message="title:SchemaStep.tooltip.isDefault"/>
+                                </div>
+                                <div>
+                                    <input wicket:id="isDefault" type="checkbox"/>
+                                </div>
                             </div>
-                            <div>
-                                <input wicket:id="isDefault" type="checkbox"/>
-                            </div>
-                        </div>
+                        </wicket:enclosure>
 
                     </div>
                 </div>

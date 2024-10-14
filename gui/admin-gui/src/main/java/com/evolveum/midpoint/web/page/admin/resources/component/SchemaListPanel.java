@@ -9,14 +9,12 @@ package com.evolveum.midpoint.web.page.admin.resources.component;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -28,6 +26,7 @@ import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
 import com.evolveum.midpoint.gui.impl.component.data.provider.ListDataProvider;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ObjectClassDataProvider;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ObjectClassDetailsDto;
@@ -61,6 +60,7 @@ import org.w3c.dom.Element;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author lazyman
@@ -227,16 +227,18 @@ public class SchemaListPanel extends BasePanel<PrismObjectWrapper<ResourceType>>
         detailsContainer.add(description);
 
         Label kind = new Label(ID_DETAILS_KIND, new PropertyModel<String>(detailsModel, ObjectClassDetailsDto.F_KIND));
+        kind.add(new VisibleBehaviour(this::isObjectTypeDef));
         detailsContainer.add(kind);
 
         Label intent = new Label(ID_DETAILS_INTENT, new PropertyModel<String>(detailsModel, ObjectClassDetailsDto.F_INTENT));
+        intent.add(new VisibleBehaviour(this::isObjectTypeDef));
         detailsContainer.add(intent);
 
         Label nativeObjectClass = new Label(ID_DETAILS_NATIVE_OBJECT_CLASS, new PropertyModel<String>(detailsModel, ObjectClassDetailsDto.F_NATIVE_OBJECT_CLASS));
         detailsContainer.add(nativeObjectClass);
 
         CheckBox isDefault = new CheckBox(ID_DETAILS_DEFAULT, new PropertyModel<>(detailsModel, ObjectClassDetailsDto.F_IS_DEFAULT));
-        isDefault.setEnabled(false);
+        isDefault.add(new VisibleEnableBehaviour(this::isObjectTypeDef, () -> false));
         detailsContainer.add(isDefault);
 
         Label kindTooltip = new Label(ID_T_KIND);
@@ -254,6 +256,15 @@ public class SchemaListPanel extends BasePanel<PrismObjectWrapper<ResourceType>>
         Label defaultTooltip = new Label(ID_T_DEFAULT);
         defaultTooltip.add(new InfoTooltipBehavior());
         detailsContainer.add(defaultTooltip);
+    }
+
+    private boolean isObjectTypeDef() {
+        ObjectClassDto selected = getSelectedObjectClass();
+        if (selected == null || selected.getDefinition() == null) {
+            return false;
+        }
+
+        return selected.isObjectTypeDef();
     }
 
     private List<IColumn<AttributeDto, String>> initColumns() {
@@ -339,8 +350,15 @@ public class SchemaListPanel extends BasePanel<PrismObjectWrapper<ResourceType>>
             return list;
         }
 
-        for(ResourceObjectTypeDefinition definition: schema.getObjectTypeDefinitions()){
-            list.add(new ObjectClassDto(definition));
+        for(ResourceObjectClassDefinition definition: schema.getObjectClassDefinitions()){
+            Optional<ResourceObjectTypeDefinition> objectTypeDef = schema.getObjectTypeDefinitions().stream()
+                    .filter(objectTypeDefinition ->
+                            QNameUtil.match(objectTypeDefinition.getTypeName(), definition.getTypeName())).findFirst();
+            if (objectTypeDef.isEmpty()) {
+                list.add(new ObjectClassDto(definition));
+            } else {
+                list.add(new ObjectClassDto(objectTypeDef.get()));
+            }
         }
 
         Collections.sort(list);
