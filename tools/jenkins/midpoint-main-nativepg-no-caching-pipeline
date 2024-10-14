@@ -1,0 +1,171 @@
+/*
+ * Copyright (C) 2010-2022 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+
+// Like midpoint-main-nativepg-pipeline, but with shadow caching enabled by default
+
+def verbose = params.VERBOSE ?: '0'
+
+podTemplate(
+        nodeSelector: params.NODE_SELECTOR,
+        activeDeadlineSeconds: 21600, // 6h total build limit
+        idleMinutes: 10,
+        // No need for secret volume, no mvn deploy done here.
+        workspaceVolume: dynamicPVC(requestsSize: "20Gi"),
+        containers: [
+                containerTemplate(name: 'jnlp',
+                        image: 'jenkins/inbound-agent:4.13-2-alpine',
+                        runAsUser: '0',
+                        resourceRequestCpu: '1',
+                        resourceLimitCpu: '1',
+                        resourceRequestMemory: '1Gi',
+                        resourceLimitMemory: '1Gi'),
+                containerTemplate(name: 'postgres',
+                        image: params.POSTGRES_IMAGE ?: 'postgres:13-alpine',
+                        runAsUser: '0',
+                        ttyEnabled: true,
+                        resourceRequestCpu: '2',
+                        resourceLimitCpu: '2',
+                        resourceRequestMemory: '4Gi',
+                        resourceLimitMemory: '4Gi',
+                        envVars: [
+                            envVar(key: 'POSTGRES_INITDB_ARGS', value: '--lc-collate=en_US.utf8 --lc-ctype=en_US.utf8'),
+                            envVar(key: 'POSTGRES_USER', value: 'midtest'),
+                            envVar(key: 'POSTGRES_PASSWORD', value: 'password'),
+                            // TODO is separate mount for data necessary?
+                        ],
+                        ports: [portMapping(name: 'postgres', containerPort: 5432)]),
+                containerTemplate(name: 'maven',
+                        image: params.BUILDER_IMAGE ?: 'maven:3.8.5-openjdk-17',
+                        runAsUser: '0',
+                        ttyEnabled: true,
+                        command: 'cat',
+                        resourceRequestCpu: params.BUILDER_CPU ?: '4',
+                        resourceLimitCpu: params.BUILDER_CPU ?: '4',
+                        resourceRequestMemory: '8Gi',
+                        resourceLimitMemory: '8Gi') // see also -Xmx flag lower
+        ]
+) {
+    node(POD_LABEL) {
+        try {
+            stage("checkout") {
+                git branch: params.BRANCH ?: 'master',
+                        url: 'https://github.com/Evolveum/midpoint.git'
+            }
+            stage("db-init") {
+                container('postgres') {
+                    if (!params.DB_UPGRADE_FROM_TAG) {
+                        sh """#!/bin/bash -ex
+                            psql --version
+                            psql -v ON_ERROR_STOP=1 -q -U midtest -f config/sql/native/postgres.sql \
+                                -f config/sql/native/postgres-audit.sql -f config/sql/native/postgres-quartz.sql
+                            #psql -U midtest -c "\\dt" # uncomment to list the tables
+                        """
+                    } else {
+                        // In the future, when the path changes, this may require either some logic, or make it part of the parameter.
+                        // This expects upgrade from 4.4.4 github repository
+                        sh """#!/bin/bash -ex
+                            psql --version
+                            wget https://raw.githubusercontent.com/Evolveum/midpoint/${params.DB_UPGRADE_FROM_TAG}/config/sql/native-new/postgres-new.sql
+                            wget https://raw.githubusercontent.com/Evolveum/midpoint/${params.DB_UPGRADE_FROM_TAG}/config/sql/native-new/postgres-new-audit.sql
+                            psql -v ON_ERROR_STOP=1 -q -U midtest -f postgres.sql \
+                                -f postgres-audit.sql -f config/sql/native/postgres-quartz.sql
+
+                            echo -e "\n*** UPGRADING DB ***\n"
+                            psql -v ON_ERROR_STOP=1 -q -U midtest -f config/sql/native/postgres-upgrade.sql \
+                                -f config/sql/native/postgres-upgrade-audit.sql
+                            #psql -U midtest -c "\\dt" # uncomment to list the tables
+                        """
+                    }
+                }
+            }
+            stage("build-with-tests") {
+                container('maven') {
+                    sh """#!/bin/bash -ex
+                        if [ "${verbose}" -ge 1 ]
+                        then
+                            env | sort
+                            mvn --version
+                            df -h
+                        fi
+
+                        mvn -B -ntp -Dmaven.test.failure.ignore -P sqale,dbtest,-dist clean install \
+                            -Dmidpoint.repository.jdbcUrl=jdbc:postgresql://localhost:5432/midtest \
+                            -Dmidpoint.internals.shadowCachingDefault=none
+
+                        if [ "${verbose}" -ge 1 ]
+                        then
+                            df -h
+                        fi
+                    """
+                }
+            }
+            stage("tests-extra") {
+                container('maven') {
+                    // -Xmx6g should fit into 8GB of RAM, 4g is on the edge for some tests
+                    sh """#!/bin/bash -ex
+                        if [ "${verbose}" -ge 1 ]
+                        then
+                            df -h
+                        fi
+                        mvn -B -ntp -Dmaven.test.failure.ignore -P sqale,extratest,-dist verify -rf testing \
+                            -Dmidpoint.repository.jdbcUrl=jdbc:postgresql://localhost:5432/midtest \
+                            -Dtest.config.file=test-config-new-repo.xml \
+                            -Dfailsafe.args="-Xms2g -Xmx6g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED" \
+                            -Dmidpoint.internals.shadowCachingDefault=none
+
+                        if [ "${verbose}" -ge 1 ]
+                        then
+                            df -h
+                        fi
+                    """
+                }
+            }
+            stage("collect-test-results") {
+                container('maven') {
+                    // If we get here it's success, test results can change it to UNSTABLE.
+                    currentBuild.result = 'SUCCESS'
+
+                    step([
+                        $class: 'Publisher',
+                        reportFilenamePattern: '**/testng-results.xml',
+                        failureOnFailedTestConfig: true
+                    ])
+
+                    if (currentBuild.result == 'UNSTABLE' || params.ARCHIVE_LOGS) {
+                        sh "find . -wholename '*/target/test.log' -print0 | tar -czf test-logs.tgz --null -T -"
+	                    archiveArtifacts allowEmptyArchive: true, artifacts: "test-logs.tgz", followSymlinks: false
+                    }
+                }
+            }
+        } catch (Exception e) {
+            currentBuild.result = 'FAILURE' // error below will not set result for mailer!
+            error "Marking build as FAILURE because of: ${e}"
+        } finally {
+            if (verbose > '0') {
+                echo "Build: ${currentBuild}"
+                echo "Result: ${currentBuild.currentResult}"
+            }
+
+            try {
+                // Very basic mails, later we can use https://plugins.jenkins.io/email-ext/
+                step([$class: 'Mailer',
+                    notifyEveryUnstableBuild: true,
+                    recipients: env.DEFAULT_MAIL_RECIPIENT,
+                    sendToIndividuals: false])
+
+                sh """#!/bin/bash -ex
+                    if [ "${verbose}" -ge 1 ]
+                    then
+                        df -h
+                    fi
+                """
+            } catch (Exception e) {
+                println 'Could not send email: ' + e
+            }
+        }
+    }
+}
