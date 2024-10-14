@@ -10,6 +10,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
+
 import org.jetbrains.annotations.Nullable;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.ITestResult;
@@ -34,6 +36,10 @@ public abstract class AbstractSpringTest extends AbstractTestNGSpringContextTest
      * Hides parent's logger, but that one is from commons-logging and we don't want that.
      */
     protected final Trace logger = TraceManager.getTrace(getClass());
+
+    public AbstractSpringTest() {
+        InternalsConfig.shadowCachingDefaultDefault = InternalsConfig.ShadowCachingDefault.FULL_BUT_USING_FRESH;
+    }
 
     // region perf-test support
     private TestMonitor testMonitor;
@@ -65,9 +71,8 @@ public abstract class AbstractSpringTest extends AbstractTestNGSpringContextTest
     // see the comment in PerformanceTestMethodMixin for explanation
     @AfterMethod
     public void dumpMethodReport(Method method) {
-        if (this instanceof PerformanceTestMethodMixin) {
-            ((PerformanceTestMethodMixin) this).dumpReport(
-                    getClass().getSimpleName() + "#" + method.getName());
+        if (this instanceof PerformanceTestMethodMixin performanceTestMethodMixin) {
+            performanceTestMethodMixin.dumpReport(getClass().getSimpleName() + "#" + method.getName());
         }
     }
 
@@ -82,8 +87,8 @@ public abstract class AbstractSpringTest extends AbstractTestNGSpringContextTest
     // see the comment in PerformanceTestClassMixin for explanation
     @AfterClass
     public void dumpClassReport() {
-        if (this instanceof PerformanceTestClassMixin) {
-            ((PerformanceTestClassMixin) this).dumpReport(getClass().getSimpleName());
+        if (this instanceof PerformanceTestClassMixin performanceTestClassMixin) {
+            performanceTestClassMixin.dumpReport(getClass().getSimpleName());
         }
     }
     // endregion
