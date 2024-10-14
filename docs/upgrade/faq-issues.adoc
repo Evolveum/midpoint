@@ -33,11 +33,11 @@ midPoint 4.8 LTS uses an updated resource definition.
 Some parts of resource definition are marked as *DEPRECATED* and the functionality will be eventually removed, e.g. `<objectSynchronization>` element defined in resource synchronization.
 
 Also, `<auxiliaryObjectClass>`, `<baseContext>`, `<searchHierarchyScope>` in the resource object type definition are *DEPRECATED*.
-They were moved to the new xref:/midpoint/reference/resources/resource-configuration/schema-handling/changes-in-4.6/#resource-object-type-delineation[`<delineation>`] item.
+They were moved to the new xrefv:/midpoint/reference/support-4.8/resources/resource-configuration/schema-handling/changes-in-4.6/#resource-object-type-delineation[`<delineation>`] item.
 
 The old resources should still work in 4.8 LTS (while the deprecated elements are still in midPoint schema), but cannot be edited using xref:/midpoint/reference/admin-gui/resource-wizard/[resource wizard].
 
-Please refer to xref:/midpoint/reference/resources/resource-configuration/schema-handling/changes-in-4.6/[schema handling changes documentation] for more information how to change your resource definitions after you upgrade midPoint to 4.8 LTS.
+Please refer to xrefv:/midpoint/reference/support-4.8/resources/resource-configuration/schema-handling/changes-in-4.6/[schema handling changes documentation] for more information how to change your resource definitions after you upgrade midPoint to 4.8 LTS.
 
 === Do I need to update my 4.4-based correlation configuration in resources after upgrade to 4.8 LTS?
 

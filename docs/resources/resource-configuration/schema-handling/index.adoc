@@ -940,7 +940,7 @@ The following configuration snippet illustrates a configuration of an authoritat
 A user will be created when a new resource account is detected, user will be deleted when the account is deleted and so on.
 For this to work well it needs to be supplemented with other parts of the object type definition, which are not shown in the example to keep it focused on the configuration of synchronization part.
 
-.Listing X. Authoritative Resource
+.Listing 8. Authoritative Resource
 [source,xml]
 ----
 <resource>
@@ -983,7 +983,7 @@ The usual reaction for a `linked` situation is just to synchronize the changes f
 The actual synchronization is done by standard midPoint synchronization code (xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[Clockwork and Projector]) which is in turn using xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mappings] to do so.
 Therefore the synchronization reaction simply needs to invoke standard midPoint synchronization code:
 
-.Listing X. The usual reaction to "linked" situation
+.Listing 9. The usual reaction to "linked" situation
 [source,xml]
 ----
 <reaction>
@@ -1004,7 +1004,7 @@ xref:/midpoint/reference/correlation/[] is often used in this phase.
 When correlation matches the result, will be `unlinked` situation.
 A simple account linking is usually the desired action:
 
-.Listing X. The usual reaction to "unlinked" situation (for an authoritative resource)
+.Listing 10. The usual reaction to "unlinked" situation (for an authoritative resource)
 [source,xml]
 ----
 <reaction>
@@ -1025,7 +1025,7 @@ Typical authoritative resource will need to create new users when new account is
 This is a reaction to `unmatched` situation.
 The `addFocus` action is used to force the creation of new user:
 
-.Listing X. The usual reaction to "unmatched" situation (for an authoritative resource)
+.Listing 11. The usual reaction to "unmatched" situation (for an authoritative resource)
 [source,xml]
 ----
 <reaction>
@@ -1044,7 +1044,7 @@ Non-authoritative resource will typically react to `unmatched` situation in a ve
 Such resources will often delete or disable the account.
 This can easily be achieved using a `deleteResourceObject` action:
 
-.Listing X. The usual reaction to "unmatched" situation (for a non-authoritative resource)
+.Listing 12. The usual reaction to "unmatched" situation (for a non-authoritative resource)
 [source,xml]
 ----
 <reaction>
@@ -1062,7 +1062,7 @@ MidPoint has a xref:/midpoint/reference/synchronization/generic-synchronization/
 The following example shows a configuration to synchronize groups (resource objects) and roles (midPoint objects).
 This setup will create a new midPoint role when a new group is detected on the resource.
 
-.Listing X. Group Synchronization Example
+.Listing 13. Group Synchronization Example
 [source,xml]
 ----
 <resource>
@@ -1163,7 +1163,7 @@ But in object type definitions it should be specified with the `delineation` ite
 
 Here is an (artificial) example of using advanced resource object type delineation.
 
-.Listing 8. Example of resource object type delineation
+.Listing 14. Example of resource object type delineation
 [source,xml]
 ----
 <schemaHandling>
@@ -1245,7 +1245,7 @@ Here is an (artificial) example of using advanced resource object type delineati
 </schemaHandling>
 ----
 
-.Listing 9. Alice, an employee
+.Listing 15. Alice, an employee
 [source]
 ----
 dn: uid=alice,ou=employees,dc=example,dc=com
@@ -1259,7 +1259,7 @@ objectclass: organizationalPerson
 objectclass: inetOrgPerson
 ----
 
-.Listing 10. Jim, an admin
+.Listing 16. Jim, an admin
 [source]
 ----
 dn: uid=jim,ou=special,dc=example,dc=com
@@ -1274,7 +1274,7 @@ objectclass: organizationalPerson
 objectclass: inetOrgPerson
 ----
 
-.Listing 11. Ann, a tester
+.Listing 17. Ann, a tester
 [source]
 ----
 dn: uid=ann,ou=special,dc=example,dc=com
@@ -1341,7 +1341,7 @@ See also xref:/midpoint/reference/tasks/activities/resource-object-set-specifica
 
 Let us have the following configuration of object types:
 
-.Listing 12. Sample configuration
+.Listing 18. Sample configuration
 [source,xml]
 ----
 <objectType>
@@ -1374,7 +1374,7 @@ Let us have the following configuration of object types:
 <2> If intent is not specified in the definition, `default` (literally) is assumed.
 
 [#_sample_constructions]
-.Listing 13. Sample resource object constructions
+.Listing 19. Sample resource object constructions
 [source,xml]
 ----
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
@@ -1432,7 +1432,7 @@ See the classification algorithm description.
 This applies when searching for resource objects, typically in import or reconciliation activities, and using only the object class name.
 For example:
 
-.Listing 14. Importing accounts by object class name
+.Listing 20. Importing accounts by object class name
 [source,xml]
 ----
 <task>
@@ -1474,7 +1474,7 @@ If it's not possible to use standard means of classification, i.e., specifying t
 The following code provides a configuration example to check whether the account belongs to the `test` intent.
 It checks whether it has the form of `Tnnnnnn` (case insensitive) where `n` is any digit.
 
-.Listing X. Classification condition example
+.Listing 21. Classification condition example
 [source,xml]
 ----
 <objectType>

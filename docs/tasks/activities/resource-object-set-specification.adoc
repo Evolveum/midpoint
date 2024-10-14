@@ -37,12 +37,11 @@ for individual objects returned. Only object class is relevant for resource-base
 The query is determined from `kind`, `intent`, and `objectclass` like this:
 
 . If `kind` is specified (with or without object class), then the object class is found by looking at `kind` and `intent` values.
-We strongly recommend specifying the `intent`, especially for versions before midPoint 4.6.
-For 4.6 and above, please see xref:/midpoint/reference/resources/resource-configuration/schema-handling/changes-in-4.6.adoc#_defaults_for_kind_and_intent[how the defaults are handled].
+We strongly recommend specifying the `intent`.
+Please see xref:/midpoint/reference/resources/resource-configuration/schema-handling/#_default_for_kind[how the default is handled].
 . If `kind` is not specified but `objectclass` and `intent` are, then the behavior is undefined.
 Please do not do this.
 . If only `objectclass` is specified (i.e. both `kind` and `intent` are not present), then it is used.
-(There are some issues with this setting present before midPoint 4.6, see bug:MID-7470[].)
 . If none of them is specified, then an error is thrown.
 Import and reconciliation cannot proceed without specific object class.
 

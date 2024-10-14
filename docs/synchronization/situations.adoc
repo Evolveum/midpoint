@@ -159,6 +159,9 @@ h| 2 or more
 
 * xref:/midpoint/reference/synchronization/introduction/[Synchronization]
 
-* xref:/midpoint/reference/resources/resource-configuration/synchronization/[Synchronization Configuration]
+* xref:/midpoint/reference/correlation/[]
 
-* xref:/midpoint/reference/synchronization/correlation-and-confirmation-expressions/[Correlation and Confirmation Expressions]
+* xref:/midpoint/reference/resources/resource-configuration/#_correlation_and_synchronization[Correlation and Synchronization]
+
+* xref:/midpoint/reference/resources/resource-configuration/schema-handling/#_synchronization[Synchronization Configuration]
+

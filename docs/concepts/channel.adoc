@@ -76,4 +76,6 @@ link:http://midpoint.evolveum.com/xml/ns/public/model/channels-3#rest[http://mid
 
 * xref:/midpoint/reference/synchronization/flavors/[Synchronization Flavors]
 
-* xref:/midpoint/reference/resources/resource-configuration/synchronization/[Synchronization Configuration]
+* xref:/midpoint/reference/resources/resource-configuration/#_correlation_and_synchronization[Correlation and Synchronization]
+
+* xref:/midpoint/reference/resources/resource-configuration/schema-handling/#_synchronization[Synchronization Configuration]
