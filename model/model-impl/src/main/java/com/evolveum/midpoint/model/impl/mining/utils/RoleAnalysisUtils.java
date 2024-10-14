@@ -277,7 +277,7 @@ public class RoleAnalysisUtils {
                             isPatternRedundant = true;
                             break;
                         } else {
-                            Double clusterMetric = singlePattern.getClusterMetric();
+                            Double clusterMetric = singlePattern.getReductionCount();
                             if (clusterMetric == null) {
                                 clusterMetric = 0.0;
                             }
@@ -294,7 +294,7 @@ public class RoleAnalysisUtils {
                         || !clusterRolesOidSet.containsAll(rolesInPattern)) {
                     patternIterator.remove();
                 } else {
-                    Double clusterMetric = singlePattern.getClusterMetric();
+                    Double clusterMetric = singlePattern.getReductionCount();
                     if (clusterMetric == null) {
                         clusterMetric = 0.0;
                     }

@@ -139,7 +139,7 @@ public class RoleAnalysisSinglePartitionAnomalyResultTabPopup extends BasePanel<
                 OperationResult operationResult = task.getResult();
                 RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
                 ObjectReferenceType sessionRef = getModelObject().getTargetSessionRef();
-                ObjectReferenceType userRef = getOutlierModelObject().getTargetObjectRef();
+                ObjectReferenceType userRef = getOutlierModelObject().getObjectRef();
 
                 PrismObject<RoleAnalysisSessionType> sessionPrism = roleAnalysisService.getSessionTypeObject(
                         sessionRef.getOid(), task, task.getResult());

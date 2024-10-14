@@ -43,7 +43,7 @@ public class RoleAnalysisOutlierSummaryPanel extends ObjectVerticalSummaryPanel<
     @Override
     protected @NotNull IModel<List<DetailsTableItem>> createDetailsItems() {
         RoleAnalysisOutlierType modelObject = getModelObject();
-        List<RoleAnalysisOutlierPartitionType> outlierPartitions = modelObject.getOutlierPartitions();
+        List<RoleAnalysisOutlierPartitionType> outlierPartitions = modelObject.getPartition();
 
         Set<String> anomalies = new HashSet<>();
         for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {

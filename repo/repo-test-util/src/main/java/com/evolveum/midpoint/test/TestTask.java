@@ -90,12 +90,6 @@ public class TestTask extends TestObject<TaskType> {
         test.waitForTaskFinish(oid, startTime, defaultTimeout, false);
     }
 
-    public void rerunTaskWithinTimeout(OperationResult result, long timeOut) throws CommonException {
-        long startTime = System.currentTimeMillis();
-        test.restartTask(oid, result);
-        test.waitForTaskFinish(oid, startTime, timeOut, false);
-    }
-
     public void rerunErrorsOk(OperationResult result) throws CommonException {
         long startTime = System.currentTimeMillis();
         test.restartTask(oid, result);

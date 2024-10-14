@@ -3785,7 +3785,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         assertSuccess(result);
         // Not sure why 2 ... but this is not a big problem now
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, isCached() ? 0 : 2);
+        // 1 is here currently because password outbound mapping is weak; and password is not cached yet (MID-10050)
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, isCached() ? 1 : 2);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);

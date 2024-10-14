@@ -395,7 +395,7 @@ public class ProjectionMappingSetEvaluator {
                     }
 
                     LOGGER.trace(
-                            "Computed new values when hasFullTargetObject={}, isStrongMappingWasUsed={}, pushingChange={}: {}",
+                            "Computed new values when targetValueAvailable={}, isStrongMappingWasUsed={}, pushingChange={}: {}",
                             targetValueAvailable, mappingOutputStruct.isStrongMappingWasUsed(),
                             mappingOutputStruct.isPushChanges(), valuesToReplace);
 

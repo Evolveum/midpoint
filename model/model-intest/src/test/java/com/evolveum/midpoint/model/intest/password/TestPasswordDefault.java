@@ -83,7 +83,7 @@ public class TestPasswordDefault extends AbstractPasswordTest {
 
         // User and default dummy account should have unchanged passwords
         assertUserPassword(userAfter, USER_PASSWORD_AA_CLEAR);
-         assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_AA_CLEAR);
+        assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_AA_CLEAR);
 
         // this one is not changed
         assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD);

@@ -13,14 +13,8 @@ import static com.evolveum.midpoint.model.api.context.ModelState.FINAL;
 import static com.evolveum.midpoint.model.impl.lens.LensUtil.getExportTypeTraceOrReduced;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
-import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
-import com.evolveum.midpoint.model.impl.simulation.FullOperationSimulationDataImpl;
-
-import com.evolveum.midpoint.task.api.SimulationTransaction;
 
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
@@ -31,13 +25,11 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ProgressInformation;
-import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.common.expression.evaluator.caching.AssociationSearchExpressionEvaluatorCache;
 import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.FocusConstraintsChecker;
-import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
+import com.evolveum.midpoint.model.impl.simulation.FullOperationSimulationDataImpl;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
@@ -51,6 +43,7 @@ import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultBuilder;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+import com.evolveum.midpoint.task.api.SimulationTransaction;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.Tracer;
 import com.evolveum.midpoint.util.exception.*;
@@ -74,15 +67,12 @@ public class Clockwork {
     private static final String OP_RUN_WITH_CONFLICT_DETECTION = Clockwork.class.getName() + ".runWithConflictDetection";
     private static final String OP_WRITE_SIMULATION_DATA = Clockwork.class.getName() + ".writeSimulationData";
 
-    @Autowired private Projector projector;
     @Autowired private ProvisioningService provisioningService;
     @Autowired private EventDispatcher eventDispatcher;
     @Autowired private Tracer tracer;
-    @Autowired private PolicyRuleProcessor policyRuleProcessor;
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
     @Autowired private SecurityEnforcer securityEnforcer;
     @Autowired private OperationExecutionRecorderForClockwork operationExecutionRecorder;
-    @Autowired private ClockworkHookHelper clockworkHookHelper;
     @Autowired private ClockworkConflictResolver clockworkConflictResolver;
     @Autowired private ModelBeans beans;
 
@@ -339,40 +329,6 @@ public class Clockwork {
                 }
             }
         }
-    }
-
-    public <F extends ObjectType> LensContext<F> previewChangesLegacy(LensContext<F> context, Collection<ProgressListener> listeners,
-            Task task, OperationResult result)
-            throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
-            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
-        try {
-            context.setLegacyPreview();
-
-            LOGGER.trace("Preview changes context:\n{}", context.debugDumpLazily());
-            context.setProgressListeners(listeners);
-
-            try {
-                projector.projectAllWaves(context, "preview", task, result);
-            } catch (ConflictDetectedException e) {
-                // Should not occur on preview changes!
-                throw new SystemException("Unexpected execution conflict detected: " + e.getMessage(), e);
-            }
-            clockworkHookHelper.invokePreview(context, task, result);
-            policyRuleProcessor.enforce(context, result);
-
-        } catch (ConfigurationException | SecurityViolationException | ObjectNotFoundException | SchemaException |
-                CommunicationException | PolicyViolationException | RuntimeException | ObjectAlreadyExistsException |
-                ExpressionEvaluationException e) {
-            ModelImplUtils.recordFatalError(result, e);
-            throw e;
-        }
-
-        LOGGER.debug("Preview changes output:\n{}", context.debugDumpLazily());
-
-        result.computeStatus();
-        result.cleanup();
-
-        return context;
     }
 
     private void enterAssociationSearchExpressionEvaluatorCache() {

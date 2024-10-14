@@ -14,10 +14,6 @@
     <roleModeOptions>
         <similarityThreshold>80.0</similarityThreshold>
         <minMembersCount>10</minMembersCount>
-        <propertiesRange>
-            <min>1.0</min>
-            <max>1061.0</max>
-        </propertiesRange>
         <minPropertiesOverlap>5</minPropertiesOverlap>
         <clusteringAttributeSetting>
         </clusteringAttributeSetting>

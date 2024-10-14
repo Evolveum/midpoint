@@ -140,11 +140,11 @@ public class RoleAnalysisOutlierAssociatedTileTable extends BasePanel<List<RoleA
     }
 
     private @Nullable RoleAnalysisOutlierPartitionType getOutlierPartition(@NotNull RoleAnalysisOutlierType outlier) {
-        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlier.getOutlierPartitions();
+        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlier.getPartition();
         if (getClusterRef() != null) {
             String clusterOid = getClusterRef().getOid();
             for (RoleAnalysisOutlierPartitionType partition : outlierPartitions) {
-                ObjectReferenceType targetClusterRef = partition.getTargetClusterRef();
+                ObjectReferenceType targetClusterRef = partition.getClusterRef();
                 if (targetClusterRef != null
                         && targetClusterRef.getOid() != null
                         && targetClusterRef.getOid().equals(clusterOid)) {
@@ -337,7 +337,7 @@ public class RoleAnalysisOutlierAssociatedTileTable extends BasePanel<List<RoleA
 
                 String objectName = "unknown";
                 RoleAnalysisOutlierType outlier = rowModel.getObject();
-                ObjectReferenceType targetObjectRef = outlier.getTargetObjectRef();
+                ObjectReferenceType targetObjectRef = outlier.getObjectRef();
                 if (targetObjectRef != null && targetObjectRef.getTargetName() != null) {
                     objectName = targetObjectRef.getTargetName().toString();
                 }

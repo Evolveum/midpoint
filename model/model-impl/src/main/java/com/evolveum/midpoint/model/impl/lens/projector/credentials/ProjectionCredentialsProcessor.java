@@ -319,6 +319,7 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
         return false;
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean canGetCleartext(Collection<PrismPropertyValue<ProtectedStringType>> pvals) {
         if (pvals == null) {
             return false;
@@ -343,7 +344,7 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
         return projCtx.isAdd();
     }
 
-    private <F extends FocusType> void validateProjectionPassword(
+    private void validateProjectionPassword(
             LensProjectionContext projectionContext,
             SecurityPolicyType securityPolicy,
             XMLGregorianCalendar now,
@@ -379,14 +380,14 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
         if (accountDelta.isModify() || password == null) {
             PropertyDelta<ProtectedStringType> passwordValueDelta =
                     accountDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
-            // Modification sanity check
-            if (accountDelta.getChangeType() == ChangeType.MODIFY && passwordValueDelta != null
-                    && (passwordValueDelta.isAdd() || passwordValueDelta.isDelete())) {
-                throw new SchemaException("Shadow password value cannot be added or deleted, it can only be replaced");
-            }
             if (passwordValueDelta == null) {
                 LOGGER.trace("Skipping processing password policies. Shadow delta does not contain password change.");
                 return;
+            }
+            // Modification sanity check
+            if (accountDelta.getChangeType() == ChangeType.MODIFY
+                    && (passwordValueDelta.isAdd() || passwordValueDelta.isDelete())) {
+                throw new SchemaException("Shadow password value cannot be added or deleted, it can only be replaced");
             }
             password = (PrismProperty<ProtectedStringType>) passwordValueDelta.getItemNewMatchingPath(null);
         }
@@ -409,10 +410,9 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
                 .build();
         OperationResult validationResult = objectValuePolicyEvaluator.validateStringValue(passwordValue, result);
 
-//        boolean isValid = valuePolicyProcessor.validateValue(passwordValue, securityPolicy, getOriginResolver(accountShadow), "projection password policy", task, result);
-
         if (!validationResult.isSuccess()) {
-            LOGGER.debug("Password for projection {} is not valid (policy={}): {}", projectionContext.getHumanReadableName(), securityPolicy, validationResult.getUserFriendlyMessage());
+            LOGGER.debug("Password for projection {} is not valid (policy={}): {}",
+                    projectionContext.getHumanReadableName(), securityPolicy, validationResult.getUserFriendlyMessage());
             result.computeStatus();
             throw new PolicyViolationException(
                     new LocalizableMessageBuilder()

@@ -141,7 +141,7 @@ public class RoleAnalysisOutlierAnomalyPanel extends AbstractObjectMainPanel<Rol
             }
         });
 
-        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlier.getOutlierPartitions();
+        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlier.getPartition();
 
         for (RoleAnalysisOutlierPartitionType partition : outlierPartitions) {
             String targetName = partition.getTargetSessionRef().getTargetName().toString();
@@ -171,7 +171,7 @@ public class RoleAnalysisOutlierAnomalyPanel extends AbstractObjectMainPanel<Rol
 
     private @NotNull IModel<List<WidgetItemModel>> loadDetailsModel() {
         RoleAnalysisOutlierType outlier = getObjectDetailsModels().getObjectType();
-        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlier.getOutlierPartitions();
+        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlier.getPartition();
         Set<String> anomalies = new HashSet<>();
         for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
             List<DetectedAnomalyResult> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();

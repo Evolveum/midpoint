@@ -335,7 +335,7 @@ public class RoleAnalysisCollapsableTablePanel<T> extends BasePanel<T> implement
     }
 
     @Override
-    public void setCurrentPage(ObjectPaging paging) {
+    public void setCurrentPageAndSort(ObjectPaging paging) {
         WebComponentUtil.setCurrentPage(this, paging);
     }
 

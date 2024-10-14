@@ -9,21 +9,8 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.PROJECTOR;
 import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
 import static com.evolveum.midpoint.model.impl.lens.LensUtil.getExportType;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
-import static com.evolveum.midpoint.util.MiscUtil.or0;
 
 import javax.xml.datatype.XMLGregorianCalendar;
-
-import com.evolveum.midpoint.model.impl.lens.*;
-import com.evolveum.midpoint.model.impl.lens.LensContext.AuthorizationState;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.ObjectTemplateProcessor;
-import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
-import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,8 +19,13 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
+import com.evolveum.midpoint.model.impl.lens.*;
+import com.evolveum.midpoint.model.impl.lens.LensContext.AuthorizationState;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.ProjectionCredentialsProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentHolderProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.ObjectTemplateProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
+import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
@@ -41,10 +33,14 @@ import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import java.util.concurrent.atomic.AtomicLong;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectorRunTraceType;
 
 /**
  * Projector recomputes the context. It takes the context with a few basic data as input. It uses all the policies
@@ -105,86 +101,6 @@ public class Projector {
         assert context.getProjectionWave() == context.getExecutionWave();
         assert context.isFresh();
         projectInternal(context, activityDescription, false, task, parentResult);
-    }
-
-    /**
-     * Executes projector from current execution wave to the last computed wave.
-     * Useful for change preview.
-     */
-    public <F extends ObjectType> void projectAllWaves(LensContext<F> context, String activityDescription,
-            Task task, OperationResult parentResult)
-            throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
-            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ConflictDetectedException {
-        assert context.getProjectionWave() == 0;
-        assert context.getExecutionWave() == 0;
-        context.normalize();
-        while (context.getProjectionWave() < context.computeMaxWaves()) {
-            boolean fromStart = context.getProjectionWave() == 0;
-            if (!fromStart) {
-                addAssignmentIds(context);
-            }
-            projectInternal(context, activityDescription, fromStart, task, parentResult);
-        }
-    }
-
-    /**
-     * Preview changes should provide results analogous to the real execution. This would involve simulating
-     * the execution of deltas computed in individual projection waves. Historically, this was not done so;
-     * only the simulations feature (which is something like advanced preview changes) does this in a limited way.
-     *
-     * We don't dare to add something like this to previewChanges, to avoid breaking existing functionality.
-     *
-     * But, for the associations to work, we need to have at least generated IDs in assignments. This method does exactly so.
-     *
-     * It is a kind of ugly hack, but the whole previewChanges feature is now like that.
-     * We should replace it with simulations in the future.
-     */
-    private <F extends ObjectType> void addAssignmentIds(LensContext<F> context) throws SchemaException {
-        var focusContext = context.getFocusContext();
-        if (focusContext == null) {
-            return;
-        }
-        var objectNew = asObjectable(focusContext.getObjectNew());
-        if (!(objectNew instanceof AssignmentHolderType assignmentHolderNew)) {
-            return;
-        }
-        // get currently max assignment ID
-        var idCounter = new AtomicLong(
-                assignmentHolderNew.getAssignment().stream()
-                        .mapToLong(a -> or0(a.getId()))
-                        .max()
-                        .orElse(0));
-        if (focusContext.getPrimaryDelta() != null) {
-            focusContext.modifyPrimaryDelta(
-                    delta -> addAssignmentsIds(delta, idCounter));
-        }
-        if (focusContext.getSecondaryDelta() != null) {
-            focusContext.modifySecondaryDelta(
-                    delta -> addAssignmentsIds(delta, idCounter));
-        }
-    }
-
-    private void addAssignmentsIds(@NotNull ObjectDelta<?> delta, AtomicLong idCounter) {
-        if (delta.isAdd()) {
-            ((AssignmentHolderType) delta.getObjectableToAdd()).getAssignment().forEach(a -> {
-                if (a.getId() == null) {
-                    a.setId(idCounter.incrementAndGet());
-                }
-            });
-        } else if (delta.isModify()) {
-            for (var modification : delta.getModifications()) {
-                if (AssignmentHolderType.F_ASSIGNMENT.equivalent(modification.getPath())) {
-                    modification.getNewValues().forEach(v -> {
-                        if (v instanceof PrismContainerValue<?> pcv) {
-                            if (pcv.getId() == null) {
-                                pcv.setId(idCounter.incrementAndGet());
-                            }
-                        }
-                    });
-                }
-            }
-        }
     }
 
     private <F extends ObjectType> void projectInternal(

@@ -7,9 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.modes;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context.AbstractRoleAnalysisConfiguration;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -23,7 +20,6 @@ public class OutlierDepartmentModeConfiguration extends AbstractRoleAnalysisConf
     RoleAnalysisService service;
     Task task;
     OperationResult result;
-    LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapper;
 
     public OutlierDepartmentModeConfiguration(
             RoleAnalysisService service,
@@ -34,23 +30,18 @@ public class OutlierDepartmentModeConfiguration extends AbstractRoleAnalysisConf
         this.service = service;
         this.task = task;
         this.result = result;
-//        this.objectWrapper = objectWrapper;
     }
 
     @Override
     public void updateConfiguration() {
-        RangeType propertyRange = createPropertyRange();
         ClusteringAttributeSettingType clusteringSetting = createClusteringSetting();
 
-        updatePrimaryOptions(null,
+        updatePrimaryOptions(null,null, null,
                 false,
-                propertyRange,
                 getDefaultAnalysisAttributes(),
                 clusteringSetting,
                 80.0,
-                5,
-                2,
-                false);
+                5, 2, false);
 
         updateDetectionOptions(2,
                 2,
@@ -61,12 +52,6 @@ public class OutlierDepartmentModeConfiguration extends AbstractRoleAnalysisConf
                         .min(2.0)
                         .max(2.0),
                 50.0);
-    }
-
-    private RangeType createPropertyRange() {
-        double minPropertyCount = 2.0;
-        double maxPropertyCount = getMaxPropertyCount();
-        return new RangeType().min(minPropertyCount).max(maxPropertyCount);
     }
 
     //TODO let the user choose the department archetype or root for department structure
@@ -80,37 +65,4 @@ public class OutlierDepartmentModeConfiguration extends AbstractRoleAnalysisConf
         clusteringSetting.getClusteringAttributeRule().add(rule);
         return clusteringSetting;
     }
-
-
-    @Override
-    public AbstractAnalysisSessionOptionType getAnalysisSessionOption() {
-        return super.getAnalysisSessionOption();
-    }
-
-    @Override
-    public RoleAnalysisDetectionOptionType getDetectionOption() {
-        return super.getDetectionOption();
-    }
-
-    @Override
-    public ItemVisibilityHandler getVisibilityHandler() {
-        return super.getVisibilityHandler();
-    }
-
-    public @NotNull Integer getMaxPropertyCount() {
-        Class<? extends ObjectType> propertiesClass = UserType.class;
-        if (getProcessMode().equals(RoleAnalysisProcessModeType.USER)) {
-            propertiesClass = RoleType.class;
-        }
-
-        Integer maxPropertiesObjects;
-
-        maxPropertiesObjects = service.countObjects(propertiesClass, null, null, task, result);
-
-        if (maxPropertiesObjects == null) {
-            maxPropertiesObjects = 1000000;
-        }
-        return maxPropertiesObjects;
-    }
-
 }

@@ -1262,6 +1262,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         // Reconcile is needed here. Recompute means noFetch which means that we won't
         // discover that an account is missing from backing store which means that the
         // quantum state won't collapse.
+        refreshShadowIfNeeded(accountWillOid);
         reconcileUser(userWillOid, task, result);
 
         // THEN
@@ -1277,7 +1278,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
                     .assertCompletionTimestamp(accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd)
                     .end()
                 .end();
-        assertUnassignedShadow(shadowRepoAsserter, true, isCaching() ? ENABLED : null);
+        assertUnassignedShadow(shadowRepoAsserter, true, isCaching() ? DISABLED : null);
 
         ShadowAsserter<Void> shadowModelAsserterNoFetch = assertModelShadowNoFetch(accountWillOid)
             .assertName(USER_WILL_NAME)
@@ -1290,7 +1291,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
                     .assertCompletionTimestamp(accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd)
                     .end()
                 .end();
-        assertUnassignedShadow(shadowModelAsserterNoFetch, true, isCaching() ? ENABLED : null);
+        assertUnassignedShadow(shadowModelAsserterNoFetch, true, isCaching() ? DISABLED : null);
         // Do NOT assert password here. There is no password even for semi-manual case as the shadow is dead and account gone.
 
         assertUnassignedShadow(assertModelShadow(accountWillOid), true, ActivationStatusType.DISABLED);
@@ -1698,7 +1699,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         // WHEN
         when();
         refreshShadowIfNeeded(accountWillOid);
-        traced(() -> reconcileUser(userWillOid, task, result));
+        reconcileUser(userWillOid, task, result);
 
         // THEN
         then();
@@ -1894,7 +1895,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
             .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
             .end()
-            .assertNoPasswordIf(!isCaching());
+            //.assertNoPasswordIf(!isCaching());
+            .assertNoPassword(); // change when resolving MID-10050
         assertAttributeFromCache(repoShadowAsserter, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
         assertShadowActivationAdministrativeStatusFromCache(repoShadowAsserter, ENABLED);
 
@@ -2242,7 +2244,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
                 .assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
                 .assertNoSimpleAttributeIfNotCached(ATTR_DESCRIPTION_QNAME)
             .end()
-            .assertNoPasswordIf(!isCaching())
+            //.assertNoPasswordIf(!isCaching());
+            .assertNoPassword() // change when resolving MID-10050
             .getObject();
         assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME);
         assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ENABLED);

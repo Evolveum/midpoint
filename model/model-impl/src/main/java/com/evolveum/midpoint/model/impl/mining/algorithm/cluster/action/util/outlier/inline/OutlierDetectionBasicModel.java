@@ -12,6 +12,8 @@ import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
 import com.evolveum.midpoint.common.mining.utils.values.ZScoreData;
 
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
@@ -56,7 +58,13 @@ public class OutlierDetectionBasicModel {
         this.analysisOption = session.getAnalysisOption();
         this.processMode = analysisOption.getProcessMode();
 
-        this.miningOperationChunk = roleAnalysisService.prepareCompressedMiningStructure(cluster, null, true,
+        UserAnalysisSessionOptionType userModeOptions = session.getUserModeOptions();
+        SearchFilterType userSearchFilter = userModeOptions.getUserSearchFilter();
+        SearchFilterType roleSearchFilter = userModeOptions.getRoleSearchFilter();
+        SearchFilterType assignmentSearchFilter = userModeOptions.getAssignmentSearchFilter();
+
+        this.miningOperationChunk = roleAnalysisService.prepareCompressedMiningStructure(cluster,
+                userSearchFilter, roleSearchFilter, assignmentSearchFilter, true,
                 processMode, result, task);
 
         RoleAnalysisDetectionOptionType defaultDetectionOption = session.getDefaultDetectionOption();
@@ -68,7 +76,6 @@ public class OutlierDetectionBasicModel {
                 ? 0.0
                 : defaultDetectionOption.getSensitivity();
 
-        UserAnalysisSessionOptionType userModeOptions = session.getUserModeOptions();
         this.similarityThreshold = userModeOptions.getSimilarityThreshold() == null
                 ? 0.0
                 : userModeOptions.getSimilarityThreshold();

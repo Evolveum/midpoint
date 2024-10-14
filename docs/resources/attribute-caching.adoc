@@ -39,7 +39,7 @@ See xref:#_refreshing_the_cache[Refreshing the Cache] below.
 
 == Configuring Caching
 
-The caching can be enabled or disabled at the level of a resource, object class, object type, or even an individual item (attribute, association, credentials, and so on).
+The caching can be enabled or disabled at the level of a resource, object class, object type, or even an individual item (attribute, association, activation, and so on).
 
 === An Example
 
@@ -86,7 +86,7 @@ For a quick overview, let us consider the following example.
 <5> Disables the caching for all other objects.
 
 Shortly speaking, the caching is disabled for the resource as a whole, except for the `account/default` type, for which it is enabled:
-Cached are all attributes except for `jpegPhoto`, credentials, activation, but no associations.
+Cached are all attributes except for `jpegPhoto`, activation, but no associations.
 
 === Configuration Details
 
@@ -137,9 +137,9 @@ It can have a value of `none` (no caching) and `passive` (passive caching as des
 | Scope of the caching for the auxiliary object classes.
 | `all`
 
-| `credentials`
-| Scope of the caching for credentials.
-| `all` (or `none` for xref:#caching_only_read_capability[caching-only read capability])
+// | `credentials`
+// | Scope of the caching for credentials.
+// | `all` (or `none` for xref:#caching_only_read_capability[caching-only read capability])
 
 |===
 
@@ -161,7 +161,7 @@ It can have a value of `none` (no caching) and `passive` (passive caching as des
 | All items of given kind will be cached.
 |===
 
-.The values of the `scope` configuration items for other items (associations, activation, credentials, and so on)
+.The values of the `scope` configuration items for other items (associations, activation, and so on)
 [%autowidth]
 |===
 | Value | Description
@@ -365,9 +365,9 @@ When the "caching only" read capability is present (e.g., for manual resources),
 | `defined`
 | `all`
 
-| credentials caching scope
-| `all`
-| `none`
+// | credentials caching scope
+// | `all`
+// | `none`
 
 |===
 
@@ -376,6 +376,10 @@ The caching for "caching only" read capability can be turned off by specifying `
 The defaults above can be turned back to standard default values (the second column) by specifying `cachingStrategy` of `passive`.
 
 == Limitations
+
+. Credentials are not cached yet, unless explicitly turned on by setting the legacy `credentials/password/caching/cachingStrategy` property.
+(See xref:/midpoint/reference/security/credentials/password-policy/[].)
+Only hashed storage of cached passwords is supported.
 
 #TODO describe these#
 

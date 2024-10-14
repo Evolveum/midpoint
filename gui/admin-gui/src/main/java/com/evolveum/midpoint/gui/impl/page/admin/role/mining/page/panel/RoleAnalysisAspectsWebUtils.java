@@ -72,12 +72,12 @@ public class RoleAnalysisAspectsWebUtils {
 
             Double overallConfidence = 0.0;
             Set<String> anomalies = new HashSet<>();
-            List<RoleAnalysisOutlierPartitionType> outlierPartitions = topFiveOutlier.getOutlierPartitions();
+            List<RoleAnalysisOutlierPartitionType> outlierPartitions = topFiveOutlier.getPartition();
             RoleAnalysisOutlierPartitionType clusterPartition = null;
             for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
                 String oid;
                 if (isCluster) {
-                    oid = outlierPartition.getTargetClusterRef().getOid();
+                    oid = outlierPartition.getClusterRef().getOid();
                 } else {
                     oid = outlierPartition.getTargetSessionRef().getOid();
                 }
@@ -354,9 +354,9 @@ public class RoleAnalysisAspectsWebUtils {
         ResultHandler<RoleAnalysisOutlierType> resultHandler = (outlier, lResult) -> {
 
             RoleAnalysisOutlierType outlierObject = outlier.asObjectable();
-            List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getOutlierPartitions();
+            List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getPartition();
             for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
-                ObjectReferenceType targetClusterRef = outlierPartition.getTargetClusterRef();
+                ObjectReferenceType targetClusterRef = outlierPartition.getClusterRef();
                 String oid = targetClusterRef.getOid();
                 if (clusterOid.equals(oid)) {
                     Double overallConfidence = outlierPartition.getPartitionAnalysis().getOverallConfidence();

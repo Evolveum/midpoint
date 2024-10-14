@@ -84,7 +84,7 @@ public class InternalsConfig {
      * This is the default setting for {@link #shadowCachingDefault} (if the respective system property is not present).
      * Currently, we need different values for tests and standard GUI mode.
      *
-     * TODO resolve this somehow before 4.9 release
+     * TODO resolve as part of MID-10117
      */
     public static ShadowCachingDefault shadowCachingDefaultDefault = ShadowCachingDefault.NONE;
 
@@ -267,7 +267,7 @@ public class InternalsConfig {
         /** The default is no caching, just like it was in 4.8 and earlier. */
         NONE("none"),
 
-        /** The default is short-lived caching ... TODO specify. This is the default. */
+        /** The default is short-lived caching, and using always the fresh data (at least for now). */
         STANDARD("standard"),
 
         /** The default is caching of all data, with long TTL. To be used primarily in tests. */

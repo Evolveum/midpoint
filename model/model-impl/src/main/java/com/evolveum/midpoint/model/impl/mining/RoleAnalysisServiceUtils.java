@@ -18,6 +18,10 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -36,6 +40,8 @@ import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidAssignment;
 
+import static com.evolveum.midpoint.prism.PrismConstants.Q_ANY;
+import static com.evolveum.midpoint.prism.PrismConstants.T_SELF;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
 
 import static java.util.Collections.singleton;
@@ -453,5 +459,214 @@ public class RoleAnalysisServiceUtils {
     protected static <PV extends PrismValue> @NotNull List<ValueMetadataType> collectValueMetadata(@NotNull PV rowValue) {
         PrismContainer<ValueMetadataType> valueMetadataContainer = rowValue.getValueMetadataAsContainer();
         return (List<ValueMetadataType>) valueMetadataContainer.getRealValues();
+    }
+
+    /**
+     * Builds an ObjectQuery for assignment search based on the provided user, role, and assignment filters.
+     *
+     * @param userObjectFiler An optional filter to apply to the user objects.
+     * @param roleObjectFilter An optional filter to apply to the role objects.
+     * @param assignmentFilter An optional filter to apply to the assignment objects.
+     * @return The constructed ObjectQuery for assignment search.
+     */
+    public static ObjectQuery buildAssignmentSearchObjectQuery(
+            @Nullable ObjectFilter userObjectFiler,
+            @Nullable ObjectFilter roleObjectFilter,
+            @Nullable ObjectFilter assignmentFilter) {
+        S_FilterExit filter;
+
+//        ObjectFilter testUserFilter = PrismContext.get().queryFor(UserType.class)
+//                .item(UserType.F_TITLE).eq("Hr Clerk").buildFilter();
+//
+//        ObjectFilter testRoleFilter = PrismContext.get().queryFor(RoleType.class)
+//                .item(RoleType.F_ARCHETYPE_REF).ref("d212dcd9-b062-49fd-adbd-7815868f132c").buildFilter();
+
+        if (userObjectFiler != null) {
+            filter = PrismContext.get().queryFor(AssignmentType.class)
+                    .ownedBy(UserType.class, AssignmentHolderType.F_ASSIGNMENT)
+                    .block()
+                    .filter(userObjectFiler)
+                    .endBlock();
+        } else {
+            filter = PrismContext.get().queryFor(AssignmentType.class)
+                    .ownedBy(UserType.class);
+        }
+        if (roleObjectFilter != null) {
+            filter = filter
+                    .and()
+                    .ref(AssignmentType.F_TARGET_REF)
+                    .type(RoleType.class)
+                    .block().filter(roleObjectFilter)
+                    .endBlock();
+        } else {
+            filter = filter
+                    .and()
+                    .ref(AssignmentType.F_TARGET_REF)
+                    .type(RoleType.class);
+        }
+
+        if (assignmentFilter != null) {
+            filter = filter
+                    .and()
+                    .filter(assignmentFilter);
+        }
+
+        return filter.build();
+    }
+
+    /**
+     * Builds an ObjectQuery for membership search based on the provided user and role filters.
+     *
+     * @param userObjectFiler An optional filter to apply to the user objects.
+     * @param roleObjectFilter An optional filter to apply to the role objects.
+     * @return The constructed ObjectQuery for membership search.
+     */
+    public static ObjectQuery buildMembershipSearchObjectQuery(@Nullable ObjectFilter userObjectFiler, @Nullable ObjectFilter roleObjectFilter) {
+        S_FilterExit filter;
+
+        if (userObjectFiler != null) {
+            filter = PrismContext.get().queryForReferenceOwnedBy(UserType.class, AssignmentHolderType.F_ROLE_MEMBERSHIP_REF)
+                    .block()
+                    .filter(userObjectFiler)
+                    .endBlock();
+        } else {
+            filter = PrismContext.get().queryForReferenceOwnedBy(UserType.class, AssignmentHolderType.F_ROLE_MEMBERSHIP_REF);
+        }
+
+        if (roleObjectFilter != null) {
+            filter = filter
+                    .and()
+                    .ref(ItemPath.SELF_PATH, RoleType.COMPLEX_TYPE, null)
+                    .block()
+                    .filter(roleObjectFilter)
+                    .endBlock();
+
+        } else {
+            filter = filter
+                    .and()
+                    .item(T_SELF)
+                    .ref(null, RoleType.COMPLEX_TYPE, Q_ANY);
+        }
+
+        return filter.build();
+    }
+
+    /**
+     * Builds an ObjectQuery for assignment role member search based on the provided role, user, and assignment filters.
+     *
+     * @param roles A set of role OIDs to be included in the search.
+     * @param userObjectFiler An optional filter to apply to the user objects.
+     * @param roleObjectFilter An optional filter to apply to the role objects.
+     * @param assignmentFilter An optional filter to apply to the assignment objects.
+     * @return The constructed ObjectQuery for assignment role member search.
+     */
+    public static ObjectQuery buildAssignmentRoleMemberSearchObjectQuery(
+            @NotNull Set<String> roles,
+            @Nullable ObjectFilter userObjectFiler,
+            @Nullable ObjectFilter roleObjectFilter,
+            @Nullable ObjectFilter assignmentFilter) {
+        S_FilterExit filter;
+        if (userObjectFiler != null) {
+            filter = PrismContext.get().queryFor(AssignmentType.class)
+                    .ownedBy(UserType.class)
+                    .block()
+                    .filter(userObjectFiler)
+                    .endBlock();
+        } else {
+            filter = PrismContext.get().queryFor(AssignmentType.class)
+                    .ownedBy(UserType.class);
+        }
+
+        filter = filter
+                .and()
+                .item(AssignmentType.F_TARGET_REF)
+                .ref(roles.toArray(new String[0]));
+
+        if (roleObjectFilter != null) {
+            filter = filter
+                    .and()
+                    .ref(AssignmentType.F_TARGET_REF)
+                    .type(RoleType.class)
+                    .block()
+                    .type(RoleType.class)
+                    .filter(roleObjectFilter)
+                    .endBlock();
+        } else {
+            filter = filter
+                    .and()
+                    .ref(AssignmentType.F_TARGET_REF)
+                    .type(RoleType.class)
+                    .block()
+                    .type(RoleType.class)
+                    .endBlock();
+        }
+
+        if (assignmentFilter != null) {
+            filter = filter
+                    .and()
+                    .filter(assignmentFilter);
+        }
+
+        return filter.build();
+    }
+
+    /**
+     * Builds an ObjectQuery for assignment user access search based on the provided user, role, and assignment filters.
+     *
+     * @param users A set of user OIDs to be included in the search.
+     * @param userObjectFiler An optional filter to apply to the user objects.
+     * @param roleObjectFilter An optional filter to apply to the role objects.
+     * @param assignmentFilter An optional filter to apply to the assignment objects.
+     * @return The constructed ObjectQuery for assignment user access search.
+     */
+    public static ObjectQuery buildAssignmentUserAccessSearchObjectQuery(
+            @NotNull Set<String> users,
+            @Nullable ObjectFilter userObjectFiler,
+            @Nullable ObjectFilter roleObjectFilter,
+            @Nullable ObjectFilter assignmentFilter) {
+        S_FilterExit filter;
+        if (userObjectFiler != null) {
+            filter = PrismContext.get().queryFor(AssignmentType.class)
+                    .ownedBy(UserType.class)
+                    .block()
+                    .id(users.toArray(new String[0]))
+                    .and()
+                    .filter(userObjectFiler)
+                    .endBlock();
+        } else {
+            filter = PrismContext.get().queryFor(AssignmentType.class)
+                    .ownedBy(UserType.class).block().id(users.toArray(new String[0])).endBlock();
+        }
+
+//        filter = filter
+//                .and()
+//                .item(AssignmentType.F_TARGET_REF)
+//                .ref(users.toArray(new String[0]));
+
+        if (roleObjectFilter != null) {
+            filter = filter
+                    .and()
+                    .ref(AssignmentType.F_TARGET_REF)
+                    .type(RoleType.class)
+                    .block()
+                    .filter(roleObjectFilter)
+                    .endBlock();
+        } else {
+            filter = filter
+                    .and()
+                    .ref(AssignmentType.F_TARGET_REF)
+                    .type(RoleType.class)
+                    .block()
+                    .type(RoleType.class)
+                    .endBlock();
+        }
+
+        if (assignmentFilter != null) {
+            filter = filter
+                    .and()
+                    .filter(assignmentFilter);
+        }
+
+        return filter.build();
     }
 }

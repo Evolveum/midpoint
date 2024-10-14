@@ -187,7 +187,7 @@ public class PageOutliers extends PageAdmin {
                     @Override
                     public IModel<?> getDataModel(IModel<SelectableBean<RoleAnalysisOutlierType>> iModel) {
                         RoleAnalysisOutlierType outlierObject = iModel.getObject().getValue();
-                        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getOutlierPartitions();
+                        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getPartition();
                         return Model.of(outlierPartitions.size());
                     }
 
@@ -195,7 +195,7 @@ public class PageOutliers extends PageAdmin {
                     public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisOutlierType>>> cellItem,
                             String componentId, IModel<SelectableBean<RoleAnalysisOutlierType>> model) {
                         RoleAnalysisOutlierType outlierObject = model.getObject().getValue();
-                        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getOutlierPartitions();
+                        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getPartition();
                         cellItem.add(new Label(componentId, outlierPartitions.size()));
                     }
 
@@ -312,7 +312,7 @@ public class PageOutliers extends PageAdmin {
 
     private static @NotNull Set<String> resolveOutlierAnomalies(@NotNull RoleAnalysisOutlierType outlierObject) {
         Set<String> anomalies = new HashSet<>();
-        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getOutlierPartitions();
+        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getPartition();
         for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
             List<DetectedAnomalyResult> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();
             for (DetectedAnomalyResult detectedAnomaly : detectedAnomalyResult) {

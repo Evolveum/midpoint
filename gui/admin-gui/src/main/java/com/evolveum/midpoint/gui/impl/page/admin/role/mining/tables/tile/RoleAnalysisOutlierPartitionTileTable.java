@@ -291,7 +291,7 @@ public class RoleAnalysisOutlierPartitionTileTable extends BasePanel<String> {
     }
 
     private List<RoleAnalysisOutlierPartitionType> getOutlierPartitionsToDisplay() {
-        List<RoleAnalysisOutlierPartitionType> outlierPartitions = getOutlierModel().getObject().getOutlierPartitions();
+        List<RoleAnalysisOutlierPartitionType> outlierPartitions = getOutlierModel().getObject().getPartition();
 
         String anomalyOid = getAnomalyOid();
         if (anomalyOid == null) {

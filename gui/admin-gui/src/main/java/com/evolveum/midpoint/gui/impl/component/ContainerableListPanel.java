@@ -423,13 +423,18 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             }
 
             @Override
-            protected Integer getConfiguredPagingSize() {
+            protected Integer getConfiguredPageSize() {
                 return getViewPagingMaxSize();
             }
 
             @Override
-            protected void savePagingNewValue(Integer newValue) {
-                setPagingSizeNewValue(newValue);
+            protected void savePagingNewValue(Integer newPageSize) {
+                setPagingSizeNewValue(newPageSize);
+            }
+
+            @Override
+            protected void onPagingChanged(ObjectPaging paging) {
+                ContainerableListPanel.this.onPagingChanged(paging);
             }
         };
         itemTable.setOutputMarkupId(true);
@@ -439,12 +444,21 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         if (getPageStorage() != null) {
             ObjectPaging pageStorage = getPageStorage().getPaging();
             if (pageStorage != null) {
-                itemTable.setCurrentPage(pageStorage);
+                itemTable.setCurrentPageAndSort(pageStorage);
             }
         }
         itemTable.setShowAsCard(showTableAsCard());
 
         return itemTable;
+    }
+
+    private void onPagingChanged(ObjectPaging paging) {
+        PageStorage storage = getPageStorage();
+        if (storage == null) {
+            return;
+        }
+
+        storage.setPaging(paging);
     }
 
     private void setPagingSizeNewValue(Integer newValue) {
@@ -589,7 +603,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         if (getPageStorage() != null) {
             ObjectPaging pageStorage = getPageStorage().getPaging();
             if (pageStorage != null) {
-                itemTable.setCurrentPage(pageStorage);
+                itemTable.setCurrentPageAndSort(pageStorage);
             }
         }
 
@@ -1298,7 +1312,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         table.getDataTable().getColumns().addAll(createColumns());
         table.addOrReplace(initSearch("header"));
         resetSearchModel();
-        table.setCurrentPage(null);
+        table.setCurrentPageAndSort(null);
     }
 
     public void resetSearchModel() {

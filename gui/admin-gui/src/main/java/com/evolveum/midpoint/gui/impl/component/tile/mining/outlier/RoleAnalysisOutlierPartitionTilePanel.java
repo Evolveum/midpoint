@@ -93,8 +93,8 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
             sessionName = partition.getTargetSessionRef().getTargetName().toString();
         }
 
-        if (partition.getTargetClusterRef() != null && partition.getTargetClusterRef().getTargetName() != null) {
-            clusterName = partition.getTargetClusterRef().getTargetName().toString();
+        if (partition.getClusterRef() != null && partition.getClusterRef().getTargetName() != null) {
+            clusterName = partition.getClusterRef().getTargetName().toString();
         }
 
         String title = sessionName + " / " + clusterName;
@@ -125,7 +125,7 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
             @Override
             protected void onClickPerform(AjaxRequestTarget target) {
                 PageParameters parameters = new PageParameters();
-                parameters.add(OnePageParameterEncoder.PARAMETER, partition.getTargetClusterRef().getOid());
+                parameters.add(OnePageParameterEncoder.PARAMETER, partition.getClusterRef().getOid());
                 parameters.add("panelId", "clusterDetails");
                 Class<? extends PageBase> detailsPageClass = DetailsPageUtil
                         .getObjectDetailsPage(RoleAnalysisClusterType.class);

@@ -1233,7 +1233,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                     return null;
                 }
                 RoleAnalysisOutlierPartitionType outlierPartition = null;
-                List<RoleAnalysisOutlierPartitionType> outlierPartitions = topOutliers.getOutlierPartitions();
+                List<RoleAnalysisOutlierPartitionType> outlierPartitions = topOutliers.getPartition();
                 for (RoleAnalysisOutlierPartitionType outlierPartitionNext : outlierPartitions) {
                     ObjectReferenceType partitionTargetSessionRef = outlierPartitionNext.getTargetSessionRef();
                     if (partitionTargetSessionRef.getOid().equals(sessionOid)) {
@@ -1277,7 +1277,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
         ResultHandler<RoleAnalysisOutlierType> handler = (object, parentResult) -> {
             userOutlierCount++;
             RoleAnalysisOutlierType outlier = object.asObjectable();
-            List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlier.getOutlierPartitions();
+            List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlier.getPartition();
 
             for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
                 List<DetectedAnomalyResult> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();

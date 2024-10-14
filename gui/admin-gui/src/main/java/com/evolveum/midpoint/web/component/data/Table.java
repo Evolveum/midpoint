@@ -7,9 +7,10 @@
 
 package com.evolveum.midpoint.web.component.data;
 
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
+
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -30,6 +31,5 @@ public interface Table {
 
     void setCurrentPage(long page);
 
-    @Deprecated
-    void setCurrentPage(ObjectPaging paging);
+    void setCurrentPageAndSort(ObjectPaging paging);
 }
