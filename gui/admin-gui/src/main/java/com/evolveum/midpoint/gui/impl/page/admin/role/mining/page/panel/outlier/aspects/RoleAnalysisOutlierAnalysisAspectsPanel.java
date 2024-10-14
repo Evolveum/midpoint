@@ -45,6 +45,8 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 
 import java.io.Serial;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 
 @PanelType(name = "outlierOverView", defaultContainerPath = "empty")
@@ -479,7 +481,6 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
                 int indirectAssignment = 0;
                 int duplicatedRoleAssignmentCount = 0;
 
-
                 for (ObjectReferenceType ref : refsToRoles) {
                     List<AssignmentPathMetadataType> metadataPaths = AccessMetadataUtil.computeAssignmentPaths(ref);
                     if (metadataPaths.size() == 1) {
@@ -517,6 +518,8 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
 
                 }
 
+                double averageAccessPerUser = getAverageAccessPerUser(roleAnalysisService, result, simpleTask);
+
                 int finalDirectAssignment = directAssignment;
                 int finalIndirectAssignment = indirectAssignment;
                 int finalDuplicatedRoleAssignmentCount = duplicatedRoleAssignmentCount;
@@ -528,7 +531,7 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
 
                     @Override
                     protected String getAverageCount() {
-                        return "0 (TBD)";
+                        return String.valueOf(averageAccessPerUser);
                     }
 
                     @Override
@@ -572,6 +575,24 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
 
         accessHeader.setOutputMarkupId(true);
         cardBodyComponent.add(accessHeader);
+    }
+
+    private static double getAverageAccessPerUser(
+            @NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull OperationResult result,
+            @NotNull Task simpleTask) {
+        int numberOfRoleToUserAssignment = roleAnalysisService.countUserOwnedRoleAssignment(result);
+
+        int finalUsersInSystem = roleAnalysisService.countObjects(UserType.class, null, null, simpleTask, result);
+
+        double averagePerUser = finalUsersInSystem > 0
+                ? (double) numberOfRoleToUserAssignment / finalUsersInSystem
+                : 0.0;
+
+        BigDecimal averagePerUserRounded = BigDecimal.valueOf(averagePerUser)
+                .setScale(2, RoundingMode.HALF_UP);
+        averagePerUser = averagePerUserRounded.doubleValue();
+        return averagePerUser;
     }
 
     private void addProgressBar(@NotNull List<ProgressBar> list, @NotNull ProgressBar.State state, int value, int totalValue) {

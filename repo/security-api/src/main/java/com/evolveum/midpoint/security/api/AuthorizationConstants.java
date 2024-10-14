@@ -633,6 +633,15 @@ public class AuthorizationConstants {
     public static final QName AUTZ_UI_OUTLIERS_VIEW_QNAME = new QName(NS_AUTHORIZATION_UI, "outliersView");
     public static final String AUTZ_UI_OUTLIERS_VIEW_URL = NS_AUTHORIZATION_UI + "#outliersView";
 
+    public static final QName AUTZ_UI_ROLE_SUGGESTION_QNAME = new QName(NS_AUTHORIZATION_UI, "roleSuggestion");
+    public static final String AUTZ_UI_ROLE_SUGGESTION_URL = NS_AUTHORIZATION_UI + "#roleSuggestion";
+
+    public static final QName AUTZ_UI_ROLE_SUGGESTIONS_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "allRoleSuggestions");
+    public static final String AUTZ_UI_ROLE_SUGGESTIONS_ALL_URL = NS_AUTHORIZATION_UI + "#allRoleSuggestions";
+
+    public static final QName AUTZ_UI_ROLE_SUGGESTIONS_VIEW_QNAME = new QName(NS_AUTHORIZATION_UI, "roleSuggestionView");
+    public static final String AUTZ_UI_ROLE_SUGGESTIONS_VIEW_URL = NS_AUTHORIZATION_UI + "#roleSuggestionView";
+
     /**
      * Those are the items that midPoint logic controls directly. They have exception from execution-phase
      * authorization enforcement. Their modification in execution phase is always allowed. If it was not

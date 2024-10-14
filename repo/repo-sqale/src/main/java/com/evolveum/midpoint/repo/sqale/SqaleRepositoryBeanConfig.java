@@ -8,7 +8,9 @@ package com.evolveum.midpoint.repo.sqale;
 
 import javax.sql.DataSource;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.mining.outlier.QOutlierObjectMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.mining.cluster.QClusterDetectedPatternMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.mining.outlier.QOutlierMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.mining.outlier.QOutlierPartitionMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.*;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -179,7 +181,7 @@ public class SqaleRepositoryBeanConfig {
                 .register(ReportDataType.COMPLEX_TYPE, QReportDataMapping.init(repositoryContext))
                 .register(RoleAnalysisClusterType.COMPLEX_TYPE, QClusterObjectMapping.init(repositoryContext))
                 .register(RoleAnalysisSessionType.COMPLEX_TYPE, QSessionObjectMapping.init(repositoryContext))
-                .register(RoleAnalysisOutlierType.COMPLEX_TYPE, QOutlierObjectMapping.init(repositoryContext))
+                .register(RoleAnalysisOutlierType.COMPLEX_TYPE, QOutlierMapping.init(repositoryContext))
                 .register(ResourceType.COMPLEX_TYPE, QResourceMapping.init(repositoryContext))
                 .register(RoleType.COMPLEX_TYPE, QRoleMapping.init(repositoryContext))
                 .register(SecurityPolicyType.COMPLEX_TYPE,
@@ -201,6 +203,8 @@ public class SqaleRepositoryBeanConfig {
                 .register(MarkType.COMPLEX_TYPE, QMarkMapping.init(repositoryContext))
                 .register(SchemaType.COMPLEX_TYPE, QSchemaMapping.init(repositoryContext))
                 .register(QAffectedObjectsMapping.init(repositoryContext))
+                .register(QOutlierPartitionMapping.initMapping(repositoryContext))
+                .register(RoleAnalysisDetectionPatternType.COMPLEX_TYPE, QClusterDetectedPatternMapping.initMapping(repositoryContext))
                 .register(PolicyType.COMPLEX_TYPE, QPolicyMapping.init(repositoryContext))
                 .seal();
 

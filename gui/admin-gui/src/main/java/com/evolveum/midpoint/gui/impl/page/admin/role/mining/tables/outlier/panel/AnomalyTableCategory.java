@@ -720,39 +720,39 @@ public enum AnomalyTableCategory implements Serializable {
         };
         columns.add(column);
 
-        column = new AbstractExportableColumn<>(
-                pageBase.createStringResource("")) {
-
-            @Override
-            public IModel<?> getDataModel(IModel<SelectableBean<RoleType>> iModel) {
-                return null;
-            }
-
-            @Override
-            public Component getHeader(String componentId) {
-                return new Label(componentId,
-                        pageBase.createStringResource("RoleAnalysisDetectedAnomalyTable.header.state.title"));
-            }
-
-            @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<RoleType>>> cellItem,
-                    String componentId, IModel<SelectableBean<RoleType>> model) {
-                RoleType role = model.getObject().getValue();
-                String oid = role.getOid();
-                String title = "TBD";
-
-                Label label = new Label(componentId, title);
-                label.setOutputMarkupId(true);
-                cellItem.add(label);
-            }
-
-            @Override
-            public boolean isSortable() {
-                return false;
-            }
-
-        };
-        columns.add(column);
+//        column = new AbstractExportableColumn<>(
+//                pageBase.createStringResource("")) {
+//
+//            @Override
+//            public IModel<?> getDataModel(IModel<SelectableBean<RoleType>> iModel) {
+//                return null;
+//            }
+//
+//            @Override
+//            public Component getHeader(String componentId) {
+//                return new Label(componentId,
+//                        pageBase.createStringResource("RoleAnalysisDetectedAnomalyTable.header.state.title"));
+//            }
+//
+//            @Override
+//            public void populateItem(Item<ICellPopulator<SelectableBean<RoleType>>> cellItem,
+//                    String componentId, IModel<SelectableBean<RoleType>> model) {
+//                RoleType role = model.getObject().getValue();
+//                String oid = role.getOid();
+//                String title = "TBD";
+//
+//                Label label = new Label(componentId, title);
+//                label.setOutputMarkupId(true);
+//                cellItem.add(label);
+//            }
+//
+//            @Override
+//            public boolean isSortable() {
+//                return false;
+//            }
+//
+//        };
+//        columns.add(column);
         return columns;
     }
 

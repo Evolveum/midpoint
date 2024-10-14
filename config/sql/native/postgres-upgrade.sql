@@ -970,6 +970,43 @@ call apply_change(47, $aa$
 $aa$);
 
 
+call apply_change(48, $aa$
+    ALTER TYPE ContainerType ADD VALUE IF NOT EXISTS 'CLUSTER_DETECTED_PATTERN' AFTER 'CASE_WORK_ITEM';
+    ALTER TYPE ContainerType ADD VALUE IF NOT EXISTS 'OUTLIER_PARTITION' AFTER 'OPERATION_EXECUTION';
+$aa$);
+
+call apply_change(49, $aa$
+    CREATE TABLE m_role_analysis_cluster_detected_pattern (
+        ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+        containerType ContainerType GENERATED ALWAYS AS ('CLUSTER_DETECTED_PATTERN') STORED
+            CHECK (containerType = 'CLUSTER_DETECTED_PATTERN'),
+        ---
+        reductionCount double precision,
+        PRIMARY KEY (ownerOid, cid)
+    )
+        INHERITS(m_container);
+
+    CREATE INDEX m_role_analysis_cluster_detected_pattern_reductionCount_idx ON m_role_analysis_cluster_detected_pattern (reductionCount);
+
+    CREATE TABLE m_role_analysis_outlier_partition (
+        ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+        containerType ContainerType GENERATED ALWAYS AS ('OUTLIER_PARTITION') STORED
+            CHECK (containerType = 'OUTLIER_PARTITION'),
+        ---
+        clusterRefOid UUID,
+        clusterRefTargetType ObjectType,
+        clusterRefRelationId INTEGER REFERENCES m_uri(id),
+        PRIMARY KEY (ownerOid, cid)
+    )
+        INHERITS(m_container);
+
+    CREATE INDEX m_role_analysis_outlier_partition_clusterRefOid_idx ON m_role_analysis_outlier_partition (clusterRefOid);
+
+    ALTER TABLE m_role_analysis_outlier ADD COLUMN overallConfidence double precision;
+
+    CREATE INDEX m_role_analysis_outlier_overallConfidence_idx ON m_role_analysis_outlier (overallConfidence);
+$aa$);
+
 ---
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_change number at the end of postgres-new.sql

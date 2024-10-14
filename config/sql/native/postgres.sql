@@ -43,10 +43,12 @@ CREATE TYPE ContainerType AS ENUM (
     'ASSIGNMENT',
     'ASSIGNMENT_METADATA',
     'CASE_WORK_ITEM',
+    'CLUSTER_DETECTED_PATTERN',
     'FOCUS_IDENTITY',
     'INDUCEMENT',
     'LOOKUP_TABLE_ROW',
     'OPERATION_EXECUTION',
+    'OUTLIER_PARTITION',
     'SIMULATION_RESULT_PROCESSED_OBJECT',
     'TRIGGER');
 
@@ -1525,6 +1527,18 @@ CREATE INDEX m_role_analysis_cluster_parentRefTargetType_idx ON m_role_analysis_
 CREATE INDEX m_role_analysis_cluster_parentRefRelationId_idx ON m_role_analysis_cluster (parentRefRelationId);
 
 
+CREATE TABLE m_role_analysis_cluster_detected_pattern (
+    ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    containerType ContainerType GENERATED ALWAYS AS ('CLUSTER_DETECTED_PATTERN') STORED
+        CHECK (containerType = 'CLUSTER_DETECTED_PATTERN'),
+    ---
+    reductionCount double precision,
+    PRIMARY KEY (ownerOid, cid)
+)
+    INHERITS(m_container);
+
+CREATE INDEX m_role_analysis_cluster_detected_pattern_reductionCount_idx ON m_role_analysis_cluster_detected_pattern (reductionCount);
+
 CREATE TABLE m_role_analysis_session (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('ROLE_ANALYSIS_SESSION') STORED
@@ -1545,13 +1559,15 @@ CREATE TABLE m_role_analysis_outlier (
         CHECK (objectType = 'ROLE_ANALYSIS_OUTLIER'),
         targetObjectRefTargetOid UUID,
         targetObjectRefTargetType ObjectType,
-        targetObjectRefRelationId INTEGER REFERENCES m_uri(id)
+        targetObjectRefRelationId INTEGER REFERENCES m_uri(id),
+        overallConfidence double precision
 )
     INHERITS (m_assignment_holder);
 
 CREATE INDEX m_role_analysis_outlier_targetObjectRefTargetOid_idx ON m_role_analysis_outlier (targetObjectRefTargetOid);
 CREATE INDEX m_role_analysis_outlier_targetObjectRefTargetType_idx ON m_role_analysis_outlier (targetObjectRefTargetType);
 CREATE INDEX m_role_analysis_outlier_targetObjectRefRelationId_idx ON m_role_analysis_outlier (targetObjectRefRelationId);
+CREATE INDEX m_role_analysis_outlier_overallConfidence_idx ON m_role_analysis_outlier (overallConfidence);
 
 CREATE TRIGGER m_role_analysis_outlier_oid_insert_tr BEFORE INSERT ON m_role_analysis_outlier
     FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
@@ -1559,6 +1575,22 @@ CREATE TRIGGER m_role_analysis_outlier_update_tr BEFORE UPDATE ON m_role_analysi
     FOR EACH ROW EXECUTE FUNCTION before_update_object();
 CREATE TRIGGER m_role_analysis_outlier_oid_delete_tr AFTER DELETE ON m_role_analysis_outlier
     FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
+
+
+    CREATE TABLE m_role_analysis_outlier_partition (
+        ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+        containerType ContainerType GENERATED ALWAYS AS ('OUTLIER_PARTITION') STORED
+            CHECK (containerType = 'OUTLIER_PARTITION'),
+        ---
+        clusterRefOid UUID,
+        clusterRefTargetType ObjectType,
+        clusterRefRelationId INTEGER REFERENCES m_uri(id),
+        PRIMARY KEY (ownerOid, cid)
+    )
+        INHERITS(m_container);
+
+CREATE INDEX m_role_analysis_outlier_partition_clusterRefOid_idx ON m_role_analysis_outlier_partition (clusterRefOid);
+
 
 -- Represents LookupTableType, see https://docs.evolveum.com/midpoint/reference/misc/lookup-tables/
 CREATE TABLE m_lookup_table (
@@ -2609,4 +2641,4 @@ END $$;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_change(47, $$ SELECT 1 $$, true);
+call apply_change(49, $$ SELECT 1 $$, true);
