@@ -167,49 +167,49 @@ public class OutlierAnomaliesItemPanel<T extends Serializable>
                             }
                         };
                     }
-                },
-
-                new WidgetItemModel(createStringResource(""),
-                        createStringResource("RoleAnalysis.sort")) {
-                    @Override
-                    public Component createValueComponent(String id) {
-                        Label label = new Label(id, "0 (todo)");
-                        label.add(AttributeAppender.append("class", " h4"));
-                        return label;
-                    }
-
-                    @Override
-                    public Component createDescriptionComponent(String id) {
-                        return new LabelWithHelpPanel(id,
-                                createStringResource("OutlierAnomaliesItemPanel.pending.cert")) {
-                            @Override
-                            protected IModel<String> getHelpModel() {
-                                return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");
-                            }
-                        };
-                    }
-                },
-
-                new WidgetItemModel(createStringResource(""),
-                        createStringResource("RoleAnalysis.chart")) {
-                    @Override
-                    public Component createValueComponent(String id) {
-                        Label label = new Label(id, "0 (todo)");
-                        label.add(AttributeAppender.append("class", " h4"));
-                        return label;
-                    }
-
-                    @Override
-                    public Component createDescriptionComponent(String id) {
-                        return new LabelWithHelpPanel(id,
-                                createStringResource("OutlierAnomaliesItemPanel.closed.cert")) {
-                            @Override
-                            protected IModel<String> getHelpModel() {
-                                return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");
-                            }
-                        };
-                    }
                 }
+
+//                new WidgetItemModel(createStringResource(""),
+//                        createStringResource("RoleAnalysis.sort")) {
+//                    @Override
+//                    public Component createValueComponent(String id) {
+//                        Label label = new Label(id, "0 (todo)");
+//                        label.add(AttributeAppender.append("class", " h4"));
+//                        return label;
+//                    }
+//
+//                    @Override
+//                    public Component createDescriptionComponent(String id) {
+//                        return new LabelWithHelpPanel(id,
+//                                createStringResource("OutlierAnomaliesItemPanel.pending.cert")) {
+//                            @Override
+//                            protected IModel<String> getHelpModel() {
+//                                return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");
+//                            }
+//                        };
+//                    }
+//                },
+
+//                new WidgetItemModel(createStringResource(""),
+//                        createStringResource("RoleAnalysis.chart")) {
+//                    @Override
+//                    public Component createValueComponent(String id) {
+//                        Label label = new Label(id, "0 (todo)");
+//                        label.add(AttributeAppender.append("class", " h4"));
+//                        return label;
+//                    }
+//
+//                    @Override
+//                    public Component createDescriptionComponent(String id) {
+//                        return new LabelWithHelpPanel(id,
+//                                createStringResource("OutlierAnomaliesItemPanel.closed.cert")) {
+//                            @Override
+//                            protected IModel<String> getHelpModel() {
+//                                return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");
+//                            }
+//                        };
+//                    }
+//                }
         );
 
         return Model.ofList(detailsModel);

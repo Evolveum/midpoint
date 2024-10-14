@@ -318,86 +318,86 @@ public class RoleAnalysisSinglePartitionAnomalyResultTabPopup extends BasePanel<
     private @NotNull IModel<List<WidgetItemModel>> loadOutlierVsRoleMemberModel() {
 
         List<WidgetItemModel> detailsModel = List.of(
-                new WidgetItemModel(createStringResource(""),
-                        Model.of("")) {
-                    @Override
-                    public Component createValueComponent(String id) {
-                        Label label = new Label(id, "0 (todo)");
-                        label.add(AttributeAppender.append("class", " h4"));
-                        return label;
-                    }
+//                new WidgetItemModel(createStringResource(""),
+//                        Model.of("")) {
+//                    @Override
+//                    public Component createValueComponent(String id) {
+//                        Label label = new Label(id, "0 (todo)");
+//                        label.add(AttributeAppender.append("class", " h4"));
+//                        return label;
+//                    }
+//
+//                    @Override
+//                    public Component createDescriptionComponent(String id) {
+//                        return new LabelWithHelpPanel(id, createStringResource("RoleAnalysisOutlierType.anomalyCount")) {
+//                            @Override
+//                            protected IModel<String> getHelpModel() {
+//                                return createStringResource("RoleAnalysisOutlierType.anomalyCount.help");
+//                            }
+//                        };
+//                    }
+//                },
 
-                    @Override
-                    public Component createDescriptionComponent(String id) {
-                        return new LabelWithHelpPanel(id, createStringResource("RoleAnalysisOutlierType.anomalyCount")) {
-                            @Override
-                            protected IModel<String> getHelpModel() {
-                                return createStringResource("RoleAnalysisOutlierType.anomalyCount.help");
-                            }
-                        };
-                    }
-                },
+//                new WidgetItemModel(createStringResource(""),
+//                        Model.of("")) {
+//                    @Override
+//                    public Component createValueComponent(String id) {
+//                        Label label = new Label(id, "0 (todo)");
+//                        label.add(AttributeAppender.append("class", " h4"));
+//                        return label;
+//                    }
+//
+//                    @Override
+//                    public Component createDescriptionComponent(String id) {
+//                        return new LabelWithHelpPanel(id,
+//                                createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence")) {
+//                            @Override
+//                            protected IModel<String> getHelpModel() {
+//                                return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");
+//                            }
+//                        };
+//                    }
+//                },
 
-                new WidgetItemModel(createStringResource(""),
-                        Model.of("")) {
-                    @Override
-                    public Component createValueComponent(String id) {
-                        Label label = new Label(id, "0 (todo)");
-                        label.add(AttributeAppender.append("class", " h4"));
-                        return label;
-                    }
+//                new WidgetItemModel(createStringResource(""),
+//                        Model.of("Sort")) {
+//                    @Override
+//                    public Component createValueComponent(String id) {
+//                        Label label = new Label(id, "0 (todo)");
+//                        label.add(AttributeAppender.append("class", " h4"));
+//                        return label;
+//                    }
+//
+//                    @Override
+//                    public Component createDescriptionComponent(String id) {
+//                        return new LabelWithHelpPanel(id, Model.of("TBD")) {
+//                            @Override
+//                            protected IModel<String> getHelpModel() {
+//                                return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");
+//                            }
+//                        };
+//                    }
+//                },
 
-                    @Override
-                    public Component createDescriptionComponent(String id) {
-                        return new LabelWithHelpPanel(id,
-                                createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence")) {
-                            @Override
-                            protected IModel<String> getHelpModel() {
-                                return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");
-                            }
-                        };
-                    }
-                },
-
-                new WidgetItemModel(createStringResource(""),
-                        Model.of("Sort")) {
-                    @Override
-                    public Component createValueComponent(String id) {
-                        Label label = new Label(id, "0 (todo)");
-                        label.add(AttributeAppender.append("class", " h4"));
-                        return label;
-                    }
-
-                    @Override
-                    public Component createDescriptionComponent(String id) {
-                        return new LabelWithHelpPanel(id, Model.of("TBD")) {
-                            @Override
-                            protected IModel<String> getHelpModel() {
-                                return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");
-                            }
-                        };
-                    }
-                },
-
-                new WidgetItemModel(createStringResource(""),
-                        Model.of("Chart")) {
-                    @Override
-                    public Component createValueComponent(String id) {
-                        Label label = new Label(id, "0 (todo)");
-                        label.add(AttributeAppender.append("class", " h4"));
-                        return label;
-                    }
-
-                    @Override
-                    public Component createDescriptionComponent(String id) {
-                        return new LabelWithHelpPanel(id, Model.of("TBD")) {
-                            @Override
-                            protected IModel<String> getHelpModel() {
-                                return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");
-                            }
-                        };
-                    }
-                }
+//                new WidgetItemModel(createStringResource(""),
+//                        Model.of("Chart")) {
+//                    @Override
+//                    public Component createValueComponent(String id) {
+//                        Label label = new Label(id, "0 (todo)");
+//                        label.add(AttributeAppender.append("class", " h4"));
+//                        return label;
+//                    }
+//
+//                    @Override
+//                    public Component createDescriptionComponent(String id) {
+//                        return new LabelWithHelpPanel(id, Model.of("TBD")) {
+//                            @Override
+//                            protected IModel<String> getHelpModel() {
+//                                return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");
+//                            }
+//                        };
+//                    }
+//                }
         );
 
         return Model.ofList(detailsModel);
