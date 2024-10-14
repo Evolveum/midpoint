@@ -1747,8 +1747,7 @@ public final class WebComponentUtil {
             page = 0;
         }
 
-        table.getDataTable().setCurrentPage(page);
-
+        // update ordering (sortparam) directly in provider
         if (paging.hasOrdering() && (table.getDataTable().getDataProvider() instanceof SortableDataProvider provider)) {
             ItemPath path = paging.getPrimaryOrderingPath();
             if (path != null) {
@@ -1757,6 +1756,8 @@ public final class WebComponentUtil {
                 provider.setSort(path.toString(), order);
             }
         }
+
+        table.getDataTable().setCurrentPage(page);
     }
 
     public static PageBase getPageBase(Component component) {
