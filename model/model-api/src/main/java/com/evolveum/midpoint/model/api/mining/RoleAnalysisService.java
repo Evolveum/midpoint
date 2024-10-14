@@ -1260,14 +1260,14 @@ public interface RoleAnalysisService {
     /**
      * Searches for role members based on the provided filters and role members set.
      *
-     * @param userSearchFiler       Optional filter for user search.
-     * @param roleSearchFiler       Optional filter for role search.
+     * @param userSearchFiler Optional filter for user search.
+     * @param roleSearchFiler Optional filter for role search.
      * @param assignmentSearchFiler Optional filter for assignment search.
-     * @param roleMembers           Set of role member identifiers.
-     * @param roleAsKey             Boolean flag to determine if roles should be used as keys in the result map.
-     * @param task                  The task in which the operation is performed.
-     * @param result                The operation result.
-     * @return                      A ListMultimap containing the role members mapped by either role or user identifiers.
+     * @param roleMembers Set of role member identifiers.
+     * @param roleAsKey Boolean flag to determine if roles should be used as keys in the result map.
+     * @param task The task in which the operation is performed.
+     * @param result The operation result.
+     * @return A ListMultimap containing the role members mapped by either role or user identifiers.
      */
     @NotNull ListMultimap<String, String> assignmentRoleMemberSearch(
             @Nullable SearchFilterType userSearchFiler,
@@ -1296,6 +1296,17 @@ public interface RoleAnalysisService {
             @Nullable SearchFilterType assignmentSearchFiler,
             @NotNull Set<String> userMembers,
             boolean userAsKey,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    /**
+     * Retrieves all role suggestions by searching for detected patterns in role analysis clusters.
+     *
+     * @param task The task in the context of which the operation is executed.
+     * @param result The result of the operation.
+     * @return A list of detected patterns sorted by their metric in descending order.
+     */
+    @NotNull List<DetectedPattern> getAllRoleSuggestions(
             @NotNull Task task,
             @NotNull OperationResult result);
 }
