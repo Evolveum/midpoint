@@ -93,7 +93,7 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<String> {
                 @Override
                 protected List<RoleAnalysisOutlierPartitionType> load() {
                     RoleAnalysisOutlierType outlier = getOutlierModelObject();
-                    return outlier.getOutlierPartitions();
+                    return outlier.getPartition();
                 }
             };
         }
@@ -246,7 +246,7 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<String> {
 
         List<RoleType> roles = new ArrayList<>();
         if (category.equals(AnomalyTableCategory.OUTLIER_ACESS)) {
-            ObjectReferenceType targetObjectRef = outlierModel.getObject().getTargetObjectRef();
+            ObjectReferenceType targetObjectRef = outlierModel.getObject().getObjectRef();
             PrismObject<UserType> userTypeObject = roleAnalysisService.getUserTypeObject(targetObjectRef.getOid(), task, result);
             if (userTypeObject != null) {
                 UserType user = userTypeObject.asObjectable();

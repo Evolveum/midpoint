@@ -182,7 +182,7 @@ public class RoleAnalysisUtils {
 
             mapPatternRefs(users, roleAnalysisClusterDetectionType, roles);
 
-            roleAnalysisClusterDetectionType.setClusterMetric(detectedPattern.getMetric());
+            roleAnalysisClusterDetectionType.setReductionCount(detectedPattern.getMetric());
             roleAnalysisClusterDetectionTypeList.add(roleAnalysisClusterDetectionType);
         }
     }

@@ -120,13 +120,17 @@ public class TestDummy extends AbstractBasicDummyTest {
     }
 
     protected ItemComparisonResult getExpectedPasswordComparisonResultMatch() {
-        return InternalsConfig.isShadowCachingOnByDefault() ?
-                ItemComparisonResult.MATCH : ItemComparisonResult.NOT_APPLICABLE;
+        // After MID-10050
+//        return InternalsConfig.isShadowCachingOnByDefault() ?
+//                ItemComparisonResult.MATCH : ItemComparisonResult.NOT_APPLICABLE;
+        return ItemComparisonResult.NOT_APPLICABLE;
     }
 
     protected ItemComparisonResult getExpectedPasswordComparisonResultMismatch() {
-        return InternalsConfig.isShadowCachingOnByDefault() ?
-                ItemComparisonResult.MISMATCH : ItemComparisonResult.NOT_APPLICABLE;
+        // After MID-10050
+//        return InternalsConfig.isShadowCachingOnByDefault() ?
+//                ItemComparisonResult.MISMATCH : ItemComparisonResult.NOT_APPLICABLE;
+        return ItemComparisonResult.NOT_APPLICABLE;
     }
 
     @Override

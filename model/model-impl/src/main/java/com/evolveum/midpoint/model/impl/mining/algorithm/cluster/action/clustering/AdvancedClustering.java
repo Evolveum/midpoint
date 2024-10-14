@@ -72,8 +72,6 @@ public class AdvancedClustering implements Clusterable {
             @NotNull OperationResult result) {
         RoleAnalysisSessionOptionType sessionOptionType = session.getRoleModeOptions();
         Boolean isIndirect = sessionOptionType.isIsIndirect();
-        int minUserOccupancy = sessionOptionType.getPropertiesRange().getMin().intValue();
-        int maxUserOccupancy = sessionOptionType.getPropertiesRange().getMax().intValue();
         int minUsersOverlap = sessionOptionType.getMinPropertiesOverlap();
         int minRolesCount = sessionOptionType.getMinMembersCount();
         double similarityThreshold = sessionOptionType.getSimilarityThreshold();
@@ -84,11 +82,14 @@ public class AdvancedClustering implements Clusterable {
                 sessionOptionType.getClusteringAttributeSetting(),
                 RoleAnalysisProcessModeType.ROLE);
 
-        SearchFilterType query = sessionOptionType.getQuery();
+        SearchFilterType userSearchFilter = sessionOptionType.getUserSearchFilter();
+        SearchFilterType roleSearchFilter = sessionOptionType.getRoleSearchFilter();
+        SearchFilterType assignmentSearchFilter = sessionOptionType.getAssignmentSearchFilter();
 
-        List<DataPoint> dataPoints = loadInitialData(modelService, roleAnalysisService, handler, isIndirect,
+        List<DataPoint> dataPoints = loadInitialData(roleAnalysisService, handler, isIndirect,
                 RoleAnalysisProcessModeType.ROLE, roleAnalysisAttributeDefConverts,
-                minUserOccupancy, maxUserOccupancy, query, task, result);
+                userSearchFilter, roleSearchFilter, assignmentSearchFilter,
+                attributeAnalysisCache, task, result);
 
         if (dataPoints.isEmpty()) {
             LOGGER.warn("No data to process.");
@@ -120,8 +121,7 @@ public class AdvancedClustering implements Clusterable {
             @NotNull OperationResult result) {
         UserAnalysisSessionOptionType sessionOptionType = session.getUserModeOptions();
         Boolean isIndirect = sessionOptionType.isIsIndirect();
-        int minRolesOccupancy = sessionOptionType.getPropertiesRange().getMin().intValue();
-        int maxRolesOccupancy = sessionOptionType.getPropertiesRange().getMax().intValue();
+
         double similarityThreshold = sessionOptionType.getSimilarityThreshold();
         double similarityDifference = 1 - (similarityThreshold / 100);
         int minRolesOverlap = sessionOptionType.getMinPropertiesOverlap();
@@ -132,11 +132,22 @@ public class AdvancedClustering implements Clusterable {
                 sessionOptionType.getClusteringAttributeSetting(),
                 RoleAnalysisProcessModeType.USER);
 
-        SearchFilterType query = sessionOptionType.getQuery();
+        SearchFilterType userSearchFilter = sessionOptionType.getUserSearchFilter();
+        SearchFilterType roleSearchFilter = sessionOptionType.getRoleSearchFilter();
+        SearchFilterType assignmentSearchFilter = sessionOptionType.getAssignmentSearchFilter();
 
-        List<DataPoint> dataPoints = loadInitialData(modelService, roleAnalysisService, handler,
-                isIndirect, RoleAnalysisProcessModeType.USER, roleAnalysisAttributeDefConverts,
-                minRolesOccupancy, maxRolesOccupancy, query, task, result);
+        List<DataPoint> dataPoints = loadInitialData(
+                roleAnalysisService,
+                handler,
+                isIndirect,
+                RoleAnalysisProcessModeType.USER,
+                roleAnalysisAttributeDefConverts,
+                userSearchFilter,
+                roleSearchFilter,
+                assignmentSearchFilter,
+                attributeAnalysisCache,
+                task,
+                result);
 
         if (dataPoints.isEmpty()) {
             LOGGER.info("No data to process.");
@@ -159,14 +170,15 @@ public class AdvancedClustering implements Clusterable {
     }
 
     private @NotNull List<DataPoint> loadInitialData(
-            @NotNull ModelService modelService,
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisProgressIncrement handler,
-            Boolean isIndirect, @NotNull RoleAnalysisProcessModeType processMode,
+            @NotNull Boolean isIndirect,
+            @NotNull RoleAnalysisProcessModeType processMode,
             @NotNull List<RoleAnalysisAttributeDefConvert> roleAnalysisAttributeDefConverts,
-            int minProperties,
-            int maxProperties,
-            @Nullable SearchFilterType userQuery,
+            @Nullable SearchFilterType userSearchFilter,
+            @Nullable SearchFilterType roleSearchFilter,
+            @Nullable SearchFilterType assignmentSearchFilter,
+            @NotNull AttributeAnalysisCache attributeAnalysisCache,
             @NotNull Task task,
             @NotNull OperationResult result) {
 
@@ -175,9 +187,25 @@ public class AdvancedClustering implements Clusterable {
 
         ListMultimap<List<String>, String> chunkMap;
         if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
-            chunkMap = loadRoleModeData(modelService, isIndirect, minProperties, maxProperties, userQuery, task, result);
+            chunkMap = loadRoleBasedMultimapData(
+                    roleAnalysisService,
+                    isIndirect,
+                    userSearchFilter,
+                    roleSearchFilter,
+                    assignmentSearchFilter,
+                    attributeAnalysisCache,
+                    task,
+                    result);
         } else {
-            chunkMap = loadUserModeData(modelService, isIndirect, minProperties, maxProperties, userQuery, task, result);
+            chunkMap = loadUserBasedMultimapData(
+                    roleAnalysisService,
+                    isIndirect,
+                    userSearchFilter,
+                    roleSearchFilter,
+                    assignmentSearchFilter,
+                    attributeAnalysisCache,
+                    task,
+                    result);
         }
         handler.iterateActualStatus();
 
@@ -204,43 +232,6 @@ public class AdvancedClustering implements Clusterable {
     }
 
     @NotNull
-    public ListMultimap<List<String>, String> loadUserModeData(
-            @NotNull ModelService modelService,
-            @NotNull Boolean isIndirect,
-            int minRolesOccupancy,
-            int maxRolesOccupancy,
-            @Nullable SearchFilterType sessionOptionType,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
-
-        if (isIndirect) {
-            return loadUserBasedMembershipMultimapData(
-                    modelService, minRolesOccupancy, maxRolesOccupancy, sessionOptionType, task, result);
-        }
-
-        return loadUserBasedMultimapData(modelService, minRolesOccupancy,
-                maxRolesOccupancy, sessionOptionType, task, result);
-    }
-
-    @NotNull
-    public ListMultimap<List<String>, String> loadRoleModeData(
-            @NotNull ModelService modelService,
-            Boolean isIndirect, int minUserOccupancy,
-            int maxUserOccupancy,
-            @Nullable SearchFilterType sessionOptionType,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
-
-        if (isIndirect) {
-            return loadRoleBasedMembershipMultimapData(
-                    modelService, minUserOccupancy, maxUserOccupancy, sessionOptionType, task, result);
-        }
-
-        return loadRoleBasedMultimapData(
-                modelService, minUserOccupancy, maxUserOccupancy, sessionOptionType, task, result);
-    }
-
-    @NotNull
     private static ClusteringMode getClusteringMode(@NotNull RoleAnalysisOptionType analysisOption, boolean ruleExist) {
         RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
         RoleAnalysisProcedureType analysisProcedureType = analysisOption.getAnalysisProcedureType();
@@ -252,8 +243,8 @@ public class AdvancedClustering implements Clusterable {
             return ClusteringMode.BALANCED;
         } else {
 
-            if(analysisProcedureType.equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)
-            || analysisCategory.equals(RoleAnalysisCategoryType.ATTRIBUTE_BASED)) {
+            if (analysisProcedureType.equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)
+                    || analysisCategory.equals(RoleAnalysisCategoryType.ATTRIBUTE_BASED)) {
                 return ClusteringMode.BALANCED_RULES_OUTLIER;
             }
 

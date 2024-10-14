@@ -64,10 +64,8 @@ public class OutlierDetectionOutlineModel {
         this.roleAnalysisAttributeDef = roleAnalysisService.resolveAnalysisAttributes(
                 session, RoleType.COMPLEX_TYPE);
 
-        RangeType propertiesRange = userModeOptions.getPropertiesRange();
         this.chunkMap = roleAnalysisService.loadUserForOutlierComparison(roleAnalysisService, outliersClusterMembers,
-                propertiesRange.getMin().intValue(), propertiesRange.getMax().intValue(),
-                userModeOptions.getQuery(), result, task);
+                userModeOptions.getUserSearchFilter(), result, task);
         this.analysisOption = session.getAnalysisOption();
         this.session = session;
         this.cluster = cluster;

@@ -27,13 +27,17 @@ public abstract class Clusterer<T extends Clusterable> {
 
     public abstract List<? extends Cluster<T>> cluster(Collection<T> var1, RoleAnalysisProgressIncrement handler);
 
+    //TODO make better structure (high cognitive complexity)
     @SuppressWarnings({ "ClassEscapesDefinedScope" })
-    public List<T> getNeighbors(T point, Collection<T> points, Set<ClusterExplanation> explanation, double eps, int minPts,
-            DensityBasedClustering.PointStatusWrapper pStatusWrapper) {
+    public List<T> getNeighbors(@NotNull T point, Collection<T> points, Set<ClusterExplanation> explanation, double eps, int minPts,
+            int minPropertiesOverlap, DensityBasedClustering.PointStatusWrapper pStatusWrapper) {
         List<T> neighbors = new ArrayList<>();
 
         return switch (clusteringMode) {
             case BALANCED -> {
+                boolean conditionMeets = checkPropertiesRequirement(point, minPropertiesOverlap, pStatusWrapper);
+                if (!conditionMeets) {yield neighbors;}
+
                 int numberOfOveralRuleNeighbors = point.getMembersCount();
                 for (T neighbor : points) {
                     boolean notNeighbor = point != neighbor;
@@ -54,6 +58,9 @@ public abstract class Clusterer<T extends Clusterable> {
                 yield neighbors;
             }
             case UNBALANCED -> {
+                boolean conditionMeets = checkPropertiesRequirement(point, minPropertiesOverlap, pStatusWrapper);
+                if (!conditionMeets) {yield neighbors;}
+
                 int numberOfOveralRuleNeighbors = point.getMembersCount();
                 for (T neighbor : points) {
                     boolean notNeighbor = point != neighbor;
@@ -100,6 +107,10 @@ public abstract class Clusterer<T extends Clusterable> {
 
                 }
 
+                boolean conditionMeets = checkPropertiesRequirementIncludeRule(point, minPropertiesOverlap,
+                        numberOfRulesNeighbors, minPts, pStatusWrapper);
+                if (!conditionMeets) {yield neighbors;}
+
                 OutlierNoiseCategoryType pStatus = pStatusWrapper.pStatus;
                 if (numberOfOveralRuleNeighbors > minPts) {
                     pStatusWrapper.pStatus = OutlierNoiseCategoryType.SUITABLE;
@@ -144,6 +155,10 @@ public abstract class Clusterer<T extends Clusterable> {
                         numberOfRulesNeighbors += neighbor.getMembersCount();
                     }
                 }
+
+                boolean conditionMeets = checkPropertiesRequirementIncludeRule(point, minPropertiesOverlap,
+                        numberOfRulesNeighbors, minPts, pStatusWrapper);
+                if (!conditionMeets) {yield neighbors;}
 
                 OutlierNoiseCategoryType pStatus = pStatusWrapper.pStatus;
                 if (numberOfOveralRuleNeighbors > minPts) {
@@ -195,6 +210,10 @@ public abstract class Clusterer<T extends Clusterable> {
                     }
                 }
 
+                boolean conditionMeets = checkPropertiesRequirementIncludeRule(point, minPropertiesOverlap,
+                        numberOfRulesNeighbors, minPts, pStatusWrapper);
+                if (!conditionMeets) {yield neighbors;}
+
                 OutlierNoiseCategoryType pStatus = pStatusWrapper.pStatus;
                 if (numberOfOveralRuleNeighbors > minPts) {
                     pStatusWrapper.pStatus = OutlierNoiseCategoryType.SUITABLE;
@@ -217,6 +236,39 @@ public abstract class Clusterer<T extends Clusterable> {
                 yield neighbors;
             }
         };
+    }
+
+    private static <T extends Clusterable> boolean checkPropertiesRequirement(@NotNull T point,
+            int minPropertiesOverlap,
+            DensityBasedClustering.PointStatusWrapper pStatusWrapper) {
+        // Retrieve the properties of the given point
+        Set<String> pointProperties = point.getPoint();
+ /*        Check if the number of properties is less than the minimum required overlap
+         If the number of properties is less than the minimum required overlap,
+         set the point status to ACCESS_NOISE and return an empty list of neighbors
+         because the point is not suitable for minIntersection
+         conditions (there are not enough properties to meet the minimum overlap).*/
+        if (pointProperties.size() < minPropertiesOverlap) {
+            pStatusWrapper.pStatus = OutlierNoiseCategoryType.ACCESS_NOISE;
+            return false;
+        }
+        return true;
+    }
+
+    private static <T extends Clusterable> boolean checkPropertiesRequirementIncludeRule(@NotNull T point,
+            int minPropertiesOverlap,
+            int numberOfRulesNeighbors,
+            int minPts,
+            DensityBasedClustering.PointStatusWrapper pStatusWrapper) {
+        boolean propertiesCountMeet = checkPropertiesRequirement(point, minPropertiesOverlap, pStatusWrapper);
+        if (!propertiesCountMeet && numberOfRulesNeighbors < minPts) {
+            pStatusWrapper.pStatus = OutlierNoiseCategoryType.OVERAL_NOISE;
+            return false;
+        } else if (!propertiesCountMeet) {
+            pStatusWrapper.pStatus = OutlierNoiseCategoryType.ACCESS_NOISE;
+            return false;
+        }
+        return true;
     }
 
     protected double unbalancedAccessDistance(

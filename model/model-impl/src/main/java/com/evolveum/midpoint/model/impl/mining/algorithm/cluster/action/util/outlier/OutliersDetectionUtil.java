@@ -132,11 +132,11 @@ public class OutliersDetectionUtil {
             PolyStringType name = userPrismObject.asObjectable().getName();
 
             RoleAnalysisOutlierType roleAnalysisOutlierType = new RoleAnalysisOutlierType();
-            roleAnalysisOutlierType.setTargetObjectRef(new ObjectReferenceType()
+            roleAnalysisOutlierType.setObjectRef(new ObjectReferenceType()
                     .oid(userOid)
                     .type(UserType.COMPLEX_TYPE)
                     .targetName(name.getOrig()));
-            roleAnalysisOutlierType.getOutlierPartitions().add(partition);
+            roleAnalysisOutlierType.getPartition().add(partition);
             roleAnalysisOutlierType.setAnomalyObjectsConfidence(partition.getPartitionAnalysis().getAnomalyObjectsConfidence());
             roleAnalysisOutlierType.setOverallConfidence(partition.getPartitionAnalysis().getOverallConfidence());
             //TODO when update? every partition?
@@ -144,7 +144,7 @@ public class OutliersDetectionUtil {
             roleAnalysisService.resolveOutliers(roleAnalysisOutlierType, task, result);
         } else {
             RoleAnalysisOutlierType roleAnalysisOutlierType = outlierObject.asObjectable();
-            List<RoleAnalysisOutlierPartitionType> outlierPartitions = roleAnalysisOutlierType.getOutlierPartitions();
+            List<RoleAnalysisOutlierPartitionType> outlierPartitions = roleAnalysisOutlierType.getPartition();
             //TODO just temporary confidence
             double overallConfidence = 0;
             double anomalyObjectsConfidence = 0;
@@ -271,7 +271,7 @@ public class OutliersDetectionUtil {
             }
             mapPatternRefs(users, pattern, roles);
 
-            pattern.setClusterMetric(detectedPattern.getMetric());
+            pattern.setReductionCount(detectedPattern.getMetric());
 
             if (includeAttributeAnalysis) {
                 Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
@@ -554,7 +554,7 @@ public class OutliersDetectionUtil {
         int countOfRoles = clusterStatistics1.getRolesCount();
 
         RoleAnalysisOutlierPartitionType partitionType = new RoleAnalysisOutlierPartitionType();
-        partitionType.setTargetClusterRef(clusterRef.clone());
+        partitionType.setClusterRef(clusterRef.clone());
         partitionType.setTargetSessionRef(sessionRef.clone());
         partitionType.setCreateTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
 
@@ -726,7 +726,7 @@ public class OutliersDetectionUtil {
             @NotNull ObjectReferenceType sessionRef,
             double requiredConfidence) {
         RoleAnalysisOutlierPartitionType partition = new RoleAnalysisOutlierPartitionType();
-        partition.setTargetClusterRef(clusterRef);
+        partition.setClusterRef(clusterRef);
         partition.setTargetSessionRef(sessionRef);
         partition.setCreateTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
 

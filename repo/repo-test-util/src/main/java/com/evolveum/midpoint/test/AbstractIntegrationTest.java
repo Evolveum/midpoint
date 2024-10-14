@@ -54,10 +54,13 @@ import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
+
 import jakarta.xml.bind.JAXBElement;
+
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -2309,6 +2312,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected <O extends ObjectType> PrismObject<O> parseObject(String stringData) throws SchemaException, IOException {
         return prismContext.parseObject(stringData);
     }
+
     protected void displayCleanup() {
         TestUtil.displayCleanup(getTestNameShort());
     }

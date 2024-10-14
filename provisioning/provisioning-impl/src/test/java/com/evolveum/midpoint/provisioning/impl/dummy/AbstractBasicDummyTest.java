@@ -1833,8 +1833,9 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     protected void assertRepoShadowPasswordValue(
             RawRepoShadow shadowRepo, PasswordType passwordBean, String expectedPassword)
             throws SchemaException, EncryptionException {
-        assertRepoShadowCachePasswordValue(
-                shadowRepo, passwordBean, expectedPassword, InternalsConfig.isShadowCachingOnByDefault());
+//        assertRepoShadowCachePasswordValue(
+//                shadowRepo, passwordBean, expectedPassword, InternalsConfig.isShadowCachingOnByDefault());
+        assertRepoShadowCachePasswordValue(shadowRepo, passwordBean, expectedPassword, false); // MID-10050
     }
 
     void assertRepoShadowCachePasswordValue(

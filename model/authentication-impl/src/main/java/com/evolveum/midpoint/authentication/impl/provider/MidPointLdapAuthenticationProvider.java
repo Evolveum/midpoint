@@ -21,6 +21,7 @@ import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.impl.module.authentication.token.LdapAuthenticationToken;
 import com.evolveum.midpoint.authentication.impl.module.authentication.LdapModuleAuthentication;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
@@ -162,18 +163,26 @@ public class MidPointLdapAuthenticationProvider extends MidpointAbstractAuthenti
 //        String enteredUsername = (String) authentication.getPrincipal();
         LOGGER.trace("Authenticating username '{}'",
                 enteredUsername);
-        try {
-            if (!(authentication instanceof LdapAuthenticationToken)) {
-                LOGGER.debug("Unsupported authentication {}", authentication);
-                recordPasswordAuthenticationFailure(authentication.getName(), "unavailable provider");
-                throw new AuthenticationServiceException("web.security.provider.unavailable");
-            }
 
-            Authentication token = this.authenticatorProvider.authenticate(authentication);
+        if (!(authentication instanceof LdapAuthenticationToken)) {
+            LOGGER.debug("Unsupported authentication {}", authentication);
+            recordPasswordAuthenticationFailure(authentication.getName(), "unavailable provider");
+            throw new AuthenticationServiceException("web.security.provider.unavailable");
+        }
+
+        LdapAuthenticationToken authenticationForProvider;
+        if (authentication.getPrincipal() == null
+                || (authentication.getPrincipal() instanceof String principalName && StringUtils.isEmpty(principalName))) {
+            authenticationForProvider = new LdapAuthenticationToken(enteredUsername, authentication.getCredentials(), authentication.getAuthorities());
+        } else {
+            authenticationForProvider = (LdapAuthenticationToken) authentication;
+        }
+        try {
+            Authentication token = this.authenticatorProvider.authenticate(authenticationForProvider);
             MidPointPrincipal principal = (MidPointPrincipal)token.getPrincipal();
 
-            LOGGER.debug("User '{}' authenticated ({}), authorities: {}", authentication.getPrincipal(),
-                    authentication.getClass().getSimpleName(), principal.getAuthorities());
+            LOGGER.debug("User '{}' authenticated ({}), authorities: {}", authenticationForProvider.getPrincipal(),
+                    authenticationForProvider.getClass().getSimpleName(), principal.getAuthorities());
             return token;
 
         } catch (AuditedAuthenticationException e) {
@@ -182,16 +191,16 @@ public class MidPointLdapAuthenticationProvider extends MidpointAbstractAuthenti
             // This sometimes happens ... for unknown reasons the underlying libraries cannot
             // figure out correct exception. Which results to wrong error message (MID-4518)
             // So, be smart here and try to figure out correct error.
-            recordPasswordAuthenticationFailure(authentication.getName(), e.getMessage());
+            recordPasswordAuthenticationFailure(authenticationForProvider.getName(), e.getMessage());
             throw processInternalAuthenticationException(e, e);
 
         } catch (IncorrectResultSizeDataAccessException e) {
-            LOGGER.debug("Failed to authenticate user {}. Error: {}", authentication.getName(), e.getMessage(), e);
-            recordPasswordAuthenticationFailure(authentication.getName(), "bad user");
+            LOGGER.debug("Failed to authenticate user {}. Error: {}", authenticationForProvider.getName(), e.getMessage(), e);
+            recordPasswordAuthenticationFailure(authenticationForProvider.getName(), "bad user");
             throw new BadCredentialsException("web.security.provider.invalid.credentials", e);
         } catch (RuntimeException e) {
-            LOGGER.debug("Failed to authenticate user {}. Error: {}", authentication.getName(), e.getMessage(), e);
-            recordPasswordAuthenticationFailure(authentication.getName(), "bad credentials");
+            LOGGER.debug("Failed to authenticate user {}. Error: {}", authenticationForProvider.getName(), e.getMessage(), e);
+            recordPasswordAuthenticationFailure(authenticationForProvider.getName(), "bad credentials");
             throw e;
         }
     }

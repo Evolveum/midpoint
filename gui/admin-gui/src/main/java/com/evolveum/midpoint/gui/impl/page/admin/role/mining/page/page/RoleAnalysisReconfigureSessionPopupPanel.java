@@ -172,9 +172,10 @@ public class RoleAnalysisReconfigureSessionPopupPanel
                 return wrapper -> {
                     ItemName itemName = wrapper.getItemName();
 
-                    if (itemName.equals(AbstractAnalysisSessionOptionType.F_QUERY)
-                            || itemName.equals(AbstractAnalysisSessionOptionType.F_IS_INDIRECT)
-                            || itemName.equals(AbstractAnalysisSessionOptionType.F_PROPERTIES_RANGE)) {
+                    if (itemName.equals(AbstractAnalysisSessionOptionType.F_USER_SEARCH_FILTER)
+                            || itemName.equals(AbstractAnalysisSessionOptionType.F_ROLE_SEARCH_FILTER)
+                            || itemName.equals(AbstractAnalysisSessionOptionType.F_ASSIGNMENT_SEARCH_FILTER)
+                            || itemName.equals(AbstractAnalysisSessionOptionType.F_IS_INDIRECT)) {
                         return ItemVisibility.HIDDEN;
                     }
 
@@ -235,8 +236,7 @@ public class RoleAnalysisReconfigureSessionPopupPanel
             @Override
             protected boolean checkMandatory(@NotNull ItemWrapper itemWrapper) {
                 ItemName itemName = itemWrapper.getItemName();
-                return itemName.equivalent(AbstractAnalysisSessionOptionType.F_IS_INDIRECT)
-                        || itemName.equivalent(AbstractAnalysisSessionOptionType.F_PROPERTIES_RANGE);
+                return itemName.equivalent(AbstractAnalysisSessionOptionType.F_IS_INDIRECT);
             }
 
             @Contract(pure = true)

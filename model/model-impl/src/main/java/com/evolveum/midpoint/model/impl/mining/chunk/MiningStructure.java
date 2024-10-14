@@ -27,7 +27,9 @@ public interface MiningStructure {
      *
      * @param roleAnalysisService The role analysis service.
      * @param cluster The cluster representing a group of roles.
-     * @param objectFilter The additional user filter.
+     * @param userSearchFilter The additional user filter.
+     * @param roleSearchFilter The additional role filter.
+     * @param assignmentSearchFilter The additional assignment filter.
      * @param handler The progress handler for role analysis.
      * @param task The task associated with the operation.
      * @param result The result object for tracking the operation's outcome.
@@ -37,7 +39,9 @@ public interface MiningStructure {
     @NotNull MiningOperationChunk prepareRoleBasedStructure(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisClusterType cluster,
-            @Nullable SearchFilterType objectFilter,
+            @Nullable SearchFilterType userSearchFilter,
+            @Nullable SearchFilterType roleSearchFilter,
+            @Nullable SearchFilterType assignmentSearchFilter,
             @NotNull RoleAnalysisProgressIncrement handler,
             @NotNull Task task,
             @NotNull OperationResult result,
@@ -48,7 +52,9 @@ public interface MiningStructure {
      *
      * @param roleAnalysisService The role analysis service.
      * @param cluster The cluster representing a group of roles.
-     * @param objectFilter The additional user filter.
+     * @param userSearchFilter The additional user filter.
+     * @param roleSearchFilter The additional role filter.
+     * @param assignmentSearchFilter The additional assignment filter.
      * @param handler The progress handler for role analysis.
      * @param task The task associated with the operation.
      * @param result The result object for tracking the operation's outcome.
@@ -58,7 +64,9 @@ public interface MiningStructure {
     @NotNull MiningOperationChunk prepareUserBasedStructure(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisClusterType cluster,
-            @Nullable SearchFilterType objectFilter,
+            @Nullable SearchFilterType userSearchFilter,
+            @Nullable SearchFilterType roleSearchFilter,
+            @Nullable SearchFilterType assignmentSearchFilter,
             @NotNull RoleAnalysisProgressIncrement handler,
             @NotNull Task task,
             @NotNull OperationResult result,
@@ -72,7 +80,9 @@ public interface MiningStructure {
      *
      * @param roleAnalysisService The role analysis service.
      * @param cluster The cluster representing a group of roles for analysis.
-     * @param objectFilter The additional user filter.
+     * @param userSearchFilter The additional user filter.
+     * @param roleSearchFilter The additional role filter.
+     * @param assignmentSearchFilter The additional assignment filter.
      * @param state The progress handler for monitoring role analysis.
      * @param task The task associated with this operation.
      * @param result The result object for tracking the operation's outcome.
@@ -81,7 +91,9 @@ public interface MiningStructure {
     @NotNull MiningOperationChunk preparePartialRoleBasedStructure(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisClusterType cluster,
-            @Nullable SearchFilterType objectFilter,
+            @Nullable SearchFilterType userSearchFilter,
+            @Nullable SearchFilterType roleSearchFilter,
+            @Nullable SearchFilterType assignmentSearchFilter,
             @NotNull RoleAnalysisProgressIncrement state,
             @NotNull Task task,
             @NotNull OperationResult result);
@@ -94,7 +106,9 @@ public interface MiningStructure {
      *
      * @param roleAnalysisService The role analysis service.
      * @param cluster The cluster representing a group of roles for analysis.
-     * @param objectFilter The additional user filter.
+     * @param userSearchFilter The additional user filter.
+     * @param roleSearchFilter The additional role filter.
+     * @param assignmentSearchFilter The additional assignment filter.
      * @param state The progress handler for monitoring role analysis.
      * @param task The task associated with this operation.
      * @param result The result object for tracking the operation's outcome.
@@ -103,7 +117,9 @@ public interface MiningStructure {
     @NotNull MiningOperationChunk preparePartialUserBasedStructure(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisClusterType cluster,
-            @Nullable SearchFilterType objectFilter,
+            @Nullable SearchFilterType userSearchFilter,
+            @Nullable SearchFilterType roleSearchFilter,
+            @Nullable SearchFilterType assignmentSearchFilter,
             @NotNull RoleAnalysisProgressIncrement state,
             @NotNull Task task,
             @NotNull OperationResult result);

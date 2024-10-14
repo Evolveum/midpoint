@@ -6,6 +6,10 @@
  */
 package com.evolveum.midpoint.schema.internals;
 
+import com.evolveum.midpoint.util.logging.Trace;
+
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.apache.commons.configuration2.Configuration;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -20,6 +24,8 @@ import java.util.stream.Collectors;
  *
  */
 public class InternalsConfig {
+
+    private static final Trace LOGGER = TraceManager.getTrace(InternalsConfig.class);
 
     private static final String CONSISTENCY_CHECKS = "consistencyChecks";
     private static final String SANITY_CHECKS = "sanityChecks";
@@ -78,15 +84,13 @@ public class InternalsConfig {
      * What caching should be turned on for resources that have no specific caching configuration?
      * This is influenced by `midpoint.internals.shadowCachingDefault` system property.
      */
-    private static ShadowCachingDefault shadowCachingDefault;
+    @NotNull private static ShadowCachingDefault shadowCachingDefault = ShadowCachingDefault.STANDARD;
 
     /**
      * This is the default setting for {@link #shadowCachingDefault} (if the respective system property is not present).
-     * Currently, we need different values for tests and standard GUI mode.
-     *
-     * TODO resolve this somehow before 4.9 release
+     * Currently, we need slightly different values for tests and standard GUI mode.
      */
-    public static ShadowCachingDefault shadowCachingDefaultDefault = ShadowCachingDefault.NONE;
+    @NotNull public static ShadowCachingDefault shadowCachingDefaultDefault = ShadowCachingDefault.STANDARD;
 
     public static boolean isPrismMonitoring() {
         return prismMonitoring;
@@ -184,7 +188,7 @@ public class InternalsConfig {
         return shadowCachingDefault == ShadowCachingDefault.FULL;
     }
 
-    public static ShadowCachingDefault getShadowCachingDefault() {
+    public static @NotNull ShadowCachingDefault getShadowCachingDefault() {
         return shadowCachingDefault;
     }
 
@@ -212,6 +216,8 @@ public class InternalsConfig {
         shadowCachingDefault =
                 ShadowCachingDefault.fromString(
                         internalsConfig.getString(SHADOW_CACHING_DEFAULT, shadowCachingDefaultDefault.stringValue));
+
+        LOGGER.info("Default setting for shadow caching: {}", shadowCachingDefault);
     }
 
     public static void reset() {
@@ -267,13 +273,24 @@ public class InternalsConfig {
         /** The default is no caching, just like it was in 4.8 and earlier. */
         NONE("none"),
 
-        /** The default is short-lived caching ... TODO specify. This is the default. */
+        /** The default is short-lived caching, and using always the fresh data (at least for now). */
         STANDARD("standard"),
 
         /** The default is caching of all data, with long TTL. To be used primarily in tests. */
         FULL("full"),
 
-        /** As {@link #FULL} but using fresh data, not cached ones. To be used primarily in tests. */
+        /**
+         * Emulates {@link #STANDARD} for tests:
+         *
+         * . TTL is long, to avoid breaking tests that manipulate the clock
+         * (note that the standard TTL is 1 day for practical reasons);
+         * . caches all attributes, not only the defined ones (but this may change in the future).
+         *
+         * Effectively, it is quite similar to {@link #FULL}, with a crucial difference in that it uses fresh data,
+         * not cached ones.
+         *
+         * To be used primarily in tests. Actually, it is the default value for tests.
+         */
         FULL_BUT_USING_FRESH("fullButUsingFresh");
 
         private final String stringValue;

@@ -292,7 +292,7 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
         cardBodyComponent.add(statusHeader);
 
         RoleAnalysisOutlierType outlier = getObjectDetailsModels().getObjectType();
-        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlier.getOutlierPartitions();
+        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlier.getPartition();
         int partitionCount = outlierPartitions.size();
         Set<String> anomalySet = new HashSet<>();
         Set<OutlierNoiseCategoryType> outlierNoiseCategorySet = new HashSet<>();
@@ -460,7 +460,7 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
                 Task simpleTask = pageBase.createSimpleTask("loadOutlierDetails");
                 OperationResult result = simpleTask.getResult();
                 PrismObject<UserType> prismUser = roleAnalysisService
-                        .getUserTypeObject(outlier.getTargetObjectRef().getOid(), simpleTask, result);
+                        .getUserTypeObject(outlier.getObjectRef().getOid(), simpleTask, result);
 
                 if (prismUser == null) {
                     return new WebMarkupContainer(id);

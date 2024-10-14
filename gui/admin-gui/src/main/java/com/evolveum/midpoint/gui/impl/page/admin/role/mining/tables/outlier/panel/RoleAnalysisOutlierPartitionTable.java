@@ -80,7 +80,7 @@ public class RoleAnalysisOutlierPartitionTable extends BasePanel<String> {
         partitionModel = new LoadableModel<>() {
             @Override
             protected List<RoleAnalysisOutlierPartitionType> load() {
-                return outlier.getOutlierPartitions();
+                return outlier.getPartition();
             }
         };
     }

@@ -4,14 +4,11 @@
     <analysisOption>
         <analysisCategory>advanced</analysisCategory>
         <processMode>role</processMode>
+        <analysisProcedureType>role_mining</analysisProcedureType>
     </analysisOption>
     <roleModeOptions>
         <similarityThreshold>80.0</similarityThreshold>
         <minMembersCount>10</minMembersCount>
-        <propertiesRange>
-            <min>10.0</min>
-            <max>100.0</max>
-        </propertiesRange>
         <minPropertiesOverlap>10</minPropertiesOverlap>
         <isIndirect>false</isIndirect>
         <clusteringAttributeSetting></clusteringAttributeSetting>

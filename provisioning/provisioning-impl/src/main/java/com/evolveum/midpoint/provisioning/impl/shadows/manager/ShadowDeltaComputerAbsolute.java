@@ -159,7 +159,7 @@ class ShadowDeltaComputerAbsolute {
                 updateCachedActivation();
             }
             if (ctx.getObjectDefinitionRequired().areCredentialsCached()) {
-                // FIXME update password if it happened to be present in the data
+                // FIXME update password if it happened to be present in the data; MID-10050
             }
             if (ctx.getObjectDefinitionRequired().isCachingEnabled()) {
                 updateCachingMetadata(incompleteCacheableItems);

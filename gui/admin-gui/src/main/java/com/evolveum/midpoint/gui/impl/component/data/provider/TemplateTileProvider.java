@@ -52,7 +52,7 @@ public abstract class TemplateTileProvider<T extends Serializable, O extends Obj
     }
 
     @Override
-    protected ObjectPaging createPaging(long offset, long pageSize) {
+    public ObjectPaging createPaging(long offset, long pageSize) {
         setSort(getDefaultSortParam(), getDefaultSortOrder());
         return super.createPaging(offset, pageSize);
     }

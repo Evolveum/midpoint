@@ -16,7 +16,6 @@ import static java.util.Collections.singleton;
 import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformDefaultPattern;
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.*;
 import static com.evolveum.midpoint.common.mining.utils.algorithm.JaccardSorter.jacquardSimilarity;
-import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.ClusteringUtils.loadUserBasedMultimapData;
 import static com.evolveum.midpoint.model.impl.mining.analysis.AttributeAnalysisUtil.*;
 import static com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisUtils.*;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
@@ -38,6 +37,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
 import com.evolveum.midpoint.repo.api.AggregateQuery;
 
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.util.QNameUtil;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -77,10 +77,6 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -103,6 +99,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
     transient @Autowired ModelService modelService;
     transient @Autowired RepositoryService repositoryService;
+    transient @Autowired SchemaService schemaService;
 
     @Override
     public @Nullable PrismObject<UserType> getUserTypeObject(
@@ -225,6 +222,11 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result) {
         ListMultimap<String, String> roleMemberCache = ArrayListMultimap.create();
+//TODO try this
+//        ObjectQuery query = PrismContext.get().
+//                queryFor(AssignmentType.class).ownedBy(UserType.class).
+//                and()
+//                .item(AssignmentType.F_TARGET_REF).ref(clusterMembers.toArray(new String[0])).build();
 
         ObjectQuery query = PrismContext.get().queryFor(UserType.class)
                 .exists(F_ASSIGNMENT)
@@ -428,7 +430,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
         for (RoleAnalysisDetectionPatternType clusterDetectionType : roleAnalysisClusterDetectionTypes) {
             collection.add(clusterDetectionType.asPrismContainerValue());
-            max = Math.max(max, clusterDetectionType.getClusterMetric());
+            max = Math.max(max, clusterDetectionType.getReductionCount());
         }
 
         Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
@@ -561,7 +563,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
         ResultHandler<RoleAnalysisOutlierType> resultHandler = (object, parentResult) -> {
             RoleAnalysisOutlierType outlierObject = object.asObjectable();
-            List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getOutlierPartitions();
+            List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getPartition();
 
             try {
 
@@ -575,7 +577,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                     double anomalyObjectsConfidence = 0;
 
                     for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
-                        if (outlierPartition.getTargetClusterRef().getOid().equals(cluster.getOid())) {
+                        if (outlierPartition.getClusterRef().getOid().equals(cluster.getOid())) {
                             partitionToDelete = outlierPartition;
                         } else {
                             overallConfidence += outlierPartition.getPartitionAnalysis().getOverallConfidence();
@@ -599,7 +601,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                     var finalPartitionToDelete = new RoleAnalysisOutlierPartitionType()
                             .id(partitionToDelete.getId());
                     modifications.add(PrismContext.get().deltaFor(RoleAnalysisOutlierType.class)
-                            .item(RoleAnalysisOutlierType.F_OUTLIER_PARTITIONS).delete(
+                            .item(RoleAnalysisOutlierType.F_PARTITION).delete(
                                     finalPartitionToDelete)
                             .asItemDelta());
 
@@ -620,7 +622,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         };
 
         ObjectQuery query = PrismContext.get().queryFor(RoleAnalysisOutlierType.class)
-                .item(RoleAnalysisOutlierType.F_TARGET_OBJECT_REF).ref(member.stream()
+                .item(RoleAnalysisOutlierType.F_OBJECT_REF).ref(member.stream()
                         .map(AbstractReferencable::getOid).distinct().toArray(String[]::new))
                 .build();
 
@@ -944,19 +946,24 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     @Override
     public @NotNull MiningOperationChunk prepareCompressedMiningStructure(
             @NotNull RoleAnalysisClusterType cluster,
-            SearchFilterType objectFilter,
+            @Nullable SearchFilterType userSearchFilter,
+            @Nullable SearchFilterType roleSearchFilter,
+            @Nullable SearchFilterType assignmentSearchFilter,
             boolean fullProcess,
             @NotNull RoleAnalysisProcessModeType processMode,
             @NotNull OperationResult result,
             @NotNull Task task) {
-        return new CompressedMiningStructure().executeOperation(this,
-                cluster, objectFilter, fullProcess, processMode, result, task);
+        return new CompressedMiningStructure().executeOperation(this, cluster,
+                userSearchFilter, roleSearchFilter, assignmentSearchFilter,
+                fullProcess, processMode, result, task);
     }
 
     @Override
     public MiningOperationChunk prepareBasicChunkStructure(
             @NotNull RoleAnalysisClusterType cluster,
-            @Nullable SearchFilterType objectFilter,
+            @Nullable SearchFilterType userSearchFilter,
+            @Nullable SearchFilterType roleSearchFilter,
+            @Nullable SearchFilterType assignmentSearchFilter,
             @NotNull DisplayValueOption option,
             @NotNull RoleAnalysisProcessModeType processMode,
             @Nullable List<DetectedPattern> detectedPatterns,
@@ -970,29 +977,41 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         switch (chunkMode) {
             case EXPAND_ROLE -> {
                 miningRoleTypeChunks = new ExpandedMiningStructure()
-                        .executeOperation(this, cluster, objectFilter, true, processMode, result, task, option)
+                        .executeOperation(this, cluster,
+                                userSearchFilter, roleSearchFilter, assignmentSearchFilter,
+                                true, processMode, result, task, option)
                         .getMiningRoleTypeChunks(RoleAnalysisSortMode.NONE);
                 miningUserTypeChunks = new CompressedMiningStructure()
-                        .executeOperation(this, cluster, objectFilter, true, processMode, result, task)
+                        .executeOperation(this, cluster,
+                                userSearchFilter, roleSearchFilter, assignmentSearchFilter,
+                                true, processMode, result, task)
                         .getMiningUserTypeChunks(RoleAnalysisSortMode.NONE);
                 chunk = new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks);
             }
             case EXPAND_USER -> {
                 miningRoleTypeChunks = new CompressedMiningStructure()
-                        .executeOperation(this, cluster, objectFilter, true, processMode, result, task)
+                        .executeOperation(this, cluster,
+                                userSearchFilter, roleSearchFilter, assignmentSearchFilter,
+                                true, processMode, result, task)
                         .getMiningRoleTypeChunks(RoleAnalysisSortMode.NONE);
                 miningUserTypeChunks = new ExpandedMiningStructure()
-                        .executeOperation(this, cluster, objectFilter, true, processMode, result, task, option)
+                        .executeOperation(this, cluster,
+                                userSearchFilter, roleSearchFilter, assignmentSearchFilter,
+                                true, processMode, result, task, option)
                         .getMiningUserTypeChunks(RoleAnalysisSortMode.NONE);
                 chunk = new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks);
             }
             case COMPRESS -> {
                 chunk = new CompressedMiningStructure()
-                        .executeOperation(this, cluster, objectFilter, true, processMode, result, task);
+                        .executeOperation(this, cluster,
+                                userSearchFilter, roleSearchFilter, assignmentSearchFilter,
+                                true, processMode, result, task);
             }
             default -> {
                 chunk = new ExpandedMiningStructure()
-                        .executeOperation(this, cluster, objectFilter, true, processMode, result, task, option);
+                        .executeOperation(this, cluster,
+                                userSearchFilter, roleSearchFilter, assignmentSearchFilter,
+                                true, processMode, result, task, option);
             }
         }
         chunk.setProcessMode(processMode);
@@ -1016,14 +1035,18 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     @Override
     public @NotNull MiningOperationChunk prepareMiningStructure(
             @NotNull RoleAnalysisClusterType cluster,
-            @Nullable SearchFilterType filter,
+            @Nullable SearchFilterType userSearchFilter,
+            @Nullable SearchFilterType roleSearchFilter,
+            @Nullable SearchFilterType assignmentSearchFilter,
             @NotNull DisplayValueOption option,
             @NotNull RoleAnalysisProcessModeType processMode,
             @NotNull List<DetectedPattern> detectedPatterns,
             @NotNull OperationResult result,
             @NotNull Task task) {
 
-        MiningOperationChunk basicChunk = prepareBasicChunkStructure(cluster, filter, option, processMode, detectedPatterns, result, task);
+        MiningOperationChunk basicChunk = prepareBasicChunkStructure(cluster,
+                userSearchFilter, roleSearchFilter, assignmentSearchFilter,
+                option, processMode, detectedPatterns, result, task);
 
         RoleAnalysisDetectionOptionType detectionOption = cluster.getDetectionOption();
         RangeType frequencyRange = detectionOption.getStandardDeviation();
@@ -1076,14 +1099,17 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     @Override
     public @NotNull MiningOperationChunk prepareExpandedMiningStructure(
             @NotNull RoleAnalysisClusterType cluster,
-            @Nullable SearchFilterType searchFilter,
+            @Nullable SearchFilterType userSearchFilter,
+            @Nullable SearchFilterType roleSearchFilter,
+            @Nullable SearchFilterType assignmentSearchFilter,
             boolean fullProcess,
             @NotNull RoleAnalysisProcessModeType processMode,
             @NotNull OperationResult result,
             @NotNull Task task,
             @Nullable DisplayValueOption option) {
-        return new ExpandedMiningStructure().executeOperation(this, cluster, searchFilter, fullProcess,
-                processMode, result, task, option);
+        return new ExpandedMiningStructure().executeOperation(this, cluster,
+                userSearchFilter, roleSearchFilter, assignmentSearchFilter,
+                fullProcess, processMode, result, task, option);
     }
 
     @Override
@@ -2731,7 +2757,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull OperationResult result) {
         //TODO TARGET OBJECT REF IS NECESSARY (check git history)
 
-        ObjectReferenceType targetObjectRef = roleAnalysisOutlierType.getTargetObjectRef();
+        ObjectReferenceType targetObjectRef = roleAnalysisOutlierType.getObjectRef();
         PrismObject<FocusType> object = this
                 .getObject(FocusType.class, targetObjectRef.getOid(), task, result);
 
@@ -2959,7 +2985,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         ResultHandler<RoleAnalysisOutlierType> resultHandler = (outlier, lResult) -> {
 
             RoleAnalysisOutlierType outlierObject = outlier.asObjectable();
-            List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getOutlierPartitions();
+            List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getPartition();
             for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
                 ObjectReferenceType targetSessionRef = outlierPartition.getTargetSessionRef();
                 String oid = targetSessionRef.getOid();
@@ -3062,13 +3088,11 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     public ListMultimap<List<String>, String> loadUserForOutlierComparison(
             @NotNull RoleAnalysisService roleAnalysisService,
             List<String> outliersMembers,
-            int minRolesOccupancy,
-            int maxRolesOccupancy,
-            @Nullable SearchFilterType query,
+            @Nullable SearchFilterType userSearchFilter,
             @NotNull OperationResult result,
             @NotNull Task task) {
-        ListMultimap<List<String>, String> listStringListMultimap = loadUserBasedMultimapData(
-                modelService, minRolesOccupancy, maxRolesOccupancy, query, task, result);
+        ListMultimap<List<String>, String> listStringListMultimap = this.prepareAssignmentChunkMapRolesAsKey(
+                userSearchFilter, null, null, RoleAnalysisProcessModeType.USER, null, task, result);
 
         Iterator<Map.Entry<List<String>, String>> iterator = listStringListMultimap.entries().iterator();
         while (iterator.hasNext()) {
@@ -3134,9 +3158,9 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         ResultHandler<RoleAnalysisOutlierType> resultHandler = (outlier, lResult) -> {
 
             RoleAnalysisOutlierType outlierObject = outlier.asObjectable();
-            List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getOutlierPartitions();
+            List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getPartition();
             for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
-                ObjectReferenceType targetClusterRef = outlierPartition.getTargetClusterRef();
+                ObjectReferenceType targetClusterRef = outlierPartition.getClusterRef();
                 String oid = targetClusterRef.getOid();
                 if (clusterOid.equals(oid)) {
                     if (category != null) {
@@ -3159,7 +3183,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             if (clusterOid == null) {
                 String outlierOid = cluster.getDescription();
                 ObjectQuery query = PrismContext.get().queryFor(RoleAnalysisOutlierType.class)
-                        .item(RoleAnalysisOutlierType.F_TARGET_OBJECT_REF)
+                        .item(RoleAnalysisOutlierType.F_OBJECT_REF)
                         .ref(outlierOid).build();
 
                 SearchResultList<PrismObject<RoleAnalysisOutlierType>> prismObjects = modelService.searchObjects(
@@ -3185,7 +3209,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull OperationResult result) {
 
         ObjectQuery query = PrismContext.get().queryFor(RoleAnalysisOutlierType.class)
-                .item(RoleAnalysisOutlierType.F_TARGET_OBJECT_REF)
+                .item(RoleAnalysisOutlierType.F_OBJECT_REF)
                 .ref(userOid).build();
 
         try {
@@ -3218,7 +3242,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         try {
             List<ItemDelta<?, ?>> modifications = new ArrayList<>();
             modifications.add(PrismContext.get().deltaFor(RoleAnalysisOutlierType.class)
-                    .item(RoleAnalysisOutlierType.F_OUTLIER_PARTITIONS).add(partition.clone())
+                    .item(RoleAnalysisOutlierType.F_PARTITION).add(partition.clone())
                     .asItemDelta());
 
             modifications.add(PrismContext.get().deltaFor(RoleAnalysisOutlierType.class)
@@ -3432,6 +3456,366 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         } catch (SchemaException e) {
             throw new SystemException("Couldn't search RoleAnalysisOutlierType objects", e);
         }
+    }
+
+    @Override
+    public ListMultimap<String, String> membershipSearch(
+            @Nullable ObjectFilter userObjectFiler,
+            @Nullable ObjectFilter roleObjectFilter,
+            @Nullable ObjectFilter assignmentFilter,
+            @NotNull RoleAnalysisProcessModeType processMode,
+            @Nullable AttributeAnalysisCache attributeAnalysisCache,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        ObjectQuery membershipQuery = buildMembershipSearchObjectQuery(userObjectFiler, roleObjectFilter);
+
+        ListMultimap<String, String> userRolesMap = ArrayListMultimap.create();
+        ListMultimap<String, String> roleMembersMap = ArrayListMultimap.create();
+
+        boolean userMode = processMode.equals(RoleAnalysisProcessModeType.USER);
+
+        ObjectHandler<ObjectReferenceType> handler = (object, parentResult) -> {
+            PrismReferenceValue referenceValue = object.asReferenceValue();
+            if (referenceValue == null) {
+                LOGGER.error("Couldn't get reference value during membership search");
+                return true;
+            }
+            Objectable rootObjectable = referenceValue.getRootObjectable();
+            if (rootObjectable == null) {
+                LOGGER.error("Couldn't get root object during membership search");
+                return true;
+            }
+
+            Object ownerOid = rootObjectable.getOid();
+            String roleOid = referenceValue.getOid();
+
+            if (ownerOid == null) {
+                LOGGER.error("Owner oid retrieved null value during membership search");
+                return true;
+            }
+
+            if (roleOid == null) {
+                LOGGER.error("Target role oid retrieved null value during membership search");
+                return true;
+            }
+
+            roleMembersMap.put(roleOid, ownerOid.toString());
+
+            if (userMode) {
+                userRolesMap.put(ownerOid.toString(), roleOid);
+            }
+
+            return true;
+        };
+
+        try {
+            modelService.searchReferencesIterative(membershipQuery, handler, null, task, result);
+        } catch (SchemaException | SecurityViolationException | ConfigurationException | ObjectNotFoundException |
+                ExpressionEvaluationException | CommunicationException e) {
+            throw new SystemException("Couldn't search assignments", e);
+        }
+
+        if (attributeAnalysisCache != null) {
+            attributeAnalysisCache.setRoleMemberCache(roleMembersMap);
+        }
+
+        if (userMode) {
+            return userRolesMap;
+        } else {
+            return roleMembersMap;
+        }
+    }
+
+    @Override
+    public ListMultimap<String, String> assignmentSearch(
+            @Nullable ObjectFilter userObjectFiler,
+            @Nullable ObjectFilter roleObjectFilter,
+            @Nullable ObjectFilter assignmentFilter,
+            @NotNull RoleAnalysisProcessModeType processMode,
+            @Nullable AttributeAnalysisCache attributeAnalysisCache,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        ObjectQuery assignmentQuery = buildAssignmentSearchObjectQuery(userObjectFiler, roleObjectFilter, assignmentFilter);
+
+        ListMultimap<String, String> userRolesMap = ArrayListMultimap.create();
+        ListMultimap<String, String> roleMembersMap = ArrayListMultimap.create();
+
+        boolean userMode = processMode.equals(RoleAnalysisProcessModeType.USER);
+        ContainerableResultHandler<AssignmentType> handler;
+        handler = (object, parentResult) -> {
+            PrismContainerValue<?> prismContainerValue = object.asPrismContainerValue();
+
+            if (prismContainerValue == null) {
+                LOGGER.error("Couldn't get prism container value during assignment search");
+                return true;
+            }
+
+            Map<String, Object> userData = prismContainerValue.getUserData();
+
+            if (userData == null) {
+                LOGGER.error("Couldn't get user data during assignment search");
+                return true;
+            }
+
+            Object ownerOid = userData.get("ownerOid");
+            ObjectReferenceType targetRef = object.getTargetRef();
+            if (targetRef == null) {
+                LOGGER.error("Couldn't get target reference during assignment search");
+                return true;
+            }
+
+            String roleOid = targetRef.getOid();
+
+            if (ownerOid == null) {
+                LOGGER.error("Owner oid retrieved null value during assignment search");
+                return true;
+            }
+
+            if (roleOid == null) {
+                LOGGER.error("Target role oid retrieved null value during search");
+                return true;
+            }
+
+            roleMembersMap.put(roleOid, ownerOid.toString());
+
+            if (userMode) {
+                userRolesMap.put(ownerOid.toString(), roleOid);
+            }
+
+            return true;
+        };
+
+        try {
+            modelService.searchContainersIterative(AssignmentType.class, assignmentQuery, handler, null, task, result);
+        } catch (SchemaException | SecurityViolationException | ConfigurationException | ObjectNotFoundException |
+                ExpressionEvaluationException | CommunicationException e) {
+            throw new SystemException("Couldn't search assignments", e);
+        }
+
+        if (attributeAnalysisCache != null) {
+            attributeAnalysisCache.setRoleMemberCache(roleMembersMap);
+        }
+
+        if (userMode) {
+            return userRolesMap;
+        } else {
+            return roleMembersMap;
+        }
+    }
+
+    @Override
+    public ListMultimap<List<String>, String> prepareAssignmentChunkMapRolesAsKey(
+            @Nullable SearchFilterType userSearchFiler,
+            @Nullable SearchFilterType roleSearchFiler,
+            @Nullable SearchFilterType assignmentSearchFiler,
+            @NotNull RoleAnalysisProcessModeType processMode,
+            @Nullable AttributeAnalysisCache attributeAnalysisCache,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        ObjectFilter userObjectFilter = transformSearchToObjectFilter(userSearchFiler, UserType.class);
+        ObjectFilter roleObjectFilter = transformSearchToObjectFilter(roleSearchFiler, RoleType.class);
+        ObjectFilter assignmentFilter = transformSearchToObjectFilter(assignmentSearchFiler, AssignmentType.class);
+
+        ListMultimap<String, String> userRolesMap = assignmentSearch(userObjectFilter, roleObjectFilter, assignmentFilter, processMode, attributeAnalysisCache, task, result);
+        ListMultimap<List<String>, String> compressedUsers = ArrayListMultimap.create();
+
+        for (String userOid : userRolesMap.keySet()) {
+            List<String> rolesOids = userRolesMap.get(userOid);
+            Collections.sort(rolesOids);
+            compressedUsers.put(rolesOids, userOid);
+        }
+        return compressedUsers;
+    }
+
+    @Override
+    public ListMultimap<List<String>, String> prepareMembershipChunkMapRolesAsKey(
+            @Nullable SearchFilterType userSearchFiler,
+            @Nullable SearchFilterType roleSearchFiler,
+            @Nullable SearchFilterType assignmentSearchFiler,
+            @NotNull RoleAnalysisProcessModeType processMode,
+            @Nullable AttributeAnalysisCache attributeAnalysisCache,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        ObjectFilter userObjectFilter = transformSearchToObjectFilter(userSearchFiler, UserType.class);
+        ObjectFilter roleObjectFilter = transformSearchToObjectFilter(roleSearchFiler, RoleType.class);
+        ObjectFilter assignmentFilter = transformSearchToObjectFilter(assignmentSearchFiler, AssignmentType.class);
+
+        ListMultimap<String, String> userRolesMap = this.membershipSearch(
+                userObjectFilter, roleObjectFilter, assignmentFilter,
+                processMode, attributeAnalysisCache, task, result);
+        ListMultimap<List<String>, String> compressedUsers = ArrayListMultimap.create();
+
+        for (String userOid : userRolesMap.keySet()) {
+            List<String> rolesOids = userRolesMap.get(userOid);
+            Collections.sort(rolesOids);
+            compressedUsers.put(rolesOids, userOid);
+        }
+        return compressedUsers;
+    }
+
+    @Override
+    public @Nullable ObjectFilter transformSearchToObjectFilter(
+            @Nullable SearchFilterType userSearchFiler,
+            @NotNull Class<?> objectClass) {
+        if (userSearchFiler != null) {
+            try {
+                ObjectFilter objectFilter = PrismContext.get().getQueryConverter()
+                        .createObjectFilter(objectClass, userSearchFiler);
+                if (objectFilter != null) {
+                    return objectFilter;
+                }
+            } catch (SchemaException e) {
+                throw new SystemException("Couldn't create object filter", e);
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public @NotNull ListMultimap<String, String> assignmentRoleMemberSearch(
+            @Nullable SearchFilterType userSearchFiler,
+            @Nullable SearchFilterType roleSearchFiler,
+            @Nullable SearchFilterType assignmentSearchFiler,
+            @NotNull Set<String> roleMembers,
+            boolean roleAsKey,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        ObjectFilter userObjectFilter = transformSearchToObjectFilter(userSearchFiler, UserType.class);
+        ObjectFilter roleObjectFilter = transformSearchToObjectFilter(roleSearchFiler, RoleType.class);
+        ObjectFilter assignmentFilter = transformSearchToObjectFilter(assignmentSearchFiler, AssignmentType.class);
+
+        ListMultimap<String, String> roleMemberCache = ArrayListMultimap.create();
+
+        ObjectQuery query = buildAssignmentRoleMemberSearchObjectQuery(roleMembers, userObjectFilter, roleObjectFilter, assignmentFilter);
+
+        ContainerableResultHandler<AssignmentType> handler;
+        handler = (object, parentResult) -> {
+            PrismContainerValue<?> prismContainerValue = object.asPrismContainerValue();
+
+            if (prismContainerValue == null) {
+                LOGGER.error("Couldn't get prism container value during assignment role member search");
+                return true;
+            }
+
+            Map<String, Object> userData = prismContainerValue.getUserData();
+
+            if (userData == null) {
+                LOGGER.error("Couldn't get user data during assignment role member search");
+                return true;
+            }
+
+            Object ownerOid = userData.get("ownerOid");
+            ObjectReferenceType targetRef = object.getTargetRef();
+            if (targetRef == null) {
+                LOGGER.error("Couldn't get target reference during assignment role member search");
+                return true;
+            }
+
+            String roleOid = targetRef.getOid();
+
+            if (ownerOid == null) {
+                LOGGER.error("Owner oid retrieved null value during assignment role member search");
+                return true;
+            }
+
+            if (roleOid == null) {
+                LOGGER.error("Target role oid retrieved null value during role member search");
+                return true;
+            }
+
+            if (roleAsKey) {
+                roleMemberCache.put(roleOid, ownerOid.toString());
+            } else {
+                roleMemberCache.put(ownerOid.toString(), roleOid);
+            }
+
+            return true;
+        };
+
+        try {
+            modelService.searchContainersIterative(AssignmentType.class, query, handler, null, task, result);
+        } catch (SchemaException | SecurityViolationException | ConfigurationException | ObjectNotFoundException |
+                ExpressionEvaluationException | CommunicationException e) {
+            throw new SystemException("Couldn't search assignments", e);
+        }
+
+        return roleMemberCache;
+    }
+
+    @Override
+    public @NotNull ListMultimap<String, String> assignmentUserAccessSearch(
+            @Nullable SearchFilterType userSearchFiler,
+            @Nullable SearchFilterType roleSearchFiler,
+            @Nullable SearchFilterType assignmentSearchFiler,
+            @NotNull Set<String> userMembers,
+            boolean userAsKey,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        ObjectFilter userObjectFilter = transformSearchToObjectFilter(userSearchFiler, UserType.class);
+        ObjectFilter roleObjectFilter = transformSearchToObjectFilter(roleSearchFiler, RoleType.class);
+        ObjectFilter assignmentFilter = transformSearchToObjectFilter(assignmentSearchFiler, AssignmentType.class);
+
+        ListMultimap<String, String> roleMemberCache = ArrayListMultimap.create();
+
+        ObjectQuery query = buildAssignmentUserAccessSearchObjectQuery(userMembers, userObjectFilter, roleObjectFilter, assignmentFilter);
+
+        ContainerableResultHandler<AssignmentType> handler;
+        handler = (object, parentResult) -> {
+            PrismContainerValue<?> prismContainerValue = object.asPrismContainerValue();
+
+            if (prismContainerValue == null) {
+                LOGGER.error("Couldn't get prism container value during assignment search");
+                return true;
+            }
+
+            Map<String, Object> userData = prismContainerValue.getUserData();
+
+            if (userData == null) {
+                LOGGER.error("Couldn't get user data during assignment search");
+                return true;
+            }
+
+            Object ownerOid = userData.get("ownerOid");
+            ObjectReferenceType targetRef = object.getTargetRef();
+            if (targetRef == null) {
+                LOGGER.error("Couldn't get target reference during assignment search");
+                return true;
+            }
+
+            String roleOid = targetRef.getOid();
+
+            if (ownerOid == null) {
+                LOGGER.error("Owner oid retrieved null value during assignment search");
+                return true;
+            }
+
+            if (roleOid == null) {
+                LOGGER.error("Target role oid retrieved null value during search");
+                return true;
+            }
+
+            if (userAsKey) {
+                roleMemberCache.put(ownerOid.toString(), roleOid);
+            } else {
+                roleMemberCache.put(roleOid, ownerOid.toString());
+            }
+
+            return true;
+        };
+
+        try {
+            modelService.searchContainersIterative(AssignmentType.class, query, handler, null, task, result);
+        } catch (SchemaException | SecurityViolationException | ConfigurationException | ObjectNotFoundException |
+                ExpressionEvaluationException | CommunicationException e) {
+            throw new SystemException("Couldn't search assignments", e);
+        }
+
+        return roleMemberCache;
     }
 
 }

@@ -47,7 +47,7 @@ public class RoleAnalysisOutlierPartitionTileModel<T extends Serializable> exten
         Task task = pageBase.createSimpleTask("Load object");
         OperationResult result = task.getResult();
 
-        ObjectReferenceType targetObjectRef = outlierParent.getTargetObjectRef();
+        ObjectReferenceType targetObjectRef = outlierParent.getObjectRef();
         PrismObject<UserType> userPrismObject = WebModelServiceUtils.loadObject(
                 UserType.class, targetObjectRef.getOid(), pageBase, task, result);
 
@@ -64,7 +64,7 @@ public class RoleAnalysisOutlierPartitionTileModel<T extends Serializable> exten
             @NotNull RoleAnalysisOutlierPartitionType partition,
             @NotNull RoleAnalysisOutlierType outlierParent) {
         RoleAnalysisOutlierPartitionType topPartition = partition;
-        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierParent.getOutlierPartitions();
+        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierParent.getPartition();
         for (RoleAnalysisOutlierPartitionType nextPartition : outlierPartitions) {
             topPartition = partition;
             if (topPartition.getPartitionAnalysis().getOverallConfidence()

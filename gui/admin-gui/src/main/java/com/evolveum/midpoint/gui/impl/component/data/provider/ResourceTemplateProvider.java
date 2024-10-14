@@ -85,7 +85,7 @@ public class ResourceTemplateProvider
     }
 
     @Override
-    protected ObjectPaging createPaging(long offset, long pageSize) {
+    public ObjectPaging createPaging(long offset, long pageSize) {
         if (type != null && TemplateType.CONNECTOR == type.getObject()) {
             setSort("displayName", getDefaultSortOrder());
         } else {

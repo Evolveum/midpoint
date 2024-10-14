@@ -52,7 +52,7 @@
                     <!--TODO also don't forget about "Valid from" and "Valid to" attributes. Think about other conditions.-->
 
                     <!--TODO don't forget important for search -->
-                    <xsd:element name="targetObjectRef" type="c:ObjectReferenceType" minOccurs="0">
+                    <xsd:element name="objectRef" type="c:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 The object that is the target of the outlier analysis.
@@ -64,11 +64,11 @@
                     </xsd:element>
 
                     <!--TODO we need search across partition clusters, session & target object ref -->
-                    <xsd:element name="outlierPartitions" type="tns:RoleAnalysisOutlierPartitionType" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="partition" type="tns:RoleAnalysisOutlierPartitionType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
-                                    Partitions contains information about outliers analysis result for specific session.
+                                    Partition contains information about outliers analysis result for specific session.
                                 </p>
                             </xsd:documentation>
                         </xsd:annotation>
@@ -165,13 +165,13 @@
             <!--TODO search-->
             <!-- TODO important!!! whats if cluster is outlier_cluster, in this case is outlier OUTER OUTLIER, so we need store*
  TODO *refs of all similar object or store all statistics data, NEED TO BE RESOLVED -->
-            <xsd:element name="targetClusterRef" type="c:ObjectReferenceType" minOccurs="0">
+            <xsd:element name="clusterRef" type="c:ObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         The cluster that owns outlier.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>RoleAnalysisOutlierType.targetClusterRef</a:displayName>
+                        <a:displayName>RoleAnalysisOutlierType.clusterRef</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1148,11 +1148,31 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="query" type="q:SearchFilterType" minOccurs="0">
+            <xsd:element name="userSearchFilter" type="q:SearchFilterType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Specifies the query or filter applied to the objects.
+                            Specifies the query or filter applied to the UserType objects.
+                            Only the objects that match the filter are included in the analysis.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="roleSearchFilter" type="q:SearchFilterType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Specifies the query or filter applied to the RoleType objects.
+                            Only the objects that match the filter are included in the analysis.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="assignmentSearchFilter" type="q:SearchFilterType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Specifies the query or filter applied to the AssignmentType objects.
                             Only the objects that match the filter are included in the analysis.
                         </p>
                     </xsd:documentation>
@@ -1176,18 +1196,6 @@
 
                             NOTE: The parameter checks the number of these unique objects, not the total
                             number of included objects in the cluster.
-                        </p>
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="propertiesRange" type="tns:RangeType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            Specifies the minimum and maximum required number of properties.
-                            If the condition is not met, the object is excluded.
-                            USER MODE - min role assign.
-                            ROLE MODE - min members count.
                         </p>
                     </xsd:documentation>
                 </xsd:annotation>
@@ -1252,6 +1260,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>AbstractAnalysisSessionOptionType.isIndirect</a:displayName>
+                        <a:experimental>true</a:experimental>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1424,7 +1433,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="clusterMetric" type="xsd:double" minOccurs="0">
+            <xsd:element name="reductionCount" type="xsd:double" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -1433,7 +1442,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>RoleAnalysisDetectionPatternType.clusterMetric</a:displayName>
+                        <a:displayName>RoleAnalysisDetectionPatternType.reductionCount</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

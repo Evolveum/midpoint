@@ -109,7 +109,7 @@ public class PatternStatistics<T extends MiningBaseTypeChunk> implements Seriali
             );
         }
 
-        pattern.setClusterMetric(metric);
+        pattern.setReductionCount(metric);
 
         Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
         Map<String, PrismObject<RoleType>> roleExistCache = new HashMap<>();

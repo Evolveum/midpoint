@@ -1074,8 +1074,8 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
         OperationResult result = task.getResult();
         ResultHandler<RoleAnalysisOutlierType> resultHandler = (outlier, lResult) -> {
             RoleAnalysisOutlierType outlierObject = outlier.asObjectable();
-            outlierObject.getOutlierPartitions().forEach(partition -> outliersMap.put(
-                    partition.getTargetClusterRef().getOid(), outlierObject.getOid()));
+            outlierObject.getPartition().forEach(partition -> outliersMap.put(
+                    partition.getClusterRef().getOid(), outlierObject.getOid()));
             return true;
         };
 

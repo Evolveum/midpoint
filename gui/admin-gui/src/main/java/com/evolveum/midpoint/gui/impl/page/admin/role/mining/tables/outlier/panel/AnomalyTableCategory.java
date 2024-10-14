@@ -768,7 +768,7 @@ public enum AnomalyTableCategory implements Serializable {
     private static @NotNull Set<String> loadUserDirectAssignmentRoleSet(@NotNull PageBase pageBase,
             @NotNull IModel<RoleAnalysisOutlierType> outlierModel) {
         RoleAnalysisOutlierType outlier = outlierModel.getObject();
-        ObjectReferenceType outlierUserRef = outlier.getTargetObjectRef();
+        ObjectReferenceType outlierUserRef = outlier.getObjectRef();
         RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
         Task task = pageBase.createSimpleTask("loadUserTypeObject");
 
