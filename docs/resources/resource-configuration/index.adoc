@@ -5,7 +5,7 @@
 :page-wiki-metadata-create-date: 2013-01-11T21:05:06.201+01:00
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2017-06-29T10:37:26.952+02:00
-:page-upkeep-status: red
+:page-upkeep-status: yellow
 :page-toc: top
 
 Resource definition is perhaps the most important part of link:https://evolveum.com/midpoint[midPoint] configuration.
@@ -71,6 +71,7 @@ This may include configuration of high-level operation retries and similar techn
 
 | Caching
 | Definition of resource object (shadow) caching policies.
+See xref:/midpoint/reference/resources/attribute-caching/[].
 |
 
 
