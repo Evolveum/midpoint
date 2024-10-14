@@ -32,6 +32,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 
 import org.jetbrains.annotations.Nullable;
@@ -2729,6 +2730,67 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
             var user = repositoryService.getObject(UserType.class, user1Oid, options, createOperationResult());
             assertThat(user.asObjectable().getAssignment()).isEmpty();
         }
+    }
+
+
+    @Test
+    public void test780OutliersByCluster() throws Exception {
+        var result = createOperationResult();
+
+        var cluster1Oid = repositoryService.addObject(new RoleAnalysisClusterType()
+                .name("Test Cluster 1").asPrismObject()
+                , null, result);
+
+        var cluster2Oid = repositoryService.addObject(new RoleAnalysisClusterType()
+                        .name("Test Cluster 2").asPrismObject()
+                , null, result);
+        var outlier1Oid = repositoryService.addObject(new RoleAnalysisOutlierType()
+                .name("Stevenson")
+                .partition(new RoleAnalysisOutlierPartitionType()
+                        .clusterRef(cluster1Oid, RoleAnalysisClusterType.COMPLEX_TYPE, ORG_DEFAULT)
+                ).asPrismObject(), null, result);
+        var outlier2Oid = repositoryService.addObject(new RoleAnalysisOutlierType()
+                .name("Stevenson 2")
+                .partition(new RoleAnalysisOutlierPartitionType()
+                        .clusterRef(cluster2Oid, RoleAnalysisClusterType.COMPLEX_TYPE, ORG_DEFAULT)
+                ).asPrismObject(), null, result);
+        var partitionClusterRefPath = RoleAnalysisOutlierType.F_PARTITION.append(RoleAnalysisOutlierPartitionType.F_CLUSTER_REF);
+        searchObjectTest("Outliers in cluster 1", RoleAnalysisOutlierType.class,
+                f -> f.ref(partitionClusterRefPath, RoleAnalysisClusterType.COMPLEX_TYPE, ORG_DEFAULT, cluster1Oid),
+                outlier1Oid);
+    }
+
+    @Test
+    public void test781SearchPatternsOrderedByReduction() throws SchemaException, ObjectAlreadyExistsException {
+        var result = createOperationResult();
+        var cluster1Oid = repositoryService.addObject(new RoleAnalysisClusterType()
+                        .name("Test Cluster 1")
+                        .detectedPattern(detectedPattern(1100))
+                        .detectedPattern(detectedPattern(1200))
+                        .asPrismObject()
+                , null, result);
+
+        var cluster2Oid = repositoryService.addObject(new RoleAnalysisClusterType()
+                        .name("Test Cluster 2")
+                        .detectedPattern(detectedPattern(1300))
+                        .asPrismObject()
+                , null, result);
+
+        var query = PrismContext.get().queryFor(RoleAnalysisDetectionPatternType.class)
+                        .desc(RoleAnalysisDetectionPatternType.F_REDUCTION_COUNT)
+                                .build();
+        var results = repositoryService.searchContainers(RoleAnalysisDetectionPatternType.class, query, null, result);
+        assertThat(results).isNotEmpty();
+        assertThat(results).map(RoleAnalysisDetectionPatternType::getReductionCount)
+                .containsExactly(1300.0,1200.0,1100.0);
+
+        assertThat(results).map(v -> v.asPrismContainerValue().getRootObjectable().getOid())
+                .containsExactly(cluster2Oid, cluster1Oid, cluster1Oid);
+
+    }
+
+    private RoleAnalysisDetectionPatternType detectedPattern(int count) {
+        return new RoleAnalysisDetectionPatternType().reductionCount((double) count);
     }
 
     // region reference search

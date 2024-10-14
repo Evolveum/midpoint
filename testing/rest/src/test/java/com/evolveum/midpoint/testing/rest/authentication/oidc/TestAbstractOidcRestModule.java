@@ -31,6 +31,7 @@ import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -162,6 +163,7 @@ public abstract class TestAbstractOidcRestModule extends TestAbstractAuthenticat
             securityContent = securityContent.replace(createTag(TRUSTING_ASYMMETRIC_CERT_KEY), publicKeys.get(publicKeyKid));
             replaceSecurityPolicy(securityContent);
 
+            TimeUnit.SECONDS.sleep(2);
             when();
             Response response = client.get();
 
@@ -185,7 +187,7 @@ public abstract class TestAbstractOidcRestModule extends TestAbstractAuthenticat
     }
 
     @Test
-    public void test005oidcAuthByPublicKeyWithWrongAlg() throws Exception {
+    public void test005OidcAuthByPublicKeyWithWrongAlg() throws Exception {
         Map<String, String> publicKeys = getPublicKeys();
         boolean oneIsSuccess = false;
         WebClient client = prepareClient();

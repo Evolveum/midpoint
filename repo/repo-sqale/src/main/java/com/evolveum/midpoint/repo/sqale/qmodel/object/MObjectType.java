@@ -11,8 +11,8 @@ import java.util.Map;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.mining.cluster.QClusterData;
-import com.evolveum.midpoint.repo.sqale.qmodel.mining.outlier.QOutlierData;
+import com.evolveum.midpoint.repo.sqale.qmodel.mining.cluster.QClusterObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.mining.outlier.QOutlier;
 import com.evolveum.midpoint.repo.sqale.qmodel.mining.session.QSessionData;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.*;
 
@@ -81,9 +81,9 @@ public enum MObjectType {
     REPORT_DATA(QReportData.class, ReportDataType.class),
     RESOURCE(QResource.class, ResourceType.class),
     ROLE(QRole.class, RoleType.class),
-    ROLE_ANALYSIS_CLUSTER(QClusterData.class, RoleAnalysisClusterType.class),
+    ROLE_ANALYSIS_CLUSTER(QClusterObject.class, RoleAnalysisClusterType.class),
     ROLE_ANALYSIS_SESSION(QSessionData.class, RoleAnalysisSessionType.class),
-    ROLE_ANALYSIS_OUTLIER(QOutlierData.class, RoleAnalysisOutlierType.class),
+    ROLE_ANALYSIS_OUTLIER(QOutlier.class, RoleAnalysisOutlierType.class),
     SCHEMA(QSchema.class, SchemaType.class),
     SECURITY_POLICY(QSecurityPolicy.class, SecurityPolicyType.class),
     SEQUENCE(QSequence.class, SequenceType.class),
