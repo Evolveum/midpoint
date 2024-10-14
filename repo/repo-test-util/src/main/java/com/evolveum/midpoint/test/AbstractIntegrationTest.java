@@ -4282,13 +4282,6 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected void restartTask(String taskOid, OperationResult result) throws CommonException {
-        restartTask(taskOid, result, DEFAULT_TASK_WAIT_TIMEOUT, false);
-    }
-
-    /**
-     * Restarts a specified task based on its current scheduling state, with an option to specify a custom timeout.
-     */
-    protected void restartTask(String taskOid, OperationResult result, long timeout, boolean isError) throws CommonException {
         // Wait at least 1ms here. We have the timestamp in the tasks with a millisecond granularity. If the tasks is started,
         // executed and then restarted and executed within the same millisecond then the second execution will not be
         // detected and the wait for task finish will time-out. So waiting one millisecond here will make sure that the
@@ -4311,7 +4304,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             if (taskManager.getLocallyRunningTaskByIdentifier(task.getTaskIdentifier()) != null) {
                 // Task is really executing. Let's wait until it finishes; hopefully it won't start again (TODO)
                 logger.debug("Task {} is running, waiting while it finishes before restarting", task);
-                waitForTaskFinish(taskOid, timeout, isError);
+                waitForTaskFinish(taskOid);
             }
             logger.debug("Task {} is finished, scheduling it to run now", task);
             taskManager.scheduleTasksNow(singleton(taskOid), result);

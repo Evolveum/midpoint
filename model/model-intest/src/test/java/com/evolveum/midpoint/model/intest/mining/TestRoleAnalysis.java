@@ -27,7 +27,7 @@ import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.TestTask;
 
 import static org.testng.AssertJUnit.assertEquals;
-
+//TODO move to longTest suite
 /**
  * Role analysis tests (role mining and outlier detection).
  */
@@ -52,6 +52,7 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
     ) {
     }
 
+    //TODO think about default timeout per specific test
     private static final long DEFAULT_TIMEOUT = 600_000;
 
     public static final File TEST_DIR = new File("src/test/resources/mining/");
@@ -76,7 +77,7 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
             TEST_DIR, "session/session-role-mining-1.xml", SESSION_ROLE_MINING_1_OID);
     private static final TestTask TASK_ROLE_ANALYSIS_PROCESS_SESSION_ROLE_MINING_1 =
             new TestTask(TEST_DIR, "task/task-role-analysis-process-session-1.xml",
-                    "7db12c2a-d431-4587-aa8d-55d76e4401da");
+                    "7db12c2a-d431-4587-aa8d-55d76e4401da", DEFAULT_TIMEOUT);
 
     // Role mining in role mode without attribute rules
     private static final String SESSION_ROLE_MINING_ROLE_MODE_1_OID = "96632490-60be-42b1-b054-f0ac8ae04df3";
@@ -84,7 +85,7 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
             TEST_DIR, "session/session-role-mining-role-mode-1.xml", SESSION_ROLE_MINING_ROLE_MODE_1_OID);
     private static final TestTask TASK_ROLE_ANALYSIS_PROCESS_SESSION_ROLE_MINING_ROLE_MODE_1 =
             new TestTask(TEST_DIR, "task/task-role-analysis-process-session-role-mode-1.xml",
-                    "813b8407-adb0-4575-b40c-35e06573c20e");
+                    "813b8407-adb0-4575-b40c-35e06573c20e", DEFAULT_TIMEOUT);
 
     // Role mining direct mode
     private static final String SESSION_ROLE_MINING_DIRECT_1_OID = "7eb32d16-b0d5-4149-834d-4a80872db920";
@@ -92,7 +93,7 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
             TEST_DIR, "session/session-role-mining-direct-1.xml", SESSION_ROLE_MINING_DIRECT_1_OID);
     private static final TestTask TASK_ROLE_ANALYSIS_PROCESS_SESSION_ROLE_MINING_DIRECT_1 =
             new TestTask(TEST_DIR, "task/task-role-analysis-process-session-direct-1.xml",
-                    "67aae68a-dc30-4df1-bfc8-de42b9aee9d6");
+                    "67aae68a-dc30-4df1-bfc8-de42b9aee9d6", DEFAULT_TIMEOUT);
 
     // Outlier org attribute rule (partial analysis - not outlier cluster excluded)
     private static final String SESSION_OUTLIER_PART_1_OID = "6cd71dab-993a-4dea-aeb4-b8bdcad81ddc";
@@ -100,7 +101,7 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
             TEST_DIR, "session/session-outlier-part-1.xml", SESSION_OUTLIER_PART_1_OID);
     private static final TestTask TASK_ROLE_ANALYSIS_PROCESS_SESSION_OUTLIER_PART_1 =
             new TestTask(TEST_DIR, "task/task-role-analysis-process-session-outlier-part-1.xml",
-                    "89c856dc-13f8-43ac-99b2-4bf2654f94ca");
+                    "89c856dc-13f8-43ac-99b2-4bf2654f94ca", DEFAULT_TIMEOUT);
 
     // Outlier org attribute rule (full analysis - outlier cluster included)
     private static final String SESSION_OUTLIER_FULL_1_OID = "0fc912c8-794a-4add-ad61-a7013d6abd4a";
@@ -108,7 +109,7 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
             TEST_DIR, "session/session-outlier-full-1.xml", SESSION_OUTLIER_FULL_1_OID);
     private static final TestTask TASK_ROLE_ANALYSIS_PROCESS_SESSION_OUTLIER_FULL_1 =
             new TestTask(TEST_DIR, "task/task-role-analysis-process-session-outlier-full-1.xml",
-                    "55e836f6-4e43-485f-bdc3-a95858d3492f");
+                    "55e836f6-4e43-485f-bdc3-a95858d3492f", DEFAULT_TIMEOUT);
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -270,7 +271,7 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
 
         when("task is run");
         testTask.init(this, task, result);
-        testTask.rerunTaskWithinTimeout(result, DEFAULT_TIMEOUT);
+        testTask.rerun(result);
 
         then("task is OK and result is as expected");
         testTask.assertAfter()
@@ -305,7 +306,7 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
 
         when("task is run");
         testTask.init(this, task, result);
-        testTask.rerunTaskWithinTimeout(result, DEFAULT_TIMEOUT); // asserts success
+        testTask.rerun(result); // asserts success
 
         then("task is OK and result is as expected");
         testTask.assertAfter()
