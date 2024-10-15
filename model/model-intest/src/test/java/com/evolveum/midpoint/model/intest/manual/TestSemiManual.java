@@ -15,6 +15,7 @@ import static org.testng.AssertJUnit.*;
 import java.io.File;
 import java.util.Collection;
 
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -336,9 +337,9 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
 
     @Override
     Collection<? extends QName> getCachedAttributes() throws SchemaException, ConfigurationException {
-        return Resource.of(resource)
+        var def = Resource.of(resource)
                 .getCompleteSchemaRequired()
-                .findDefinitionForObjectClassRequired(RI_ACCOUNT_OBJECT_CLASS)
-                .getAllIdentifiersNames();
+                .findDefinitionForObjectClassRequired(RI_ACCOUNT_OBJECT_CLASS);
+        return InternalsConfig.isShadowCachingOnByDefault() ? def.getAttributeNames() : def.getAllIdentifiersNames();
     }
 }
