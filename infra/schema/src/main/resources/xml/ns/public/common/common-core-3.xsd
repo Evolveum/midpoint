@@ -4857,9 +4857,25 @@
                     <xsd:documentation>
                         Attribute is not stored in full repo object (XML) structure.
                         It can be queried. If needed to get it, explicit INCLUDE option has to be used.
+
+                        Ignored for the native repository, as it stores all attributes as "index only".
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="INDEX_ONLY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="notIndexed">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Attribute is not indexed. It cannot be queried. It is stored in full repo object (XML) structure only.
+
+                        Ignored for the native repository, as it stores all attributes as "index only".
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NOT_INDEXED"/>
+                        <a:since>4.9</a:since>
+                        <a:experimental>true</a:experimental>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
