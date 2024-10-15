@@ -105,6 +105,14 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends InputP
                 if (containerWrapper != null) {
                     ObjectCollectionType collectionObj = containerWrapper.getRealValue();
                     filterType = collectionObj.getType() != null ? collectionObj.getType() : ObjectType.COMPLEX_TYPE;
+                } else if (itemModel != null && itemModel.getObject() != null ) {
+                    var item = itemModel.getObject().getItem();
+                    if (item != null && item.getValue() != null) {
+                        var schemaContext = item.getValue().getSchemaContext();
+                        if (schemaContext != null && schemaContext.getItemDefinition() != null) {
+                            filterType = schemaContext.getItemDefinition().getTypeName();
+                        }
+                    }
                 }
                 return (Class<O>) WebComponentUtil.qnameToClass(
                         filterType == null ? ObjectType.COMPLEX_TYPE : filterType);

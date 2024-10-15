@@ -60,6 +60,7 @@
             <attribute>
                 <ref>ri:fullname</ref>
                 <displayName>Full Name</displayName>
+                <cached>false</cached> <!-- because of the generic repo: it cannot store unsupported chars in XML -->
                 <outbound>
                     <expression>
                         <script>

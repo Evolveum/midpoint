@@ -681,7 +681,13 @@ public abstract class ShadowAttributeDefinitionImpl<
     }
 
     public Boolean isIndexed() {
-        return true; // TODO reconsider
+        if (getStorageStrategy() == AttributeStorageStrategyType.NOT_INDEXED) {
+            return false;
+        } else {
+            // Returning 'null' which means default setting, depending on whether the specific type is supported (generic repo).
+            // For native repo, all attributes (of supported types) are indexed, regardless of this value.
+            return null;
+        }
     }
 
     public boolean isOptionalCleanup() {

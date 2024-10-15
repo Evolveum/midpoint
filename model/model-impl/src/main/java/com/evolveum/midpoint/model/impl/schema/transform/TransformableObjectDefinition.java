@@ -95,8 +95,4 @@ public class TransformableObjectDefinition<O extends Objectable> extends Transfo
         return delegate().createValue();
     }
 
-    @Override
-    public SchemaContextDefinition getSchemaContextDefinition() {
-        return delegate().getSchemaContextDefinition();
-    }
 }

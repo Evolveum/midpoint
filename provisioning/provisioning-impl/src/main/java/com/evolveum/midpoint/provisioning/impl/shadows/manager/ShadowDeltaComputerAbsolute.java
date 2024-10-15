@@ -406,7 +406,8 @@ class ShadowDeltaComputerAbsolute {
     private <T, N> void updateMultiValuedSimpleRepoAttribute(
             @NotNull PropertyDelta<N> repoAttrDelta,
             @NotNull ShadowSimpleAttribute<T> resourceObjectAttribute,
-            @NotNull NormalizationAwareResourceAttributeDefinition<N> repoAttrDef) {
+            @NotNull NormalizationAwareResourceAttributeDefinition<N> repoAttrDef) throws SchemaException {
+        repoAttrDelta.applyDefinition(repoAttrDef, true); // e.g. the indexed flag should be updated there
         repoAttrDelta.setParentPath(ShadowType.F_ATTRIBUTES);
         LOGGER.trace("Going to update the new attribute {} in repo shadow because it's outdated", repoAttrDef.getItemName());
         // The repo is update with a nice, relative delta. We need not bother with computing such delta
