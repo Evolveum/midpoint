@@ -15,8 +15,6 @@ import java.util.Collection;
 import java.util.stream.Stream;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.internals.InternalsConfig;
-
 import com.google.common.collect.Streams;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,20 +24,9 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
-import org.testng.SkipException;
-import org.testng.annotations.BeforeMethod;
-
 public class TestDummyCachingPartial extends TestDummyCaching {
 
     public static final File RESOURCE_DUMMY_FILE = new File(TestDummyCaching.TEST_DIR, "resource-dummy-partial.xml");
-
-    @BeforeMethod
-    public void skipIfForcedCaching() {
-        // This class uses its own caching, so it's sufficient to run it only when forced shadow caching is off.
-        if (InternalsConfig.isShadowCachingOnByDefault()) {
-            throw new SkipException("Skipping because forced shadow caching is on");
-        }
-    }
 
     @Override
     protected File getResourceDummyFile() {

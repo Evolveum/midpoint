@@ -139,7 +139,7 @@ public class RepoShadowAsserter<RA> extends ShadowAsserter<RA> {
     }
 
     private boolean isCached(QName attrName) {
-        return InternalsConfig.isShadowCachingOnByDefault() || cachedAttributes.contains(attrName);
+        return cachedAttributes.contains(attrName);
     }
 
     private static Collection<?> extractOrigValues(PrismProperty<?> property) {
