@@ -3818,5 +3818,31 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         return roleMemberCache;
     }
 
+    public @NotNull List<DetectedPattern> getAllRoleSuggestions(@NotNull Task task, @NotNull OperationResult result) {
+        List<DetectedPattern> allDetectedPatterns = new ArrayList<>();
+        ResultHandler<RoleAnalysisClusterType> resultHandler = (cluster, lResult) -> {
+            RoleAnalysisClusterType clusterObject = cluster.asObjectable();
+            List<DetectedPattern> detectedPatterns = transformDefaultPattern(clusterObject);
+            if(!detectedPatterns.isEmpty()) {
+                allDetectedPatterns.addAll(detectedPatterns);
+            }
+            return true;
+        };
+
+        GetOperationOptionsBuilder getOperationOptionsBuilder = schemaService.getOperationOptionsBuilder();
+        getOperationOptionsBuilder = getOperationOptionsBuilder.resolveNames();
+
+        Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder.build();
+        try {
+            modelService.searchObjectsIterative(RoleAnalysisClusterType.class,null,resultHandler,options,task,result);
+        } catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException |
+                SecurityViolationException | ExpressionEvaluationException e) {
+            throw new SystemException("Failed to search and get detected patterns from RoleAnalysisClusterType", e);
+        }
+
+        allDetectedPatterns.sort(Comparator.comparing(DetectedPattern::getMetric).reversed());
+
+        return allDetectedPatterns;
+    }
 }
 

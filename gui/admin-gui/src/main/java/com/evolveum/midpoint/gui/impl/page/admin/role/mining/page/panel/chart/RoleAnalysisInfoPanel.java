@@ -18,6 +18,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.AnalysisInfoWidgetDto;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.mining.PageRoleSuggestions;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.outlier.PageOutliers;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -265,6 +266,11 @@ public class RoleAnalysisInfoPanel extends BasePanel<AnalysisInfoWidgetDto> {
 
         RoleAnalysisIdentifyWidgetPanel patternPanel = new RoleAnalysisIdentifyWidgetPanel(ID_PATTERN_PANEL,
                 createStringResource("Pattern.suggestions.title"), Model.ofList(getModelObject().getPatternModelData())) {
+
+            @Override
+            protected void onClickFooter(AjaxRequestTarget target) {
+                getPageBase().navigateToNext(PageRoleSuggestions.class);
+            }
 
             @Override
             protected @NotNull Component getBodyHeaderPanel(String id) {

@@ -111,13 +111,10 @@ While midPoint does not know how to handle objects of object class `inetOrgPerso
 Default account objects are presented as (kind=account, intent=default) in midPoint.
 
 Therefore midPoint maps object classes to (kind, intent) tuples.
-The mapping on the outbound side is defined in xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]. This maps (kind, intent) to object class.
-In this case midPoint has a lot of information about the intended use and type of the object in this case and the information is quite reliable.
-This configuration can be very declarative and straightforward.
-The mapping on the inbound side is defined in xref:/midpoint/reference/resources/resource-configuration/synchronization/[Synchronization Configuration]. This maps object class to (kind, intent) tuple.This mapping is not a very reliable and straightforward because all the midPoint really knows about the object is its object class and attributes.
+The mapping is defined in xref:/midpoint/reference/resources/resource-configuration/schema-handling/#_delineation[Delineation] section in the schema handling.
+This maps (kind, intent) to object class and vice versa.
+The mapping from object class to kind and intent may sometimes be not a very reliable and straightforward because all the midPoint really knows about the object is its object class and attributes.
 Therefore this configuration needs to be much more flexible and allow some kind of "guesswork" to correctly sort out the object.
-
-NOTE: See also xref:/midpoint/reference/resources/resource-configuration/schema-handling/changes-in-4.6.adoc[].
 
 == Examples
 
@@ -193,8 +190,6 @@ Therefore midPoint allows the two grouping mechanisms to coexist (and may keep t
 == See Also
 
 * xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]
-
-* xref:/midpoint/reference/resources/resource-configuration/synchronization/[Synchronization Configuration]
 
 * xref:/midpoint/reference/resources/resource-schema/[Resource Schema]
 

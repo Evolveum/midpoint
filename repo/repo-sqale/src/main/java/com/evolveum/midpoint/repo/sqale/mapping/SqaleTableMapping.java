@@ -163,6 +163,13 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
                 rootToQueryItem);
     }
 
+    public ItemSqlMapper<Q, R> doubleMapper(
+            Function<Q, NumberPath<Double>> rootToQueryItem) {
+        return new SqaleItemSqlMapper<>(
+                ctx -> new SimpleItemFilterProcessor<>(ctx, rootToQueryItem),
+                ctx -> new SinglePathItemDeltaProcessor<>(ctx, rootToQueryItem),
+                rootToQueryItem);
+    }
 
     /**
      * Returns the mapper creating the boolean filter/delta processors from context.

@@ -21,6 +21,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.policy.PagePolicy;
 import com.evolveum.midpoint.gui.impl.page.admin.report.PageReport;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysis;
 import com.evolveum.midpoint.gui.impl.page.admin.schema.PageSchema;
 import com.evolveum.midpoint.gui.impl.page.admin.schema.PageSchemas;
 import com.evolveum.midpoint.gui.impl.page.admin.service.PageService;
@@ -64,7 +65,9 @@ public enum PageTypes {
     SIMULATION_RESULT("simulationResults", GuiStyleConstants.CLASS_SIMULATION_RESULT, PageSimulationResults.class, PageSimulationResult.class, SimulationResultType.COMPLEX_TYPE),
     MARK("marks", GuiStyleConstants.CLASS_MARK, PageMarks.class, PageMark.class, MarkType.COMPLEX_TYPE),
     SCHEMA("schemas", GuiStyleConstants.CLASS_ICON_RESOURCE_SCHEMA, PageSchemas.class, PageSchema.class, SchemaType.COMPLEX_TYPE),
-    ACCESS_CERT_ITEM_TYPE("certItems", GuiStyleConstants.CLASS_OBJECT_CERT_CAMPAIGN_ICON, PageCertDecisions.class, null, AccessCertificationWorkItemType.COMPLEX_TYPE);
+    ACCESS_CERT_ITEM_TYPE("certItems", GuiStyleConstants.CLASS_OBJECT_CERT_CAMPAIGN_ICON, PageCertDecisions.class, null, AccessCertificationWorkItemType.COMPLEX_TYPE),
+    ANALYTICS("analytics", GuiStyleConstants.CLASS_SIMULATION_RESULT, PageRoleAnalysis.class, PageRoleAnalysis.class, RoleAnalysisSessionType.COMPLEX_TYPE);
+
 
     private String identifier;
     private String icon;
