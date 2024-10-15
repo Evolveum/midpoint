@@ -110,11 +110,11 @@ public class PathSegmentEvaluation<AH extends AssignmentHolderType> extends Abst
 
         new PayloadEvaluation<>(segment, ctx).evaluate();
 
-        if (segment.isAssignmentActive() || segment.direct) {
+        if (segment.isAssignmentActive() || segment.direct || segment.isArchetypeHierarchy()) {
             targetsEvaluation = new TargetsEvaluation<>(segment, ctx, result);
             targetsEvaluation.evaluate();
         } else {
-            LOGGER.trace("Skipping evaluation of a target of {} because it's not active and not directly attached to focus",
+            LOGGER.trace("Skipping evaluation of a target of {} because it's not active, not directly attached to the focus, and not a target of the archetype hierarchy",
                     segment);
         }
     }

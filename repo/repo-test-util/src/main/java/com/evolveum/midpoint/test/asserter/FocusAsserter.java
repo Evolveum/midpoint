@@ -367,6 +367,17 @@ public class FocusAsserter<F extends FocusType,RA> extends AssignmentHolderAsser
         return this;
     }
 
+    public ArchetypeRefsAsserter<F, ? extends FocusAsserter<F,RA>, RA> archetypesRefs() {
+        ArchetypeRefsAsserter<F,FocusAsserter<F,RA>,RA> asserter = new ArchetypeRefsAsserter<>(this, getDetails());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
+    public FocusAsserter<F,RA> assertArchetypeRefs(int expected) {
+        archetypesRefs().assertArchetypeRefs(expected);
+        return this;
+    }
+
     @Override
     public ExtensionAsserter<F, ? extends FocusAsserter<F, RA>> extension() {
         ExtensionAsserter<F, FocusAsserter<F, RA>> asserter = new ExtensionAsserter<>(getObjectable(), this, getDetails());

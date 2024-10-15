@@ -249,6 +249,19 @@ public class RoleAsserter<RA> extends AbstractRoleAsserter<RoleType,RA> {
     }
 
     @Override
+    public ArchetypeRefsAsserter<RoleType, ? extends RoleAsserter<RA>, RA> archetypesRefs() {
+        ArchetypeRefsAsserter<RoleType,RoleAsserter<RA>,RA> asserter = new ArchetypeRefsAsserter<>(this, getDetails());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
+    @Override
+    public RoleAsserter<RA> assertArchetypeRefs(int expected) {
+        archetypesRefs().assertArchetypeRefs(expected);
+        return this;
+    }
+
+    @Override
     public ExtensionAsserter<RoleType, ? extends RoleAsserter<RA>> extension() {
         ExtensionAsserter<RoleType, RoleAsserter<RA>> asserter = new ExtensionAsserter<>(getObjectable(), this, getDetails());
         copySetupTo(asserter);

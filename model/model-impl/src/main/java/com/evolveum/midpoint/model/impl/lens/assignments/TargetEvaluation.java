@@ -71,7 +71,7 @@ public class TargetEvaluation<AH extends AssignmentHolderType> extends AbstractE
 
         assert ctx.assignmentPath.last() == segment;
         assert assignmentOverallConditionState.isNotAllFalse();
-        assert segment.isAssignmentActive() || segment.direct;
+        assert segment.isAssignmentActive() || segment.direct || segment.isArchetypeHierarchy();
         checkIfAlreadyEvaluated();
 
         if (ctx.ae.evaluatedAssignmentTargetCache.canSkip(segment, ctx.primaryAssignmentMode)) {

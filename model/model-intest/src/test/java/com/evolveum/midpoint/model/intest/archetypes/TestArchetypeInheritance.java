@@ -8,6 +8,8 @@ package com.evolveum.midpoint.model.intest.archetypes;
 
 import java.io.File;
 
+import com.evolveum.midpoint.test.TestObject;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -19,6 +21,8 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.LIFECYCLE_ARCHIVED;
 
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -42,6 +46,13 @@ public class TestArchetypeInheritance extends AbstractInitializedModelIntegratio
 
     private static final ItemName SYNC_TOKEN = new ItemName(
             "http://midpoint.evolveum.com/xml/ns/public/provisioning/liveSync-3", "token");
+
+    private static final TestObject<ArchetypeType> ARCHETYPE_INHERITED_PARENT =
+            TestObject.file(TEST_DIR, "archetype-inherited-parent.xml", "0d69d2c9-d1f4-4cfc-acb3-af8a71db81d9");
+    private static final TestObject<ArchetypeType> ARCHETYPE_INHERITED_CHILD =
+            TestObject.file(TEST_DIR, "archetype-inherited-child.xml", "0d69d2c9-d1f4-4cfc-acb3-af8a71db89d8");
+    private static final TestObject<ArchetypeType> ROLE_INHERITED_ARCHETYPES =
+            TestObject.file(TEST_DIR, "role-inherited-archetypes.xml", "748b29c6-199c-11e9-9acc-3f8cc307573b");
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -230,5 +241,45 @@ public class TestArchetypeInheritance extends AbstractInitializedModelIntegratio
         assertTask(TASK_LIVE_SYNC_OID, "created live synchronization task")
                 .assertExecutionState(TaskExecutionStateType.SUSPENDED)
                 .assertBinding(TaskBindingType.TIGHT);
+    }
+
+    /**
+     * Role with archived lifecycle state and archetypeRef from archetype and it's super archetype.
+     *
+     * MID-10101
+     */
+    @Test
+    public void test220InheritedArchetypesForArchivedRole() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        ARCHETYPE_INHERITED_PARENT.importObject(task, result);
+        ARCHETYPE_INHERITED_CHILD.importObject(task, result);
+
+        given("Role with two archetypeRefs");
+        ROLE_INHERITED_ARCHETYPES.importObject(task, result);
+        assertRoleAfterByName("Role inherited archetypes test")
+                .assignments()
+                .assertArchetype(ARCHETYPE_INHERITED_CHILD.oid)
+                .end()
+                .roleMembershipRefs()
+                .assertArchetype(ARCHETYPE_INHERITED_CHILD.oid)
+                .assertArchetype(ARCHETYPE_INHERITED_PARENT.oid)
+                .end()
+                .archetypesRefs()
+                .assertArchetype(ARCHETYPE_INHERITED_CHILD.oid)
+                .assertArchetype(ARCHETYPE_INHERITED_PARENT.oid);
+
+        when("Change lifecycle state to archived");
+        modifyObjectReplaceProperty(RoleType.class, ROLE_INHERITED_ARCHETYPES.oid, RoleType.F_LIFECYCLE_STATE, task, result, LIFECYCLE_ARCHIVED);
+
+        then("Role still has two archetype references");
+        assertRoleAfterByName("Role inherited archetypes test")
+                .assignments()
+                .assertArchetype(ARCHETYPE_INHERITED_CHILD.oid)
+                .end()
+                .assertRoleMembershipRefs(0)
+                .archetypesRefs()
+                .assertArchetype(ARCHETYPE_INHERITED_CHILD.oid)
+                .assertArchetype(ARCHETYPE_INHERITED_PARENT.oid);
     }
 }

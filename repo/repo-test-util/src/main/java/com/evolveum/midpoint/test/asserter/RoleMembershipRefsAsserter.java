@@ -144,4 +144,12 @@ public class RoleMembershipRefsAsserter<F extends FocusType, FA extends FocusAss
         return this;
     }
 
+    public RoleMembershipRefsAsserter<F,FA,RA> assertNoArchetype(String archetypeOid) throws ObjectNotFoundException, SchemaException {
+        by()
+                .targetOid(archetypeOid)
+                .targetType(ArchetypeType.COMPLEX_TYPE)
+                .assertNone();
+        return this;
+    }
+
 }
