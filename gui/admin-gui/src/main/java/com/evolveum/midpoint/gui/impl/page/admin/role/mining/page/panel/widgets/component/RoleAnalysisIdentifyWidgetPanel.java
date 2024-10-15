@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.widgets.component;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.widgets.component.RoleAnalysisDonutChartUtils.createDoughnutChartConfigFor;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.STYLE_CSS;
 
 import java.io.Serial;
 import java.util.List;
@@ -129,22 +129,22 @@ public class RoleAnalysisIdentifyWidgetPanel extends BasePanel<List<IdentifyWidg
         return new LoadableModel<>() {
             @Override
             protected List<ChartedHeaderDto<DoughnutChartConfiguration>> load() {
-
-                return List.of(
-
-                        new ChartedHeaderDto<>(createDoughnutChartConfigFor(0, 0, "#dff2e3", "#28a745"),
-                                createStringResource("RoleAnalysisIdentifyWidgetPanel.recertified").getString(),
-                                String.valueOf(0), "0%"),
-
-                        new ChartedHeaderDto<>(createDoughnutChartConfigFor(0, 0, "#dcf1f4", "#18a2b8"),
-                                createStringResource("RoleAnalysisIdentifyWidgetPanel.pending").getString(),
-                                String.valueOf(0), "0%"),
-
-                        new ChartedHeaderDto<>(createDoughnutChartConfigFor(0, 0, "#e9eaec", "#6c757d"),
-                                createStringResource("RoleAnalysisIdentifyWidgetPanel.idle").getString(),
-                                String.valueOf(0), "0%")
-
-                );
+                return List.of();
+//                return List.of(
+//
+//                        new ChartedHeaderDto<>(createDoughnutChartConfigFor(0, 0, "#dff2e3", "#28a745"),
+//                                createStringResource("RoleAnalysisIdentifyWidgetPanel.recertified").getString(),
+//                                String.valueOf(0), "0%"),
+//
+//                        new ChartedHeaderDto<>(createDoughnutChartConfigFor(0, 0, "#dcf1f4", "#18a2b8"),
+//                                createStringResource("RoleAnalysisIdentifyWidgetPanel.pending").getString(),
+//                                String.valueOf(0), "0%"),
+//
+//                        new ChartedHeaderDto<>(createDoughnutChartConfigFor(0, 0, "#e9eaec", "#6c757d"),
+//                                createStringResource("RoleAnalysisIdentifyWidgetPanel.idle").getString(),
+//                                String.valueOf(0), "0%")
+//
+//                );
             }
         };
     }
@@ -154,7 +154,10 @@ public class RoleAnalysisIdentifyWidgetPanel extends BasePanel<List<IdentifyWidg
         repeatingView.setOutputMarkupId(true);
         LoadableModel<List<ChartedHeaderDto<DoughnutChartConfiguration>>> chartedHeaderDtoModel = getChartedHeaderDtoModel();
         List<ChartedHeaderDto<DoughnutChartConfiguration>> object = chartedHeaderDtoModel.getObject();
-        if (object == null) {
+        if (object == null || object.isEmpty()) {
+            EmptyPanel emptyPanel = new EmptyPanel(repeatingView.newChildId());
+            emptyPanel.add(AttributeModifier.append(STYLE_CSS,"min-height: 70px;"));
+            repeatingView.add(emptyPanel);
             return repeatingView;
         }
 
