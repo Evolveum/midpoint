@@ -23,8 +23,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.util.StringUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -66,7 +66,7 @@ public class CorrelatorTestUtil {
                 String headerName = headerNames.get(column);
                 if (!headerName.startsWith("_")) {
                     String value = record.get(column);
-                    if (StringUtils.hasText(value)) {
+                    if (StringUtils.isNotBlank(value)) {
                         account.addAttributeValue(headerName, value);
                     } else {
                         // skipping empty strings (shadow caching on Oracle cannot store empty values)
