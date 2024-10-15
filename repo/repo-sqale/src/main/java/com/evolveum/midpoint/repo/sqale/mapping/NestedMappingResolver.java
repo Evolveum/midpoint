@@ -33,7 +33,7 @@ public class NestedMappingResolver<S extends Containerable, Q extends FlexibleRe
     /** Returns the same context and nested mapping. */
     @SuppressWarnings("unchecked")
     @Override
-    public ResolutionResult<Q, R> resolve(SqlQueryContext<?, Q, R> context) {
+    public ResolutionResult<Q, R> resolve(SqlQueryContext<?, Q, R> context, boolean parent) {
         context = ((SqaleQueryContext<?, Q, R>) context).nestedContext(mapping);
         return new ResolutionResult<>(context, mapping);
     }

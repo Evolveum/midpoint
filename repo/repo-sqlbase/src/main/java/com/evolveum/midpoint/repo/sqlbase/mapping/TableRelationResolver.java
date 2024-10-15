@@ -94,7 +94,7 @@ public class TableRelationResolver<
      * @return result with context for subquery entity path and its mapping
      */
     @Override
-    public ResolutionResult<TQ, TR> resolve(SqlQueryContext<?, Q, R> context) {
+    public ResolutionResult<TQ, TR> resolve(SqlQueryContext<?, Q, R> context, boolean parent) {
         if (useSubquery) {
             SqlQueryContext<TS, TQ, TR> subcontext = context.subquery(targetMappingSupplier.get());
             SQLQuery<?> subquery = subcontext.sqlQuery();
@@ -102,13 +102,31 @@ public class TableRelationResolver<
 
             return new ResolutionResult<>(subcontext, subcontext.mapping(), true);
         }
-        return resolveUsingJoin(context);
+        return resolveUsingJoin(context, parent);
     }
 
     @Override
     public ResolutionResult<TQ, TR> resolveUsingJoin(SqlQueryContext<?, Q, R> context) {
-        SqlQueryContext<TS, TQ, TR> subcontext = context.leftJoin(
-                targetMappingSupplier.get(), correlationPredicateFunction);
+        return resolveUsingJoin(context, false);
+    }
+
+    private ResolutionResult<TQ, TR> resolveUsingJoin(SqlQueryContext<?, Q, R> context, boolean parent) {
+        SqlQueryContext<TS, TQ, TR> subcontext;
+
+        if (!parent) {
+            subcontext = context.leftJoin(targetMappingSupplier.get(), correlationPredicateFunction);
+            return new ResolutionResult<>(subcontext, subcontext.mapping());
+        }
+
+        if (context.getParentItemContext() != null) {
+            // noinspection unchecked
+            subcontext = (SqlQueryContext<TS, TQ, TR>) context.getParentItemContext();
+            return new ResolutionResult<>(subcontext, subcontext.mapping());
+        }
+
+        subcontext = context.leftJoin(targetMappingSupplier.get(), correlationPredicateFunction);
+        context.setParentItemContext(subcontext);
+
         return new ResolutionResult<>(subcontext, subcontext.mapping());
     }
 

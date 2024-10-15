@@ -34,7 +34,7 @@ public class CountMappingResolver<Q extends FlexibleRelationalPathBase<R>, R>
 
     /** Should not be called, the count must be treated before this happens. */
     @Override
-    public ResolutionResult<Q, R> resolve(SqlQueryContext<?, Q, R> context) {
+    public ResolutionResult<Q, R> resolve(SqlQueryContext<?, Q, R> context, boolean parent) {
         throw new UnsupportedOperationException("resolution not supported for count mapping");
     }
 
