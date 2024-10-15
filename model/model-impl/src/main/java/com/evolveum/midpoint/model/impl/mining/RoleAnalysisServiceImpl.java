@@ -3203,7 +3203,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     }
 
     @Override
-    public PrismObject<RoleAnalysisOutlierType> searchOutlierObjectByUserOidClusters(
+    public PrismObject<RoleAnalysisOutlierType> searchOutlierObjectByUserOid(
             @NotNull String userOid,
             @NotNull Task task,
             @NotNull OperationResult result) {
@@ -3216,12 +3216,11 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             //TODO there should be only one outlier object per user
             SearchResultList<PrismObject<RoleAnalysisOutlierType>> prismObjects = modelService.searchObjects(RoleAnalysisOutlierType.class, query, null,
                     task, result);
-            if (prismObjects == null || prismObjects.isEmpty()) {
+            if (prismObjects == null || prismObjects.size() != 1) {
                 return null;
             }
 
-            return modelService.searchObjects(RoleAnalysisOutlierType.class, query, null,
-                    task, result).get(0);
+            return prismObjects.get(0);
         } catch (SchemaException | ConfigurationException | CommunicationException | SecurityViolationException |
                 ExpressionEvaluationException e) {
             throw new SystemException("Couldn't search outlier object associated for user with oid: " + userOid, e);

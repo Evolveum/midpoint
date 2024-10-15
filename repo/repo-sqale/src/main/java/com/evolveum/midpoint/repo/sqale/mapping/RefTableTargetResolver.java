@@ -46,7 +46,7 @@ public class RefTableTargetResolver<
     }
 
     @Override
-    public ResolutionResult<TQ, TR> resolve(SqlQueryContext<?, Q, R> context) {
+    public ResolutionResult<TQ, TR> resolve(SqlQueryContext<?, Q, R> context, boolean parent) {
         /*
         Currently, the JOIN does not reuse existing alias for the same mapping - which would be better for targetOid.
         Also, this is used for ordering instructions, but not for WHERE clauses where EXISTS subquery is still used.

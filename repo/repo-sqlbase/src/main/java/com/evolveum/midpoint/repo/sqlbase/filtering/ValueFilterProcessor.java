@@ -104,13 +104,15 @@ public class ValueFilterProcessor<Q extends FlexibleRelationalPathBase<R>, R>
             }
             return filterProcessor.process(filter);
         } else {
+            boolean skipJoinIfPossible = !path.isEmpty() && PrismConstants.T_PARENT.equals(path.first());
+
             //noinspection DuplicatedCode
-            ItemRelationResolver.ResolutionResult<TQ, TR> resolution =
-                    mapping.<TQ, TR>relationResolver(path).resolve(context);
+            ItemRelationResolver.ResolutionResult<TQ, TR> resolution = mapping.<TQ, TR>relationResolver(path).resolve(context, skipJoinIfPossible);
             SqlQueryContext<?, TQ, TR> subcontext = resolution.context;
-            ValueFilterProcessor<TQ, TR> nestedProcessor =
-                    new ValueFilterProcessor<>(subcontext, resolution.mapping);
+
+            ValueFilterProcessor<TQ, TR> nestedProcessor = new ValueFilterProcessor<>(subcontext, resolution.mapping);
             Predicate predicate = nestedProcessor.process(path.rest(), filter, right);
+
             if (resolution.subquery) {
                 return subcontext.sqlQuery()
                         .where(predicate)

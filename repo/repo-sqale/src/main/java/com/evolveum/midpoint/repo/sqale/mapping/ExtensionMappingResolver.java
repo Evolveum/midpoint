@@ -38,7 +38,7 @@ public class ExtensionMappingResolver<Q extends FlexibleRelationalPathBase<R>, R
 
     /** Returns the same context and nested mapping. */
     @Override
-    public ResolutionResult<Q, R> resolve(SqlQueryContext<?, Q, R> context) {
+    public ResolutionResult<Q, R> resolve(SqlQueryContext<?, Q, R> context, boolean parent) {
         // Needed item definition comes in the filter, no need for sub-context, mapping is enough.
         return new ResolutionResult<>(context, mapping);
     }
