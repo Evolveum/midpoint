@@ -91,10 +91,9 @@ Tree node search is now same for all nodes.
 ** GUI Support to show mark in the focus and shadow tables
 
 * Regulatory compliance
-** Compliance dashboard provides overview of metrics related to regulatory compliance.
 ** Built-in support for xref:/midpoint/reference/roles-policies/classification/[information classification and clearances].
 ** Support for `requirement` policy constraint in xref:/midpoint/reference/roles-policies/policy-rules/[policy rules].
-** Built-in classifications for _privileged access_ and _information security responsibility_.
+** Built-in classifications for _privileged access_.
 
 * Spring Boot/hibernate upgrade
 ** Spring Boot was upgraded to 3.3.2 and Hibernate ORM to 6.5

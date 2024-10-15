@@ -14,8 +14,8 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 
 public class MOutlier extends MObject {
 
-    public UUID objectRefTargetOid;
-    public MObjectType objectRefTargetType;
-    public Integer objectRefRelationId;
+    public UUID targetObjectRefTargetOid;
+    public MObjectType targetObjectRefTargetType;
+    public Integer targetObjectRefRelationId;
     public Double overallConfidence;
 }

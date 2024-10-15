@@ -9,7 +9,7 @@
         oid="7db12c2a-d431-4587-aa8d-55d76e4401da">
     <name>task-role-analysis-process-session-1</name>
     <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
-    <executionState>runnable</executionState>
+    <executionState>closed</executionState>
     <activity>
         <work>
             <roleAnalysisClustering>

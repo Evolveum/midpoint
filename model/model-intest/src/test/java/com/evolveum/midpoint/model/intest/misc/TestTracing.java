@@ -56,10 +56,10 @@ public class TestTracing extends AbstractEmptyModelIntegrationTest {
     private static final TestObject<FunctionLibraryType> FUNCTION_LIBRARY_HACKING = TestObject.file(TEST_DIR, "function-library-hacking.xml", "87b91749-5f92-4328-bcc3-6f1b6e6e8364");
 
     private static final String CONTAINERS_NS = "http://super.org/midpoint";
-    private static final ItemName NAME_MY_CONTAINER = new ItemName(CONTAINERS_NS, "myContainer");
-    public static final ItemName NAME_VALUE = new ItemName(CONTAINERS_NS, "value");
-    public static final ItemName NAME_EMBEDDED = new ItemName(CONTAINERS_NS, "embedded");
-    public static final ItemName TYPE_MY_CONTAINER = new ItemName(CONTAINERS_NS, "MyContainerType");
+    private static final ItemName NAME_MY_CONTAINER = ItemName.from(CONTAINERS_NS, "myContainer");
+    public static final ItemName NAME_VALUE = ItemName.from(CONTAINERS_NS, "value");
+    public static final ItemName NAME_EMBEDDED = ItemName.from(CONTAINERS_NS, "embedded");
+    public static final ItemName TYPE_MY_CONTAINER = ItemName.from(CONTAINERS_NS, "MyContainerType");
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult)
@@ -100,9 +100,9 @@ public class TestTracing extends AbstractEmptyModelIntegrationTest {
         ObjectDelta<UserType> delta = deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
                 .add(
-                        new AssignmentType(prismContext)
+                        new AssignmentType()
                                 .targetRef(ROLE_ILLEGAL.oid, RoleType.COMPLEX_TYPE),
-                        new AssignmentType(prismContext)
+                        new AssignmentType()
                                 .beginConstruction()
                                     .resourceRef(RESOURCE_ILLEGAL.oid, ResourceType.COMPLEX_TYPE)
                                 .<AssignmentType>end()
@@ -144,7 +144,7 @@ public class TestTracing extends AbstractEmptyModelIntegrationTest {
 
         ObjectDelta<UserType> delta = deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                .add(new AssignmentType(prismContext)
+                .add(new AssignmentType()
                                 .targetRef(ROLE_CLASS_LESS_VALUES.oid, RoleType.COMPLEX_TYPE))
                 .asObjectDelta(USER_JIM.oid);
 

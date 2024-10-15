@@ -24,6 +24,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.util.StringUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -64,7 +65,12 @@ public class CorrelatorTestUtil {
             for (int column = 1; column < record.size(); column++) {
                 String headerName = headerNames.get(column);
                 if (!headerName.startsWith("_")) {
-                    account.addAttributeValue(headerName, record.get(column));
+                    String value = record.get(column);
+                    if (StringUtils.hasText(value)) {
+                        account.addAttributeValue(headerName, value);
+                    } else {
+                        // skipping empty strings (shadow caching on Oracle cannot store empty values)
+                    }
                 }
             }
             test.displayDumpable("account", account);

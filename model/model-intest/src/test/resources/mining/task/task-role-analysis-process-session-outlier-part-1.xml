@@ -9,7 +9,7 @@
         oid="89c856dc-13f8-43ac-99b2-4bf2654f94ca">
     <name>role-analysis-process-session-outlier-part-1</name>
     <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
-    <executionState>runnable</executionState>
+    <executionState>closed</executionState>
     <activity>
         <work>
             <roleAnalysisClustering>

@@ -120,7 +120,7 @@ public class OutliersDetectionUtil {
             @NotNull RoleAnalysisOutlierPartitionType partition,
             @NotNull Task task,
             @NotNull OperationResult result) {
-        PrismObject<RoleAnalysisOutlierType> outlierObject = roleAnalysisService.searchOutlierObjectByUserOidClusters(
+        PrismObject<RoleAnalysisOutlierType> outlierObject = roleAnalysisService.searchOutlierObjectByUserOid(
                 userOid, task, result);
 
         if (outlierObject == null) {

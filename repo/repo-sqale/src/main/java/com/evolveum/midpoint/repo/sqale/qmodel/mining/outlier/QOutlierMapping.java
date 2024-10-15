@@ -6,11 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.mining.outlier;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolder;
 import com.evolveum.midpoint.util.exception.SchemaException;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -79,9 +75,9 @@ public class QOutlierMapping
         MOutlier row = super.toRowObjectWithoutFullObject(outlierObject, jdbcSession);
 
         setReference(outlierObject.getObjectRef(),
-                o -> row.objectRefTargetOid = o,
-                t -> row.objectRefTargetType = t,
-                r -> row.objectRefRelationId = r);
+                o -> row.targetObjectRefTargetOid = o,
+                t -> row.targetObjectRefTargetType = t,
+                r -> row.targetObjectRefRelationId = r);
         return row;
     }
 
