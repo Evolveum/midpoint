@@ -179,10 +179,6 @@ public class TransformableComplexTypeDefinition
         throw new UnsupportedOperationException("Not implemented");
     }
 
-    @Override
-    public @Nullable SchemaContextDefinition getSchemaContextDefinition() {
-        return null;
-    }
 
     @Override
     public @NotNull ComplexTypeDefinition clone() {

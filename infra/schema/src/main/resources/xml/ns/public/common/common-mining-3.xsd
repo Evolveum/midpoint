@@ -1159,6 +1159,11 @@
                             Only the objects that match the filter are included in the analysis.
                         </p>
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:schemaContext>
+                            <a:type>UserType</a:type>
+                        </a:schemaContext>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="roleSearchFilter" type="q:SearchFilterType" minOccurs="0">
@@ -1169,6 +1174,11 @@
                             Only the objects that match the filter are included in the analysis.
                         </p>
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:schemaContext>
+                            <a:type>RoleType</a:type>
+                        </a:schemaContext>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="assignmentSearchFilter" type="q:SearchFilterType" minOccurs="0">
@@ -1179,6 +1189,12 @@
                             Only the objects that match the filter are included in the analysis.
                         </p>
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:schemaContext>
+                            <a:type>AssignmentHolderType</a:type>
+                            <a:path>assignment</a:path>
+                        </a:schemaContext>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="similarityThreshold" type="xsd:double" minOccurs="0">
