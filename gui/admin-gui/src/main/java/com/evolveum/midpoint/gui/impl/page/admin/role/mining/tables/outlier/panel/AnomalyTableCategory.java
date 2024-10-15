@@ -354,39 +354,6 @@ public enum AnomalyTableCategory implements Serializable {
 
         };
         columns.add(column);
-
-        column = new AbstractExportableColumn<>(
-                createStringResource("RoleAnalysisOutlierTable.anomaly.mark")) {
-
-            @Override
-            public IModel<?> getDataModel(IModel<SelectableBean<RoleType>> iModel) {
-                return null;
-            }
-
-            @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<RoleType>>> cellItem, String componentId, IModel<SelectableBean<RoleType>> rowModel) {
-                SwitchBoxPanel check = new SwitchBoxPanel(componentId, new Model<>(false));
-                cellItem.add(check);
-            }
-
-            @Override
-            public boolean isSortable() {
-                return false;
-            }
-
-            @Override
-            public Component getHeader(String componentId) {
-                return new LabelWithHelpPanel(componentId,
-                        createStringResource("RoleAnalysisOutlierTable.anomaly.mark")) {
-                    @Override
-                    protected IModel<String> getHelpModel() {
-                        return createStringResource("RoleAnalysisOutlierTable.outlier.mark.help");
-                    }
-                };
-            }
-
-        };
-        columns.add(column);
         return columns;
     }
 
@@ -503,38 +470,6 @@ public enum AnomalyTableCategory implements Serializable {
 //        };
 //        columns.add(column);
 
-        column = new AbstractExportableColumn<>(
-                createStringResource("RoleAnalysisOutlierTable.anomaly.mark")) {
-
-            @Override
-            public IModel<?> getDataModel(IModel<SelectableBean<RoleType>> iModel) {
-                return null;
-            }
-
-            @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<RoleType>>> cellItem, String componentId, IModel<SelectableBean<RoleType>> rowModel) {
-                SwitchBoxPanel check = new SwitchBoxPanel(componentId, new Model<>(false));
-                cellItem.add(check);
-            }
-
-            @Override
-            public boolean isSortable() {
-                return false;
-            }
-
-            @Override
-            public Component getHeader(String componentId) {
-                return new LabelWithHelpPanel(componentId,
-                        createStringResource("RoleAnalysisOutlierTable.anomaly.mark")) {
-                    @Override
-                    protected IModel<String> getHelpModel() {
-                        return createStringResource("RoleAnalysisOutlierTable.outlier.mark.help");
-                    }
-                };
-            }
-
-        };
-        columns.add(column);
 
         return columns;
     }
@@ -625,39 +560,6 @@ public enum AnomalyTableCategory implements Serializable {
             @Override
             public boolean isSortable() {
                 return false;
-            }
-
-        };
-        columns.add(column);
-
-        column = new AbstractExportableColumn<>(
-                createStringResource("RoleAnalysisOutlierTable.anomaly.mark")) {
-
-            @Override
-            public IModel<?> getDataModel(IModel<SelectableBean<RoleType>> iModel) {
-                return null;
-            }
-
-            @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<RoleType>>> cellItem, String componentId, IModel<SelectableBean<RoleType>> rowModel) {
-                SwitchBoxPanel check = new SwitchBoxPanel(componentId, new Model<>(false));
-                cellItem.add(check);
-            }
-
-            @Override
-            public boolean isSortable() {
-                return false;
-            }
-
-            @Override
-            public Component getHeader(String componentId) {
-                return new LabelWithHelpPanel(componentId,
-                        createStringResource("RoleAnalysisOutlierTable.anomaly.mark")) {
-                    @Override
-                    protected IModel<String> getHelpModel() {
-                        return createStringResource("RoleAnalysisOutlierTable.outlier.mark.help");
-                    }
-                };
             }
 
         };
