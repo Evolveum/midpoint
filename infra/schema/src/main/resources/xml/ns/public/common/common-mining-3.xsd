@@ -59,6 +59,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>RoleAnalysisOutlierType.targetObject</a:displayName>
+                                <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -172,6 +173,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>RoleAnalysisOutlierType.clusterRef</a:displayName>
+                        <a:objectReferenceTargetType>tns:RoleAnalysisClusterType</a:objectReferenceTargetType>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -764,6 +766,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>RoleAnalysisClusterType.roleAnalysisSessionRef</a:displayName>
+                                <a:objectReferenceTargetType>tns:RoleAnalysisSessionType</a:objectReferenceTargetType>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
