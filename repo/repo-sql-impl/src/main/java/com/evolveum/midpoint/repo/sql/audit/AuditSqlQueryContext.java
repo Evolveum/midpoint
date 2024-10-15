@@ -52,7 +52,7 @@ public class AuditSqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
     }
 
     @Override
-    protected <TS, TQ extends FlexibleRelationalPathBase<TR>, TR>
+    public <TS, TQ extends FlexibleRelationalPathBase<TR>, TR>
     SqlQueryContext<TS, TQ, TR> newSubcontext(
             TQ newPath, QueryTableMapping<TS, TQ, TR> newMapping) {
         return new AuditSqlQueryContext<>(newPath, newMapping, this, this.sqlQuery);

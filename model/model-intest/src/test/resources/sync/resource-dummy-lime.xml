@@ -177,7 +177,8 @@
             <attribute>
                 <ref>ri:drink</ref>
                 <displayName>Drink</displayName>
-                <tolerant>true</tolerant>        <!-- This could not be non-tolerant. There are (almost) no mappings for this attribute, so it gets erased very soon. -->
+                <tolerant>true</tolerant> <!-- This could not be non-tolerant. There are (almost) no mappings for this attribute, so it gets erased very soon. -->
+                <storageStrategy>notIndexed</storageStrategy> <!-- sometimes empty string (problem for Oracle) -->
                 <inbound>
                     <authoritative>true</authoritative>
                     <strength>strong</strength>

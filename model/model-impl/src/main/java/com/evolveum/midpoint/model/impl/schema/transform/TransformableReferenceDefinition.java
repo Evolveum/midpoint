@@ -28,7 +28,6 @@ public class TransformableReferenceDefinition extends TransformableItemDefinitio
     private static final long serialVersionUID = 1L;
     private QName targetTypeName;
 
-
     @Override
     public void setTargetTypeName(QName typeName) {
         this.targetTypeName = typeName;
@@ -92,11 +91,6 @@ public class TransformableReferenceDefinition extends TransformableItemDefinitio
         } catch (SchemaException e) {
             throw new IllegalStateException("Should not happened",e);
         }
-    }
-
-    @Override
-    public @Nullable SchemaContextDefinition getSchemaContextDefinition() {
-        return null;
     }
 
     @Override

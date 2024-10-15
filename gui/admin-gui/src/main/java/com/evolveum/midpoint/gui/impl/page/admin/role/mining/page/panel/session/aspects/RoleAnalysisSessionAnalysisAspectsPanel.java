@@ -746,120 +746,122 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
         RepeatingView cardBodyComponent = new RepeatingView(ID_HEADER_ITEMS);
         cardBodyComponent.setOutputMarkupId(true);
         container.add(cardBodyComponent);
-        RoleAnalysisOutlierDashboardPanel<?> statusHeader = new RoleAnalysisOutlierDashboardPanel<>(cardBodyComponent.newChildId(),
-                createStringResource("RoleAnalysisOutlierAnalysisAspectsPanel.widget.status")) {
-            @Contract(pure = true)
-            @Override
-            protected @NotNull String getIconCssClass() {
-                return GuiStyleConstants.CLASS_ICON_ASSIGNMENTS;
-            }
 
-            @Override
-            protected @NotNull Component getPanelComponent(String id) {
-                IconWithLabel iconWithLabel = new IconWithLabel(id, Model.of("UNKNOWN (TBD)")) {
-                    @Contract(pure = true)
-                    @Override
-                    protected @NotNull String getIconCssClass() {
-                        return "fas fa-sync";
-                    }
-
-                    @Override
-                    protected String getComponentCssClass() {
-                        return super.getComponentCssClass() + " gap-2";
-                    }
-
-                    @Override
-                    protected String getComponentCssStyle() {
-                        return "color: #18a2b8; font-size: 20px;";
-                    }
-                };
-
-                iconWithLabel.add(AttributeModifier.append(CLASS_CSS, "badge p-3 my-auto justify-content-center flex-grow-1 flex-shrink-1"));
-                iconWithLabel.add(AttributeModifier.append(STYLE_CSS, "background-color: #dcf1f4;"));
-                return iconWithLabel;
-            }
-
-            @Override
-            protected Component getFooterComponent(String id) {
-                RepeatingView cardBodyComponent = new RepeatingView(id);
-                cardBodyComponent.setOutputMarkupId(true);
-
-                RoleAnalysisValueLabelPanel<?> pendingValueLabelPanel = new RoleAnalysisValueLabelPanel<>(cardBodyComponent.newChildId()) {
-                    @Contract(pure = true)
-                    @Override
-                    protected @NotNull Component getTitleComponent(String id) {
-                        return new IconWithLabel(id,
-                                createStringResource("RoleAnalysis.aspect.overview.page.title.pending.recertifications")) {
-                            @Override
-                            protected String getIconCssClass() {
-                                return "fas fa-sync " + TEXT_MUTED;
-                            }
-
-                            @Override
-                            protected String getLabelComponentCssClass() {
-                                return TEXT_MUTED;
-                            }
-
-                            @Override
-                            protected String getComponentCssClass() {
-                                return super.getComponentCssClass() + " gap-2";
-                            }
-                        };
-                    }
-
-                    @Contract(pure = true)
-                    @Override
-                    protected @NotNull Component getValueComponent(String id) {
-                        Label label = new Label(id, "0");
-                        label.add(AttributeModifier.append(CLASS_CSS, TEXT_MUTED));
-                        return label;
-                    }
-                };
-                pendingValueLabelPanel.setOutputMarkupId(true);
-                cardBodyComponent.add(pendingValueLabelPanel);
-
-                RoleAnalysisValueLabelPanel<?> solvedValueLabelPanel = new RoleAnalysisValueLabelPanel<>(cardBodyComponent.newChildId()) {
-
-                    @Contract(pure = true)
-                    @Override
-                    protected @NotNull Component getTitleComponent(String id) {
-                        return new IconWithLabel(id,
-                                createStringResource("RoleAnalysis.aspect.overview.page.title.solved.recertifications")) {
-                            @Override
-                            protected String getIconCssClass() {
-                                return "fas fa-trophy " + TEXT_MUTED;
-                            }
-
-                            @Override
-                            protected String getLabelComponentCssClass() {
-                                return TEXT_MUTED;
-                            }
-
-                            @Override
-                            protected String getComponentCssClass() {
-                                return super.getComponentCssClass() + " gap-2";
-                            }
-                        };
-                    }
-
-                    @Contract(pure = true)
-                    @Override
-                    protected @NotNull Component getValueComponent(String id) {
-                        Label label = new Label(id, "0");
-                        label.setOutputMarkupId(true);
-                        label.add(AttributeModifier.append(CLASS_CSS, TEXT_MUTED));
-                        return label;
-                    }
-
-                };
-                solvedValueLabelPanel.setOutputMarkupId(true);
-                cardBodyComponent.add(solvedValueLabelPanel);
-                return cardBodyComponent;
-            }
-        };
-        statusHeader.setOutputMarkupId(true);
-        statusHeader.add(AttributeModifier.append(CLASS_CSS, FLEX_SHRINK_GROW)); /* col-6 pl-0 */
-        cardBodyComponent.add(statusHeader);
+        //TODO check after implementation outlier certification
+//        RoleAnalysisOutlierDashboardPanel<?> statusHeader = new RoleAnalysisOutlierDashboardPanel<>(cardBodyComponent.newChildId(),
+//                createStringResource("RoleAnalysisOutlierAnalysisAspectsPanel.widget.status")) {
+//            @Contract(pure = true)
+//            @Override
+//            protected @NotNull String getIconCssClass() {
+//                return GuiStyleConstants.CLASS_ICON_ASSIGNMENTS;
+//            }
+//
+//            @Override
+//            protected @NotNull Component getPanelComponent(String id) {
+//                IconWithLabel iconWithLabel = new IconWithLabel(id, Model.of("UNKNOWN (TBD)")) {
+//                    @Contract(pure = true)
+//                    @Override
+//                    protected @NotNull String getIconCssClass() {
+//                        return "fas fa-sync";
+//                    }
+//
+//                    @Override
+//                    protected String getComponentCssClass() {
+//                        return super.getComponentCssClass() + " gap-2";
+//                    }
+//
+//                    @Override
+//                    protected String getComponentCssStyle() {
+//                        return "color: #18a2b8; font-size: 20px;";
+//                    }
+//                };
+//
+//                iconWithLabel.add(AttributeModifier.append(CLASS_CSS, "badge p-3 my-auto justify-content-center flex-grow-1 flex-shrink-1"));
+//                iconWithLabel.add(AttributeModifier.append(STYLE_CSS, "background-color: #dcf1f4;"));
+//                return iconWithLabel;
+//            }
+//
+//            @Override
+//            protected Component getFooterComponent(String id) {
+//                RepeatingView cardBodyComponent = new RepeatingView(id);
+//                cardBodyComponent.setOutputMarkupId(true);
+//
+//                RoleAnalysisValueLabelPanel<?> pendingValueLabelPanel = new RoleAnalysisValueLabelPanel<>(cardBodyComponent.newChildId()) {
+//                    @Contract(pure = true)
+//                    @Override
+//                    protected @NotNull Component getTitleComponent(String id) {
+//                        return new IconWithLabel(id,
+//                                createStringResource("RoleAnalysis.aspect.overview.page.title.pending.recertifications")) {
+//                            @Override
+//                            protected String getIconCssClass() {
+//                                return "fas fa-sync " + TEXT_MUTED;
+//                            }
+//
+//                            @Override
+//                            protected String getLabelComponentCssClass() {
+//                                return TEXT_MUTED;
+//                            }
+//
+//                            @Override
+//                            protected String getComponentCssClass() {
+//                                return super.getComponentCssClass() + " gap-2";
+//                            }
+//                        };
+//                    }
+//
+//                    @Contract(pure = true)
+//                    @Override
+//                    protected @NotNull Component getValueComponent(String id) {
+//                        Label label = new Label(id, "0");
+//                        label.add(AttributeModifier.append(CLASS_CSS, TEXT_MUTED));
+//                        return label;
+//                    }
+//                };
+//                pendingValueLabelPanel.setOutputMarkupId(true);
+//                cardBodyComponent.add(pendingValueLabelPanel);
+//
+//                RoleAnalysisValueLabelPanel<?> solvedValueLabelPanel = new RoleAnalysisValueLabelPanel<>(cardBodyComponent.newChildId()) {
+//
+//                    @Contract(pure = true)
+//                    @Override
+//                    protected @NotNull Component getTitleComponent(String id) {
+//                        return new IconWithLabel(id,
+//                                createStringResource("RoleAnalysis.aspect.overview.page.title.solved.recertifications")) {
+//                            @Override
+//                            protected String getIconCssClass() {
+//                                return "fas fa-trophy " + TEXT_MUTED;
+//                            }
+//
+//                            @Override
+//                            protected String getLabelComponentCssClass() {
+//                                return TEXT_MUTED;
+//                            }
+//
+//                            @Override
+//                            protected String getComponentCssClass() {
+//                                return super.getComponentCssClass() + " gap-2";
+//                            }
+//                        };
+//                    }
+//
+//                    @Contract(pure = true)
+//                    @Override
+//                    protected @NotNull Component getValueComponent(String id) {
+//                        Label label = new Label(id, "0");
+//                        label.setOutputMarkupId(true);
+//                        label.add(AttributeModifier.append(CLASS_CSS, TEXT_MUTED));
+//                        return label;
+//                    }
+//
+//                };
+//                solvedValueLabelPanel.setOutputMarkupId(true);
+//                cardBodyComponent.add(solvedValueLabelPanel);
+//                return cardBodyComponent;
+//            }
+//        };
+//        statusHeader.setOutputMarkupId(true);
+//        statusHeader.add(AttributeModifier.append(CLASS_CSS, FLEX_SHRINK_GROW)); /* col-6 pl-0 */
+//        cardBodyComponent.add(statusHeader);
 
         List<PrismObject<RoleAnalysisClusterType>> sessionClusters = roleAnalysisService.searchSessionClusters(
                 session, task, result);

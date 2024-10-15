@@ -102,11 +102,6 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
     }
 
     @Override
-    public @Nullable SchemaContextDefinition getSchemaContextDefinition() {
-        return null;
-    }
-
-    @Override
     protected PrismPropertyDefinition<T> publicView() {
         return this;
     }

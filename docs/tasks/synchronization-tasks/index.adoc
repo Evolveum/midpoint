@@ -18,9 +18,9 @@ or cleanup and administration tasks such as ad-hoc user recompute.
 All the synchronization tasks are using the same xref:/midpoint/reference/synchronization/introduction/[synchronization mechanism].
 See the xref:/midpoint/reference/synchronization/introduction/[Synchronization] page for an introduction.
 
-For all the synchronization tasks to work correctly the xref:/midpoint/reference/resources/resource-configuration/synchronization/[synchronization section]
+For all the synchronization tasks to work correctly the xref:/midpoint/reference/resources/resource-configuration/schema-handling/#_synchronization[synchronization section]
 of xref:/midpoint/reference/resources/resource-configuration/[resource configuration] must be set up properly.
-See xref:/midpoint/reference/resources/resource-configuration/synchronization/[Synchronization Configuration] page for more details.
+See xref:/midpoint/reference/resources/resource-configuration/#_correlation_and_synchronization[Correlation and Synchronization] and xref:/midpoint/reference/resources/resource-configuration/schema-handling/#_synchronization[Synchronization Configuration] pages for more details.
 ====
 
 == Synchronization Tasks
@@ -221,7 +221,9 @@ The synchronization will be running every 10 seconds.
 
 * xref:/midpoint/reference/synchronization/introduction/[Synchronization]
 
-* xref:/midpoint/reference/resources/resource-configuration/synchronization/[Synchronization Configuration]
+* xref:/midpoint/reference/resources/resource-configuration/#_correlation_and_synchronization[Correlation and Synchronization]
+
+* xref:/midpoint/reference/resources/resource-configuration/schema-handling/#_synchronization[Synchronization Configuration]
 
 * xref:/midpoint/architecture/concepts/task/[Task]
 

@@ -43,7 +43,7 @@ public class ShadowReferenceAttributesResolver
     }
 
     @Override
-    public ResolutionResult<QShadowReferenceAttribute, MShadowReferenceAttribute> resolve(SqlQueryContext<?, QShadow, MShadow> context) {
+    public ResolutionResult<QShadowReferenceAttribute, MShadowReferenceAttribute> resolve(SqlQueryContext<?, QShadow, MShadow> context, boolean parent) {
         return new ResolutionResult(context, mapping);
     }
 

@@ -1001,6 +1001,11 @@ public interface RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result);
 
+    SearchResultList<PrismObject<RoleAnalysisOutlierType>> getTopOutliers(
+            int limit,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
     //TODO: replace this method (experiment)
     ListMultimap<Double, String> findJaccardCloseObject(
             @NotNull String userOid,
@@ -1068,7 +1073,7 @@ public interface RoleAnalysisService {
      * @return The outlier object associated with the user if found, null otherwise.
      * @throws RuntimeException if there is an issue with the search operation.
      */
-    PrismObject<RoleAnalysisOutlierType> searchOutlierObjectByUserOidClusters(
+    PrismObject<RoleAnalysisOutlierType> searchOutlierObjectByUserOid(
             @NotNull String userOid,
             @NotNull Task task,
             @NotNull OperationResult result);

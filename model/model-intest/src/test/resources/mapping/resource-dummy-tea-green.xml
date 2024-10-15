@@ -136,6 +136,7 @@ An authoritative resource, used to test for MID-2100 (inbound mappings acting bo
             </attribute>
             <attribute>
                 <ref>ri:proof</ref>
+                <storageStrategy>notIndexed</storageStrategy> <!-- more than 255 chars -->
                 <inbound>
                     <strength>strong</strength>
                     <target>

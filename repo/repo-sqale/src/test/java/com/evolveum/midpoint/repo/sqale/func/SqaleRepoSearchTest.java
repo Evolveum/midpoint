@@ -2720,6 +2720,32 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 "right-hand side nesting into multivalue container is not supported")
                 .isInstanceOf(SystemException.class);
     }
+
+
+    @Test
+    public void testOrderCaseByCreateTimestamp() throws Exception {
+        var result = createOperationResult();
+        when("Ordering by metadata/createTimestamp (wellformed)");
+        searchObjects(CaseType.class,
+                PrismContext.get().queryFor(CaseType.class)
+                        .desc(CaseType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP)
+                        .build()
+                , result);
+
+        when("Ordering by @metadata/storage/createTimestamp");
+        searchObjects(CaseType.class,
+                PrismContext.get().queryFor(CaseType.class)
+                        .desc(InfraItemName.METADATA, ValueMetadataType.F_STORAGE, MetadataType.F_CREATE_TIMESTAMP)
+                        .build()
+                , result);
+
+        when("Ordering by metadata/createTimestamp (no namespaces)");
+        searchObjects(CaseType.class,
+                PrismContext.get().queryFor(CaseType.class)
+                        .desc(new QName("metadata"),new QName("createTimestamp"))
+                        .build()
+                , result);
+    }
     // endregion
 
     @Test

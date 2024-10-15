@@ -16,6 +16,8 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierType;
 
+import java.util.Objects;
+
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierType.*;
 
 public class QOutlierMapping
@@ -23,8 +25,17 @@ public class QOutlierMapping
 
     public static final String DEFAULT_ALIAS_NAME = "roleAnalysisOutlier";
 
+    private static QOutlierMapping instance;
+
     public static QOutlierMapping init(@NotNull SqaleRepoContext repositoryContext) {
-        return new QOutlierMapping(repositoryContext);
+        if (needsInitialization(instance, repositoryContext)) {
+            instance = new QOutlierMapping(repositoryContext);
+        }
+        return get();
+    }
+
+    public static @NotNull QOutlierMapping get() {
+        return Objects.requireNonNull(instance);
     }
 
     private QOutlierMapping(@NotNull SqaleRepoContext repositoryContext) {
@@ -64,9 +75,9 @@ public class QOutlierMapping
         MOutlier row = super.toRowObjectWithoutFullObject(outlierObject, jdbcSession);
 
         setReference(outlierObject.getObjectRef(),
-                o -> row.objectRefTargetOid = o,
-                t -> row.objectRefTargetType = t,
-                r -> row.objectRefRelationId = r);
+                o -> row.targetObjectRefTargetOid = o,
+                t -> row.targetObjectRefTargetType = t,
+                r -> row.targetObjectRefRelationId = r);
         return row;
     }
 

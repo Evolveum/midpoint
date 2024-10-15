@@ -11,8 +11,6 @@ import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.util.exception.TunnelException;
-
 import com.querydsl.core.QueryMetadata;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Expression;
@@ -21,9 +19,11 @@ import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.ComparableExpressionBase;
 import com.querydsl.sql.SQLQuery;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
@@ -37,6 +37,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.QuerydslUtils;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.TunnelException;
 
 /**
  * Execution context of the SQL query.
@@ -100,6 +101,11 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
 
     private final SqlQueryContext<?, ?, ?> parent;
 
+    /**
+     * This is just poor man way to track at least parent item path contexts (one-to-one for "../*" filters/ordering)
+     */
+    private SqlQueryContext<?, ?, ?> parentItemContext;
+
     protected boolean notFilterUsed = false;
 
     // options stored to modify select clause and also to affect mapping
@@ -119,6 +125,14 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         this.sqlQuery = query;
         this.parent = null;
         this.usedAliases = new HashSet<>();
+    }
+
+    public SqlQueryContext<?, ?, ?> getParentItemContext() {
+        return parentItemContext;
+    }
+
+    public void setParentItemContext(SqlQueryContext<?, ?, ?> parentItemContext) {
+        this.parentItemContext = parentItemContext;
     }
 
     /** Constructor for derived context or sub-context, e.g. JOIN, EXISTS, etc. */
@@ -278,7 +292,7 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
                 : null;
 
         ItemSqlMapper<CQ, CR> mapper = mapping.itemMapper(first);
-        return new ResolveResult<CQ,CR>(mapper, context, definition);
+        return new ResolveResult<CQ, CR>(mapper, context, definition);
     }
 
     public static class ResolveResult<CQ extends FlexibleRelationalPathBase<CR>, CR> {
@@ -311,15 +325,28 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
                 (PrismContainerDefinition<?>) entityPathMapping.itemDefinition();
 
         while (path.size() > 1) {
-            ItemRelationResolver<CQ, CR, ?, ?> resolver = mapping.relationResolver(path); // Resolves only first element
-            ItemRelationResolver.ResolutionResult<?, ?> resolution = resolver.resolve(context);
-            if (resolution.subquery) {
-                throw new QueryException("Item path '" + orderByItemPath
-                        + "' cannot be used for ordering because subquery is used to resolve it.");
+            boolean skipJoinIfPossible = !path.isEmpty() && PrismConstants.T_PARENT.equals(path.first());
+
+            if (skipJoinIfPossible) {
+                if (context.getParentItemContext() != null) {
+                    context = (SqlQueryContext<?, CQ, CR>) context.getParentItemContext();
+                    mapping = context.queryMapping();
+                } else {
+                    Pair<QueryModelMapping<?, CQ, CR>, SqlQueryContext<?, CQ, CR>> pair =
+                            resolveContextAndMapping(orderByItemPath, path, mapping, context);
+
+                    context.setParentItemContext(pair.getRight());
+
+                    mapping = pair.getLeft();
+                    context = pair.getRight();
+                }
+            } else {
+                Pair<QueryModelMapping<?, CQ, CR>, SqlQueryContext<?, CQ, CR>> pair =
+                        resolveContextAndMapping(orderByItemPath, path, mapping, context);
+
+                mapping = pair.getLeft();
+                context = pair.getRight();
             }
-            // CQ/CR for the next loop may be actually different from before, but that's OK
-            mapping = (QueryModelMapping<?, CQ, CR>) resolution.mapping;
-            context = (SqlQueryContext<?, CQ, CR>) resolution.context;
 
             if (containerDefinition != null) {
                 if (ItemPath.isParent(path.first())) {
@@ -341,6 +368,24 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
 
         ItemSqlMapper<CQ, CR> mapper = mapping.itemMapper(first);
         return mapper.primaryPath(context.path(), definition);
+    }
+
+    private <CQ extends FlexibleRelationalPathBase<CR>, CR> Pair<QueryModelMapping<?, CQ, CR>, SqlQueryContext<?, CQ, CR>>
+    resolveContextAndMapping(
+            ItemPath orderByItemPath, ItemPath path, QueryModelMapping<?, CQ, CR> mapping, SqlQueryContext<?, CQ, CR> context)
+            throws QueryException {
+
+        ItemRelationResolver<CQ, CR, ?, ?> resolver = mapping.relationResolver(path); // Resolves only first element
+        ItemRelationResolver.ResolutionResult<?, ?> resolution = resolver.resolve(context);
+        if (resolution.subquery) {
+            throw new QueryException("Item path '" + orderByItemPath
+                    + "' cannot be used for ordering because subquery is used to resolve it.");
+        }
+        // CQ/CR for the next loop may be actually different from before, but that's OK
+        mapping = (QueryModelMapping<?, CQ, CR>) resolution.mapping;
+        context = (SqlQueryContext<?, CQ, CR>) resolution.context;
+
+        return Pair.of(mapping, context);
     }
 
     /**
@@ -478,7 +523,7 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
      * @param <TQ> query type for the new (target) table
      * @param <TR> row type related to the {@link TQ}
      */
-    protected abstract <TS, TQ extends FlexibleRelationalPathBase<TR>, TR>
+    public abstract <TS, TQ extends FlexibleRelationalPathBase<TR>, TR>
     SqlQueryContext<TS, TQ, TR> newSubcontext(TQ newPath, QueryTableMapping<TS, TQ, TR> newMapping);
 
     /**

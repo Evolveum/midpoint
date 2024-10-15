@@ -34,6 +34,7 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -91,7 +92,9 @@ public class RelatedTasksPanel extends BasePanel {
 
             @Override
             protected Component createRightSideBoxComponent(String id, StatisticBoxDto<TaskType> statisticObject) {
-                return createRightSideTaskComponent(id, statisticObject.getStatisticObject());
+                Component component = createRightSideTaskComponent(id, statisticObject.getStatisticObject());
+                component.add(AttributeAppender.append("class", "col-md-3"));
+                return component;
             }
 
             @Override

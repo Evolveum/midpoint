@@ -40,6 +40,10 @@
             <intent>default</intent>
             <default>true</default>
             <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute>
+                <ref>ri:correlationCode</ref>
+                <storageStrategy>notIndexed</storageStrategy> <!-- necessary for generic repo (more than 255 chars) -->
+            </attribute>
             <correlation>
                 <correlators>
                     <expression>

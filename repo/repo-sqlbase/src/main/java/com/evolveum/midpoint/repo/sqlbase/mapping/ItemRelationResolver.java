@@ -27,7 +27,11 @@ public interface ItemRelationResolver<
      * The information about the resolved item is captured in the instance resolver already
      * in a manner that is specific for various types of resolution (subquery or nested mapping).
      */
-    ResolutionResult<TQ, TR> resolve(SqlQueryContext<?, Q, R> context);
+    default ResolutionResult<TQ, TR> resolve(SqlQueryContext<?, Q, R> context) {
+        return resolve(context, false);
+    }
+
+    ResolutionResult<TQ, TR> resolve(SqlQueryContext<?, Q, R> context, boolean parent);
 
     default ResolutionResult<TQ, TR> resolveUsingJoin(SqlQueryContext<?, Q, R> context) {
         return resolve(context);

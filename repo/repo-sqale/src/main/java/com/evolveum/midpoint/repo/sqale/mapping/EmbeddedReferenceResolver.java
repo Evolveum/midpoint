@@ -45,7 +45,7 @@ public class EmbeddedReferenceResolver<Q extends FlexibleRelationalPathBase<R>, 
     }
 
     @Override
-    public ResolutionResult<Q, R> resolve(SqlQueryContext<?, Q, R> context) {
+    public ResolutionResult<Q, R> resolve(SqlQueryContext<?, Q, R> context, boolean parent) {
         return new ResolutionResult<>(context, mapping);
     }
 }

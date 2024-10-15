@@ -53,6 +53,7 @@ public interface ShadowAttributeDefinition<
         PrismItemBasicDefinition,
         PrismItemAccessDefinition,
         PrismItemMiscDefinition,
+        PrismItemStorageDefinition,
         PrismPresentationDefinition,
         ShadowAttributeUcfDefinition,
         ShadowItemLayeredDefinition,
@@ -260,8 +261,6 @@ public interface ShadowAttributeDefinition<
 
     /** Returns `true` if there are any refinements (like in `schemaHandling`). */
     boolean hasRefinements();
-
-    boolean isIndexOnly();
 
     @NotNull
     SA instantiate() throws SchemaException;

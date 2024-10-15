@@ -63,7 +63,9 @@ This simple mechanism is introducing a completely new dimension to midPoint RBAC
 
 * xref:/midpoint/reference/synchronization/introduction/[Synchronization]
 
-* xref:/midpoint/reference/resources/resource-configuration/synchronization/[Synchronization Configuration]
+* xref:/midpoint/reference/resources/resource-configuration/#_correlation_and_synchronization[Correlation and Synchronization]
+
+* xref:/midpoint/reference/resources/resource-configuration/schema-handling/#_synchronization[Synchronization Configuration]
 
 * xref:/midpoint/reference/roles-policies/assignment/[Assignment]
 

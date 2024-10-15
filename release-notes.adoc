@@ -91,10 +91,9 @@ Tree node search is now same for all nodes.
 ** GUI Support to show mark in the focus and shadow tables
 
 * Regulatory compliance
-** Compliance dashboard provides overview of metrics related to regulatory compliance.
 ** Built-in support for xref:/midpoint/reference/roles-policies/classification/[information classification and clearances].
 ** Support for `requirement` policy constraint in xref:/midpoint/reference/roles-policies/policy-rules/[policy rules].
-** Built-in classifications for _privileged access_ and _information security responsibility_.
+** Built-in classifications for _privileged access_.
 
 * Spring Boot/hibernate upgrade
 ** Spring Boot was upgraded to 3.3.2 and Hibernate ORM to 6.5
@@ -165,6 +164,18 @@ The sample is located by the link xref:/midpoint/reference/security/authenticati
 * Fixed removal of unused authentication filters created by the rest authentication module invoked from the browser. See bug:MID-9580[].
 * Use the username from the identification authentication module in the LDAP authentication module. See bug:MID-10104[].
 * Small improvements and fixed bugs in resource wizard. See bug:MID-9311[], bug:MID-9320[] and bug:MID-9397[].
+* Fixed the issue with unassign member action to process only selected relation members. See bug:MID-9936[].
+* Fixed the issue with incorrect password strength check against the password policy. See bug:MID-10067[].
+* Fixed encoding of objects display name on user assignments details panel. See bug:MID-10056[].
+* Fixed displaying of the "Name" column header in the Projections table. See bug:MID-10093[].
+* Fixed assignments count issue to display the number of the just existing assignments. See bug:MID-10099[].
+* Fixed warning message translation during password change. See bug:MID-10108[].
+* Fixed Out of memory error during bulk action on the work items panel. See bug:MID-9671[].
+* Fixed the issue with DateTime parameters during report configuration. See bug:MID-9828[].
+* Fixed the issue with manual user unlock. See bug:MID-9856[].
+* Fixed the issue of the assignment details panel in the shopping cart. See bug:MID-9858[].
+* Fixed the issue with saving a filter on the Tasks list page. See bug:MID-9751[].
+* Saved filter uses now midPoint query language form (not xml). See bug:MID-9568[].
 * Fixed archetype reference item of parent archetype for object with `archived` lifecycle state. See bug:MID-10101[].
 
 === Releases Of Other Components

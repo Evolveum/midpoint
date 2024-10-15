@@ -254,7 +254,7 @@ public class WebPrismUtil {
     }
 
     private static <C extends Containerable> boolean isUseAsEmptyValue(Item item) {
-        return item != null && isUseAsEmptyValue(item.getDefinition().getTypeClass());
+        return item != null && item.getDefinition() != null && isUseAsEmptyValue(item.getDefinition().getTypeClass());
     }
 
     private static <C extends Containerable> boolean isUseAsEmptyValue(Class<?> typeClass) {

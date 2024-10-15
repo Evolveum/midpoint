@@ -381,6 +381,13 @@ The defaults above can be turned back to standard default values (the second col
 (See xref:/midpoint/reference/security/credentials/password-policy/[].)
 Only hashed storage of cached passwords is supported.
 
+Limitations for the generic repository implementation (Oracle, SQL Server)
+
+. values cannot be larger than 255 characters;
+. values cannot be empty (on Oracle);
+. illegal XML characters (like those with codes under 32) cannot be present in string values
+
+
 #TODO describe these#
 
 // MidPoint is building and maintaining (updating) the cache as necessary.

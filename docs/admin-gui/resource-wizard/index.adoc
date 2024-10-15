@@ -147,7 +147,7 @@ An example of *Filter* usage: CSV file entries matching query `attributes/contra
 NOTE: You do not need to use the classification at all. If unsure, do not use it.
 
 .See also the following pages for more information:
-* xref:/midpoint/reference/resources/resource-configuration/schema-handling/changes-in-4.6/#resource-object-type-delineation[Resource Object Type Delineation]
+* xref:/midpoint/reference/resources/resource-configuration/schema-handling/#_delineation[Resource Object Type Delineation]
 
 // TODO TODO we do not have better Delination example! I have created https://support.evolveum.com/wp/9404 to track this
 
