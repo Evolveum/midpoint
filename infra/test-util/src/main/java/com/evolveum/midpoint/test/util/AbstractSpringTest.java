@@ -38,7 +38,7 @@ public abstract class AbstractSpringTest extends AbstractTestNGSpringContextTest
     protected final Trace logger = TraceManager.getTrace(getClass());
 
     public AbstractSpringTest() {
-        InternalsConfig.shadowCachingDefaultDefault = InternalsConfig.ShadowCachingDefault.FULL_BUT_USING_FRESH;
+        InternalsConfig.shadowCachingDefaultDefault = InternalsConfig.ShadowCachingDefault.FULL_BUT_USING_FRESH.toString();
     }
 
     // region perf-test support

@@ -15,6 +15,8 @@ import com.evolveum.midpoint.common.secrets.SecretsProviderManager;
 
 import com.evolveum.midpoint.prism.crypto.Protector;
 
+import com.evolveum.midpoint.schema.processor.AbstractResourceObjectDefinitionImpl;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 
@@ -117,6 +119,7 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
         applyRelationsConfiguration(configuration);
         applyOperationResultHandlingConfiguration(configuration);
         applyCachingConfiguration(configuration);
+        applyShadowCachingConfiguration(configuration);
         applyRepositoryConfiguration(configuration);
 
         if (lastVersionApplied != null) {
@@ -125,8 +128,6 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
             LOGGER.warn("There was a problem during application of the system configuration");
         }
     }
-
-
 
     private void notifyListeners(SystemConfigurationType configuration) {
         for (SystemConfigurationChangeListener listener : listeners) {
@@ -237,6 +238,18 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
             cacheConfigurationManager.applyCachingConfiguration(configuration);
         } catch (Throwable t) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply caching configuration", t);
+            lastVersionApplied = null;
+        }
+    }
+
+    private void applyShadowCachingConfiguration(SystemConfigurationType configuration) {
+        try {
+            var internalsConfig = configuration.getInternals();
+            var shadowCaching = internalsConfig != null ? internalsConfig.getShadowCaching() : null;
+            var defaultPolicy = shadowCaching != null ? shadowCaching.getDefaultPolicy() : null;
+            AbstractResourceObjectDefinitionImpl.setSystemDefaultPolicy(defaultPolicy);
+        } catch (Throwable t) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply shadow caching configuration", t);
             lastVersionApplied = null;
         }
     }

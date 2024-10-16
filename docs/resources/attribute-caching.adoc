@@ -381,30 +381,18 @@ The defaults above can be turned back to standard default values (the second col
 (See xref:/midpoint/reference/security/credentials/password-policy/[].)
 Only hashed storage of cached passwords is supported.
 
-Limitations for the generic repository implementation (Oracle, SQL Server)
+Limitations for the generic repository implementation (Oracle, SQL Server):
 
 . values cannot be larger than 255 characters;
 . values cannot be empty (on Oracle);
-. illegal XML characters (like those with codes under 32) cannot be present in string values
-
-
-#TODO describe these#
-
-// MidPoint is building and maintaining (updating) the cache as necessary.
-// However currently (midPoint 3.5) the caches are not directly used by midPoint core or the user interface.
-// The caches are available for special-purpose midPoint extensions.
-
-// This feature is considered to be *EXPERIMENTAL*.
-// As far as we know it should have no negative impact on normal midPoint operation (except for the overhead of storing cached data in the midPoint repository).
-// We also do not expect any major changes in configuration, interfaces or behavior.
-// But this is still a very young feature and some adjustments might be necessary.
-// Therefore use this feature with care.
+. illegal XML characters (like those with codes under 32) cannot be present in string values.
 
 == Setting via Configuration Property
 
 The default values for caching can be influenced by setting `midpoint.internals.shadowCachingDefault` configuration property, or `midpoint/internals/shadowCachingDefault` property in `config.xml` file.
 
-If set to `none`, then the default behavior is to have caching turned off. If not set, or set to `standard`, the default is to have caching turned on.
+If set to `none`, then the default behavior is to have caching turned off.
+If not set, or set to `standard`, the default is to have caching turned on.
 
 == Migration Note
 
