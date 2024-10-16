@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.outlier;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.loadUserWrapperForMarkAction;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColorOposite;
 
 import java.io.Serial;
@@ -541,7 +542,7 @@ public class PageOutliers extends PageAdmin {
                         String userOid = objectRef.getOid();
 
                         OperationResult result = new OperationResult("createWrapper");
-                        LoadableDetachableModel<PrismObjectWrapper<UserType>> focusModel = loadWrapper(userOid, pageBase, result);
+                        LoadableDetachableModel<PrismObjectWrapper<UserType>> focusModel = loadUserWrapperForMarkAction(userOid, pageBase, result);
 
                         if (focusModel.getObject() == null) {
                             if (result.isSuccess()) {
@@ -569,41 +570,6 @@ public class PageOutliers extends PageAdmin {
             @Override
             public boolean isHeaderMenuItem() {
                 return false;
-            }
-        };
-    }
-
-    @Contract(value = "_, _, _ -> new", pure = true)
-    private @NotNull LoadableDetachableModel<PrismObjectWrapper<UserType>> loadWrapper(
-            @NotNull String userOid,
-            @NotNull PageBase pageBase,
-            @NotNull OperationResult result) {
-        return new LoadableDetachableModel<>() {
-            @Override
-            protected PrismObjectWrapper<UserType> load() {
-                Task task = pageBase.createSimpleTask("createWrapper");
-                task.setResult(result);
-                ModelService modelService = pageBase.getModelService();
-
-                Collection<SelectorOptions<GetOperationOptions>> options = pageBase.getOperationOptionsBuilder()
-                        .noFetch()
-                        .item(ItemPath.create(ObjectType.F_POLICY_STATEMENT, PolicyStatementType.F_MARK_REF)).resolve()
-                        .item(ItemPath.create(ObjectType.F_POLICY_STATEMENT, PolicyStatementType.F_LIFECYCLE_STATE)).resolve()
-                        .build();
-
-                try {
-                    PrismObject<UserType> userObject = modelService.getObject(UserType.class, userOid, options, task, result);
-                    PrismObjectWrapperFactory<UserType> factory = pageBase.findObjectWrapperFactory(userObject.getDefinition());
-                    OperationResult result = task.getResult();
-                    WrapperContext ctx = new WrapperContext(task, result);
-                    ctx.setCreateIfEmpty(true);
-
-                    return factory.createObjectWrapper(userObject, ItemStatus.NOT_CHANGED, ctx);
-                } catch (ExpressionEvaluationException | SecurityViolationException | CommunicationException |
-                        ConfigurationException | ObjectNotFoundException | SchemaException e) {
-                    throw new SystemException("Cannot create wrapper for " + userOid, e);
-
-                }
             }
         };
     }
