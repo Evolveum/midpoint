@@ -8,8 +8,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.widgets.
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisDetectedPatternDetailsPopup;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
@@ -72,18 +70,15 @@ public class AnalysisInfoWidgetDto implements Serializable {
             @NotNull Task task) {
 
         String sessionOid = session.getOid();
-        List<RoleAnalysisOutlierType> topSessionOutliers = roleAnalysisService.getSessionOutliers(sessionOid, null, task, result);
-        List<RoleAnalysisOutlierType> outliers = topSessionOutliers.subList(0, Math.min(topSessionOutliers.size(), 5));
+        Map<RoleAnalysisOutlierPartitionType, RoleAnalysisOutlierType> allSessionOutlierPartitions = roleAnalysisService
+                .getSessionOutlierPartitionsMap(sessionOid, 5, true, task, result);
 
-        topOutliers = outliers.isEmpty() ? null : outliers.get(0);
+        topOutliers = allSessionOutlierPartitions.values().stream().findFirst().orElse(null);
 
         List<IdentifyWidgetItem> detailsModel = new ArrayList<>();
-        String targetPartitionOid = session.getOid();
         PolyStringType sessionName = session.getName();
-        boolean isCluster = false;
-
         IModel<List<IdentifyWidgetItem>> sessionWidgetModelOutliers = loadOutlierWidgetModels(
-                pageBase, outliers, isCluster, targetPartitionOid, sessionName, detailsModel);
+                pageBase, allSessionOutlierPartitions, sessionName, detailsModel);
 
         outlierModelData.clear();
         outlierModelData.addAll(sessionWidgetModelOutliers.getObject());
@@ -94,6 +89,7 @@ public class AnalysisInfoWidgetDto implements Serializable {
             @NotNull RoleAnalysisSessionType session,
             @NotNull PageBase pageBase,
             @NotNull OperationResult result) {
+
         IModel<List<IdentifyWidgetItem>> sessionWidgetModelPatterns = getSessionWidgetModelPatterns(
                 session, result, pageBase, 5);
         patternModelData.clear();
@@ -102,43 +98,13 @@ public class AnalysisInfoWidgetDto implements Serializable {
 
     }
 
-    public void loadOutlierModels(OperationResult result, RoleAnalysisService roleAnalysisService, PageBase pageBase) {
-        List<RoleAnalysisOutlierType> topFiveOutliers;
-
-        SearchResultList<PrismObject<RoleAnalysisOutlierType>> searchResultList = roleAnalysisService
-                .searchOutliersRepo(null, result);
-
-        if (searchResultList == null) {
-            outlierModelData.clear();
-            outlierModelData.addAll(new ArrayList<>());
-            isOutlierLoaded = true;
-            return;
-        }
-
-        List<RoleAnalysisOutlierType> outlierList = new ArrayList<>();
-        for (PrismObject<RoleAnalysisOutlierType> roleAnalysisOutlierTypePrismObject : searchResultList) {
-            RoleAnalysisOutlierType roleAnalysisOutlierType = roleAnalysisOutlierTypePrismObject.asObjectable();
-            outlierList.add(roleAnalysisOutlierType);
-        }
-
-        List<RoleAnalysisOutlierType> sortedOutliers = outlierList.stream()
-                .sorted(Comparator.comparingDouble(RoleAnalysisOutlierType::getOverallConfidence).reversed())
-                .toList();
-
-        List<RoleAnalysisOutlierType> list = new ArrayList<>();
-        long limit = 3;
-        for (RoleAnalysisOutlierType sortedOutlier : sortedOutliers) {
-            if (limit-- == 0) {break;}
-            list.add(sortedOutlier);
-        }
-        topFiveOutliers = list;
-
+    public void loadOutlierModels(OperationResult result, @NotNull RoleAnalysisService roleAnalysisService, @NotNull PageBase pageBase) {
         List<IdentifyWidgetItem> detailsModelOutliers = new ArrayList<>();
 
-//        Task task = pageBase.createSimpleTask("loadOutlierModels");
-//        SearchResultList<PrismObject<RoleAnalysisOutlierType>> topOutliers1 = roleAnalysisService.getTopOutliers(3, task, result);
-        if (!topFiveOutliers.isEmpty()) {
-            loadOutlierModel(detailsModelOutliers, topFiveOutliers, pageBase);
+        Task task = pageBase.createSimpleTask("loadOutlierModels");
+        List<RoleAnalysisOutlierType> topThreeOutliers = roleAnalysisService.getTopOutliers(3, task, result);
+        if (topThreeOutliers != null && !topThreeOutliers.isEmpty()) {
+            loadOutlierModel(detailsModelOutliers, topThreeOutliers, pageBase);
         }
 
         outlierModelData.clear();
@@ -250,20 +216,12 @@ public class AnalysisInfoWidgetDto implements Serializable {
         return topPartition;
     }
 
-    public void loadPatternModelsAsync(OperationResult result, RoleAnalysisService roleAnalysisService, PageBase pageBase, Task task) {
-        @NotNull List<DetectedPattern> clusterSearchResult;
-        clusterSearchResult = roleAnalysisService.findTopPatters(task, result);
+    public void loadPatternModelsAsync(
+            @NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull PageBase pageBase,
+            @NotNull OperationResult result) {
 
-        List<DetectedPattern> sortedPatterns = clusterSearchResult.stream()
-                .sorted(Comparator.comparingDouble(DetectedPattern::getMetric).reversed())
-                .toList();
-
-        List<DetectedPattern> topThreePatterns = new ArrayList<>();
-        long limit = 3;
-        for (DetectedPattern sortedPattern : sortedPatterns) {
-            if (limit-- == 0) {break;}
-            topThreePatterns.add(sortedPattern);
-        }
+        @NotNull List<DetectedPattern> topThreePatterns = roleAnalysisService.getAllRoleSuggestions(3, true, result);
 
         int allUserOwnedRoleAssignments = roleAnalysisService.countUserOwnedRoleAssignment(result);
 

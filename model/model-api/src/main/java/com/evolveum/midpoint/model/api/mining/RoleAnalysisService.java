@@ -954,16 +954,6 @@ public interface RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result);
 
-    /**
-     * Search for the top detected patterns over all clusters
-     *
-     * @param task the task
-     * @param result the operation result
-     */
-    @NotNull List<DetectedPattern> findTopPatters(
-            @NotNull Task task,
-            @NotNull OperationResult result);
-
     void replaceSessionMarkRef(
             @NotNull PrismObject<RoleAnalysisSessionType> session,
             @NotNull ObjectReferenceType newMarkRef,
@@ -989,20 +979,14 @@ public interface RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result);
 
-    List<DetectedPattern> getTopSessionPattern(
-            @NotNull RoleAnalysisSessionType session,
-            @NotNull Task task,
-            @NotNull OperationResult result,
-            boolean single);
-
     List<RoleAnalysisOutlierType> getSessionOutliers(
             @NotNull String sessionOid,
             @Nullable OutlierClusterCategoryType category,
             @NotNull Task task,
             @NotNull OperationResult result);
 
-    SearchResultList<PrismObject<RoleAnalysisOutlierType>> getTopOutliers(
-            int limit,
+    List<RoleAnalysisOutlierType> getTopOutliers(
+            @Nullable Integer limit,
             @NotNull Task task,
             @NotNull OperationResult result);
 
@@ -1305,13 +1289,93 @@ public interface RoleAnalysisService {
             @NotNull OperationResult result);
 
     /**
-     * Retrieves all role suggestions by searching for detected patterns in role analysis clusters.
+     * Retrieves role suggestions for a given session by searching for detected patterns.
      *
-     * @param task The task in the context of which the operation is executed.
-     * @param result The result of the operation.
-     * @return A list of detected patterns sorted by their metric in descending order.
+     * @param sessionOid The OID of the session for which role suggestions are to be retrieved.
+     * @param limit An optional limit on the number of detected patterns to retrieve.
+     * @param sortDescending An optional flag to sort the detected patterns by reduction count in descending order.
+     * @param result The operation result.
+     * @return A list of detected patterns for the given session.
      */
-    @NotNull List<DetectedPattern> getAllRoleSuggestions(
+    List<DetectedPattern> getSessionRoleSuggestion(
+            @NotNull String sessionOid,
+            @Nullable Integer limit,
+            @Nullable Boolean sortDescending,
+            @NotNull OperationResult result);
+
+    /**
+     * Retrieves role suggestions for a given cluster by searching for detected patterns.
+     *
+     * @param clusterOid The OID of the cluster for which role suggestions are to be retrieved.
+     * @param limit An optional limit on the number of detected patterns to retrieve.
+     * @param sortDescending An optional flag to sort the detected patterns by reduction count in descending order.
+     * @param result The operation result.
+     * @return A list of detected patterns for the given cluster.
+     */
+    List<DetectedPattern> getClusterRoleSuggestions(
+            @NotNull String clusterOid,
+            @Nullable Integer limit,
+            @Nullable Boolean sortDescending,
+            @NotNull OperationResult result);
+
+    /**
+     * Retrieves all role suggestions by searching for detected patterns.
+     *
+     * @param limit An optional limit on the number of detected patterns to retrieve.
+     * @param sortDescending An optional flag to sort the detected patterns by reduction count in descending order.
+     * @param result The operation result.
+     * @return A list of detected patterns.
+     */
+    List<DetectedPattern> getAllRoleSuggestions(
+            @Nullable Integer limit,
+            @Nullable Boolean sortDescending,
+            @NotNull OperationResult result);
+
+    /**
+     * Retrieves outlier partitions by searching for detected patterns.
+     *
+     * @param limit An optional limit on the number of partitions to retrieve.
+     * @param sortDescending An optional flag to sort the partitions by overall confidence in descending order.
+     * @param task The task in which the operation is executed.
+     * @param result The operation result.
+     * @return A map of outlier partitions and their corresponding outliers.
+     */
+    Map<RoleAnalysisOutlierPartitionType, RoleAnalysisOutlierType> getOutlierPartitionsMap(
+            @Nullable Integer limit,
+            @Nullable Boolean sortDescending,
             @NotNull Task task,
             @NotNull OperationResult result);
+
+    /**
+     * Retrieves outlier partitions for specific session by searching for detected patterns.
+     *
+     * @param limit An optional limit on the number of partitions to retrieve.
+     * @param sortDescending An optional flag to sort the partitions by overall confidence in descending order.
+     * @param task The task in which the operation is executed.
+     * @param result The operation result.
+     * @return A map of outlier partitions and their corresponding outliers.
+     */
+    Map<RoleAnalysisOutlierPartitionType, RoleAnalysisOutlierType> getSessionOutlierPartitionsMap(
+            @NotNull String sessionOid,
+            @Nullable Integer limit,
+            @Nullable Boolean sortDescending,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    /**
+     * Retrieves outlier partitions for specific cluster by searching for detected patterns.
+     *
+     * @param limit An optional limit on the number of partitions to retrieve.
+     * @param sortDescending An optional flag to sort the partitions by overall confidence in descending order.
+     * @param task The task in which the operation is executed.
+     * @param result The operation result.
+     * @return A map of outlier partitions and their corresponding outliers.
+     */
+    Map<RoleAnalysisOutlierPartitionType, RoleAnalysisOutlierType> getClusterOutlierPartitionsMap(
+            @NotNull String clusterOid,
+            @Nullable Integer limit,
+            @Nullable Boolean sortDescending,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
 }
