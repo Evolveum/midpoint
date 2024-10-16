@@ -39,10 +39,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformDefaultPattern;
-
-@PanelType(name = "topDetectedPattern")
+@PanelType(name = "sessionRoleSuggestions")
 @PanelInstance(
-        identifier = "topDetectedPattern",
+        identifier = "sessionRoleSuggestions",
         applicableForType = RoleAnalysisSessionType.class,
         display = @PanelDisplay(
                 label = "RoleAnalysisDetectionPatternType.action.suggestion",
