@@ -267,7 +267,7 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
         for (ContainerPanelConfigurationType containerPanelConfigurationType : object) {
             if (containerPanelConfigurationType.getIdentifier().equals("actions")) {
                 resolveActionPanel(containerPanelConfigurationType, category, roleAnalysisOptionType);
-            } else if (containerPanelConfigurationType.getIdentifier().equals("detectedPattern")
+            } else if (containerPanelConfigurationType.getIdentifier().equals("clusterRoleSuggestions")
                     && procedureType.equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)) {
                 containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
             }

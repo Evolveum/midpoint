@@ -5,12 +5,13 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster;
+package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.pattern;
 
 import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformDefaultPattern;
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterAction;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -41,9 +42,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterT
 
 import org.jetbrains.annotations.Nullable;
 
-@PanelType(name = "detectedPattern")
+@PanelType(name = "clusterRoleSuggestions")
 @PanelInstance(
-        identifier = "detectedPattern",
+        identifier = "clusterRoleSuggestions",
         applicableForType = RoleAnalysisClusterType.class,
         childOf = RoleAnalysisClusterAction.class,
         display = @PanelDisplay(
@@ -52,13 +53,13 @@ import org.jetbrains.annotations.Nullable;
                 order = 10
         )
 )
-public class DetectedPatternPanel extends AbstractObjectMainPanel<RoleAnalysisClusterType, ObjectDetailsModels<RoleAnalysisClusterType>> {
+public class ClusterRoleSuggestionsPanel extends AbstractObjectMainPanel<RoleAnalysisClusterType, ObjectDetailsModels<RoleAnalysisClusterType>> {
 
     private static final String ID_CONTAINER = "container";
     private static final String ID_PANEL = "panelId";
 
-    public DetectedPatternPanel(String id, ObjectDetailsModels<RoleAnalysisClusterType> model,
-            ContainerPanelConfigurationType config) {
+    public ClusterRoleSuggestionsPanel(String id, ObjectDetailsModels<RoleAnalysisClusterType> model,
+                                       ContainerPanelConfigurationType config) {
         super(id, model, config);
     }
 
