@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-// Like midpoint-main-nativepg-pipeline, but with shadow caching enabled by default
+// Like midpoint-main-nativepg-pipeline, but with shadow caching disabled by default
 
 def verbose = params.VERBOSE ?: '0'
 

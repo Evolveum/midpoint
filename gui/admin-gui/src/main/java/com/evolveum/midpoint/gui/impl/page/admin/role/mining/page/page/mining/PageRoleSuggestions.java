@@ -84,10 +84,9 @@ public class PageRoleSuggestions extends PageAdmin {
     private @NotNull LoadableDetachableModel<List<DetectedPattern>> loadRoleSuggestions() {
         PageBase pageBase = (PageBase) getPage();
         RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
-        Task task = pageBase.createSimpleTask(OPERATION_LOAD_OBJECTS);
         OperationResult result = new OperationResult(OPERATION_LOAD_OBJECTS);
 
-        List<DetectedPattern> detectedPatterns = roleAnalysisService.getAllRoleSuggestions(task, result);
+        List<DetectedPattern> detectedPatterns = roleAnalysisService.getAllRoleSuggestions(null, true, result);
 
         return new LoadableDetachableModel<>() {
             @Override

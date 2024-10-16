@@ -31,6 +31,9 @@ public class QOutlierPartition extends QContainer<MOutlierPartition, MOutlier> {
     public static final ColumnMetadata CLUSTER_REF_RELATION_ID =
             ColumnMetadata.named("clusterRefRelationId").ofType(Types.INTEGER);
 
+    public static final ColumnMetadata OVERALL_CONFIDENCE =
+            ColumnMetadata.named("overallConfidence").ofType(Types.DOUBLE);
+
     public QOutlierPartition(String variable) {
         super(MOutlierPartition.class, variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);
     }
@@ -43,4 +46,7 @@ public class QOutlierPartition extends QContainer<MOutlierPartition, MOutlier> {
 
     public final NumberPath<Integer> clusterRefRelationId =
             createInteger("clusterRefRelationId", CLUSTER_REF_RELATION_ID);
+
+    public final NumberPath<Double> overallConfidence = createNumber("overallConfidence", Double.class, OVERALL_CONFIDENCE);
+
 }

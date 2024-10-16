@@ -2,21 +2,14 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel;
 
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisPartitionOverviewPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.widgets.model.IdentifyWidgetItem;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisDetectedPatternDetailsPopup;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -39,7 +32,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 
-import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformDefaultPattern;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_DETECTED_PATER_ID;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_TABLE_SETTING;
@@ -53,58 +45,47 @@ public class RoleAnalysisAspectsWebUtils {
             @NotNull RoleAnalysisClusterType cluster,
             @NotNull PageBase pageBase) {
 
-        List<RoleAnalysisOutlierType> outliers = loadTopClusterOutliers(cluster.getOid(), pageBase);
         List<IdentifyWidgetItem> detailsModel = new ArrayList<>();
-        String targetPartitionOid = cluster.getOid();
         PolyStringType clusterName = cluster.getName();
-        boolean isCluster = true;
 
-        return loadOutlierWidgetModels(pageBase, outliers, isCluster, targetPartitionOid, clusterName, detailsModel);
+        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+        String clusterOid = cluster.getOid();
+        Task task = pageBase.createSimpleTask("loadOutliers");
+        OperationResult result = task.getResult();
+        Map<RoleAnalysisOutlierPartitionType, RoleAnalysisOutlierType> clusterTopOutliers = roleAnalysisService
+                .getClusterOutlierPartitionsMap(clusterOid, 5, true, task, result);
+
+        return loadOutlierWidgetModels(pageBase, clusterTopOutliers, clusterName, detailsModel);
     }
 
     @NotNull
     public static IModel<List<IdentifyWidgetItem>> loadOutlierWidgetModels(
             @NotNull PageBase pageBase,
-            @NotNull List<RoleAnalysisOutlierType> outliers,
-            boolean isCluster,
-            @NotNull String targetPartitionOid,
+            Map<RoleAnalysisOutlierPartitionType, RoleAnalysisOutlierType> outliers,
             @NotNull PolyStringType clusterName,
             @NotNull List<IdentifyWidgetItem> detailsModel) {
-        for (RoleAnalysisOutlierType topFiveOutlier : outliers) {
 
-            Double overallConfidence = 0.0;
-            Set<String> anomalies = new HashSet<>();
-            List<RoleAnalysisOutlierPartitionType> outlierPartitions = topFiveOutlier.getPartition();
-            RoleAnalysisOutlierPartitionType clusterPartition = null;
-            for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
-                String oid;
-                if (isCluster) {
-                    oid = outlierPartition.getClusterRef().getOid();
-                } else {
-                    oid = outlierPartition.getTargetSessionRef().getOid();
-                }
-                if (oid.equals(targetPartitionOid)) {
-                    overallConfidence = outlierPartition.getPartitionAnalysis().getOverallConfidence();
-                    if (overallConfidence == null) {
-                        overallConfidence = 0.0;
-                    }
+        for (Map.Entry<RoleAnalysisOutlierPartitionType, RoleAnalysisOutlierType> entry : outliers.entrySet()) {
+            RoleAnalysisOutlierPartitionType outlierPartition = entry.getKey();
+            RoleAnalysisOutlierType outlierObject = entry.getValue();
 
-                    clusterPartition = outlierPartition;
-
-                    loadAnomalySet(outlierPartition, anomalies);
-                }
+            Double partitionOverallConfidence = 0.0;
+            RoleAnalysisPartitionAnalysisType partitionAnalysis = outlierPartition.getPartitionAnalysis();
+            if (partitionAnalysis != null) {
+                partitionOverallConfidence = partitionAnalysis.getOverallConfidence();
             }
+            Set<String> anomalies = new HashSet<>();
+            loadAnomalySet(outlierPartition, anomalies);
 
-            BigDecimal bd = BigDecimal.valueOf(overallConfidence);
+            BigDecimal bd = BigDecimal.valueOf(partitionOverallConfidence);
             bd = bd.setScale(2, RoundingMode.HALF_UP);
-            overallConfidence = bd.doubleValue();
-            String formattedConfidence = String.format("%.2f", overallConfidence);
+            partitionOverallConfidence = bd.doubleValue();
+            String formattedConfidence = String.format("%.2f", partitionOverallConfidence);
             String description = anomalies.size() + " anomalies were detected in " + clusterName;
-            RoleAnalysisOutlierPartitionType finalClusterPartition = clusterPartition;
             IdentifyWidgetItem identifyWidgetItem = new IdentifyWidgetItem(
                     IdentifyWidgetItem.ComponentType.OUTLIER,
                     Model.of(GuiStyleConstants.CLASS_ICON_OUTLIER),
-                    Model.of(topFiveOutlier.getName().getOrig()),
+                    Model.of(outlierObject.getName().getOrig()),
                     Model.of(description),
                     Model.of(formattedConfidence + "%"),
                     Model.of("name")) {
@@ -112,7 +93,7 @@ public class RoleAnalysisAspectsWebUtils {
                 public void onActionComponentClick(AjaxRequestTarget target) {
                     RoleAnalysisPartitionOverviewPanel panel = new RoleAnalysisPartitionOverviewPanel(
                             pageBase.getMainPopupBodyId(),
-                            Model.of(finalClusterPartition), Model.of(topFiveOutlier)) {
+                            Model.of(outlierPartition), Model.of(outlierObject)) {
                         @Override
                         public IModel<String> getTitle() {
                             return createStringResource(
@@ -134,11 +115,11 @@ public class RoleAnalysisAspectsWebUtils {
 
                 @Override
                 public Component createTitleComponent(String id) {
-                    AjaxLinkPanel linkPanel = new AjaxLinkPanel(id, Model.of(topFiveOutlier.getName())) {
+                    AjaxLinkPanel linkPanel = new AjaxLinkPanel(id, Model.of(outlierObject.getName())) {
                         @Override
                         public void onClick(AjaxRequestTarget target) {
                             PageParameters parameters = new PageParameters();
-                            String outlierOid = topFiveOutlier.getOid();
+                            String outlierOid = outlierObject.getOid();
                             parameters.add(OnePageParameterEncoder.PARAMETER, outlierOid);
                             Class<? extends PageBase> detailsPageClass = DetailsPageUtil
                                     .getObjectDetailsPage(RoleAnalysisOutlierType.class);
@@ -165,43 +146,18 @@ public class RoleAnalysisAspectsWebUtils {
         }
     }
 
-    public static @NotNull IModel<List<IdentifyWidgetItem>> getSessionWidgetModelOutliers(
-            @NotNull RoleAnalysisSessionType session,
-            @NotNull PageBase pageBase,
-            @NotNull RoleAnalysisService roleAnalysisService,
-            @NotNull OperationResult result, LoadableModel<RoleAnalysisOutlierType> topOutliers) {
-        String sessionOid = session.getOid();
-        Task task = pageBase.createSimpleTask("load outliers");
-
-        List<RoleAnalysisOutlierType> topSessionOutliers = roleAnalysisService.getSessionOutliers(sessionOid, null, task, result);
-        List<RoleAnalysisOutlierType> outliers = topSessionOutliers.subList(0, Math.min(topSessionOutliers.size(), 5));
-
-        topOutliers = outliers.isEmpty() ? null : new LoadableModel<>() {
-            @Override
-            protected RoleAnalysisOutlierType load() {
-                return outliers.get(0);
-            }
-        };
-        List<IdentifyWidgetItem> detailsModel = new ArrayList<>();
-        String targetPartitionOid = session.getOid();
-        PolyStringType sessionName = session.getName();
-        boolean isCluster = false;
-
-        return loadOutlierWidgetModels(pageBase, outliers, isCluster, targetPartitionOid, sessionName, detailsModel);
-    }
-
     public static @NotNull IModel<List<IdentifyWidgetItem>> getClusterWidgetModelPatterns(
             @NotNull RoleAnalysisClusterType cluster,
             @NotNull OperationResult result,
             @NotNull PageBase pageBase,
             @Nullable Integer maxPatternsToShow) {
 
-        List<DetectedPattern> topPatters = transformDefaultPattern(cluster);
-        topPatters.sort(Comparator.comparing(DetectedPattern::getMetric).reversed());
-
-        if (maxPatternsToShow != null) {
-            topPatters = topPatters.subList(0, Math.min(topPatters.size(), maxPatternsToShow));
-        }
+        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+        List<DetectedPattern> topPatters = roleAnalysisService.getClusterRoleSuggestions(
+                cluster.getOid(),
+                maxPatternsToShow,
+                true,
+                result);
 
         return preparePatternWidgetsModel(result, pageBase, topPatters);
     }
@@ -212,12 +168,12 @@ public class RoleAnalysisAspectsWebUtils {
             @NotNull PageBase pageBase,
             @Nullable Integer maxPatternsToShow) {
 
-        List<DetectedPattern> topPatters = getTopSessionPatterns(session, pageBase);
-        topPatters.sort(Comparator.comparing(DetectedPattern::getMetric).reversed());
-
-        if (maxPatternsToShow != null) {
-            topPatters = topPatters.subList(0, Math.min(topPatters.size(), maxPatternsToShow));
-        }
+        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+        List<DetectedPattern> topPatters = roleAnalysisService.getSessionRoleSuggestion(
+                session.getOid(),
+                maxPatternsToShow,
+                true,
+                result);
 
         return preparePatternWidgetsModel(result, pageBase, topPatters);
     }
@@ -310,82 +266,5 @@ public class RoleAnalysisAspectsWebUtils {
             detailsModel.add(identifyWidgetItem);
         }
         return Model.ofList(detailsModel);
-    }
-
-    public static @NotNull List<DetectedPattern> getTopSessionPatterns(
-            @NotNull RoleAnalysisSessionType session,
-            @NotNull PageBase pageBase) {
-        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
-
-        Task task = pageBase.createSimpleTask("getTopPatterns");
-        OperationResult result = task.getResult();
-        List<PrismObject<RoleAnalysisClusterType>> prismObjects = roleAnalysisService.searchSessionClusters(session, task, result);
-
-        List<DetectedPattern> topDetectedPatterns = new ArrayList<>();
-        for (PrismObject<RoleAnalysisClusterType> prismObject : prismObjects) {
-            List<DetectedPattern> detectedPatterns = transformDefaultPattern(prismObject.asObjectable());
-
-            double maxOverallConfidence = 0;
-            DetectedPattern topDetectedPattern = null;
-            for (DetectedPattern detectedPattern : detectedPatterns) {
-                double itemsConfidence = detectedPattern.getItemsConfidence();
-                double reductionFactorConfidence = detectedPattern.getReductionFactorConfidence();
-                double overallConfidence = itemsConfidence + reductionFactorConfidence;
-                if (overallConfidence > maxOverallConfidence) {
-                    maxOverallConfidence = overallConfidence;
-                    topDetectedPattern = detectedPattern;
-                }
-            }
-            if (topDetectedPattern != null) {
-                topDetectedPatterns.add(topDetectedPattern);
-            }
-
-        }
-        topDetectedPatterns.sort(Comparator.comparing(DetectedPattern::getMetric).reversed());
-        return topDetectedPatterns;
-    }
-
-    private static @NotNull List<RoleAnalysisOutlierType> loadTopClusterOutliers(
-            @NotNull String clusterOid,
-            @NotNull PageBase pageBase) {
-        Task task = pageBase.createSimpleTask("loadRoleAnalysisInfo");
-        ModelService modelService = pageBase.getModelService();
-        OperationResult result = task.getResult();
-
-
-        ObjectQuery objectQuery = PrismContext.get().queryFor(RoleAnalysisOutlierType.class)
-                .item(RoleAnalysisOutlierType.F_PARTITION, RoleAnalysisOutlierPartitionType.F_CLUSTER_REF)
-                .ref(clusterOid).build();
-
-
-        List<RoleAnalysisOutlierType> searchResultList = new ArrayList<>();
-        ResultHandler<RoleAnalysisOutlierType> resultHandler = (outlier, lResult) -> {
-
-            RoleAnalysisOutlierType outlierObject = outlier.asObjectable();
-            List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getPartition();
-            for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
-                ObjectReferenceType targetClusterRef = outlierPartition.getClusterRef();
-                String oid = targetClusterRef.getOid();
-                if (clusterOid.equals(oid)) {
-                    Double overallConfidence = outlierPartition.getPartitionAnalysis().getOverallConfidence();
-                    //sort by confidence
-                    outlierObject.setOverallConfidence(overallConfidence); // tmp
-                    searchResultList.add(outlier.asObjectable());
-                    break;
-                }
-            }
-
-            return true;
-        };
-
-        try {
-            modelService.searchObjectsIterative(RoleAnalysisOutlierType.class, objectQuery, resultHandler,
-                    null, task, result);
-        } catch (Exception ex) {
-            throw new SystemException("Couldn't search outliers", ex);
-        }
-
-        searchResultList.sort(Comparator.comparing(RoleAnalysisOutlierType::getOverallConfidence).reversed());
-        return searchResultList.subList(0, Math.min(searchResultList.size(), 5));
     }
 }

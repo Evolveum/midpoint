@@ -1017,7 +1017,7 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
                 String oid = objectDetailsModels.getObjectType().getOid();
                 PageParameters parameters = new PageParameters();
                 parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-                parameters.add("panelId", "detectedPattern");
+                parameters.add("panelId", "clusterRoleSuggestions");
 
                 Class<? extends PageBase> detailsPageClass = DetailsPageUtil
                         .getObjectDetailsPage(RoleAnalysisClusterType.class);

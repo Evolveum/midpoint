@@ -16,5 +16,6 @@ public class MOutlierPartition extends MContainer {
     public UUID clusterRefOid;
     public MObjectType clusterRefTargetType;
     public Integer clusterRefRelationId;
+    public Double overallConfidence;
 
 }
