@@ -9,7 +9,9 @@ package com.evolveum.midpoint.gui.impl.page.admin.certification.helpers;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 
-public class ColumnTypeConfigContext {
+import java.io.Serializable;
+
+public class ColumnTypeConfigContext implements Serializable {
 
     //this flag means that we want to view all items, not only those assigned to logged-in user, usually true for administrator user
     boolean viewAllItems;

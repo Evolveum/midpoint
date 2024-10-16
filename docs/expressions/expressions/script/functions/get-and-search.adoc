@@ -6,7 +6,7 @@ The xref:/midpoint/reference/expressions/expressions/script/functions/midpoint/[
 The provided get and search related functions are:
 
 
-* Query Building Functions - allows to write xref:midpoint/reference/concepts/query/midpoint-query-language/query-language-in-groovy/[queries using midPoint Query Language].
+* Query Building Functions - allows to write xref:/midpoint/reference/concepts/query/midpoint-query-language/query-language-in-groovy/[queries using midPoint Query Language].
 
 * Get Object Functions - Allow to get object using `type` and `oid` of the object.
 * Search Object Functions - Allows to search objects using `type` and `query`
@@ -16,10 +16,11 @@ These capabilities are useful, and sometimes necessary, but their overuse may af
 
 == Performance Optimizations
 
-Since midPoint 4.9 Native Repository splitted most full objects into components, which allows only to exclude paths, which are not needed for script logic. 
+Since midPoint 4.9 xref:/midpoint/reference/repository/native-postgresql/splitted-fullobject/[Native Repository splitted most full objects] into components, which allows only to exclude paths, which are not needed for script logic. 
+
 For backwards compatibility these items are returned by default, but if it is necessary it is possible to exclude them from results. 
 
-The getObject, searchObjects, and searchObjectsIterative can be called with additional argument `options`, which provides more specific options, how to fetch data.
+The `getObject`, `searchObjects`, and `searchObjectsIterative` can be called with additional argument `options`, which provides more specific options, how to fetch data.
 
 IMPORTANT: Partially readed objects (objects with exclusion) should not be used as base for new objects (added to repository), they are mostly intended for read-only use cases. 
 
@@ -43,6 +44,14 @@ def administrators = midpoint.searchObjects(query , options); // <3>
 
 The APIs allows, you to exclude specific items not needed for script using `midpoint.getOperationOptionsBuilder()`.
 This is script friendly shorthand for `SchemaService.get().getOperationOptionsBuilder()`.
+
+Currently you are able to exclude following properties:
+
+* `operationExecution`
+* `assignment`
+* `inducement`
+* `linkRef`
+* `roleMembershipRef`
 
 .Excluding roleMembershipRef and operationExecution items
 [source, groovy]

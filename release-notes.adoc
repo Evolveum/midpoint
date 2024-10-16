@@ -52,10 +52,11 @@ For more information see xref:/midpoint/reference/security/credentials/secrets-p
 ** New style of configuring associations handling: mapping from associations to assignments using specific correlation and synchronization rules.
 ** Added wizard support for association configuration in resources.
 
-* Query Support for searching in value metadata of objects
-** Native repository: Object metadata stored in `metadata` property of `MetadataType` are also indexed and searchable as value metadata.
-E.g. original `metadata/creatorRef` is `@metadata/storage/creatorRef` as value metadata path.
-** Value metadata `storage` and `process` are indexed for assignments and available for search using `assignment/@metadata/storage`.
+* xref:/midpoint/reference/concepts/metadata/[Value metadata] (`@metadata`) are default storage for object and assignment metadata replacing previous `metadata` container.
+**  Query Support for searching in value metadata of objects
+*** Native Repository: Object metadata stored in `metadata` property of `MetadataType` are also indexed and searchable as value metadata. Eg. original `metadata/creatorRef` is `@metadata/storage/creatorRef` as value metadata path.
+*** Value metadata `storage` and `process` are indexed for assignments and available for search using `assignment/@metadata/storage`.
+
 * Ninja
 ** Added support for new verification categories: `MULTI_VALUE_REF_WITHOUT_OID`, `MISSING_NATURAL_KEY`, `MULTIVALUE_BYTE_ARRAY`, `PROTECTED_DATA_NOT_EXTERNAL`.
 For more information see xref:/midpoint/reference/deployment/ninja/command/verify.adoc[].
@@ -107,6 +108,9 @@ Tree node search is now same for all nodes.
 
 * Shadow table Partitioning in Native PostgreSQL Repository
 ** Midpoint automatically partition shadow tables based on resource and object class of shadow. Partitioning is enabled by default on new deployments and needs to be excplictly enabled on existing deployments. See xref:/midpoint/reference/repository/native-postgresql/shadow-partitioning/[Repository -> Native -> Shadow Partitioning] for details.
+
+* xref:/midpoint/reference/repository/native-postgresql/splitted-fullobject/[Native Repository uses splitted full-object model] for data storage: `operationExecution`, `assignment`, `linkRef` and `roleMembershipRef` in their separate tables outside of object `fullObject` columns
+** Added support and options to optimize queries and not retrieve these items in xref:/midpoint/reference/expressions/expressions/script/functions/get-and-search/[code and groovy scripts].
 
 * Support for H2 database was removed. Clean midPoint will fail to start with embedded H2 database.
 Preferred option to start simple midPoint instance is via docker compose. For more information see xref:/midpoint/install/containers/docker[here].
@@ -228,6 +232,7 @@ See, e.g., bug:MID-9853[].
 * Fixed an error when reviewer without read rights for `AccessCertificationCampaignType` opened "My work items" for certifications. See bug:MID-9331[].
 * Fixed statistics about the shadows deleted by the reconciliation. See bug:MID-9217[].
 * No longer adding a dangling `personaRef` items during simulation. See bug:MID-10080[].
+* Fixed localization for visualization of modify assignment delta. See bug:MID-10091[].
 
 === Releases Of Other Components
 
@@ -458,15 +463,15 @@ Please follow our xref:/midpoint/reference/upgrade/upgrade-guide/[Upgrade guide]
 [IMPORTANT]
 Be sure to be on the latest maintenance version for 4.8, otherwise you will not be warned about all the necessary schema changes and other possible incompatibilities.
 
-// Note that:
-//
-// * There are database schema changes (see xref:/midpoint/reference/upgrade/database-schema-upgrade/[Database schema upgrade]).
-//
-// * Version numbers of some bundled connectors have changed.
-// Connector references from the resource definitions that are using the bundled connectors need to be updated.
-//
-// * See also the _Actions required_ information below.
-//
+Note that:
+
+ * There are database schema changes (see xref:/midpoint/reference/upgrade/database-schema-upgrade/[Database schema upgrade]).
+
+ * Version numbers of some bundled connectors have changed.
+ Connector references from the resource definitions that are using the bundled connectors need to be updated.
+
+ * See also the _Actions required_ information below.
+
 // It is strongly recommended migrating to the xref:/midpoint/reference/repository/native-postgresql/[new native PostgreSQL repository implementation]
 // for all deployments that have not migrated yet.
 // However, it is *not* recommended upgrading the system and migrating the repositories in one step.
