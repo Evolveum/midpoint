@@ -1166,7 +1166,7 @@ Now imagine that there may be any number of input variables and that midPoint do
 We will not confuse the reader with a detailed explanation of the algorithm, and we will refer extremely curious readers to midPoint source code.
 The source code is the most precise documentation anyway.
 
-
+[#_mapping_maintenance_tasks]
 == Mapping Maintenance Tasks
 
 === Renaming a Mapping
