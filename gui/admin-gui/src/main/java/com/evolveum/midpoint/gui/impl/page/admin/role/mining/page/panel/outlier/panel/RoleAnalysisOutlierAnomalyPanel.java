@@ -16,8 +16,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisWidgetsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.WidgetItemModel;
+
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -43,10 +50,6 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.RoleAnalysisTabbedPanel;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DetectedAnomalyResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierPartitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierType;
 
 @PanelType(name = "anomalyAccess")
 @PanelInstance(
@@ -143,9 +146,18 @@ public class RoleAnalysisOutlierAnomalyPanel extends AbstractObjectMainPanel<Rol
 
         List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlier.getPartition();
 
+        Task task = getPageBase().createSimpleTask("resolveSessionName");
         for (RoleAnalysisOutlierPartitionType partition : outlierPartitions) {
-            String targetName = partition.getTargetSessionRef().getTargetName().toString();
-            tabs.add(new PanelTab(Model.of(targetName + " partition anomalies"), new VisibleEnableBehaviour()) {
+            ObjectReferenceType targetSessionRef = partition.getTargetSessionRef();
+            PolyStringType targetName = partition.getTargetSessionRef().getTargetName();
+            String partitionName;
+            if(targetName == null) {
+                partitionName = WebModelServiceUtils.resolveReferenceName(targetSessionRef, getPageBase(), task, task.getResult());
+            }else {
+                partitionName = targetName.toString();
+            }
+
+            tabs.add(new PanelTab(Model.of(partitionName + " partition anomalies"), new VisibleEnableBehaviour()) {
 
                 @Serial private static final long serialVersionUID = 1L;
 
