@@ -102,7 +102,7 @@ public class PageRoleAnalysisOutlier extends PageAssignmentHolderDetails<RoleAna
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
                 GuiStyleConstants.CLASS_ICON_RECYCLE, IconCssStyle.IN_ROW_STYLE);
         AjaxCompositedIconSubmitButton recertifyButton = new AjaxCompositedIconSubmitButton(repeatingView.newChildId(), iconBuilder.build(),
-                createStringResource("PageRoleAnalysisOutlier.button.reCertify.outlier")) {
+                createStringResource("PageRoleAnalysisOutlier.button.mark.outlier")) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
