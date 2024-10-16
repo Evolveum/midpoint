@@ -10,7 +10,7 @@ Since midPoint 4.9 Native Repository does not store store all items in single `f
 Splitting some items in separate tables increases query count in order to fetch full objectbut allows for:
 
 *  partial reads of objects (exluding paths and items not needed for GUI / processing)
-** this functionality is available also to scripts.
+** this functionality xref:/midpoint/reference/expressions/expressions/script/functions/get-and-search/[is available also to scripts].
 * more effective read of role membership and assignments in GUI and reporting
 
 == Backwards Compatibility
