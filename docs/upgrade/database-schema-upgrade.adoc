@@ -21,6 +21,8 @@ These scripts contain a set of SQL commands (usually `ALTER TABLE` commands) tha
 The scripts are designed to be non-desctructive, therefore they can safely be executed over a database that is populated with data.
 (Of course, the usual backup routine is strongly recommended.)
 
+IMPORTANT: Database schema upgrade usually introduces new columns which needs to be populated from full object. It is highly recommended to run Reindex Repository Task (GUI -> About -> Reindex Repository Objects) after database schema upgrades.
+
 === The right process for the right repository
 
 Since version 4.4, midPoint features two SQL repository implementations and these have different upgrade procedures.

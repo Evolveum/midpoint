@@ -8,8 +8,8 @@ visibility: hidden
 :page-liquid:
 :page-toc: top
 
-Release {release-version} is a fifty-TODO midPoint release, code-named _Verne_.
-The {release-version} release brings TODO.
+Release {release-version} is a sixtieth midPoint release, code-named _Verne_.
+The {release-version} release brings improvements in role engineering, certification, approvals, stability and miscellaneous improvements.
 
 ++++
 {% include release-data.html %}
@@ -18,10 +18,16 @@ The {release-version} release brings TODO.
 ++++
 {% capture dedicationContent %}
 <p>
-<a href="https://en.wikipedia.org/wiki/Jules_Verne">Jules Gabriel Verne</a> (1828-1905) was ...
+<a href="https://en.wikipedia.org/wiki/Jules_Verne">Jules Gabriel Verne</a> (1828-1905) was a French novelist, poet, and playwright.
+His collaboration with the publisher Pierre-Jules Hetzel led to the creation of the Voyages extraordinaires, a series of bestselling adventure novels including Journey to the Center of the Earth (1864), Twenty Thousand Leagues Under the Seas (1870), and Around the World in Eighty Days (1872).
+His novels, always well-researched according to the scientific knowledge then available, are generally set in the second half of the 19th century, taking into account the technological advances of the time.
 </p>
 <p>
-TODO
+In addition to his novels, he wrote numerous plays, short stories, autobiographical accounts, poetry, songs, and scientific, artistic, and literary studies.
+His work has been adapted for film and television since the beginning of cinema, as well as for comic books, theater, opera, music and video games.
+Verne is considered to be an important author in France and most of Europe, where he has had a wide influence on the literary avant-garde and on surrealism.
+His reputation was markedly different in the Anglosphere where he had often been labeled a writer of genre fiction or children's books, largely because of the highly abridged and altered translations in which his novels have often been printed.
+Jules Verne has been the second most-translated author in the world since 1979, ranking below Agatha Christie and above William Shakespeare.
 </p>
 {% endcapture %}
 {% include release-dedication.html content=dedicationContent %}
@@ -31,11 +37,11 @@ TODO
 
 === New Features and Major Improvements
 
-* xref:/midpoint/reference/resources/attribute-caching/[Shadow caching]
+* xref:/midpoint/reference/resources/attribute-caching/[Shadow caching] was significantly improved and is now a regular midPoint feature.
 * Native Repository Support for `searchContainersIteratively` for all container types
-** Removed upper record limit for  reports for Assignments, Certfication Cases, Certification Work items and others.
+** Removed upper record limit for reports for assignments, certification cases, certification work items and others.
 ** Changed transaction isolation from READ_COMMITED to REPEATABLE_READ.
-** Changed storage strategy for complex container types - actual data stored inside their own table istead of parent object JSON.
+** Changed storage strategy for complex container types - actual data stored inside their own table instead of parent object JSON.
 * Added support for external data in protected strings, that can be resolved via secrets providers.
 This allows to store secrets in external systems, such as HashiCorp Vault, AWS Secrets Manager, Azure Key Vault, etc.
 For more information see xref:/midpoint/reference/security/credentials/secrets-provider-configuration.adoc[].
@@ -46,9 +52,11 @@ For more information see xref:/midpoint/reference/security/credentials/secrets-p
 ** New style of configuring associations handling: mapping from associations to assignments using specific correlation and synchronization rules.
 ** Added wizard support for association configuration in resources.
 
-* Query Support for searching in value metadata of objects
-** Native Repository: Object metadata stored in `metadata` property of `MetadataType` are also indexed and searchable as value metadata. Eg. original `metadata/creatorRef` is `@metadata/storage/creatorRef` as value metadata path.
-** Value metadata `storage` and `process` are indexed for assignments and available for search using `assignment/@metadata/storage`.
+* xref:/midpoint/reference/concepts/metadata/[Value metadata] (`@metadata`) are default storage for object and assignment metadata replacing previous `metadata` container.
+**  Query Support for searching in value metadata of objects
+*** Native Repository: Object metadata stored in `metadata` property of `MetadataType` are also indexed and searchable as value metadata. Eg. original `metadata/creatorRef` is `@metadata/storage/creatorRef` as value metadata path.
+*** Value metadata `storage` and `process` are indexed for assignments and available for search using `assignment/@metadata/storage`.
+
 * Ninja
 ** Added support for new verification categories: `MULTI_VALUE_REF_WITHOUT_OID`, `MISSING_NATURAL_KEY`, `MULTIVALUE_BYTE_ARRAY`, `PROTECTED_DATA_NOT_EXTERNAL`.
 For more information see xref:/midpoint/reference/deployment/ninja/command/verify.adoc[].
@@ -82,7 +90,7 @@ Tree node search is now same for all nodes.
 
 * Schema extension
 ** Adding new SchemaType that is supported in native repository. SchemaType contains attribute that contains xsd schema.
-** SchemaType can be configured by GUI. Configuration via GUI contains some limitations that related with schema lifecycle (TODO add link).
+** SchemaType can be configured by GUI. Configuration via GUI contains some limitations that related with schema lifecycle (xref:/midpoint/reference/schema/custom-schema-extension).
 ** For more information can see xref:/midpoint/reference/schema/custom-schema-extension.adoc[].
 
 * Object marks
@@ -100,6 +108,9 @@ Tree node search is now same for all nodes.
 
 * Shadow table Partitioning in Native PostgreSQL Repository
 ** Midpoint automatically partition shadow tables based on resource and object class of shadow. Partitioning is enabled by default on new deployments and needs to be excplictly enabled on existing deployments. See xref:/midpoint/reference/repository/native-postgresql/shadow-partitioning/[Repository -> Native -> Shadow Partitioning] for details.
+
+* xref:/midpoint/reference/repository/native-postgresql/splitted-fullobject/[Native Repository uses splitted full-object model] for data storage: `operationExecution`, `assignment`, `linkRef` and `roleMembershipRef` in their separate tables outside of object `fullObject` columns
+** Added support and options to optimize queries and not retrieve these items in xref:/midpoint/reference/expressions/expressions/script/functions/get-and-search/[code and groovy scripts].
 
 * Support for H2 database was removed. Clean midPoint will fail to start with embedded H2 database.
 Preferred option to start simple midPoint instance is via docker compose. For more information see xref:/midpoint/install/containers/docker[here].
@@ -177,6 +188,51 @@ The sample is located by the link xref:/midpoint/reference/security/authenticati
 * Fixed the issue with saving a filter on the Tasks list page. See bug:MID-9751[].
 * Saved filter uses now midPoint query language form (not xml). See bug:MID-9568[].
 * Fixed archetype reference item of parent archetype for object with `archived` lifecycle state. See bug:MID-10101[].
+* Fixed handling archetype-related authorizations when creating new objects. See bug:MID-9268[].
+* Fixed fuzzy searches for string values having an apostrophe. See bug:MID-9405[].
+* Fixed displaying correlation properties. See bug:MID-9408[], bug:MID-9411[], and bug:MID-9412[].
+* Fixed resource-level auditing with expressions. See bug:MID-9382[].
+* Fixed delayed deletion of already disabled shadows. See bug:MID-9220[].
+* Fixed creating org objects in draft lifecycle state. See bug:MID-9264[].
+* Fixed handling of tasks without `taskIdentifier` property. See bug:MID-9423[].
+* Fixed previewing changes with some objects created on demand. See bug:MID-9426[].
+* Fixed searching by properties of referenced objects on the generic repository. See bug:MID-9427[].
+* Fixed a security issue by checking authorizations (in a preliminary mode) right at the operation start.
+See the xref:/midpoint/security/advisories/022-unauthorized-code-execution/[security advisory #22] and bug:MID-9459[].
+* Fixed a security issue by adding authorization checks to selected REST methods that did not have them.
+As part of this, authorizations for individual REST operations were added.
+See the xref:/midpoint/security/advisories/023-unauthorized-operation-execution/[security advisory #23], xref:/midpoint/reference/security/authorization/service/[], and bug:MID-9460[].
+* Added a shadow reclassification task. See bug:MID-9514[].
+* Association and assignment search expressions can now have multiple filters. See link:https://github.com/Evolveum/midpoint/commit/554eb0f3846cb99793e51ded5180a61f5aa5d5b8[commit 554eb0].
+* Fixed `associationTargetSearch` expressions when the association has multiple intents. See bug:MID-9561[] and bug:MID-9565[].
+* Fixed `associationFromLink` expressions when there are dead shadows. See bug:MID-9468[] and bug:MID-9487[].
+* Fixed executing changes without the focus (e.g., changing a shadow) when partial processing option is set. See bug:MID-9477[].
+* Fixed fetching associations defined only on selected object types, when expression-based classification is in use. See bug:MID-9591[].
+* Fixed editing additional connector configuration. See bug:MID-7918[].
+* Improved authorizations for filter items. See bug:MID-9638[].
+* Added a simple method for setting extension property values to `basic` functions object.
+Extension-related methods were also grouped together and documented.
+See bug:MID-9554[].
+* Treating accidentally removed cases for manual resource operations (add, modify, delete account) gracefully. See bug:MID-9286[].
+* Fixed simulated activation specific to a single object class. See bug:MID-9765[].
+* Improved optimizing trigger creator to avoid creating duplicate triggers e.g. in clustered environment. See bug:MID-9368[].
+* Fixed unlinking/deleting dead shadows (with some limitations for the deletion case). See bug:MID-9668[].
+* Added `midpoint.isFocusDeleted()` method that can be used in conditions for mappings that control attributes that have to be kept intact on user deletion.
+See bug:MID-9669[].
+* Fixed displaying indirect roles in "All direct/indirect assignments" view, when non-member relations (e.g., `approver` or `owner`) are present.
+See bug:MID-9467[].
+* Treating blank mail recipients correctly by skipping them. See bug:MID-9791[].
+* Removed a fixed limit of 10 logfiles. See bug:MID-9833[].
+* Fixed showing `Save` button for execution-phase `#modify` authorization. See bug:MID-9898[].
+* Fixed (obsolete) `defaultAssignee` configuration parameter for manual connector + updated docs to use the supported `business/operatorRef` item instead.
+See bug:MID-9870[].
+* Various issues related to preview changes were fixed by switching the operation to use the new "simulations" feature.
+See, e.g., bug:MID-9853[].
+* Policy statements can now have a lifecycle state. See link:https://github.com/Evolveum/midpoint/commit/c22830c18a4288db929588a1af01c82e8835d93f[commit c22830].
+* Fixed an error when reviewer without read rights for `AccessCertificationCampaignType` opened "My work items" for certifications. See bug:MID-9331[].
+* Fixed statistics about the shadows deleted by the reconciliation. See bug:MID-9217[].
+* No longer adding a dangling `personaRef` items during simulation. See bug:MID-10080[].
+* Fixed localization for visualization of modify assignment delta. See bug:MID-10091[].
 
 === Releases Of Other Components
 
@@ -407,15 +463,15 @@ Please follow our xref:/midpoint/reference/upgrade/upgrade-guide/[Upgrade guide]
 [IMPORTANT]
 Be sure to be on the latest maintenance version for 4.8, otherwise you will not be warned about all the necessary schema changes and other possible incompatibilities.
 
-// Note that:
-//
-// * There are database schema changes (see xref:/midpoint/reference/upgrade/database-schema-upgrade/[Database schema upgrade]).
-//
-// * Version numbers of some bundled connectors have changed.
-// Connector references from the resource definitions that are using the bundled connectors need to be updated.
-//
-// * See also the _Actions required_ information below.
-//
+Note that:
+
+ * There are database schema changes (see xref:/midpoint/reference/upgrade/database-schema-upgrade/[Database schema upgrade]).
+
+ * Version numbers of some bundled connectors have changed.
+ Connector references from the resource definitions that are using the bundled connectors need to be updated.
+
+ * See also the _Actions required_ information below.
+
 // It is strongly recommended migrating to the xref:/midpoint/reference/repository/native-postgresql/[new native PostgreSQL repository implementation]
 // for all deployments that have not migrated yet.
 // However, it is *not* recommended upgrading the system and migrating the repositories in one step.
@@ -637,17 +693,12 @@ Such configurations are in principle unstable, so this kind of errors should be 
 Please see bug:MID-9621[] and https://github.com/Evolveum/midpoint/commit/22e2d8429e269e4c54b19c3e2df153b9fbfd1437[this commit].
 
 * The default configuration for caching was changed.
-Currently, only mapped attributes are cached by default.
+Currently, only the attributes defined in `schemaHandling` are cached by default.
 (Except for the situation when the caching is enabled by `cachingOnly` property in the read capability.)
-See commits [4775c1](https://github.com/Evolveum/midpoint/commit/4775c14884d42aa758c19b5693ec07dcacdeb147)
-and #the following one - TODO#.
 
 * When processing live sync changes that contain only the object identifiers, a more aggressive approach to fetching actual objects was adopted:
 We now always fetch the actual object, if possible.
 The reason is that the cached version may be incomplete or outdated.
-(This may still change before 4.9 the release, though.)
-See commits [4775c1](https://github.com/Evolveum/midpoint/commit/4775c14884d42aa758c19b5693ec07dcacdeb147)
-and #the following one - TODO#.
 
 * The behavior of `disableTimestamp` and `disableReason` in the shadow activation container was changed.
 Before 4.9/4.8.1, these properties were updated only if there was an actual change in the administrative status from something to `DISABLED`.
@@ -661,7 +712,30 @@ It is recommended to mark them as secondary identifiers.
 * The filtering of associations was changed slightly.
 In particular, even if the required auxiliary object class is not present for the subject, the association values are still shown - if they exist on the resource.
 (They were hidden before.)
-#TODO reconsider this#
+
+* To address bug:MID-9638[] and bug:MID-9670[] (leaking data via searching objects by filters), the handling of items allowed for search operations was changed.
+
+It is now evaluated not only for the type we are searching for (like `RoleType`), but for all types whose items are to be used for the search (like `UserType` for a filter like "give me `RoleType` `referencedBy` `UserType` via `assignment/targetRef`").
+
+The checks are "yes/no" style only, based on the presence or absence of authorizations against specified type and item(s), with appropriate action URIs (read, search, and the new searchBy).
+No detailed checking for the values is done. E.g. if the search for `UserType:name` is allowed even for potentially a single user object (via an authorization clause that can provide any number of matching objects, even zero), then the `name` item can be used for any search concerning `UserType` or even `FocusType` objects.
+
+Effects on existing deployments:
+
+. Some queries allowed previously may now fail because of missing item-searching authorizations.
+As a quick fix, new (experimental, temporary) `searchBy` authorization is available to give search access to these items without providing any additional access to data values.
+
+. Some queries denied previously may now be allowed.
+This should be quite rare, but possible.
+It can happen if the original authorization was not applied because of some specific limitations (like `roleRelation` with no explicit role information), and hence the `item`/`exceptItem` part of it was skipped.
+This is no longer the case.
+
+See link:https://github.com/Evolveum/midpoint/commit/60928672b8e51946edf01fcbe0d253e4ae65c4cf[commit 609286].
+
+* The `effectiveMarkRef` item now has value metadata to determine the values' origin. See link:https://github.com/Evolveum/midpoint/commit/351d7e4718bef9ac90dffde8920bc7d536f42e84[commit 351d7e].
+
+* The mapping specification in provenance metadata now contains also object type name, association type name, and the shadow tag.
+See xref:/midpoint/reference/expressions/mappings/#_mapping_maintenance_tasks[Mapping Maintenance Tasks], link:https://github.com/Evolveum/midpoint/commit/0dd1c011d9bc99fae037a4e27cb583cbd43da5bb[commit 0dd1c0], and link:https://github.com/Evolveum/midpoint/commit/8557f5945222ac2a7c535f0d0458af725442b61b[commit 8557f5].
 
 * "<a:indexed/>" and "<a:indexOnly/>" annotations - when present but without any value - was interpreted as "false".
 This was now changed to a more intuitive interpretation (similar to a:object, a:container, etc), where annotation present but without value means "true".
@@ -675,7 +749,9 @@ If you happen to use them in your manually configured resource XSD schemas, plea
 * Support for getting/setting objects embedded in references marked as `a:objectReference` directly, like `LensElementContext.getObjectOld()`.
 This feature was used only internally by midPoint.
 
-* #TODO# Either bring back the support of <xsd:documentation> in resource schemas (not used by ConnId, but may be used for manually entered schemas), or document the feature drop here.
+* The `<xsd:documentation>` element in resource schemas is now ignored.
+It was never used by ConnId connectors, but, in theory, it might be used for manually entered schemas.
+
 === Java and REST API Changes Since 4.8
 
 NOTE: As for the Java API, this section describes changes in `midpoint` and `basic` function libraries.

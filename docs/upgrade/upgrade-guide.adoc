@@ -45,6 +45,8 @@ The upgrade usually contains following steps:
 
 . Start system for testing
 
+. Reindexing Repository Objects
+
 . Test configuration, make necessary adjustments
 
 . Open system to production use
@@ -218,6 +220,8 @@ The users should be ideally still kept out, e.g. keeping the path through load b
 It is recommended to watch system log (`/opt/midpoint/var/log/midpoint.log`) as the system starts.
 In case of any issues, such as schema incompatibilities, there will be diagnostic messages in the log.
 Unless there is an unusually serious issue during a start-up, midPoint server process should start, and the administrator should be able to log into midPoint administration user interface.
+
+Most midPoint releases bring new indexes and columns to database schema for search, so repository reindex is highly recommended / necessary in order to these columns being populated.
 
 Most midPoint releases bring new versions of bundled connectors.
 This means that new connector version appears in midPoint after the first post-upgrade system start, and the old connector versions will not work any longer.

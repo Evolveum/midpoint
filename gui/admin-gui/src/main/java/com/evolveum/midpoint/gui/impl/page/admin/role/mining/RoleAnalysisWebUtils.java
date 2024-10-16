@@ -33,6 +33,7 @@ public class RoleAnalysisWebUtils {
     public static final String STYLE_CSS = "style";
 
     public static final String TEXT_MUTED = "text-muted";
+    public static final String TEXT_TONED = "txt-toned";
     public static final String TEXT_TRUNCATE = "text-truncate";
     public static final String FONT_WEIGHT_BOLD = "font-weight-bold";
 
