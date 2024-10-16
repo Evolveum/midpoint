@@ -13,7 +13,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_
 
 import static java.util.Collections.singleton;
 
-import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformDefaultPattern;
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.*;
 import static com.evolveum.midpoint.common.mining.utils.algorithm.JaccardSorter.jacquardSimilarity;
 import static com.evolveum.midpoint.model.impl.mining.analysis.AttributeAnalysisUtil.*;
@@ -23,6 +22,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType.
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -35,6 +35,7 @@ import com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 
 import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
+import com.evolveum.midpoint.prism.query.builder.S_QueryExit;
 import com.evolveum.midpoint.repo.api.AggregateQuery;
 
 import com.evolveum.midpoint.schema.*;
@@ -559,7 +560,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result) {
 
-
         ResultHandler<RoleAnalysisOutlierType> resultHandler = (object, parentResult) -> {
             RoleAnalysisOutlierType outlierObject = object.asObjectable();
             List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getPartition();
@@ -619,7 +619,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             }
             return true;
         };
-
 
         ObjectQuery objectQuery = PrismContext.get().queryFor(RoleAnalysisOutlierType.class)
                 .item(RoleAnalysisOutlierType.F_PARTITION, RoleAnalysisOutlierPartitionType.F_CLUSTER_REF)
@@ -2769,38 +2768,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     }
 
     @Override
-    @NotNull
-    public List<DetectedPattern> findTopPatters(
-            @NotNull Task task,
-            @NotNull OperationResult result) {
-        SearchResultList<PrismObject<RoleAnalysisClusterType>> clusterSearchResult;
-        try {
-            clusterSearchResult = modelService.searchObjects(RoleAnalysisClusterType.class, null, null, task, result);
-        } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException |
-                ConfigurationException |
-                ExpressionEvaluationException e) {
-            throw new SystemException(e);
-        }
-        if (clusterSearchResult == null) {
-            return new ArrayList<>();
-        }
-
-        List<DetectedPattern> topDetectedPatterns = new ArrayList<>();
-        for (PrismObject<RoleAnalysisClusterType> prismObject : clusterSearchResult) {
-            List<DetectedPattern> detectedPatterns = transformDefaultPattern(prismObject.asObjectable());
-
-            DetectedPattern topDetectedPattern = findPatternWithBestConfidence(detectedPatterns);
-            if (topDetectedPattern != null) {
-                topDetectedPatterns.add(topDetectedPattern);
-            }
-
-        }
-
-        topDetectedPatterns.sort(Comparator.comparing(DetectedPattern::getMetric).reversed());
-        return topDetectedPatterns;
-    }
-
-    @Override
     public void deleteSessionTask(
             @NotNull String sessionOid,
             @NotNull Task task,
@@ -2946,35 +2913,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         }
     }
 
-    @Override
-    public List<DetectedPattern> getTopSessionPattern(
-            @NotNull RoleAnalysisSessionType session,
-            @NotNull Task task,
-            @NotNull OperationResult result,
-            boolean single) {
-        List<PrismObject<RoleAnalysisClusterType>> sessionClusters = this.searchSessionClusters(session, task, result);
-        if (sessionClusters == null || sessionClusters.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        List<DetectedPattern> topDetectedPatterns = new ArrayList<>();
-        for (PrismObject<RoleAnalysisClusterType> prismObject : sessionClusters) {
-            List<DetectedPattern> detectedPatterns = transformDefaultPattern(prismObject.asObjectable());
-
-            DetectedPattern topDetectedPattern = findPatternWithBestConfidence(detectedPatterns);
-            if (topDetectedPattern != null) {
-                topDetectedPatterns.add(topDetectedPattern);
-            }
-        }
-
-        if (!single) {
-            return topDetectedPatterns;
-        } else {
-            DetectedPattern detectedPattern = findMultiplePatternWithBestConfidence(topDetectedPatterns);
-            return Collections.singletonList(detectedPattern);
-        }
-    }
-
+    //TODO this is wrong, make beter structured object for this case
     @Override
     public List<RoleAnalysisOutlierType> getSessionOutliers(
             @NotNull String sessionOid,
@@ -3033,22 +2972,36 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     }
 
     @Override
-    public SearchResultList<PrismObject<RoleAnalysisOutlierType>> getTopOutliers(
-            int limit,
+    public List<RoleAnalysisOutlierType> getTopOutliers(
+            @Nullable Integer limit,
             @NotNull Task task,
             @NotNull OperationResult result) {
 
         ObjectQuery objectQuery = PrismContext.get().queryFor(RoleAnalysisOutlierType.class)
                 .desc(RoleAnalysisOutlierType.F_OVERALL_CONFIDENCE)
-                .maxSize(limit)
                 .build();
 
+        if (limit != null) {
+            objectQuery = PrismContext.get().queryFor(RoleAnalysisOutlierType.class)
+                    .desc(RoleAnalysisOutlierType.F_OVERALL_CONFIDENCE)
+                    .maxSize(limit)
+                    .build();
+        }
+
+        List<RoleAnalysisOutlierType> outliers = new ArrayList<>();
+
+        ResultHandler<RoleAnalysisOutlierType> resultHandler = (outlier, lResult) -> {
+            outliers.add(outlier.asObjectable());
+            return true;
+        };
+
         try {
-            return modelService.searchObjects(RoleAnalysisOutlierType.class, objectQuery,
-                    null, task, result);
+            modelService.searchObjectsIterative(RoleAnalysisOutlierType.class, objectQuery,
+                    resultHandler, null, task, result);
         } catch (Exception ex) {
             throw new SystemException("Couldn't search outliers", ex);
         }
+        return outliers;
     }
 
     @Override
@@ -3541,6 +3494,9 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         }
     }
 
+    int count = 0;
+    long start = System.currentTimeMillis();
+
     @Override
     public ListMultimap<String, String> assignmentSearch(
             @Nullable ObjectFilter userObjectFiler,
@@ -3558,6 +3514,19 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         boolean userMode = processMode.equals(RoleAnalysisProcessModeType.USER);
         ContainerableResultHandler<AssignmentType> handler;
         handler = (object, parentResult) -> {
+
+            count++;
+            if (count % 1000 == 0) {
+                long end = System.currentTimeMillis();
+                long elapsedTime = end - start;
+                System.out.println("Duration: " + Duration.ofMillis(elapsedTime)
+                        .toString()
+                        .substring(2)
+                        .replaceAll("(\\d[HMS])(?!$)", "$1 ")
+                        .toLowerCase());
+                System.out.println("Count: " + count);
+            }
+
             PrismContainerValue<?> prismContainerValue = object.asPrismContainerValue();
 
             if (prismContainerValue == null) {
@@ -3832,31 +3801,296 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         return roleMemberCache;
     }
 
-    public @NotNull List<DetectedPattern> getAllRoleSuggestions(@NotNull Task task, @NotNull OperationResult result) {
-        List<DetectedPattern> allDetectedPatterns = new ArrayList<>();
-        ResultHandler<RoleAnalysisClusterType> resultHandler = (cluster, lResult) -> {
-            RoleAnalysisClusterType clusterObject = cluster.asObjectable();
-            List<DetectedPattern> detectedPatterns = transformDefaultPattern(clusterObject);
-            if (!detectedPatterns.isEmpty()) {
-                allDetectedPatterns.addAll(detectedPatterns);
-            }
-            return true;
-        };
+    public List<DetectedPattern> getSessionRoleSuggestion(
+            @NotNull String sessionOid,
+            @Nullable Integer limit,
+            @Nullable Boolean sortDescending,
+            @NotNull OperationResult result) {
+
+        S_QueryExit sQueryExit = PrismContext.get().queryFor(RoleAnalysisDetectionPatternType.class)
+                .ownedBy(RoleAnalysisClusterType.class)
+                .block()
+                .item(RoleAnalysisClusterType.F_ROLE_ANALYSIS_SESSION_REF)
+                .ref(sessionOid)
+                .endBlock();
+
+        if (sortDescending != null && sortDescending.equals(Boolean.TRUE)) {
+            sQueryExit = sQueryExit.desc(RoleAnalysisDetectionPatternType.F_REDUCTION_COUNT);
+        } else if (sortDescending != null && sortDescending.equals(Boolean.FALSE)) {
+            sQueryExit = sQueryExit.asc(RoleAnalysisDetectionPatternType.F_REDUCTION_COUNT);
+        }
+
+        if (limit != null) {
+            sQueryExit = sQueryExit.maxSize(limit);
+        }
+
+        ObjectQuery query = sQueryExit.build();
+
+        List<DetectedPattern> detectedPatterns = new ArrayList<>();
 
         GetOperationOptionsBuilder getOperationOptionsBuilder = schemaService.getOperationOptionsBuilder();
         getOperationOptionsBuilder = getOperationOptionsBuilder.resolveNames();
-
         Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder.build();
+
+        Map<String, RoleAnalysisClusterType> mappedClusters = new HashMap<>();
+
+        ContainerableResultHandler<RoleAnalysisDetectionPatternType> handler = (pattern, lResult) -> {
+            loadDetectedPattern(repositoryService, pattern, mappedClusters, options, detectedPatterns, result);
+            return true;
+        };
         try {
-            modelService.searchObjectsIterative(RoleAnalysisClusterType.class, null, resultHandler, options, task, result);
-        } catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException |
-                SecurityViolationException | ExpressionEvaluationException e) {
-            throw new SystemException("Failed to search and get detected patterns from RoleAnalysisClusterType", e);
+            repositoryService.searchContainersIterative(RoleAnalysisDetectionPatternType.class, query, handler,
+                    null, result);
+        } catch (Exception ex) {
+            throw new SystemException("Couldn't search role suggestions", ex);
         }
 
-        allDetectedPatterns.sort(Comparator.comparing(DetectedPattern::getMetric).reversed());
-
-        return allDetectedPatterns;
+        return detectedPatterns;
     }
+
+    public List<DetectedPattern> getClusterRoleSuggestions(
+            @NotNull String clusterOid,
+            @Nullable Integer limit,
+            @Nullable Boolean sortDescending,
+            @NotNull OperationResult result) {
+
+        S_QueryExit sQueryExit = PrismContext.get().queryFor(RoleAnalysisDetectionPatternType.class)
+                .ownedBy(RoleAnalysisClusterType.class)
+                .id(clusterOid);
+
+        if (limit != null) {
+            sQueryExit = sQueryExit.maxSize(limit);
+        }
+
+        if (sortDescending != null && sortDescending.equals(Boolean.TRUE)) {
+            sQueryExit = sQueryExit.desc(RoleAnalysisDetectionPatternType.F_REDUCTION_COUNT);
+        } else if (sortDescending != null && sortDescending.equals(Boolean.FALSE)) {
+            sQueryExit = sQueryExit.asc(RoleAnalysisDetectionPatternType.F_REDUCTION_COUNT);
+        }
+
+        ObjectQuery query = sQueryExit.build();
+
+        List<DetectedPattern> detectedPatterns = new ArrayList<>();
+
+        GetOperationOptionsBuilder getOperationOptionsBuilder = schemaService.getOperationOptionsBuilder();
+        getOperationOptionsBuilder = getOperationOptionsBuilder.resolveNames();
+        Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder.build();
+
+        Map<String, RoleAnalysisClusterType> mappedClusters = new HashMap<>();
+
+        ContainerableResultHandler<RoleAnalysisDetectionPatternType> handler = (pattern, lResult) -> {
+            loadDetectedPattern(repositoryService, pattern, mappedClusters, options, detectedPatterns, result);
+            return true;
+        };
+        try {
+            repositoryService.searchContainersIterative(RoleAnalysisDetectionPatternType.class, query, handler,
+                    null, result);
+        } catch (Exception ex) {
+            throw new SystemException("Couldn't search session role suggestions", ex);
+        }
+
+        return detectedPatterns;
+    }
+
+    public List<DetectedPattern> getAllRoleSuggestions(
+            @Nullable Integer limit,
+            @Nullable Boolean sortDescending,
+            @NotNull OperationResult result) {
+        List<DetectedPattern> detectedPatterns = new ArrayList<>();
+
+        S_QueryExit sQueryExit = PrismContext.get().queryFor(RoleAnalysisDetectionPatternType.class);
+
+        if (limit != null) {
+            sQueryExit = sQueryExit.maxSize(limit);
+        }
+
+        if (sortDescending != null && sortDescending.equals(Boolean.TRUE)) {
+            sQueryExit = sQueryExit.desc(RoleAnalysisDetectionPatternType.F_REDUCTION_COUNT);
+        } else if (sortDescending != null && sortDescending.equals(Boolean.FALSE)) {
+            sQueryExit = sQueryExit.asc(RoleAnalysisDetectionPatternType.F_REDUCTION_COUNT);
+        }
+
+        ObjectQuery query = sQueryExit.build();
+
+        GetOperationOptionsBuilder getOperationOptionsBuilder = schemaService.getOperationOptionsBuilder();
+        getOperationOptionsBuilder = getOperationOptionsBuilder.resolveNames();
+        Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder.build();
+
+        Map<String, RoleAnalysisClusterType> mappedClusters = new HashMap<>();
+
+        ContainerableResultHandler<RoleAnalysisDetectionPatternType> handler = (pattern, lResult) -> {
+            loadDetectedPattern(repositoryService, pattern, mappedClusters, options, detectedPatterns, result);
+            return true;
+        };
+        try {
+            repositoryService.searchContainersIterative(RoleAnalysisDetectionPatternType.class, query, handler,
+                    null, result);
+        } catch (Exception ex) {
+            throw new SystemException("Couldn't search cluster role suggestions", ex);
+        }
+
+        return detectedPatterns;
+    }
+
+    public List<DetectedPattern> getSessionOutlierPartitionStructure(
+            @NotNull String sessionOid,
+            @Nullable Integer limit,
+            @Nullable Boolean sortDescending,
+            @NotNull OperationResult result) {
+
+        S_QueryExit sQueryExit = PrismContext.get().queryFor(RoleAnalysisOutlierPartitionType.class)
+                .item(RoleAnalysisOutlierPartitionType.F_CLUSTER_REF, PrismConstants.T_OBJECT_REFERENCE,
+                        RoleAnalysisClusterType.F_ROLE_ANALYSIS_SESSION_REF).ref(sessionOid);
+
+        if (sortDescending != null && sortDescending.equals(Boolean.TRUE)) {
+            sQueryExit = sQueryExit.desc(RoleAnalysisPartitionAnalysisType.F_OVERALL_CONFIDENCE);
+        } else if (sortDescending != null && sortDescending.equals(Boolean.FALSE)) {
+            sQueryExit = sQueryExit.asc(RoleAnalysisPartitionAnalysisType.F_OVERALL_CONFIDENCE);
+        }
+
+        if (limit != null) {
+            sQueryExit = sQueryExit.maxSize(limit);
+        }
+
+        ObjectQuery query = sQueryExit.build();
+
+        List<DetectedPattern> detectedPatterns = new ArrayList<>();
+
+        GetOperationOptionsBuilder getOperationOptionsBuilder = schemaService.getOperationOptionsBuilder();
+        getOperationOptionsBuilder = getOperationOptionsBuilder.resolveNames();
+        Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder.build();
+
+        Map<String, RoleAnalysisClusterType> mappedClusters = new HashMap<>();
+
+        ContainerableResultHandler<RoleAnalysisDetectionPatternType> handler = (pattern, lResult) -> {
+            loadDetectedPattern(repositoryService, pattern, mappedClusters, options, detectedPatterns, result);
+            return true;
+        };
+        try {
+            repositoryService.searchContainersIterative(RoleAnalysisDetectionPatternType.class, query, handler,
+                    null, result);
+        } catch (Exception ex) {
+            throw new SystemException("Couldn't search role suggestions", ex);
+        }
+
+        return detectedPatterns;
+    }
+
+    public Map<RoleAnalysisOutlierPartitionType, RoleAnalysisOutlierType> getOutlierPartitionsMap(
+            @Nullable Integer limit,
+            @Nullable Boolean sortDescending,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        S_QueryExit sQueryExit = PrismContext.get().queryFor(RoleAnalysisOutlierPartitionType.class);
+
+        if (limit != null) {
+            sQueryExit = sQueryExit.maxSize(limit);
+        }
+
+        if (sortDescending != null && sortDescending.equals(Boolean.TRUE)) {
+            sQueryExit = sQueryExit.desc(RoleAnalysisOutlierPartitionType.F_PARTITION_ANALYSIS,
+                    RoleAnalysisPartitionAnalysisType.F_OVERALL_CONFIDENCE);
+        } else if (sortDescending != null && sortDescending.equals(Boolean.FALSE)) {
+            sQueryExit = sQueryExit.asc(RoleAnalysisOutlierPartitionType.F_PARTITION_ANALYSIS,
+                    RoleAnalysisPartitionAnalysisType.F_OVERALL_CONFIDENCE);
+        }
+
+        ObjectQuery query = sQueryExit.build();
+
+        Map<RoleAnalysisOutlierPartitionType, RoleAnalysisOutlierType> partitionOutlierMap = new LinkedHashMap<>();
+        ContainerableResultHandler<RoleAnalysisOutlierPartitionType> handler = (partition, lResult) -> {
+            prepareOutlierPartitionMap(this, task, result, partition, partitionOutlierMap, LOGGER);
+            return true;
+        };
+        try {
+            repositoryService.searchContainersIterative(RoleAnalysisOutlierPartitionType.class, query, handler,
+                    null, result);
+        } catch (Exception ex) {
+            throw new SystemException("Couldn't search cluster role suggestions", ex);
+        }
+
+        return partitionOutlierMap;
+    }
+
+    public Map<RoleAnalysisOutlierPartitionType, RoleAnalysisOutlierType> getSessionOutlierPartitionsMap(
+            @NotNull String sessionOid,
+            @Nullable Integer limit,
+            @Nullable Boolean sortDescending,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        S_QueryExit sQueryExit = PrismContext.get().queryFor(RoleAnalysisOutlierPartitionType.class).item(
+                RoleAnalysisOutlierPartitionType.F_CLUSTER_REF, PrismConstants.T_OBJECT_REFERENCE,
+                RoleAnalysisClusterType.F_ROLE_ANALYSIS_SESSION_REF).ref(sessionOid);
+
+        if (limit != null) {
+            sQueryExit = sQueryExit.maxSize(limit);
+        }
+
+        if (sortDescending != null && sortDescending.equals(Boolean.TRUE)) {
+            sQueryExit = sQueryExit.desc(RoleAnalysisOutlierPartitionType.F_PARTITION_ANALYSIS,
+                    RoleAnalysisPartitionAnalysisType.F_OVERALL_CONFIDENCE);
+        } else if (sortDescending != null && sortDescending.equals(Boolean.FALSE)) {
+            sQueryExit = sQueryExit.asc(RoleAnalysisOutlierPartitionType.F_PARTITION_ANALYSIS,
+                    RoleAnalysisPartitionAnalysisType.F_OVERALL_CONFIDENCE);
+        }
+
+        ObjectQuery query = sQueryExit.build();
+
+        Map<RoleAnalysisOutlierPartitionType, RoleAnalysisOutlierType> partitionOutlierMap = new LinkedHashMap<>();
+        ContainerableResultHandler<RoleAnalysisOutlierPartitionType> handler = (partition, lResult) -> {
+            prepareOutlierPartitionMap(this, task, result, partition, partitionOutlierMap, LOGGER);
+            return true;
+        };
+        try {
+            repositoryService.searchContainersIterative(RoleAnalysisOutlierPartitionType.class, query, handler,
+                    null, result);
+        } catch (Exception ex) {
+            throw new SystemException("Couldn't search cluster role suggestions", ex);
+        }
+
+        return partitionOutlierMap;
+    }
+
+    public Map<RoleAnalysisOutlierPartitionType, RoleAnalysisOutlierType> getClusterOutlierPartitionsMap(
+            @NotNull String clusterOid,
+            @Nullable Integer limit,
+            @Nullable Boolean sortDescending,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        S_QueryExit sQueryExit = PrismContext.get().queryFor(RoleAnalysisOutlierPartitionType.class).item(
+                RoleAnalysisOutlierPartitionType.F_CLUSTER_REF).ref(clusterOid);
+
+        if (limit != null) {
+            sQueryExit = sQueryExit.maxSize(limit);
+        }
+
+        if (sortDescending != null && sortDescending.equals(Boolean.TRUE)) {
+            sQueryExit = sQueryExit.desc(RoleAnalysisOutlierPartitionType.F_PARTITION_ANALYSIS,
+                    RoleAnalysisPartitionAnalysisType.F_OVERALL_CONFIDENCE);
+        } else if (sortDescending != null && sortDescending.equals(Boolean.FALSE)) {
+            sQueryExit = sQueryExit.asc(RoleAnalysisOutlierPartitionType.F_PARTITION_ANALYSIS,
+                    RoleAnalysisPartitionAnalysisType.F_OVERALL_CONFIDENCE);
+        }
+
+        ObjectQuery query = sQueryExit.build();
+
+        Map<RoleAnalysisOutlierPartitionType, RoleAnalysisOutlierType> partitionOutlierMap = new LinkedHashMap<>();
+        ContainerableResultHandler<RoleAnalysisOutlierPartitionType> handler = (partition, lResult) -> {
+            prepareOutlierPartitionMap(this, task, result, partition, partitionOutlierMap, LOGGER);
+            return true;
+        };
+        try {
+            repositoryService.searchContainersIterative(RoleAnalysisOutlierPartitionType.class, query, handler,
+                    null, result);
+        } catch (Exception ex) {
+            throw new SystemException("Couldn't search cluster role suggestions", ex);
+        }
+
+        return partitionOutlierMap;
+    }
+
 }
 

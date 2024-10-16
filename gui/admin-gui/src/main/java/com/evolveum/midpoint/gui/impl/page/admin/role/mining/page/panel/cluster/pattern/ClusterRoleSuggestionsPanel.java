@@ -7,19 +7,14 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.pattern;
 
-import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformDefaultPattern;
-
 import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterAction;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -40,8 +35,6 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 
-import org.jetbrains.annotations.Nullable;
-
 @PanelType(name = "clusterRoleSuggestions")
 @PanelInstance(
         identifier = "clusterRoleSuggestions",
@@ -59,7 +52,7 @@ public class ClusterRoleSuggestionsPanel extends AbstractObjectMainPanel<RoleAna
     private static final String ID_PANEL = "panelId";
 
     public ClusterRoleSuggestionsPanel(String id, ObjectDetailsModels<RoleAnalysisClusterType> model,
-                                       ContainerPanelConfigurationType config) {
+            ContainerPanelConfigurationType config) {
         super(id, model, config);
     }
 
@@ -75,15 +68,17 @@ public class ClusterRoleSuggestionsPanel extends AbstractObjectMainPanel<RoleAna
         container.add(components);
     }
 
-    @NotNull
-    private RoleAnalysisDetectedPatternTileTable loadTable() {
+    private @NotNull RoleAnalysisDetectedPatternTileTable loadTable() {
+        RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectType();
+        LoadableDetachableModel<List<DetectedPattern>> loadableDetachableModel = new LoadableDetachableModel<>() {
+            @Override
+            protected @NotNull List<DetectedPattern> load() {
+                return loadClusterRoleSuggestions(cluster);
+            }
+        };
+
         RoleAnalysisDetectedPatternTileTable components = new RoleAnalysisDetectedPatternTileTable(ID_PANEL, getPageBase(),
-                new LoadableDetachableModel<>() {
-                    @Override
-                    protected List<DetectedPattern> load() {
-                        return transformDefaultPattern(getObjectDetailsModels().getObjectType(), loadPatternSession());
-                    }
-                }) {
+                loadableDetachableModel) {
 
             @Override
             protected void onRefresh(AjaxRequestTarget target) {
@@ -94,6 +89,7 @@ public class ClusterRoleSuggestionsPanel extends AbstractObjectMainPanel<RoleAna
         return components;
     }
 
+    @Override
     public PageBase getPageBase() {
         return ((PageBase) getPage());
     }
@@ -113,17 +109,10 @@ public class ClusterRoleSuggestionsPanel extends AbstractObjectMainPanel<RoleAna
         getPageBase().navigateToNext(detailsPageClass, parameters);
     }
 
-    private @Nullable RoleAnalysisSessionType loadPatternSession() {
+    private List<DetectedPattern> loadClusterRoleSuggestions(@NotNull RoleAnalysisClusterType cluster) {
         RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-        RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectType();
-        Task task = getPageBase().createSimpleTask("Load pattern session");
-        OperationResult result = task.getResult();
-        PrismObject<RoleAnalysisSessionType> sessionTypeObject = roleAnalysisService.getSessionTypeObject(
-                cluster.getRoleAnalysisSessionRef().getOid(), task, result);
-        if (sessionTypeObject != null) {
-            return sessionTypeObject.asObjectable();
-        }
-        return null;
+        Task task = getPageBase().createSimpleTask("loadClusterRoleSuggestions");
+        return roleAnalysisService.getClusterRoleSuggestions(cluster.getOid(), null, true, task.getResult());
     }
 
     private void updatePatternIfRequired() {
