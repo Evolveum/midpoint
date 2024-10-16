@@ -109,8 +109,8 @@ Tree node search is now same for all nodes.
 * Shadow table Partitioning in Native PostgreSQL Repository
 ** Midpoint automatically partition shadow tables based on resource and object class of shadow. Partitioning is enabled by default on new deployments and needs to be excplictly enabled on existing deployments. See xref:/midpoint/reference/repository/native-postgresql/shadow-partitioning/[Repository -> Native -> Shadow Partitioning] for details.
 
-* xref:/midpoint/reference/master/repository/native-postgresql/splitted-fullobject/[Native Repository uses splitted full-object model] for data storage: `operationExecution`, `assignment`, `linkRef` and `roleMembershipRef` in their separate tables outside of object `fullObject` columns
-** Added support and options to optimize queries and not retrieve these items in xref:/midpoint/reference/master/expressions/expressions/script/functions/get-and-search/[code and groovy scripts].
+* xref:/midpoint/reference/repository/native-postgresql/splitted-fullobject/[Native Repository uses splitted full-object model] for data storage: `operationExecution`, `assignment`, `linkRef` and `roleMembershipRef` in their separate tables outside of object `fullObject` columns
+** Added support and options to optimize queries and not retrieve these items in xref:/midpoint/reference/expressions/expressions/script/functions/get-and-search/[code and groovy scripts].
 
 * Support for H2 database was removed. Clean midPoint will fail to start with embedded H2 database.
 Preferred option to start simple midPoint instance is via docker compose. For more information see xref:/midpoint/install/containers/docker[here].
