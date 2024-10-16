@@ -1643,11 +1643,17 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         assertRepoShadowCacheActivation(repoShadow, ActivationStatusType.DISABLED);
         assertRepoShadowCredentials(repoShadow, ACCOUNT_WILL_PASSWORD);
 
+        assertPolyStringIndexOnly(result);
+
         checkUniqueness(shadow);
 
         assertNoCachingMetadata(shadow.getBean());
 
         assertSteadyResource();
+    }
+
+    void assertPolyStringIndexOnly(OperationResult result) throws SchemaException, ObjectNotFoundException {
+        // for index-only caching tests
     }
 
     @NotNull ResourceObjectDefinition getAccountDefaultDefinition() throws SchemaException, ConfigurationException {

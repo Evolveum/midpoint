@@ -559,7 +559,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result) {
 
-        List<ObjectReferenceType> member = cluster.getMember();
 
         ResultHandler<RoleAnalysisOutlierType> resultHandler = (object, parentResult) -> {
             RoleAnalysisOutlierType outlierObject = object.asObjectable();
@@ -621,13 +620,13 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             return true;
         };
 
-        ObjectQuery query = PrismContext.get().queryFor(RoleAnalysisOutlierType.class)
-                .item(RoleAnalysisOutlierType.F_OBJECT_REF).ref(member.stream()
-                        .map(AbstractReferencable::getOid).distinct().toArray(String[]::new))
-                .build();
+
+        ObjectQuery objectQuery = PrismContext.get().queryFor(RoleAnalysisOutlierType.class)
+                .item(RoleAnalysisOutlierType.F_PARTITION, RoleAnalysisOutlierPartitionType.F_CLUSTER_REF)
+                .ref(cluster.getOid()).build();
 
         try {
-            modelService.searchObjectsIterative(RoleAnalysisOutlierType.class, query, resultHandler, null,
+            modelService.searchObjectsIterative(RoleAnalysisOutlierType.class, objectQuery, resultHandler, null,
                     task, result);
         } catch (Exception ex) {
             LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't deleteRoleAnalysisSessionClusters", ex);
@@ -2981,6 +2980,13 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull String sessionOid,
             @Nullable OutlierClusterCategoryType category, @NotNull Task task,
             @NotNull OperationResult result) {
+
+        ObjectQuery objectQuery = PrismContext.get().queryFor(RoleAnalysisOutlierType.class)
+                .item(RoleAnalysisOutlierType.F_PARTITION, RoleAnalysisOutlierPartitionType.F_CLUSTER_REF,
+                        PrismConstants.T_OBJECT_REFERENCE,
+                        RoleAnalysisClusterType.F_ROLE_ANALYSIS_SESSION_REF)
+                .ref(sessionOid).build();
+
         Map<RoleAnalysisOutlierType, Double> outlierMap = new HashMap<>();
         ResultHandler<RoleAnalysisOutlierType> resultHandler = (outlier, lResult) -> {
 
@@ -3009,7 +3015,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         };
 
         try {
-            modelService.searchObjectsIterative(RoleAnalysisOutlierType.class, null, resultHandler,
+            modelService.searchObjectsIterative(RoleAnalysisOutlierType.class, objectQuery, resultHandler,
                     null, task, result);
         } catch (Exception ex) {
             throw new SystemException("Couldn't search outliers", ex);
@@ -3024,6 +3030,25 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         }
 
         return topOutliers;
+    }
+
+    @Override
+    public SearchResultList<PrismObject<RoleAnalysisOutlierType>> getTopOutliers(
+            int limit,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        ObjectQuery objectQuery = PrismContext.get().queryFor(RoleAnalysisOutlierType.class)
+                .desc(RoleAnalysisOutlierType.F_OVERALL_CONFIDENCE)
+                .maxSize(limit)
+                .build();
+
+        try {
+            return modelService.searchObjects(RoleAnalysisOutlierType.class, objectQuery,
+                    null, task, result);
+        } catch (Exception ex) {
+            throw new SystemException("Couldn't search outliers", ex);
+        }
     }
 
     @Override
@@ -3155,6 +3180,10 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         List<RoleAnalysisOutlierType> searchResultList = new ArrayList<>();
         String clusterOid = cluster.getOid();
 
+        ObjectQuery objectQuery = PrismContext.get().queryFor(RoleAnalysisOutlierType.class)
+                .item(RoleAnalysisOutlierType.F_PARTITION, RoleAnalysisOutlierPartitionType.F_CLUSTER_REF)
+                .ref(clusterOid).build();
+
         ResultHandler<RoleAnalysisOutlierType> resultHandler = (outlier, lResult) -> {
 
             RoleAnalysisOutlierType outlierObject = outlier.asObjectable();
@@ -3179,23 +3208,9 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         };
 
         try {
+            modelService.searchObjectsIterative(RoleAnalysisOutlierType.class, objectQuery, resultHandler,
+                    null, task, result);
 
-            if (clusterOid == null) {
-                String outlierOid = cluster.getDescription();
-                ObjectQuery query = PrismContext.get().queryFor(RoleAnalysisOutlierType.class)
-                        .item(RoleAnalysisOutlierType.F_OBJECT_REF)
-                        .ref(outlierOid).build();
-
-                SearchResultList<PrismObject<RoleAnalysisOutlierType>> prismObjects = modelService.searchObjects(
-                        RoleAnalysisOutlierType.class, query, null, task, result);
-
-                if (prismObjects != null && prismObjects.size() == 1) {
-                    searchResultList.add(prismObjects.get(0).asObjectable());
-                }
-            } else {
-                modelService.searchObjectsIterative(RoleAnalysisOutlierType.class, null, resultHandler,
-                        null, task, result);
-            }
         } catch (Exception ex) {
             throw new SystemException("Couldn't search outliers", ex);
         }
@@ -3822,7 +3837,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         ResultHandler<RoleAnalysisClusterType> resultHandler = (cluster, lResult) -> {
             RoleAnalysisClusterType clusterObject = cluster.asObjectable();
             List<DetectedPattern> detectedPatterns = transformDefaultPattern(clusterObject);
-            if(!detectedPatterns.isEmpty()) {
+            if (!detectedPatterns.isEmpty()) {
                 allDetectedPatterns.addAll(detectedPatterns);
             }
             return true;
@@ -3833,7 +3848,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
         Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder.build();
         try {
-            modelService.searchObjectsIterative(RoleAnalysisClusterType.class,null,resultHandler,options,task,result);
+            modelService.searchObjectsIterative(RoleAnalysisClusterType.class, null, resultHandler, options, task, result);
         } catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException |
                 SecurityViolationException | ExpressionEvaluationException e) {
             throw new SystemException("Failed to search and get detected patterns from RoleAnalysisClusterType", e);

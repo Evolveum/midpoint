@@ -255,39 +255,39 @@ public class PageOutliers extends PageAdmin {
                 };
                 defaultColumns.add(column);
 
-                column = new AbstractExportableColumn<>(
-                        createStringResource("RoleAnalysisOutlierTable.outlier.mark")) {
-
-                    @Override
-                    public IModel<?> getDataModel(IModel<SelectableBean<RoleAnalysisOutlierType>> iModel) {
-                        RoleAnalysisOutlierType outlier = iModel.getObject().getValue();
-                        return Model.of(outlier.getDescription());
-                    }
-
-                    @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisOutlierType>>>
-                            cellItem, String componentId, IModel<SelectableBean<RoleAnalysisOutlierType>> model) {
-                        cellItem.add(new SwitchBoxPanel(componentId, new Model<>(false)));
-                    }
-
-                    @Override
-                    public boolean isSortable() {
-                        return false;
-                    }
-
-                    @Override
-                    public Component getHeader(String componentId) {
-                        return new LabelWithHelpPanel(componentId,
-                                createStringResource("RoleAnalysisOutlierTable.outlier.mark")) {
-                            @Override
-                            protected IModel<String> getHelpModel() {
-                                return createStringResource("RoleAnalysisOutlierTable.outlier.mark.help");
-                            }
-                        };
-                    }
-
-                };
-                defaultColumns.add(column);
+//                column = new AbstractExportableColumn<>(
+//                        createStringResource("RoleAnalysisOutlierTable.outlier.mark")) {
+//
+//                    @Override
+//                    public IModel<?> getDataModel(IModel<SelectableBean<RoleAnalysisOutlierType>> iModel) {
+//                        RoleAnalysisOutlierType outlier = iModel.getObject().getValue();
+//                        return Model.of(outlier.getDescription());
+//                    }
+//
+//                    @Override
+//                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisOutlierType>>>
+//                            cellItem, String componentId, IModel<SelectableBean<RoleAnalysisOutlierType>> model) {
+//                        cellItem.add(new SwitchBoxPanel(componentId, new Model<>(false)));
+//                    }
+//
+//                    @Override
+//                    public boolean isSortable() {
+//                        return false;
+//                    }
+//
+//                    @Override
+//                    public Component getHeader(String componentId) {
+//                        return new LabelWithHelpPanel(componentId,
+//                                createStringResource("RoleAnalysisOutlierTable.outlier.mark")) {
+//                            @Override
+//                            protected IModel<String> getHelpModel() {
+//                                return createStringResource("RoleAnalysisOutlierTable.outlier.mark.help");
+//                            }
+//                        };
+//                    }
+//
+//                };
+//                defaultColumns.add(column);
                 return defaultColumns;
             }
 

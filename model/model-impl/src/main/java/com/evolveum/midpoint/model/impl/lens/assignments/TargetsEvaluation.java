@@ -78,7 +78,7 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
         assert !ctx.assignmentPath.isEmpty();
         assert ctx.assignmentPath.last() == segment;
         assert segment.getOverallConditionState().isNotAllFalse();
-        assert segment.isAssignmentActive() || segment.direct;
+        assert segment.isAssignmentActive() || segment.direct || segment.isArchetypeHierarchy();
 
         checkIfAlreadyEvaluated();
 

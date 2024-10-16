@@ -135,6 +135,8 @@ public class AnalysisInfoWidgetDto implements Serializable {
 
         List<IdentifyWidgetItem> detailsModelOutliers = new ArrayList<>();
 
+//        Task task = pageBase.createSimpleTask("loadOutlierModels");
+//        SearchResultList<PrismObject<RoleAnalysisOutlierType>> topOutliers1 = roleAnalysisService.getTopOutliers(3, task, result);
         if (!topFiveOutliers.isEmpty()) {
             loadOutlierModel(detailsModelOutliers, topFiveOutliers, pageBase);
         }

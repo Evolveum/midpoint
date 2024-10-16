@@ -1,0 +1,13 @@
+<!--
+  ~ Copyright (c) 2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role oid="748b29c6-199c-11e9-9acc-3f8cc307573b"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Role inherited archetypes test</name>
+    <assignment>
+        <targetRef oid="0d69d2c9-d1f4-4cfc-acb3-af8a71db89d8" type="ArchetypeType"/>
+    </assignment>
+</role>

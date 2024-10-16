@@ -17,6 +17,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
 import jakarta.persistence.Query;
@@ -660,8 +662,13 @@ public class ObjectRetriever {
                             }
                             attributeContainer.add(attribute);
                         }
-                        //noinspection unchecked
-                        attribute.addRealValue(rValue.getValue());      // no polystring nor reference is expected here
+                        if (rValue instanceof ROExtPolyString poly) {
+                            //noinspection unchecked
+                            attribute.addRealValue(new PolyString(poly.getValue(), poly.getNorm()));
+                        } else {
+                            //noinspection unchecked
+                            attribute.addRealValue(rValue.getValue()); // references are not expected here
+                        }
                         attribute.setIncomplete(false);
                     }
                 }

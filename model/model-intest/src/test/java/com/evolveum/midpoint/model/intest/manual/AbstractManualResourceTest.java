@@ -34,6 +34,7 @@ import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -816,10 +817,13 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     }
 
     Collection<? extends QName> getCachedAttributes() throws SchemaException, ConfigurationException {
+        return getAccountDefinition().getAllSimpleAttributesNames();
+    }
+
+    @NotNull ResourceObjectDefinition getAccountDefinition() throws SchemaException, ConfigurationException {
         return Resource.of(resource)
                 .getCompleteSchemaRequired()
-                .findDefinitionForObjectClassRequired(RI_ACCOUNT_OBJECT_CLASS)
-                .getAllSimpleAttributesNames();
+                .findDefinitionForObjectClassRequired(RI_ACCOUNT_OBJECT_CLASS);
     }
 
     @Test

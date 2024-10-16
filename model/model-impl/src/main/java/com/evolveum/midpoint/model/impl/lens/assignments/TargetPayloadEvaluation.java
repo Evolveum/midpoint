@@ -36,7 +36,7 @@ class TargetPayloadEvaluation<AH extends AssignmentHolderType> extends AbstractE
     }
 
     public void evaluate() {
-        assert segment.isAssignmentActive() || segment.direct;
+        assert segment.isAssignmentActive() || segment.direct || segment.isArchetypeHierarchy();
         assert targetActivity.targetActive;
         assert targetOverallConditionState.isNotAllFalse();
         checkIfAlreadyEvaluated();

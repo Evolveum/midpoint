@@ -11,9 +11,12 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +28,10 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 
 import javax.xml.namespace.QName;
+
+import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_QNAME;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestDummyCachingIndexOnly extends TestDummyCaching {
 
@@ -48,7 +55,7 @@ public class TestDummyCachingIndexOnly extends TestDummyCaching {
     protected @NotNull Collection<? extends QName> getCachedAccountAttributes() throws SchemaException, ConfigurationException {
         var all = new ArrayList<>(getCachedAccountAttributesWithIndexOnly());
         if (isWeaponIndexOnly()) {
-            all.remove(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_QNAME);
+            all.remove(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_QNAME);
         }
         return all;
     }
@@ -70,6 +77,21 @@ public class TestDummyCachingIndexOnly extends TestDummyCaching {
             sqlRepositoryService.sqlConfiguration().setEnableNoFetchExtensionValuesDeletion(true);
         } else {
             // It's Sqale repo and it has no explicit switch for index only.
+        }
+    }
+
+    @Override
+    void assertPolyStringIndexOnly(OperationResult result) throws SchemaException, ObjectNotFoundException {
+        if (!isNativeRepository()) {
+            var repoShadow = getShadowRepoRetrieveAllAttributes(ACCOUNT_WILL_OID, result);
+            var values = repoShadow.getPrismObject()
+                    .findProperty(ShadowType.F_ATTRIBUTES.append(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_QNAME))
+                    .getRealValues(PolyString.class);
+            displayValue("weapon values", values);
+            var origValues = values.stream().map(v -> v.getOrig()).toList();
+            var normValues = values.stream().map(v -> v.getNorm()).toList();
+            assertThat(origValues).as("orig values").containsExactlyInAnyOrder("Sword", "LOVE");
+            assertThat(normValues).as("norm values").containsExactlyInAnyOrder("sword", "love");
         }
     }
 }

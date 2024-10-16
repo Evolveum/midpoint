@@ -1001,6 +1001,11 @@ public interface RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result);
 
+    SearchResultList<PrismObject<RoleAnalysisOutlierType>> getTopOutliers(
+            int limit,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
     //TODO: replace this method (experiment)
     ListMultimap<Double, String> findJaccardCloseObject(
             @NotNull String userOid,

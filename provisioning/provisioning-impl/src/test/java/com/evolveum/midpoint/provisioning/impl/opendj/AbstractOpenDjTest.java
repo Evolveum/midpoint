@@ -19,6 +19,7 @@ import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTe
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
@@ -212,7 +213,7 @@ public abstract class AbstractOpenDjTest extends AbstractProvisioningIntegration
         logger.info("------------------------------------------------------------------------------");
     }
 
-    @NotNull ResourceObjectDefinition getAccountDefaultDefinition() throws SchemaException, ConfigurationException {
+    private @NotNull ResourceObjectDefinition getAccountDefaultDefinition() throws SchemaException, ConfigurationException {
         return MiscUtil.stateNonNull(
                 Resource.of(resourceBean)
                         .getCompleteSchemaRequired()
@@ -220,8 +221,10 @@ public abstract class AbstractOpenDjTest extends AbstractProvisioningIntegration
                 "No account/default definition in %s", resourceBean);
     }
 
-    @NotNull Collection<? extends QName> getCachedAccountAttributes() throws SchemaException, ConfigurationException {
-        return getAccountDefaultDefinition().getAllIdentifiersNames();
+    private @NotNull Collection<? extends QName> getCachedAccountAttributes() throws SchemaException, ConfigurationException {
+        return InternalsConfig.isShadowCachingOnByDefault() ?
+                getAccountDefaultDefinition().getAttributeNames() :
+                getAccountDefaultDefinition().getAllIdentifiersNames();
     }
 
     /** TODO reconcile with {@link #assertRepoShadow(String)} */

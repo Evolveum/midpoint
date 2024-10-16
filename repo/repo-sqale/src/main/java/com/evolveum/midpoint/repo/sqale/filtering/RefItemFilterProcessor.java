@@ -14,6 +14,11 @@ import java.util.UUID;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.query.TypeFilter;
+
+import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignment;
+import com.evolveum.midpoint.repo.sqlbase.mapping.ItemRelationResolver;
+
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Ops;
 import com.querydsl.core.types.Predicate;
@@ -133,6 +138,22 @@ public class RefItemFilterProcessor extends ItemValueFilterProcessor<ValueFilter
 
     private Predicate targetFilterPredicate(@Nullable QName targetType, ObjectFilter targetFilter)
             throws RepositoryException {
+        if (targetFilter instanceof TypeFilter tf) {
+            // If target filter is simple type filter we should be good to go without throwing in AssignmentHolderType exist query.
+            // This should be doable also when there are and/or/not filter combinations with type filter (probably later).
+            QName type = tf.getType();
+            type = type != null ? type : ObjectType.COMPLEX_TYPE;
+
+            Class<? extends QObject> filterQueryType =
+                    MObjectType.fromTypeQName(type).getQueryType();
+
+            SqlQueryContext<?, ? extends QObject, ?> subquery = (SqlQueryContext) context.subquery(filterQueryType);
+            subquery.sqlQuery().where(subquery.path().oid.eq(oidPath));
+            subquery.processFilter(targetFilter);
+
+            return subquery.sqlQuery().exists();
+        }
+
         targetType = targetType != null ? targetType : ObjectType.COMPLEX_TYPE;
         var targetClass = context.prismContext().getSchemaRegistry().getCompileTimeClassForObjectType(targetType);
         // TODO: This works fine, but LEFT JOIN should be considered for cases when the query is ordered by the target item.

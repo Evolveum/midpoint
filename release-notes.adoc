@@ -176,6 +176,7 @@ The sample is located by the link xref:/midpoint/reference/security/authenticati
 * Fixed the issue of the assignment details panel in the shopping cart. See bug:MID-9858[].
 * Fixed the issue with saving a filter on the Tasks list page. See bug:MID-9751[].
 * Saved filter uses now midPoint query language form (not xml). See bug:MID-9568[].
+* Fixed archetype reference item of parent archetype for object with `archived` lifecycle state. See bug:MID-10101[].
 
 === Releases Of Other Components
 

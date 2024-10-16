@@ -10,7 +10,9 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.Role
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -350,6 +352,12 @@ public class RoleAnalysisAspectsWebUtils {
         ModelService modelService = pageBase.getModelService();
         OperationResult result = task.getResult();
 
+
+        ObjectQuery objectQuery = PrismContext.get().queryFor(RoleAnalysisOutlierType.class)
+                .item(RoleAnalysisOutlierType.F_PARTITION, RoleAnalysisOutlierPartitionType.F_CLUSTER_REF)
+                .ref(clusterOid).build();
+
+
         List<RoleAnalysisOutlierType> searchResultList = new ArrayList<>();
         ResultHandler<RoleAnalysisOutlierType> resultHandler = (outlier, lResult) -> {
 
@@ -371,7 +379,7 @@ public class RoleAnalysisAspectsWebUtils {
         };
 
         try {
-            modelService.searchObjectsIterative(RoleAnalysisOutlierType.class, null, resultHandler,
+            modelService.searchObjectsIterative(RoleAnalysisOutlierType.class, objectQuery, resultHandler,
                     null, task, result);
         } catch (Exception ex) {
             throw new SystemException("Couldn't search outliers", ex);
