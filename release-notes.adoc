@@ -228,6 +228,7 @@ See, e.g., bug:MID-9853[].
 * Fixed an error when reviewer without read rights for `AccessCertificationCampaignType` opened "My work items" for certifications. See bug:MID-9331[].
 * Fixed statistics about the shadows deleted by the reconciliation. See bug:MID-9217[].
 * No longer adding a dangling `personaRef` items during simulation. See bug:MID-10080[].
+* Fixed localization for visualization of modify assignment delta. See bug:MID-10091[].
 
 === Releases Of Other Components
 
