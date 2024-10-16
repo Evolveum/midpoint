@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.model.impl.visualizer;
 
-import static com.evolveum.midpoint.prism.delta.ChangeType.ADD;
-
 import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,13 +75,18 @@ public class AssignmentDescriptionHandler implements VisualizationDescriptionHan
                         new SingleLocalizableMessage("ShadowKindType." + kind),
                         intent,
                         resourceName,
-                        createAssignedMessage(change == ADD)
+                        createAssignedMessage(change)
                 })
         );
     }
 
-    private LocalizableMessage createAssignedMessage(boolean assigned) {
-        String key = assigned ? "AssignmentDescriptionHandler.assigned" : "AssignmentDescriptionHandler.unassigned";
+    private LocalizableMessage createAssignedMessage(ChangeType change) {
+        String key = null;
+        switch (change){
+            case ADD -> key = "AssignmentDescriptionHandler.assigned";
+            case MODIFY -> key = "AssignmentDescriptionHandler.modified";
+            case DELETE -> key = "AssignmentDescriptionHandler.unassigned";
+        }
         return new SingleLocalizableMessage(key);
     }
 
@@ -99,7 +102,7 @@ public class AssignmentDescriptionHandler implements VisualizationDescriptionHan
                 new SingleLocalizableMessage("AssignmentDescriptionHandler.assignment", new Object[] {
                         new SingleLocalizableMessage("ObjectTypes." + ot.name()),
                         targetName,
-                        createAssignedMessage(change == ADD)
+                        createAssignedMessage(change)
                 }, (String) null));
     }
 }
