@@ -1,0 +1,63 @@
+= Getting and Searching Objects
+
+The xref:/midpoint/reference/expressions/expressions/script/functions/midpoint/[midPoint Script Library] provides capabilities to get and search objects from scripts.
+
+
+The provided get and search related functions are:
+
+
+* Query Building Functions - allows to write xref:midpoint/reference/concepts/query/midpoint-query-language/query-language-in-groovy/[queries using midPoint Query Language].
+
+* Get Object Functions - Allow to get object using `type` and `oid` of the object.
+* Search Object Functions - Allows to search objects using `type` and `query`
+
+These capabilities are useful, and sometimes necessary, but their overuse may affect performance.  
+
+
+== Performance Optimizations
+
+Since midPoint 4.9 Native Repository splitted most full objects into components, which allows only to exclude paths, which are not needed for script logic. 
+For backwards compatibility these items are returned by default, but if it is necessary it is possible to exclude them from results. 
+
+The getObject, searchObjects, and searchObjectsIterative can be called with additional argument `options`, which provides more specific options, how to fetch data.
+
+IMPORTANT: Partially readed objects (objects with exclusion) should not be used as base for new objects (added to repository), they are mostly intended for read-only use cases. 
+
+NOTE: Returned objects may contain excluded data, if the underlying object was not yet stored splitted (in case of Native Repository) or these options are used for Generic Repository. 
+
+=== Fetching only base properties
+
+.Excluding all separatelly stored subitems
+[source, groovy]
+----
+def query = midpoint.queryFor(UserType.class, "roleMembershipRef/@/name = 'Administrator'"); // <1>
+def options = midpoint.onlyBaseObject(); // <2>
+def administrators = midpoint.searchObjects(query , options); // <3>
+----
+<1> Query for users with Administrator role
+<2> Options, which exludes all separatelly stored items
+<3> Search of users, which fetches only basic data, based on `options`
+
+
+=== Excluding Specific Items
+
+The APIs allows, you to exclude specific items not needed for script using `midpoint.getOperationOptionsBuilder()`.
+This is script friendly shorthand for `SchemaService.get().getOperationOptionsBuilder()`.
+
+.Excluding roleMembershipRef and operationExecution items
+[source, groovy]
+----
+def query = midpoint.queryFor(UserType.class, "roleMembershipRef/@/name = 'Administrator'"); // <1>
+def options = midpoint.getOperationOptionsBuilder() // <2>
+                .item(UserType.F_ROLE_MEMBERSHIP_REF).dontRetrieve() // <3>
+                .item(UserType.F_OPERATION_EXECUTION).dontRetrieve() // <4>
+                .build(); // <5>
+
+def administrators = midpoint.searchObjects(query , options); // <6>
+----
+<1> Query for users with Administrator role
+<2> We create builder using `GetOperationOptionsBuilder`
+<3> Instruction to not retrieve `roleMembershipRef`
+<4> Instruction to not retrieve `operationExecution`
+<5> We build options
+<6> Search using provided `options`

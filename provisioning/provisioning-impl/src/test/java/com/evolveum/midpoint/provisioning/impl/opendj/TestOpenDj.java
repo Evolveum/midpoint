@@ -714,7 +714,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertRepoShadowNew(provisioningShadow.getOid())
                 .display()
                 .assertCachedOrigValues(QNAME_DN, "uid=jbond,ou=People,dc=example,dc=com")
-                // No norm value here (yet) because it's not in the fullObject
+                .assertCachedNormValues(QNAME_DN, "uid=jbond,ou=people,dc=example,dc=com")
                 .assertCachedOrigValues(QNAME_UID, "jbond")
                 .assertCachedOrigValues(QNAME_CN, "James Bond")
                 .assertCachedOrigValues(QNAME_SN, "Bond")

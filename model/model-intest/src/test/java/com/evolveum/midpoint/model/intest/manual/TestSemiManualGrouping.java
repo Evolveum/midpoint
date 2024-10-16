@@ -17,7 +17,7 @@ import java.util.Collection;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -285,9 +285,8 @@ public class TestSemiManualGrouping extends AbstractGroupingManualResourceTest {
 
     @Override
     Collection<? extends QName> getCachedAttributes() throws SchemaException, ConfigurationException {
-        return Resource.of(resource)
-                .getCompleteSchemaRequired()
-                .findDefinitionForObjectClassRequired(RI_ACCOUNT_OBJECT_CLASS)
-                .getAllIdentifiersNames();
+        return InternalsConfig.isShadowCachingOnByDefault() ?
+                getAccountDefinition().getAttributeNames() :
+                getAccountDefinition().getAllIdentifiersNames();
     }
 }
