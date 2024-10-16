@@ -66,7 +66,7 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractNameColumn<S
         };
     }
 
-    private IModel<String> createRealMarksList(SelectableBean<O> bean) {
+    protected IModel<String> createRealMarksList(SelectableBean<O> bean) {
         return new LoadableDetachableModel<>() {
 
             @Override

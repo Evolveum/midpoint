@@ -4076,5 +4076,27 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         return partitionOutlierMap;
     }
 
+    public PrismObject<UserType> getOutlierTargetUser(
+            @NotNull RoleAnalysisOutlierType outlier,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        ObjectReferenceType objectRef = outlier.getObjectRef();
+        if (objectRef == null) {
+            return null;
+        }
+        String targetOid = objectRef.getOid();
+        if (targetOid == null) {
+            return null;
+        }
+        try {
+            return modelService.getObject(UserType.class, targetOid, null, null, result);
+        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | CommunicationException |
+                ConfigurationException | ExpressionEvaluationException e) {
+            LOGGER.error("Couldn't get target user for outlier {}", outlier, e);
+            return null;
+        }
+
+    }
+
 }
 
