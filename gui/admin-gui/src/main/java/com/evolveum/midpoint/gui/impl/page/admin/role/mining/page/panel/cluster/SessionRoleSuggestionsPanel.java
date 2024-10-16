@@ -49,13 +49,13 @@ import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.tran
                 order = 30
         )
 )
-public class TopDetectedPatternPanel extends AbstractObjectMainPanel<RoleAnalysisSessionType, ObjectDetailsModels<RoleAnalysisSessionType>> {
+public class SessionRoleSuggestionsPanel extends AbstractObjectMainPanel<RoleAnalysisSessionType, ObjectDetailsModels<RoleAnalysisSessionType>> {
 
     private static final String ID_CONTAINER = "container";
     private static final String ID_PANEL = "panelId";
 
-    public TopDetectedPatternPanel(String id, ObjectDetailsModels<RoleAnalysisSessionType> model,
-            ContainerPanelConfigurationType config) {
+    public SessionRoleSuggestionsPanel(String id, ObjectDetailsModels<RoleAnalysisSessionType> model,
+                                       ContainerPanelConfigurationType config) {
         super(id, model, config);
     }
 
