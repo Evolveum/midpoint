@@ -51,29 +51,6 @@ public class ReferenceValueSearchPanel extends PopoverSearchPanel<ObjectReferenc
         setOutputMarkupId(true);
     }
 
-    private <O extends ObjectType> void selectObjectPerformed(AjaxRequestTarget target) {
-        List<QName> supportedTypes = getSupportedTargetList();
-        if (CollectionUtils.isEmpty(supportedTypes)) {
-            supportedTypes = ObjectTypeListUtil.createObjectTypeList();
-        }
-        ObjectBrowserPanel<O> objectBrowserPanel = new ObjectBrowserPanel<>(
-                getPageBase().getMainPopupBodyId(), null, supportedTypes, false, getPageBase(),
-                null) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void onSelectPerformed(AjaxRequestTarget target, O object) {
-                getPageBase().hideMainPopup(target);
-                ObjectReferenceType ort = ObjectTypeUtil.createObjectRef(object);
-                ReferenceValueSearchPanel.this.getModel().setObject(ort);
-                referenceValueUpdated(ort, target);
-                target.add(ReferenceValueSearchPanel.this);
-            }
-        };
-
-        getPageBase().showMainPopup(objectBrowserPanel, target);
-    }
-
     @Override
     protected PopoverSearchPopupPanel createPopupPopoverPanel(Popover popover) {
         return new ReferenceValueSearchPopupPanel(PopoverSearchPanel.ID_POPOVER_PANEL, popover, ReferenceValueSearchPanel.this.getModel()) {
@@ -105,8 +82,12 @@ public class ReferenceValueSearchPanel extends PopoverSearchPanel<ObjectReferenc
             }
 
             @Override
-            protected void chooseObjectPerformed(AjaxRequestTarget target) {
-                selectObjectPerformed(target);
+            protected <O extends ObjectType> void chooseObjectPerformed(AjaxRequestTarget target, O object) {
+                getPageBase().hideMainPopup(target);
+                ObjectReferenceType ort = ObjectTypeUtil.createObjectRef(object);
+                ReferenceValueSearchPanel.this.getModel().setObject(ort);
+                referenceValueUpdated(ort, target);
+                target.add(ReferenceValueSearchPanel.this);
             }
 
             @Override
