@@ -337,9 +337,8 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
 
     @Override
     Collection<? extends QName> getCachedAttributes() throws SchemaException, ConfigurationException {
-        var def = Resource.of(resource)
-                .getCompleteSchemaRequired()
-                .findDefinitionForObjectClassRequired(RI_ACCOUNT_OBJECT_CLASS);
-        return InternalsConfig.isShadowCachingOnByDefault() ? def.getAttributeNames() : def.getAllIdentifiersNames();
+        return InternalsConfig.isShadowCachingOnByDefault() ?
+                getAccountDefinition().getAttributeNames() :
+                getAccountDefinition().getAllIdentifiersNames();
     }
 }
