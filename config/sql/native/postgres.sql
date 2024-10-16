@@ -1585,11 +1585,13 @@ CREATE TRIGGER m_role_analysis_outlier_oid_delete_tr AFTER DELETE ON m_role_anal
         clusterRefOid UUID,
         clusterRefTargetType ObjectType,
         clusterRefRelationId INTEGER REFERENCES m_uri(id),
+        overallConfidence double precision,
         PRIMARY KEY (ownerOid, cid)
     )
         INHERITS(m_container);
 
 CREATE INDEX m_role_analysis_outlier_partition_clusterRefOid_idx ON m_role_analysis_outlier_partition (clusterRefOid);
+CREATE INDEX  m_role_analysis_outlier_partition_overallConfidence_idx ON m_role_analysis_outlier_partition (overallConfidence);
 
 
 -- Represents LookupTableType, see https://docs.evolveum.com/midpoint/reference/misc/lookup-tables/
@@ -2641,4 +2643,4 @@ END $$;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_change(49, $$ SELECT 1 $$, true);
+call apply_change(50, $$ SELECT 1 $$, true);

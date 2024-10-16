@@ -203,7 +203,7 @@ public class SqaleRepositoryBeanConfig {
                 .register(MarkType.COMPLEX_TYPE, QMarkMapping.init(repositoryContext))
                 .register(SchemaType.COMPLEX_TYPE, QSchemaMapping.init(repositoryContext))
                 .register(QAffectedObjectsMapping.init(repositoryContext))
-                .register(QOutlierPartitionMapping.initMapping(repositoryContext))
+                .register(RoleAnalysisOutlierPartitionType.COMPLEX_TYPE, QOutlierPartitionMapping.initMapping(repositoryContext))
                 .register(RoleAnalysisDetectionPatternType.COMPLEX_TYPE, QClusterDetectedPatternMapping.initMapping(repositoryContext))
                 .register(PolicyType.COMPLEX_TYPE, QPolicyMapping.init(repositoryContext))
                 .seal();

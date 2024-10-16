@@ -1007,6 +1007,15 @@ call apply_change(49, $aa$
     CREATE INDEX m_role_analysis_outlier_overallConfidence_idx ON m_role_analysis_outlier (overallConfidence);
 $aa$);
 
+call apply_change(50, $aa$
+    ALTER TABLE m_role_analysis_outlier_partition
+       ADD COLUMN overallConfidence double precision;
+
+   CREATE INDEX  m_role_analysis_outlier_partition_overallConfidence_idx
+    ON m_role_analysis_outlier_partition (overallConfidence);
+
+$aa$);
+
 ---
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_change number at the end of postgres-new.sql
