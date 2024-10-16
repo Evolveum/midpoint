@@ -81,6 +81,10 @@ public class AssignmentDescriptionHandler implements VisualizationDescriptionHan
     }
 
     private LocalizableMessage createAssignedMessage(ChangeType change) {
+        if (change == null) {
+            return new SingleLocalizableMessage("");
+        }
+
         String key = null;
         switch (change){
             case ADD -> key = "AssignmentDescriptionHandler.assigned";
