@@ -1,0 +1,32 @@
+= Splitted Full Object
+:page-since: "4.9"
+
+Since midPoint 4.9 Native Repository does not store store all items in single `fullobject`, but for specific paths the items are serialized in separate tables.
+
+
+
+== Trade-offs
+
+Splitting some items in separate tables increases query count in order to fetch full objectbut allows for:
+
+*  partial reads of objects (exluding paths and items not needed for GUI / processing)
+** this functionality is available also to scripts.
+* more effective read of role membership and assignments in GUI and reporting
+
+== Backwards Compatibility
+
+In order to ensure backwards compatibility all reads (get, searches) also fetch all items which have separate storage, unless get operation options specify otherwise.
+
+== Items with separate storage
+
+* `operationExecution` - All operation execution details are stored and loaded from `m_operation_execution` table.
+* `assignment` - All assignment with their metadata are stored and loaded from `m_assignment` table. 
+* `inducement` - All assignment with their metadata are stored and loaded from `m_assignment` table. 
+* `linkRef` - All link references are stored and loadeed from `m_ref_projection` including their value metadata.
+* `roleMembershipRef` - All role membership references are stored and loadeed from `m_role_membership` including their value metadata. 
+    
+== Migration
+
+The repository migrates preexisting data with single full object to new splitted form on first modification of the object.
+
+It is recommended to reindex repository after upgrade to 4.9 to have all data converted automatically to new storage format (without waiting for their first modification).
