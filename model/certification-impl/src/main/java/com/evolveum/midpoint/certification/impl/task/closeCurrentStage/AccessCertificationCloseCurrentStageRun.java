@@ -163,7 +163,7 @@ public final class AccessCertificationCloseCurrentStageRun
     }
 
     private boolean isWorkItemOpen(AccessCertificationWorkItemType workItem) {
-        return workItem.getCloseTimestamp() == null && (workItem.getOutput() == null || workItem.getOutput().getOutcome() == null);
+        return workItem.getCloseTimestamp() == null;
     }
 
 
