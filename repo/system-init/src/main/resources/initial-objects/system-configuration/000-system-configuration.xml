@@ -110,6 +110,11 @@
         </closedTasks>
     </cleanupPolicy>
     <internals>
+        <shadowCaching>
+            <defaultPolicy>
+                <cachingStrategy>passive</cachingStrategy>
+            </defaultPolicy>
+        </shadowCaching>
         <tracing>
             <profile id="12">
                 <name>performance</name>

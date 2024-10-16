@@ -13314,6 +13314,17 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="shadowCaching" type="tns:ShadowCachingConfigurationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Global settings for the "shadow caching" feature.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.9</a:since>
+                        <a:displayName>InternalsConfigurationType.shadowCaching</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="tracing" type="tns:TracingConfigurationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
