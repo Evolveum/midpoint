@@ -39,10 +39,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformDefaultPattern;
-
-@PanelType(name = "topDetectedPattern")
+@PanelType(name = "sessionRoleSuggestions")
 @PanelInstance(
-        identifier = "topDetectedPattern",
+        identifier = "sessionRoleSuggestions",
         applicableForType = RoleAnalysisSessionType.class,
         display = @PanelDisplay(
                 label = "RoleAnalysisDetectionPatternType.action.suggestion",
@@ -50,13 +49,13 @@ import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.tran
                 order = 30
         )
 )
-public class TopDetectedPatternPanel extends AbstractObjectMainPanel<RoleAnalysisSessionType, ObjectDetailsModels<RoleAnalysisSessionType>> {
+public class SessionRoleSuggestionsPanel extends AbstractObjectMainPanel<RoleAnalysisSessionType, ObjectDetailsModels<RoleAnalysisSessionType>> {
 
     private static final String ID_CONTAINER = "container";
     private static final String ID_PANEL = "panelId";
 
-    public TopDetectedPatternPanel(String id, ObjectDetailsModels<RoleAnalysisSessionType> model,
-            ContainerPanelConfigurationType config) {
+    public SessionRoleSuggestionsPanel(String id, ObjectDetailsModels<RoleAnalysisSessionType> model,
+                                       ContainerPanelConfigurationType config) {
         super(id, model, config);
     }
 

@@ -146,7 +146,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                 String oid = objectDetailsModels.getObjectType().getOid();
                 PageParameters parameters = new PageParameters();
                 parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-                parameters.add(PANEL_ID, "topDetectedPattern");
+                parameters.add(PANEL_ID, "sessionRoleSuggestions");
 
                 Class<? extends PageBase> detailsPageClass = DetailsPageUtil
                         .getObjectDetailsPage(RoleAnalysisSessionType.class);
