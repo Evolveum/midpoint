@@ -225,7 +225,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
     }
 
     private void removingFiltersAfterProcessing(MidpointAuthentication mpAuthentication, AuthenticationWrapper authWrapper, HttpServletRequest httpRequest) {
-        if (!AuthSequenceUtil.isClusterSequence(httpRequest) && httpRequest.getSession(false) == null) {
+        if (!AuthSequenceUtil.isClusterSequence(httpRequest) && AuthSequenceUtil.isRecordSessionLessAccessChannel(httpRequest)) {
             if (mpAuthentication == null) {
                 if (authWrapper != null && authWrapper.getAuthModules() != null) {
                     removeUnusedSecurityFilterPublisher.publishCustomEvent(authWrapper.getAuthModules());
