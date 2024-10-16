@@ -8,8 +8,8 @@ visibility: hidden
 :page-liquid:
 :page-toc: top
 
-Release {release-version} is a fifty-TODO midPoint release, code-named _Verne_.
-The {release-version} release brings TODO.
+Release {release-version} is a sixtieth midPoint release, code-named _Verne_.
+The {release-version} release brings improvements in role engineering, certification, approvals, stability and miscellaneous improvements.
 
 ++++
 {% include release-data.html %}
@@ -18,10 +18,16 @@ The {release-version} release brings TODO.
 ++++
 {% capture dedicationContent %}
 <p>
-<a href="https://en.wikipedia.org/wiki/Jules_Verne">Jules Gabriel Verne</a> (1828-1905) was ...
+<a href="https://en.wikipedia.org/wiki/Jules_Verne">Jules Gabriel Verne</a> (1828-1905) was a French novelist, poet, and playwright.
+His collaboration with the publisher Pierre-Jules Hetzel led to the creation of the Voyages extraordinaires, a series of bestselling adventure novels including Journey to the Center of the Earth (1864), Twenty Thousand Leagues Under the Seas (1870), and Around the World in Eighty Days (1872).
+His novels, always well-researched according to the scientific knowledge then available, are generally set in the second half of the 19th century, taking into account the technological advances of the time.
 </p>
 <p>
-TODO
+In addition to his novels, he wrote numerous plays, short stories, autobiographical accounts, poetry, songs, and scientific, artistic, and literary studies.
+His work has been adapted for film and television since the beginning of cinema, as well as for comic books, theater, opera, music and video games.
+Verne is considered to be an important author in France and most of Europe, where he has had a wide influence on the literary avant-garde and on surrealism.
+His reputation was markedly different in the Anglosphere where he had often been labeled a writer of genre fiction or children's books, largely because of the highly abridged and altered translations in which his novels have often been printed.
+Jules Verne has been the second most-translated author in the world since 1979, ranking below Agatha Christie and above William Shakespeare.
 </p>
 {% endcapture %}
 {% include release-dedication.html content=dedicationContent %}
@@ -82,7 +88,7 @@ Tree node search is now same for all nodes.
 
 * Schema extension
 ** Adding new SchemaType that is supported in native repository. SchemaType contains attribute that contains xsd schema.
-** SchemaType can be configured by GUI. Configuration via GUI contains some limitations that related with schema lifecycle (TODO add link).
+** SchemaType can be configured by GUI. Configuration via GUI contains some limitations that related with schema lifecycle (xref:/midpoint/reference/schema/custom-schema-extension).
 ** For more information can see xref:/midpoint/reference/schema/custom-schema-extension.adoc[].
 
 * Object marks
