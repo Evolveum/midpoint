@@ -95,6 +95,8 @@ import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptions
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * @author katkav
  */
@@ -170,6 +172,15 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             public void onClick(IModel<SelectableBean<O>> rowModel) {
                 O object = rowModel.getObject().getValue();
                 MainObjectListPanel.this.objectDetailsPerformed(object);
+            }
+
+            @Override
+            protected IModel<String> createRealMarksList(SelectableBean<O> bean) {
+                if(MainObjectListPanel.this.createRealMarksList(bean) != null) {
+                    return MainObjectListPanel.this.createRealMarksList(bean);
+                }
+
+                return super.createRealMarksList(bean);
             }
 
             @Override
@@ -740,5 +751,9 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         getPageBase().showResult(result);
         refreshTable(target);
         target.add(getPageBase().getFeedbackPanel());
+    }
+
+    protected @Nullable IModel<String> createRealMarksList(SelectableBean<O> bean) {
+        return null;
     }
 }

@@ -180,8 +180,8 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<String> {
                     return menuItems;
                 }
 //                menuItems.add(RoleAnalysisDetectedAnomalyTable.this.createMarkInlineMenu());
-                menuItems.add(RoleAnalysisDetectedAnomalyTable.this.createRecertifyInlineMenu());
-                menuItems.add(RoleAnalysisDetectedAnomalyTable.this.createDeleteInlineMenu());
+//                menuItems.add(RoleAnalysisDetectedAnomalyTable.this.createRecertifyInlineMenu());
+//                menuItems.add(RoleAnalysisDetectedAnomalyTable.this.createDeleteInlineMenu());
 
                 return menuItems;
 

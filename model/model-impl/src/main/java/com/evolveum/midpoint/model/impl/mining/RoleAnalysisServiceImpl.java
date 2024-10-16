@@ -3494,9 +3494,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         }
     }
 
-    int count = 0;
-    long start = System.currentTimeMillis();
-
     @Override
     public ListMultimap<String, String> assignmentSearch(
             @Nullable ObjectFilter userObjectFiler,
@@ -3514,19 +3511,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         boolean userMode = processMode.equals(RoleAnalysisProcessModeType.USER);
         ContainerableResultHandler<AssignmentType> handler;
         handler = (object, parentResult) -> {
-
-            count++;
-            if (count % 1000 == 0) {
-                long end = System.currentTimeMillis();
-                long elapsedTime = end - start;
-                System.out.println("Duration: " + Duration.ofMillis(elapsedTime)
-                        .toString()
-                        .substring(2)
-                        .replaceAll("(\\d[HMS])(?!$)", "$1 ")
-                        .toLowerCase());
-                System.out.println("Count: " + count);
-            }
-
             PrismContainerValue<?> prismContainerValue = object.asPrismContainerValue();
 
             if (prismContainerValue == null) {
@@ -4090,6 +4074,28 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         }
 
         return partitionOutlierMap;
+    }
+
+    public PrismObject<UserType> getOutlierTargetUser(
+            @NotNull RoleAnalysisOutlierType outlier,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        ObjectReferenceType objectRef = outlier.getObjectRef();
+        if (objectRef == null) {
+            return null;
+        }
+        String targetOid = objectRef.getOid();
+        if (targetOid == null) {
+            return null;
+        }
+        try {
+            return modelService.getObject(UserType.class, targetOid, null, null, result);
+        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | CommunicationException |
+                ConfigurationException | ExpressionEvaluationException e) {
+            LOGGER.error("Couldn't get target user for outlier {}", outlier, e);
+            return null;
+        }
+
     }
 
 }
