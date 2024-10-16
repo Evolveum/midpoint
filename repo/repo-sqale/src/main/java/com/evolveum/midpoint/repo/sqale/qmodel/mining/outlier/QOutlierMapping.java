@@ -73,7 +73,7 @@ public class QOutlierMapping
     public @NotNull MOutlier toRowObjectWithoutFullObject(
             RoleAnalysisOutlierType outlierObject, JdbcSession jdbcSession) {
         MOutlier row = super.toRowObjectWithoutFullObject(outlierObject, jdbcSession);
-
+        row.overallConfidence = outlierObject.getOverallConfidence();
         setReference(outlierObject.getObjectRef(),
                 o -> row.targetObjectRefTargetOid = o,
                 t -> row.targetObjectRefTargetType = t,
