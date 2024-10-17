@@ -52,7 +52,7 @@ For more information see xref:/midpoint/reference/security/credentials/secrets-p
 ** Support for native object references in ConnId (1.6.0.0-RC1).
 ** New style of configuring simulated object references (via capabilities).
 ** New style of configuring associations handling: mapping from associations to assignments using specific correlation and synchronization rules.
-** Added wizard support for association configuration in resources.
+** Added xref:/midpoint/reference/admin-gui/resource-wizard/#association-type-configuration[wizard] support for association configuration in resources.
 
 * xref:/midpoint/reference/concepts/metadata/[Value metadata] (`@metadata`) are default storage for object and assignment metadata replacing previous `metadata` container.
 **  Query Support for searching in value metadata of objects
