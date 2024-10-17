@@ -257,11 +257,11 @@ See, e.g., bug:MID-9853[].
 
 * New version (3.8) of xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[AD/LDAP Connector] was released and bundled with midPoint. The connector suggest all names of columns for configuration properties related with name of column.
 ** Native association support.
-** Possibility to choose attributes that should not be returned by default
-** Possibility to choose to encode string values in case of the presence of non standard ASCII characters
-** Workaround for open-ldap mandatory member attribute
-** Possibility to specify used auxiliary object classes in connector configuration
-** Allow to send the LDAP_DIRSYNC_OBJECT_SECURITY flag in Active Directory sync request control
+** Possibility to choose attributes that should not be returned by default.
+** Possibility to choose to encode string values in case of the presence of non standard ASCII characters.
+** Workaround for open-ldap mandatory member attribute.
+** Possibility to specify used auxiliary object classes in connector configuration.
+** Allow to send the LDAP_DIRSYNC_OBJECT_SECURITY flag in Active Directory sync request control.
 
 ++++
 {% include release-quality.html %}
