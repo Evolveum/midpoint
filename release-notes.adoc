@@ -114,6 +114,7 @@ Tree node search is now same for all nodes.
 
 * Support for H2 database was removed. Clean midPoint will fail to start with embedded H2 database.
 Preferred option to start simple midPoint instance is via docker compose. For more information see xref:/midpoint/install/containers/docker[here].
+Otherwise `config.xml` in midPoint home directory needs to be populated with database connection information.
 
 * Access Certification new UI.
 ** New UI with improved user experience and performance was implemented for Access Certification feature.
@@ -127,8 +128,6 @@ This means that table's columns and actions can be configured for certification 
 ** Please, see xref:/midpoint/reference/roles-policies/certification[Access Certification] for more information.
 
 === Other Improvements
-
-TODO
 
 * The indication of official vs. unofficial build was added to the About page.
 See xref:/midpoint/reference/admin-gui/midpoint-jar-signature-status/[MidPoint JAR Signature Status] for details.
