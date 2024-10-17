@@ -5,7 +5,7 @@
 
 == Introduction
 
-#TODO review the whole document#
+// TODO: review the whole document
 
 When connecting a new resource, typically it is already populated with data you want to manage from midPoint.
 While midPoint synchronization concepts can be used easily in most of the cases, there are situations when you *cannot switch the direction of data propagation (authoritativeness) for all objects at the same time*.
@@ -89,9 +89,9 @@ It is also possible to define a default operation policy for object type.
 
 === Manual Marking of Individual Shadows
 
-#TODO link to methodology or screenshots.#
+// TODO: link to methodology or screenshots.
 
-Individual shadows can be marked using GUI when browsing resource shadows of specific resources.
+Individual shadows can be marked using GUI when browsing resource shadows of specific resources or in simulation result view.
 
 === Marking Rules
 
