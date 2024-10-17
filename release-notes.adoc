@@ -541,116 +541,29 @@ You should at least scan through it - or use the `ninja` tool to check the depre
 [%autowidth]
 |===
 | Type | Item or value | Note
+| `AccessCertificationConfigurationType`
+| `availableResponse`
+| Configure actions in the cert. items collection view instead.
 
-// | `UserType`
-// | `employeeNumber`
-// | Use `personalNumber` instead.
-//
-// | `ActivationStatusType`
-// | `archived`
-// | The "archival" state is to be managed through the object lifecycle state instead.
-// Since 4.8, this value will not be put into "effectiveStatus" property anymore.
-//
-// | `AbstractMappingType`
-// | `enabled`
-// | Use value `draft` for `lifecycleState` property instead to disable the mapping.
-//
-// | `ExpressionType`, `ScriptExecutionPolicyActionType`
-// | `runAsRef`
-// | Use `privileges/runAsRef` instead.
-//
-// | `LegacyCorrelationDefinitionType`, `CorrelationCasesDefinitionType`
-// | (the whole type)
-// | Use the new correlation definition in `schemaHandling` container.
-//
-// | `GroupSelectionType`
-// | `searchFilterTemplate`, `userDisplayName`, `autocompleteMinChars`
-// | Use `autocompleteConfiguration` instead.
-//
-// | `RoleCatalogType`
-// | `showRolesOfTeammate`
-// | Use `rolesOfTeammate` instead.
-//
-// | `OidcResourceServerAuthenticationModuleType`
-// | `realm`, `issuerUri`, `jwkSetUri`, `nameOfUsernameClaim`, `singleSymmetricKey`, `trustedAlgorithm`, `trustingAsymmetricCertificate`, `keyStoreTrustingAsymmetricKey`
-// | Old configuration for resource oidc was moved to `jwt`.
-//
-// | `AbstractRegistrationPolicyType`
-// | `name`, `displayName`
-// | Use `UserInterfaceFeatureType.identifier` and `UserInterfaceFeatureType.display.label` instead.
-//
-// | `ActivityProfilingDefinitionType`
-// | `interval`
-// | Use `beforeItemCondition` instead.
-// (Experimental functionality.)
-//
-// | task extension
-// | `retryLiveSyncErrors`
-// | Use `controlFlow/errorHandling` with the reaction of `ignore` instead.
-//
-// | `WorkItemNotificationActionType`
-// | `handler`
-// | Experimental feature.
-|===
+| `ItemRefinedDefinitionType`
+| `emphasized`
+| Use `displayHint` instead.
 
-.Removed items
-[%autowidth]
-|===
-| Type | Item or value
+| `ResourceObjectTypeDefinitionType`
+| `association`
+| Use association types (in schemaHandling) instead.
 
-// | `CaseType`
-// | `taskRef`
-//
-// | `PersonaConstructionType`
-// | `targetSubtype`
-//
-// | `ArchetypePolicyType`
-// | `propertyConstraint`
-//
-// | `RoleManagementConfigurationType`
-// | `roleCatalogRef`, `roleCatalogCollections`, `defaultCollection`
-//
-// | `CleanupPoliciesType`
-// | `objectResults`
-//
-// | `ModelExecuteOptionsType`
-// | `reconcileAffected`
-//
-// | `IdMatchCorrelatorType`
-// | `followOn`
-//
-// | `AdminGuiConfigurationType`
-// | `objectForms`, `userDashboard`
-//
-// | `GuiObjectDetailsPageType`
-// | `forms`, `container`
-//
-// | `GuiObjectListViewType`
-// | `additionalPanels`
-//
-// | `SearchBoxConfigurationType`
-// | `defaultScope`, `defaultObjectType`
-//
-// | `SearchItemType`
-// | `displayName`
-//
-// | `GuiActionType`
-// | `name`
-//
-// | `GuiObjectListViewAdditionalPanelsType`
-// | (the whole type)
-//
-// | `LensProjectionContextType`
-// | `accountPasswordPolicy`, `accountPasswordPolicyRef`
-//
-// | `ModuleSaml2KeyTypeType`
-// | `encryption`
-//
-// | `TaskType`
-// | `category`, `recurrence`, `modelOperationContext`, `policyRule`, `errorHandlingStrategy`
-//
-// | `StringWorkSegmentationType`
-// | `boundaryCharacters`
+| `ResourceObjectTypeDefinitionType`
+| `protected`
+| Use "marking" instead.
+
+| `ShadowType`
+| `association`
+| Legacy associations of this shadow. Not used anymore.
+
+| `SynchronizationActionsType`
+| `unlink`
+| Use `<synchronize/>` action instead.
 |===
 
 _Actions required:_
