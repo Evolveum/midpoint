@@ -68,11 +68,11 @@ For more information see xref:/midpoint/reference/security/credentials/secrets-p
 For more information see xref:/midpoint/reference/deployment/ninja/command/verify.adoc[].
 
 
-* xref:/midpoint/reference/master/roles-policies/mining/[Role Mining]
-** Added support for xref:/midpoint/reference/master/roles-policies/mining/#advanced-options[attribute group by/clustering rule].
-** Added support for xref:/midpoint/reference/master/roles-policies/mining/#advanced-options[analyze attribute functionality].
-** Added xref:/midpoint/reference/master/roles-policies/mining/#role-mining-presets[predefined role mining modes].
-** Added support for xref:/midpoint/reference/master/roles-policies/mining/#advanced-options[assignment filters].
+* xref:/midpoint/reference/roles-policies/mining/[Role Mining]
+** Added support for xref:/midpoint/reference/roles-policies/mining/#advanced-options[attribute group by/clustering rule].
+** Added support for xref:/midpoint/reference/roles-policies/mining/#advanced-options[analyze attribute functionality].
+** Added xref:/midpoint/reference/roles-policies/mining/#role-mining-presets[predefined role mining modes].
+** Added support for xref:/midpoint/reference/roles-policies/mining/#advanced-options[assignment filters].
 ** Added support for indirect access right clustering (experimental).
 ** Support for monitoring overall system access assignment reduction by applying role suggestions.
 ** Role suggestion migration improvements.
@@ -86,9 +86,9 @@ For more information see xref:/midpoint/reference/deployment/ninja/command/verif
 *** Added control options for table settings and role management processes.
 *** Allow administrators to detect and explore access patterns directly in the user permission table.
 
-* xref:/midpoint/reference/master/roles-policies/outlier-detection/[Outlier Detection]
+* xref:/midpoint/reference/roles-policies/outlier-detection/[Outlier Detection]
 ** Introduces a feature that helps uncover potential security risks by identifying users with unusual access rights.
-** For more information, see the xref:/midpoint/reference/master/roles-policies/outlier-detection/[Outlier Detection documentation].
+** For more information, see the xref:/midpoint/reference/roles-policies/outlier-detection/[Outlier Detection documentation].
 
 * Request access
 ** Role catalog (tree) now has search filter with scope and type selectable.
@@ -577,11 +577,16 @@ You should at least scan through it - or use the `ninja` tool to check the depre
 | Use `<synchronize/>` action instead.
 |===
 
+The `synchronize/membership` container was added to the object operation policy object, present in xref:/midpoint/reference/concepts/mark/[object marks] (like the `Protected` one).
+It controls the handling of the membership of entitlements possessing given object mark.
+
 _Actions required:_
 
 * Inspect your configuration for deprecated items, and replace them by their suggested equivalents.
 Make sure you don't use any removed items.
 You can use `ninja` tool for this.
+
+* Be sure to apply the changes to initial objects 800-804 (object marks), as well as to your custom object marks to handle the membership in the expected way.
 
 [#_behavior_changes_since_4_8]
 === Behavior Changes Since 4.8
