@@ -407,9 +407,6 @@ public class LeftMenuPanel extends BasePanel<Void> {
 
     private @NotNull MainMenuItem createAnalyticsItems() {
         MainMenuItem roleMenu = createMainMenuItem("PageAdmin.menu.top.analytics", "fas fa-chart-line");
-
-//        createBasicAssignmentHolderMenuItems(roleMenu, PageTypes.ANALYTICS);
-
         roleMenu.addMenuItemAtIndex(new MenuItem("PageRoleAnalysis.menu.title",
                 GuiStyleConstants.CLASS_ROLE_ANALYSIS_SESSION_ICON,
                 PageRoleAnalysis.class), 1);

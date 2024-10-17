@@ -10,12 +10,19 @@ import java.io.Serial;
 
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 
+import com.evolveum.midpoint.gui.impl.page.admin.mark.component.MarksOfObjectListPopupPanel;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.NotNull;
@@ -41,6 +48,7 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierType;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.loadUserWrapperForMarkAction;
 
 //TODO correct authorizations
 @PageDescriptor(
@@ -99,15 +107,32 @@ public class PageRoleAnalysisOutlier extends PageAssignmentHolderDetails<RoleAna
 
     @Override
     public void addAdditionalButtons(RepeatingView repeatingView) {
+        PageBase pageBase = getPageBase();
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
                 GuiStyleConstants.CLASS_ICON_RECYCLE, IconCssStyle.IN_ROW_STYLE);
         AjaxCompositedIconSubmitButton recertifyButton = new AjaxCompositedIconSubmitButton(repeatingView.newChildId(), iconBuilder.build(),
-                createStringResource("PageRoleAnalysisOutlier.button.reCertify.outlier")) {
+                createStringResource("PageRoleAnalysisOutlier.button.mark.outlier")) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
-                //TODO
+                RoleAnalysisOutlierType outlierObject = getObjectDetailsModels().getObjectType();
+                ObjectReferenceType objectRef = outlierObject.getObjectRef();
+
+                String userOid = objectRef.getOid();
+
+                OperationResult result = new OperationResult("createWrapper");
+                LoadableDetachableModel<PrismObjectWrapper<UserType>> focusModel = loadUserWrapperForMarkAction(userOid, pageBase, result);
+
+                MarksOfObjectListPopupPanel<?> popup = new MarksOfObjectListPopupPanel<>(
+                        pageBase.getMainPopupBodyId(), focusModel) {
+                    @Override
+                    protected void onSave(AjaxRequestTarget target) {
+                        pageBase.hideMainPopup(target);
+                    }
+                };
+
+                pageBase.showMainPopup(popup, target);
             }
 
             @Override

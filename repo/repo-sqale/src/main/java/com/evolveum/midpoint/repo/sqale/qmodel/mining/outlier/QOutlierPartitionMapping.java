@@ -7,21 +7,27 @@
 package com.evolveum.midpoint.repo.sqale.qmodel.mining.outlier;
 
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.sqale.SqaleQueryContext;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
-import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.mining.cluster.QClusterObjectMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
+import com.evolveum.midpoint.repo.sqlbase.mapping.ResultListRowTransformer;
 import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierPartitionType;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Objects;
+import java.util.*;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierPartitionType.*;
 
@@ -56,6 +62,9 @@ public class QOutlierPartitionMapping extends QContainerMapping<RoleAnalysisOutl
                 q -> q.clusterRefTargetType,
                 q -> q.clusterRefRelationId,
                 QClusterObjectMapping::getInstance);
+
+        addNestedMapping(F_PARTITION_ANALYSIS, RoleAnalysisPartitionAnalysisType.class)
+                .addItemMapping(RoleAnalysisPartitionAnalysisType.F_OVERALL_CONFIDENCE, doubleMapper(q -> q.overallConfidence));
     }
 
     @Override
@@ -77,7 +86,12 @@ public class QOutlierPartitionMapping extends QContainerMapping<RoleAnalysisOutl
 
     @Override
     public MOutlierPartition insert(RoleAnalysisOutlierPartitionType outlierPartition, MOutlier ownerRow, JdbcSession jdbcSession) throws SchemaException {
-        var row  = initRowObject(outlierPartition, ownerRow);
+        var row = initRowObject(outlierPartition, ownerRow);
+
+        RoleAnalysisPartitionAnalysisType partitionAnalysis = outlierPartition.getPartitionAnalysis();
+        if (partitionAnalysis != null) {
+            row.overallConfidence = outlierPartition.getPartitionAnalysis().getOverallConfidence();
+        }
 
         setReference(outlierPartition.getClusterRef(),
                 o -> row.clusterRefOid = o,
@@ -87,5 +101,40 @@ public class QOutlierPartitionMapping extends QContainerMapping<RoleAnalysisOutl
         insert(row, jdbcSession);
 
         return row;
+    }
+
+    @Override
+    public RoleAnalysisOutlierPartitionType toSchemaObject(MOutlierPartition row) throws SchemaException {
+        return new RoleAnalysisOutlierPartitionType().id(row.cid);
+    }
+
+    @Override
+    public ResultListRowTransformer<RoleAnalysisOutlierPartitionType, QOutlierPartition, MOutlierPartition> createRowTransformer(
+            SqlQueryContext<RoleAnalysisOutlierPartitionType, QOutlierPartition, MOutlierPartition> sqlQueryContext,
+            JdbcSession jdbcSession, Collection<SelectorOptions<GetOperationOptions>> options) {
+        Map<UUID, PrismObject<RoleAnalysisOutlierType>> casesCache = new HashMap<>();
+
+        return (tuple, entityPath) -> {
+            MOutlierPartition row = Objects.requireNonNull(tuple.get(entityPath));
+            UUID caseOid = row.ownerOid;
+            PrismObject<RoleAnalysisOutlierType> aCase = casesCache.get(caseOid);
+            if (aCase == null) {
+                aCase = ((SqaleQueryContext<?, ?, ?>) sqlQueryContext)
+                        .loadObject(jdbcSession, RoleAnalysisOutlierType.class, caseOid, options);
+                casesCache.put(caseOid, aCase);
+            }
+
+            PrismContainer<RoleAnalysisOutlierPartitionType> workItemContainer = aCase.findContainer(RoleAnalysisOutlierType.F_PARTITION);
+            if (workItemContainer == null) {
+                throw new SystemException("Outlier " + aCase + " has no partition even if it should have " + tuple);
+            }
+            PrismContainerValue<RoleAnalysisOutlierPartitionType> workItemPcv = workItemContainer.findValue(row.cid);
+            if (workItemPcv == null) {
+                throw new SystemException("Outlier " + aCase + " has no partition with ID " + row.cid);
+            }
+            var containerable = workItemPcv.asContainerable();
+            attachContainerIdPath(containerable, tuple, entityPath);
+            return containerable;
+        };
     }
 }

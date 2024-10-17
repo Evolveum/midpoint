@@ -19,15 +19,16 @@ The {release-version} release brings improvements in role engineering, certifica
 {% capture dedicationContent %}
 <p>
 <a href="https://en.wikipedia.org/wiki/Jules_Verne">Jules Gabriel Verne</a> (1828-1905) was a French novelist, poet, and playwright.
-His collaboration with the publisher Pierre-Jules Hetzel led to the creation of the Voyages extraordinaires, a series of bestselling adventure novels including Journey to the Center of the Earth (1864), Twenty Thousand Leagues Under the Seas (1870), and Around the World in Eighty Days (1872).
-His novels, always well-researched according to the scientific knowledge then available, are generally set in the second half of the 19th century, taking into account the technological advances of the time.
+His best-selling novels, always well-researched according to the scientific knowledge then available, taking into account the technological advances of the time.
+Verne, considered to be one of the fathers of science-fiction genre, inspired several generations of readers.
 </p>
 <p>
-In addition to his novels, he wrote numerous plays, short stories, autobiographical accounts, poetry, songs, and scientific, artistic, and literary studies.
-His work has been adapted for film and television since the beginning of cinema, as well as for comic books, theater, opera, music and video games.
-Verne is considered to be an important author in France and most of Europe, where he has had a wide influence on the literary avant-garde and on surrealism.
-His reputation was markedly different in the Anglosphere where he had often been labeled a writer of genre fiction or children's books, largely because of the highly abridged and altered translations in which his novels have often been printed.
-Jules Verne has been the second most-translated author in the world since 1979, ranking below Agatha Christie and above William Shakespeare.
+Similarly to Verne's novels, midPoint 4.9 brings several technological advancements, bringing them from the drawing board to real life.
+Shadow caching and value metadata were prototyped long time ago, they become production-quality reality in midPoint 4.9.
+Improvements in role mining and brand-new outlier detection functionality are reaching up to the boundaries of science fiction.
+New access certification look and feel is reminiscent of the colorful worlds that Verne has described.
+Other features and improvements of this release make midPoint more complete, easier to use and much more sophisticated.
+Overall, midPoint 4.9 is a major step from the past into the future.
 </p>
 {% endcapture %}
 {% include release-dedication.html content=dedicationContent %}
@@ -56,32 +57,37 @@ For more information see xref:/midpoint/reference/security/credentials/secrets-p
 **  Query Support for searching in value metadata of objects
 *** Native Repository: Object metadata stored in `metadata` property of `MetadataType` are also indexed and searchable as value metadata. Eg. original `metadata/creatorRef` is `@metadata/storage/creatorRef` as value metadata path.
 *** Value metadata `storage` and `process` are indexed for assignments and available for search using `assignment/@metadata/storage`.
+*** xref:/midpoint/reference/concepts/metadata/#provenance-metadata[Provenance metadata] are enabled by default for multivalue properties,  containers and assignments.
+
+* Default target set for mappings emiting multivalue properties is based on provenance metadata, mapping can only remove values, it added.
+** If value has multiple provenances (user entry, or multiple mappings), the mapping removes only it's provenance section, value still remains.
 
 * Ninja
 ** Added support for new verification categories: `MULTI_VALUE_REF_WITHOUT_OID`, `MISSING_NATURAL_KEY`, `MULTIVALUE_BYTE_ARRAY`, `PROTECTED_DATA_NOT_EXTERNAL`.
 For more information see xref:/midpoint/reference/deployment/ninja/command/verify.adoc[].
 
-* Role mining
-** Attribute Clustering Support:
-*** Introduced support for attribute-based clustering with fully customizable conditions, providing greater flexibility for administrators to define and manage attribute rules for clustering processes.
-** Attribute Analysis Functionality:
-*** Added new attribute analysis capabilities that allow users to define which attributes are used in clustering and detected pattern analysis. This feature helps refine role suggestions based on more granular attribute sets.
-** Indirect Access Right Clustering:
-*** Added support for clustering over indirect access rights.
-** Detected Pattern Migration Improvements:
-*** Streamlined detected pattern migration process, enabling the creation of candidates from detected patterns. This allows the role definition to be refined.
-** User Permission Table Enhancements:
-*** Expanded the functionality of the user permission table with new options for working directly with role suggestions and candidate roles.
-*** Additional control options have been added, giving finer control over table settings and role management activities.
-*** New functionality allows administrators to detect and explore access patterns directly on the user permission table.
-** Predefined Role Mining Modes:
-*** Introduced multiple predefined modes for common role mining activities, simplifying the setup and execution of role mining tasks. These default modes are tailored to typical use cases, reducing configuration time and effort while maintaining flexibility for more complex scenarios.
-** Performance and GUI Enhancements:
-*** Significant performance optimizations and UI improvements have been introduced to enhance the overall user experience.
-These updates improve system efficiency, reduce load times, and offer a more intuitive interface for role mining activities.
 
-* Outlier detection
-** Added a new Outlier Detection feature, which automatically identifies users with unusual access patterns that deviate significantly from typical roles or groups. This functionality helps detect anomalies or potential security risks, allowing for deeper insights into access behavior and ensuring that access rights are aligned with organizational policies. Outlier detection can highlight users with excessive or atypical permissions, enabling quick action to review or adjust access levels for improved security and compliance.
+* xref:/midpoint/reference/master/roles-policies/mining/[Role Mining]
+** Added support for xref:/midpoint/reference/master/roles-policies/mining/#advanced-options[attribute group by/clustering rule].
+** Added support for xref:/midpoint/reference/master/roles-policies/mining/#advanced-options[analyze attribute functionality].
+** Added xref:/midpoint/reference/master/roles-policies/mining/#role-mining-presets[predefined role mining modes].
+** Added support for xref:/midpoint/reference/master/roles-policies/mining/#advanced-options[assignment filters].
+** Added support for indirect access right clustering (experimental).
+** Support for monitoring overall system access assignment reduction by applying role suggestions.
+** Role suggestion migration improvements.
+** Performance and GUI Enhancements:
+*** Significant performance optimizations improve system efficiency and reduce load times.
+*** UI improvements to enhance the overall user experience with intuitive interface for role mining activities.
+*** New initial role analysis page with widgets related to role analysis activities and system information.
+** User Permission Table Enhancements:
+*** New operational panel simplifies the role mining process.
+*** Direct interaction with role suggestions and candidate roles within the table.
+*** Added control options for table settings and role management processes.
+*** Allow administrators to detect and explore access patterns directly in the user permission table.
+
+* xref:/midpoint/reference/master/roles-policies/outlier-detection/[Outlier Detection]
+** Introduces a feature that helps uncover potential security risks by identifying users with unusual access rights.
+** For more information, see the xref:/midpoint/reference/master/roles-policies/outlier-detection/[Outlier Detection documentation].
 
 * Request access
 ** Role catalog (tree) now has search filter with scope and type selectable.
@@ -90,7 +96,7 @@ Tree node search is now same for all nodes.
 
 * Schema extension
 ** Adding new SchemaType that is supported in native repository. SchemaType contains attribute that contains xsd schema.
-** SchemaType can be configured by GUI. Configuration via GUI contains some limitations that related with schema lifecycle (xref:/midpoint/reference/schema/custom-schema-extension).
+** SchemaType can be configured by GUI. Configuration via GUI contains some limitations that related with schema lifecycle.
 ** For more information can see xref:/midpoint/reference/schema/custom-schema-extension.adoc[].
 
 * Object marks
@@ -114,6 +120,7 @@ Tree node search is now same for all nodes.
 
 * Support for H2 database was removed. Clean midPoint will fail to start with embedded H2 database.
 Preferred option to start simple midPoint instance is via docker compose. For more information see xref:/midpoint/install/containers/docker[here].
+Otherwise `config.xml` in midPoint home directory needs to be populated with database connection information.
 
 * Access Certification new UI.
 ** New UI with improved user experience and performance was implemented for Access Certification feature.
@@ -126,9 +133,12 @@ Certification items table itself can be now configured with the help of collecti
 This means that table's columns and actions can be configured for certification items.
 ** Please, see xref:/midpoint/reference/roles-policies/certification[Access Certification] for more information.
 
-=== Other Improvements
+* Deployment Methodology
+** As a part of midPoint 4.9 release, we have released also a new xref:/midpoint/methodology/[midPoint deployment methodology].
+Please refer to xref:/midpoint/methodology/group-synchronization/[] for more information.
 
-TODO
+
+=== Other Improvements
 
 * The indication of official vs. unofficial build was added to the About page.
 See xref:/midpoint/reference/admin-gui/midpoint-jar-signature-status/[MidPoint JAR Signature Status] for details.
@@ -236,26 +246,13 @@ See, e.g., bug:MID-9853[].
 
 === Releases Of Other Components
 
- * New version (1.5.2.0) of xref:/connectors/connectors/org.identityconnectors.databasetable.DatabaseTableConnector/[DatabaseTable Connector] was released and bundled with midPoint. The connector suggest all names of columns for configuration properties related with name of column.
+* New version (1.5.2.0) of xref:/connectors/connectors/org.identityconnectors.databasetable.DatabaseTableConnector/[DatabaseTable Connector] was released and bundled with midPoint. The connector suggest all names of columns for configuration properties related with name of column.
 
- * New version (2.8) of xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV Connector] was released and bundled with midPoint. The connector suggest all names of columns for configuration properties related with name of column.
+* New version (2.8) of xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV Connector] was released and bundled with midPoint. The connector suggest all names of columns for configuration properties related with name of column.
 ** Fixed NPE with multivalue attributes when delimiter is not defined. (bug:MID-8609[]).
 ** Fix UTF-8 BOM character in csv file during of discovery functions. (bug:MID-9497[] and bug:MID-9498[]).
 
-// * New version (3.7) of LDAP connector bundle (including xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP Connector] and xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.ad.AdLdapConnector/[Active Directory Connector]) was released and bundled with midPoint.
-// ** This version improve processing of fetching existing entry when updating it in AD connector. (bug:MID-8929[]).
-// ** Adding configuration option for suppression of user parameter exceptions and log only a warning message.
-//
-// * Docker images will be released in Docker Hub soon after midPoint {release-version} release.
-//
-// * Overlay project examples will be released soon after midPoint {release-version} release.
-//
-// * xref:/midpoint/tools/studio/[MidPoint Studio] version {release-version} will be released soon after midPoint {release-version} release.
-//
-// * xref:/midpoint/devel/prism/[Prism] data representation library {release-version} was released together with midPoint {release-version}.
-//
-// * xref:/midpoint/reference/interfaces/midpoint-client-java/[Midpoint client Java library] will be released soon after midPoint {release-version} release.
-
+* New version (3.8) of xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[AD/LDAP Connector] was released and bundled with midPoint. The connector suggest all names of columns for configuration properties related with name of column.
 
 ++++
 {% include release-quality.html %}
@@ -423,7 +420,7 @@ We reserve the right not to support customized web browsers.
 | LDAP and Active Directory
 
 | xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV connector]
-| 3.8
+| 2.8
 | Connector for CSV files
 
 | xref:/connectors/connectors/org.identityconnectors.databasetable.DatabaseTableConnector/[DatabaseTable connector]
@@ -481,7 +478,7 @@ Note that:
 === Upgrade From Other MidPoint Versions
 
 Upgrade from midPoint versions other than 4.8.x to midPoint {release-version} is not supported directly.
-Please upgrade to one of these versions (at least #TODO#) first.
+Please upgrade to 4.8.5 first.
 
 === Deprecation, Feature Removal And Major Incompatible Changes Since 4.8
 
@@ -556,116 +553,29 @@ You should at least scan through it - or use the `ninja` tool to check the depre
 [%autowidth]
 |===
 | Type | Item or value | Note
+| `AccessCertificationConfigurationType`
+| `availableResponse`
+| Configure actions in the cert. items collection view instead.
 
-// | `UserType`
-// | `employeeNumber`
-// | Use `personalNumber` instead.
-//
-// | `ActivationStatusType`
-// | `archived`
-// | The "archival" state is to be managed through the object lifecycle state instead.
-// Since 4.8, this value will not be put into "effectiveStatus" property anymore.
-//
-// | `AbstractMappingType`
-// | `enabled`
-// | Use value `draft` for `lifecycleState` property instead to disable the mapping.
-//
-// | `ExpressionType`, `ScriptExecutionPolicyActionType`
-// | `runAsRef`
-// | Use `privileges/runAsRef` instead.
-//
-// | `LegacyCorrelationDefinitionType`, `CorrelationCasesDefinitionType`
-// | (the whole type)
-// | Use the new correlation definition in `schemaHandling` container.
-//
-// | `GroupSelectionType`
-// | `searchFilterTemplate`, `userDisplayName`, `autocompleteMinChars`
-// | Use `autocompleteConfiguration` instead.
-//
-// | `RoleCatalogType`
-// | `showRolesOfTeammate`
-// | Use `rolesOfTeammate` instead.
-//
-// | `OidcResourceServerAuthenticationModuleType`
-// | `realm`, `issuerUri`, `jwkSetUri`, `nameOfUsernameClaim`, `singleSymmetricKey`, `trustedAlgorithm`, `trustingAsymmetricCertificate`, `keyStoreTrustingAsymmetricKey`
-// | Old configuration for resource oidc was moved to `jwt`.
-//
-// | `AbstractRegistrationPolicyType`
-// | `name`, `displayName`
-// | Use `UserInterfaceFeatureType.identifier` and `UserInterfaceFeatureType.display.label` instead.
-//
-// | `ActivityProfilingDefinitionType`
-// | `interval`
-// | Use `beforeItemCondition` instead.
-// (Experimental functionality.)
-//
-// | task extension
-// | `retryLiveSyncErrors`
-// | Use `controlFlow/errorHandling` with the reaction of `ignore` instead.
-//
-// | `WorkItemNotificationActionType`
-// | `handler`
-// | Experimental feature.
-|===
+| `ItemRefinedDefinitionType`
+| `emphasized`
+| Use `displayHint` instead.
 
-.Removed items
-[%autowidth]
-|===
-| Type | Item or value
+| `ResourceObjectTypeDefinitionType`
+| `association`
+| Use association types (in schemaHandling) instead.
 
-// | `CaseType`
-// | `taskRef`
-//
-// | `PersonaConstructionType`
-// | `targetSubtype`
-//
-// | `ArchetypePolicyType`
-// | `propertyConstraint`
-//
-// | `RoleManagementConfigurationType`
-// | `roleCatalogRef`, `roleCatalogCollections`, `defaultCollection`
-//
-// | `CleanupPoliciesType`
-// | `objectResults`
-//
-// | `ModelExecuteOptionsType`
-// | `reconcileAffected`
-//
-// | `IdMatchCorrelatorType`
-// | `followOn`
-//
-// | `AdminGuiConfigurationType`
-// | `objectForms`, `userDashboard`
-//
-// | `GuiObjectDetailsPageType`
-// | `forms`, `container`
-//
-// | `GuiObjectListViewType`
-// | `additionalPanels`
-//
-// | `SearchBoxConfigurationType`
-// | `defaultScope`, `defaultObjectType`
-//
-// | `SearchItemType`
-// | `displayName`
-//
-// | `GuiActionType`
-// | `name`
-//
-// | `GuiObjectListViewAdditionalPanelsType`
-// | (the whole type)
-//
-// | `LensProjectionContextType`
-// | `accountPasswordPolicy`, `accountPasswordPolicyRef`
-//
-// | `ModuleSaml2KeyTypeType`
-// | `encryption`
-//
-// | `TaskType`
-// | `category`, `recurrence`, `modelOperationContext`, `policyRule`, `errorHandlingStrategy`
-//
-// | `StringWorkSegmentationType`
-// | `boundaryCharacters`
+| `ResourceObjectTypeDefinitionType`
+| `protected`
+| Use "marking" instead.
+
+| `ShadowType`
+| `association`
+| Legacy associations of this shadow. Not used anymore.
+
+| `SynchronizationActionsType`
+| `unlink`
+| Use `<synchronize/>` action instead.
 |===
 
 _Actions required:_
@@ -753,6 +663,9 @@ This feature was used only internally by midPoint.
 
 * The `<xsd:documentation>` element in resource schemas is now ignored.
 It was never used by ConnId connectors, but, in theory, it might be used for manually entered schemas.
+
+* Default target set for mappings emiting multivalue properties is based on provenance metadata, mapping can only remove values, it added.
+** If value has multiple provenances (user entry, or multiple mappings), the mapping removes only it's provenance section, value still remains.
 
 === Java and REST API Changes Since 4.8
 

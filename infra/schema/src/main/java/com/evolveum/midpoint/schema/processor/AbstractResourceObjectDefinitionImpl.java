@@ -54,6 +54,14 @@ public abstract class AbstractResourceObjectDefinitionImpl
     static final LayerType DEFAULT_LAYER = LayerType.MODEL;
 
     /**
+     * Default settings obtained from the system configuration.
+     * Guarded by the getter and setter.
+     *
+     * Temporary solution, to be reviewed (MID-10126).
+     */
+    private static ShadowCachingPolicyType systemDefaultPolicy;
+
+    /**
      * At what layer do we have the attribute definitions.
      */
     @NotNull final LayerType currentLayer;
@@ -815,10 +823,19 @@ public abstract class AbstractResourceObjectDefinitionImpl
                 "Effective shadow caching policy is not available for unattached definitions: %s", this);
     }
 
-    private ShadowCachingPolicyType computeEffectiveShadowCachingPolicy() throws SchemaException, ConfigurationException {
-        var merged = BaseMergeOperation.merge(
-                definitionBean.getCaching(),
-                basicResourceInformation.cachingPolicy());
+    private @NotNull ShadowCachingPolicyType computeEffectiveShadowCachingPolicy()
+            throws SchemaException, ConfigurationException {
+
+        var cachingDefault = InternalsConfig.getShadowCachingDefault();
+
+        ShadowCachingPolicyType parentPolicy; // everything above the object class/type level
+        if (cachingDefault == InternalsConfig.ShadowCachingDefault.FROM_SYSTEM_CONFIGURATION) {
+            parentPolicy = BaseMergeOperation.merge(basicResourceInformation.cachingPolicy(), getSystemDefaultPolicy());
+        } else {
+            parentPolicy = basicResourceInformation.cachingPolicy();
+        }
+
+        var merged = BaseMergeOperation.merge(definitionBean.getCaching(), parentPolicy);
         var workingCopy = merged != null ? merged.clone() : new ShadowCachingPolicyType();
 
         boolean readCachedCapabilityPresent = isReadCachedCapabilityPresent();
@@ -828,7 +845,6 @@ public abstract class AbstractResourceObjectDefinitionImpl
         var defaultForCacheUse = CachedShadowsUseType.USE_FRESH;
         var defaultForTtl = "P1D";
         if (workingCopy.getCachingStrategy() == null) {
-            var cachingDefault = InternalsConfig.getShadowCachingDefault();
             if (readCachedCapabilityPresent) {
                 workingCopy.setCachingStrategy(CachingStrategyType.PASSIVE);
                 defaultForSimpleAttributesScope = ShadowSimpleAttributesCachingScopeType.ALL;
@@ -845,8 +861,6 @@ public abstract class AbstractResourceObjectDefinitionImpl
                 workingCopy.setCachingStrategy(CachingStrategyType.PASSIVE);
                 defaultForSimpleAttributesScope = ShadowSimpleAttributesCachingScopeType.ALL;
                 defaultForTtl = "P1000Y";
-            } else if (cachingDefault == InternalsConfig.ShadowCachingDefault.STANDARD) {
-                workingCopy.setCachingStrategy(CachingStrategyType.PASSIVE);
             } else {
                 workingCopy.setCachingStrategy(CachingStrategyType.NONE);
             }
@@ -915,5 +929,13 @@ public abstract class AbstractResourceObjectDefinitionImpl
     @Override
     public DefinitionMutator mutator() {
         throw new UnsupportedOperationException();
+    }
+
+    public static synchronized ShadowCachingPolicyType getSystemDefaultPolicy() {
+        return systemDefaultPolicy;
+    }
+
+    public static synchronized void setSystemDefaultPolicy(ShadowCachingPolicyType value) {
+        systemDefaultPolicy = value != null ? value.clone() : null;
     }
 }

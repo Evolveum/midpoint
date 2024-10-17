@@ -20,6 +20,8 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -35,6 +37,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformDefaultPattern;
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidAssignment;
 
 import static com.evolveum.midpoint.prism.PrismConstants.Q_ANY;
@@ -647,5 +650,70 @@ public class RoleAnalysisServiceUtils {
         }
 
         return filter.build();
+    }
+
+    public static void loadDetectedPattern(
+            @NotNull RepositoryService repositoryService,
+            @NotNull RoleAnalysisDetectionPatternType pattern, @NotNull Map<String, RoleAnalysisClusterType> mappedClusters, @Nullable Collection<SelectorOptions<GetOperationOptions>> options, @NotNull List<DetectedPattern> detectedPatterns, @NotNull OperationResult result) {
+        PrismContainerValue<?> prismContainerValue = pattern.asPrismContainerValue();
+        Map<String, Object> userData = prismContainerValue.getUserData();
+        @SuppressWarnings("unchecked") List<Object> containerIdPath = (List<Object>) userData.get("containerIdPath");
+        String patternClusterOid = containerIdPath.get(0).toString();
+        Long patternId = (Long) containerIdPath.get(1);
+
+        if (!mappedClusters.containsKey(patternClusterOid)) {
+            RoleAnalysisClusterType cluster;
+            try {
+                cluster = repositoryService.getObject(RoleAnalysisClusterType.class, patternClusterOid, options, result)
+                        .asObjectable();
+            } catch (ObjectNotFoundException | SchemaException e) {
+                throw new SystemException("Couldn't get cluster object with oid: " + patternClusterOid, e);
+            }
+            mappedClusters.put(patternClusterOid, cluster);
+        }
+
+        RoleAnalysisClusterType cluster = mappedClusters.get(patternClusterOid);
+
+        ObjectReferenceType clusterRef = new ObjectReferenceType();
+        clusterRef.setOid(cluster.getOid());
+        clusterRef.setType(RoleAnalysisClusterType.COMPLEX_TYPE);
+        clusterRef.setTargetName(cluster.getName());
+
+        ObjectReferenceType roleAnalysisSessionRef = cluster.getRoleAnalysisSessionRef();
+        ObjectReferenceType sessionRef = new ObjectReferenceType();
+        sessionRef.setOid(roleAnalysisSessionRef.getOid());
+        sessionRef.setType(RoleAnalysisSessionType.COMPLEX_TYPE);
+        sessionRef.setTargetName(roleAnalysisSessionRef.getTargetName());
+
+        DetectedPattern detectedPattern = transformDefaultPattern(pattern, clusterRef, sessionRef, patternId);
+        detectedPatterns.add(detectedPattern);
+    }
+
+    public static void prepareOutlierPartitionMap(
+            @NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull Task task,
+            @NotNull OperationResult result,
+            @NotNull RoleAnalysisOutlierPartitionType partition,
+            Map<RoleAnalysisOutlierPartitionType, RoleAnalysisOutlierType> partitionOutlierMap,
+            @NotNull Trace logger) {
+        PrismContainerValue<?> prismContainerValue = partition.asPrismContainerValue();
+        if (prismContainerValue == null) {
+            logger.error("Couldn't get prism container value during outlier partition search");
+            return;
+        }
+
+        Map<String, Object> userData = prismContainerValue.getUserData();
+        @SuppressWarnings("unchecked") List<Object> containerIdPath = (List<Object>) userData.get("containerIdPath");
+        String patternClusterOid = containerIdPath.get(0).toString();
+
+        PrismObject<RoleAnalysisOutlierType> outlierPrisObject = roleAnalysisService.getObject(
+                RoleAnalysisOutlierType.class, patternClusterOid, task, result);
+
+        if (outlierPrisObject == null) {
+            logger.error("Couldn't get outlier object during outlier partition search");
+            return;
+        }
+
+        partitionOutlierMap.put(partition, outlierPrisObject.asObjectable());
     }
 }

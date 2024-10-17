@@ -6,21 +6,32 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining;
 
+import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleApplicationDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -165,4 +176,38 @@ public class RoleAnalysisWebUtils {
         pageBase.navigateToNext(detailsPageClass, parameters);
     }
 
+    @Contract(value = "_, _, _ -> new", pure = true)
+    public static @NotNull LoadableDetachableModel<PrismObjectWrapper<UserType>> loadUserWrapperForMarkAction(
+            @NotNull String userOid,
+            @NotNull PageBase pageBase,
+            @NotNull OperationResult result) {
+        return new LoadableDetachableModel<>() {
+            @Override
+            protected PrismObjectWrapper<UserType> load() {
+                Task task = pageBase.createSimpleTask("createWrapper");
+                task.setResult(result);
+                ModelService modelService = pageBase.getModelService();
+
+                Collection<SelectorOptions<GetOperationOptions>> options = pageBase.getOperationOptionsBuilder()
+                        .noFetch()
+                        .item(ItemPath.create(ObjectType.F_POLICY_STATEMENT, PolicyStatementType.F_MARK_REF)).resolve()
+                        .item(ItemPath.create(ObjectType.F_POLICY_STATEMENT, PolicyStatementType.F_LIFECYCLE_STATE)).resolve()
+                        .build();
+
+                try {
+                    PrismObject<UserType> userObject = modelService.getObject(UserType.class, userOid, options, task, result);
+                    PrismObjectWrapperFactory<UserType> factory = pageBase.findObjectWrapperFactory(userObject.getDefinition());
+                    OperationResult result = task.getResult();
+                    WrapperContext ctx = new WrapperContext(task, result);
+                    ctx.setCreateIfEmpty(true);
+
+                    return factory.createObjectWrapper(userObject, ItemStatus.NOT_CHANGED, ctx);
+                } catch (ExpressionEvaluationException | SecurityViolationException | CommunicationException |
+                        ConfigurationException | ObjectNotFoundException | SchemaException e) {
+                    throw new SystemException("Cannot create wrapper for " + userOid, e);
+
+                }
+            }
+        };
+    }
 }

@@ -110,6 +110,11 @@
         </closedTasks>
     </cleanupPolicy>
     <internals>
+        <shadowCaching>
+            <defaultPolicy>
+                <cachingStrategy>passive</cachingStrategy>
+            </defaultPolicy>
+        </shadowCaching>
         <tracing>
             <profile id="12">
                 <name>performance</name>
@@ -1521,7 +1526,7 @@
                         </item>
                     </container>
                     <container id="266">
-                        <identifier>associationReaction</identifier>
+                        <identifier>associationReactionMain</identifier>
                         <visibility>hidden</visibility>
                         <path>schemaHandling/associationType/subject/association/synchronization/reaction</path>
                     </container>
@@ -1540,7 +1545,7 @@
                         </item>
                     </container>
                     <container id="258">
-                        <identifier>associationReaction</identifier>
+                        <identifier>associationReactionOptional</identifier>
                         <visibility>hidden</visibility>
                         <path>schemaHandling/associationType/subject/association/synchronization/reaction</path>
                     </container>

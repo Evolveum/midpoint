@@ -191,7 +191,7 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
 
         List<ContainerPanelConfigurationType> object = panelConfigurations.getObject();
         for (ContainerPanelConfigurationType containerPanelConfigurationType : object) {
-            if (containerPanelConfigurationType.getIdentifier().equals("topDetectedPattern")
+            if (containerPanelConfigurationType.getIdentifier().equals("sessionRoleSuggestions")
                     && analysisProcedureType == RoleAnalysisProcedureType.OUTLIER_DETECTION) {
                 containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
             } else if (containerPanelConfigurationType.getIdentifier().equals("outlierActions")

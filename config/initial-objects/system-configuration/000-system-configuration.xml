@@ -110,6 +110,11 @@
         </closedTasks>
     </cleanupPolicy>
     <internals>
+        <shadowCaching>
+            <defaultPolicy>
+                <cachingStrategy>passive</cachingStrategy>
+            </defaultPolicy>
+        </shadowCaching>
         <tracing>
             <profile id="12">
                 <name>performance</name>
@@ -1794,10 +1799,6 @@
             <identifier>admin-dashboard</identifier>
             <configurableDashboardRef oid="00000000-0000-0000-0001-000000000001" relation="org:default" type="c:DashboardType"/>
         </configurableUserDashboard>
-        <configurableUserDashboard id="267">
-            <identifier>compliance-dashboard</identifier>
-            <configurableDashboardRef oid="00000000-0000-0000-0001-000000001001" relation="org:default" type="c:DashboardType"/>
-        </configurableUserDashboard>
 
         <accessRequest>
             <roleCatalog>
@@ -1816,7 +1817,28 @@
                 </collection>
             </roleCatalog>
         </accessRequest>
+
     </adminGuiConfiguration>
+
+    <!--<roleAnalysis>-->
+    <!--    <attributeStatistics>-->
+    <!--        <type>UserType</type>-->
+    <!--        <path>title</path>-->
+    <!--        <path>locality</path>-->
+    <!--        <path>archetypeRef</path>-->
+    <!--        <path>extension/manager</path>-->
+    <!--        <assignment>-->
+    <!--            <targetType></targetType>-->
+    <!--            <rootOrgRef oid="my-root-department-oid" /> &lt;!&ndash; or archetypeRef &ndash;&gt;-->
+    <!--            <archetypeRef oid="department-archetype-oid" /> &lt;!&ndash; or rootOrgRef &ndash;&gt;-->
+    <!--        </assignment>-->
+    <!--        <organization>-->
+    <!--            <rootOrgRef oid="my-root-department-oid" /> &lt;!&ndash; or archetypeRef &ndash;&gt;-->
+    <!--            <archetypeRef oid="department-archetype-oid" /> &lt;!&ndash; or rootOrgRef &ndash;&gt;-->
+    <!--        </organization>-->
+    <!--    </attributeStatistics>-->
+
+    <!--</roleAnalysis>-->
 
     <expressions>
         <expressionProfile id="218">

@@ -65,6 +65,8 @@ import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.Nullable;
+
 @PanelType(name = "sessionOverView", defaultContainerPath = "empty")
 @PanelInstance(identifier = "sessionOverView",
         applicableForType = RoleAnalysisSessionType.class,
@@ -146,7 +148,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                 String oid = objectDetailsModels.getObjectType().getOid();
                 PageParameters parameters = new PageParameters();
                 parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-                parameters.add(PANEL_ID, "topDetectedPattern");
+                parameters.add(PANEL_ID, "sessionRoleSuggestions");
 
                 Class<? extends PageBase> detailsPageClass = DetailsPageUtil
                         .getObjectDetailsPage(RoleAnalysisSessionType.class);
@@ -180,12 +182,13 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
     }
 
     private void initRoleMiningPart(@NotNull RoleAnalysisService roleAnalysisService,
-            RoleAnalysisSessionType session,
-            Task task,
-            OperationResult result,
-            RoleAnalysisSessionStatisticType sessionStatistic,
-            WebMarkupContainer container) {
-        List<DetectedPattern> topSessionPattern = roleAnalysisService.getTopSessionPattern(session, task, result, true);
+            @NotNull RoleAnalysisSessionType session,
+            @NotNull Task task,
+            @NotNull OperationResult result,
+            @Nullable RoleAnalysisSessionStatisticType sessionStatistic,
+            @NotNull WebMarkupContainer container) {
+        List<DetectedPattern> topSessionPattern = roleAnalysisService.getSessionRoleSuggestion(
+                session.getOid(), 1, true, result);
 
         WebMarkupContainer panelContainer = new WebMarkupContainer(ID_PANEL_CONTAINER);
         panelContainer.setOutputMarkupId(true);
@@ -195,8 +198,9 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
             DetectedPattern pattern = topSessionPattern.get(0);
             initMiningPartNew(roleAnalysisService, session, task, result, sessionStatistic, container);
             IconWithLabel titlePanel = new IconWithLabel(ID_CARD_TITLE, Model.of("Best role suggestion analysis")) { //TODO localization
+                @Contract(pure = true)
                 @Override
-                protected String getIconCssClass() {
+                protected @NotNull String getIconCssClass() {
                     return "fa fa-cube fa-sm";
                 }
             };

@@ -97,7 +97,7 @@ public class ExtractPatternUtils {
 
             ObjectReferenceType roleAnalysisSessionRef = cluster.getRoleAnalysisSessionRef();
 
-            if(roleAnalysisSessionRef != null) {
+            if (roleAnalysisSessionRef != null) {
                 detectedPattern.setSessionRef(roleAnalysisSessionRef.clone());
             }
 
@@ -116,6 +116,49 @@ public class ExtractPatternUtils {
         }
 
         return mergedIntersection;
+    }
+
+    public static @NotNull DetectedPattern transformDefaultPattern(
+            @NotNull RoleAnalysisDetectionPatternType roleAnalysisDetectionPattern,
+            @Nullable ObjectReferenceType clusterRef,
+            @Nullable ObjectReferenceType sessionRef,
+            @Nullable Long selectedPatternId) {
+
+        List<ObjectReferenceType> rolesRef = roleAnalysisDetectionPattern.getRolesOccupancy();
+        List<ObjectReferenceType> usersRef = roleAnalysisDetectionPattern.getUserOccupancy();
+
+        Set<String> roles = rolesRef.stream().map(AbstractReferencable::getOid).collect(Collectors.toSet());
+        Set<String> users = usersRef.stream().map(AbstractReferencable::getOid).collect(Collectors.toSet());
+
+        Long id = roleAnalysisDetectionPattern.getId();
+        DetectedPattern detectedPattern = prepareDetectedPattern(roles,
+                users, id);
+
+        detectedPattern.setRoleAttributeAnalysisResult(roleAnalysisDetectionPattern.getRoleAttributeAnalysisResult());
+        detectedPattern.setUserAttributeAnalysisResult(roleAnalysisDetectionPattern.getUserAttributeAnalysisResult());
+        Double itemConfidence = roleAnalysisDetectionPattern.getItemConfidence();
+        if (itemConfidence != null) {
+            detectedPattern.setItemsConfidence(itemConfidence);
+        }
+        Double reductionConfidence = roleAnalysisDetectionPattern.getReductionConfidence();
+        if (reductionConfidence != null) {
+            detectedPattern.setReductionFactorConfidence(reductionConfidence);
+        }
+
+        if (clusterRef != null) {
+            detectedPattern.setClusterRef(clusterRef.clone());
+        }
+
+        if (sessionRef != null) {
+            detectedPattern.setSessionRef(sessionRef.clone());
+        }
+
+        detectedPattern.setPatternType(BasePattern.PatternType.PATTERN);
+        if (selectedPatternId != null) {
+            detectedPattern.setPatternSelected(isPatternSelected(roleAnalysisDetectionPattern, selectedPatternId));
+        }
+
+        return detectedPattern;
     }
 
     private static boolean isPatternSelected(RoleAnalysisDetectionPatternType roleAnalysisDetectionPattern, Long patternId) {

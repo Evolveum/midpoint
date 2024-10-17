@@ -109,7 +109,7 @@ public class ReferenceValueSearchPopupPanel extends PopoverSearchPopupPanel<Obje
 
             @Override
             protected <O extends ObjectType> void choosePerformed(AjaxRequestTarget target, O object) {
-                ReferenceValueSearchPopupPanel.this.chooseObjectPerformed(target);
+                ReferenceValueSearchPopupPanel.this.chooseObjectPerformed(target, object);
             }
 
             @Override
@@ -201,7 +201,7 @@ public class ReferenceValueSearchPopupPanel extends PopoverSearchPopupPanel<Obje
         return false;
     }
 
-    protected void chooseObjectPerformed(AjaxRequestTarget target) {
+    protected <O extends ObjectType> void chooseObjectPerformed(AjaxRequestTarget target, O object) {
 
     }
 }

@@ -5,16 +5,13 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster;
+package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.pattern;
 
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.RoleAnalysisDetectedPatternTileTable;
 
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -35,14 +32,10 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
-import java.util.ArrayList;
 import java.util.List;
-
-import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformDefaultPattern;
-
-@PanelType(name = "topDetectedPattern")
+@PanelType(name = "sessionRoleSuggestions")
 @PanelInstance(
-        identifier = "topDetectedPattern",
+        identifier = "sessionRoleSuggestions",
         applicableForType = RoleAnalysisSessionType.class,
         display = @PanelDisplay(
                 label = "RoleAnalysisDetectionPatternType.action.suggestion",
@@ -50,13 +43,13 @@ import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.tran
                 order = 30
         )
 )
-public class TopDetectedPatternPanel extends AbstractObjectMainPanel<RoleAnalysisSessionType, ObjectDetailsModels<RoleAnalysisSessionType>> {
+public class SessionRoleSuggestionsPanel extends AbstractObjectMainPanel<RoleAnalysisSessionType, ObjectDetailsModels<RoleAnalysisSessionType>> {
 
     private static final String ID_CONTAINER = "container";
     private static final String ID_PANEL = "panelId";
 
-    public TopDetectedPatternPanel(String id, ObjectDetailsModels<RoleAnalysisSessionType> model,
-            ContainerPanelConfigurationType config) {
+    public SessionRoleSuggestionsPanel(String id, ObjectDetailsModels<RoleAnalysisSessionType> model,
+                                       ContainerPanelConfigurationType config) {
         super(id, model, config);
     }
 
@@ -75,8 +68,8 @@ public class TopDetectedPatternPanel extends AbstractObjectMainPanel<RoleAnalysi
         RoleAnalysisSessionType session = getObjectDetailsModels().getObjectType();
         LoadableDetachableModel<List<DetectedPattern>> loadableDetachableModel = new LoadableDetachableModel<>() {
             @Override
-            protected List<DetectedPattern> load() {
-                return getTopPatterns(session);
+            protected @NotNull List<DetectedPattern> load() {
+                return loadSessionRoleSuggestions(session);
             }
         };
 
@@ -92,6 +85,7 @@ public class TopDetectedPatternPanel extends AbstractObjectMainPanel<RoleAnalysi
         return components;
     }
 
+    @Override
     public PageBase getPageBase() {
         return ((PageBase) getPage());
     }
@@ -109,39 +103,11 @@ public class TopDetectedPatternPanel extends AbstractObjectMainPanel<RoleAnalysi
         getPageBase().navigateToNext(detailsPageClass, parameters);
     }
 
-    //TODO reduction vs attribute confidence
-    // not correct way how to load top patterns
-    private @NotNull List<DetectedPattern> getTopPatterns(RoleAnalysisSessionType session) {
+    //TODO reduction vs attribute confidence, also in future use container paging table?
+    private @NotNull List<DetectedPattern> loadSessionRoleSuggestions(@NotNull RoleAnalysisSessionType session) {
         RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-
         Task task = getPageBase().createSimpleTask("getTopPatterns");
-        OperationResult result = task.getResult();
-        List<PrismObject<RoleAnalysisClusterType>> sessionClusters = roleAnalysisService.searchSessionClusters(
-                session, task, result);
-
-        List<DetectedPattern> topDetectedPatterns = new ArrayList<>();
-        for (PrismObject<RoleAnalysisClusterType> cluster : sessionClusters) {
-            List<DetectedPattern> detectedPatterns = transformDefaultPattern(cluster.asObjectable(), session);
-
-            double maxOverallConfidence = 0;
-            DetectedPattern topDetectedPattern = null;
-            for (DetectedPattern detectedPattern : detectedPatterns) {
-                double itemsConfidence = detectedPattern.getItemsConfidence();
-                double reductionFactorConfidence = detectedPattern.getReductionFactorConfidence();
-                double overallConfidence = itemsConfidence + reductionFactorConfidence;
-                if (overallConfidence > maxOverallConfidence) {
-                    maxOverallConfidence = overallConfidence;
-                    topDetectedPattern = detectedPattern;
-                }
-            }
-            if (topDetectedPattern != null) {
-                topDetectedPatterns.add(topDetectedPattern);
-            }
-
-        }
-
-        topDetectedPatterns.sort((o1, o2) -> Double.compare(o2.getMetric(), o1.getMetric()));
-        return topDetectedPatterns;
+        return roleAnalysisService.getSessionRoleSuggestion(session.getOid(), null, true, task.getResult());
     }
 
 }

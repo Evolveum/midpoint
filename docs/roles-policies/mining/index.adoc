@@ -225,13 +225,14 @@ Role objects in this case fall under the properties of the given user.
 
 ==== Data Collection Options
 
-* `User query` - defines the condition of objects for data collection.
+* `User filter` - defines the condition of objects for data collection.
 Designed to filter users according to the established rules.
+* `Role filter` - defines the condition of objects for data collection.
+Designed to filter roles according to the established rules.
+* `Assignment filter` - defines the condition of objects for data collection.
+Designed to filter assignment according to the established rules.
 The role-mining administrator can thus specify, for example, the condition of a relationship with a certain organizational unit, which increases the security and accuracy of the analysis.
-* `Properties range` - it specifies the condition of the range of properties to the main session object, given the selected analysis type (User or Role).
-For example, in the case of Role Based Analysis, only those roles that have the required number of user members specified in this setting are collected.
-This step will make managing the mining role more consistent and convenient.
-* `Indirect access` - allowing direct/indirect mode
+* `Indirect access` (experimental) - allowing clustering based on indirect access right.
 
 ==== Clustering Options
 
@@ -243,7 +244,7 @@ This step will make managing the mining role more consistent and convenient.
 ** Roles count (Role Based Analysis) - the minimum necessary number of roles to create a cluster that meets the condition of overlap and similarity.
 ** Users count (User Based Analysis) - the minimum necessary number of users to create a cluster that meets the condition of overlap and similarity.
 * `Group by attribute` - adds additional clustering rule that ensures presence of identical attribute values within each cluster.
-* `Analyze attribute` - defines additional attributes that are further analyzed in each cluster. It does not have an effect on the clustering algorithm.
+* `Analyze attribute` - defines additional attributes that are further analyzed in each cluster and role suggestion. It does not have an effect on the clustering algorithm. Provides additional information for the role mining administrator when evaluating subsequent actions.
 
 ==== Pattern Detection Options
 
