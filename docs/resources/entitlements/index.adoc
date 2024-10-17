@@ -713,6 +713,7 @@ Another typical one is `associationTargetSearch`.
 The important question here is: how should midPoint treat association values that exist on the resource, but are not provided by outbound mapping(s)?
 We deal with it in xref:#_tolerating_existing_association_values[Tolerating Existing Association Values] section below.
 
+[#_inbound_mappings]
 ==== Inbound Mappings
 
 Inbound mappings take existing association values, and create or update existing values in the midPoint focus object (e.g., a user).

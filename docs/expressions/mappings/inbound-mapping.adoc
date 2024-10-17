@@ -36,147 +36,9 @@ This is common practice e.g. in inbound expressions or in expressions describing
 ----
 
 
-== Association
+== Associations
 
-The inbound mapping for association allows you to manage group membership.
-As the example below shows, inbound can be defined in resource schema handling in the association part.
-All midpoint's expression can be used.
-In the following example the assignmentTargetSearch is used.
-According to the group in which user's take a membership the assignment will be constructed.
-The prerequisite is that each known group has it's corresponding role in midPoint.
-After applying search filter the role is found and it is assigned to the user.
-
-
-.Inbound example for association
-[source,xml]
-----
- <association>
-       <ref>ri:group</ref>
-    <inbound>
-        <strength>strong</strength>
-        <expression>
-            <assignmentTargetSearch>
-                <targetType>RoleType</targetType>
-                <filter>
-                    <q:text>name = `'Auto' + entitlement?.getName()?.getNorm()`</q:text>
-                </filter>
-              </assignmentTargetSearch>
-        </expression>
-        <target>
-            <path>assignment</path>
-            <set>
-                <condition>
-                    <script>
-                        <code>
-                            import com.evolveum.midpoint.schema.constants.*
-                            import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-
-                            if (assignment.target != null) {
-                                return assignment.target.roleType == 'auto'
-                            }
-
-                            if (assignment.targetRef != null) {
-                                role = midpoint.getObject(RoleType.class, assignment.targetRef.oid)
-                                return ('auto')?.equals(role.roleType)
-                            }
-                        </code>
-                    </script>
-                </condition>
-            </set>
-        </target>
-    </inbound>
-       <kind>entitlement</kind>
-       <intent>group</intent>
-       <direction>objectToSubject</direction>
-       <associationAttribute>ri:members</associationAttribute>
-       <valueAttribute>icfs:name</valueAttribute>
-</association>
-----
-
-In the example below there is a script expression _return 'Auto' + entitlement?.getName()?.getNorm()_ which tells midPoint which role should be assigned to the user.
-The _entitlement_ is a special variable pointing to the ShadowType representing group on resource.
-This variable is available only for script expression in the relativity mode relative.
-In other cases when there is a need to resolve ShadowType for a group there is a method in midpoint function library which can be used.
-This method is shown in example below.
-
-.Resolving ShadowAssociationForGroup
-[source,xml]
-----
-groupShadowType = midpoint.resolveEntitlement(input);
-----
-
-This is another example of inbound mapping.
-It derives role name from the `cn`  LDAP attribute of the group.
-There are two differences to the above example:
-
-. Roles are created on demand here.
-It provides additional resilience.
-
-. Assignments maintained by this mapping are marked by `ldap-group`  subtype; instead of marking based on roles' subtype.
-This is more efficient, because it does not require `getObject`  repository call on evaluation.
-(Also, the behavior is slightly different: here you can have assignment to a role bound to LDAP group, which is maintained manually, independently of assignments managed by this mapping.)
-
-.Modified inbound example for associations
-[source,xml]
-----
-<association>
-    <ref>ri:group</ref>
-    <displayName>LDAP Group Membership</displayName>
-    <kind>entitlement</kind>
-    <intent>ldapGroup</intent>
-    <direction>objectToSubject</direction>
-    <associationAttribute>ri:uniqueMember</associationAttribute>
-    <valueAttribute>ri:dn</valueAttribute>
-    <inbound>
-        <strength>strong</strength>
-        <expression>
-            <assignmentTargetSearch>
-                <targetType>RoleType</targetType>
-                <filter>
-                    <q:text>name = `basic.getAttributeValue(entitlement, 'cn')`</q:text>
-                </filter>
-                <!-- This is to ensure that the appropriate role is created when encountered by this mapping.
-                     Normally, such roles whould be created by some kind of synchronization (either live sync
-                     or reconciliation) on LDAP group objects, but it is possible that this mapping is evaluated
-                     at a moment when group sync was not yet run for a newly-created group. -->
-                <createOnDemand>true</createOnDemand>
-                <populateObject>
-                    <populateItem>
-                        <expression>
-                            <script>
-                                <code>
-                                    basic.getAttributeValue(entitlement, 'cn')
-                                </code>
-                            </script>
-                        </expression>
-                        <target>
-                            <path>name</path>
-                        </target>
-                    </populateItem>
-                </populateObject>
-                <!-- This marks assignments created by this mapping -->
-                <assignmentProperties>
-                    <subtype>ldap-group</subtype>
-                </assignmentProperties>
-            </assignmentTargetSearch>
-        </expression>
-        <target>
-            <path>assignment</path>
-            <!-- This is to ensure that only assignments created by this mappings will be removed by it. -->
-            <set>
-                <condition>
-                    <script>
-                        <code>
-                            assignment?.subtype.contains('ldap-group')
-                        </code>
-                    </script>
-                </condition>
-            </set>
-        </target>
-    </inbound>
-</association>
-----
-
+Inbound mappings for associations are described in a xref:/midpoint/reference/resources/entitlements/#_inbound_mappings[separate document].
 
 == Range Of Inbound Mappings
 
@@ -195,18 +57,20 @@ The default range of inbound mappings depend on the target item:
 | `all`
 | The target value will be replaced.
 This is nice and intuitive behavior for single-value items.
-This is also known as _non-tolerant _behavior.
+This is also known as _non-tolerant_ behavior.
 
 
-| multi-value
-| `none`
+.2+| multi-value
+| `none` for unnamed mappings
 | Target values will *not*  be replaced.
 This is safe behavior for multi-value items as the chance to delete something is lower.
 This is also consistent with other mappings, where the default range is empty.
 This is mostly intuitive for many multi-valued items, such as assignments - even though it may not be a natural fit everywhere.
-But it is consistent behavior, therefore it was chosen as a default. +
-This is also known as _tolerant_ behavior.
+But it is consistent behavior, therefore it was chosen as a default.
 
+This is also known as _tolerant_ behavior.
+| `matchingProvenance` for named mappings
+| Only the target values that were previously provided by this mapping are replaced by it.
 
 |===
 
@@ -214,15 +78,15 @@ The default behavior can be overridden by explicit definition of mapping range, 
 
 [source,xml]
 ----
-    <inbound>
-        ... sources, expression, etc.
-        <target>
-            <path>organization</path>
-            <set>
-                <predefined>all</predefined>
-            </set>
-        </target>
-    </inbound>
+<inbound>
+    ... sources, expression, etc.
+    <target>
+        <path>organization</path>
+        <set>
+            <predefined>all</predefined>
+        </set>
+    </target>
+</inbound>
 ----
 
 See xref:/midpoint/reference/expressions/mappings/range[] page for a detailed discussion of mapping ranges.
@@ -235,7 +99,8 @@ But it makes a lot of issues in inbound mappings.
 The reason for that is that inbound mappings are somehow different.
 They are not completely xref:/midpoint/reference/concepts/relativity/[relativistic].
 
-Typical midPoint mapping is working with a xref:/midpoint/devel/prism/concepts/deltas/[deltas]. The mapping knows what was changed and the mapping takes a full advantage of that.
+Typical midPoint mapping is working with a xref:/midpoint/devel/prism/concepts/deltas/[deltas].
+The mapping knows what was changed and the mapping takes a full advantage of that.
 Therefore it will normally not change the things that should not be changed.
 Therefore the definition of mapping range is not that important in such case.
 However, in inbound mappings we do not usually have a delta.
@@ -246,11 +111,15 @@ But the real difficulty here is to know which values to remove.
 E.g. if mapping target is an assignment, how do we know which assignments are given by this mapping and which are assigned automatically? The mapping should remove those that are given by the mapping, but it should not touch other assignments.
 This is exactly what range definition does.
 
-For the future, there is an easier and perhaps more intuitive method.
-But that requires remembering the origin (provenance) of each value that midPoint maintains.
-Fortunately, such feature is planned: xref:/midpoint/features/planned/data-provenance/[Data Provenance]. If you are interested in this please consider xref:/support/subscription-sponsoring/[purchasing platform subscription].
+Fortunately, provenance-based range definition, which is the default for multi-valued targets and named mappings, provides a good solution here.
 ====
 
+== Limitations
+
+When an account is deleted, or unlinked from the user, the inbound mappings are *not executed*.
+(An exception is an explicit and direct deletion of an account requested by the user.)
+This means that the values provided by the mapping previously are not removed when the account is gone.
+This is going to be resolved in the future.
 
 == See Also
 
