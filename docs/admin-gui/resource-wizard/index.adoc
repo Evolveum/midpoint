@@ -36,11 +36,11 @@ There are the following possibilities:
 . *From Scratch* - you will need to configure all aspects of the resource
 . *Copy From Template* - the new resource will be based on a pre-existing resource template. The new resource will be created as a copy of that template.
 
-image::step-1-type-of-resource.png[link=step-1-type-of-resource.png,100%, title=Type of resource]
+image::resource/step-1-type-of-resource.png[link=resource/step-1-type-of-resource.png,100%, title=Type of resource]
 
 Selecting *From Scratch* option leads to a Resource catalog page:
 
-image::step-1-resource-catalog.png[link=step-1-connector-conf-discovery.png,100%, title=Resource catalog]
+image::resource/step-1-resource-catalog.png[link=resource/step-1-connector-conf-discovery.png,100%, title=Resource catalog]
 
 Click the connector tile you want to use to start the resource creation wizard.
 
@@ -57,13 +57,13 @@ Enter basic configuration such as resource *Name* and *Description* here.
 It allows you to create preliminary resource configuration that will not be active, but can be used for xref:/midpoint/reference/admin-gui/simulations/[Simulations].
 The default value is `Proposed`.
 
-image::step-1-basic-conf.png[link=step-1-basic-conf.png, 100%, title=Basic configuration]
+image::resource/step-1-basic-conf.png[link=resource/step-1-basic-conf.png, 100%, title=Basic configuration]
 
 Click btn:[Next] to continue the resource configuration.
 
 If the connector supports _discovery_ operation, resource wizard will ask you for mandatory configuration parameters to be able to detect the others, e.g. path to a CSV file for CSV file connector.
 
-image::step-1-connector-conf-discovery.png[link=step-1-connector-conf-discovery.png,100%, title=Partial configuration for discovery]
+image::resource/step-1-connector-conf-discovery.png[link=resource/step-1-connector-conf-discovery.png,100%, title=Partial configuration for discovery]
 
 .See also the following pages for more information:
 * Familiarize yourself with the concept of xref:/midpoint/reference/admin-gui/simulations/[Simulations]
@@ -75,7 +75,7 @@ All other resource configuration properties can be configured now, e.g. CSV file
 Some of the properties are already preconfigured by the connector.
 Some of them allow suggestions of appropriate values using an autocompletion, e.g. when selecting which column should be used as a unique identifier of the row, the wizard suggests the CSV file columns as detected by the connector in the discovery step.
 
-image::step-1-discovered-config.png[link=step-1-discovered-config.png, 100%, title=Discovered configuration]
+image::resource/step-1-discovered-config.png[link=resource/step-1-discovered-config.png, 100%, title=Discovered configuration]
 
 Click btn:[Next] to continue the resource configuration.
 
@@ -85,7 +85,7 @@ To resolve the issue, remove the leading UTF-8 BOM characters from the csv file 
 Connector will return possible object types and their attributes (_schema_ and its _object classes_).
 Confirm the detected configuration.
 
-image::step-1-schema.png[link=step-1-schema.png, 100%, title=Schema]
+image::resource/step-1-schema.png[link=resource/step-1-schema.png, 100%, title=Schema]
 
 Click btn:[Create resource] to create the resource and store it in midPoint repository.
 Further configuration is required.
@@ -93,16 +93,19 @@ You can choose your next step:
 
 * Preview Resource Data
 * Configure Object Types
+* Configure Association Types
 * Go To Resource
 
-image::choice-part-resource.png[link=choice-part-resource.png,100%,title=Resource created - next steps]
+image::resource/choice-part.png[link=resource/choice-part.png,100%,title=Resource created - next steps]
 
 Clicking *Preview Resource Data* tile will display the data (e.g. accounts) in the source/target system configured as resource.
 You can display the data even before providing configuration for its processing.
 
-image::data-preview-resource.png[link=data-preview-resource.png,100%,title=Resource Data preview]
+image::resource/data-preview.png[link=resource/data-preview.png,100%,title=Resource Data preview]
 
 Clicking *Configure Object Types* allows you to <<Object type configuration,configure the Object type(s)>>.
+
+Clicking *Configure Association Types* allows you to <<Association type configuration,configure the Association type(s)>>.
 
 Clicking *Go To Resource* leads to the resource details page.
 
@@ -112,7 +115,7 @@ In this part of resource configuration, you can configure the object types for x
 One or multiple object types can be defined, based on the source/target system characteristics.
 For example, CSV resource contains typically a single object type (e.g. accounts) while LDAP resource can contain more than one object type (e.g. accounts and groups).
 
-image::step-2-object-type-table.png[link=step-2-object-type-table.png,100%,title=Table of object types]
+image::object-type/object-type-table.png[link=object-type/object-type-table.png,100%,title=Table of object types]
 
 Click btn:[Add object type] to create a new object type definition using Object type configuration wizard.
 
@@ -128,7 +131,7 @@ TIP: You first object type definition will be almost always for accounts (`kind=
 * *Default* specifies if the intent provided in the previous value should be used as the default value in case you define multiple intents. Select `True` if you are using only a single intent / one type of accounts.
 
 
-image::step-2-object-type-basic-config.png[link=step-2-object-type-basic-config.png, 100%, title=Basic configuration of object type]
+image::object-type/step-1-object-type-basic-config.png[link=object-type/step-1-object-type-basic-config.png, 100%, title=Basic configuration of object type]
 
 .See also the following pages for more information:
 * xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[]
@@ -151,7 +154,7 @@ NOTE: You do not need to use the classification at all. If unsure, do not use it
 
 // TODO TODO we do not have better Delination example! I have created https://support.evolveum.com/wp/9404 to track this
 
-image::step-2-object-type-resource-data.png[link=step-2-object-type-resource-data.png, 100%,title=Resource data]
+image::object-type/step-1-object-type-resource-data.png[link=object-type/step-1-object-type-resource-data.png, 100%,title=Resource data]
 
 Click btn:[Next: MidPoint Data] to continue the object type configuration.
 
@@ -172,7 +175,7 @@ Panel for Archetype contains three possibilities:
 * overview of xref:/midpoint/reference/schema/archetypes/[Archetypes]
 * built-in xref:/midpoint/reference/schema/archetypes/person/[Person archetype] ready to be used
 
-image::step-2-object-type-midpoint-data.png[link=step-2-object-type-midpoint-data.png, 100%, title=Midpoint data]
+image::object-type/step-1-object-type-midpoint-data.png[link=object-type/step-1-object-type-midpoint-data.png, 100%, title=Midpoint data]
 
 Click btn:[Save settings] to save the object type configuration.
 Further configuration is required.
@@ -187,12 +190,12 @@ You can choose your next step to configure other parts of your object type confi
 * <<Credentials>> allows to configure mappings for credentials (e.g. passwords)
 * <<Associations>> allow to configure the resource for associations, e.g. account to group relations
 
-image::choice-part-object-type.png[link=choice-part-object-type.png,100%,title=Parts of object type configuration]
+image::object-type/choice-part.png[link=object-type/choice-part.png,100%,title=Parts of object type configuration]
 
 Or you can click btn:[Preview data] to display resource data according to the configuration of this particular object type you are configuring (considering `Kind`, `Intent`, `Object class` etc.):
 
 .Data preview of object type
-image::data-preview-object-type.png[link=data-preview-object-type.png,100%,title=Data preview of object type]
+image::object-type/data-preview.png[link=object-type/data-preview.png,100%,title=Data preview of object type]
 
 === Mappings
 
@@ -226,7 +229,7 @@ To define a mapping, you need to configure:
 * *Target* allows you to type (with autocompletion) the midPoint property that should be used to store the value generated by the inbound mapping
 * *Lifecycle state* allows you to define the lifecycle state of the mapping. This can be used during xref:/midpoint/reference/admin-gui/simulations/[Simulations], e.g. specifying lifecycle state as `Proposed` will be used only to simulate the mapping, `Draft` disables the mapping etc.
 
-image::step-3-mappings-inbound.png[link=step-3-mappings-inbound.png, 100%, title=Table of inbound mappings]
+image::object-type/step-2-mappings-inbound.png[link=object-type/step-2-mappings-inbound.png, 100%, title=Table of inbound mappings]
 
 TIP: Adding new mappings to existing configuration can utilize simulations if you use `Proposed` as the new mappings' lifecycle state. Such mappings can be simulated without influencing the real data.
 
@@ -234,8 +237,8 @@ More complex configuration is possible by clicking btn:[Edit] button:
 
 [%autowidth, cols="a,a", frame=none, grid=none, role=center]
 |===
-| image::step-3-mappings-inbound-detail-main.png[link=step-3-mappings-inbound-detail-main.png, 100%, title=Main configuration of inbound mapping (complex view)]
-| image::step-3-mappings-inbound-detail-optional.png[link=step-3-mappings-inbound-detail-optional.png, 100%, title=Optional configuration of inbound mapping (complex view)]
+| image::object-type/step-2-mappings-inbound-detail-main.png[link=object-type/step-2-mappings-inbound-detail-main.png, 100%, title=Main configuration of inbound mapping (complex view)]
+| image::object-type/step-2-mappings-inbound-detail-optional.png[link=object-type/step-2-mappings-inbound-detail-optional.png, 100%, title=Optional configuration of inbound mapping (complex view)]
 |===
 
 [#use_inbound_for_correlation]
@@ -269,7 +272,7 @@ TIP: Even multiple source attributes can be defined for an outbound mapping.
 * *To resource attribute* allows you to type (with autocompletion) the resource attribute that should be used as a target of the mapping.
 * *Lifecycle state* allows you to define the lifecycle state of the mapping. This can be used during xref:/midpoint/reference/admin-gui/simulations/[Simulations], e.g. specifying lifecycle state as `Proposed` will be used only to simulate the mapping, `Draft` disables the mapping etc.
 
-image::step-3-mappings-outbound.png[link=step-3-mappings-outbound.png, 100%, title=Table of outbound mappings]
+image::object-type/step-2-mappings-outbound.png[link=object-type/step-2-mappings-outbound.png, 100%, title=Table of outbound mappings]
 
 TIP: Adding new mappings to existing configuration can utilize simulations if you use `Proposed` as the new mappings' lifecycle state. Such mappings can be simulated without influencing the real data.
 
@@ -277,8 +280,8 @@ More complex configuration is possible by clicking btn:[Edit] button:
 
 [%autowidth, cols="a,a", frame=none, grid=none, role=center]
 |===
-| image::step-3-mappings-outbound-detail-main.png[link=step-3-mappings-outbound-detail-main.png, 100%, title=Main configuration of outbound mapping (complex view)]
-| image::step-3-mappings-outbound-detail-optional.png[link=step-3-mappings-outbound-detail-optional.png, 100%, title=Optional configuration of outbound mapping (complex view)]
+| image::object-type/step-2-mappings-outbound-detail-main.png[link=object-type/step-2-mappings-outbound-detail-main.png, 100%, title=Main configuration of outbound mapping (complex view)]
+| image::object-type/step-2-mappings-outbound-detail-optional.png[link=object-type/step-2-mappings-outbound-detail-optional.png, 100%, title=Optional configuration of outbound mapping (complex view)]
 |===
 
 Mapping can be deleted by clicking btn:[Delete] button.
@@ -296,10 +299,10 @@ This is useful to override attribute visibility, its display name, tolerance etc
 [%autowidth, cols="a,a", frame=none, grid=none, role=center]
 |===
 
-2+| image::step-3-mappings-override.png[link=step-3-mappings-override.png, 100%, title=Table of attribute overrides]
+2+| image::object-type/step-2-mappings-override.png[link=object-type/step-2-mappings-override.png, 100%, title=Table of attribute overrides]
 
-| image::step-3-mappings-override-detail-basic.png[link=step-3-mappings-override-detail-basic.png, 100%, title=Detailed configuration of attribute override configuration]
-| image::step-3-mappings-override-detail-limitations.png[link=step-3-mappings-override-detail-limitations.png, 100%, title=Detailed configuration of attribute override - limitations configuration]
+| image::object-type/step-2-mappings-override-detail-basic.png[link=object-type/step-2-mappings-override-detail-basic.png, 100%, title=Detailed configuration of attribute override configuration]
+| image::object-type/step-2-mappings-override-detail-limitations.png[link=object-type/step-2-mappings-override-detail-limitations.png, 100%, title=Detailed configuration of attribute override - limitations configuration]
 |===
 
 === Synchronization
@@ -331,16 +334,16 @@ TIP: The logic of situation and action is up to you. E.g. it is perfectly OK to 
 
 TIP: Please refer to xref:/midpoint/reference/schema/focus-and-projections/[Focus and Projections] for explanation of the term _Focus_. In the most basic scenarios when synchronizing users and their accounts, _focus_ corresponds to User object in midPoint.
 
-image::step-4-synch.png[link=step-4-synch.png,100%,title=Table of synchronization actions]
+image::object-type/step-3-synch.png[link=object-type/step-3-synch.png,100%,title=Table of synchronization actions]
 
 More complex configuration is possible by clicking btn:[Edit] button:
 
 [%autowidth, cols="a,a", frame=none, grid=none, role=center]
 |===
-| image::step-4-synch-detail-basic.png[link=step-4-synch-detail-basic.png, 100%, title=Basic configuration of synchronizatio rule]
-| image::step-4-synch-detail-action.png[link=step-4-synch-detail-action.png, 100%, title=Action for synchronization rule]
+| image::object-type/step-3-synch-detail-basic.png[link=object-type/step-3-synch-detail-basic.png, 100%, title=Basic configuration of synchronizatio rule]
+| image::object-type/step-3-synch-detail-action.png[link=object-type/step-3-synch-detail-action.png, 100%, title=Action for synchronization rule]
 
-| image::step-4-synch-detail-optional.png[link=step-4-synch-detail-optional.png, 100%, title=Optional attributes for synchronization rule]
+| image::object-type/step-3-synch-detail-optional.png[link=object-type/step-3-synch-detail-optional.png, 100%, title=Optional attributes for synchronization rule]
 |
 |===
 
@@ -364,7 +367,7 @@ For the correlation, you can configure the following:
 * *Weight*, *Tier*, *Ignore if matched by* for more complex scenarios
 * *Enabled* to enable or disable the correlation rule
 
-image::step-5-correlator-rule.png[link=step-5-correlator-rule.png,100%,title=Table of correlation rules]
+image::object-type/step-4-correlator-rule.png[link=object-type/step-4-correlator-rule.png,100%,title=Table of correlation rules]
 
 Click btn:[Edit] button to edit details of the correlation rule.
 
@@ -377,7 +380,7 @@ TIP: For target resources where inbound mappings are normally not used, the inbo
 
 
 .Table of correlation items for one correlation rule
-image::step-5-correlator-item.png[link=step-5-correlator-item.png,100%,title=Table of correlation items for one correlation rule]
+image::object-type/step-4-correlator-item.png[link=object-type/step-4-correlator-item.png,100%,title=Table of correlation items for one correlation rule]
 
 .See also the following pages for more information:
 * xref:/midpoint/reference/correlation/items-correlator/[]
@@ -396,7 +399,7 @@ Capabilities can be also _configured_, e.g. for LDAP resources, you can define w
 TIP: Capabilities can be configured also on the resource level, not just for specific object types by navigating to resource's *Details* panel.
 
 .Capabilities configuration
-image::step-6-capabilities.png[link=step-6-capabilities.png,100%,title=Capabilities configuration]
+image::object-type/step-5-capabilities.png[link=object-type/step-5-capabilities.png,100%,title=Capabilities configuration]
 
 Click btn:[Save capabilities] when done to return to the previous page from which you started the capabilities editor.
 
@@ -419,7 +422,7 @@ We can use predefined mappings (rules) for many interesting situations.
 
 The table contains the list of inbound activation mappings.
 
-image::step-7-activation-inbounds.png[link=step-7-activation-inbounds.png, 100%, title=Empty inbound table for activation]
+image::object-type/step-6-activation-inbounds.png[link=object-type/step-6-activation-inbounds.png, 100%, title=Empty inbound table for activation]
 
 Click btn:[Add inbound] to add a new inbound activation mapping.
 
@@ -428,8 +431,8 @@ Then configure details for mapping as appropriate for the activation scenario.
 
 [%autowidth, cols="a,a", frame=none, grid=none, role=center]
 |===
-| image::step-7-activation-inbound-add.png[link=step-7-activation-inbound-add.png, 100%, title=Popup for adding of new inbound activation mapping]
-| image::step-7-activation-inbound-full.png[link=step-7-activation-inbound-full.png, 100%, title=Activation table with inbound mapping for administrative status]
+| image::object-type/step-6-activation-inbound-add.png[link=object-type/step-6-activation-inbound-add.png, 100%, title=Popup for adding of new inbound activation mapping]
+| image::object-type/step-6-activation-inbound-full.png[link=object-type/step-6-activation-inbound-full.png, 100%, title=Activation table with inbound mapping for administrative status]
 
 |===
 
@@ -443,7 +446,7 @@ Click btn:[Save mappings] when done to return to the previous page from which yo
 
 The table contains the list of outbound activation mappings.
 
-image::step-7-activation-outbounds.png[link=step-7-activation-outbounds.png, 100%, title=Empty outbound table for activation]
+image::object-type/step-6-activation-outbounds.png[link=object-type/step-6-activation-outbounds.png, 100%, title=Empty outbound table for activation]
 
 Click btn:[Add outbound] to add a new outbound activation mapping.
 
@@ -452,14 +455,14 @@ Then configure details for mapping as appropriate for the activation scenario.
 
 [%autowidth, cols="a,a", frame=none, grid=none, role=center]
 |===
-| image::step-7-activation-outbound-add.png[link=step-7-activation-outbound-add.png, 100%, title=Popup for adding of new outbound activation mapping]
-| image::step-7-activation-outbound-full.png[link=step-7-activation-outbound-full.png, 100%, title=Activation table with outbound mapping for administrative status and predefined mappings for 'Disable instead of delete' and 'Delayed delete' configuration]
+| image::object-type/step-6-activation-outbound-add.png[link=object-type/step-6-activation-outbound-add.png, 100%, title=Popup for adding of new outbound activation mapping]
+| image::object-type/step-6-activation-outbound-full.png[link=object-type/step-6-activation-outbound-full.png, 100%, title=Activation table with outbound mapping for administrative status and predefined mappings for 'Disable instead of delete' and 'Delayed delete' configuration]
 |===
 
 Predefined mapping configurations contain only one configuration step.
 
 .Predefined details configuration for 'Delayed delete'
-image::step-7-predefined-details.png[link=step-7-predefined-details.png,100%,title=Predefined details configuration for 'Delayed delete']
+image::object-type/step-6-predefined-details.png[link=object-type/step-6-predefined-details.png,100%,title=Predefined details configuration for 'Delayed delete']
 
 Each mapping also allows setting *Lifecycle state*.
 This can be used during xref:/midpoint/reference/admin-gui/simulations/[Simulations], e.g. specifying lifecycle state as `Proposed` will be used only to simulate the activation mapping, `Draft` disables the activation mapping etc.
@@ -477,7 +480,7 @@ Use the credentials mappings to either pass or generate the password.
 TIP: The `as is` mappings are very simple as midPoint implies that the password will be passed from midPoint user password to resource object password (if supported by the resource and connector) or vice versa.
 
 
-image::step-8-credentials.png[link=step-8-credentials.png,100%,title=Configuration of credentials]
+image::object-type/step-7-credentials.png[link=object-type/step-7-credentials.png,100%,title=Configuration of credentials]
 
 Each mapping also allows setting *Lifecycle state*.
 This can be used during xref:/midpoint/reference/admin-gui/simulations/[Simulations], e.g. specifying lifecycle state as `Proposed` will be used only to simulate the credentials mapping, `Draft` disables the credentials mapping etc.
@@ -486,35 +489,156 @@ Click btn:[Save settings] when done to return to the previous page from which yo
 
 NOTE: You don't need any credentials mappings if you are not managing the passwords in the resource (e.g. if you are using SSO with another system).
 
-=== Associations
+=== Policies
+
+Object type policies define default behavior of midPoint based on the concept of object marks. Automatic marking rules and default operation policy can be defined.
+
+image::object-type/step-8-policies.png[link=object-type/step-8-policies.png,100%,title=Object type policies]
+
+Default operation policy for those operations that do not have their behavior specified explicitly via object marks.
+
+image::object-type/step-8-default-operation-policies.png[link=object-type/step-8-default-operation-policies.png,100%,title=Configuration of default operation policies]
+
+Click btn:[Save policies] when done to return to the previous page from which you started the default operation policies editor.
+
+Marking configuration allows to define automatic rules for object marking. Specify mark and its application time and optionally filter to denote objects which should be marked. Objects will be marked either always - whenever they are processed or at the classification time.
+
+image::object-type/step-8-marking.png[link=object-type/step-8-marking.png,100%,title=Configuration of marking]
+
+Click btn:[Save marking rules] when done to return to the previous page from which you started the marking editor.
+
+
+
+== Association type configuration
 
 Associations allow you to configure resource for object type relations.
 Typically, this is used to configure how account/group membership is defined and processed.
-
-You can define the following associations properties:
-
-* *ref* is a unique name for the association (technical), e.g. `group`
-* *Display name* is a user-friendly association name displayed in GUI
-* *Kind* and *Intent* specify the object type which defines the object to be associated. This means you are referring to another <<Object type configuration,object type>> for entitlement which needs to be defined first using the same mechanism as you use for accounts.
-* *Direction* defines the direction of the relation between associated objects. There are two possibilities:
-** *Object to subject* Object (e.g. a group) has an attribute that contains subject (e.g. account) identifiers as its values. E.g. a group has a list of members. _This is the LDAP-way_.
-** *Subject to object* Subject (e.g. account) has an attribute that contains object (e.g. group) identifiers as its values. E.g. an account has a list of groups to which it belongs.
-* *Association attribute* refers to name of the attribute which represents the association. This is the attribute that will be modified when the association changes. In object-to-subject associations this is the attribute of the object (e.g. group's `dn`). In subject-to-object associations this is an attribute of the subject (e.g. account's `groups` attribute).
-* *Value attribute* refers to name of the attribute from with a value for association attribute is taken. The value is taken from this attribute and it will be stored in the association attribute. This attribute will not be modified when the association changes, it is only for reading. In object-to-subject associations this is the attribute of the subject (e.g. account's `dn`). In subject-to-object associations this is an attribute of the object (e.g. group's `name`). This attribute usually contain identifiers.
-* *Lifecycle state* allows you to define the lifecycle state of the association configuration. This can be used during xref:/midpoint/reference/admin-gui/simulations/[Simulations], e.g. specifying lifecycle state as `Proposed` will be used only to simulate the association configuration, `Draft` disables the association configuration etc.
-
-image::step-9-association.png[link=step-9-association.png,100%,title=Table of associations]
-
-Click btn:[Add association] to add a new association configuration.
-
-.Detail configuration for association
-image::step-9-association-detail.png[Detail configuration for association, 100%]
 
 .See also the following pages for more information:
 * xref:/midpoint/reference/resources/entitlements/#association-definition[Association definition]
 * xref:/midpoint/reference/resources/entitlements/[Entitlements]
 
-Click btn:[Save associations settings] when done to return to the previous page from which you started the association editor.
+After clicking on btn:[Configure association type], you will see a table of association types.
+
+image::association-type/association-type-table.png[link=association-type/association-type-table.png,100%,title=Table of association types]
+
+The first step in creating a new association is to select the type of association, which is predefined by capabilities or connector.
+
+image::association-type/choice-association-type.png[link=association-type/choice-association-type.png,100%,title=Select association]
+
+After selecting the association, you will see a four-step wizard. The first step allows you to configure the basic settings.
+
+image::association-type/step-1-association-type-basic-config.png[link=association-type/step-1-association-type-basic-config.png,100%,title=Basic configuration]
+
+In the second step you have to select the subject of the association.
+If there is only one option, it will be selected and you can proceed to the next step.
+
+image::association-type/step-1-select-subject.png[link=association-type/step-1-select-subject.png,100%,title=Select subject]
+
+The next step is very similar to the previous one, but you select the object of association.
+
+image::association-type/step-1-select-object.png[link=association-type/step-1-select-object.png,100%,title=Select object]
+
+On the last one, fill in the necessary fields to specify the reference attribute to specify the data corresponding to the association.
+
+image::association-type/step-1-specify-data-for-association.png[link=association-type/step-1-specify-data-for-association.png,100%,title=Specify the data for association]
+
+After creating a new association type, you will see a page with three options.
+The first one represents the two-step wizard that you already see during the creation of the association type,
+concretising the first and last steps without parts for selecting subjects and objects.
+The third option is to select objects only.
+
+image::association-type/choice-part.png[link=association-type/choice-part.png,100%,title=Association wizard]
+
+Now we click on the second option and we will see the second possibilities for configuring the subject of the association type.
+
+=== Subject
+
+image::association-type/subject/choice-part.png[link=association-type/subject/choice-part.png,100%,title=Subject wizard]
+
+The first option is to select the subject step that you already see. Second and third options are configuration parts for provisioning from/to resource.
+As first we can see on provisioning from resource.
+
+==== Provisioning from resource
+On this page we create provisioning rule(s) to specify how midPoint should read the association information and transform it to midPoint data, typically assignments.
+
+image::association-type/subject/provisioning-from-resource/table-new.png[link=association-type/subject/provisioning-from-resource/table-new.png,100%,title=Provisioning from resource]
+
+We can see that table is empty so come to create new provisioning rule.
+
+image::association-type/subject/provisioning-from-resource/step-1-basic-configuration.png[link=association-type/subject/provisioning-from-resource/step-1-basic-configuration.png,100%,title=Main configuration of association inbound mapping]
+
+We set basic attributes and save new rule. After saving we will see options that we can configure for provisioning rule.
+
+image::association-type/subject/provisioning-from-resource/choice-part.png[link=association-type/subject/provisioning-from-resource/choice-part.png,100%,title=Provisioning from resource wizard]
+
+First option represent basic configuration that we already see.
+
+===== Mapping
+Second option represent mapping for provisioning.
+
+image::association-type/subject/provisioning-from-resource/step-2-mapping.png[link=association-type/subject/provisioning-from-resource/step-2-mapping.png,100%,title=Provisioning from resource mappings]
+
+In this step we create a map that defines the transformation of association data from resource to midPoint data (inbound).
+We can use the expression *Shadow owner* which means assigning the role that owns the entitlement.
+
+The detailed steps for mapping include the same steps as editing the mapping of the object type.
+
+Click btn:[Save mappings] when done to return to the previous page from which you started the mapping editor.
+
+===== Synchronization
+Third option represent synchronization rules for provisioning. This section specifies how midPoint reacts when a new synchronization event is detected.
+
+image::association-type/subject/provisioning-from-resource/step-3-synchronization-table.png[link=association-type/subject/provisioning-from-resource/step-3-synchronization-table.png,100%,title=Synchronization]
+
+The detailed steps for synchronization rule include the same steps as editing the synchronization rule of the object type.
+
+Click btn:[Save synchronization settings] when done to return to the previous page from which you started the synchronization editor.
+
+
+===== Correlation
+Last option represent correlation rules for provisioning.
+Define a new correlation rule to specify how midPoint should correlate the associations to assignments.
+
+image::association-type/subject/provisioning-from-resource/step-4-correlation-rule-table.png[link=association-type/subject/provisioning-from-resource/step-4-correlation-rule-table.png,100%,title=Correlation rules]
+
+When you click on btn:[Edit] in item menu you will see table for items of correlation rule.
+
+image::association-type/subject/provisioning-from-resource/step-4-correlation-items.png[link=association-type/subject/provisioning-from-resource/step-4-correlation-items.png,100%,title=Configuration of correlation items]
+
+Click btn:[Confirm settings] when finished to return to the previous page for correlation rules, but you must save your changes.
+Click btn:[Save correlation settings] when done to return to the previous page from which you started the correlation editor.
+
+Now we can go back to configure _Provisioning to resource_.
+
+==== Provisioning to resource
+On this page we can create provisioning rule(s) to specify how midPoint should create the association information
+and transform it to resource data, typically from assignments.
+
+image::association-type/subject/provisioning-to-resource/table-new.png[link=association-type/subject/provisioning-to-resource/table-new.png,100%,title=Provisioning to resource]
+
+The first steps are the same as for provisioning from resources, we need to create a new rule.
+
+image::association-type/subject/provisioning-to-resource/step-1-basic-configuration.png[link=association-type/subject/provisioning-to-resource/step-1-basic-configuration.png,100%,title=Main configuration of association outbound mapping]
+
+We set basic attributes and save new rule. After saving we will see options that we can configure for provisioning rule.
+
+image::association-type/subject/provisioning-to-resource/choice-part.png[link=association-type/subject/provisioning-to-resource/choice-part.png,100%,title=Provisioning to resource wizard]
+
+First option represent basic configuration that we already see.
+
+===== Mapping
+Second option represent mapping for provisioning.
+
+image::association-type/subject/provisioning-to-resource/step-2-mapping.png[link=association-type/subject/provisioning-to-resource/step-2-mapping.png,100%,title=Provisioning to resource mappings]
+
+In this step we create a map which defines the transformation of midPoint data to association data (outbound).
+We can use the expression *Association from link* which means associate with the entitlement owned by the assigned role.
+
+The detailed steps for mapping include the same steps as editing the mapping of the object type.
+
+Click btn:[Save mappings] when done to return to the previous page from which you started the mapping editor.
+
 
 == Wizard for existing resource
 
@@ -547,7 +671,7 @@ Keep the *Simulate task* switch set to *OFF*.
 
 Select the xref:/midpoint/reference/tasks/synchronization-tasks/[task] to be created (Import, Reconciliation, Live synchronization) by clicking one of the tiles:
 
-image::task-wizard-step-1-select-task-type.png[link=task-wizard-step-1-select-task-type.png,100%,title=Step 1: Select task type]
+image::task-wizard/step-1-select-task-type.png[link=task-wizard/step-1-select-task-type.png,100%,title=Step 1: Select task type]
 
 Click btn:[Create task] to start task creation wizard.
 
@@ -555,21 +679,21 @@ Define basic information for the task:
 
 * *Name* will be used as the task name. If you do not define the task name, it will be generated automatically based on the task type, resource and object type display name, e.g. `Import task: HR System: HR Person`.
 
-image::task-wizard-step-2-basic.png[link=task-wizard-step-2-basic.png,100%,title=Step 2: Enter basic task information]
+image::task-wizard/step-2-basic.png[link=task-wizard/step-2-basic.png,100%,title=Step 2: Enter basic task information]
 
 Click btn:[Next: Resource objects] to continue with the task creation.
 
 Define resource-related information for the task.
 Normally you don't need to define anything as the task creation wizard will use the information from the resource and object type, where you have started it and *Resource*, *Kind*, *Intent* and/or *Object class* will be already predefined.
 
-image::task-wizard-step-3-resource.png[link=task-wizard-step-3-resource.png,100%,title=Step 3: Enter resource-related task information]
+image::task-wizard/step-3-resource.png[link=task-wizard/step-3-resource.png,100%,title=Step 3: Enter resource-related task information]
 
 Click btn:[Next: Distribution] to continue with the task creation.
 
 Define distribution information for the task, currently only *Worker threads* you want to use for the task run.
 The default value is a single worker.
 
-image::task-wizard-step-4-distribution.png[link=task-wizard-step-4-distribution.png,100%,title=(Optional) Step 4: Enter distribution details]
+image::task-wizard/step-4-distribution.png[link=task-wizard/step-4-distribution.png,100%,title=(Optional) Step 4: Enter distribution details]
 
 Click btn:[Save & Run] to save and start task immediately or click btn:[Save settings] to create but not start the task.
 
@@ -587,7 +711,7 @@ Switch the *Simulate task* to *ON*.
 
 Select the xref:/midpoint/reference/tasks/synchronization-tasks/[task] to be created (Import, Reconciliation, Live synchronization) by clicking one of the tiles:
 
-image::task-wizard-step-1-select-task-type-simulated.png[link=task-wizard-step-1-select-task-type-simulated.png,100%,title=Step 1: Select task type (with simulation)j]
+image::task-wizard/step-1-select-task-type-simulated.png[link=task-wizard/step-1-select-task-type-simulated.png,100%,title=Step 1: Select task type (with simulation)j]
 
 Click btn:[Create task] to start task creation wizard.
 
@@ -596,14 +720,14 @@ Define basic information for the task:
 * *Name* will be used as the task name. If you do not define the task name, it will be generated automatically based on the task type, resource and object type display name, e.g. `Import task: HR System: HR Person`.
 In the following image we are using a custom task name `Reconciliation with AD - development simulation`.
 
-image::task-wizard-step-2-basic-simulated.png[link=task-wizard-step-2-basic-simulated.png,100%,title=Step 2: Enter basic task information]
+image::task-wizard/step-2-basic-simulated.png[link=task-wizard/step-2-basic-simulated.png,100%,title=Step 2: Enter basic task information]
 
 Click btn:[Next: Resource objects] to continue with the task creation.
 
 Define resource-related information for the task.
 Normally you don't need to define anything as the task creation wizard will use the information from the resource and object type, where you have started it and *Resource*, *Kind*, *Intent* and/or *Object class* will be already predefined.
 
-image::task-wizard-step-3-resource-simulated.png[link=task-wizard-step-3-resource-simulated.png,100%,title=Step 3: Enter resource-related task information]
+image::task-wizard/step-3-resource-simulated.png[link=task-wizard/step-3-resource-simulated.png,100%,title=Step 3: Enter resource-related task information]
 
 Click btn:[Next: Execution] to continue with the task creation. The "Execution" parameters can be edited only for simulated tasks.
 
@@ -618,7 +742,7 @@ This allows to configure the task xref:/midpoint/reference/admin-gui/simulations
 ** *Development* allows evaluating all configuration which is in lifecycle state `Active` or `Proposed`
 ** *Production* allows evaluating all configuration which is in lifecycle state `Active` or `Deprecated`
 
-image::task-wizard-step-4-execution-simulated.png[link=task-wizard-step-4-execution-simulated.png,100%,title=Step 4: Enter execution-related task information]
+image::task-wizard/step-4-execution-simulated.png[link=task-wizard/step-4-execution-simulated.png,100%,title=Step 4: Enter execution-related task information]
 
 Click btn:[Next: Schedule] to continue with the task creation. The "Schedule" parameters can be edited only for reconciliation and/or live synchronization tasks.
 
@@ -629,14 +753,14 @@ TIP: Scheduling usually does not make much sense when creating a simulated task.
 * *Interval* allows defining scheduling interval in seconds
 * *Cron-like pattern* allows defining scheduling intervals via cron-like pattern
 
-image::task-wizard-step-5-schedule-simulated.png[link=task-wizard-step-5-schedule-simulated.png,100%,title=(Optional) Step 5: Enter scheduling-related task information]
+image::task-wizard/step-5-schedule-simulated.png[link=task-wizard/step-5-schedule-simulated.png,100%,title=(Optional) Step 5: Enter scheduling-related task information]
 
 Click btn:[Next: Distribution] to continue with the task creation.
 
 Define distribution information for the task, currently only *Worker threads* you want to use for the task run.
 The default value is a single worker.
 
-image::task-wizard-step-4-distribution.png[link=task-wizard-step-4-distribution.png,100%,title=(Optional) Step 6: Enter distribution details]
+image::task-wizard/step-4-distribution.png[link=task-wizard/step-4-distribution.png,100%,title=(Optional) Step 6: Enter distribution details]
 
 Click btn:[Save & Run] to save and start task immediately or click btn:[Save settings] to create but not start the task.
 
