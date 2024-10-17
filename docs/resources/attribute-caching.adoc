@@ -31,7 +31,7 @@ There is no read-ahead.
 The writes are always going to the resource (synchronously): read-through, write-through.
 There is no cache eviction (but old information is overwritten if newer information is available).
 
-If caching is turned on, which is by default, then midPoint will cache the data in xref:/midpoint/reference/resources/shadow/[Shadow Objects].
+If caching is turned on, which is by default for new midPoint installations, then midPoint will cache the data in xref:/midpoint/reference/resources/shadow/[Shadow Objects].
 The caches are build gradually as midPoint reads the objects.
 If you need to populate the caches with information you have to make an operation that is searching all the objects.
 E.g. reconciliation or similar operation should do the trick.
@@ -39,7 +39,7 @@ See xref:#_refreshing_the_cache[Refreshing the Cache] below.
 
 == Configuring Caching
 
-The caching can be enabled or disabled at the level of a resource, object class, object type, or even an individual item (attribute, association, activation, and so on).
+The caching can be enabled or disabled at the level of the whole system, a resource, an object class, an object type, or even an individual item (attribute, association, activation, and so on).
 
 === An Example
 
@@ -96,46 +96,48 @@ It has the following sub-items:
 .The `caching` configuration item content
 [%autowidth]
 |===
-| Item | Description | Default
+| Item | Description | Default | Default for xref:#caching_only_read_capability[caching-only read capability]
 
 | `cachingStrategy`
 | The overall switch that turns the caching on and off.
 It can have a value of `none` (no caching) and `passive` (passive caching as described above).
-| `passive`
+2+| `passive`
 
 | `scope`
 | Scope of the caching (see below).
-| see below
+2+| see below
 
 | `timeToLive`
 | For how long we consider the cached data as fresh.
-| P1D (or unlimited for xref:#caching_only_read_capability[caching-only read capability])
+| P1D
+| unlimited
 
 | `defaultCacheUse`
 | How is the cache used for midPoint operations.
-| `fresh`
+2+| `fresh`
 |===
 
 .The `scope` configuration item content
 [%autowidth]
 |===
-| Item | Description | Default
+| Item | Description | Default | Default for xref:#caching_only_read_capability[caching-only read capability]
 
 | `attributes`
 | Scope of the caching for simple attributes (i.e., not reference ones)
-| `defined` (or `all` for xref:#caching_only_read_capability[caching-only read capability])
+| `defined`
+| `all`
 
 | `associations`
 | Scope of the caching for associations (i.e., reference attributes).
-| `all`
+2+| `all`
 
 | `activation`
 | Scope of the caching for the activation information.
-| `all`
+2+| `all`
 
 | `auxiliaryObjectClasses`
 | Scope of the caching for the auxiliary object classes.
-| `all`
+2+| `all`
 
 // | `credentials`
 // | Scope of the caching for credentials.
@@ -173,7 +175,31 @@ It can have a value of `none` (no caching) and `passive` (passive caching as des
 | The data are cached.
 |===
 
-Exceptions (both positive and negative) to the scope can be defined by using `cached` boolean property present for individual attributes and associations.
+Exceptions (both positive and negative) to the scope can be defined by using `cached` boolean property present for individual attributes.
+
+System-wide defaults for the caching can be set in the system configuration. This is the default setting for all new installation, taken from the initial object holding the system configuration:
+
+.Listing 2: Setting the default values for the shadow caching
+[source,xml]
+----
+<systemConfiguration>
+    ...
+    <internals>
+        <shadowCaching>
+            <defaultPolicy>
+                <cachingStrategy>passive</cachingStrategy> <!--1-->
+            </defaultPolicy>
+        </shadowCaching>
+        ...
+----
+<1> Enables the shadow caching for all resources as a default.
+The defaults for individual values, e.g., time to live, can be overridden here as well.
+
+IMPORTANT: When changing the defaults in the system configuration, you need to apply changed values to all resource.
+The easiest way how to do that is to restart midPoint (all nodes in the cluster).
+An alternative is to make (any) change to each resource.
+For example, you can let midPoint to reload the schema, or put the resource into maintenance mode and back, and so on.
+We plan to resolve this issue in the near future.
 
 == Configuring Cache Use
 
@@ -235,7 +261,7 @@ It has a benefit of consistently update the cache for these objects.
 There may be situations, though, when you'd need to avoid contacting the resource, and take data from the cache.
 It can be attained by specifying `noFetch` option, like this:
 
-.Listing 2: An example of custom caching configuration
+.Listing 3: Sample reconciliation task running from the shadow cache
 [source,xml]
 ----
 <task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -275,7 +301,7 @@ This feature is *experimental*.
 The best way of refreshing the cache is to run an import or reconciliation task.
 However, if you want to avoid the cost of data processing inherent in these tasks, you can use the following alternative:
 
-.Listing 3: A task that just refreshes the shadow cache
+.Listing 4: A task that just refreshes the shadow cache
 [source,xml]
 ----
 <task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -357,10 +383,6 @@ When the "caching only" read capability is present (e.g., for manual resources),
 | P1D
 | unlimited
 
-| `defaultCacheUse`
-| `cachedOrFresh`
-| `fresh`
-
 | attributes caching scope
 | `defined`
 | `all`
@@ -377,32 +399,36 @@ The defaults above can be turned back to standard default values (the second col
 
 == Limitations
 
+=== For Both Native And Generic (Oracle, SQL Server) Repository
+
+. Attributes whose values are provided by the resource should have caching turned off.
+For example, the `uid` attribute in LDAP can be derived from the `dn` attribute (if it's in the form of `uid=xxx,...`).
+In such cases, midPoint could mistakenly assume that the value of this attribute is missing for new accounts being created, when `useCachedOrFresh` approach to data retrieval is used.
++
+The solution is either to turn their caching off (by setting `cached` property to `false` for those attributes), or to make sure they are explicitly provided by midPoint each time their source (e.g., `dn` for `uid`) is created or modified.
+You can do that by providing an explicit mapping for, e.g., `uid` attribute along with the mapping for `dn`.
+
 . Credentials are not cached yet, unless explicitly turned on by setting the legacy `credentials/password/caching/cachingStrategy` property.
 (See xref:/midpoint/reference/security/credentials/password-policy/[].)
 Only hashed storage of cached passwords is supported.
 
 . Localized attributes (see bug:MID-5210[]) are not cached yet.
 
-Limitations for the generic repository implementation (Oracle, SQL Server):
+=== For Generic Repository (Oracle, SQL Server) Only
 
 . values cannot be larger than 255 characters;
 . values cannot be empty (on Oracle);
 . illegal XML characters (like those with codes under 32) cannot be present in string values.
 
+If you have attributes that do not conform to these restrictions, please either turn off their caching (using `cached` property with the value of `false`), or use the experimental `storageStrategy` of `notIndexed`.
+
 === "Use Cached" setting
 
-Please turn on "use cached" setting with care.
+Please turn on `useCachedOrFresh` setting with care.
 There may be unexpected differences to the pre-4.9 behavior, mainly related to inbound mappings being executed, because of the data being available from the cache.
 On the other hand, in some cases, inbound mappings for some attributes may be skipped, because
 the shadow may not be loaded - because of caching.
-That way or another, please make sure the system behaves as expected with caching enabled.
-
-== Setting via Configuration Property
-
-The default values for caching can be influenced by setting `midpoint.internals.shadowCachingDefault` configuration property, or `midpoint/internals/shadowCachingDefault` property in `config.xml` file.
-
-If set to `none`, then the default behavior is to have caching turned off.
-If not set, or set to `standard`, the default is to have caching turned on.
+That way or another, please make sure the system behaves as expected with `useCachedOrFresh` setting.
 
 == Migration Note
 
