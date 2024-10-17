@@ -532,14 +532,10 @@ For more information see xref:/midpoint/reference/deployment/ninja/use-case/upgr
 * 535-archetype-task-certification-remediation.xml: Archetype for campaign remediation related task.
 * A set of initial objects was updated to extend polystring type elements with translation keys configuration.
 The full set of changed objects you can see in the link:https://github.com/Evolveum/midpoint/commit/cf7cade899b8f663d90e5a9785037e0d0d1927c0[commit] with some further changes in the next commits: link:https://github.com/Evolveum/midpoint/commit/d381b6637139464ee967e5c553e1233ba1750499[archetype correlation case label fix], link:https://github.com/Evolveum/midpoint/commit/54f03f9b6e919d45a9651d22a71f796efa662989[fixes in system configuration object], link:https://github.com/Evolveum/midpoint/commit/54f03f9b6e919d45a9651d22a71f796efa662989[archetype and report objects fixes], link:https://github.com/Evolveum/midpoint/commit/16e3f923aaca7433452689565fa6ede40aab9573[application label fix].
-// * References to removed `category`, `handlerUri`, and `reportOutputOid` properties of tasks were deleted: from task archetypes and from GUI configurations.
-// See https://github.com/Evolveum/midpoint/commit/1fe4b60057d040f7424523cf24194bfcb7920f90[1fe4b6], https://github.com/Evolveum/midpoint/commit/b5a331b377a4fff0dbabd82e64da60f0b8c96c2b[b5a331], and https://github.com/Evolveum/midpoint/commit/6887e980c48e45a5ae22642932ed22e0c8b5f665[6887e9].
-//
-// * `230-lookup-lifecycle-state.xml`: The `suspended` lifecycle state was added.
-//
-// * Container IDs and configuration items identifiers were added to multiple objects, see https://github.com/Evolveum/midpoint/commit/6887e980c48e45a5ae22642932ed22e0c8b5f665[6887e9] and https://github.com/Evolveum/midpoint/commit/092db5c5ab1b21f578acab520a2ea35d0ed94904[092db5] (the last commit also adds missing `handlerUri` mapping to `520-archetype-task-certification.xml`).
-//
-// * `270-object-collection-audit.xml` was adapted to internal API change in https://github.com/Evolveum/midpoint/commit/400d78c5372c9ec86b80d7d995af27f8a244a616[400d78].
+* 029-archetype-application.xml: updated panels for application archetype.
+* 700-archetype-event-mark.xml: updated admin gui configuration - hidden object operation policy panel.
+* 800-804 marks: updated object operation policy membership.
+* 030-role-superuser.xml: updated policy.
 
 Please review link:https://github.com/Evolveum/midpoint/commits/master/gui/admin-gui/src/main/resources/initial-objects[source code history] for detailed list of changes.
 
