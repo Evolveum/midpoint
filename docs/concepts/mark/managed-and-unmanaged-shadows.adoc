@@ -32,7 +32,7 @@ They are designed to help in environments where you need mixed inbound/outbound 
 With outbound-only or inbound-only resources, `Unmanaged` and `Managed` marks are not needed; midPoint behavior can be configured using strictly outbound or inbound mappings and appropriate synchronization reactions.
 ====
 
-#TODO link to methodology#
+// #TODO link to methodology#
 
 == Unmanaged Mark
 
@@ -91,7 +91,7 @@ It is also possible to define a default operation policy for object type.
 
 // TODO: link to methodology or screenshots.
 
-Individual shadows can be marked using GUI when browsing resource shadows of specific resources or in simulation result view.
+Individual shadows can be marked using GUI when xref:/midpoint/reference/master/concepts/mark/manual-marking/#marking-shadows-in-resource-details[browsing resource shadows of specific resources] or in xref:/midpoint/reference/master/concepts/mark/manual-marking/#marking-shadows-in-simulation-results-details[simulation results].
 
 === Marking Rules
 

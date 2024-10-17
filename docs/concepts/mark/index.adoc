@@ -138,7 +138,9 @@ The current implementation is that the value of `true` is the result, should suc
 
 === Built-in Object Marks
 
-This object marks are intended to capture various policy states regarding
+These object marks are intended to mark objects violating various policies.
+
+Objects can be manually marked using xref:/midpoint/reference/concepts/mark/manual-marking/#object-marks[midPoint GUI].
 
 |===
 | Object Mark | Description
@@ -196,6 +198,8 @@ This object marks are intended to capture various policy states regarding
 === Shadow Policy Marks
 
 Automatic marking of shadows with shadow policy marks can be configured in xref:/midpoint/reference/concepts/mark/managed-and-unmanaged-shadows/#marking-rules[resource schema handling].
+
+Shadow Policy Marks can be also assigned manually using xref:/midpoint/reference/concepts/mark/manual-marking/#shadow-policy-marks[midPoint GUI].
 
 .Built-in Shadow Marks
 [cols="20%,5%,5%,5%,5%,5%,60%"]
@@ -270,66 +274,3 @@ h| Out
 |Shadow object which has bad data and should be ignored by synchronization. Same behavior as `Protected`, but different semantic meaning.
 |===
 
-
-== GUI: Object Marks and Shadows
-
-NOTE: In midPoint 4.7 object marks are only supported for shadows.
-
-=== Marking Shadows in Resource Details
-
-MidPoint GUI allows manually marking shadows in resource details view
-using *Add Marks*, *Mark as Protected* actions in *Accounts* and *Entitlements*.
-
-==== Workflow screenshots
-
-.Go to Resource -> Accounts
-image::resources-accounts-00.png[]
-
-.Click on Menu for Shadow
-image::resources-accounts-01.png[]
-
-.Select Add Marks
-image::resources-accounts-02.png[]
-
-.Select Marks to be added to shadow
-image::resources-accounts-03.png[]
-
-=== Removing Shadow Marks in Resource Details
-
-MidPoint GUI allows removing manually mark of shadows in resource details view using *Remove Marks* actions in *Accounts* and *Entitlements*.
-
-==== Workflow screenshots
-.Go to Resource -> Accounts, select accounts from which marks will be removed
-image::mark-shadow-remove-01.png[]
-
-.Click on Menu for Selected Shadows, Select Remove Marks
-image::mark-shadow-remove-02.png[]
-
-.Select Marks which should be removed from selected accounts
-image::mark-shadow-remove-03.png[]
-
-.Click Remove Marks to remove them
-image::mark-shadow-remove-04.png[]
-
-=== Marking Shadows in Simulation Results
-
-MidPoint GUI allows manually marking shadows in Simulations results -> Processed Object views.
-This is done by clicking menu icon and selecting Add Marks. Note that mark
-is applied to real shadow (not simulated result). This allows for use-cases such as running simulations
-and excluding particular shadows from real run.
-
-NOTE: In Simulations GUI mark is applied to actual underlying object
-
-==== Workflow screenshots
-
-.Click on Menu icon for shadow
-image::simulations-processed-object-01.png[]
-
-.Select Add Marks
-image::simulations-processed-object-02.png[]
-.Select Marks and click Add
-image::simulations-processed-object-04.png[]
-
-=== Listing marked shadows across resources
-
-In order to view all shadows marked by specific mark, you can navigate in midPoint GUI, to *Marks*, open specific object mark details and click on *Marked Shadows*.
