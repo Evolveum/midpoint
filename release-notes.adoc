@@ -57,6 +57,10 @@ For more information see xref:/midpoint/reference/security/credentials/secrets-p
 **  Query Support for searching in value metadata of objects
 *** Native Repository: Object metadata stored in `metadata` property of `MetadataType` are also indexed and searchable as value metadata. Eg. original `metadata/creatorRef` is `@metadata/storage/creatorRef` as value metadata path.
 *** Value metadata `storage` and `process` are indexed for assignments and available for search using `assignment/@metadata/storage`.
+*** xref:/midpoint/reference/concepts/metadata/#provenance-metadata[Provenance metadata] are enabled by default for multivalue properties,  containers and assignments.
+
+* Default target set for mappings emiting multivalue properties is based on provenance metadata, mapping can only remove values, it added.
+** If value has multiple provenances (user entry, or multiple mappings), the mapping removes only it's provenance section, value still remains.
 
 * Ninja
 ** Added support for new verification categories: `MULTI_VALUE_REF_WITHOUT_OID`, `MISSING_NATURAL_KEY`, `MULTIVALUE_BYTE_ARRAY`, `PROTECTED_DATA_NOT_EXTERNAL`.
@@ -651,6 +655,9 @@ This feature was used only internally by midPoint.
 
 * The `<xsd:documentation>` element in resource schemas is now ignored.
 It was never used by ConnId connectors, but, in theory, it might be used for manually entered schemas.
+
+* Default target set for mappings emiting multivalue properties is based on provenance metadata, mapping can only remove values, it added.
+** If value has multiple provenances (user entry, or multiple mappings), the mapping removes only it's provenance section, value still remains.
 
 === Java and REST API Changes Since 4.8
 
