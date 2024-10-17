@@ -39,6 +39,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 === New Features and Major Improvements
 
 * xref:/midpoint/reference/resources/attribute-caching/[Shadow caching] was significantly improved and is now a regular midPoint feature.
+** Shadow caching is enabled by default on new deployments and needs to be explicitly enabled on existing ones.
 * Native Repository Support for `searchContainersIteratively` for all container types
 ** Removed upper record limit for reports for assignments, certification cases, certification work items and others.
 ** Changed transaction isolation from READ_COMMITED to REPEATABLE_READ.
@@ -113,7 +114,9 @@ Tree node search is now same for all nodes.
 ** Spring Boot was upgraded to 3.3.2 and Hibernate ORM to 6.5
 
 * Shadow table Partitioning in Native PostgreSQL Repository
-** Midpoint automatically partition shadow tables based on resource and object class of shadow. Partitioning is enabled by default on new deployments and needs to be excplictly enabled on existing deployments. See xref:/midpoint/reference/repository/native-postgresql/shadow-partitioning/[Repository -> Native -> Shadow Partitioning] for details.
+** Midpoint automatically partition shadow tables based on resource and object class of shadow.
+Partitioning is enabled by default on new deployments and needs to be explicitly enabled on existing deployments.
+See xref:/midpoint/reference/repository/native-postgresql/shadow-partitioning/[Repository -> Native -> Shadow Partitioning] for details.
 
 * xref:/midpoint/reference/repository/native-postgresql/splitted-fullobject/[Native Repository uses splitted full-object model] for data storage: `operationExecution`, `assignment`, `linkRef` and `roleMembershipRef` in their separate tables outside of object `fullObject` columns
 ** Added support and options to optimize queries and not retrieve these items in xref:/midpoint/reference/expressions/expressions/script/functions/get-and-search/[code and groovy scripts].
@@ -527,6 +530,8 @@ For more information see xref:/midpoint/reference/deployment/ninja/use-case/upgr
 * 520-archetype-task-certification.xml: Changes for proper functioning of certification related tasks.
 * 534-archetype-task-certification-campaign-open-next-stage.xml: Archetype for campaign open next stage (start campaign) related task.
 * 535-archetype-task-certification-remediation.xml: Archetype for campaign remediation related task.
+* A set of initial objects was updated to extend polystring type elements with translation keys configuration.
+The full set of changed objects you can see in the link:https://github.com/Evolveum/midpoint/commit/cf7cade899b8f663d90e5a9785037e0d0d1927c0[commit] with some further changes in the next commits: link:https://github.com/Evolveum/midpoint/commit/d381b6637139464ee967e5c553e1233ba1750499[archetype correlation case label fix], link:https://github.com/Evolveum/midpoint/commit/54f03f9b6e919d45a9651d22a71f796efa662989[fixes in system configuration object], link:https://github.com/Evolveum/midpoint/commit/54f03f9b6e919d45a9651d22a71f796efa662989[archetype and report objects fixes], link:https://github.com/Evolveum/midpoint/commit/16e3f923aaca7433452689565fa6ede40aab9573[application label fix].
 // * References to removed `category`, `handlerUri`, and `reportOutputOid` properties of tasks were deleted: from task archetypes and from GUI configurations.
 // See https://github.com/Evolveum/midpoint/commit/1fe4b60057d040f7424523cf24194bfcb7920f90[1fe4b6], https://github.com/Evolveum/midpoint/commit/b5a331b377a4fff0dbabd82e64da60f0b8c96c2b[b5a331], and https://github.com/Evolveum/midpoint/commit/6887e980c48e45a5ae22642932ed22e0c8b5f665[6887e9].
 //
@@ -662,8 +667,15 @@ This feature was used only internally by midPoint.
 * The `<xsd:documentation>` element in resource schemas is now ignored.
 It was never used by ConnId connectors, but, in theory, it might be used for manually entered schemas.
 
-* Default target set for mappings emiting multivalue properties is based on provenance metadata, mapping can only remove values, it added.
-** If value has multiple provenances (user entry, or multiple mappings), the mapping removes only it's provenance section, value still remains.
+* Default target set for mappings emitting multivalue properties is based on provenance metadata, mapping can only remove values, it added.
+** If value has multiple provenances (user entry, or multiple mappings), the mapping removes only its provenance section, value still remains.
+
+NOTE: The addition of the value metadata at various places of objects means that the objects are larger than in previous versions of midPoint.
+In a similar way, the shadow caching feature - enabled by default for new installations - will probably increase the size of shadow objects further.
+All this will probably have an impact on the database size as well as on the runtime performance.
+(The exact proportions depend on specifics of the deployment.)
+All these features can be configured - or even turned off in the extreme case - so you can do your own tradeoff between functionality and performance.
+Moreover, we plan to improve the performance in the forthcoming releases.
 
 === Java and REST API Changes Since 4.8
 
