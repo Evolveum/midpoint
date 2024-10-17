@@ -295,6 +295,13 @@ Outputs of inbound mappings for those projections that are currently not loaded 
 
 . This feature is supported only for standard focus properties present at the root level (like `givenName`, `familyName`) and all extension properties at root level only. (I.e., not in containers in the extension).
 . It must be used along with archetypes, i.e., the object template must be declared in an archetype.
+. When an account is deleted, or unlinked from the user, the inbound mappings are *not executed*.
+(An exception is an explicit and direct deletion of an account requested by the user.)
+This means that the values provided by the mapping previously are not removed when the account is gone.
+This is going to be resolved in the future.
++
+As an workaround, one could create a script that would go through all users, check their identity data (beware that they must be retrieved using `include` option, as they are not fetched by default), and compare them with the actual accounts the user has.
+
 
 == Future Work
 

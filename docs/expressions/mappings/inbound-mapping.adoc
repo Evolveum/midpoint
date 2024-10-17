@@ -195,7 +195,7 @@ The default range of inbound mappings depend on the target item:
 | `all`
 | The target value will be replaced.
 This is nice and intuitive behavior for single-value items.
-This is also known as _non-tolerant _behavior.
+This is also known as _non-tolerant_ behavior.
 
 
 | multi-value
@@ -214,15 +214,15 @@ The default behavior can be overridden by explicit definition of mapping range, 
 
 [source,xml]
 ----
-    <inbound>
-        ... sources, expression, etc.
-        <target>
-            <path>organization</path>
-            <set>
-                <predefined>all</predefined>
-            </set>
-        </target>
-    </inbound>
+<inbound>
+    ... sources, expression, etc.
+    <target>
+        <path>organization</path>
+        <set>
+            <predefined>all</predefined>
+        </set>
+    </target>
+</inbound>
 ----
 
 See xref:/midpoint/reference/expressions/mappings/range[] page for a detailed discussion of mapping ranges.
@@ -235,7 +235,8 @@ But it makes a lot of issues in inbound mappings.
 The reason for that is that inbound mappings are somehow different.
 They are not completely xref:/midpoint/reference/concepts/relativity/[relativistic].
 
-Typical midPoint mapping is working with a xref:/midpoint/devel/prism/concepts/deltas/[deltas]. The mapping knows what was changed and the mapping takes a full advantage of that.
+Typical midPoint mapping is working with a xref:/midpoint/devel/prism/concepts/deltas/[deltas].
+The mapping knows what was changed and the mapping takes a full advantage of that.
 Therefore it will normally not change the things that should not be changed.
 Therefore the definition of mapping range is not that important in such case.
 However, in inbound mappings we do not usually have a delta.
@@ -251,6 +252,12 @@ But that requires remembering the origin (provenance) of each value that midPoin
 Fortunately, such feature is planned: xref:/midpoint/features/planned/data-provenance/[Data Provenance]. If you are interested in this please consider xref:/support/subscription-sponsoring/[purchasing platform subscription].
 ====
 
+== Limitations
+
+When an account is deleted, or unlinked from the user, the inbound mappings are *not executed*.
+(An exception is an explicit and direct deletion of an account requested by the user.)
+This means that the values provided by the mapping previously are not removed when the account is gone.
+This is going to be resolved in the future.
 
 == See Also
 
