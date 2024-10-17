@@ -61,27 +61,31 @@ For more information see xref:/midpoint/reference/security/credentials/secrets-p
 ** Added support for new verification categories: `MULTI_VALUE_REF_WITHOUT_OID`, `MISSING_NATURAL_KEY`, `MULTIVALUE_BYTE_ARRAY`, `PROTECTED_DATA_NOT_EXTERNAL`.
 For more information see xref:/midpoint/reference/deployment/ninja/command/verify.adoc[].
 
-* Role mining
-** Attribute Clustering Support:
-*** Introduced support for attribute-based clustering with fully customizable conditions, providing greater flexibility for administrators to define and manage attribute rules for clustering processes.
-** Attribute Analysis Functionality:
-*** Added new attribute analysis capabilities that allow users to define which attributes are used in clustering and detected pattern analysis. This feature helps refine role suggestions based on more granular attribute sets.
-** Indirect Access Right Clustering:
-*** Added support for clustering over indirect access rights.
-** Detected Pattern Migration Improvements:
-*** Streamlined detected pattern migration process, enabling the creation of candidates from detected patterns. This allows the role definition to be refined.
-** User Permission Table Enhancements:
-*** Expanded the functionality of the user permission table with new options for working directly with role suggestions and candidate roles.
-*** Additional control options have been added, giving finer control over table settings and role management activities.
-*** New functionality allows administrators to detect and explore access patterns directly on the user permission table.
-** Predefined Role Mining Modes:
-*** Introduced multiple predefined modes for common role mining activities, simplifying the setup and execution of role mining tasks. These default modes are tailored to typical use cases, reducing configuration time and effort while maintaining flexibility for more complex scenarios.
-** Performance and GUI Enhancements:
-*** Significant performance optimizations and UI improvements have been introduced to enhance the overall user experience.
-These updates improve system efficiency, reduce load times, and offer a more intuitive interface for role mining activities.
 
-* Outlier detection
-** Added a new Outlier Detection feature, which automatically identifies users with unusual access patterns that deviate significantly from typical roles or groups. This functionality helps detect anomalies or potential security risks, allowing for deeper insights into access behavior and ensuring that access rights are aligned with organizational policies. Outlier detection can highlight users with excessive or atypical permissions, enabling quick action to review or adjust access levels for improved security and compliance.
+* xref:/midpoint/reference/master/roles-policies/mining/[Role Mining]
+** Added support for xref:/midpoint/reference/master/roles-policies/mining/#advanced-options[attribute group by/clustering rule].
+** Added support for xref:/midpoint/reference/master/roles-policies/mining/#advanced-options[analyze attribute functionality].
+** Added xref:/midpoint/reference/master/roles-policies/mining/#role-mining-presets[predefined role mining modes].
+** Added support for xref:/midpoint/reference/master/roles-policies/mining/#advanced-options[assignment filters].
+** Added support for indirect access right clustering (experimental).
+** Support for monitoring overall system access assignment reduction by applying role suggestions.
+** Role suggestion migration improvements.
+** Performance and GUI Enhancements:
+*** Significant performance optimizations improve system efficiency and reduce load times.
+*** UI improvements to enhance the overall user experience with intuitive interface for role mining activities.
+*** New initial role analysis page with widgets related to role analysis activities and system information.
+** User Permission Table Enhancements:
+*** New operational panel simplifies the role mining process.
+*** Direct interaction with role suggestions and candidate roles within the table.
+*** Added control options for table settings and role management processes.
+*** Allow administrators to detect and explore access patterns directly in the user permission table.
+
+* xref:/midpoint/reference/master/roles-policies/outlier-detection/[Outlier Detection].
+** Added a new Outlier Detection feature, which automatically identifies users with unusual access patterns that deviate
+significantly from typical roles or groups. This functionality helps detect anomalies or potential security risks, allowing
+for deeper insights into access behavior and ensuring that access rights are aligned with organizational policies.
+Outlier detection can highlight users with excessive or atypical permissions, enabling quick action to review or adjust
+access levels for improved security and compliance.
 
 * Request access
 ** Role catalog (tree) now has search filter with scope and type selectable.
