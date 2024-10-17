@@ -481,7 +481,7 @@ Note that:
 === Upgrade From Other MidPoint Versions
 
 Upgrade from midPoint versions other than 4.8.x to midPoint {release-version} is not supported directly.
-Please upgrade to one of these versions (at least #TODO#) first.
+Please upgrade to 4.8.5 first.
 
 === Deprecation, Feature Removal And Major Incompatible Changes Since 4.8
 
