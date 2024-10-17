@@ -138,122 +138,139 @@ The current implementation is that the value of `true` is the result, should suc
 
 === Built-in Object Marks
 
-==== Protected
+These object marks are intended to mark objects violating various policies.
 
-Object Mark which denotes object (shadow) as Protected. Behavior of shadow marked with this mark is equivalent to setting it as protected in resource schema handling.
+Objects can be manually marked using xref:/midpoint/reference/concepts/mark/manual-marking/#object-marks[midPoint GUI].
 
-NOTE: In 4.7 if shadow is to be protected according to resource definition, shadow
-is automatically marked `Protected` (`effectiveMarkRef`) and `objectOperationPolicy` defined in `Protected` mark enables protected behavior.
+|===
+| Object Mark | Description
 
+| Assignment modified
+| Assignment was modified in an illegal, suspicious or interesting way.
 
-.Built-in Object Marks
-[cols="20%,5%,5%,5%,5%,60%"]
+| Assignment state
+| Assignment is in illegal, suspicious or interesting state.
+
+| Assignment time validity
+| Assignment time validity has started, ended or otherwise reached interesting point in time.
+
+| Exclusion violation
+| Violation of exclusion policy, such as segregation duty violation
+
+| Has assignment
+| Object has illegal, suspicious or interesting assignment.
+
+| Has no assignment
+| Object does not have required, recommended or interesting assignment.
+
+| Neglected
+| Mark for object that is not properly cared for, such as role that was not reviewed for a long time.
+
+| Object modified
+| Object was modified in an illegal, suspicious or interesting way.
+
+| Object state
+| Object is in illegal, suspicious or interesting state.
+
+| Object time validity
+| Object time validity has started, ended or otherwise reached interesting point in time.
+
+| Orphaned
+| Mark for object which does not have an owner.
+
+| Overassigned
+| Excessive number of assignees. Usually indicates object assigned too many time, such as role assigned to too many users.
+
+| Requirement violation
+| Violation of requirement policy, such as insufficient clearance
+
+| Suspicious
+| Mark for Suspicious object. It should be (manually) investigated.
+
+| Underassigned
+| Unsifficient number of assignees. Usually indicates shortage of staff, vacancies or other understaffing situations.
+
+| Understaffed security
+| Mark for security role or responsibility which is not properly staffed, it is not assigned to the users according to policy.
+
 |===
 
-.2+^.^h|Mark
-4+^.^h|Operations allowed
-.2+^.^h|Description
+=== Shadow Policy Marks
 
-h|Sync
-h|Add
-h|Mod
-h|Del
+Automatic marking of shadows with shadow policy marks can be configured in xref:/midpoint/reference/concepts/mark/managed-and-unmanaged-shadows/#marking-rules[resource schema handling].
+
+Shadow Policy Marks can be also assigned manually using xref:/midpoint/reference/concepts/mark/manual-marking/#shadow-policy-marks[midPoint GUI].
+
+.Built-in Shadow Marks
+[cols="20%,5%,5%,5%,5%,5%,60%"]
+|===
+
+.3+^.^h|Mark
+5+^.^h|Operations allowed
+
+.3+^.^h|Description
+
+2+^.^h|Sync
+.2+^.^h|Add
+.2+^.^h|Mod
+.2+^.^h|Del
+
+h| In
+h| Out
 
 |*Protected*
 |No
 |No
 |No
 |No
+|No
 |Protected accounts. MidPoint ignores them in both synchronization and provisioning. Usually used for administrative or technical accounts.
+
+| xref:/midpoint/reference/concepts/mark/managed-and-unmanaged-shadows/#managed-mark[*Managed*]
+| Yes
+| Yes
+| Yes
+| Yes
+| Yes
+|Protected accounts. MidPoint ignores them in both synchronization and provisioning. Usually used for administrative or technical accounts.
+
+| xref:/midpoint/reference/concepts/mark/managed-and-unmanaged-shadows/#unmanaged-mark[*Unmanaged*]
+| Yes
+| No
+| No
+| No
+| No
+| Shadow object marked as `Unmanaged` is tolerated by midPoint, but not managed by it.
+
 
 |*Decommission later*
 |No
-|Yes
-|Yes
-|Yes
-|Accounts which should not be updated automatically by synchronization, but may be edited / deleted manually later.
-
-|*Correlate later*
 |No
 |Yes
 |Yes
 |Yes
-|Accounts which can not be correlated automaticly and should be skipped during synchronization.
+| Shadow object which should not be updated automatically by synchronization, but may be edited / deleted manually later.
+
+|*Correlate later*
+|No
+|No
+|Yes
+|Yes
+|Yes
+|Shadow object which can not be correlated automaticly and should be skipped during synchronization.
 
 |*Do not touch*
 |No
 |No
 |No
 |No
-|Accounts which we do not want to be synchronized / modified by midPoint. (same as protected), but reason may be different.
+|No
+|Shadow object which we do not want to be synchronized / modified by midPoint. (same as protected), but reason may be different.
 |*Invalid data*
 |No
 |No
 |No
 |No
-|Account which has bad data and should be ignored by synchronization. Same behavior as `Protected`, but different semantic meaning.
+|Shadow object which has bad data and should be ignored by synchronization. Same behavior as `Protected`, but different semantic meaning.
 |===
 
-
-== GUI: Object Marks and Shadows
-
-NOTE: In midPoint 4.7 object marks are only supported for shadows.
-
-=== Marking Shadows in Resource Details
-
-MidPoint GUI allows manually marking shadows in resource details view
-using *Add Marks*, *Mark as Protected* actions in *Accounts* and *Entitlements*.
-
-==== Workflow screenshots
-
-.Go to Resource -> Accounts
-image::resources-accounts-00.png[]
-
-.Click on Menu for Shadow
-image::resources-accounts-01.png[]
-
-.Select Add Marks
-image::resources-accounts-02.png[]
-
-.Select Marks to be added to shadow
-image::resources-accounts-03.png[]
-
-=== Removing Shadow Marks in Resource Details
-
-MidPoint GUI allows removing manually mark of shadows in resource details view using *Remove Marks* actions in *Accounts* and *Entitlements*.
-
-==== Workflow screenshots
-.Go to Resource -> Accounts, select accounts from which marks will be removed
-image::mark-shadow-remove-01.png[]
-
-.Click on Menu for Selected Shadows, Select Remove Marks
-image::mark-shadow-remove-02.png[]
-
-.Select Marks which should be removed from selected accounts
-image::mark-shadow-remove-03.png[]
-
-.Click Remove Marks to remove them
-image::mark-shadow-remove-04.png[]
-
-=== Marking Shadows in Simulation Results
-
-MidPoint GUI allows manually marking shadows in Simulations results -> Processed Object views.
-This is done by clicking menu icon and selecting Add Marks. Note that mark
-is applied to real shadow (not simulated result). This allows for use-cases such as running simulations
-and excluding particular shadows from real run.
-
-NOTE: In Simulations GUI mark is applied to actual underlying object
-
-==== Workflow screenshots
-
-.Click on Menu icon for shadow
-image::simulations-processed-object-01.png[]
-
-.Select Add Marks
-image::simulations-processed-object-02.png[]
-.Select Marks and click Add
-image::simulations-processed-object-04.png[]
-
-=== Listing marked shadows across resources
-
-In order to view all shadows marked by specific mark, you can navigate in midPoint GUI, to *Marks*, open specific object mark details and click on *Marked Shadows*.

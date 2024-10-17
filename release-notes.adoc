@@ -96,7 +96,7 @@ Tree node search is now same for all nodes.
 
 * Schema extension
 ** Adding new SchemaType that is supported in native repository. SchemaType contains attribute that contains xsd schema.
-** SchemaType can be configured by GUI. Configuration via GUI contains some limitations that related with schema lifecycle (xref:/midpoint/reference/schema/custom-schema-extension).
+** SchemaType can be configured by GUI. Configuration via GUI contains some limitations that related with schema lifecycle.
 ** For more information can see xref:/midpoint/reference/schema/custom-schema-extension.adoc[].
 
 * Object marks
@@ -132,6 +132,11 @@ There is also Statistics panel which gives an overview of the reviewers progress
 Certification items table itself can be now configured with the help of collection view configuration.
 This means that table's columns and actions can be configured for certification items.
 ** Please, see xref:/midpoint/reference/roles-policies/certification[Access Certification] for more information.
+
+* Deployment Methodology
+** As a part of midPoint 4.9 release, we have released also a new xref:/midpoint/methodology/[midPoint deployment methodology].
+Please refer to xref:/midpoint/methodology/group-synchronization/[] for more information.
+
 
 === Other Improvements
 
@@ -522,6 +527,8 @@ For more information see xref:/midpoint/reference/deployment/ninja/use-case/upgr
 * 520-archetype-task-certification.xml: Changes for proper functioning of certification related tasks.
 * 534-archetype-task-certification-campaign-open-next-stage.xml: Archetype for campaign open next stage (start campaign) related task.
 * 535-archetype-task-certification-remediation.xml: Archetype for campaign remediation related task.
+* A set of initial objects was updated to extend polystring type elements with translation keys configuration.
+The full set of changed objects you can see in the link:https://github.com/Evolveum/midpoint/commit/cf7cade899b8f663d90e5a9785037e0d0d1927c0[commit] with some further changes in the next commits: link:https://github.com/Evolveum/midpoint/commit/d381b6637139464ee967e5c553e1233ba1750499[archetype correlation case label fix], link:https://github.com/Evolveum/midpoint/commit/54f03f9b6e919d45a9651d22a71f796efa662989[fixes in system configuration object], link:https://github.com/Evolveum/midpoint/commit/54f03f9b6e919d45a9651d22a71f796efa662989[archetype and report objects fixes], link:https://github.com/Evolveum/midpoint/commit/16e3f923aaca7433452689565fa6ede40aab9573[application label fix].
 // * References to removed `category`, `handlerUri`, and `reportOutputOid` properties of tasks were deleted: from task archetypes and from GUI configurations.
 // See https://github.com/Evolveum/midpoint/commit/1fe4b60057d040f7424523cf24194bfcb7920f90[1fe4b6], https://github.com/Evolveum/midpoint/commit/b5a331b377a4fff0dbabd82e64da60f0b8c96c2b[b5a331], and https://github.com/Evolveum/midpoint/commit/6887e980c48e45a5ae22642932ed22e0c8b5f665[6887e9].
 //
