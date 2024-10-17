@@ -86,11 +86,8 @@ For more information see xref:/midpoint/reference/deployment/ninja/command/verif
 *** Allow administrators to detect and explore access patterns directly in the user permission table.
 
 * xref:/midpoint/reference/master/roles-policies/outlier-detection/[Outlier Detection]
-** Added a new Outlier Detection feature, which automatically identifies users with unusual access patterns that deviate
-significantly from typical roles or groups. This functionality helps detect anomalies or potential security risks, allowing
-for deeper insights into access behavior and ensuring that access rights are aligned with organizational policies.
-Outlier detection can highlight users with excessive or atypical permissions, enabling quick action to review or adjust
-access levels for improved security and compliance.
+** Introduces a feature that helps uncover potential security risks by identifying users with unusual access rights.
+** For more information, see the xref:/midpoint/reference/master/roles-policies/outlier-detection/[Outlier Detection documentation].
 
 * Request access
 ** Role catalog (tree) now has search filter with scope and type selectable.
