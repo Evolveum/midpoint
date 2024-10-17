@@ -236,26 +236,13 @@ See, e.g., bug:MID-9853[].
 
 === Releases Of Other Components
 
- * New version (1.5.2.0) of xref:/connectors/connectors/org.identityconnectors.databasetable.DatabaseTableConnector/[DatabaseTable Connector] was released and bundled with midPoint. The connector suggest all names of columns for configuration properties related with name of column.
+* New version (1.5.2.0) of xref:/connectors/connectors/org.identityconnectors.databasetable.DatabaseTableConnector/[DatabaseTable Connector] was released and bundled with midPoint. The connector suggest all names of columns for configuration properties related with name of column.
 
- * New version (2.8) of xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV Connector] was released and bundled with midPoint. The connector suggest all names of columns for configuration properties related with name of column.
+* New version (2.8) of xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV Connector] was released and bundled with midPoint. The connector suggest all names of columns for configuration properties related with name of column.
 ** Fixed NPE with multivalue attributes when delimiter is not defined. (bug:MID-8609[]).
 ** Fix UTF-8 BOM character in csv file during of discovery functions. (bug:MID-9497[] and bug:MID-9498[]).
 
-// * New version (3.7) of LDAP connector bundle (including xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP Connector] and xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.ad.AdLdapConnector/[Active Directory Connector]) was released and bundled with midPoint.
-// ** This version improve processing of fetching existing entry when updating it in AD connector. (bug:MID-8929[]).
-// ** Adding configuration option for suppression of user parameter exceptions and log only a warning message.
-//
-// * Docker images will be released in Docker Hub soon after midPoint {release-version} release.
-//
-// * Overlay project examples will be released soon after midPoint {release-version} release.
-//
-// * xref:/midpoint/tools/studio/[MidPoint Studio] version {release-version} will be released soon after midPoint {release-version} release.
-//
-// * xref:/midpoint/devel/prism/[Prism] data representation library {release-version} was released together with midPoint {release-version}.
-//
-// * xref:/midpoint/reference/interfaces/midpoint-client-java/[Midpoint client Java library] will be released soon after midPoint {release-version} release.
-
+* New version (3.8) of xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[AD/LDAP Connector] was released and bundled with midPoint. The connector suggest all names of columns for configuration properties related with name of column.
 
 ++++
 {% include release-quality.html %}
@@ -423,7 +410,7 @@ We reserve the right not to support customized web browsers.
 | LDAP and Active Directory
 
 | xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV connector]
-| 3.8
+| 2.8
 | Connector for CSV files
 
 | xref:/connectors/connectors/org.identityconnectors.databasetable.DatabaseTableConnector/[DatabaseTable connector]
