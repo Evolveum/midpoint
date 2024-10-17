@@ -77,7 +77,7 @@ Therefore midPoint does not need to remember the association.
 It can read it directly from the resource anytime.
 And that's exactly what midPoint does when an account xref:/midpoint/reference/resources/shadow/[shadow] is retrieved:
 
-#*TODO* update this figure - associations are represented in slightly different way now#
+//#*TODO* update this figure - associations are represented in slightly different way now#
 
 image::schemas-entitlement-3.png[]
 
@@ -123,7 +123,7 @@ Everything else is stored in association attributes and activation data.
 ====
 Simple associations are supported by midPoint in full.
 
-Complex associations are xref:/midpoint/versioning/experimental/[an experimental feature]. #TODO is this (still) true?#
+Complex associations are xref:/midpoint/versioning/experimental/[an experimental feature].
 ====
 
 == Associations and Reference Attributes
@@ -144,7 +144,7 @@ A complex association is implemented using a separate resource object (holding t
 A subject of the association has a reference to this association data object.
 The association data object has references to individual objects of the association.
 
-#TODO a figure would be helpful here#
+//#TODO a figure would be helpful here#
 ====
 
 Some connectors, LDAP/AD in particular, support reference attributes out of the box.
@@ -182,7 +182,7 @@ Each of the values is called _association value_, while the `group` item itself 
 *Association and reference types*
 
 Associations and simulated reference attributes are defined at the global (resource-wide) level.
-Their definitions comes in the form of _association types_ and _reference attribute types_.
+Their definitions come in the form of _association types_ and _reference attribute types_.
 When applied to given object type or class (like `account/default` or `ri:inetOrgPerson`), they manifest themselves as _association_ and _reference attribute_ there.
 (Associations can be visible only on object types.
 Reference attributes are defined primarily on object classes, so they are visible on both object classes and object types.)
@@ -440,7 +440,7 @@ It is always subject-to-object, and is defined only if the primary binding is ob
 
 An real-life example for an LDAP resource:
 
-* The primary binding may be between account `ri:dn` attribute and group `ri:members` one.
+* The primary binding may be between account `ri:dn` attribute and group `ri:member` one.
 It is used for updating the user's group membership data.
 * The secondary binding may be between account `ri:memberOf` attribute and group `ri:dn` one.
 It is used for reading the user's group membership data.
@@ -453,7 +453,7 @@ This is the `groupMembership` reference type typical for LDAP servers.
 (If, for some reason, you don't use the native capability of the LDAP connector for this.)
 
 * When querying, `ri:memberOf` attribute on the subject (account or group) is used.
-* When updating, `ri:members` attribute on the object (group) is used.
+* When updating, `ri:member` attribute on the object (group) is used.
 * The reference is visible as (virtual) `group` reference attribute on the subject (account or group).
 
 .An example of LDAP group membership definition
@@ -479,7 +479,7 @@ This is the `groupMembership` reference type typical for LDAP servers.
                     <delineation>
                         <objectClass>ri:groupOfNames</objectClass>
                     </delineation>
-                    <primaryBindingAttributeRef>ri:members</primaryBindingAttributeRef>
+                    <primaryBindingAttributeRef>ri:member</primaryBindingAttributeRef>
                     <secondaryBindingAttributeRef>ri:dn</secondaryBindingAttributeRef>
                 </object>
                 <direction>objectToSubject</direction>
@@ -822,7 +822,7 @@ An equivalent, though more verbose, configuration would look like this:
 . After the correlation is done, there are three possible outcomes:
 .. no matching assignment is found (`unmatched` synchronization situation),
 .. a matching assignment is found (`matched` synchronization situation),
-.. no matching assignment is found, but there is a matching indirect role membership value (`indirectlyMatched` synchronization situation, #not implemented yet#).
+.. no matching assignment is found, but there is a matching indirect role membership value (`indirectlyMatched` synchronization situation).
 
 . Appropriate synchronization action is selected, based on the configuration.
 There are currently these actions available:
@@ -907,7 +907,7 @@ Please see xref:/midpoint/reference/concepts/mark/managed-and-unmanaged-shadows[
 
 MidPoint can remove association values even when the `tolerant` setting is on.
 The reason is that most midPoint operations are delta-based.
-E.g. if user interface is used to add or remove an assignmentm a xref:/midpoint/devel/prism/concepts/deltas/[delta] is created and sent as a parameter of the operation.
+E.g. if user interface is used to add or remove an assignment, a xref:/midpoint/devel/prism/concepts/deltas/[delta] is created and sent as a parameter of the operation.
 In this case we know what has changed.
 Therefore we can easily add and remove entitlement membership.
 We can do this even if the entitlement is set to be _tolerant_.
@@ -928,13 +928,6 @@ If it is set to `false` then midPoint will remove them.
 
 For these operations to work correctly even in reconciliation it is important to set the _tolerant_ property.
 Please make sure you have the association set to non-tolerant in the `schemaHandling` section of the resource definition.
-
-This has to be defined in the `schemaHandling` and *not* in the role or meta-role.
-The tolerance is the property of the attribute/association itself and *not* a property of any mapping or role.
-The values that are not given by any role and just that - not given by any role.
-So we do not have any role definition that we can apply to them.
-Therefore the setting whether the attribute/association is tolerant or not is somehow "global".
-Therefore it needs to be defined in `schemaHandling`.
 
 Also, please make sure that your mappings are strong.
 Mappings that are of "normal" strength are inherently delta-based and they are usually *not* processed by the reconciliation at all.
@@ -965,8 +958,6 @@ In this case the attribute that needs to be modified is in fact in a different o
 MidPoint tries to isolate the operations to a single object (or a set of related objects).
 Therefore modeling object-to-subject references using simple attributes may be very difficult.
 The simulated (or connector-native) references makes this very easy.
-
-#NOTE: some examples above do not work yet; in particular, <ref>...</ref> is still needed in <objectRef>...</objectRef> definitions even for simple associations. This is going to be fixed soon.#
 
 == See Also
 
