@@ -19,15 +19,16 @@ The {release-version} release brings improvements in role engineering, certifica
 {% capture dedicationContent %}
 <p>
 <a href="https://en.wikipedia.org/wiki/Jules_Verne">Jules Gabriel Verne</a> (1828-1905) was a French novelist, poet, and playwright.
-His collaboration with the publisher Pierre-Jules Hetzel led to the creation of the Voyages extraordinaires, a series of bestselling adventure novels including Journey to the Center of the Earth (1864), Twenty Thousand Leagues Under the Seas (1870), and Around the World in Eighty Days (1872).
-His novels, always well-researched according to the scientific knowledge then available, are generally set in the second half of the 19th century, taking into account the technological advances of the time.
+His best-selling novels, always well-researched according to the scientific knowledge then available, taking into account the technological advances of the time.
+Verne, considered to be one of the fathers of science-fiction genre, inspired several generations of readers.
 </p>
 <p>
-In addition to his novels, he wrote numerous plays, short stories, autobiographical accounts, poetry, songs, and scientific, artistic, and literary studies.
-His work has been adapted for film and television since the beginning of cinema, as well as for comic books, theater, opera, music and video games.
-Verne is considered to be an important author in France and most of Europe, where he has had a wide influence on the literary avant-garde and on surrealism.
-His reputation was markedly different in the Anglosphere where he had often been labeled a writer of genre fiction or children's books, largely because of the highly abridged and altered translations in which his novels have often been printed.
-Jules Verne has been the second most-translated author in the world since 1979, ranking below Agatha Christie and above William Shakespeare.
+Similarly to Verne's novels, midPoint 4.9 brings several technological advancements, bringing them from the drawing board to real life.
+Shadow caching and value metadata were prototyped long time ago, they become production-quality reality in midPoint 4.9.
+Improvements in role mining and brand-new outlier detection functionality are reaching up to the boundaries of science fiction.
+New access certification look and feel is reminiscent of the colorful worlds that Verne has described.
+Other features and improvements of this release make midPoint more complete, easier to use and much more sophisticated.
+Overall, midPoint 4.9 is a major step from the past into the future.
 </p>
 {% endcapture %}
 {% include release-dedication.html content=dedicationContent %}
