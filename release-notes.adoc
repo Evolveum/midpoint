@@ -60,7 +60,7 @@ For more information see xref:/midpoint/reference/security/credentials/secrets-p
 *** Value metadata `storage` and `process` are indexed for assignments and available for search using `assignment/@metadata/storage`.
 *** xref:/midpoint/reference/concepts/metadata/#provenance-metadata[Provenance metadata] are enabled by default for multivalue properties,  containers and assignments.
 
-* Default target set for mappings emiting multivalue properties is based on provenance metadata, mapping can only remove values, it added.
+* Default range for mappings emitting multivalued properties is based on provenance metadata. Such mappings will automatically remove values added by them in the past which are no longer produced by them.
 ** If value has multiple provenances (user entry, or multiple mappings), the mapping removes only it's provenance section, value still remains.
 
 * Ninja
