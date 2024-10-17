@@ -133,6 +133,11 @@ Certification items table itself can be now configured with the help of collecti
 This means that table's columns and actions can be configured for certification items.
 ** Please, see xref:/midpoint/reference/roles-policies/certification[Access Certification] for more information.
 
+* Deployment Methodology
+** As a part of midPoint 4.9 release, we have released also a new xref:/midpoint/methodology/[midPoint deployment methodology].
+Please refer to xref:/midpoint/methodology/group-synchronization/[] for more information.
+
+
 === Other Improvements
 
 * The indication of official vs. unofficial build was added to the About page.
