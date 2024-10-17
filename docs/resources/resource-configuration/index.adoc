@@ -256,10 +256,10 @@ There is an optional <strength> argument to specify if an existing attribute val
 
 * *weak*: the expression will be evaluated only if there is no value of the attribute on the target side
 
-// TODO is this correct?
-* *normal*: for inbound mappings, the expression is always evaluated; for outbound mappings, the expression is evaluated if there is a change on the source side or if the target has no value yet (this is the default setting)
-
 * *strong*: the expression will be always evaluated
+
+Currently, the use of the default value (`normal`) is not recommended.
+Please specify `strong` instead.
 
 See also xref:/midpoint/reference/expressions/mappings/#_mapping_strength[Mapping strength].
 
