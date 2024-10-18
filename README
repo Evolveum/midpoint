@@ -1,5 +1,5 @@
-MidPoint 4.9 "Verne"
--------------------------------
+MidPoint 4.9 Support Branch
+---------------------------
 
 General information:
 

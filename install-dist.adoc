@@ -1,9 +1,9 @@
 ---
-release-version: '4.9'
+release-version: '4.9.1'
 ---
-= Installing MidPoint 4.9 "Verne" From Binary Distribution
+= Installing MidPoint 4.9.1 "Verne" - Update 1 From Binary Distribution
 :page-layout: release-install-configurable-password
-:release-version: 4.9
+:release-version: 4.9.1
 :page-nav-title: Installation Instructions
 :page-liquid:
 
