@@ -1,7 +1,6 @@
 ---
 layout: release
 release-version: '4.9'
-visibility: hidden
 ---
 = MidPoint 4.9 "Verne"
 :release-version: 4.9
@@ -38,7 +37,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 
 === New Features and Major Improvements
 
-* xref:/midpoint/reference/resources/attribute-caching/[Shadow caching] was significantly improved and is now a regular midPoint feature.
+* xrefv:/midpoint/reference/support-4.9/resources/attribute-caching/[Shadow caching] was significantly improved and is now a regular midPoint feature.
 ** Shadow caching is enabled by default on new deployments and needs to be explicitly enabled on existing ones.
 * Native Repository Support for `searchContainersIteratively` for all container types
 ** Removed upper record limit for reports for assignments, certification cases, certification work items and others.
@@ -46,33 +45,33 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 ** Changed storage strategy for complex container types - actual data stored inside their own table instead of parent object JSON.
 * Added support for external data in protected strings, that can be resolved via secrets providers.
 This allows to store secrets in external systems, such as HashiCorp Vault, AWS Secrets Manager, Azure Key Vault, etc.
-For more information see xref:/midpoint/reference/security/credentials/secrets-provider-configuration.adoc[].
+For more information see xrefv:/midpoint/reference/support-4.9/security/credentials/secrets-provider-configuration.adoc[].
 ** Adding support for GUI of passwords in connector configuration and password of focus (visible only when it is configured in xml)
-* Improvements regarding xref:/midpoint/reference/resources/entitlements/[shadow associations]:
+* Improvements regarding xrefv:/midpoint/reference/support-4.9/resources/entitlements/[shadow associations]:
 ** Support for native object references in ConnId (1.6.0.0-RC1).
 ** A new style of configuring simulated object references (via capabilities).
 ** A new style of configuring associations handling: mapping from associations to assignments using specific correlation and synchronization rules.
-** Added xref:/midpoint/reference/admin-gui/resource-wizard/#association-type-configuration[wizard] support for association configuration in resources.
+** Added xrefv:/midpoint/reference/support-4.9/admin-gui/resource-wizard/#association-type-configuration[wizard] support for association configuration in resources.
 
-* xref:/midpoint/reference/concepts/metadata/[Value metadata] (`@metadata`) are default storage for object and assignment metadata replacing previous `metadata` container.
+* xrefv:/midpoint/reference/support-4.9/concepts/metadata/[Value metadata] (`@metadata`) are default storage for object and assignment metadata replacing previous `metadata` container.
 **  Query Support for searching in value metadata of objects
 *** Native Repository: Object metadata stored in `metadata` property of `MetadataType` are also indexed and searchable as value metadata. Eg. original `metadata/creatorRef` is `@metadata/storage/creatorRef` as value metadata path.
 *** Value metadata `storage` and `process` are indexed for assignments and available for search using `assignment/@metadata/storage`.
-*** xref:/midpoint/reference/concepts/metadata/#provenance-metadata[Provenance metadata] are enabled by default for multivalue properties,  containers and assignments.
+*** xrefv:/midpoint/reference/support-4.9/concepts/metadata/#provenance-metadata[Provenance metadata] are enabled by default for multivalue properties,  containers and assignments.
 
 * Default range for mappings emitting multivalued properties is based on provenance metadata. Such mappings will automatically remove values added by them in the past which are no longer produced by them.
 ** If value has multiple provenances (user entry, or multiple mappings), the mapping removes only it's provenance section, value still remains.
 
 * Ninja
 ** Added support for new verification categories: `MULTI_VALUE_REF_WITHOUT_OID`, `MISSING_NATURAL_KEY`, `MULTIVALUE_BYTE_ARRAY`, `PROTECTED_DATA_NOT_EXTERNAL`.
-For more information see xref:/midpoint/reference/deployment/ninja/command/verify.adoc[].
+For more information see xrefv:/midpoint/reference/support-4.9/deployment/ninja/command/verify.adoc[].
 
 
-* xref:/midpoint/reference/roles-policies/mining/[Role Mining]
-** Added support for xref:/midpoint/reference/roles-policies/mining/#advanced-options[attribute group by/clustering rule].
-** Added support for xref:/midpoint/reference/roles-policies/mining/#advanced-options[analyze attribute functionality].
-** Added xref:/midpoint/reference/roles-policies/mining/#role-mining-presets[predefined role mining modes].
-** Added support for xref:/midpoint/reference/roles-policies/mining/#advanced-options[assignment filters].
+* xrefv:/midpoint/reference/support-4.9/roles-policies/mining/[Role Mining]
+** Added support for xrefv:/midpoint/reference/support-4.9/roles-policies/mining/#advanced-options[attribute group by/clustering rule].
+** Added support for xrefv:/midpoint/reference/support-4.9/roles-policies/mining/#advanced-options[analyze attribute functionality].
+** Added xrefv:/midpoint/reference/support-4.9/roles-policies/mining/#role-mining-presets[predefined role mining modes].
+** Added support for xrefv:/midpoint/reference/support-4.9/roles-policies/mining/#advanced-options[assignment filters].
 ** Added support for indirect access right clustering (experimental).
 ** Support for monitoring overall system access assignment reduction by applying role suggestions.
 ** Role suggestion migration improvements.
@@ -86,9 +85,9 @@ For more information see xref:/midpoint/reference/deployment/ninja/command/verif
 *** Added control options for table settings and role management processes.
 *** Allow administrators to detect and explore access patterns directly in the user permission table.
 
-* xref:/midpoint/reference/roles-policies/outlier-detection/[Outlier Detection]
+* xrefv:/midpoint/reference/support-4.9/roles-policies/outlier-detection/[Outlier Detection]
 ** Introduces a feature that helps uncover potential security risks by identifying users with unusual access rights.
-** For more information, see the xref:/midpoint/reference/roles-policies/outlier-detection/[Outlier Detection documentation].
+** For more information, see the xrefv:/midpoint/reference/support-4.9/roles-policies/outlier-detection/[Outlier Detection documentation].
 
 * Request access
 ** Role catalog (tree) now has a search filter with the scope and type selectable.
@@ -98,7 +97,7 @@ Tree node search is now the same for all nodes.
 * Schema extension
 ** Adding a new SchemaType that is supported in native repository. SchemaType contains an attribute that contains xsd schema.
 ** SchemaType can be configured by GUI. Configuration via GUI contains some limitations that related with schema lifecycle.
-** For more information can see xref:/midpoint/reference/schema/custom-schema-extension.adoc[].
+** For more information can see xrefv:/midpoint/reference/support-4.9/schema/custom-schema-extension.adoc[].
 
 * Object marks
 ** Supported for all object types including assignments when executed via policy rules
@@ -106,8 +105,8 @@ Tree node search is now the same for all nodes.
 ** GUI Support to show mark in the focus and shadow tables
 
 * Regulatory compliance
-** Built-in support for xref:/midpoint/reference/roles-policies/classification/[information classification and clearances].
-** Support for `requirement` policy constraint in xref:/midpoint/reference/roles-policies/policy-rules/[policy rules].
+** Built-in support for xrefv:/midpoint/reference/support-4.9/roles-policies/classification/[information classification and clearances].
+** Support for `requirement` policy constraint in xrefv:/midpoint/reference/support-4.9/roles-policies/policy-rules/[policy rules].
 ** Built-in classifications for _privileged access_.
 
 * Spring Boot/hibernate upgrade
@@ -116,10 +115,10 @@ Tree node search is now the same for all nodes.
 * Shadow table Partitioning in Native PostgreSQL Repository
 ** Midpoint automatically partitions shadow tables based on the resource and object class of shadow.
 Partitioning is enabled by default on new deployments and needs to be explicitly enabled on existing deployments.
-See xref:/midpoint/reference/repository/native-postgresql/shadow-partitioning/[Repository -> Native -> Shadow Partitioning] for details.
+See xrefv:/midpoint/reference/support-4.9/repository/native-postgresql/shadow-partitioning/[Repository -> Native -> Shadow Partitioning] for details.
 
-* xref:/midpoint/reference/repository/native-postgresql/splitted-fullobject/[Native Repository uses splitted full-object model] for data storage: `operationExecution`, `assignment`, `linkRef` and `roleMembershipRef` in their separate tables outside of object `fullObject` columns
-** Added support and options to optimize queries and not retrieve these items in xref:/midpoint/reference/expressions/expressions/script/functions/get-and-search/[code and groovy scripts].
+* xrefv:/midpoint/reference/support-4.9/repository/native-postgresql/splitted-fullobject/[Native Repository uses splitted full-object model] for data storage: `operationExecution`, `assignment`, `linkRef` and `roleMembershipRef` in their separate tables outside of object `fullObject` columns
+** Added support and options to optimize queries and not retrieve these items in xrefv:/midpoint/reference/support-4.9/expressions/expressions/script/functions/get-and-search/[code and groovy scripts].
 
 * Support for H2 database was removed. Clean midPoint will fail to start with embedded H2 database.
 The preferred option to start simple midPoint instance is via docker compose. For more information see xref:/midpoint/install/containers/docker[here].
@@ -134,7 +133,7 @@ There is also Statistics panel which gives an overview of the reviewers progress
 *** Certification items can be also viewed in the tiles view (Active campaigns page).
 Certification items table itself can be now configured with the help of collection view configuration.
 This means that table's columns and actions can be configured for certification items.
-** Please, see xref:/midpoint/reference/roles-policies/certification[Access Certification] for more information.
+** Please, see xrefv:/midpoint/reference/support-4.9/roles-policies/certification[Access Certification] for more information.
 
 * Deployment Methodology
 ** As a part of midPoint 4.9 release, we have released also a new xref:/midpoint/methodology/[midPoint deployment methodology].
@@ -144,7 +143,7 @@ Please refer to xref:/midpoint/methodology/group-synchronization/[] for more inf
 === Other Improvements
 
 * The indication of official vs. unofficial build was added to the About page.
-See xref:/midpoint/reference/admin-gui/midpoint-jar-signature-status/[MidPoint JAR Signature Status] for details.
+See xrefv:/midpoint/reference/support-4.9/admin-gui/midpoint-jar-signature-status/[MidPoint JAR Signature Status] for details.
 * We have added a new algorithm to detect which users are in the production-like environment. It would have the following impact, depending on your subscription status.
 - *active subscribers*: none
 - *subscribers who are in the renewal period*: none during the grace period of 90 days
@@ -164,16 +163,16 @@ See xref:/midpoint/reference/admin-gui/midpoint-jar-signature-status/[MidPoint J
 Now password propagation to resource takes into account the script, defined in resource for credentials, in case of the appropriate configuration.
 * Notification sending strategy was added to the general notifier configuration.
 It is possible to configure now if the notification message should be generated once and sent to all recipients in the same form or if the message should be generated for each recipient separately.
-More details can be found in the xref:/midpoint/reference/misc/notifications/general/#basic-structure-of-the-notification-definition[Basic structure of the notification definition].
+More details can be found in the xrefv:/midpoint/reference/support-4.9/misc/notifications/general/#basic-structure-of-the-notification-definition[Basic structure of the notification definition].
 * Role wizard is now supported also for children of application and business roles (archetypes).
-* Dedicated data type for policy objects (xref:/midpoint/reference/schema/policy/[PolicyType])
-* Implementation of new task activities for opening next stage of certification campaign and certification remediation. More details can be found in the xref:/midpoint/reference/tasks/activities/work/[Work Definition (Types of Activities)].
+* Dedicated data type for policy objects (xrefv:/midpoint/reference/support-4.9/schema/policy/[PolicyType])
+* Implementation of new task activities for opening next stage of certification campaign and certification remediation. More details can be found in the xrefv:/midpoint/reference/support-4.9/tasks/activities/work/[Work Definition (Types of Activities)].
 * Add a confirmation dialogue after changing the resource lifecycle state. See bug:MID-9315[].
 * Added the ability to modify selected object classes for resources via the Resource Schema panel. See bug:MID-8476[].
 * Renamed "Bulk actions" to "Actions" in GUI. See bug:MID-9619[].
 * Added the ability to configure UI form of the authentication sequence module with a label, description and external link.
-More information can be found in the xref:/midpoint/reference/security/authentication/flexible-authentication/sequence/#authenticationsequencemoduletype[Authentication Sequence Module].
-The sample is located by the link xref:/midpoint/reference/security/authentication/flexible-authentication/configuration/#authenticationsequencemoduletype[Example of the default GUI sequence with configured login form].
+More information can be found in the xrefv:/midpoint/reference/support-4.9/security/authentication/flexible-authentication/sequence/#authenticationsequencemoduletype[Authentication Sequence Module].
+The sample is located by the link xrefv:/midpoint/reference/support-4.9/security/authentication/flexible-authentication/configuration/#authenticationsequencemoduletype[Example of the default GUI sequence with configured login form].
 * 'Resource object types' panel identifier changed from 'schemaHandling' to 'resourceObjectTypes' and panel was moved from top level menu item to submenu of new top level menu item 'Schema handling'. The 'schemaHandling' identifier is now used for the top level menu item.
 * Added missing indexes for extension poly-string properties and shadow attributes for generic repositories (Oracle, MS SQL Server). For more info see SQL upgrade scripts.
 * Fixed closing multi-node tasks when some nodes are not available. See bug:MID-10021[].
@@ -214,7 +213,7 @@ The sample is located by the link xref:/midpoint/reference/security/authenticati
 See the xref:/midpoint/security/advisories/022-unauthorized-code-execution/[security advisory #22] and bug:MID-9459[].
 * Fixed a security issue by adding authorization checks to selected REST methods that did not have them.
 As part of this, authorizations for individual REST operations were added.
-See the xref:/midpoint/security/advisories/023-unauthorized-operation-execution/[security advisory #23], xref:/midpoint/reference/security/authorization/service/[], and bug:MID-9460[].
+See the xref:/midpoint/security/advisories/023-unauthorized-operation-execution/[security advisory #23], xrefv:/midpoint/reference/support-4.9/security/authorization/service/[], and bug:MID-9460[].
 * Added a shadow reclassification task. See bug:MID-9514[].
 * Association and assignment search expressions can now have multiple filters. See link:https://github.com/Evolveum/midpoint/commit/554eb0f3846cb99793e51ded5180a61f5aa5d5b8[commit 554eb0].
 * Fixed `associationTargetSearch` expressions when the association has multiple intents. See bug:MID-9561[] and bug:MID-9565[].
@@ -298,7 +297,7 @@ Even though midPoint may work well on mobile devices, the support for small scre
 Partial support for small screens (e.g. only for self-service purposes) may be provided, but it has to be explicitly negotiated in a subscription contract.
 
 * There are several add-ons and extensions for midPoint that are not explicitly distributed with midPoint.
-This includes xref:/midpoint/reference/interfaces/midpoint-client-java/[Java client library],
+This includes xrefv:/midpoint/reference/support-4.9/interfaces/midpoint-client-java/[Java client library],
 various https://github.com/Evolveum/midpoint-samples[samples], scripts, connectors and other non-bundled items.
 Support for these non-bundled items is limited.
 Generally speaking, those non-bundled items are supported only for platform subscribers and those that explicitly negotiated the support in their contract.
@@ -358,19 +357,19 @@ Use of open source OpenJDK builds with public support is recommended instead of 
 Since midPoint 4.4, midPoint comes with two repository implementations: _native_ and _generic_.
 Native PostgreSQL repository implementation is strongly recommended for all production deployments.
 
-See xref:/midpoint/reference/repository/repository-database-support/[] for more details.
+See xrefv:/midpoint/reference/support-4.9/repository/repository-database-support/[] for more details.
 
 Since midPoint 4.0, *PostgreSQL is the recommended database* for midPoint deployments.
 Our strategy is to officially support the latest stable version of PostgreSQL database (to the practically possible extent).
 PostgreSQL database is the only database with clear long-term support plan in midPoint.
 We make no commitments for future support of any other database engines.
-See xref:/midpoint/reference/repository/repository-database-support/[] page for the details.
+See xrefv:/midpoint/reference/support-4.9/repository/repository-database-support/[] page for the details.
 Only a direct connection from midPoint to the database engine is supported.
 Database and/or SQL proxies, database load balancers or any other devices (e.g. firewalls) that alter the communication are not supported.
 
 ==== Native Database Support
 
-xref:/midpoint/reference/repository/native-postgresql/[Native PostgreSQL repository implementation] is developed and tuned
+xrefv:/midpoint/reference/support-4.9/repository/native-postgresql/[Native PostgreSQL repository implementation] is developed and tuned
 specially for PostgreSQL database, taking advantage of native database features, providing improved performance and scalability.
 
 This is now the *primary and recommended repository* for midPoint deployments.
@@ -382,16 +381,16 @@ PostgreSQL 16 is recommended.
 
 ==== Generic Database Support (deprecated)
 
-xref:/midpoint/reference/repository/generic/[Generic repository implementation] is based on object-relational
+xrefv:/midpoint/reference/support-4.9/repository/generic/[Generic repository implementation] is based on object-relational
 mapping abstraction (Hibernate), supporting several database engines with the same code.
 Following database engines are supported with this implementation:
 
 * Oracle 21c
 * Microsoft SQL Server 2019
 
-Support for xref:/midpoint/reference/repository/generic/[generic repository implementation] together with all the database engines supported by this implementation is *deprecated*.
-It is *strongly recommended* to migrate to xref:/midpoint/reference/repository/native-postgresql/[native PostgreSQL repository implementation] as soon as possible.
-See xref:/midpoint/reference/repository/repository-database-support/[] for more details.
+Support for xrefv:/midpoint/reference/support-4.9/repository/generic/[generic repository implementation] together with all the database engines supported by this implementation is *deprecated*.
+It is *strongly recommended* to migrate to xrefv:/midpoint/reference/support-4.9/repository/native-postgresql/[native PostgreSQL repository implementation] as soon as possible.
+See xrefv:/midpoint/reference/support-4.9/repository/repository-database-support/[] for more details.
 
 === Supported Browsers
 
@@ -457,32 +456,32 @@ Although we try to our best, it is not possible to foresee all possible uses of 
 Therefore, the information provided in this section are for information purposes only without any guarantees of completeness.
 In case of any doubts about upgrade or behavior changes please use services associated with xref:/support/subscription-sponsoring/[midPoint subscription programs].
 
-Please refer to the xref:/midpoint/reference/upgrade/upgrade-guide/[] for general instructions and description of the upgrade process.
+Please refer to the xrefv:/midpoint/reference/support-4.9/upgrade/upgrade-guide/[] for general instructions and description of the upgrade process.
 The guide describes the steps applicable for upgrades of all midPoint releases.
 Following sections provide details regarding release {release-version}.
 
 === Upgrade From MidPoint 4.8
 
 MidPoint {release-version} data model is backwards compatible with previous midPoint version.
-Please follow our xref:/midpoint/reference/upgrade/upgrade-guide/[Upgrade guide] carefully.
+Please follow our xrefv:/midpoint/reference/support-4.9/upgrade/upgrade-guide/[Upgrade guide] carefully.
 
 [IMPORTANT]
 Be sure to be on the latest maintenance version for 4.8, otherwise you will not be warned about all the necessary schema changes and other possible incompatibilities.
 
 Note that:
 
- * There are database schema changes (see xref:/midpoint/reference/upgrade/database-schema-upgrade/[Database schema upgrade]).
+ * There are database schema changes (see xrefv:/midpoint/reference/support-4.9/upgrade/database-schema-upgrade/[Database schema upgrade]).
 
  * Version numbers of some bundled connectors have changed.
  Connector references from the resource definitions that are using the bundled connectors need to be updated.
 
  * See also the _Actions required_ information below.
 
-// It is strongly recommended migrating to the xref:/midpoint/reference/repository/native-postgresql/[new native PostgreSQL repository implementation]
+// It is strongly recommended migrating to the xrefv:/midpoint/reference/support-4.9/repository/native-postgresql/[new native PostgreSQL repository implementation]
 // for all deployments that have not migrated yet.
 // However, it is *not* recommended upgrading the system and migrating the repositories in one step.
 // It is recommended doing it in two separate steps.
-// Please see xref:/midpoint/reference/repository/native-postgresql/migration/[] for the details.
+// Please see xrefv:/midpoint/reference/support-4.9/repository/native-postgresql/migration/[] for the details.
 
 === Upgrade From Other MidPoint Versions
 
@@ -509,7 +508,7 @@ It refers to the most significant functionality removals and changes in this ver
 // Query converter was improved to provide the possibility to convert XML filters to midPoint query language.
 //
 // * Ninja command line options were consolidated, some options were renamed.
-// More info xref:/midpoint/reference/deployment/ninja[here] and in bug:MID-7483[].
+// More info xrefv:/midpoint/reference/support-4.9/deployment/ninja[here] and in bug:MID-7483[].
 
 === Changes In Initial Objects Since 4.8
 
@@ -526,7 +525,7 @@ The following list contains a description of changes to the initial objects in t
 The complete new set of initial objects is in the `config/initial-objects` directory in both the source and binary distributions.
 
 _Actions required:_ Please review the changes and apply them appropriately to your configuration. Ninja can help with updating existing initial objects during upgrade procedure using `initial-objects` command.
-For more information see xref:/midpoint/reference/deployment/ninja/use-case/upgrade-with-ninja/#initial-objects[here].
+For more information see xrefv:/midpoint/reference/support-4.9/deployment/ninja/use-case/upgrade-with-ninja/#initial-objects[here].
 
 * 040-role-enduser.xml: The `End user` role was updated with a hidden visibility for `myCertificationItems` dashboard widget.
 * 042-role-enduser.xml: The `Reviewer` role was extended with `myActiveCertificationCampaigns` UI authorization for active campaigns page and with more items of the certification campaign object to be read.
@@ -583,7 +582,7 @@ You should at least scan through it - or use the `ninja` tool to check the depre
 | Use `<synchronize/>` action instead.
 |===
 
-The `synchronize/membership` container was added to the object operation policy object, present in xref:/midpoint/reference/concepts/mark/[object marks] (like the `Protected` one).
+The `synchronize/membership` container was added to the object operation policy object, present in xrefv:/midpoint/reference/support-4.9/concepts/mark/[object marks] (like the `Protected` one).
 It controls the handling of the membership of entitlements possessing given object mark.
 
 _Actions required:_
@@ -657,7 +656,7 @@ See link:https://github.com/Evolveum/midpoint/commit/60928672b8e51946edf01fcbe0d
 * The `effectiveMarkRef` item now has value metadata to determine the values' origin. See link:https://github.com/Evolveum/midpoint/commit/351d7e4718bef9ac90dffde8920bc7d536f42e84[commit 351d7e].
 
 * The mapping specification in provenance metadata now contains also object type name, association type name, and the shadow tag.
-See xref:/midpoint/reference/expressions/mappings/#_mapping_maintenance_tasks[Mapping Maintenance Tasks], link:https://github.com/Evolveum/midpoint/commit/0dd1c011d9bc99fae037a4e27cb583cbd43da5bb[commit 0dd1c0], and link:https://github.com/Evolveum/midpoint/commit/8557f5945222ac2a7c535f0d0458af725442b61b[commit 8557f5].
+See xrefv:/midpoint/reference/support-4.9/expressions/mappings/#_mapping_maintenance_tasks[Mapping Maintenance Tasks], link:https://github.com/Evolveum/midpoint/commit/0dd1c011d9bc99fae037a4e27cb583cbd43da5bb[commit 0dd1c0], and link:https://github.com/Evolveum/midpoint/commit/8557f5945222ac2a7c535f0d0458af725442b61b[commit 8557f5].
 
 * "<a:indexed/>" and "<a:indexOnly/>" annotations - when present but without any value - was interpreted as "false".
 This was now changed to a more intuitive interpretation (similar to a:object, a:container, etc), where annotation present but without value means "true".

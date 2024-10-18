@@ -1,12 +1,12 @@
-MidPoint 4.8 "Curie"
+MidPoint 4.9 "Verne"
 ----------------------
 
-Release 4.8 is a fifty-first midPoint release code-named Curie.
-The 4.8 release brings streamlined upgrade process, role mining, security, stability and miscellaneous improvements.
+Release 4.9 is a sixtieth midPoint release code-named Verne.
+The 4.9 release brings improvements in role engineering, certification, approvals, stability and miscellaneous improvements.
 
-Release date: 17th October 2023
-Release type: Long-term support release (LTS)
-End of support: 17th October 2028
+Release date: 18th October 2024
+Release type: Feature release
+End of support: 17th October 2026
 
 Please see the release notes for detailed list of changes:
-https://docs.evolveum.com/midpoint/release/4.8/
+https://docs.evolveum.com/midpoint/release/4.9/

@@ -29,4 +29,11 @@ URL by default:
   http://localhost:8080/
 
 Login: administrator
-Password 5ecr3t
+
+If you did not configure initial administrator password, you should search logs
+(var/log/midpoint.log) for Administrator initial password. The password may contain
+spaces, so it is enclosed with double quotes. Do not forget to remove quotes.
+
+For more information about initial administrator password, please see:
+
+https://docs.evolveum.com/midpoint/reference/support-4.9/security/authentication/administrator-initial-password/
