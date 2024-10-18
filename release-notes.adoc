@@ -1,9 +1,11 @@
 ---
 layout: release
-release-version: '4.9'
+release-version: '4.10'
+visibility: hidden
 ---
-= MidPoint 4.9 "Verne"
-:release-version: 4.9
+= MidPoint 4.10
+:release-version: 4.10
+:page-visibility: hidden
 :page-liquid:
 :page-toc: top
 

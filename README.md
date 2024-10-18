@@ -1,4 +1,4 @@
-MidPoint 4.9 "Verne"
+MidPoint 4.10 Development Branch
 -------------------------------
 
 General information:
