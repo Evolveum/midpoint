@@ -24,9 +24,9 @@ Verne, considered to be one of the fathers of science-fiction genre, inspired se
 </p>
 <p>
 Similarly to Verne's novels, midPoint 4.9 brings several technological advancements, bringing them from the drawing board to real life.
-Shadow caching and value metadata were prototyped long time ago, they become production-quality reality in midPoint 4.9.
+Shadow caching and value metadata were prototyped a long time ago, they became production-quality reality in midPoint 4.9.
 Improvements in role mining and brand-new outlier detection functionality are reaching up to the boundaries of science fiction.
-New access certification look and feel is reminiscent of the colorful worlds that Verne has described.
+The new access certification look and feel is reminiscent of the colorful worlds that Verne has described.
 Other features and improvements of this release make midPoint more complete, easier to use and much more sophisticated.
 Overall, midPoint 4.9 is a major step from the past into the future.
 </p>
@@ -50,8 +50,8 @@ For more information see xref:/midpoint/reference/security/credentials/secrets-p
 ** Adding support for GUI of passwords in connector configuration and password of focus (visible only when it is configured in xml)
 * Improvements regarding xref:/midpoint/reference/resources/entitlements/[shadow associations]:
 ** Support for native object references in ConnId (1.6.0.0-RC1).
-** New style of configuring simulated object references (via capabilities).
-** New style of configuring associations handling: mapping from associations to assignments using specific correlation and synchronization rules.
+** A new style of configuring simulated object references (via capabilities).
+** A new style of configuring associations handling: mapping from associations to assignments using specific correlation and synchronization rules.
 ** Added xref:/midpoint/reference/admin-gui/resource-wizard/#association-type-configuration[wizard] support for association configuration in resources.
 
 * xref:/midpoint/reference/concepts/metadata/[Value metadata] (`@metadata`) are default storage for object and assignment metadata replacing previous `metadata` container.
@@ -91,12 +91,12 @@ For more information see xref:/midpoint/reference/deployment/ninja/command/verif
 ** For more information, see the xref:/midpoint/reference/roles-policies/outlier-detection/[Outlier Detection documentation].
 
 * Request access
-** Role catalog (tree) now has search filter with scope and type selectable.
-Tree node search is now same for all nodes.
+** Role catalog (tree) now has a search filter with the scope and type selectable.
+Tree node search is now the same for all nodes.
 (Previously it was scope=one for non leaf nodes).
 
 * Schema extension
-** Adding new SchemaType that is supported in native repository. SchemaType contains attribute that contains xsd schema.
+** Adding a new SchemaType that is supported in native repository. SchemaType contains an attribute that contains xsd schema.
 ** SchemaType can be configured by GUI. Configuration via GUI contains some limitations that related with schema lifecycle.
 ** For more information can see xref:/midpoint/reference/schema/custom-schema-extension.adoc[].
 
@@ -114,7 +114,7 @@ Tree node search is now same for all nodes.
 ** Spring Boot was upgraded to 3.3.2 and Hibernate ORM to 6.5
 
 * Shadow table Partitioning in Native PostgreSQL Repository
-** Midpoint automatically partition shadow tables based on resource and object class of shadow.
+** Midpoint automatically partitions shadow tables based on the resource and object class of shadow.
 Partitioning is enabled by default on new deployments and needs to be explicitly enabled on existing deployments.
 See xref:/midpoint/reference/repository/native-postgresql/shadow-partitioning/[Repository -> Native -> Shadow Partitioning] for details.
 
@@ -122,8 +122,8 @@ See xref:/midpoint/reference/repository/native-postgresql/shadow-partitioning/[R
 ** Added support and options to optimize queries and not retrieve these items in xref:/midpoint/reference/expressions/expressions/script/functions/get-and-search/[code and groovy scripts].
 
 * Support for H2 database was removed. Clean midPoint will fail to start with embedded H2 database.
-Preferred option to start simple midPoint instance is via docker compose. For more information see xref:/midpoint/install/containers/docker[here].
-Otherwise `config.xml` in midPoint home directory needs to be populated with database connection information.
+The preferred option to start simple midPoint instance is via docker compose. For more information see xref:/midpoint/install/containers/docker[here].
+Otherwise, `config.xml` in midPoint home directory needs to be populated with database connection information.
 
 * Access Certification new UI.
 ** New UI with improved user experience and performance was implemented for Access Certification feature.
@@ -158,7 +158,7 @@ See xref:/midpoint/reference/admin-gui/midpoint-jar-signature-status/[MidPoint J
 * Adding 'Shadow reclassification' task as a new separate activity of the task type.
 ** Adding button for creating simulated/production 'Reclassification' task on unrecognized resource objects panel.
 * New implementation and look of date time picker.
-* Support for item deltas targeting value metadata only (without need to replace whole container value)
+* Support for item deltas targeting value metadata only (without the need to replace whole container value)
 * Resolving the issue for creating a new member object with predefined by archetype options on members panel.
 * Resolving several issues for Self Credentials page.
 Now password propagation to resource takes into account the script, defined in resource for credentials, in case of the appropriate configuration.
