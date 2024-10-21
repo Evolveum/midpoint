@@ -11,7 +11,8 @@ doc-type: config
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2019-05-22T09:49:49.794+02:00
 :page-toc: top
-:page-upkeep-status: yellow
+:page-upkeep-status: orange
+:page-upkeep-note: "Action in task: unfinished, missing examples"
 
 
 == An introduction
@@ -497,6 +498,8 @@ Since 4.8, xref:/midpoint/reference/expressions/expressions/profiles/index.adoc[
 Scripts can be run within tasks.
 That is extremely useful for long-running scripts.
 More information is on this page.
+
+// TODO: unfinished, missing examples and/or references
 
 === Data being passed
 
