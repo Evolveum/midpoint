@@ -23,12 +23,13 @@
                 </minAssignees>
             </policyConstraints>
             <markRef oid="00000000-0000-0000-0000-000000000813" />
-            <markRef oid="00000000-0000-0000-0000-000000000831"/>
+            <!--<markRef oid="00000000-0000-0000-0000-000000000831"/>-->
             <policyActions>
                 <record>
                     <description>Record the marks for use in dashboards and reports.</description>
                 </record>
             </policyActions>
+            <evaluationTarget>object</evaluationTarget>
         </policyRule>
         <focusType>RoleType</focusType>
     </inducement>
@@ -43,12 +44,13 @@
                 </minAssignees>
             </policyConstraints>
             <markRef oid="00000000-0000-0000-0000-000000000813" />
-            <markRef oid="00000000-0000-0000-0000-000000000832"/>
+            <!--<markRef oid="00000000-0000-0000-0000-000000000832"/>-->
             <policyActions>
                 <record>
                     <description>Record the marks for use in dashboards and reports.</description>
                 </record>
             </policyActions>
+            <evaluationTarget>object</evaluationTarget>
         </policyRule>
         <focusType>RoleType</focusType>
     </inducement>
@@ -63,12 +65,13 @@
                 </minAssignees>
             </policyConstraints>
             <markRef oid="00000000-0000-0000-0000-000000000813" />
-            <markRef oid="00000000-0000-0000-0000-000000000831"/>
+            <!--<markRef oid="00000000-0000-0000-0000-000000000831"/>-->
             <policyActions>
                 <record>
                     <description>Record the marks for use in dashboards and reports.</description>
                 </record>
             </policyActions>
+            <evaluationTarget>object</evaluationTarget>
         </policyRule>
         <focusType>OrgType</focusType>
     </inducement>
@@ -83,12 +86,13 @@
                 </minAssignees>
             </policyConstraints>
             <markRef oid="00000000-0000-0000-0000-000000000813" />
-            <markRef oid="00000000-0000-0000-0000-000000000832"/>
+            <!--<markRef oid="00000000-0000-0000-0000-000000000832"/>-->
             <policyActions>
                 <record>
                     <description>Record the marks for use in dashboards and reports.</description>
                 </record>
             </policyActions>
+            <evaluationTarget>object</evaluationTarget>
         </policyRule>
         <focusType>ServiceType</focusType>
     </inducement>

@@ -19,16 +19,26 @@
                     <multiplicity>1</multiplicity>
                 </minAssignees>
             </policyConstraints>
+            <markRef oid="00000000-0000-0000-0000-000000000813"/>
+            <policyActions>
+                <record/>
+            </policyActions>
+            <evaluationTarget>object</evaluationTarget>
         </policyRule>
     </assignment>
     <assignment>
         <policyRule>
             <name>but not too many friends</name>
             <policyConstraints>
-                <minAssignees>
+                <maxAssignees>
                     <multiplicity>2</multiplicity>
-                </minAssignees>
+                </maxAssignees>
             </policyConstraints>
+            <markRef oid="00000000-0000-0000-0000-000000000814"/>
+            <policyActions>
+                <record/>
+            </policyActions>
+            <evaluationTarget>object</evaluationTarget>
         </policyRule>
     </assignment>
 </role>
