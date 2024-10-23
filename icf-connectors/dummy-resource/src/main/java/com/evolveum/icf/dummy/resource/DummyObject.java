@@ -47,6 +47,7 @@ public abstract class DummyObject implements DebugDumpable {
     private Boolean enabled = true;
     private Date validFrom = null;
     private Date validTo = null;
+    private Date lastLoginDate = null;
     private String lastModifier;
 
     /**
@@ -132,6 +133,23 @@ public abstract class DummyObject implements DebugDumpable {
         delayOperation();
         this.enabled = enabled;
         recordModify("_ENABLED", null, null, singletonList(enabled));
+        return this;
+    }
+
+    public Date getLastLoginDate() {
+        return lastLoginDate;
+    }
+
+    public DummyObject setLastLoginDate(Date lastLoginDate)
+            throws ConflictException, FileNotFoundException, SchemaViolationException, ConnectException, InterruptedException {
+
+        checkModifyBreak();
+        delayOperation();
+
+        this.lastLoginDate = lastLoginDate;
+
+        recordModify("_LAST_LOGIN_DATE", null, null, singletonList(lastLoginDate));
+
         return this;
     }
 
