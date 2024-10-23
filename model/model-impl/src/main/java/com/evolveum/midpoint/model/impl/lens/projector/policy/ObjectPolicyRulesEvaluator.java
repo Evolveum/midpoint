@@ -69,7 +69,8 @@ abstract class ObjectPolicyRulesEvaluator<O extends ObjectType> extends PolicyRu
             if (ruleSelector.test(rule)) {
                 applicableRules.add(rule);
             } else {
-                LOGGER.trace("Rule {} is not applicable to the focus/projection, skipping: {}", rule.getName(), rule);
+                LOGGER.trace("Rule '{}' is not applicable to the focus/projection, skipping: {} (selecting {})",
+                        rule.getName(), rule, ruleSelector);
             }
         }
         elementContext.setObjectPolicyRules(applicableRules);
@@ -98,14 +99,34 @@ abstract class ObjectPolicyRulesEvaluator<O extends ObjectType> extends PolicyRu
     /** Evaluates object policy rules attached to the focus. */
     static class FocusPolicyRulesEvaluator<F extends AssignmentHolderType> extends ObjectPolicyRulesEvaluator<F> {
         FocusPolicyRulesEvaluator(@NotNull LensFocusContext<F> focusContext, @NotNull Task task) {
-            super(focusContext, task, EvaluatedPolicyRule::isApplicableToFocusObject);
+            super(focusContext, task, new Predicate<>() {
+                @Override
+                public boolean test(EvaluatedPolicyRule rule) {
+                    return rule.isApplicableToFocusObject();
+                }
+
+                @Override
+                public String toString() {
+                    return "rules applicable to focus (as an object)";
+                }
+            });
         }
     }
 
     /** Evaluates object policy rules attached to projections. */
     static class ProjectionPolicyRulesEvaluator extends ObjectPolicyRulesEvaluator<ShadowType> {
         ProjectionPolicyRulesEvaluator(@NotNull LensProjectionContext projectionContext, @NotNull Task task) {
-            super(projectionContext, task, EvaluatedPolicyRule::isApplicableToProjection);
+            super(projectionContext, task, new Predicate<>() {
+                @Override
+                public boolean test(EvaluatedPolicyRule rule) {
+                    return rule.isApplicableToProjection();
+                }
+
+                @Override
+                public String toString() {
+                    return "rules applicable to projection";
+                }
+            });
         }
     }
 }

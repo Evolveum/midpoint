@@ -246,17 +246,17 @@ public class TestPolicyRules extends AbstractInitializedModelIntegrationTest {
 
 
     /**
-     * Role "friendly introvert" has minAssignees and maxAssignees policy rules, 1 > members >= 2.
+     * Role "friendly introvert" has minAssignees and maxAssignees policy rules, 1 <= members <= 2.
      * Therefore, as it is not assigned, it should be in state of violation.
      */
-    @Test(enabled = false) // #9869
+    @Test // #9869
     public void test200FriendlyIntrovertRecompute() throws Exception {
         skipIfNotNativeRepository();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         when();
-        modelService.recompute(RoleType.class, ROLE_FRIENDLY_INTROVERT.oid, null, task, result);
+        recomputeFocus(RoleType.class, ROLE_FRIENDLY_INTROVERT.oid, task, result);
 
         then();
         assertSuccess(result);
@@ -270,7 +270,7 @@ public class TestPolicyRules extends AbstractInitializedModelIntegrationTest {
     /**
      * Assign "friendly introvert", this should make the rule happy.
      */
-    @Test(enabled = false) // #9869
+    @Test // #9869
     public void test202FriendlyIntrovertAssignOnce() throws Exception {
         skipIfNotNativeRepository();
         Task task = getTestTask();
@@ -278,6 +278,7 @@ public class TestPolicyRules extends AbstractInitializedModelIntegrationTest {
 
         when();
         assignRole(USER_JACK_OID, ROLE_FRIENDLY_INTROVERT.oid, task, result);
+        recomputeFocus(RoleType.class, ROLE_FRIENDLY_INTROVERT.oid, task, result);
 
         then();
         assertSuccess(result);
@@ -292,7 +293,7 @@ public class TestPolicyRules extends AbstractInitializedModelIntegrationTest {
     /**
      * Assign "friendly introvert" again. We are still happy.
      */
-    @Test(enabled = false) // #9869
+    @Test // #9869
     public void test204FriendlyIntrovertAssignAgain() throws Exception {
         skipIfNotNativeRepository();
         Task task = getTestTask();
@@ -300,6 +301,7 @@ public class TestPolicyRules extends AbstractInitializedModelIntegrationTest {
 
         when();
         assignRole(USER_GUYBRUSH_OID, ROLE_FRIENDLY_INTROVERT.oid, task, result);
+        recomputeFocus(RoleType.class, ROLE_FRIENDLY_INTROVERT.oid, task, result);
 
         then();
         assertSuccess(result);
@@ -315,7 +317,7 @@ public class TestPolicyRules extends AbstractInitializedModelIntegrationTest {
     /**
      * Assign "friendly introvert" two more times, this should trigger maxAssignees rule.
      */
-    @Test(enabled = false) // #9869
+    @Test // #9869
     public void test206FriendlyIntrovertAssignTooMuch() throws Exception {
         skipIfNotNativeRepository();
         Task task = getTestTask();
@@ -323,6 +325,7 @@ public class TestPolicyRules extends AbstractInitializedModelIntegrationTest {
 
         when();
         assignRole(USER_BARBOSSA_OID, ROLE_FRIENDLY_INTROVERT.oid, task, result);
+        recomputeFocus(RoleType.class, ROLE_FRIENDLY_INTROVERT.oid, task, result);
 
         then();
         assertSuccess(result);
@@ -339,7 +342,7 @@ public class TestPolicyRules extends AbstractInitializedModelIntegrationTest {
     /**
      * Unassign one user. This should make the rules happy again.
      */
-    @Test(enabled = false) // #9869
+    @Test // #9869
     public void test207UnassignOnce() throws Exception {
         skipIfNotNativeRepository();
         Task task = getTestTask();
@@ -347,6 +350,7 @@ public class TestPolicyRules extends AbstractInitializedModelIntegrationTest {
 
         when();
         unassignRole(USER_JACK_OID, ROLE_FRIENDLY_INTROVERT.oid, task, result);
+        recomputeFocus(RoleType.class, ROLE_FRIENDLY_INTROVERT.oid, task, result);
 
         then();
         assertSuccess(result);
@@ -363,7 +367,7 @@ public class TestPolicyRules extends AbstractInitializedModelIntegrationTest {
     /**
      * Unassign one more user. Still happy.
      */
-    @Test(enabled = false) // #9869
+    @Test // #9869
     public void test208UnassignAgain() throws Exception {
         skipIfNotNativeRepository();
         Task task = getTestTask();
@@ -371,6 +375,7 @@ public class TestPolicyRules extends AbstractInitializedModelIntegrationTest {
 
         when();
         unassignRole(USER_BARBOSSA_OID, ROLE_FRIENDLY_INTROVERT.oid, task, result);
+        recomputeFocus(RoleType.class, ROLE_FRIENDLY_INTROVERT.oid, task, result);
 
         then();
         assertSuccess(result);
@@ -387,7 +392,7 @@ public class TestPolicyRules extends AbstractInitializedModelIntegrationTest {
     /**
      * Unassign last user, minAssignees should trigger again.
      */
-    @Test(enabled = false) // #9869
+    @Test // #9869
     public void test209UnassignLastUser() throws Exception {
         skipIfNotNativeRepository();
         Task task = getTestTask();
@@ -395,6 +400,7 @@ public class TestPolicyRules extends AbstractInitializedModelIntegrationTest {
 
         when();
         unassignRole(USER_GUYBRUSH_OID, ROLE_FRIENDLY_INTROVERT.oid, task, result);
+        recomputeFocus(RoleType.class, ROLE_FRIENDLY_INTROVERT.oid, task, result);
 
         then();
         assertSuccess(result);
@@ -413,14 +419,14 @@ public class TestPolicyRules extends AbstractInitializedModelIntegrationTest {
      * The classification has inducements with policy rules, including minAssignees rule.
      * As this role is not assigned to anyone, minAssignees policy rule in the classification should indicate underassignment.
      */
-    @Test(enabled = false) // #9869
+    @Test // #9869
     public void test210BrigGuardRecompute() throws Exception {
         skipIfNotNativeRepository();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         when();
-        modelService.recompute(RoleType.class, ROLE_BRIG_GUARD.oid, null, task, result);
+        recomputeFocus(RoleType.class, ROLE_BRIG_GUARD.oid, task, result);
 
         then();
         assertSuccess(result);
@@ -432,11 +438,11 @@ public class TestPolicyRules extends AbstractInitializedModelIntegrationTest {
     }
 
     /**
-     * We assign Brig guard role to user.
-     * This should satisfy minAssignees policy rule in the classification.
+     * We assign Brig guard role to user. Also, assign this role to a different user as the owner.
+     * This should satisfy minAssignees policy rules in the classification.
      * The marks should be gone.
      */
-    @Test(enabled = false) // #9869
+    @Test // #9869
     public void test212BrigGuardAssign() throws Exception {
         skipIfNotNativeRepository();
         Task task = getTestTask();
@@ -444,6 +450,8 @@ public class TestPolicyRules extends AbstractInitializedModelIntegrationTest {
 
         when();
         assignRole(USER_JACK_OID, ROLE_BRIG_GUARD.oid, task, result);
+        assignRole(USER_BARBOSSA_OID, ROLE_BRIG_GUARD.oid, SchemaConstants.ORG_OWNER, task, result);
+        recomputeFocus(RoleType.class, ROLE_BRIG_GUARD.oid, task, result);
 
         then();
         assertSuccess(result);
@@ -456,7 +464,7 @@ public class TestPolicyRules extends AbstractInitializedModelIntegrationTest {
      * Unassign Brig guard.
      * The minAssignees policy rule in the classification should trigger again.
      */
-    @Test(enabled = false) // #9869
+    @Test // #9869
     public void test214BrigGuardUnassign() throws Exception {
         skipIfNotNativeRepository();
         Task task = getTestTask();
@@ -464,6 +472,7 @@ public class TestPolicyRules extends AbstractInitializedModelIntegrationTest {
 
         when();
         unassignRole(USER_JACK_OID, ROLE_BRIG_GUARD.oid, task, result);
+        recomputeFocus(RoleType.class, ROLE_BRIG_GUARD.oid, task, result);
 
         then();
         assertSuccess(result);

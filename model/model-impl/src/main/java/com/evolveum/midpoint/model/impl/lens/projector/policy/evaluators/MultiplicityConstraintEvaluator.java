@@ -137,7 +137,7 @@ public class MultiplicityConstraintEvaluator
             List<EvaluatedMultiplicityTrigger> triggers = new ArrayList<>();
             for (QName relationToCheck : relationsToCheck) {
                 int currentAssigneesExceptMyself = getNumberOfAssigneesExceptMyself(targetRole, null, relationToCheck, result);
-                if (currentAssigneesExceptMyself >= requiredMultiplicity) {
+                if (currentAssigneesExceptMyself > requiredMultiplicity) {
                     triggers.add(new EvaluatedMultiplicityTrigger(
                             PolicyConstraintKindType.MAX_ASSIGNEES_VIOLATION,
                             constraint.getValue(),
