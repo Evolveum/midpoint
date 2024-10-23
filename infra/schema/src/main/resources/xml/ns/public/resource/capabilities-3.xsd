@@ -83,6 +83,7 @@
             <xsd:element name="addRemoveAttributeValues" type="tns:AddRemoveAttributeValuesCapabilityType" minOccurs="0"/>
             <xsd:element name="auxiliaryObjectClasses" type="tns:AuxiliaryObjectClassesCapabilityType" minOccurs="0"/>
             <xsd:element name="runAs" type="tns:RunAsCapabilityType" minOccurs="0"/>
+            <xsd:element name="behavior" type="tns:BehaviorCapabilityType" minOccurs="0"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -874,6 +875,46 @@
                     <!-- TODO: settings whether authentication is required or whether this is just user switch (proxy) -->
                     <!-- TODO: if authentication is required then what credentials are needed? -->
                 </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="BehaviorCapabilityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                <!--TODO-->
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.9</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:CapabilityType">
+                <xsd:sequence>
+                    <xsd:element name="lastLoginTimestamp" type="tns:LastLoginTimestampCapabilityType" minOccurs="0"/>
+                </xsd:sequence>
+                <xsd:attribute name="id" type="xsd:long"/>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="LastLoginTimestampCapabilityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                <!--TODO-->
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.9</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:CapabilityType">
+                <xsd:sequence>
+                    <xsd:element name="returnedByDefault" type="xsd:boolean" minOccurs="0" default="true"/>
+                </xsd:sequence>
+                <xsd:attribute name="id" type="xsd:long"/>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
