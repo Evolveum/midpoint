@@ -638,6 +638,10 @@ class ConnectorInstanceConnIdImpl implements ConnectorInstance, ConnectorContext
                 || (shadowItemsToReturn.isReturnDefaultAttributes() && validToReturnedByDefault())) {
             icfAttrsToGet.add(OperationalAttributes.DISABLE_DATE_NAME);
         }
+        if (shadowItemsToReturn.isReturnValidToExplicit()
+            || (shadowItemsToReturn.isReturnDefaultAttributes() && lastLoginTimestampReturnedByDefault())) {
+            icfAttrsToGet.add(PredefinedAttributes.LAST_LOGIN_DATE_NAME);
+        }
         for (var itemDef : MiscUtil.emptyIfNull(shadowItemsToReturn.getItemsToReturn())) {
             icfAttrsToGet.add(
                     ucfAttributeNameToConnId(itemDef));
@@ -676,6 +680,11 @@ class ConnectorInstanceConnIdImpl implements ConnectorInstance, ConnectorContext
     private synchronized boolean validToReturnedByDefault() {
         return CapabilityUtil.isActivationValidToReturnedByDefault(
                 CapabilityUtil.getCapability(getCapabilities(), ActivationCapabilityType.class));
+    }
+
+    private synchronized boolean lastLoginTimestampReturnedByDefault() {
+        return CapabilityUtil.isLastLoginTimestampReturnedByDefault(
+                CapabilityUtil.getCapability(getCapabilities(), BehaviorCapabilityType.class));
     }
 
     private synchronized boolean supportsDeltaUpdateOp() {

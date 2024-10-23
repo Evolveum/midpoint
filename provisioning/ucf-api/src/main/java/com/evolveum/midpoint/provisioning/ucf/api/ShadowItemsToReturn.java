@@ -38,6 +38,9 @@ public class ShadowItemsToReturn implements Serializable {
     /** We request that the "valid to" be returned. */
     private boolean returnValidToExplicit = false;
 
+    /** We request that the "last login timestamp" be returned. */
+    private boolean returnLastLoginTimestampExplicit = false;
+
     /** The list of items that we explicitly request to be returned. */
     private Collection<? extends ShadowAttributeDefinition<?, ?, ?, ?>> itemsToReturn = null;
 
@@ -95,6 +98,14 @@ public class ShadowItemsToReturn implements Serializable {
 
     public void setReturnValidToExplicit(boolean returnValidToExplicit) {
         this.returnValidToExplicit = returnValidToExplicit;
+    }
+
+    public boolean isReturnLastLoginTimestampExplicit() {
+        return returnLastLoginTimestampExplicit;
+    }
+
+    public void setReturnLastLoginTimestampExplicit(boolean returnLastLoginTimestampExplicit) {
+        this.returnLastLoginTimestampExplicit = returnLastLoginTimestampExplicit;
     }
 
     public boolean isAllDefault() {
