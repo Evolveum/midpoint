@@ -132,6 +132,8 @@ public class ShadowItemsToReturnProvider {
             }
         }
 
+//        var behaviorCapability = ResourceTypeUtil.getBehaviorCapability(resource, beh);
+
         if (!shadowItemsToReturn.isAllDefault()) {
             LOGGER.trace("-> Resulting shadow items to return: {}", shadowItemsToReturn);
             return shadowItemsToReturn;

@@ -254,6 +254,20 @@ public class CapabilityUtil {
         return valCap.isReturnedByDefault();
     }
 
+    public static boolean isLastLoginTimestampReturnedByDefault(BehaviorCapabilityType capability) {
+        if (capability == null) {
+            return false;
+        }
+        LastLoginTimestampCapabilityType lastLoginCap = capability.getLastLoginTimestamp();
+        if (lastLoginCap == null) {
+            return false;
+        }
+        if (lastLoginCap.isReturnedByDefault() == null) {
+            return true;
+        }
+        return lastLoginCap.isReturnedByDefault();
+    }
+
     /** Returns a set of classes of native capabilities. */
     public static Collection<Class<? extends CapabilityType>> getNativeCapabilityClasses(@Nullable CapabilitiesType capabilities) {
         if (capabilities == null) {
