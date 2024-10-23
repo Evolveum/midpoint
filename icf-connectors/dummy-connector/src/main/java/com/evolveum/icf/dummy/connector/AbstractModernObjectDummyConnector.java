@@ -136,6 +136,10 @@ public abstract class AbstractModernObjectDummyConnector
                         assertReplace(delta);
                         account.setValidTo(getDate(delta));
 
+                    } else if (delta.is(PredefinedAttributes.LAST_LOGIN_DATE_NAME)) {
+                        assertReplace(delta);
+                        account.setLastLoginDate(getDate(delta));
+
                     } else if (delta.is(OperationalAttributes.LOCK_OUT_NAME)) {
                         assertReplace(delta);
                         account.setLockoutStatus(getBooleanMandatory(delta));
