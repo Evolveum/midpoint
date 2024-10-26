@@ -542,6 +542,10 @@ If you need, you can disable auditing of resource object changes in SystemConfig
 </systemConfiguration>
 ----
 
+== Audit Trail Retention
+
+Retention of audit trail records can be controlled by a _cleanup policy_.
+See xref:/midpoint/reference/deployment/removing-obsolete-information/[] for details.
 
 == Configuration examples
 
@@ -559,3 +563,5 @@ see the xref:/midpoint/reference/repository/generic/generic-audit/#configuration
 * xref:/midpoint/reference/repository/native-audit/[Native PostgreSQL Audit Trail]
 
 * xref:/midpoint/reference/repository/generic/generic-audit/[Generic SQL Audit Trail]
+
+* xref:/midpoint/reference/deployment/removing-obsolete-information/[]

@@ -31,6 +31,9 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -66,6 +69,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestSystemPerformance extends AbstractStoryTest implements PerformanceTestClassMixin {
+
+    private static final Trace LOGGER = TraceManager.getTrace(TestSystemPerformance.class);
 
     public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "system-perf");
     static final File TARGET_DIR = new File(TARGET_DIR_PATH);
@@ -115,6 +120,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
     private final ProgressOutputFile progressOutputFile = new ProgressOutputFile();
     private final SummaryOutputFile summaryOutputFile = new SummaryOutputFile();
     private final DetailsOutputFile detailsOutputFile = new DetailsOutputFile();
+    private final TaskDumper taskDumper = new TaskDumper();
 
     private final List<String> summaryReportHeader = new ArrayList<>();
     private final List<Object> summaryReportDataRow = new ArrayList<>();
@@ -313,6 +319,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                     .getObject();
 
             logTaskFinish(taskAfter, label, result);
+            taskDumper.dumpTask(taskAfter, getTestNameShort());
         }
 
         String accountName = SourceInitializer.getAccountName(0);
@@ -353,6 +360,8 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
             displayValue("memberOf", memberOfValue);
             assertThat(memberOfValue).as("memberOf").hasSize(memberships.size());
         }
+
+        LOGGER.info("user:\n{}", prismContext.xmlSerializer().serialize(user));
 
         // temporarily disabled
 //        if (TARGETS_CONFIGURATION.getNumberOfResources() > 0) {
@@ -418,6 +427,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                         .getObject();
 
                 logTaskFinish(taskAfter, label, result);
+                taskDumper.dumpTask(taskAfter, getTestNameShort());
             }
         }
     }
@@ -457,6 +467,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                         .getObject();
 
                 logTaskFinish(taskAfter, label, result);
+                taskDumper.dumpTask(taskAfter, getTestNameShort());
             }
         }
     }
@@ -482,6 +493,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                 .getObject();
 
         logTaskFinish(taskAfter, "", result);
+        taskDumper.dumpTask(taskAfter, getTestNameShort());
     }
 
     @Test
