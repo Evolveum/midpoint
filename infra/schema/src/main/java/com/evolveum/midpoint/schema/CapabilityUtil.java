@@ -372,6 +372,18 @@ public class CapabilityUtil {
         }
     }
 
+    public static boolean isEnabled(CapabilityType cap) {
+        return cap != null && !Boolean.FALSE.equals(cap.isEnabled());
+    }
+
+    public static LastLoginTimestampCapabilityType getEnabledLastLoginCapabilityStrict(BehaviorCapabilityType act) {
+        if (isEnabled(act) && isEnabled(act.getLastLoginTimestamp())) {
+            return act.getLastLoginTimestamp();
+        } else {
+            return null;
+        }
+    }
+
     private static boolean isEnabled(ActivationStatusCapabilityType cap) {
         return cap != null && !Boolean.FALSE.equals(cap.isEnabled());
     }
