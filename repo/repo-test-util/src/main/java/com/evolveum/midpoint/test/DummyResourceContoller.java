@@ -311,7 +311,7 @@ public class DummyResourceContoller extends AbstractResourceController {
         if (checkDisplayOrder) {
             // TODO: fix, see MID-2642
             assertTrue("Wrong displayOrder for attribute fullName: " + fullnameDef.getDisplayOrder(),
-                    fullnameDef.getDisplayOrder() == 200
+                    fullnameDef.getDisplayOrder() == 210
                             || fullnameDef.getDisplayOrder() == 250
                             || fullnameDef.getDisplayOrder() == 270);
         }

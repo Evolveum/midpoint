@@ -190,6 +190,8 @@ public abstract class SchemaConstants {
     public static final ItemPath PATH_ACTIVATION_DISABLE_REASON =
             ItemPath.create(ShadowType.F_ACTIVATION, ActivationType.F_DISABLE_REASON);
     public static final ItemPath PATH_ACTIVATION_LOCKOUT_STATUS = ItemPath.create(C_ACTIVATION, ActivationType.F_LOCKOUT_STATUS);
+    public static final ItemPath PATH_BEHAVIOUR_LAST_LOGIN_TIMESTAMP =
+            ItemPath.create(ShadowType.F_BEHAVIOR, ShadowBehaviorType.F_LAST_LOGIN_TIMESTAMP);
     public static final ItemPath PATH_OPERATIONAL_STATE_LAST_AVAILABILITY_STATUS =
             ItemPath.create(ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS);
     public static final ItemPath PATH_INDUCEMENT_POLICY_RULE = ItemPath.create(RoleType.F_INDUCEMENT, AssignmentType.F_POLICY_RULE);
