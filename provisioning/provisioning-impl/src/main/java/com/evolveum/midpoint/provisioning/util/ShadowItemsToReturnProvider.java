@@ -15,6 +15,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowBehaviorType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.BehaviorCapabilityType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -127,6 +130,17 @@ public class ShadowItemsToReturnProvider {
                         shadowItemsToReturn.setReturnAdministrativeStatusExplicit(true);
                     } else if (objectDefinition.getActivationFetchStrategy(ActivationType.F_LOCKOUT_STATUS) == EXPLICIT) {
                         shadowItemsToReturn.setReturnLockoutStatusExplicit(true);
+                    }
+                }
+            }
+        }
+
+        var behaviorCapability = ResourceTypeUtil.getEnabledCapability(resource, BehaviorCapabilityType.class);
+        if (behaviorCapability != null) {
+            if (CapabilityUtil.isCapabilityEnabled(behaviorCapability.getLastLoginTimestamp())) {
+                if (!CapabilityUtil.isLastLoginTimestampReturnedByDefault(behaviorCapability)) {
+                    if (isFetchingNotDisabledByClient(SchemaConstants.PATH_BEHAVIOUR_LAST_LOGIN_TIMESTAMP)) {
+                        shadowItemsToReturn.setReturnLastLoginTimestampExplicit(true);
                     }
                 }
             }

@@ -47,6 +47,9 @@ class ResourceObjectCompleter {
         new ActivationConverter(ctx)
                 .completeActivation(resourceObject, result);
 
+        new BehaviorConverter(ctx)
+                .completeBehavior(resourceObject, result);
+
         if (fetchAssociations) {
             EntitlementReader.read(resourceObject, ctx, result);
         }

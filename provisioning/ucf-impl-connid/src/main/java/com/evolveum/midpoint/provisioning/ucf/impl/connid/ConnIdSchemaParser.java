@@ -363,6 +363,7 @@ class ConnIdSchemaParser {
         AttributeInfo disableDateAttributeInfo;
         AttributeInfo lockoutAttributeInfo;
         AttributeInfo auxiliaryObjectClassAttributeInfo;
+        AttributeInfo lastLoginDateAttributeInfo;
 
         /**
          * Updates the current knowledge about special attributes with the currently parsed attribute.
@@ -388,6 +389,11 @@ class ConnIdSchemaParser {
 
             if (OperationalAttributes.DISABLE_DATE_NAME.equals(icfName)) {
                 disableDateAttributeInfo = attributeInfo;
+                return true;
+            }
+
+            if (PredefinedAttributes.LAST_LOGIN_DATE_NAME.equals(icfName)) {
+                lastLoginDateAttributeInfo = attributeInfo;
                 return true;
             }
 

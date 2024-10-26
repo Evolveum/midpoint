@@ -913,6 +913,14 @@
             <xsd:extension base="tns:CapabilityType">
                 <xsd:sequence>
                     <xsd:element name="returnedByDefault" type="xsd:boolean" minOccurs="0" default="true"/>
+                    <xsd:element name="attribute" type="xsd:QName" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Name of the attribute to use for account last login date.
+                                This is a configuration of simulated capability.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
                 <xsd:attribute name="id" type="xsd:long"/>
             </xsd:extension>

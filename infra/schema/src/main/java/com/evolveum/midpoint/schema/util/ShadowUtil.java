@@ -424,6 +424,15 @@ public class ShadowUtil {
         return activation;
     }
 
+    public static ShadowBehaviorType getOrCreateShadowBehavior(ShadowType shadowType) {
+        ShadowBehaviorType behavior = shadowType.getBehavior();
+        if (behavior == null) {
+            behavior = new ShadowBehaviorType();
+            shadowType.setBehavior(behavior);
+        }
+        return behavior;
+    }
+
     /**
      * This is not supposed to be used in production code! It is just for the tests.
      */
@@ -892,6 +901,14 @@ public class ShadowUtil {
             return null;
         }
         return passwd.getValue();
+    }
+
+    public static XMLGregorianCalendar getLastLoginTimestampValue(ShadowType shadow) {
+        if (shadow == null || shadow.getBehavior() == null) {
+            return null;
+        }
+
+        return shadow.getBehavior().getLastLoginTimestamp();
     }
 
     public static Object shortDumpShadowLazily(PrismObject<ShadowType> shadow) {
