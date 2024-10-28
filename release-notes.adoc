@@ -37,7 +37,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 
 == Changes with Respect To Version 4.9
 
-* Update GUI views after changing of the archetype, that is used in the view.
+* Update GUI views after changing of the archetype, that is used in the view. See bug:MID-9776[].
 
 == Changes With Respect To Version 4.8
 
