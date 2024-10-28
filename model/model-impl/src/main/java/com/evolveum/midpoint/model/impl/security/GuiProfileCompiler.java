@@ -132,6 +132,13 @@ public class GuiProfileCompiler {
 
         CompiledGuiProfile compiledGuiProfile = compileFocusProfile(adminGuiConfigurations, systemConfiguration, principal, task, result);
 
+        compiledGuiProfile.getObjectCollectionViews().forEach(compiledObjectCollectionView -> {
+            String archetypeOid = compiledObjectCollectionView.getArchetypeOid();
+            if (StringUtils.isNotEmpty(archetypeOid)) {
+                profileDependencies.add(archetypeOid);
+            }
+        });
+
         setupFocusPhoto(principal, compiledGuiProfile, result);
         setupLocale(principal, compiledGuiProfile);
         compiledGuiProfile.setDependencies(profileDependencies);

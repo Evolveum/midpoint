@@ -86,6 +86,7 @@ public class GuiProfiledPrincipalManagerImpl
     private static final Collection<CacheInvalidationEventSpecification> CACHE_EVENT_SPECIFICATION =
             ImmutableSet.<CacheInvalidationEventSpecification>builder()
             .add(CacheInvalidationEventSpecification.of(UserType.class,ASSIGNMENTS_AND_ADMIN_GUI_PATHS,MODIFY_DELETE_CHANGES))
+            .add(CacheInvalidationEventSpecification.of(ArchetypeType.class, ImmutableSet.of(ArchetypeType.F_ARCHETYPE_POLICY, FocusType.F_ASSIGNMENT, RoleType.F_ADMIN_GUI_CONFIGURATION, FocusType.F_ACTIVATION) ,MODIFY_DELETE_CHANGES))
             .add(CacheInvalidationEventSpecification.of(AbstractRoleType.class,ASSIGNMENTS_AND_ADMIN_GUI_PATHS,MODIFY_DELETE_CHANGES))
             .add(CacheInvalidationEventSpecification.of(SystemConfigurationType.class, ImmutableSet.of(SystemConfigurationType.F_ADMIN_GUI_CONFIGURATION), MODIFY_DELETE_CHANGES))
             .build();
