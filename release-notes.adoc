@@ -35,6 +35,10 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 {% include release-dedication.html content=dedicationContent %}
 ++++
 
+== Changes with Respect To Version 4.9
+
+* Update GUI views after changing of the archetype, that is used in the view.
+
 == Changes With Respect To Version 4.8
 
 === New Features and Major Improvements
