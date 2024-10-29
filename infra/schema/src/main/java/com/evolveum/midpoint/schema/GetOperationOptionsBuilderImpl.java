@@ -249,6 +249,10 @@ public class GetOperationOptionsBuilderImpl
         return forPaths(opts -> opts.setIterationMethod(value));
     }
 
+    public GetOperationOptionsBuilder iterationPageSize(Integer size) {
+        return forPaths(opts -> opts.setIterationPageSize(size));
+    }
+
     @Override
     public GetOperationOptionsBuilder executionPhase() {
         return executionPhase(true);
