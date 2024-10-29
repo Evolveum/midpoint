@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.authentication.impl.filter.oidc;
 
 import com.evolveum.midpoint.authentication.impl.filter.configurers.RemoteModuleConfigurer;
+import com.evolveum.midpoint.authentication.impl.module.configuration.OidcAdditionalConfiguration;
 import com.evolveum.midpoint.authentication.impl.module.configurer.OidcClientModuleWebSecurityConfigurer;
 
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
@@ -23,10 +24,14 @@ import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.util.matcher.*;
 import org.springframework.util.Assert;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public final class OidcLoginConfigurer<B extends HttpSecurityBuilder<B>>
         extends RemoteModuleConfigurer<B, OidcLoginConfigurer<B>, OidcLoginAuthenticationFilter> {
 
     private ClientRegistrationRepository clientRegistrations;
+    private Map<String, OidcAdditionalConfiguration> additionalConfiguration = new HashMap<>();
 
     public OidcLoginConfigurer(ModelAuditRecorder auditProvider) {
         super(auditProvider);
@@ -35,6 +40,11 @@ public final class OidcLoginConfigurer<B extends HttpSecurityBuilder<B>>
 
     public OidcLoginConfigurer<B> clientRegistrationRepository(ClientRegistrationRepository clientRegistrationRepository) {
         this.clientRegistrations = clientRegistrationRepository;
+        return this;
+    }
+
+    public OidcLoginConfigurer<B> additionalClientConfiguration(Map<String, OidcAdditionalConfiguration> additionalConfiguration) {
+        this.additionalConfiguration = additionalConfiguration;
         return this;
     }
 
@@ -53,6 +63,7 @@ public final class OidcLoginConfigurer<B extends HttpSecurityBuilder<B>>
     public void configure(B http) throws Exception {
         OidcAuthorizationRequestRedirectFilter authorizationRequestFilter = new OidcAuthorizationRequestRedirectFilter(
                 clientRegistrations,
+                additionalConfiguration,
                 getAuthorizationRequestBaseUri(),
                 getAuditProvider(),
                 http.getSharedObject(SecurityContextRepository.class));

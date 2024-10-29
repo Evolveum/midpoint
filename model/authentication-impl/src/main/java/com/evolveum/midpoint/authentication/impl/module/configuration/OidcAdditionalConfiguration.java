@@ -31,14 +31,16 @@ public class OidcAdditionalConfiguration implements Serializable {
     private final RSAPrivateKey privateKey;
     private final Base64URL thumbprint;
     private final Base64URL thumbprint256;
+    private final boolean usePKCE;
 
     private OidcAdditionalConfiguration(
-            String singingAlg, RSAPublicKey publicKey, RSAPrivateKey privateKey, String thumbprint, String thumbprint256) {
+            String singingAlg, RSAPublicKey publicKey, RSAPrivateKey privateKey, String thumbprint, String thumbprint256, boolean usePKCE) {
         this.singingAlg = singingAlg;
         this.publicKey = publicKey;
         this.privateKey = privateKey;
         this.thumbprint = thumbprint != null ? createBase64(thumbprint) : null;
         this.thumbprint256 = thumbprint256 != null ? createBase64(thumbprint256) : null;
+        this.usePKCE = usePKCE;
     }
 
     public String getSingingAlg() {
@@ -59,6 +61,10 @@ public class OidcAdditionalConfiguration implements Serializable {
 
     public Base64URL getThumbprint256() {
         return thumbprint256;
+    }
+
+    public boolean isUsePKCE() {
+        return usePKCE;
     }
 
     private Base64URL createBase64(@NotNull String thumbprint) {
@@ -82,6 +88,8 @@ public class OidcAdditionalConfiguration implements Serializable {
 
         private String thumbprint;
         private String thumbprint256;
+
+        private boolean usePKCE = false;
 
         private Builder() {
         }
@@ -111,9 +119,16 @@ public class OidcAdditionalConfiguration implements Serializable {
             return this;
         }
 
+        public Builder usePKCE(Boolean usePKCE) {
+            if (usePKCE != null) {
+                this.usePKCE = usePKCE;
+            }
+            return this;
+        }
+
         public OidcAdditionalConfiguration build(){
             return new OidcAdditionalConfiguration(
-                    this.singingAlg, this.publicKey, this.privateKey, this.thumbprint, this.thumbprint256);
+                    this.singingAlg, this.publicKey, this.privateKey, this.thumbprint, this.thumbprint256, this.usePKCE);
         }
     }
 }
