@@ -17814,6 +17814,14 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="iterationPageSize" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>GetOperationOptionsType.iterationPageSize</a:displayName>
+                        <a:since>4.9</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="errorHandling" type="tns:FetchErrorHandlingType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>

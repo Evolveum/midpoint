@@ -91,7 +91,7 @@ public class ReferenceIterativeSearch {
             pagedQuery.setPaging(paging);
 
             int pageSize = Math.min(
-                    repoService.repositoryConfiguration().getIterativeSearchByPagingBatchSize(),
+                    repoService.getIterationPageSize(options),
                     defaultIfNull(maxSize, Integer.MAX_VALUE));
             pagedQuery.getPaging().setMaxSize(pageSize);
             pagedQuery.getPaging().setOffset(offset);
