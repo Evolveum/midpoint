@@ -12,29 +12,20 @@ import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.impl.filter.RemoteModuleAuthorizationFilter;
 import com.evolveum.midpoint.authentication.impl.module.authentication.OidcClientModuleAuthenticationImpl;
+import com.evolveum.midpoint.authentication.impl.module.configuration.OidcAdditionalConfiguration;
 import com.evolveum.midpoint.authentication.impl.util.RequestState;
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 
-import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.ClientAuthorizationRequiredException;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.*;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
-import org.springframework.security.web.DefaultRedirectStrategy;
-import org.springframework.security.web.RedirectStrategy;
-import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
+import org.springframework.security.oauth2.core.endpoint.PkceParameterNames;
 import org.springframework.security.web.context.SecurityContextRepository;
-import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
-import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.util.ThrowableAnalyzer;
-import org.springframework.util.Assert;
-import org.springframework.web.filter.OncePerRequestFilter;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -42,10 +33,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.util.Map;
 
 public class OidcAuthorizationRequestRedirectFilter extends RemoteModuleAuthorizationFilter<OidcAuthorizationRequestRedirectFilter> {
 
-    private final OAuth2AuthorizationRequestResolver authorizationRequestResolver;
+    private final DefaultOAuth2AuthorizationRequestResolver authorizationRequestResolver;
 
     private final ThrowableAnalyzer throwableAnalyzer = new OidcAuthorizationRequestRedirectFilter.DefaultThrowableAnalyzer();
 
@@ -53,10 +45,31 @@ public class OidcAuthorizationRequestRedirectFilter extends RemoteModuleAuthoriz
             new HttpSessionOAuth2AuthorizationRequestRepository();
 
     public OidcAuthorizationRequestRedirectFilter(ClientRegistrationRepository clientRegistrationRepository,
-            String authorizationRequestBaseUri, ModelAuditRecorder auditProvider, SecurityContextRepository securityContextRepository) {
+            Map<String, OidcAdditionalConfiguration> additionalConfiguration, String authorizationRequestBaseUri, ModelAuditRecorder auditProvider, SecurityContextRepository securityContextRepository) {
         super(auditProvider, securityContextRepository);
-        this.authorizationRequestResolver = new DefaultOAuth2AuthorizationRequestResolver(clientRegistrationRepository,
-                authorizationRequestBaseUri);
+        this.authorizationRequestResolver = initRequestResolver(clientRegistrationRepository, additionalConfiguration, authorizationRequestBaseUri);
+    }
+
+    private DefaultOAuth2AuthorizationRequestResolver initRequestResolver(ClientRegistrationRepository clientRegistrationRepository, Map<String, OidcAdditionalConfiguration> additionalConfiguration, String authorizationRequestBaseUri) {
+        DefaultOAuth2AuthorizationRequestResolver authorizationRequestResolver = new DefaultOAuth2AuthorizationRequestResolver(
+                clientRegistrationRepository, authorizationRequestBaseUri);
+        authorizationRequestResolver.setAuthorizationRequestCustomizer((builder -> {
+            OAuth2AuthorizationRequest request = builder.build();
+            if (request != null
+                    && request.getAttributes().containsKey(OAuth2ParameterNames.REGISTRATION_ID)) {
+
+                String registrationId = (String)request.getAttributes().get(OAuth2ParameterNames.REGISTRATION_ID);
+                if (!additionalConfiguration.containsKey(registrationId)) {
+                    return;
+                }
+
+                if (!request.getAdditionalParameters().containsKey(PkceParameterNames.CODE_CHALLENGE)
+                        && additionalConfiguration.get(registrationId).isUsePKCE()) {
+                    OAuth2AuthorizationRequestCustomizers.withPkce().accept(builder);
+                }
+            }
+        }));
+        return authorizationRequestResolver;
     }
 
     @Override
