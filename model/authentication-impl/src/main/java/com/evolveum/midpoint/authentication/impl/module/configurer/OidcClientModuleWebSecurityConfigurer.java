@@ -76,6 +76,7 @@ public class OidcClientModuleWebSecurityConfigurer extends RemoteModuleWebSecuri
         OidcLoginConfigurer configurer = new OidcLoginConfigurer(auditProvider);
         configurer
                 .clientRegistrationRepository(clientRegistrationRepository())
+                .additionalClientConfiguration(getConfiguration().getAdditionalConfiguration())
                 .midpointFailureHandler(new MidpointAuthenticationFailureHandler())
                 .loginProcessingUrl(
                         AuthUtil.stripEndingSlashes(getPrefix()) + RemoteModuleAuthenticationImpl.AUTHENTICATION_REQUEST_PROCESSING_URL_SUFFIX_WITH_REG_ID)
