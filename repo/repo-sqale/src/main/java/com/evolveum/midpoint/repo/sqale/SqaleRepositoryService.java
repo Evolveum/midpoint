@@ -1106,7 +1106,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             pagedQuery.setPaging(paging);
 
             int pageSize = Math.min(
-                    repositoryConfiguration().getIterativeSearchByPagingBatchSize(),
+                    getIterationPageSize(options),
                     defaultIfNull(maxSize, Integer.MAX_VALUE));
             pagedQuery.getPaging().setMaxSize(pageSize);
             pagedQuery.getPaging().setOffset(offset);
@@ -1653,9 +1653,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
             pagedQuery.setPaging(paging);
 
-            int pageSize = Math.min(
-                    repositoryConfiguration().getIterativeSearchByPagingBatchSize(),
-                    defaultIfNull(maxSize, Integer.MAX_VALUE));
+            int pageSize = Math.min(getIterationPageSize(options), defaultIfNull(maxSize, Integer.MAX_VALUE));
             pagedQuery.getPaging().setMaxSize(pageSize);
             pagedQuery.getPaging().setOffset(offset);
 
@@ -1710,6 +1708,19 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             long opHandle = registerOperationStart(OP_SEARCH_CONTAINERS_ITERATIVE, type);
             registerOperationFinish(opHandle);
         }
+    }
+
+    public Integer getIterationPageSize(Collection<SelectorOptions<GetOperationOptions>> options) {
+        if (options != null) {
+            for (var option : options) {
+                if (option.isRoot() && option.getOptions() != null) {
+                    if (option.getOptions().getIterationPageSize() != null) {
+                        return option.getOptions().getIterationPageSize();
+                    }
+                }
+            }
+        }
+        return repositoryConfiguration().getIterativeSearchByPagingBatchSize();
     }
 
     /**
