@@ -200,7 +200,7 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
         return new LinkedHashMap<>(itemMappings);
     }
 
-    public Object itemDefinition() {
+    public ItemDefinition<?> itemDefinition() {
         return itemDefinition;
     }
 }
