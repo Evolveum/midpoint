@@ -15,6 +15,7 @@ import com.evolveum.axiom.concepts.CheckedFunction;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.impl.PrismContainerImpl;
 import com.evolveum.midpoint.prism.path.*;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistryState;
 import com.evolveum.midpoint.repo.sqlbase.SqlBaseOperationTracker;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleMappingMixin;
@@ -197,7 +198,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
 
         if (isExcludeAll(options)) {
             // We have options to exclude everything
-            return paths(entity.oid, entity.objectType);
+            return paths(entity.oid, entity.objectType, entity.nameNorm, entity.nameOrig);
         }
 
         // TODO: there is currently no support for index-only extensions (from entity.ext).
@@ -228,13 +229,14 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
             throws SchemaException {
 
         UUID oid = Objects.requireNonNull(row.get(entityPath.oid));
+        var repoType = Objects.requireNonNull(row.get(entityPath.objectType));
         S ret;
         if (isExcludeAll(options)) {
             // We have exclude (dont retrieve) options for whole object, so we just return oid
-            @SuppressWarnings("unchecked")
-            var empty = (PrismObject<S>) itemDefinition().instantiate();
-            empty.setOid(oid.toString());
-            ret = empty.asObjectable();
+            //noinspection unchecked
+            ret = (S) repoType.createObject()
+                .oid(oid.toString())
+                .name(new PolyStringType(new PolyString(row.get(entityPath.nameOrig), row.get(entityPath.nameNorm))));
         } else {
             // We load full object
             byte[] fullObject = Objects.requireNonNull(row.get(entityPath.fullObject));
@@ -248,7 +250,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         return ret;
     }
 
-    private boolean isExcludeAll(@Nullable Collection<SelectorOptions<GetOperationOptions>> options) {
+    protected boolean isExcludeAll(@Nullable Collection<SelectorOptions<GetOperationOptions>> options) {
         if (options == null) {
             return false;
         }
