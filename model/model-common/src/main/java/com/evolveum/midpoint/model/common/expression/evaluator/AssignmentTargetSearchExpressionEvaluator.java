@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -76,6 +77,8 @@ class AssignmentTargetSearchExpressionEvaluator
                                 .oid(oid)
                                 .type(objectTypeName)
                                 .relation(assignmentPropertiesSpec != null ? assignmentPropertiesSpec.getRelation() : null);
+                // FIXME: This could be problem with excludeAll in search, since someone can depend on reference value being set
+                // fully
                 ref.asReferenceValue().setObject(object);
 
                 AssignmentType assignment = new AssignmentType().targetRef(ref);
@@ -94,6 +97,11 @@ class AssignmentTargetSearchExpressionEvaluator
                     assignmentCVal.assertDefinitions(() -> "assignmentCVal in assignment expression in " + vtCtx);
                 }
                 return assignmentCVal;
+            }
+
+            @Override
+            protected void extendOptions(GetOperationOptionsBuilder builder, boolean searchOnResource) {
+                builder.root().dontRetrieve();
             }
         };
     }
