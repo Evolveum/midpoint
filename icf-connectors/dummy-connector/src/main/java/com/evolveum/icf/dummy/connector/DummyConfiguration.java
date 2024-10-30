@@ -37,7 +37,7 @@ public class DummyConfiguration extends AbstractConfiguration {
     private boolean supportActivation = true;
     private boolean supportValidity = false;
     private boolean supportRunAs = true;
-    private boolean supportLastLoginDate = true;
+    private boolean supportLastLoginDate = false;
     private UidMode uidMode = UidMode.NAME;
     private boolean enforceUniqueName = true;
     private String passwordReadabilityMode = PASSWORD_READABILITY_MODE_UNREADABLE;
