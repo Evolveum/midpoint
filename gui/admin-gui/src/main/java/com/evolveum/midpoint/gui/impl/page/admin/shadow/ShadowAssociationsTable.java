@@ -124,7 +124,7 @@ public class ShadowAssociationsTable extends ListItemWithPanelForItemPanel<Shado
 
                     @Override
                     protected boolean isCreateNewObjectVisible() {
-                        return true;
+                        return getContainerModel().getObject() != null;
                     }
 
                     @Override
