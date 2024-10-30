@@ -921,6 +921,20 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="ignoreAttribute" type="xsd:boolean" minOccurs="0" default="true">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Flag that controls whether the original attribute should be ignored.
+
+                                If set to true (or not present at all) the original attribute used as a source of
+                                simulated capability is marked as "ignored" in the schema. If set to false then
+                                the original attribute is still present in its original form in the schema.
+
+                                This option is meaningful only for simulated lastLoginTimestamp, i.e. in case that the
+                                "attribute" element above is set.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
                 <xsd:attribute name="id" type="xsd:long"/>
             </xsd:extension>

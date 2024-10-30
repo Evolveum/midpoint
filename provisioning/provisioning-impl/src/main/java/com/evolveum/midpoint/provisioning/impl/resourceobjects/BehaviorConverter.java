@@ -16,6 +16,8 @@ import javax.xml.namespace.QName;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.processor.ShadowAttributesContainer;
@@ -69,8 +71,9 @@ public class BehaviorConverter {
     private XMLGregorianCalendar determineLastLoginTimestamp(
             ResourceObjectShadow resourceObject, BehaviorCapabilityType behaviorCapability, OperationResult result) {
 
-        XMLGregorianCalendar nativeValue = resourceObject.getBean().getBehavior() != null ?
-                resourceObject.getBean().getBehavior().getLastLoginTimestamp() : null;
+        ShadowType shadow = resourceObject.getBean();
+
+        XMLGregorianCalendar nativeValue = shadow.getBehavior() != null ? shadow.getBehavior().getLastLoginTimestamp() : null;
 
         LastLoginTimestampCapabilityType lastLoginTimestampCapability = CapabilityUtil.getEnabledLastLoginCapabilityStrict(behaviorCapability);
         if (lastLoginTimestampCapability == null) {
@@ -85,8 +88,7 @@ public class BehaviorConverter {
             return nativeValue;
         }
 
-        Collection<Object> values = getSimulatingAttributeValues(
-                resourceObject, lastLoginTimestampCapability.getAttribute());
+        Collection<Object> values = getSimulatingAttributeValues(resourceObject, lastLoginTimestampCapability.getAttribute());
         if (values == null) {
             return null;
         }
@@ -104,17 +106,30 @@ public class BehaviorConverter {
         }
 
         Object value = filteredValues.get(0);
-        if (!(value instanceof XMLGregorianCalendar cal)) {
-            LOGGER.warn(
-                    "An object on {} has value for simulated last login timestamp attribute of wrong type {} expecting XMLGregorianCalendar",
-                    ctx.getResource(), value.getClass().getName());
-            result.recordPartialError("An object on " + ctx.getResource()
-                    + " has value for simulated last login timestamp attribute of wrong type " + value.getClass().getName()
-                    + " expecting XMLGregorianCalendar");
-            return null;
+
+        if (!Boolean.FALSE.equals(lastLoginTimestampCapability.isIgnoreAttribute())) {
+            removeSimulatingAttribute(resourceObject, lastLoginTimestampCapability.getAttribute());
         }
 
-        return cal;
+        if (value instanceof Long longValue) {
+            return XmlTypeConverter.createXMLGregorianCalendar(longValue);
+        }
+        if (value instanceof XMLGregorianCalendar cal) {
+            return cal;
+        }
+
+        LOGGER.warn(
+                "An object on {} has value for simulated last login timestamp attribute of wrong type {} expecting Long/XMLGregorianCalendar",
+                ctx.getResource(), value.getClass().getName());
+        result.recordPartialError("An object on " + ctx.getResource()
+                + " has value for simulated last login timestamp attribute of wrong type " + value.getClass().getName()
+                + " expecting Long/XMLGregorianCalendar");
+        return null;
+    }
+
+    private void removeSimulatingAttribute(ResourceObjectShadow resourceObject, QName attributeName) {
+        ShadowAttributesContainer attributesContainer = resourceObject.getAttributesContainer();
+        attributesContainer.removeProperty(ItemPath.create(attributeName));
     }
 
     @Nullable

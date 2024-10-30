@@ -9,6 +9,7 @@ package com.evolveum.midpoint.provisioning.impl.dummy;
 
 import java.io.File;
 import java.util.Date;
+import javax.xml.namespace.QName;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -17,7 +18,6 @@ import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -25,14 +25,17 @@ import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTe
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowBehaviorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.BehaviorCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.LastLoginTimestampCapabilityType;
 
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
@@ -41,6 +44,13 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.LastLoginTim
 public class TestCapabilityBehavior extends AbstractProvisioningIntegrationTest {
 
     private static final File TEST_DIR = new File("src/test/resources/dummy/capability");
+
+    /**
+     * Native behavior capability: no
+     * Simulated behavior configured capability: no
+     */
+    private static final DummyTestResource RESOURCE_DUMMY_BEHAVIOR_NONE =
+            createResource("resource-dummy-behavior-none.xml", "36af3fcf-849c-4a34-9d14-ff4ca035a533", "behavior-none");
 
     /**
      * Native behavior capability: no
@@ -62,6 +72,16 @@ public class TestCapabilityBehavior extends AbstractProvisioningIntegrationTest 
     private static final DummyTestResource RESOURCE_DUMMY_BEHAVIOR_NATIVE =
             createResource("resource-dummy-behavior-native.xml", "8dce1680-63b4-41ea-bd68-e37cc697c82c", "behavior-native");
 
+    private static final String ATTR_LAST_LOGIN_DATE = "customLastLoginDate";
+
+    private static final QName ATTR_LAST_LOGIN_DATE_QNAME = new QName(SchemaConstants.NS_RI, ATTR_LAST_LOGIN_DATE);
+
+    private static final long LAST_LOGIN_DATE = 1234567890L;
+
+    private static final long CUSTOM_LAST_LOGIN_DATE = 9876543210L;
+
+    private static final String ACCOUNT_JACK = "jack";
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -69,6 +89,18 @@ public class TestCapabilityBehavior extends AbstractProvisioningIntegrationTest 
         initResource(RESOURCE_DUMMY_BEHAVIOR_NATIVE, initTask, initResult);
         initResource(RESOURCE_DUMMY_BEHAVIOR_SIMULATED, initTask, initResult);
         initResource(RESOURCE_DUMMY_BEHAVIOR_NATIVE_SIMULATED, initTask, initResult);
+        initResource(RESOURCE_DUMMY_BEHAVIOR_NONE, initTask, initResult);
+    }
+
+    private void initResource(DummyTestResource resource, Task initTask, OperationResult initResult) throws Exception {
+        resource.initAndTest(this, initTask, initResult);
+
+        resource.controller.getAccountObjectClass().addAttributeDefinition("customLastLoginDate", Long.class, false, false);
+
+        DummyAccount account = new DummyAccount(ACCOUNT_JACK);
+        account.setLastLoginDate(new Date(LAST_LOGIN_DATE));
+        account.addAttributeValue(ATTR_LAST_LOGIN_DATE, CUSTOM_LAST_LOGIN_DATE);
+        resource.controller.getDummyResource().addAccount(account);
     }
 
     private static DummyTestResource createResource(String fileName, String oid, String name) {
@@ -77,89 +109,68 @@ public class TestCapabilityBehavior extends AbstractProvisioningIntegrationTest 
                 fileName,
                 oid, name,
                 c -> c.getAccountObjectClass()
-                        .addAttributeDefinition("customLastLoginDate", Date.class, false, false));
-    }
-
-    private void initResource(DummyTestResource resource, Task initTask, OperationResult initResult) throws Exception {
-        resource.initAndTest(this, initTask, initResult);
-
-        resource.controller.getAccountObjectClass().addAttributeDefinition("customLastLoginDate", Long.class, false, false);
-    }
-
-    private void assertBehaviorCapability(BehaviorCapabilityType behaviorCapability, boolean enabled) {
-        if (!enabled) {
-            AssertJUnit.assertNull(behaviorCapability);
-            return;
-        }
-
-        AssertJUnit.assertNotNull(behaviorCapability);
-
-        LastLoginTimestampCapabilityType lastLoginTimestampCapability = behaviorCapability.getLastLoginTimestamp();
-        AssertJUnit.assertNotNull(lastLoginTimestampCapability);
+                        .addAttributeDefinition(ATTR_LAST_LOGIN_DATE, long.class, false, false));
     }
 
     /**
-     * @param resource
-     * @param checkNative if true then native capabilities are checked, if false then configured capabilities are checked
-     * @param enabled
-     */
-    private void assertBehaviorCapability(PrismObject<ResourceType> resource, boolean checkNative, boolean enabled) {
-        CapabilitiesType capabilities = resource.asObjectable().getCapabilities();
-        if (capabilities == null && !enabled) {
-            return;
-        }
-        AssertJUnit.assertNotNull(capabilities);
-        CapabilityCollectionType collection = checkNative ? capabilities.getNative() : capabilities.getConfigured();
-        if (collection == null && !enabled) {
-            return;
-        }
-        AssertJUnit.assertNotNull(collection);
-
-        BehaviorCapabilityType behaviorCapability = collection.getBehavior();
-        if (behaviorCapability == null && !enabled) {
-            return;
-        }
-        assertBehaviorCapability(behaviorCapability, enabled);
-    }
-
-    private void assertResourceBehaviorCapability(PrismObject<ResourceType> resource, boolean nativeEnabled, boolean configuredEnabled) {
-        assertBehaviorCapability(resource, true, nativeEnabled);
-        assertBehaviorCapability(resource, false, configuredEnabled);
-    }
-
-    /**
-     * Native behavior capability enabled
+     * Native behavior capability enabled, no simulated behavior capability.
      */
     @Test
     public void test100TestNativeCapability() throws Exception {
-        DummyResource dummyResource = RESOURCE_DUMMY_BEHAVIOR_NATIVE.getDummyResource();
-//        Resource.of().getCompleteSchema().getObjectTypeDefinition().getca
-        final Date lastLoginDate = new Date();
-
-        DummyAccount account = new DummyAccount("jack");
-        account.setLastLoginDate(lastLoginDate);
-        dummyResource.addAccount(account);
+        assertBehaviorCapability(RESOURCE_DUMMY_BEHAVIOR_NATIVE.get(), true);
 
         ShadowType shadowObj = getShadow(RESOURCE_DUMMY_BEHAVIOR_NATIVE.oid);
         ShadowBehaviorType behavior = shadowObj.getBehavior();
         AssertJUnit.assertNotNull(behavior);
-        AssertJUnit.assertEquals(lastLoginDate, behavior.getLastLoginTimestamp().toGregorianCalendar().getTime());
+        AssertJUnit.assertEquals(LAST_LOGIN_DATE, behavior.getLastLoginTimestamp().toGregorianCalendar().getTimeInMillis());
     }
 
+    /**
+     * No native capability, simulated capability configured.
+     */
     @Test
     public void test200TestConfiguredCapability() throws Exception {
-        DummyResource dummyResource = RESOURCE_DUMMY_BEHAVIOR_SIMULATED.getDummyResource();
-
-        final Date lastLoginDate = new Date();
-
-        DummyAccount account = new DummyAccount("jack");
-        account.addAttributeValue("customLastLoginDate", lastLoginDate.getTime());
-        dummyResource.addAccount(account);
+        assertBehaviorCapability(RESOURCE_DUMMY_BEHAVIOR_NATIVE.get(), true);
 
         ShadowType shadowObj = getShadow(RESOURCE_DUMMY_BEHAVIOR_SIMULATED.oid);
         ShadowBehaviorType behavior = shadowObj.getBehavior();
         AssertJUnit.assertNotNull(behavior);
-        AssertJUnit.assertEquals(lastLoginDate, behavior.getLastLoginTimestamp().toGregorianCalendar().getTime());
+        AssertJUnit.assertEquals(CUSTOM_LAST_LOGIN_DATE, behavior.getLastLoginTimestamp().toGregorianCalendar().getTimeInMillis());
+
+        Long customValue = ShadowUtil.getAttributeValue(shadowObj.asPrismObject(), ATTR_LAST_LOGIN_DATE_QNAME);
+        AssertJUnit.assertNull(customValue);
+    }
+
+    /**
+     * Native capability enabled, simulated capability also configured.
+     */
+    @Test
+    public void test300TestNativeAndConfiguredCapability() throws Exception {
+        assertBehaviorCapability(RESOURCE_DUMMY_BEHAVIOR_NATIVE_SIMULATED.get(), true);
+
+        ShadowType shadowObj = getShadow(RESOURCE_DUMMY_BEHAVIOR_NATIVE_SIMULATED.oid);
+        ShadowBehaviorType behavior = shadowObj.getBehavior();
+        AssertJUnit.assertNotNull(behavior);
+        AssertJUnit.assertEquals(CUSTOM_LAST_LOGIN_DATE, behavior.getLastLoginTimestamp().toGregorianCalendar().getTimeInMillis());
+
+        Long customValue = ShadowUtil.getAttributeValue(shadowObj.asPrismObject(), ATTR_LAST_LOGIN_DATE_QNAME);
+        AssertJUnit.assertNull(customValue);
+    }
+
+    /**
+     * No native capability, no simulated capability.
+     */
+    @Test
+    public void test400TestNoCapability() throws Exception {
+        assertBehaviorCapability(RESOURCE_DUMMY_BEHAVIOR_NONE.get(), false);
+
+        ShadowType shadowObj = getShadow(RESOURCE_DUMMY_BEHAVIOR_NONE.oid);
+        ShadowBehaviorType behavior = shadowObj.getBehavior();
+
+        AssertJUnit.assertNull(behavior);
+
+        Object customValue = ShadowUtil.getAttributeValue(shadowObj.asPrismObject(), ATTR_LAST_LOGIN_DATE_QNAME);
+        AssertJUnit.assertEquals(CUSTOM_LAST_LOGIN_DATE, customValue);
     }
 
     private ShadowType getShadow(String resourceOid) throws Exception {
@@ -180,5 +191,24 @@ public class TestCapabilityBehavior extends AbstractProvisioningIntegrationTest 
 
         PrismObject<ShadowType> shadow = shadows.get(0);
         return shadow.asObjectable();
+    }
+
+    private void assertBehaviorCapability(
+            PrismObject<ResourceType> resource, boolean enabled)
+            throws SchemaException, ConfigurationException {
+
+        BehaviorCapabilityType behaviorCap = Resource.of(resource).getCompleteSchema()
+                .getObjectTypeDefinition(ShadowKindType.ACCOUNT, "default")
+                .getEnabledCapability(BehaviorCapabilityType.class, resource.asObjectable());
+
+        if (!enabled) {
+            AssertJUnit.assertNull(behaviorCap);
+            return;
+        }
+
+        AssertJUnit.assertNotNull(behaviorCap);
+
+        LastLoginTimestampCapabilityType lastLoginTimestampCapability = behaviorCap.getLastLoginTimestamp();
+        AssertJUnit.assertNotNull(lastLoginTimestampCapability);
     }
 }
