@@ -20,6 +20,7 @@ public class ShadowAssociationsContainerWrapperFactoryImpl extends PrismContaine
     @Override
     public boolean match(ItemDefinition<?> def) {
         return def instanceof ContainerDefinitionDelegator associationDef
+                && associationDef.getCompileTimeClass() != null
                 && ShadowAssociationsType.class.isAssignableFrom(associationDef.getCompileTimeClass());
     }
 
