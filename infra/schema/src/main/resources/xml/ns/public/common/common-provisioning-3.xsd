@@ -1027,6 +1027,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="behavior" minOccurs="0" type="tns:ResourceBehaviorDefinitionType"/>
             <xsd:element name="securityPolicyRef" type="c:ObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2517,6 +2518,19 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="resourceAttributeDefinition" type="tns:ResourceAttributeDefinitionType"/>
+
+    <xsd:complexType name="ResourceLastLoginTimestampDefinitionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="fetchStrategy" type="tns:AttributeFetchStrategyType" minOccurs="0"/>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
 
     <xsd:complexType name="ResourcePasswordDefinitionType">
         <xsd:annotation>
