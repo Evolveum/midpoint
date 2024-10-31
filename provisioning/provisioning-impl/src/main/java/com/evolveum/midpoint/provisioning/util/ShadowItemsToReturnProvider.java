@@ -77,8 +77,14 @@ public class ShadowItemsToReturnProvider {
         }
 
         // Password
+        // TODO take capabilities for object type/class into account as well
         var credentialsCapability = ResourceTypeUtil.getEnabledCapability(resource, CredentialsCapabilityType.class);
         if (credentialsCapability != null) {
+            // FIXME I don't understand this: if the fetching is disabled by the caller, why we should return it even if fetch
+            //  strategy is set to EXPLICIT? Moreover, the code below actually fetches the password (in the common case, i.e.
+            //  if there are no options), regardless of the fetch strategy setting.
+            //
+            // See MID-10160.
             if (isFetchingNotDisabledByClient(SchemaConstants.PATH_PASSWORD_VALUE)) {
                 shadowItemsToReturn.setReturnPasswordExplicit(true);
             } else if (!CapabilityUtil.isPasswordReturnedByDefault(credentialsCapability)) {

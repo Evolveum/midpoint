@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorInstanceSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
@@ -104,7 +103,8 @@ public class CapabilityUtil {
      * Returns a stream of all capabilities in this collection. Assumes that there are no items besides the capabilities!
      * E.g. after adding `extension`, this method will have to be adapted.
      */
-    private static @NotNull Stream<CapabilityType> getAllCapabilitiesStream(@Nullable CapabilityCollectionType capabilityCollection) {
+    private static @NotNull Stream<CapabilityType> getAllCapabilitiesStream(
+            @Nullable CapabilityCollectionType capabilityCollection) {
         if (capabilityCollection == null) {
             return Stream.of();
         } else {
@@ -152,6 +152,10 @@ public class CapabilityUtil {
         return capability != null && !Boolean.FALSE.equals(capability.isEnabled());
     }
 
+    public static <T extends CapabilityType> @Nullable T getEnabledOrNull(@Nullable T capability) {
+        return isCapabilityEnabled(capability) ? capability : null;
+    }
+
     private static boolean containsCapability(
             @NotNull List<CapabilityType> capabilities,
             @NotNull Class<? extends CapabilityType> type) {
@@ -169,33 +173,28 @@ public class CapabilityUtil {
         }
     }
 
-    public static boolean isPasswordReturnedByDefault(CredentialsCapabilityType capability) {
-        if (capability == null) {
-            return false;
+    public static @Nullable PasswordCapabilityType getEnabledPasswordCapability(CredentialsCapabilityType credentialsCapability) {
+        if (!isCapabilityEnabled(credentialsCapability)) {
+            return null;
         }
-        PasswordCapabilityType password = capability.getPassword();
-        if (password == null) {
-            return false;
-        }
-        if (password.isReturnedByDefault() == null) {
-            return true;
-        }
-        return password.isReturnedByDefault();
+        return getEnabledOrNull(
+                credentialsCapability.getPassword());
     }
 
-    public static boolean isPasswordReadable(CredentialsCapabilityType capabilityType) {
-        if (capabilityType == null) {
+    public static boolean isPasswordReturnedByDefault(CredentialsCapabilityType credentialsCapability) {
+        var passwordCapability = getEnabledPasswordCapability(credentialsCapability);
+        if (passwordCapability == null) {
             return false;
         }
-        PasswordCapabilityType passwordCapabilityType = capabilityType.getPassword();
-        if (passwordCapabilityType == null) {
+        return BooleanUtils.isNotFalse(passwordCapability.isReturnedByDefault());
+    }
+
+    public static boolean isPasswordReadable(CredentialsCapabilityType credentialsCapability) {
+        var passwordCapability = getEnabledPasswordCapability(credentialsCapability);
+        if (passwordCapability == null) {
             return false;
         }
-        if (BooleanUtils.isFalse(passwordCapabilityType.isEnabled())) {
-            return false;
-        }
-        Boolean readable = passwordCapabilityType.isReadable();
-        return BooleanUtils.isTrue(readable);
+        return BooleanUtils.isTrue(passwordCapability.isReadable());
     }
 
     public static boolean isActivationStatusReturnedByDefault(ActivationCapabilityType capability) {
@@ -272,8 +271,7 @@ public class CapabilityUtil {
         if (capability.isEnabled() == null) {
             capability.setEnabled(true);
         }
-        if (capability instanceof ActivationCapabilityType) {
-            ActivationCapabilityType act = ((ActivationCapabilityType) capability);
+        if (capability instanceof ActivationCapabilityType act) {
             if (act.getStatus() == null) {
                 ActivationStatusCapabilityType st = new ActivationStatusCapabilityType();
                 act.setStatus(st);
@@ -318,8 +316,7 @@ public class CapabilityUtil {
                 vt.setEnabled(def(vt.isEnabled(), true));
                 vt.setReturnedByDefault(def(vt.isReturnedByDefault(), true));
             }
-        } else if (capability instanceof CredentialsCapabilityType) {
-            CredentialsCapabilityType cred = ((CredentialsCapabilityType) capability);
+        } else if (capability instanceof CredentialsCapabilityType cred) {
             if (cred.getPassword() == null) {
                 PasswordCapabilityType pc = new PasswordCapabilityType();
                 cred.setPassword(pc);

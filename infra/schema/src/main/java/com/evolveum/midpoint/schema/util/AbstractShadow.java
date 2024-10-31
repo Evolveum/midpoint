@@ -402,6 +402,11 @@ public interface AbstractShadow extends ShadowLikeValue, ShortDumpable, DebugDum
                 "No effective provisioning policy in %s", this);
     }
 
+    default AbstractShadow addSimpleAttribute(QName attributeName, Object realValue) throws SchemaException {
+        getAttributesContainer().addSimpleAttribute(attributeName, realValue);
+        return this;
+    }
+
     /**
      * The default implementation. Other specific implementations reside in particular modules like `provisioning-impl`.
      * (At least for now, until they are stabilized and proved to be generally useful.

@@ -6,11 +6,13 @@
  */
 package com.evolveum.midpoint.repo.sqale.func;
 
-import static java.util.Collections.emptyList;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_PASSWORD;
+
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_PASSWORD_VALUE;
+
 import static java.util.Comparator.comparing;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.InstanceOfAssertFactories.BIG_INTEGER;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
@@ -25,6 +27,7 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.assertj.core.api.Assertions;
@@ -115,7 +118,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                         .asPrismObject(),
                 null, result);
 
-        shadow1Oid = repositoryService.addObject(
+        shadow2Oid = repositoryService.addObject(
                 new ShadowType().name("shadow-1")
                         .resourceRef(resouce2Oid, ResourceType.COMPLEX_TYPE)
                         .objectClass(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS)
@@ -4180,6 +4183,56 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertPolicySituationFound("kept", 1, result);
         assertPolicySituationFound("removed", 0, result);
         assertPolicySituationFound("added", 1, result);
+    }
+
+    /** Tests handling of "incomplete" flag on shadow credentials. */
+    @Test
+    public void test960IncompleteFlag() throws CommonException {
+        OperationResult result = createOperationResult();
+
+        when("password value is marked as incomplete");
+
+        // TODO we should be able to set the incomplete flag more intelligently (by using replace delta on the leaf property)
+        //  See MID-10161.
+        var password = new PasswordType();
+        ShadowUtil.setPasswordIncomplete(password);
+        repositoryService.modifyObject(ShadowType.class, shadow1Oid,
+                prismContext.deltaFor(ShadowType.class)
+                        .item(PATH_PASSWORD)
+                        .replace(password)
+                        .asItemDeltas(),
+                result);
+
+        then("the value is stored as incomplete");
+        var shadowFirst = repositoryService.getObject(ShadowType.class, shadow1Oid, null, result);
+        assertThat(ShadowUtil.getPasswordValueProperty(shadowFirst.asObjectable()))
+                .as("password property")
+                .isNotNull()
+                .satisfies(p -> assertThat(p.getValues()).as("values").isEmpty())
+                .satisfies(p -> assertThat(p.isIncomplete()).as("incomplete flag").isTrue());
+
+        when("real value is provided");
+        var value = prismContext.getDefaultProtector().encryptString("abc");
+        repositoryService.modifyObject(ShadowType.class, shadow1Oid,
+                prismContext.deltaFor(ShadowType.class)
+                        .item(PATH_PASSWORD_VALUE)
+                        .replace(value)
+                        .asItemDeltas(),
+                result);
+
+        // Prism takes care of removing the incomplete flag when the real value is set
+        then("incomplete flag should be gone");
+        var shadowSecond = repositoryService.getObject(ShadowType.class, shadow1Oid, null, result);
+
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        assertThat(ShadowUtil.getPasswordValueProperty(shadowSecond.asObjectable()))
+                .as("password property")
+                .isNotNull()
+                .satisfies(p -> assertThat(p.isIncomplete()).as("incomplete flag").isFalse())
+                .satisfies(p -> assertThat(p.getValues()).as("values").hasSize(1))
+                .satisfies(p -> assertThat(p.getRealValue()).as("real value").isEqualTo(value));
     }
 
     private void assertPolicySituationFound(String situation, int count, OperationResult result) throws SchemaException {
