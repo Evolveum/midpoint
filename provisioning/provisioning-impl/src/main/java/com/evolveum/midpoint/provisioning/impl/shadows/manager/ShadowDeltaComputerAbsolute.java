@@ -9,18 +9,26 @@ package com.evolveum.midpoint.provisioning.impl.shadows.manager;
 
 import static com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowComputerUtil.*;
 import static com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManagerMiscUtil.determinePrimaryIdentifierValue;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_PASSWORD;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_PASSWORD_VALUE;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.provisioning.impl.RepoShadowModifications;
 
 import com.evolveum.midpoint.provisioning.impl.shadows.RepoShadowWithState;
+import com.evolveum.midpoint.provisioning.util.ShadowItemsToReturnProvider;
 import com.evolveum.midpoint.repo.common.ObjectMarkHelper;
 import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper.EffectiveMarksAndPolicies;
 
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
@@ -155,13 +163,10 @@ class ShadowDeltaComputerAbsolute {
         }
 
         if (fromResource) { // TODO reconsider this
-            if (ctx.getObjectDefinitionRequired().isActivationCached()) {
-                updateCachedActivation();
-            }
-            if (ctx.getObjectDefinitionRequired().areCredentialsCached()) {
-                // FIXME update password if it happened to be present in the data; MID-10050
-            }
-            if (ctx.getObjectDefinitionRequired().isCachingEnabled()) {
+            var definition = ctx.getObjectDefinitionRequired();
+            updateCachedActivation(definition.isActivationCached());
+            updateCachedCredentials(definition.areCredentialsCached());
+            if (definition.isCachingEnabled()) {
                 updateCachingMetadata(incompleteCacheableItems);
             } else {
                 clearCachingMetadata();
@@ -244,17 +249,118 @@ class ShadowDeltaComputerAbsolute {
         }
     }
 
-    private void updateCachedActivation() {
-        updatePropertyIfNeeded(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
-        updatePropertyIfNeeded(SchemaConstants.PATH_ACTIVATION_VALID_FROM);
-        updatePropertyIfNeeded(SchemaConstants.PATH_ACTIVATION_VALID_TO);
-        updatePropertyIfNeeded(SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS);
+    /**
+     * Limited to passwords for now.
+     *
+     * See https://docs.evolveum.com/midpoint/devel/design/password-caching-4.9.1/.
+     *
+     * Currently, we expect the password is always returned (if it's readable).
+     * See {@link ShadowItemsToReturnProvider} and MID-10160.
+     */
+    private void updateCachedCredentials(boolean cached) throws SchemaException {
+        var currentProperty = ShadowUtil.getPasswordValueProperty(resourceObject.getBean());
+
+        // Case 0: not cached
+        if (!cached) {
+            deleteCachedPassword();
+            return;
+        }
+
+        // Case 1: absolutely empty
+        if (currentProperty == null
+                || currentProperty.hasNoValues() && !currentProperty.isIncomplete()) {
+            if (ctx.isPasswordReadable()) {
+                deleteCachedPassword();
+            } else {
+                // Password is not readable. We will cache it only on writing (when written by midPoint);
+                // we will NOT erase it on reading (when we don't get it back from the resource).
+            }
+            return;
+        }
+
+        // Case 2: incomplete
+        if (currentProperty.hasNoValues()) {
+            assert currentProperty.isIncomplete();
+            var oldProperty = ShadowUtil.getPasswordValueProperty(repoShadow.getBean());
+            if (oldProperty != null && oldProperty.hasAnyValue()) {
+                // Any value is as good as "incomplete=true". We cannot determine the real value (as it is hashed).
+                // The only difference is that the value may be outdated, if it was changed on the resource,
+                // meaning that the comparison (regarding prohibited values) may provide wrong results.
+                // But this situation is exactly the same as before 4.9 (when cached passwords were not updated
+                // on resource read at all), so we are not making it worse.
+            } else if (oldProperty == null || !oldProperty.isIncomplete()) {
+                // We need to replace the property in repo with zero-values, incomplete one.
+                // Unfortunately, this cannot be done by a simple delta. We have to replace the whole password container.
+                // BEWARE: Make sure we don't update other parts of this container elsewhere; deltas would get overlapping.
+                var passwordClone = resourceObject.getBean().getCredentials().getPassword().clone();
+                passwordClone.asPrismContainerValue().removeProperty(PasswordType.F_VALUE);
+                ShadowUtil.setPasswordIncomplete(passwordClone);
+                computedModifications.add(
+                        PrismContext.get().deltaFor(ShadowType.class)
+                                .item(PATH_PASSWORD).replace(passwordClone)
+                                .asItemDelta());
+            } else {
+                // Everything is correct (zero-values, incomplete property exists), no need to issue any deltas.
+            }
+            return;
+        }
+
+        // Case 3: regular (known) value
+        var value = currentProperty.getRealValue(ProtectedStringType.class); // fails if there are multiple values
+        if (value != null && value.canGetCleartext()) {
+            replaceCachedPassword(value);
+        } else {
+            LOGGER.warn("Empty or non-clear-retrievable password in {}, ignoring: {} (context: {})", resourceObject, value, ctx);
+        }
     }
 
-    private <T> void updatePropertyIfNeeded(ItemPath itemPath) {
-        PrismProperty<T> currentProperty = resourceObject.getPrismObject().findProperty(itemPath);
-        PrismProperty<T> oldProperty = repoShadow.getPrismObject().findProperty(itemPath);
-        PropertyDelta<T> itemDelta = ItemUtil.diff(oldProperty, currentProperty);
+    private void deleteCachedPassword() throws SchemaException {
+        var oldProperty = ShadowUtil.getPasswordValueProperty(repoShadow.getBean());
+        if (oldProperty != null) {
+            computedModifications.add(
+                    PrismContext.get().deltaFor(ShadowType.class)
+                            .item(PATH_PASSWORD_VALUE).replace()
+                            .asItemDelta());
+        }
+    }
+
+    private void replaceCachedPassword(@NotNull ProtectedStringType value) throws SchemaException {
+        assert value.canGetCleartext();
+        var oldValue = ShadowUtil.getPasswordValue(repoShadow.getBean());
+        // The old value may be really missing, or it may be of "incomplete=true" variety.
+        // We know for sure that it's hashed. So we are interested in the cleartext matching status only.
+        try {
+            if (b.protector.compareCleartext(oldValue, value)) {
+                LOGGER.trace("Not updating password because it is up-to-date in repo");
+                return;
+            }
+        } catch (EncryptionException e) {
+            throw new SchemaException("Cannot compare stored value", e);
+        }
+
+        var hashedValue = value.clone();
+        try {
+            b.protector.hash(hashedValue);
+        } catch (EncryptionException e) {
+            throw new SchemaException("Cannot hash value", e);
+        }
+        computedModifications.add(
+                PrismContext.get().deltaFor(ShadowType.class)
+                        .item(PATH_PASSWORD_VALUE).replace(hashedValue)
+                        .asItemDelta());
+    }
+
+    private void updateCachedActivation(boolean cached) {
+        updatePropertyIfNeeded(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, cached);
+        updatePropertyIfNeeded(SchemaConstants.PATH_ACTIVATION_VALID_FROM, cached);
+        updatePropertyIfNeeded(SchemaConstants.PATH_ACTIVATION_VALID_TO, cached);
+        updatePropertyIfNeeded(SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, cached);
+    }
+
+    private <T> void updatePropertyIfNeeded(ItemPath itemPath, boolean cached) {
+        PrismProperty<T> toBe = cached ? resourceObject.getPrismObject().findProperty(itemPath) : null;
+        PrismProperty<T> asIs = repoShadow.getPrismObject().findProperty(itemPath);
+        PropertyDelta<T> itemDelta = ItemUtil.diff(asIs, toBe);
         if (itemDelta != null && !itemDelta.isEmpty()) {
             computedModifications.add(itemDelta);
         }

@@ -1895,8 +1895,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
             .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
             .end()
-            //.assertNoPasswordIf(!isCaching());
-            .assertNoPassword(); // change when resolving MID-10050
+            .assertNoPasswordIf(!isCaching());
         assertAttributeFromCache(repoShadowAsserter, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
         assertShadowActivationAdministrativeStatusFromCache(repoShadowAsserter, ENABLED);
 
@@ -2244,8 +2243,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
                 .assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
                 .assertNoSimpleAttributeIfNotCached(ATTR_DESCRIPTION_QNAME)
             .end()
-            //.assertNoPasswordIf(!isCaching());
-            .assertNoPassword() // change when resolving MID-10050
+            .assertNoPasswordIf(!isCaching())
             .getObject();
         assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME);
         assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ENABLED);

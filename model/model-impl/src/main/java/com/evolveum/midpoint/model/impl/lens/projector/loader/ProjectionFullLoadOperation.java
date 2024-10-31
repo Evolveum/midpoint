@@ -261,6 +261,8 @@ class ProjectionFullLoadOperation {
         };
     }
 
+    // For unknown reason, the password fetching is requested automatically in the provisioning module.
+    // So this method is redundant now. (This may change in the future, though; see MID-10160.)
     private void addRetrievePasswordIfNeeded(Collection<SelectorOptions<GetOperationOptions>> options)
             throws SchemaException, ConfigurationException {
         if (!LensUtil.isPasswordReturnedByDefault(projCtx)

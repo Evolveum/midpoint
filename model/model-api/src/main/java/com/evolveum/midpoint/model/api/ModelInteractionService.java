@@ -274,6 +274,7 @@ public interface ModelInteractionService {
             throws ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
+    /** Returns resolved value policy references. */
     SecurityPolicyType getSecurityPolicy(ResourceObjectDefinition rOCDef, Task task, OperationResult parentResult)
             throws SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException, ObjectNotFoundException;

@@ -8,19 +8,15 @@ package com.evolveum.midpoint.provisioning.impl.opendj;
 
 import java.io.File;
 
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.testng.AssertJUnit.*;
 
 /**
  * Test for provisioning service implementation using embedded OpenDj instance.
@@ -47,25 +43,31 @@ public class TestOpenDjReadablePassword extends TestOpenDj {
     }
 
     @Override
-    protected void assertShadowPassword(ShadowType provisioningShadow) throws Exception {
-        CredentialsType credentials = provisioningShadow.getCredentials();
-        if (credentials == null) {
-            return;
-        }
-        PasswordType passwordType = credentials.getPassword();
-        if (passwordType == null) {
-            return;
-        }
-        ProtectedStringType passwordValue = passwordType.getValue();
-        assertNotNull("Missing password value in "+provisioningShadow, passwordValue);
-        assertFalse("Empty password value in "+provisioningShadow, passwordValue.isEmpty());
-        String clearPassword = protector.decryptString(passwordValue);
-        display("Clear password of "+provisioningShadow+": "+clearPassword);
+    protected void assertProvisioningShadowPassword(ShadowType provisioningShadow, String expectedClearText) throws Exception {
+        // The cleartext is different, like "{SSHA}ehkK+5px6g..."
+        assertEncryptedShadowPassword(provisioningShadow.asPrismObject(), null);
+    }
 
-        //noinspection unchecked
-        PrismContainerValue<PasswordType> passwordContainer = passwordType.asPrismContainerValue();
-        PrismProperty<ProtectedStringType> valueProp = passwordContainer.findProperty(PasswordType.F_VALUE);
-        assertFalse("Incomplete password value in "+provisioningShadow, valueProp.isIncomplete());
+    @Override
+    protected void assertRepoShadowPasswordFetched(ShadowType repoShadow, String expectedClearText) throws Exception {
+        if (InternalsConfig.isShadowCachingOnByDefault()) {
+            // The cleartext is different, like "{SSHA}ehkK+5px6g..."
+            assertHashedShadowPassword(repoShadow.asPrismObject(), null);
+        } else {
+            assertNoShadowPassword(repoShadow.asPrismObject());
+        }
+    }
+
+    @Override
+    protected void assertRepoShadowPasswordWrittenAndFetched(ShadowType repoShadow, String expectedClearText) throws Exception {
+        // With readable passwords there is no difference between written+fetched and fetched.
+        assertRepoShadowPasswordFetched(repoShadow, expectedClearText);
+    }
+
+    @Override
+    protected void assertRepoShadowPasswordWrittenAndUnsetAndFetched(ShadowType repoShadow, String lastWritten) {
+        // We know that there is no password, so it should be gone from the shadow.
+        assertNoShadowPassword(repoShadow.asPrismObject());
     }
 
     @Override

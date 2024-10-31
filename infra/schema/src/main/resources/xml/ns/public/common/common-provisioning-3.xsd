@@ -5456,10 +5456,10 @@
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="credentials" type="tns:CredentialsType" minOccurs="0">
+                        <!-- See also https://docs.evolveum.com/midpoint/devel/design/password-caching-4.9.1/ -->
                         <xsd:annotation>
                             <xsd:documentation>
-                                The set of account credentials (such as
-                                passwords).
+                                The set of account credentials (such as passwords).
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -7341,14 +7341,20 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <!-- TODO re-enable when MID-10050 is worked on -->
-            <!--<xsd:element name="credentials" type="tns:ShadowItemsCachingScopeType" minOccurs="0" default="all">-->
-            <!--    <xsd:annotation>-->
-            <!--        <xsd:documentation>-->
-            <!--            Scope of the caching for credentials.-->
-            <!--        </xsd:documentation>-->
-            <!--    </xsd:annotation>-->
-            <!--</xsd:element>-->
+            <xsd:element name="credentials" type="tns:ShadowCredentialsCachingScopeType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Scope of the caching for credentials, i.e., the password for now.
+                        Note that we currently store only the hashed value (or "incomplete" flag) in the shadow.
+
+                        See https://docs.evolveum.com/midpoint/devel/design/password-caching-4.9.1/.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.9.1</a:since>
+                        <a:since>4.10</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -7403,6 +7409,29 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
+
+    <xsd:complexType name="ShadowCredentialsCachingScopeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Scope of the shadow credentials caching.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9.1</a:since>
+                <a:since>4.10</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="password" type="tns:ShadowItemsCachingScopeType" minOccurs="0" default="all">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Scope of the caching for the shadow password.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
 
     <xsd:simpleType name="ShadowItemsCachingScopeType">
         <xsd:annotation>
