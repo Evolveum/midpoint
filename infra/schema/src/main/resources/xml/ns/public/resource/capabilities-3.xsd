@@ -885,7 +885,7 @@
                 Container for various behavior-related capabilities.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.9</a:since>
+                <a:since>4.9.1</a:since>
                 <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
@@ -905,7 +905,7 @@
                 Describes capability of resource to provide last login timestamp.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.9</a:since>
+                <a:since>4.9.1</a:since>
                 <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>

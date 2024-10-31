@@ -638,7 +638,7 @@ class ConnectorInstanceConnIdImpl implements ConnectorInstance, ConnectorContext
                 || (shadowItemsToReturn.isReturnDefaultAttributes() && validToReturnedByDefault())) {
             icfAttrsToGet.add(OperationalAttributes.DISABLE_DATE_NAME);
         }
-        if (shadowItemsToReturn.isReturnValidToExplicit()
+        if (shadowItemsToReturn.isReturnLastLoginTimestampExplicit()
             || (shadowItemsToReturn.isReturnDefaultAttributes() && lastLoginTimestampReturnedByDefault())) {
             icfAttrsToGet.add(PredefinedAttributes.LAST_LOGIN_DATE_NAME);
         }

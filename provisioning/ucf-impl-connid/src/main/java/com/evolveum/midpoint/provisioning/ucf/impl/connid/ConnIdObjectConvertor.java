@@ -176,7 +176,7 @@ class ConnIdObjectConvertor {
             var lastLoginDate = ShadowUtil.getLastLoginTimestampValue(shadow);
             if (lastLoginDate != null) {
                 attributes.add(
-                        AttributeBuilder.build(PredefinedAttributes.LAST_LOGIN_DATE_NAME, XmlTypeConverter.toMillis(validTo)));
+                        AttributeBuilder.build(PredefinedAttributes.LAST_LOGIN_DATE_NAME, XmlTypeConverter.toMillis(lastLoginDate)));
             }
 
             LOGGER.trace("ConnId attributes after conversion:\n{}", lazy(() -> ConnIdUtil.dump(attributes)));

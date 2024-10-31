@@ -115,6 +115,7 @@ public class ShadowItemsToReturn implements Serializable {
                 && !returnLockoutStatusExplicit
                 && !returnValidFromExplicit
                 && !returnValidToExplicit
+                && !returnLastLoginTimestampExplicit
                 && (itemsToReturn == null || itemsToReturn.isEmpty());
     }
 
@@ -126,6 +127,7 @@ public class ShadowItemsToReturn implements Serializable {
                 + ", returnLockoutStatusExplicit=" + returnLockoutStatusExplicit
                 + ", returnValidFromExplicit=" + returnValidFromExplicit
                 + ", returnValidToExplicit=" + returnValidToExplicit
+                + ", returnLastLoginTimestampExplicit=" + returnLastLoginTimestampExplicit
                 + ", itemsToReturn=" + itemsToReturn + ")";
     }
 }
