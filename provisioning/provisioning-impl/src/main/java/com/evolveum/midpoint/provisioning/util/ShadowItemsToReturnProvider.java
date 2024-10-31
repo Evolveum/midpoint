@@ -141,6 +141,8 @@ public class ShadowItemsToReturnProvider {
                 if (!CapabilityUtil.isLastLoginTimestampReturnedByDefault(behaviorCapability)) {
                     if (isFetchingNotDisabledByClient(SchemaConstants.PATH_BEHAVIOUR_LAST_LOGIN_TIMESTAMP)) {
                         shadowItemsToReturn.setReturnLastLoginTimestampExplicit(true);
+                    } else if (objectDefinition.getLastLoginTimestampFetchStrategy() == EXPLICIT) {
+                        shadowItemsToReturn.setReturnLastLoginTimestampExplicit(true);
                     }
                 }
             }
