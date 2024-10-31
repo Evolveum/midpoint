@@ -110,6 +110,8 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
 
     @Override
     protected void assert31xBluePasswordAfterAssignment(PrismObject<UserType> userAfter) throws Exception {
+        // There is no password on the resource, because at the time when the account was created, we did not have the password
+        // (the user has only the hashed value).
         assertDummyPassword(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, null);
         PrismObject<ShadowType> shadow = getBlueShadow(userAfter);
         assertNoShadowPassword(shadow);
@@ -117,7 +119,9 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
 
     @Override
     protected void assert31xBluePasswordAfterPasswordChange(PrismObject<UserType> userAfter) throws Exception {
-        // Password is set during the assign operation. As password mapping is weak it is never changed.
+        // Password was previously missing (see the above method), so now it should be set to the value that
+        // was provided as part of the FIRST change. Any subsequent changes should not change the password,
+        // as the mapping is weak.
         assertDummyPassword(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID_2);
         PrismObject<ShadowType> shadow = getBlueShadow(userAfter);
         assertIncompleteShadowPassword(shadow);

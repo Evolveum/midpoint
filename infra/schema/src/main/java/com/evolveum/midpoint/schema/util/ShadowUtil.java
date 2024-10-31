@@ -41,8 +41,7 @@ import org.jetbrains.annotations.VisibleForTesting;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_UID;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 import static com.evolveum.midpoint.util.MiscUtil.*;
@@ -393,8 +392,14 @@ public class ShadowUtil {
                 .setValue(passwordValue);
     }
 
+    /** Does not touch the actual password value. The client must ensure there is none. */
     public static void setPasswordIncomplete(ShadowType shadow) throws SchemaException {
         PasswordType password = getOrCreateShadowPassword(shadow);
+        setPasswordIncomplete(password);
+    }
+
+    /** Does not touch the actual password value. The client must ensure there is none. */
+    public static void setPasswordIncomplete(@NotNull PasswordType password) throws SchemaException {
         //noinspection unchecked
         PrismContainerValue<PasswordType> passwordContainer = password.asPrismContainerValue();
         PrismProperty<ProtectedStringType> valueProperty = passwordContainer.findOrCreateProperty(PasswordType.F_VALUE);
@@ -878,20 +883,27 @@ public class ShadowUtil {
         }
     }
 
-    // TODO consider removal
+    public static @Nullable PrismProperty<ProtectedStringType> getPasswordValueProperty(@Nullable ShadowType shadow) {
+        if (shadow == null) {
+            return null;
+        } else {
+            return shadow.asPrismObject().findProperty(PATH_PASSWORD_VALUE);
+        }
+    }
+
     public static ProtectedStringType getPasswordValue(ShadowType shadowType) {
         if (shadowType == null) {
             return null;
         }
-        CredentialsType creds = shadowType.getCredentials();
-        if (creds == null) {
+        var credentials = shadowType.getCredentials();
+        if (credentials == null) {
             return null;
         }
-        PasswordType passwd = creds.getPassword();
-        if (passwd == null) {
+        var password = credentials.getPassword();
+        if (password == null) {
             return null;
         }
-        return passwd.getValue();
+        return password.getValue();
     }
 
     public static Object shortDumpShadowLazily(PrismObject<ShadowType> shadow) {

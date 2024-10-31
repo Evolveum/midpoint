@@ -805,8 +805,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
                 .assertCachedOrigValues(ATTR_USERNAME_QNAME, USER_WILL_NAME)
                 .assertCachedOrigValues(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME)
                 .assertCachedOrigValues(ATTR_DESCRIPTION_QNAME)
-                //.assertNoPasswordIf(!isCaching());
-                .assertNoPassword() // change when resolving MID-10050
+                .assertNoPasswordIf(!isCaching())
                 .getObject();
 
         assertSinglePendingOperation(repoShadowObj, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
@@ -860,8 +859,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
                 .assertCachedOrigValues(ATTR_USERNAME_QNAME, USER_WILL_NAME)
                 .assertCachedOrigValues(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME)
                 .assertCachedOrigValues(ATTR_DESCRIPTION_QNAME)
-                //.assertNoPasswordIf(!isCaching());
-                .assertNoPassword() // change when resolving MID-10050
+                .assertNoPasswordIf(!isCaching())
                 .getObject();
 
         assertSinglePendingOperation(repoShadowObj, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
@@ -2082,8 +2080,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
                 .display()
                 .assertCachedOrigValues(ATTR_USERNAME_QNAME, USER_WILL_NAME)
                 .assertCachedOrigValues(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME)
-                //.assertNoPasswordIf(!isCaching());
-                .assertNoPassword() // change when resolving MID-10050
+                .assertNoPasswordIf(!isCaching())
                 .getObject();
 
         var pendingOperation = assertSinglePendingOperation(
@@ -2220,8 +2217,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
                 .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
                 .end()
-                //.assertNoPasswordIf(!isCaching());
-                .assertNoPassword(); // change when resolving MID-10050
+                .assertNoPasswordIf(!isCaching());
         assertAttributeFromCache(shadowRepoAsserter, ATTR_FULLNAME_QNAME, expectedFullName);
         assertShadowActivationAdministrativeStatusFromCache(shadowRepoAsserter.getObject(), ActivationStatusType.ENABLED);
 
@@ -2232,8 +2228,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
                 .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
                 .end()
-                //.assertNoPasswordIf(!isCaching());
-                .assertNoPassword() // change when resolving MID-10050
+                .assertNoPasswordIf(!isCaching())
                 .pendingOperations()
                 .singleOperation()
                 .assertRequestTimestamp(accountWillReqestTimestampStart, accountWillReqestTimestampEnd)

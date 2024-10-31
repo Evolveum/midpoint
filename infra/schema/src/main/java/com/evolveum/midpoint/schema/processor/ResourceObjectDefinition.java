@@ -637,10 +637,8 @@ public interface ResourceObjectDefinition
             return legacy != CachingStrategyType.NONE;
         }
 
-        return false; // temporary, see MID-10050
-
-//        return isCachingEnabled()
-//                && getEffectiveShadowCachingPolicy().getScope().getCredentials() != ShadowItemsCachingScopeType.NONE;
+        return isCachingEnabled()
+                && getEffectiveShadowCachingPolicy().getScope().getCredentials().getPassword() != ShadowItemsCachingScopeType.NONE;
     }
 
     private CachingStrategyType getLegacyPasswordCachingStrategy() {

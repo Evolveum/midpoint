@@ -27,6 +27,8 @@ import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
 
 import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper.EffectiveMarksAndPolicies;
 
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -469,8 +471,8 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
     }
 
     public <T extends CapabilityType> T getEnabledCapability(@NotNull Class<T> capabilityClass) {
-        T capability = getCapability(capabilityClass);
-        return CapabilityUtil.isCapabilityEnabled(capability) ? capability : null;
+        return CapabilityUtil.getEnabledOrNull(
+                getCapability(capabilityClass));
     }
 
     public boolean hasCapability(@NotNull Class<? extends CapabilityType> capabilityClass) {
@@ -494,6 +496,11 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
 
     public boolean isReadingCachingOnly() {
         return CapabilityUtil.isReadingCachingOnly(resource, getObjectDefinition());
+    }
+
+    public boolean isPasswordReadable() {
+        return CapabilityUtil.isPasswordReadable(
+                getEnabledCapability(CredentialsCapabilityType.class));
     }
 
     @Override

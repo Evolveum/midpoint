@@ -129,8 +129,6 @@ public class ShadowAssociation
 
     @Override
     protected boolean addInternalExecution(@NotNull PrismContainerValue<ShadowAssociationValueType> newValue) {
-//        argCheck(newValue instanceof ShadowAssociationValue,
-//                "Trying to add a value which is not a ShadowAssociationValue: %s", newValue);
         if (newValue instanceof ShadowAssociationValue) {
             return super.addInternalExecution(newValue);
         } else {
