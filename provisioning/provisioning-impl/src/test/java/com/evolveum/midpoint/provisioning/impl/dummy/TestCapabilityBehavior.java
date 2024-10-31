@@ -11,9 +11,9 @@ import java.io.File;
 import java.util.Date;
 import javax.xml.namespace.QName;
 
+import org.assertj.core.api.Assertions;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
@@ -121,8 +121,9 @@ public class TestCapabilityBehavior extends AbstractProvisioningIntegrationTest 
 
         ShadowType shadowObj = getShadow(RESOURCE_DUMMY_BEHAVIOR_NATIVE.oid);
         ShadowBehaviorType behavior = shadowObj.getBehavior();
-        AssertJUnit.assertNotNull(behavior);
-        AssertJUnit.assertEquals(LAST_LOGIN_DATE, behavior.getLastLoginTimestamp().toGregorianCalendar().getTimeInMillis());
+        Assertions.assertThat(behavior).isNotNull();
+        Assertions.assertThat(behavior.getLastLoginTimestamp().toGregorianCalendar().getTimeInMillis())
+                .isEqualTo(LAST_LOGIN_DATE);
     }
 
     /**
@@ -134,11 +135,12 @@ public class TestCapabilityBehavior extends AbstractProvisioningIntegrationTest 
 
         ShadowType shadowObj = getShadow(RESOURCE_DUMMY_BEHAVIOR_SIMULATED.oid);
         ShadowBehaviorType behavior = shadowObj.getBehavior();
-        AssertJUnit.assertNotNull(behavior);
-        AssertJUnit.assertEquals(CUSTOM_LAST_LOGIN_DATE, behavior.getLastLoginTimestamp().toGregorianCalendar().getTimeInMillis());
+        Assertions.assertThat(behavior).isNotNull();
+        Assertions.assertThat(behavior.getLastLoginTimestamp().toGregorianCalendar().getTimeInMillis())
+                .isEqualTo(CUSTOM_LAST_LOGIN_DATE);
 
         Long customValue = ShadowUtil.getAttributeValue(shadowObj.asPrismObject(), ATTR_LAST_LOGIN_DATE_QNAME);
-        AssertJUnit.assertNull(customValue);
+        Assertions.assertThat(customValue).isNull();
     }
 
     /**
@@ -150,11 +152,12 @@ public class TestCapabilityBehavior extends AbstractProvisioningIntegrationTest 
 
         ShadowType shadowObj = getShadow(RESOURCE_DUMMY_BEHAVIOR_NATIVE_SIMULATED.oid);
         ShadowBehaviorType behavior = shadowObj.getBehavior();
-        AssertJUnit.assertNotNull(behavior);
-        AssertJUnit.assertEquals(CUSTOM_LAST_LOGIN_DATE, behavior.getLastLoginTimestamp().toGregorianCalendar().getTimeInMillis());
+        Assertions.assertThat(behavior).isNotNull();
+        Assertions.assertThat(behavior.getLastLoginTimestamp().toGregorianCalendar().getTimeInMillis())
+                .isEqualTo(CUSTOM_LAST_LOGIN_DATE);
 
         Long customValue = ShadowUtil.getAttributeValue(shadowObj.asPrismObject(), ATTR_LAST_LOGIN_DATE_QNAME);
-        AssertJUnit.assertNull(customValue);
+        Assertions.assertThat(customValue).isNull();
     }
 
     /**
@@ -167,10 +170,12 @@ public class TestCapabilityBehavior extends AbstractProvisioningIntegrationTest 
         ShadowType shadowObj = getShadow(RESOURCE_DUMMY_BEHAVIOR_NONE.oid);
         ShadowBehaviorType behavior = shadowObj.getBehavior();
 
-        AssertJUnit.assertNull(behavior);
+        Assertions.assertThat(behavior).isNull();
 
         Object customValue = ShadowUtil.getAttributeValue(shadowObj.asPrismObject(), ATTR_LAST_LOGIN_DATE_QNAME);
-        AssertJUnit.assertEquals(CUSTOM_LAST_LOGIN_DATE, customValue);
+        Assertions.assertThat(customValue)
+                .isEqualTo(CUSTOM_LAST_LOGIN_DATE);
+
     }
 
     private ShadowType getShadow(String resourceOid) throws Exception {
@@ -186,8 +191,7 @@ public class TestCapabilityBehavior extends AbstractProvisioningIntegrationTest 
         SearchResultList<PrismObject<ShadowType>> shadows =
                 provisioningService.searchObjects(ShadowType.class, query, null, task, result);
 
-        AssertJUnit.assertNotNull(shadows);
-        AssertJUnit.assertEquals(1, shadows.size());
+        Assertions.assertThat(shadows).hasSize(1);
 
         PrismObject<ShadowType> shadow = shadows.get(0);
         return shadow.asObjectable();
@@ -202,13 +206,13 @@ public class TestCapabilityBehavior extends AbstractProvisioningIntegrationTest 
                 .getEnabledCapability(BehaviorCapabilityType.class, resource.asObjectable());
 
         if (!enabled) {
-            AssertJUnit.assertNull(behaviorCap);
+            Assertions.assertThat(behaviorCap).isNull();
             return;
         }
 
-        AssertJUnit.assertNotNull(behaviorCap);
+        Assertions.assertThat(behaviorCap).isNotNull();
 
         LastLoginTimestampCapabilityType lastLoginTimestampCapability = behaviorCap.getLastLoginTimestamp();
-        AssertJUnit.assertNotNull(lastLoginTimestampCapability);
+        Assertions.assertThat(lastLoginTimestampCapability).isNotNull();
     }
 }
