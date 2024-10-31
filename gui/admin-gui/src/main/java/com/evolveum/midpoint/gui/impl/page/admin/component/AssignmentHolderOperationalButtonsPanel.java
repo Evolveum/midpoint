@@ -302,9 +302,8 @@ public class AssignmentHolderOperationalButtonsPanel<AH extends AssignmentHolder
 
     @Override
     protected boolean isSaveButtonVisible() {
-        // Note: when adding objects, the status below is "ADDED", so the first condition causes the button to be visible.
-        // Hence, there's no need to ask for canAdd() here.
-        return !isForcedPreview()
+        return  !getModelObject().isReadOnly() &&
+                !isForcedPreview()
                 && isObjectStatusAndAuthorizationVerifiedForModification();
     }
 
@@ -315,6 +314,8 @@ public class AssignmentHolderOperationalButtonsPanel<AH extends AssignmentHolder
      * @return
      */
     protected boolean isObjectStatusAndAuthorizationVerifiedForModification() {
+        // Note: when adding objects, the status below is "ADDED", so the first condition causes the button to be visible.
+        // Hence, there's no need to ask for canAdd() here.
         return getModelObject().getStatus() != ItemStatus.NOT_CHANGED
                 || isEditingObject() && (getModelObject().canModify() || isAuthorizedToModify());
     }
