@@ -101,7 +101,7 @@ public class BehaviorConverter {
         if (filteredValues.size() > 1) {
             LOGGER.warn("An object on {} has last login timestamp values for simulated {} attribute, expecting just one value",
                     ctx.getResource(), filteredValues.size());
-            result.recordPartialError("An object on " + ctx.getResource() + " has last login timestamp values for simulated "
+            result.setPartialError("An object on " + ctx.getResource() + " has last login timestamp values for simulated "
                     + filteredValues.size() + " attribute, expecting just one value");
         }
 
@@ -121,7 +121,7 @@ public class BehaviorConverter {
         LOGGER.warn(
                 "An object on {} has value for simulated last login timestamp attribute of wrong type {} expecting Long/XMLGregorianCalendar",
                 ctx.getResource(), value.getClass().getName());
-        result.recordPartialError("An object on " + ctx.getResource()
+        result.setPartialError("An object on " + ctx.getResource()
                 + " has value for simulated last login timestamp attribute of wrong type " + value.getClass().getName()
                 + " expecting Long/XMLGregorianCalendar");
         return null;
