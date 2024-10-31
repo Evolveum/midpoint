@@ -200,6 +200,21 @@ public abstract class ItemTreeDelta
             return List.of();
         }
 
+        if (definition.isSingleValue()) {
+            V value = getSingleValue();
+
+            V otherValue = other.getSingleValue();
+            if (value == null && otherValue == null) {
+                return List.of();
+            }
+
+            if (value == null || otherValue == null) {
+                return List.of(new Conflict(value, otherValue));
+            }
+
+            return value.getConflictsWith(otherValue, strategy);
+        }
+
         List<Conflict> conflicts = new ArrayList<>();
         for (V value : getValues()) {
             V otherValue = other.findMatchingValue(value, strategy);
@@ -228,6 +243,10 @@ public abstract class ItemTreeDelta
     }
 
     protected V findMatchingValue(V other, EquivalenceStrategy strategy) {
+        if (definition.isSingleValue()) {
+            return getSingleValue();
+        }
+
         for (V value : getValues()) {
             if (value.match(other, strategy)) {
                 return value;
