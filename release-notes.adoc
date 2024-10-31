@@ -39,7 +39,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 
 === New Features and Major Improvements
 
-* TODO
+* bug:MID-10147[] Added support for new capability `lastLoginTimestamp`.
 
 === Other Improvements
 
