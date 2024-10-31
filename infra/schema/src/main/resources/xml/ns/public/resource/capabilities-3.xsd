@@ -882,7 +882,7 @@
     <xsd:complexType name="BehaviorCapabilityType">
         <xsd:annotation>
             <xsd:documentation>
-                <!--TODO-->
+                Container for various behavior-related capabilities.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.9</a:since>
@@ -902,7 +902,7 @@
     <xsd:complexType name="LastLoginTimestampCapabilityType">
         <xsd:annotation>
             <xsd:documentation>
-                <!--TODO-->
+                Describes capability of resource to provide last login timestamp.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.9</a:since>
