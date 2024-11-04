@@ -198,7 +198,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
 
         if (isExcludeAll(options)) {
             // We have options to exclude everything
-            return paths(entity.oid, entity.objectType, entity.nameNorm, entity.nameOrig);
+            return paths(entity.oid, entity.objectType, entity.nameNorm, entity.nameOrig, entity.version);
         }
 
         // TODO: there is currently no support for index-only extensions (from entity.ext).
@@ -236,6 +236,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
             //noinspection unchecked
             ret = (S) repoType.createObject()
                 .oid(oid.toString())
+                .version(Objects.requireNonNull(row.get(entityPath.version)).toString())
                 .name(new PolyStringType(new PolyString(row.get(entityPath.nameOrig), row.get(entityPath.nameNorm))));
         } else {
             // We load full object
