@@ -60,6 +60,7 @@ import org.apache.commons.lang3.reflect.ConstructorUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.jetbrains.annotations.NotNull;
 
 import static com.evolveum.midpoint.util.MiscUtil.or0;
@@ -348,8 +349,8 @@ public class CertMiscUtil {
                 .build();
     }
 
-    public static LoadableModel<String> getCampaignStageLoadableModel(AccessCertificationCampaignType campaign) {
-        return new LoadableModel<>() {
+    public static LoadableDetachableModel<String> getCampaignStageLoadableModel(AccessCertificationCampaignType campaign) {
+        return new LoadableDetachableModel<>() {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -365,8 +366,8 @@ public class CertMiscUtil {
         };
     }
 
-    public static LoadableModel<String> getCampaignIterationLoadableModel(AccessCertificationCampaignType campaign) {
-        return new LoadableModel<>() {
+    public static LoadableDetachableModel<String> getCampaignIterationLoadableModel(AccessCertificationCampaignType campaign) {
+        return new LoadableDetachableModel<>() {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
