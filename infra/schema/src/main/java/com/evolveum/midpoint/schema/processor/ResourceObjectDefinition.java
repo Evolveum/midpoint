@@ -638,7 +638,7 @@ public interface ResourceObjectDefinition
         }
 
         return isCachingEnabled()
-                && getEffectiveShadowCachingPolicy().getScope().getCredentials() != ShadowItemsCachingScopeType.NONE;
+                && getEffectiveShadowCachingPolicy().getScope().getCredentials().getPassword() != ShadowItemsCachingScopeType.NONE;
     }
 
     private CachingStrategyType getLegacyPasswordCachingStrategy() {

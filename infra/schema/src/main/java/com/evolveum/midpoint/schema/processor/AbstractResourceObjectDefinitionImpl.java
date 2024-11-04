@@ -880,7 +880,10 @@ public abstract class AbstractResourceObjectDefinitionImpl
             scope.setActivation(ShadowItemsCachingScopeType.ALL);
         }
         if (scope.getCredentials() == null) {
-            scope.setCredentials(defaultForCredentialsScope);
+            scope.setCredentials(new ShadowCredentialsCachingScopeType());
+        }
+        if (scope.getCredentials().getPassword() == null) {
+            scope.getCredentials().setPassword(defaultForCredentialsScope);
         }
         if (scope.getAuxiliaryObjectClasses() == null) {
             scope.setAuxiliaryObjectClasses(ShadowItemsCachingScopeType.ALL);
