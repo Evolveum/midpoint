@@ -306,7 +306,7 @@ class ActivationConverter {
         if (statusCapability == null) {
             SchemaException e = new SchemaException("Attempt to change activation administrativeStatus on " + resource +
                     " which does not have the capability");
-            result.recordFatalError(e);
+            result.setFatalError(e);
             throw e;
         }
 
@@ -345,7 +345,7 @@ class ActivationConverter {
         if (lockoutCapability == null) {
             SchemaException e = new SchemaException("Attempt to change activation lockoutStatus on " + resource +
                     " which does not have the capability");
-            result.recordFatalError(e);
+            result.setFatalError(e);
             throw e;
         }
 
@@ -382,7 +382,7 @@ class ActivationConverter {
         if (CapabilityUtil.getEnabledActivationValidFrom(activationCapability) == null) {
             SchemaException e = new SchemaException("Attempt to change activation validFrom on " + resource +
                     " which does not have the capability");
-            result.recordFatalError(e);
+            result.setFatalError(e);
             throw e;
         }
         LOGGER.trace("Found activation validFrom change to: {}", getRealValue(propertyDelta.getPropertyNewMatchingPath()));
@@ -401,7 +401,7 @@ class ActivationConverter {
         if (CapabilityUtil.getEnabledActivationValidTo(activationCapability) == null) {
             SchemaException e = new SchemaException("Attempt to change activation validTo on " + resource +
                     " which does not have the capability");
-            result.recordFatalError(e);
+            result.setFatalError(e);
             throw e;
         }
         LOGGER.trace("Found activation validTo change to: {}", getRealValue(propertyDelta.getPropertyNewMatchingPath()));

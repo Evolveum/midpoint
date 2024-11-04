@@ -251,6 +251,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
      * For internal use. Currently supported only in a limited way.
      */
     private ShadowClassificationModeType shadowClassificationMode;
+    private Integer iterationPageSize;
 
     /*
      *  !!! After adding option here don't forget to update equals, clone, merge, etc. !!!
@@ -1403,5 +1404,13 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
             Predicate<GetOperationOptions> predicate,
             Consumer<GetOperationOptions> updater) {
         return SelectorOptions.updateRootOptionsSafe(options, predicate, updater, GetOperationOptions::new);
+    }
+
+    public void setIterationPageSize(Integer size) {
+        this.iterationPageSize = size;
+    }
+
+    public Integer getIterationPageSize() {
+        return iterationPageSize;
     }
 }

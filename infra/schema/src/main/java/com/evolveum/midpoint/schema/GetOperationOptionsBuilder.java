@@ -71,6 +71,7 @@ public interface GetOperationOptionsBuilder {
     GetOperationOptionsBuilder definitionProcessing(DefinitionProcessingOption value);
     GetOperationOptionsBuilder definitionUpdate(DefinitionUpdateOption value);
     GetOperationOptionsBuilder iterationMethod(IterationMethodType value);
+    GetOperationOptionsBuilder iterationPageSize(Integer value);
     GetOperationOptionsBuilder executionPhase();
     GetOperationOptionsBuilder executionPhase(Boolean value);
     GetOperationOptionsBuilder errorHandling(FetchErrorHandlingType errorHandling);

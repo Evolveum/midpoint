@@ -83,6 +83,7 @@
             <xsd:element name="addRemoveAttributeValues" type="tns:AddRemoveAttributeValuesCapabilityType" minOccurs="0"/>
             <xsd:element name="auxiliaryObjectClasses" type="tns:AuxiliaryObjectClassesCapabilityType" minOccurs="0"/>
             <xsd:element name="runAs" type="tns:RunAsCapabilityType" minOccurs="0"/>
+            <xsd:element name="behavior" type="tns:BehaviorCapabilityType" minOccurs="0"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -874,6 +875,68 @@
                     <!-- TODO: settings whether authentication is required or whether this is just user switch (proxy) -->
                     <!-- TODO: if authentication is required then what credentials are needed? -->
                 </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="BehaviorCapabilityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Container for various behavior-related capabilities.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.9.1</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:CapabilityType">
+                <xsd:sequence>
+                    <xsd:element name="lastLoginTimestamp" type="tns:LastLoginTimestampCapabilityType" minOccurs="0"/>
+                </xsd:sequence>
+                <xsd:attribute name="id" type="xsd:long"/>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="LastLoginTimestampCapabilityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describes capability of resource to provide last login timestamp.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.9.1</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:CapabilityType">
+                <xsd:sequence>
+                    <xsd:element name="returnedByDefault" type="xsd:boolean" minOccurs="0" default="true"/>
+                    <xsd:element name="attribute" type="xsd:QName" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Name of the attribute to use for account last login date.
+                                This is a configuration of simulated capability.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="ignoreAttribute" type="xsd:boolean" minOccurs="0" default="true">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Flag that controls whether the original attribute should be ignored.
+
+                                If set to true (or not present at all) the original attribute used as a source of
+                                simulated capability is marked as "ignored" in the schema. If set to false then
+                                the original attribute is still present in its original form in the schema.
+
+                                This option is meaningful only for simulated lastLoginTimestamp, i.e. in case that the
+                                "attribute" element above is set.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+                <xsd:attribute name="id" type="xsd:long"/>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>

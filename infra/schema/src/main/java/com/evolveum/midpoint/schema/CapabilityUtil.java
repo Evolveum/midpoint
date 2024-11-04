@@ -254,6 +254,20 @@ public class CapabilityUtil {
         return valCap.isReturnedByDefault();
     }
 
+    public static boolean isLastLoginTimestampReturnedByDefault(BehaviorCapabilityType capability) {
+        if (capability == null) {
+            return false;
+        }
+        LastLoginTimestampCapabilityType lastLoginCap = capability.getLastLoginTimestamp();
+        if (lastLoginCap == null) {
+            return false;
+        }
+        if (lastLoginCap.isReturnedByDefault() == null) {
+            return true;
+        }
+        return lastLoginCap.isReturnedByDefault();
+    }
+
     /** Returns a set of classes of native capabilities. */
     public static Collection<Class<? extends CapabilityType>> getNativeCapabilityClasses(@Nullable CapabilitiesType capabilities) {
         if (capabilities == null) {
@@ -353,6 +367,18 @@ public class CapabilityUtil {
     public static ActivationStatusCapabilityType getEnabledActivationStatusStrict(ActivationCapabilityType act) {
         if (isEnabled(act) && isEnabled(act.getStatus())) {
             return act.getStatus();
+        } else {
+            return null;
+        }
+    }
+
+    public static boolean isEnabled(CapabilityType cap) {
+        return cap != null && !Boolean.FALSE.equals(cap.isEnabled());
+    }
+
+    public static LastLoginTimestampCapabilityType getEnabledLastLoginCapabilityStrict(BehaviorCapabilityType act) {
+        if (isEnabled(act) && isEnabled(act.getLastLoginTimestamp())) {
+            return act.getLastLoginTimestamp();
         } else {
             return null;
         }

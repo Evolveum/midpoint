@@ -131,9 +131,7 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
             Q entity, Collection<SelectorOptions<GetOperationOptions>> options) {
 
         List<Path<?>> paths = new ArrayList<>();
-        paths.add(entity.oid);
-        paths.add(entity.objectType);
-        paths.add(entity.fullObject);
+        Collections.addAll(paths, super.selectExpressions(entity, options));
         if (SelectorOptions.hasToFetchPathNotRetrievedByDefault(F_JPEG_PHOTO, options)) {
             paths.add(entity.photo);
         }

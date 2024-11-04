@@ -9,6 +9,8 @@ package com.evolveum.midpoint.repo.sqale.qmodel.object;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.mining.cluster.QClusterObject;
@@ -18,6 +20,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.role.*;
 
 import com.evolveum.midpoint.repo.sqale.schema.QSchema;
 
+import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationCampaign;
@@ -55,54 +58,54 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public enum MObjectType {
 
     // mapping of codes and schema types must be unique
-    ABSTRACT_ROLE(QAbstractRole.CLASS, AbstractRoleType.class),
-    ACCESS_CERTIFICATION_CAMPAIGN(
-            QAccessCertificationCampaign.class, AccessCertificationCampaignType.class),
-    ACCESS_CERTIFICATION_DEFINITION(
-            QAccessCertificationDefinition.class, AccessCertificationDefinitionType.class),
-    ARCHETYPE(QArchetype.class, ArchetypeType.class),
-    ASSIGNMENT_HOLDER(QAssignmentHolder.CLASS, AssignmentHolderType.class),
-    CASE(QCase.class, CaseType.class),
-    CONNECTOR(QConnector.class, ConnectorType.class),
-    CONNECTOR_HOST(QConnectorHost.class, ConnectorHostType.class),
-    DASHBOARD(QDashboard.class, DashboardType.class),
-    FOCUS(QFocus.CLASS, FocusType.class),
-    FORM(QForm.class, FormType.class),
-    FUNCTION_LIBRARY(QFunctionLibrary.class, FunctionLibraryType.class),
-    GENERIC_OBJECT(QGenericObject.class, GenericObjectType.class),
-    LOOKUP_TABLE(QLookupTable.class, LookupTableType.class),
-    MESSAGE_TEMPLATE(QMessageTemplate.class, MessageTemplateType.class),
-    NODE(QNode.class, NodeType.class),
-    OBJECT(QObject.CLASS, ObjectType.class),
-    OBJECT_COLLECTION(QObjectCollection.class, ObjectCollectionType.class),
-    OBJECT_TEMPLATE(QObjectTemplate.class, ObjectTemplateType.class),
-    ORG(QOrg.class, OrgType.class),
-    REPORT(QReport.class, ReportType.class),
-    REPORT_DATA(QReportData.class, ReportDataType.class),
-    RESOURCE(QResource.class, ResourceType.class),
-    ROLE(QRole.class, RoleType.class),
-    ROLE_ANALYSIS_CLUSTER(QClusterObject.class, RoleAnalysisClusterType.class),
-    ROLE_ANALYSIS_SESSION(QSessionData.class, RoleAnalysisSessionType.class),
-    ROLE_ANALYSIS_OUTLIER(QOutlier.class, RoleAnalysisOutlierType.class),
-    SCHEMA(QSchema.class, SchemaType.class),
-    SECURITY_POLICY(QSecurityPolicy.class, SecurityPolicyType.class),
-    SEQUENCE(QSequence.class, SequenceType.class),
-    SERVICE(QService.class, ServiceType.class),
-    SHADOW(QShadow.class, ShadowType.class),
-    SIMULATION_RESULT(QSimulationResult.class, SimulationResultType.class),
-    SYSTEM_CONFIGURATION(QSystemConfiguration.class, SystemConfigurationType.class),
-    MARK(QMark.class, MarkType.class),
-    TASK(QTask.class, TaskType.class),
-    USER(QUser.class, UserType.class),
-    VALUE_POLICY(QValuePolicy.class, ValuePolicyType.class),
-    POLICY(QPolicy.class, PolicyType.class);
+    ABSTRACT_ROLE(QAbstractRole.CLASS, AbstractRoleType.class, null),
+    ACCESS_CERTIFICATION_CAMPAIGN(QAccessCertificationCampaign.class, AccessCertificationCampaignType.class, AccessCertificationCampaignType::new),
+    ACCESS_CERTIFICATION_DEFINITION(QAccessCertificationDefinition.class, AccessCertificationDefinitionType.class, AccessCertificationDefinitionType::new),
+    ARCHETYPE(QArchetype.class, ArchetypeType.class, ArchetypeType::new),
+    ASSIGNMENT_HOLDER(QAssignmentHolder.CLASS, AssignmentHolderType.class, null),
+    CASE(QCase.class, CaseType.class, CaseType::new),
+    CONNECTOR(QConnector.class, ConnectorType.class, ConnectorType::new),
+    CONNECTOR_HOST(QConnectorHost.class, ConnectorHostType.class, ConnectorHostType::new),
+    DASHBOARD(QDashboard.class, DashboardType.class, DashboardType::new),
+    FOCUS(QFocus.CLASS, FocusType.class, null),
+    FORM(QForm.class, FormType.class, FormType::new),
+    FUNCTION_LIBRARY(QFunctionLibrary.class, FunctionLibraryType.class, FunctionLibraryType::new),
+    GENERIC_OBJECT(QGenericObject.class, GenericObjectType.class, GenericObjectType::new),
+    LOOKUP_TABLE(QLookupTable.class, LookupTableType.class, LookupTableType::new),
+    MESSAGE_TEMPLATE(QMessageTemplate.class, MessageTemplateType.class, MessageTemplateType::new),
+    NODE(QNode.class, NodeType.class, NodeType::new),
+    OBJECT(QObject.CLASS, ObjectType.class, null),
+    OBJECT_COLLECTION(QObjectCollection.class, ObjectCollectionType.class, ObjectCollectionType::new),
+    OBJECT_TEMPLATE(QObjectTemplate.class, ObjectTemplateType.class, ObjectTemplateType::new),
+    ORG(QOrg.class, OrgType.class, OrgType::new),
+    REPORT(QReport.class, ReportType.class, ReportType::new),
+    REPORT_DATA(QReportData.class, ReportDataType.class, ReportDataType::new),
+    RESOURCE(QResource.class, ResourceType.class, ResourceType::new),
+    ROLE(QRole.class, RoleType.class, RoleType::new),
+    ROLE_ANALYSIS_CLUSTER(QClusterObject.class, RoleAnalysisClusterType.class, RoleAnalysisClusterType::new),
+    ROLE_ANALYSIS_SESSION(QSessionData.class, RoleAnalysisSessionType.class, RoleAnalysisSessionType::new),
+    ROLE_ANALYSIS_OUTLIER(QOutlier.class, RoleAnalysisOutlierType.class, RoleAnalysisOutlierType::new),
+    SCHEMA(QSchema.class, SchemaType.class, SchemaType::new),
+    SECURITY_POLICY(QSecurityPolicy.class, SecurityPolicyType.class, SecurityPolicyType::new),
+    SEQUENCE(QSequence.class, SequenceType.class, SequenceType::new),
+    SERVICE(QService.class, ServiceType.class, ServiceType::new),
+    SHADOW(QShadow.class, ShadowType.class, ShadowType::new),
+    SIMULATION_RESULT(QSimulationResult.class, SimulationResultType.class, SimulationResultType::new),
+    SYSTEM_CONFIGURATION(QSystemConfiguration.class, SystemConfigurationType.class, SystemConfigurationType::new),
+    MARK(QMark.class, MarkType.class, MarkType::new),
+    TASK(QTask.class, TaskType.class, TaskType::new),
+    USER(QUser.class, UserType.class, UserType::new),
+    VALUE_POLICY(QValuePolicy.class, ValuePolicyType.class, ValuePolicyType::new),
+    POLICY(QPolicy.class, PolicyType.class, PolicyType::new);
 
     private final Class<? extends QObject<?>> queryType;
     private final Class<? extends ObjectType> schemaType;
+    private final Supplier<? extends ObjectType> constructor;
 
-    MObjectType(Class<? extends QObject<?>> queryType, Class<? extends ObjectType> schemaType) {
+    MObjectType(Class<? extends QObject<?>> queryType, Class<? extends ObjectType> schemaType, Supplier<? extends ObjectType> constructor) {
         this.queryType = queryType;
         this.schemaType = schemaType;
+        this.constructor = constructor;
     }
 
     // schema type QName -> enum conversion
@@ -139,5 +142,10 @@ public enum MObjectType {
 
     public QName getTypeName() {
         return ObjectTypes.getObjectType(schemaType).getTypeQName();
+    }
+
+    public ObjectType createObject() {
+        Preconditions.checkState(constructor != null, "Trying to instantiate abstract type");
+        return constructor.get();
     }
 }

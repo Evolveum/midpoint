@@ -41,7 +41,7 @@ Client contains following attributes:
 
 
 | `clientAuthenticationMethod`
-| Define client authentication method. Possible values is clientSecretBasic, clientSecretPost, clientSecretJwt and privateKeyJwt.
+| Define client authentication method. Possible values is clientSecretBasic, clientSecretPost, clientSecretJwt, privateKeyJwt and none.
 | false
 | _OidcClientAuthenticationMethodType_
 
@@ -83,6 +83,11 @@ Identifier of algorithm for digitally sign or create a MAC of the content. (RFC7
 | Key from key store used for sign with privateKeyJwt. Choice _simpleProofKey_ or _keyStoreProofKey_.
 | false
 | _AbstractKeyStoreKeyType_
+
+| `usePkce`
+| Use Proof Key for Code Exchange for added security. (https://datatracker.ietf.org/doc/html/rfc7636[RFC7636])
+| false
+| _Boolean_
 
 |===
 

@@ -93,6 +93,9 @@ public class DummyConnectorLegacyUpdate extends AbstractObjectDummyConnector imp
                     } else if (attr.is(OperationalAttributes.DISABLE_DATE_NAME)) {
                         account.setValidTo(getDate(attr));
 
+                    } else if (attr.is(PredefinedAttributes.LAST_LOGIN_DATE_NAME)) {
+                        account.setLastLoginDate(getDate(attr));
+
                     } else if (attr.is(OperationalAttributes.LOCK_OUT_NAME)) {
                         account.setLockoutStatus(getBooleanMandatory(attr));
 

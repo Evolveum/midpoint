@@ -357,4 +357,8 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
                 ", queryType=" + queryType() +
                 '}';
     }
+
+    protected static Path<?>[] paths(Path<?>... path) {
+        return path;
+    }
 }
