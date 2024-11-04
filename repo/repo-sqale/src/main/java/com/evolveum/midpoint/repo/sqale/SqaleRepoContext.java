@@ -14,6 +14,7 @@ import java.util.Set;
 import javax.sql.DataSource;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.ParsingContext;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.EffectivePrivilegesModificationType;
 
 import com.querydsl.sql.types.ArrayType;
@@ -273,5 +274,11 @@ public class SqaleRepoContext extends SqlRepoContext {
             ret.item = v;
             return ret;
         }).toList();
+    }
+
+    @Override
+    protected ParsingContext createParsingContext() {
+        return super.createParsingContext()
+                .enableLazyDeserializationFor(ValueMetadataType.COMPLEX_TYPE);
     }
 }
