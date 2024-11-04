@@ -81,6 +81,9 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
 
     String runningTaskOid;
     LoadableDetachableModel<String> runningTaskLabelModel;
+    LoadableDetachableModel<Badge> statusModel;
+    LoadableDetachableModel<String> stageModel;
+    LoadableDetachableModel<String> iterationModel;
 
     public CampaignTilePanel(String id, IModel<TemplateTile<SelectableBean<AccessCertificationCampaignType>>> model) {
         super(id, model);
@@ -91,6 +94,9 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
         super.onInitialize();
         initRunningTaskOid();
         initRunningTaskLabelModel();
+        initStatusBadgeModel();
+        initStageModel();
+        initIterationModel();
         initLayout();
     }
 
@@ -130,6 +136,26 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
         };
     }
 
+    private void initStatusBadgeModel() {
+        statusModel = new LoadableDetachableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected Badge load() {
+                CampaignStateHelper campaignStateHelper = new CampaignStateHelper(getCampaign());
+                return campaignStateHelper.createBadge();
+            }
+        };
+    }
+
+    private void initStageModel() {
+        stageModel = CertMiscUtil.getCampaignStageLoadableModel(getCampaign());
+    }
+
+    private void initIterationModel() {
+        iterationModel = CertMiscUtil.getCampaignIterationLoadableModel(getCampaign());
+    }
+
     protected void initLayout() {
         add(AttributeAppender.append("class",
                 "campaign-tile-panel catalog-tile-panel d-flex flex-column align-items-center rounded p-3 elevation-1 mt-2"));
@@ -141,7 +167,7 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
         selectTileCheckbox.setVisible(false); // TODO temp set visible to true after bulk actions are implemented
         add(selectTileCheckbox);
 
-        BadgePanel status = new BadgePanel(ID_STATUS, getStatusModel());
+        BadgePanel status = new BadgePanel(ID_STATUS, statusModel);
         status.setOutputMarkupId(true);
         status.add(new VisibleBehaviour(this::isAuthorizedForCampaignActions));
         add(status);
@@ -199,11 +225,11 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
         deadline.setOutputMarkupId(true);
         add(deadline);
 
-        Label stage = new Label(ID_STAGE, getStageModel());
+        Label stage = new Label(ID_STAGE, stageModel);
         stage.setOutputMarkupId(true);
         add(stage);
 
-        Label iteration = new Label(ID_ITERATION, getIterationModel());
+        Label iteration = new Label(ID_ITERATION, iterationModel);
         iteration.setOutputMarkupId(true);
         add(iteration);
 
@@ -216,11 +242,15 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
             @Override
             protected void refresh(AjaxRequestTarget target) {
                 CampaignTilePanel.this.runningTaskOid = getRunningTaskOid();
+                getCampaignModel().detach();
                 buttonLabelModel.detach();
                 runningTaskLabelModel.detach();
+                statusModel.detach();
+                stageModel.detach();
+                iterationModel.detach();
                 target.add(CampaignTilePanel.this);
-//                Component feedbackPanel = getPageBase().getFeedbackPanel();
-//                target.add(feedbackPanel);
+                Component feedbackPanel = getPageBase().getFeedbackPanel();
+                target.add(feedbackPanel);
             }
 
 //            @Override
@@ -273,18 +303,6 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
             @Override
             public void setObject(Boolean object) {
                 getModelObject().setSelected(object);
-            }
-        };
-    }
-
-    private LoadableDetachableModel<Badge> getStatusModel() {
-        return new LoadableDetachableModel<>() {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            protected Badge load() {
-                CampaignStateHelper campaignStateHelper = new CampaignStateHelper(getCampaign());
-                return campaignStateHelper.createBadge();
             }
         };
     }
@@ -353,14 +371,6 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
                 return CampaignProcessingHelper.computeDeadline(getCampaign(), getPageBase());
             }
         };
-    }
-
-    private LoadableModel<String> getStageModel() {
-        return CertMiscUtil.getCampaignStageLoadableModel(getCampaign());
-    }
-
-    private LoadableModel<String> getIterationModel() {
-        return CertMiscUtil.getCampaignIterationLoadableModel(getCampaign());
     }
 
     protected boolean isAuthorizedForCampaignActions() {
