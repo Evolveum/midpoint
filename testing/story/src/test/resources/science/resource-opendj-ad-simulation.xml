@@ -86,7 +86,6 @@
                         <path>name</path>
                     </source>
                 </outbound>
-                <cached>false</cached> <!-- MID-10051 -->
             </attribute>
             <attribute>
                 <ref>ri:displayName</ref>
@@ -121,6 +120,7 @@
                         <add>true</add>
                     </access>
                 </limitations>
+                <volatilityTrigger>true</volatilityTrigger>
                 <outbound>
                     <strength>weak</strength>
                     <source>
