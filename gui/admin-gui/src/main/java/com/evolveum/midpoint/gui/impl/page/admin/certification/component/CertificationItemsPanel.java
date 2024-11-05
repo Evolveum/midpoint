@@ -228,7 +228,9 @@ public class CertificationItemsPanel extends BasePanel<String> {
                 MidPointPrincipal principal = getPrincipalAsReviewer();
 
                 List<DetailsTableItem> items = new ArrayList<>();
-                AccessCertificationCampaignType campaign = loadCampaign(getCampaignOid());
+                String campaignOid = StringUtils.isNotEmpty(getCampaignOid()) ? getCampaignOid() :
+                        (campaignsOids.size() == 1 ? campaignsOids.get(0) : null);
+                AccessCertificationCampaignType campaign = loadCampaign(campaignOid);
 
                 DetailsTableItem chartPanelItem = new DetailsTableItem(getCompletedItemsPercentageModel(campaignsOids)) {
                     @Serial private static final long serialVersionUID = 1L;
