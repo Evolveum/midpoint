@@ -89,6 +89,11 @@ public interface ResourceObjectDefinitionDelegator extends ResourceObjectDefinit
     }
 
     @Override
+    @Nullable
+    default ResourceLastLoginTimestampDefinitionType getLastLoginTimestampDefinition() {
+        return delegate().getLastLoginTimestampDefinition();
+    }
+    @Override
     default @NotNull ResourceObjectClassDefinition getObjectClassDefinition() {
         return delegate().getObjectClassDefinition();
     }

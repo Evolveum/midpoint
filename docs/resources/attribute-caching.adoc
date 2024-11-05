@@ -139,9 +139,9 @@ It can have a value of `none` (no caching) and `passive` (passive caching as des
 | Scope of the caching for the auxiliary object classes.
 2+| `all`
 
-// | `credentials`
-// | Scope of the caching for credentials.
-// | `all` (or `none` for xref:#caching_only_read_capability[caching-only read capability])
+| `credentials/password`
+| Scope of the caching for the password.
+| `all` (or `none` for xref:#caching_only_read_capability[caching-only read capability])
 
 |===
 
@@ -387,9 +387,9 @@ When the "caching only" read capability is present (e.g., for manual resources),
 | `defined`
 | `all`
 
-// | credentials caching scope
-// | `all`
-// | `none`
+| password caching scope
+| `all`
+| `none`
 
 |===
 
@@ -408,9 +408,7 @@ In such cases, midPoint could mistakenly assume that the value of this attribute
 The solution is either to turn their caching off (by setting `cached` property to `false` for those attributes), or to make sure they are explicitly provided by midPoint each time their source (e.g., `dn` for `uid`) is created or modified.
 You can do that by providing an explicit mapping for, e.g., `uid` attribute along with the mapping for `dn`.
 
-. Credentials are not cached yet, unless explicitly turned on by setting the legacy `credentials/password/caching/cachingStrategy` property.
-(See xref:/midpoint/reference/security/credentials/password-policy/[].)
-Only hashed storage of cached passwords is supported.
+. Only hashed or "present vs not present" storage of cached passwords is supported.
 
 . Localized attributes (see bug:MID-5210[]) are not cached yet.
 

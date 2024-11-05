@@ -187,7 +187,7 @@ public abstract class AbstractOpenDjTest extends AbstractProvisioningIntegration
     }
 
     ItemName getPrimaryIdentifierQName() {
-        return new ItemName(NS_RI, OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME);
+        return ItemName.from(NS_RI, OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME);
     }
 
     ItemName getSecondaryIdentifierQName() {

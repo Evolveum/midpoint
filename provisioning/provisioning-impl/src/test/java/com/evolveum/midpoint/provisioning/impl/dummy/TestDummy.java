@@ -120,17 +120,13 @@ public class TestDummy extends AbstractBasicDummyTest {
     }
 
     protected ItemComparisonResult getExpectedPasswordComparisonResultMatch() {
-        // After MID-10050
-//        return InternalsConfig.isShadowCachingOnByDefault() ?
-//                ItemComparisonResult.MATCH : ItemComparisonResult.NOT_APPLICABLE;
-        return ItemComparisonResult.NOT_APPLICABLE;
+        return InternalsConfig.isShadowCachingOnByDefault() ?
+                ItemComparisonResult.MATCH : ItemComparisonResult.NOT_APPLICABLE;
     }
 
     protected ItemComparisonResult getExpectedPasswordComparisonResultMismatch() {
-        // After MID-10050
-//        return InternalsConfig.isShadowCachingOnByDefault() ?
-//                ItemComparisonResult.MISMATCH : ItemComparisonResult.NOT_APPLICABLE;
-        return ItemComparisonResult.NOT_APPLICABLE;
+        return InternalsConfig.isShadowCachingOnByDefault() ?
+                ItemComparisonResult.MISMATCH : ItemComparisonResult.NOT_APPLICABLE;
     }
 
     @Override
@@ -1063,7 +1059,7 @@ public class TestDummy extends AbstractBasicDummyTest {
     }
 
     @SuppressWarnings("SameParameterValue")
-    protected void testComparePassword(String label, String shadowOid,
+    private void testComparePassword(String label, String shadowOid,
             String expectedPassword, ItemComparisonResult expectedResult) throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();

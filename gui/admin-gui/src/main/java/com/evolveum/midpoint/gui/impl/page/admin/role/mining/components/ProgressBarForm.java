@@ -115,7 +115,7 @@ public class ProgressBarForm extends BasePanel<RoleAnalysisAttributeAnalysisDto>
         int totalBars = 0;
         int size = roleAnalysisAttributeStructures.size();
         Map<Double, List<RoleAnalysisAttributeStatistics>> map = new TreeMap<>(Comparator.reverseOrder());
-        if (size > 5 ) { //&& analysisResult.isIsMultiValue()) {
+        if (size > 5) { //&& analysisResult.isIsMultiValue()) {
             roleAnalysisAttributeStructures.forEach((item) -> {
                 double frequency = item.getFrequency();
                 List<RoleAnalysisAttributeStatistics> list = map.getOrDefault(frequency, new ArrayList<>());
@@ -135,8 +135,15 @@ public class ProgressBarForm extends BasePanel<RoleAnalysisAttributeAnalysisDto>
                 String identifier = null;
                 if (valuesCount == 1) {
                     if (pathToMark != null) {
-                        if (pathToMark.contains(value.get(0).getAttributeValue())) {
-                            identifier = "red";
+                        identifier = pathToMark.contains(value.get(0).getAttributeValue()) ? "red" : null;
+                    }
+                } else {
+                    if (pathToMark != null) {
+                        for (RoleAnalysisAttributeStatistics item : value) {
+                            if (pathToMark.contains(item.getAttributeValue())) {
+                                identifier = "red";
+                                break;
+                            }
                         }
                     }
                 }
@@ -160,8 +167,17 @@ public class ProgressBarForm extends BasePanel<RoleAnalysisAttributeAnalysisDto>
                     public String getBarTitle() {
                         if (valuesCount == 1) {
                             return value.get(0).getAttributeValue();
+                        } else {
+                            if (pathToMark != null) {
+                                for (RoleAnalysisAttributeStatistics roleAnalysisAttributeStatistics : value) {
+                                    if (pathToMark.contains(roleAnalysisAttributeStatistics.getAttributeValue())) {
+                                        return "Objects (" + value.size() + ") include "
+                                                + roleAnalysisAttributeStatistics.getAttributeValue();
+                                    }
+                                }
+                            }
                         }
-                        return "Objects (" + size + ")";
+                        return "Objects (" + value.size() + ")";
                     }
 
                     @Override
@@ -210,10 +226,8 @@ public class ProgressBarForm extends BasePanel<RoleAnalysisAttributeAnalysisDto>
                 }
 
                 String identifier = null;
-                if (pathToMark != null) {
-                    if (pathToMark.contains(attributeValue)) {
-                        identifier = "red";
-                    }
+                if (pathToMark != null && pathToMark.contains(attributeValue)) {
+                    identifier = "red";
                 }
 
                 String finalIdentifier = identifier;

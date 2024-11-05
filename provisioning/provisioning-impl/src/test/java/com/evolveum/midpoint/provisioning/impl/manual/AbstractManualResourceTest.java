@@ -373,8 +373,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
                 .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME)
                 .end()
-                //.assertNoPasswordIf(isNoPasswordExpected());
-                .assertNoPassword(); // change when resolving MID-10050
+                .assertNoPasswordIf(isNoPasswordExpected());
         assertAttributeFromCache(shadowRepoAsserter, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
         assertShadowActivationAdministrativeStatusFromCache(shadowRepoAsserter, ActivationStatusType.ENABLED);
 
@@ -395,8 +394,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
                 .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME)
                 .end()
-                //.assertNoPasswordIf(isNoPasswordExpected());
-                .assertNoPassword(); // change when resolving MID-10050
+                .assertNoPasswordIf(isNoPasswordExpected());
         assertAttributeFromCache(shadowProvisioningAsserter, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
         assertShadowActivationAdministrativeStatusFromCache(shadowProvisioningAsserter, ActivationStatusType.ENABLED);
 
@@ -408,8 +406,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     }
 
     private boolean isNoPasswordExpected() {
-        //return !InternalsConfig.isShadowCachingOnByDefault() && supportsBackingStore();
-        return true; // change when resolving MID-10050
+        return !InternalsConfig.isShadowCachingOnByDefault() && supportsBackingStore();
     }
 
     @Test
@@ -2473,8 +2470,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
                 .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
                 .end()
                 .end()
-                //.assertNoPasswordIf(isNoPasswordExpected());
-                .assertNoPassword(); // change when resolving MID-10050
+                .assertNoPasswordIf(isNoPasswordExpected());
 
         syncServiceMock.assertNoNotifyChange();
         syncServiceMock.assertSingleNotifySuccessOnly();

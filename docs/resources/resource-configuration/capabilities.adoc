@@ -131,3 +131,83 @@ Others - e.g. those served by ScriptedSQL connector - depend on particular confi
 It is the responsibility of the connector user (that configures the resource) to know the behavior of the connector, and to correctly specify this capability in the resource definition.
 
 See also xref:/midpoint/reference/tasks/synchronization-tasks/live-synchronization.adoc[].
+
+== Supported capabilities
+
+The following tables summarize the capabilities that are supported as native or configured ones.
+
+[cols=2,options=header]
+|===
+| Subtype
+| Description
+
+|AbstractWriteCapabilityType
+|Base type for all write capabilities.
+
+|ActivationCapabilityType
+|Describes capability to process activation data, which means
+enable/disable of accounts, dates for scheduled enable/disable
+and similar things related to make the account active.
+
+|ActivationLockoutStatusCapabilityType
+|Describes capability to provide lockout status (e.
+
+|ActivationStatusCapabilityType
+|Describes capability to provide activation status (e.
+
+|ActivationValidityCapabilityType
+|Describes capability to provide activation validity dates (validFrom, validTo)
+
+|AddRemoveAttributeValuesCapabilityType
+|Indication that ADD and REMOVE of attribute values is reliably supported.
+
+|AsyncUpdateCapabilityType
+|Describes capability to process asynchronous updates.
+
+|AuxiliaryObjectClassesCapabilityType
+|Describes capability to specify additional (auxiliary) object classes in addition to the
+primary object class.
+
+|BehaviorCapabilityType
+|Container for various behavior-related capabilities.
+
+|CountObjectsCapabilityType
+|Ability to efficiently count objects.
+
+|CredentialsCapabilityType
+|Describes capability to present credentials in a structured way.
+
+|DiscoverConfigurationCapabilityType
+|Describes capability to do configuration discovery, check and recommendation
+(`DiscoverConfigurationApiOp`).
+
+|LastLoginTimestampCapabilityType
+|Describes capability of resource to provide last login timestamp.
+
+|LiveSyncCapabilityType
+|Describes capability to detect changes in almost real time (live synchronization).
+
+|PagedSearchCapabilityType
+|How to handle paged searches.
+
+|PasswordCapabilityType
+|Describes capability to present password in a structured way.
+
+|ReadCapabilityType
+|Describes read capability.
+
+|ReferencesCapabilityType
+|
+
+|RunAsCapabilityType
+|Describes capability to execute operations with specified identity.
+
+|SchemaCapabilityType
+|Describes capability to discover resource schema.
+
+|ScriptCapabilityType
+|Describes capability to execute scripts (short pieces of program) on the connector or resource.
+
+|TestConnectionCapabilityType
+|Describes capability to test connection to the resource once the connector is configured.
+|===

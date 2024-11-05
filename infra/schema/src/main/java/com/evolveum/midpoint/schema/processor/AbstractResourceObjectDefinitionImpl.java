@@ -403,6 +403,15 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     @Override
+    public @Nullable ResourceLastLoginTimestampDefinitionType getLastLoginTimestampDefinition() {
+        ResourceBehaviorDefinitionType behavior = definitionBean.getBehavior();
+        if (behavior == null) {
+            return null;
+        }
+        return behavior.getLastLoginTimestamp();
+    }
+
+    @Override
     public ObjectReferenceType getSecurityPolicyRef() {
         return definitionBean.getSecurityPolicyRef();
     }
@@ -841,14 +850,14 @@ public abstract class AbstractResourceObjectDefinitionImpl
         boolean readCachedCapabilityPresent = isReadCachedCapabilityPresent();
 
         var defaultForSimpleAttributesScope = ShadowSimpleAttributesCachingScopeType.DEFINED;
-        //var defaultForCredentialsScope = ShadowItemsCachingScopeType.ALL;
+        var defaultForCredentialsScope = ShadowItemsCachingScopeType.ALL;
         var defaultForCacheUse = CachedShadowsUseType.USE_FRESH;
         var defaultForTtl = "P1D";
         if (workingCopy.getCachingStrategy() == null) {
             if (readCachedCapabilityPresent) {
                 workingCopy.setCachingStrategy(CachingStrategyType.PASSIVE);
                 defaultForSimpleAttributesScope = ShadowSimpleAttributesCachingScopeType.ALL;
-                //defaultForCredentialsScope = ShadowItemsCachingScopeType.NONE;
+                defaultForCredentialsScope = ShadowItemsCachingScopeType.NONE;
                 defaultForTtl = "P1000Y";
             } else if (cachingDefault == InternalsConfig.ShadowCachingDefault.FULL) {
                 // Currently used for testing
@@ -879,9 +888,12 @@ public abstract class AbstractResourceObjectDefinitionImpl
         if (scope.getActivation() == null) {
             scope.setActivation(ShadowItemsCachingScopeType.ALL);
         }
-//        if (scope.getCredentials() == null) {
-//            scope.setCredentials(defaultForCredentialsScope);
-//        }
+        if (scope.getCredentials() == null) {
+            scope.setCredentials(new ShadowCredentialsCachingScopeType());
+        }
+        if (scope.getCredentials().getPassword() == null) {
+            scope.getCredentials().setPassword(defaultForCredentialsScope);
+        }
         if (scope.getAuxiliaryObjectClasses() == null) {
             scope.setAuxiliaryObjectClasses(ShadowItemsCachingScopeType.ALL);
         }
