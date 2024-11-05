@@ -173,6 +173,12 @@ class ConnIdObjectConvertor {
                         AttributeBuilder.build(OperationalAttributes.LOCK_OUT_NAME, ActivationUtil.isLockedOut(lockoutStatus)));
             }
 
+            var lastLoginDate = ShadowUtil.getLastLoginTimestampValue(shadow);
+            if (lastLoginDate != null) {
+                attributes.add(
+                        AttributeBuilder.build(PredefinedAttributes.LAST_LOGIN_DATE_NAME, XmlTypeConverter.toMillis(lastLoginDate)));
+            }
+
             LOGGER.trace("ConnId attributes after conversion:\n{}", lazy(() -> ConnIdUtil.dump(attributes)));
 
         } catch (SchemaException | RuntimeException ex) {

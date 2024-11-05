@@ -39,11 +39,12 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 
 === New Features and Major Improvements
 
-* TODO
+* bug:MID-10147[] Added support for new capability `lastLoginTimestamp`.
 
 === Other Improvements
 
 * Update GUI views after changing of the archetype, that is used in the view. See bug:MID-9776[].
+* Adding support for PKCE (Proof Key for Code Exchange) as additional security for OIDC authentication module. See bug:MID-10155[].
 
 === Releases Of Other Components
 

@@ -303,6 +303,11 @@ class ConnIdCapabilitiesAndSchemaParser {
                 midPointCapabilities.setActivation(capAct);
             }
 
+            BehaviorCapabilityType capBeh = getBehaviorCapabilityType(specialAttributes);
+            if (capBeh != null) {
+                midPointCapabilities.setBehavior(capBeh);
+            }
+
             if (specialAttributes.passwordAttributeInfo != null) {
                 CredentialsCapabilityType capCred = new CredentialsCapabilityType();
                 PasswordCapabilityType capPass = new PasswordCapabilityType();
@@ -356,6 +361,19 @@ class ConnIdCapabilitiesAndSchemaParser {
             }
         }
 
+        private static @Nullable BehaviorCapabilityType getBehaviorCapabilityType(@NotNull SpecialAttributes specialAttributes) {
+            BehaviorCapabilityType capBeh = null;
+            if (specialAttributes.lastLoginDateAttributeInfo != null) {
+                capBeh = new BehaviorCapabilityType();
+                capBeh.setEnabled(true);
+                LastLoginTimestampCapabilityType capLastLogin = new LastLoginTimestampCapabilityType();
+                capBeh.setLastLoginTimestamp(capLastLogin);
+                if (!specialAttributes.lastLoginDateAttributeInfo.isReturnedByDefault()) {
+                    capLastLogin.setReturnedByDefault(false);
+                }
+            }
+            return capBeh;
+        }
 
         private static @Nullable ActivationCapabilityType getActivationCapabilityType(@NotNull SpecialAttributes specialAttributes) {
             ActivationCapabilityType capAct = null;

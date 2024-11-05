@@ -4956,6 +4956,27 @@
         </xsd:sequence>
     </xsd:complexType>
 
+    <xsd:complexType name="ResourceBehaviorDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Definition for different behaviors are handled for the resource.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="lastLoginTimestamp" type="tns:ResourceLastLoginTimestampDefinitionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Defines how the last login timestamp synchronization is handled for the resource.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
     <xsd:complexType name="IterationSpecificationType">
         <xsd:annotation>
             <xsd:documentation>
@@ -17811,6 +17832,14 @@
                     <xsd:appinfo>
                         <a:displayName>GetOperationOptionsType.iterationMethod</a:displayName>
                         <a:since>4.4</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="iterationPageSize" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>GetOperationOptionsType.iterationPageSize</a:displayName>
+                        <a:since>4.9</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

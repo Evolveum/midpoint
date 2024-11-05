@@ -322,7 +322,7 @@ public abstract class AbstractObjectDummyConnector
             return createGroupObjectClass();
         } else {
             var builder =
-                    createCommonObjectClassBuilder(objectClassInfo.name(), objectClassInfo.definition(), false);
+                    createCommonObjectClassBuilder(objectClassInfo.name(), objectClassInfo.definition(), false, false);
             builder.setAuxiliary(aux);
             return builder.build();
         }
@@ -347,7 +347,7 @@ public abstract class AbstractObjectDummyConnector
     }
 
     private ObjectClassInfoBuilder createCommonObjectClassBuilder(
-            String typeName, DummyObjectClass dummyAccountObjectClass, boolean supportsActivation) {
+            String typeName, DummyObjectClass dummyAccountObjectClass, boolean supportsActivation, boolean supportsLastLoginDate) {
         ObjectClassInfoBuilder objClassBuilder = new ObjectClassInfoBuilder();
         if (typeName != null) {
             objClassBuilder.setType(typeName);
@@ -369,6 +369,10 @@ public abstract class AbstractObjectDummyConnector
             objClassBuilder.addAttributeInfo(OperationalAttributeInfos.LOCK_OUT);
         }
 
+        if (supportsLastLoginDate) {
+            objClassBuilder.addAttributeInfo(PredefinedAttributeInfos.LAST_LOGIN_DATE);
+        }
+
         if (configuration.isAddConnectorStateAttributes()) {
             objClassBuilder.addAttributeInfo(AttributeInfoBuilder.build(DummyResource.ATTRIBUTE_CONNECTOR_TO_STRING, String.class));
             objClassBuilder.addAttributeInfo(AttributeInfoBuilder.build(DummyResource.ATTRIBUTE_CONNECTOR_STATIC_VAL, String.class));
@@ -383,7 +387,8 @@ public abstract class AbstractObjectDummyConnector
 
         var objClassBuilder =
                 createCommonObjectClassBuilder(
-                        getAccountObjectClassName(), resource.getAccountObjectClass(), configuration.getSupportActivation());
+                        getAccountObjectClassName(), resource.getAccountObjectClass(), configuration.getSupportActivation(),
+                        configuration.getSupportLastLoginDate());
 
         // __PASSWORD__ attribute
         AttributeInfo passwordAttrInfo;
@@ -430,7 +435,8 @@ public abstract class AbstractObjectDummyConnector
 
     private ObjectClassInfo createGroupObjectClass() {
         return createCommonObjectClassBuilder(
-                getGroupObjectClassName(), resource.getGroupObjectClass(), configuration.getSupportActivation())
+                getGroupObjectClassName(), resource.getGroupObjectClass(), configuration.getSupportActivation(),
+                configuration.getSupportLastLoginDate())
                 .build();
     }
 
@@ -1024,7 +1030,8 @@ public abstract class AbstractObjectDummyConnector
     }
 
     private ConnectorObjectBuilder createConnectorObjectBuilderCommon(
-            DummyObject dummyObject, Collection<String> attributesToGet, boolean supportActivation) throws SchemaViolationException {
+            DummyObject dummyObject, Collection<String> attributesToGet, boolean supportActivation, boolean supportLastLoginDate)
+            throws SchemaViolationException {
 
         ConnectorObjectBuilder builder = new ConnectorObjectBuilder();
 
@@ -1081,6 +1088,13 @@ public abstract class AbstractObjectDummyConnector
             if (dummyObject.getValidTo() != null &&
                     (attributesToGet == null || attributesToGet.contains(OperationalAttributes.DISABLE_DATE_NAME))) {
                 builder.addAttribute(OperationalAttributes.DISABLE_DATE_NAME, convertToLong(dummyObject.getValidTo()));
+            }
+        }
+
+        if (supportLastLoginDate) {
+            if (dummyObject.getLastLoginDate() != null &&
+                    (attributesToGet == null || attributesToGet.contains(PredefinedAttributes.LAST_LOGIN_DATE_NAME))) {
+                builder.addAttribute(PredefinedAttributes.LAST_LOGIN_DATE_NAME, convertToLong(dummyObject.getLastLoginDate()));
             }
         }
 
@@ -1212,7 +1226,7 @@ public abstract class AbstractObjectDummyConnector
             throw new OperationTimeoutException(e);
         }
 
-        ConnectorObjectBuilder builder = createConnectorObjectBuilderCommon(account, attributesToGet, true);
+        ConnectorObjectBuilder builder = createConnectorObjectBuilderCommon(account, attributesToGet, true, true);
 
         // Password is not returned by default (hardcoded ICF specification)
         if (account.getPassword() != null && attributesToGet != null && attributesToGet.contains(OperationalAttributes.PASSWORD_NAME)) {
@@ -1241,13 +1255,13 @@ public abstract class AbstractObjectDummyConnector
 
     private ConnectorObject convertGroupToConnectorObject(DummyGroup group, Collection<String> attributesToGet)
             throws SchemaViolationException {
-        return createConnectorObjectBuilderCommon(group, attributesToGet, true)
+        return createConnectorObjectBuilderCommon(group, attributesToGet, true, true)
                 .build();
     }
 
     private ConnectorObject convertOtherToConnectorObject(DummyObject object, Collection<String> attributesToGet)
             throws SchemaViolationException {
-        return createConnectorObjectBuilderCommon(object, attributesToGet, false)
+        return createConnectorObjectBuilderCommon(object, attributesToGet, false, false)
                 .build();
     }
 
@@ -1292,7 +1306,12 @@ public abstract class AbstractObjectDummyConnector
             } else if (attr.is(OperationalAttributeInfos.LOCK_OUT.getName())) {
                 newAccount.setLockoutStatus(
                         getBooleanMandatory(attr));
-
+            } else if (attr.is(PredefinedAttributes.LAST_LOGIN_DATE_NAME)) {
+                if (configuration.getSupportLastLoginDate()) {
+                    newAccount.setLastLoginDate(getDate(attr));
+                } else {
+                    throw new InvalidAttributeValueException("LAST_LOGIN_DATE specified in the account attributes while not supporting it");
+                }
             } else {
                 addGenericAttribute(newAccount, attr);
             }
@@ -1339,7 +1358,12 @@ public abstract class AbstractObjectDummyConnector
                 } else {
                     throw new InvalidAttributeValueException("DISABLE_DATE specified in the group attributes while not supporting it");
                 }
-
+            } else if (attr.is(PredefinedAttributes.LAST_LOGIN_DATE_NAME)) {
+                if (configuration.getSupportLastLoginDate()) {
+                    newGroup.setLastLoginDate(getDate(attr));
+                } else {
+                    throw new InvalidAttributeValueException("LAST_LOGIN_DATE specified in the group attributes while not supporting it");
+                }
             } else {
                 addGenericAttribute(newGroup, attr);
             }

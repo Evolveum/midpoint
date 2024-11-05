@@ -15,6 +15,7 @@ import com.evolveum.axiom.concepts.CheckedFunction;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.impl.PrismContainerImpl;
 import com.evolveum.midpoint.prism.path.*;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistryState;
 import com.evolveum.midpoint.repo.sqlbase.SqlBaseOperationTracker;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleMappingMixin;
@@ -29,7 +30,6 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.ResultListRowTransformer;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
-import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 import com.evolveum.midpoint.util.exception.TunnelException;
@@ -58,6 +58,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 
 import javax.xml.namespace.QName;
@@ -75,6 +76,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
     public static final String DEFAULT_ALIAS_NAME = "o";
 
     private static QObjectMapping<?, ?, ?> instance;
+    @Nullable
     private PathSet fullObjectSkips;
 
     private final SchemaRegistryState.DerivationKey<ItemDefinition<?>> derivationKey;
@@ -88,7 +90,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         return instance;
     }
 
-    private Map<ItemName, FullObjectItemMapping> separatellySerializedItems = new HashMap<>();
+    private final Map<ItemName, FullObjectItemMapping<?,?>> separatellySerializedItems = new HashMap<>();
 
     // Explanation in class Javadoc for SqaleTableMapping
     public static QObjectMapping<?, ?, ?> getObjectMapping() {
@@ -193,10 +195,16 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
     @Override
     public @NotNull Path<?>[] selectExpressions(
             Q entity, Collection<SelectorOptions<GetOperationOptions>> options) {
+
+        if (isExcludeAll(options)) {
+            // We have options to exclude everything
+            return paths(entity.oid, entity.objectType, entity.nameNorm, entity.nameOrig, entity.version);
+        }
+
         // TODO: there is currently no support for index-only extensions (from entity.ext).
         //  See how QShadowMapping.loadIndexOnly() is used, and probably compose the result of this call
         //  using super... call in the subclasses. (joining arrays? providing mutable list?)
-        return new Path[] { entity.oid, entity.objectType, entity.fullObject };
+        return paths(entity.oid, entity.objectType, entity.fullObject);
     }
 
     @Override
@@ -219,17 +227,47 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
             @NotNull JdbcSession jdbcSession,
             Collection<SelectorOptions<GetOperationOptions>> options)
             throws SchemaException {
-        byte[] fullObject = Objects.requireNonNull(row.get(entityPath.fullObject));
+
         UUID oid = Objects.requireNonNull(row.get(entityPath.oid));
-        S ret = parseSchemaObject(fullObject, oid.toString());
-
-        upgradeLegacyMetadataToValueMetadata(ret);
-
-        if (GetOperationOptions.isAttachDiagData(SelectorOptions.findRootOptions(options))) {
-            RepositoryObjectDiagnosticData diagData = new RepositoryObjectDiagnosticData(fullObject.length);
-            ret.asPrismContainer().setUserData(RepositoryService.KEY_DIAG_DATA, diagData);
+        var repoType = Objects.requireNonNull(row.get(entityPath.objectType));
+        S ret;
+        if (isExcludeAll(options)) {
+            // We have exclude (dont retrieve) options for whole object, so we just return oid
+            //noinspection unchecked
+            ret = (S) repoType.createObject()
+                .oid(oid.toString())
+                .version(Objects.requireNonNull(row.get(entityPath.version)).toString())
+                .name(new PolyStringType(new PolyString(row.get(entityPath.nameOrig), row.get(entityPath.nameNorm))));
+        } else {
+            // We load full object
+            byte[] fullObject = Objects.requireNonNull(row.get(entityPath.fullObject));
+            ret = parseSchemaObject(fullObject, oid.toString());
+            if (GetOperationOptions.isAttachDiagData(SelectorOptions.findRootOptions(options))) {
+                RepositoryObjectDiagnosticData diagData = new RepositoryObjectDiagnosticData(fullObject.length);
+                ret.asPrismContainer().setUserData(RepositoryService.KEY_DIAG_DATA, diagData);
+            }
         }
+        upgradeLegacyMetadataToValueMetadata(ret);
         return ret;
+    }
+
+    protected boolean isExcludeAll(@Nullable Collection<SelectorOptions<GetOperationOptions>> options) {
+        if (options == null) {
+            return false;
+        }
+        boolean rootExcluded = false;
+        for (var option : options) {
+            if (option.getOptions() != null) {
+                if (option.isRoot() && option.getOptions().getRetrieve() == RetrieveOption.EXCLUDE) {
+                    rootExcluded = true;
+                }
+                if (option.getOptions().getRetrieve() == RetrieveOption.INCLUDE) {
+                    // Something is explicitly included, do not exclude root
+                    return false;
+                }
+            }
+        }
+        return rootExcluded;
     }
 
     private void upgradeLegacyMetadataToValueMetadata(S ret) {
@@ -589,6 +627,12 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
 
     @Override
     public ResultListRowTransformer<S, Q, R> createRowTransformer(SqlQueryContext<S, Q, R> sqlQueryContext, JdbcSession jdbcSession, Collection<SelectorOptions<GetOperationOptions>> options) {
+
+        if (isExcludeAll(options)) {
+            // If exlude options is all, use default row transformer
+            return super.createRowTransformer(sqlQueryContext, jdbcSession, options);
+        }
+
         // here we should load external objects
 
         Map<MObjectType, Set<FullObjectItemMapping>> itemsToFetch = new HashMap<>();

@@ -121,6 +121,7 @@ public class GetOperationOptionsUtil {
         options.setStaleness(optionsType.getStaleness());
         options.setDistinct(optionsType.isDistinct());
         options.setShadowClassificationMode(optionsType.getShadowClassificationMode());
+        options.setIterationPageSize(optionsType.getIterationPageSize());
         return options;
     }
 

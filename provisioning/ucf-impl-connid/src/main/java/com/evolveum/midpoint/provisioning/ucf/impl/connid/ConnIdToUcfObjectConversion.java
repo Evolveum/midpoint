@@ -207,6 +207,8 @@ class ConnIdToUcfObjectConversion {
                 convertDisableDate(connIdAttr);
             } else if (connIdAttrName.equals(OperationalAttributes.LOCK_OUT_NAME)) {
                 convertLockOut(connIdAttr);
+            } else if (connIdAttrName.equals(PredefinedAttributes.LAST_LOGIN_DATE_NAME)) {
+                convertLastLoginDate(connIdAttr);
             } else {
                 convertOtherAttribute(connIdAttr, connIdAttrName);
             }
@@ -265,6 +267,15 @@ class ConnIdToUcfObjectConversion {
             ShadowUtil.getOrCreateActivation(convertedObject)
                     .lockoutStatus(lockoutStatus);
             LOGGER.trace("Converted activation lockoutStatus: {}", lockoutStatus);
+        }
+
+        private void convertLastLoginDate(Attribute connIdAttr) throws SchemaException {
+            Long millis = getSingleConvertedSimpleValue(connIdAttr, Long.class);
+            if (millis == null) {
+                return;
+            }
+            ShadowUtil.getOrCreateShadowBehavior(convertedObject)
+                            .lastLoginTimestamp(XmlTypeConverter.createXMLGregorianCalendar(millis));
         }
 
         /**

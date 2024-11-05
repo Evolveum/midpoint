@@ -37,6 +37,7 @@ public class DummyConfiguration extends AbstractConfiguration {
     private boolean supportActivation = true;
     private boolean supportValidity = false;
     private boolean supportRunAs = true;
+    private boolean supportLastLoginDate = false;
     private UidMode uidMode = UidMode.NAME;
     private boolean enforceUniqueName = true;
     private String passwordReadabilityMode = PASSWORD_READABILITY_MODE_UNREADABLE;
@@ -121,6 +122,19 @@ public class DummyConfiguration extends AbstractConfiguration {
 
     public void setSupportValidity(boolean supportValidity) {
         this.supportValidity = supportValidity;
+    }
+
+    /**
+     * If set to true the connector will expose the LAST_LOGIN_DATE ICF special attributes.
+     */
+    @ConfigurationProperty(displayMessageKey = "UI_SUPPORT_LAST_LOGIN_DATE",
+            helpMessageKey = "UI_SUPPORT_LAST_LOGIN_DATE_HELP")
+    public boolean getSupportLastLoginDate() {
+        return supportLastLoginDate;
+    }
+
+    public void setSupportLastLoginDate(boolean supportLastLoginDate) {
+        this.supportLastLoginDate = supportLastLoginDate;
     }
 
     @ConfigurationProperty(displayMessageKey = "UI_SUPPORT_RUN_AS",

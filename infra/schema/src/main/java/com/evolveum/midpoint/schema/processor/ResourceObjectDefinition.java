@@ -243,6 +243,11 @@ public interface ResourceObjectDefinition
     @Nullable ResourcePasswordDefinitionType getPasswordDefinition();
 
     /**
+     * See {@link ResourceObjectTypeDefinitionType#getBehavior()}
+     */
+    @Nullable ResourceLastLoginTimestampDefinitionType getLastLoginTimestampDefinition();
+
+    /**
      * TODO Rarely used, consider removing from the interface
      */
     default @Nullable AttributeFetchStrategyType getPasswordFetchStrategy() {
@@ -291,6 +296,17 @@ public interface ResourceObjectDefinition
             return AttributeFetchStrategyType.IMPLICIT;
         }
         return biType.getFetchStrategy();
+    }
+
+    default @Nullable AttributeFetchStrategyType getLastLoginTimestampFetchStrategy() {
+        ResourceLastLoginTimestampDefinitionType definition = getLastLoginTimestampDefinition();
+        if (definition == null) {
+            return AttributeFetchStrategyType.IMPLICIT;
+        }
+        if (definition.getFetchStrategy() == null) {
+            return AttributeFetchStrategyType.IMPLICIT;
+        }
+        return definition.getFetchStrategy();
     }
 
     /**

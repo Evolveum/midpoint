@@ -1605,6 +1605,13 @@
                     </xsd:annotation>
                 </xsd:element>
             </xsd:choice> <!--> can use only one of types, but all can be null<-->
+            <xsd:element name="usePkce" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Use Proof Key for Code Exchange for added security. (RFC7636)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -1645,6 +1652,13 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="PRIVATE_KEY_JWT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="none">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NONE"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

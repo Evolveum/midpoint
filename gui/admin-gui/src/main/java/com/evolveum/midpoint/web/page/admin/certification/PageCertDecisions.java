@@ -773,7 +773,7 @@ public class PageCertDecisions extends PageAdminCertification {
                 return items;
             }
 
-            private LoadableModel<String> getStageModel(AccessCertificationCampaignType campaign) {
+            private LoadableDetachableModel<String> getStageModel(AccessCertificationCampaignType campaign) {
                 return CertMiscUtil.getCampaignStageLoadableModel(campaign);
             }
 

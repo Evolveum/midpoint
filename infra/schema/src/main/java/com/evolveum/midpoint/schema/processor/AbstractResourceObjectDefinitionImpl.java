@@ -403,6 +403,15 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     @Override
+    public @Nullable ResourceLastLoginTimestampDefinitionType getLastLoginTimestampDefinition() {
+        ResourceBehaviorDefinitionType behavior = definitionBean.getBehavior();
+        if (behavior == null) {
+            return null;
+        }
+        return behavior.getLastLoginTimestamp();
+    }
+
+    @Override
     public ObjectReferenceType getSecurityPolicyRef() {
         return definitionBean.getSecurityPolicyRef();
     }
