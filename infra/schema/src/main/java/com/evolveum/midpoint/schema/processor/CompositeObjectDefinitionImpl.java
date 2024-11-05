@@ -477,8 +477,13 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
-    public ResourcePasswordDefinitionType getPasswordDefinition() {
+    public @Nullable ResourcePasswordDefinitionType getPasswordDefinition() {
         return findInDefinitions(ResourceObjectDefinition::getPasswordDefinition);
+    }
+
+    @Override
+    public @Nullable ResourceLastLoginTimestampDefinitionType getLastLoginTimestampDefinition() {
+        return findInDefinitions(ResourceObjectDefinition::getLastLoginTimestampDefinition);
     }
 
     private <T> T findInDefinitions(Function<ResourceObjectDefinition, T> transform) {

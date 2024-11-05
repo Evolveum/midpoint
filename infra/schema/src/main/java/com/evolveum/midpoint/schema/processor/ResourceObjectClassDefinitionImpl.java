@@ -250,6 +250,11 @@ public class ResourceObjectClassDefinitionImpl
     }
 
     @Override
+    public @Nullable ResourceLastLoginTimestampDefinitionType getLastLoginTimestampDefinition() {
+        return null; // Not available for raw classes
+    }
+
+    @Override
     public String getHumanReadableName() {
         if (getDisplayName() != null) {
             return getDisplayName();
