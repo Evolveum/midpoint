@@ -1,5 +1,7 @@
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier;
 
+import com.evolveum.midpoint.common.mining.objects.analysis.cache.ObjectCategorisationCache;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
@@ -32,10 +34,12 @@ public class OutlierDetectionStrategyResolver {
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisClusterType cluster,
             @NotNull RoleAnalysisSessionType session,
-            AttributeAnalysisCache userAnalysisCache,
+            @NotNull AttributeAnalysisCache userAnalysisCache,
+            @NotNull ObjectCategorisationCache objectCategorisationCache,
             @NotNull Task task,
             @NotNull OperationResult result) {
-        detectionStrategy.executeAnalysis(roleAnalysisService, cluster, session, userAnalysisCache, task, result);
+        detectionStrategy.executeAnalysis(
+                roleAnalysisService, cluster, session, userAnalysisCache, objectCategorisationCache, task, result);
     }
 
 }

@@ -193,7 +193,7 @@ public class RoleAnalysisCollapsableTablePanel<T> extends BasePanel<T> implement
         add(header);
         add(AttributeAppender.append("aria-labelledby", header.getMarkupId()));
         WebMarkupContainer footer = createFooter();
-        footer.add(new VisibleBehaviour(() -> !hideFooterIfSinglePage() || provider.size() > pageSize));
+        footer.add(new VisibleBehaviour(() -> visibleFooter(provider, pageSize)));
         add(footer);
     }
 
@@ -241,6 +241,10 @@ public class RoleAnalysisCollapsableTablePanel<T> extends BasePanel<T> implement
 
     protected boolean hideFooterIfSinglePage() {
         return false;
+    }
+
+    protected boolean visibleFooter(ISortableDataProvider<T, String> provider, int pageSize) {
+        return !hideFooterIfSinglePage() || provider.size() > pageSize;
     }
 
     @Override

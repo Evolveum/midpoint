@@ -496,8 +496,10 @@ public class RoleAnalysisServiceUtils {
         } else {
             filter = filter
                     .and()
+                    .block()
                     .ref(AssignmentType.F_TARGET_REF)
-                    .type(RoleType.class);
+                    .type(RoleType.class)
+                    .endBlock();
         }
 
         if (assignmentFilter != null) {
@@ -588,8 +590,10 @@ public class RoleAnalysisServiceUtils {
         } else {
             filter = filter
                     .and()
+                    .block()
                     .ref(AssignmentType.F_TARGET_REF)
-                    .type(RoleType.class);
+                    .type(RoleType.class)
+                    .endBlock();
         }
 
         if (assignmentFilter != null) {
@@ -639,8 +643,10 @@ public class RoleAnalysisServiceUtils {
         } else {
             filter = filter
                     .and()
+                    .block()
                     .ref(AssignmentType.F_TARGET_REF)
-                    .type(RoleType.class);
+                    .type(RoleType.class)
+                    .endBlock();
         }
 
         if (assignmentFilter != null) {
@@ -716,4 +722,68 @@ public class RoleAnalysisServiceUtils {
 
         partitionOutlierMap.put(partition, outlierPrisObject.asObjectable());
     }
+
+    protected static void loadOutlierDeleteProcessModifications(
+            Map<String, ObjectDelta<RoleAnalysisOutlierType>> modifyDeltas,
+            @NotNull RoleAnalysisClusterType cluster,
+            List<RoleAnalysisOutlierPartitionType> outlierPartitions,
+            RoleAnalysisOutlierType outlierObject) throws SchemaException, ObjectNotFoundException {
+
+        ObjectDelta<RoleAnalysisOutlierType> deleteDelta;
+
+        if (outlierPartitions == null || (outlierPartitions.size() == 1
+                && outlierPartitions.get(0).getClusterRef().getOid().equals(cluster.getOid()))) {
+            deleteDelta = PrismContext.get().deltaFactory().object()
+                    .createDeleteDelta(RoleAnalysisOutlierType.class, outlierObject.getOid());
+            modifyDeltas.put(outlierObject.getOid(), deleteDelta);
+        } else {
+            RoleAnalysisOutlierPartitionType partitionToDelete = null;
+
+            double overallConfidence = 0;
+            double anomalyObjectsConfidence = 0;
+
+            for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
+                if (outlierPartition.getClusterRef().getOid().equals(cluster.getOid())) {
+                    partitionToDelete = outlierPartition;
+                } else {
+                    overallConfidence += outlierPartition.getPartitionAnalysis().getOverallConfidence();
+                    anomalyObjectsConfidence += outlierPartition.getPartitionAnalysis().getAnomalyObjectsConfidence();
+                }
+            }
+
+            int partitionCount = outlierPartitions.size();
+            if (partitionToDelete != null) {
+                partitionCount--;
+            }
+
+            overallConfidence = overallConfidence / partitionCount;
+            anomalyObjectsConfidence = anomalyObjectsConfidence / partitionCount;
+
+            if (partitionToDelete == null) {
+                throw new ObjectNotFoundException("Couldn't find partition to delete");
+            }
+
+            List<ItemDelta<?, ?>> modifications = new ArrayList<>();
+            var finalPartitionToDelete = new RoleAnalysisOutlierPartitionType()
+                    .id(partitionToDelete.getId());
+            modifications.add(PrismContext.get().deltaFor(RoleAnalysisOutlierType.class)
+                    .item(RoleAnalysisOutlierType.F_PARTITION).delete(
+                            finalPartitionToDelete)
+                    .asItemDelta());
+
+            modifications.add(PrismContext.get().deltaFor(RoleAnalysisOutlierType.class)
+                    .item(RoleAnalysisOutlierType.F_OVERALL_CONFIDENCE)
+                    .replace(overallConfidence).asItemDelta());
+
+            modifications.add(PrismContext.get().deltaFor(RoleAnalysisOutlierType.class)
+                    .item(RoleAnalysisOutlierType.F_ANOMALY_OBJECTS_CONFIDENCE)
+                    .replace(anomalyObjectsConfidence).asItemDelta());
+
+            deleteDelta = PrismContext.get().deltaFactory().object().createModifyDelta(
+                    outlierObject.getOid(), modifications, RoleAnalysisOutlierType.class);
+            modifyDeltas.put(outlierObject.getOid(), deleteDelta);
+        }
+
+    }
+
 }

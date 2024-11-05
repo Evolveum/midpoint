@@ -419,12 +419,12 @@ public class RoleAnalysisReconfigureSessionPopupPanel
                     .getSessionTypeObject(sessionOid, task, result);
 
             if (sessionTypeObject != null) {
-
                 roleAnalysisService.deleteSessionTask(sessionTypeObject.getOid(), task, result);
 
+                TaskType performTask = new TaskType(); //TODO rerun existing or create new?
                 ModelInteractionService modelInteractionService = getPageBase().getModelInteractionService();
                 roleAnalysisService.executeClusteringTask(
-                        modelInteractionService, sessionTypeObject, task, result);
+                        modelInteractionService, sessionTypeObject, performTask, task, result);
             }
         } catch (Throwable e) {
             LoggingUtils.logException(LOGGER, "Couldn't process clustering", e);

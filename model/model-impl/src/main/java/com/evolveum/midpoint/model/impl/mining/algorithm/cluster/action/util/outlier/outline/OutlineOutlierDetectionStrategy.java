@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.outline;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
+import com.evolveum.midpoint.common.mining.objects.analysis.cache.ObjectCategorisationCache;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
 import com.evolveum.midpoint.common.mining.utils.values.*;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
@@ -38,10 +39,11 @@ public class OutlineOutlierDetectionStrategy implements OutlierDetectionStrategy
             @NotNull RoleAnalysisClusterType cluster,
             @NotNull RoleAnalysisSessionType session,
             @NotNull AttributeAnalysisCache userAnalysisCache,
+            @NotNull ObjectCategorisationCache objectCategorisationCache,
             @NotNull Task task,
             @NotNull OperationResult result) {
         OutlierDetectionOutlineModel outlineModel = new OutlierDetectionOutlineModel(
-                roleAnalysisService, session, cluster, task, result);
+                roleAnalysisService, session, cluster, objectCategorisationCache, task, result);
 
         analyseOutlierClusterMembers(roleAnalysisService,
                 outlineModel,

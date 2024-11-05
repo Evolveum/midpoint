@@ -9,8 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard;
 import java.io.Serial;
 
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
-import com.evolveum.midpoint.util.exception.SystemException;
-
+import com.evolveum.midpoint.gui.impl.page.admin.task.TaskDetailsModel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.AttributeModifier;
@@ -28,21 +27,16 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 import com.evolveum.midpoint.gui.api.component.form.ToggleCheckBoxPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
-import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
 
 public class RoleAnalysisSessionMaintenanceWizardPanel
-        extends AbstractWizardStepPanel<AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
+        extends AbstractWizardStepPanel<TaskDetailsModel> {
     private static final String ID_TITLE_RETENTION = "title-retention";
     private static final String ID_LABEL_RETENTION = "label-retention";
     private static final String ID_INPUT_RETENTION = "input-retention";
@@ -56,11 +50,10 @@ public class RoleAnalysisSessionMaintenanceWizardPanel
     private static final String DEFAULT_BUTTON_CSS = "text-left btn btn-default ";
     private static final String COLORED_BUTTON_CSS = "colored-form-primary ";
 
-    private static final String DECOMMISSIONED_MARK_OBJECT_ID = "00000000-0000-0000-0000-000000000801";
     boolean isRebuild = true;
     Model<Boolean> isActiveModel = Model.of(false);
 
-    public RoleAnalysisSessionMaintenanceWizardPanel(AssignmentHolderDetailsModel<RoleAnalysisSessionType> model) {
+    public RoleAnalysisSessionMaintenanceWizardPanel(TaskDetailsModel model) {
         super(model);
     }
 
@@ -242,31 +235,13 @@ public class RoleAnalysisSessionMaintenanceWizardPanel
     private void onSubmitMaintenancePerform() {
         Boolean isActive = isActiveModel.getObject();
         if (isActive.equals(Boolean.TRUE)) {
-            boolean rebuild = isRebuild();
-
-            if (!rebuild) {
-                AssignmentHolderDetailsModel<RoleAnalysisSessionType> detailsModel = getDetailsModel();
-                ObjectReferenceType mark = new ObjectReferenceType().oid(DECOMMISSIONED_MARK_OBJECT_ID)
-                        .type(MarkType.COMPLEX_TYPE)
-                        .description("First run");
-
-                PrismObjectWrapper<RoleAnalysisSessionType> objectWrapper = detailsModel.getObjectWrapper();
-                try {
-                    PrismReferenceWrapper<Referencable> reference = objectWrapper.findReference(ObjectType.F_EFFECTIVE_MARK_REF);
-                    reference.add(mark.asReferenceValue(), getPageBase());
-                } catch (SchemaException e) {
-                    throw new SystemException("Couldn't add reference to the object", e);
-                }
-
-            }
-
             Double modelObject = getRetentionField().getModelObject();
             if (modelObject != null) {
                 int seconds = (int) (modelObject * 60 * 60);
 
                 ScheduleType schedule = new ScheduleType();
                 schedule.setInterval(seconds);
-
+                getDetailsModel().getObjectType().setSchedule(schedule);
             }
 
         }

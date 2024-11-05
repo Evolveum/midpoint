@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.context;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
+import com.evolveum.midpoint.common.mining.objects.analysis.cache.ObjectCategorisationCache;
 import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
@@ -37,6 +38,7 @@ public class ClusteringBehavioralResolver implements Clusterable {
             @NotNull RoleAnalysisSessionType session,
             @NotNull RoleAnalysisProgressIncrement handler,
             @NotNull AttributeAnalysisCache attributeAnalysisCache,
+            @NotNull ObjectCategorisationCache objectCategorisationCache,
             @NotNull Task task,
             @NotNull OperationResult result) {
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
@@ -51,16 +53,19 @@ public class ClusteringBehavioralResolver implements Clusterable {
         List<PrismObject<RoleAnalysisClusterType>> clusteringResult = switch (analysisCategory) {
 //            case STANDARD, BALANCED, EXACT, EXPLORATION ->
             case BALANCED, EXACT, EXPLORATION, BIRTHRIGHT ->
-                    executeStandardClustering(roleAnalysisService, modelService, session, handler, task, attributeAnalysisCache, result);
+                    executeStandardClustering(roleAnalysisService, modelService, session, handler,
+                            attributeAnalysisCache, objectCategorisationCache, task, result);
             case ADVANCED, DEPARTMENT, ATTRIBUTE_BASED -> {
                 RoleAnalysisProcedureType analysisProcedureType = analysisOption.getAnalysisProcedureType();
                 if (analysisProcedureType == RoleAnalysisProcedureType.OUTLIER_DETECTION) {
-                    yield executeOutlierClustering(roleAnalysisService, modelService, session, handler, attributeAnalysisCache, task, result);
+                    yield executeOutlierClustering(roleAnalysisService, modelService, session, handler,
+                            attributeAnalysisCache, objectCategorisationCache, task, result);
                 }
-                yield executeAdvancedClustering(roleAnalysisService, modelService, session, handler, task, attributeAnalysisCache, result);
+                yield executeAdvancedClustering(roleAnalysisService, modelService, session, handler,
+                        attributeAnalysisCache, objectCategorisationCache, task, result);
             }
-            case OUTLIERS_DEPARTMENT ->
-                    executeOutlierClustering(roleAnalysisService, modelService, session, handler, attributeAnalysisCache, task, result);
+            case OUTLIERS_DEPARTMENT -> executeOutlierClustering(roleAnalysisService, modelService, session, handler,
+                    attributeAnalysisCache, objectCategorisationCache, task, result);
         };
 
         validateNotNull(clusteringResult, "clustering result");
@@ -68,40 +73,46 @@ public class ClusteringBehavioralResolver implements Clusterable {
         return clusteringResult;
     }
 
-    private List<PrismObject<RoleAnalysisClusterType>> executeOutlierClustering(
-            RoleAnalysisService roleAnalysisService,
-            ModelService modelService,
-            RoleAnalysisSessionType session,
-            RoleAnalysisProgressIncrement handler,
+    private @NotNull List<PrismObject<RoleAnalysisClusterType>> executeOutlierClustering(
+            @NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull ModelService modelService,
+            @NotNull RoleAnalysisSessionType session,
+            @NotNull RoleAnalysisProgressIncrement handler,
             @NotNull AttributeAnalysisCache attributeAnalysisCache,
+            @NotNull ObjectCategorisationCache objectCategorisationCache,
             @NotNull Task task,
             @NotNull OperationResult result) {
         return new OutlierClustering()
-                .executeClustering(roleAnalysisService, modelService, session, handler, attributeAnalysisCache, task, result);
+                .executeClustering(roleAnalysisService, modelService, session, handler,
+                        attributeAnalysisCache, objectCategorisationCache, task, result);
     }
 
-    private List<PrismObject<RoleAnalysisClusterType>> executeStandardClustering(
+    private @NotNull List<PrismObject<RoleAnalysisClusterType>> executeStandardClustering(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull ModelService modelService,
             @NotNull RoleAnalysisSessionType session,
             @NotNull RoleAnalysisProgressIncrement handler,
-            @NotNull Task task,
             @NotNull AttributeAnalysisCache attributeAnalysisCache,
+            @NotNull ObjectCategorisationCache objectCategorisationCache,
+            @NotNull Task task,
             @NotNull OperationResult result) {
         return new StandardClustering()
-                .executeClustering(roleAnalysisService, modelService, session, handler, attributeAnalysisCache, task, result);
+                .executeClustering(roleAnalysisService, modelService, session, handler,
+                        attributeAnalysisCache, objectCategorisationCache, task, result);
     }
 
-    private List<PrismObject<RoleAnalysisClusterType>> executeAdvancedClustering(
+    private @NotNull List<PrismObject<RoleAnalysisClusterType>> executeAdvancedClustering(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull ModelService modelService,
             @NotNull RoleAnalysisSessionType session,
             @NotNull RoleAnalysisProgressIncrement handler,
-            @NotNull Task task,
             @NotNull AttributeAnalysisCache attributeAnalysisCache,
+            @NotNull ObjectCategorisationCache objectCategorisationCache,
+            @NotNull Task task,
             @NotNull OperationResult result) {
         return new AdvancedClustering()
-                .executeClustering(roleAnalysisService, modelService, session, handler, attributeAnalysisCache, task, result);
+                .executeClustering(roleAnalysisService, modelService, session, handler,
+                        attributeAnalysisCache, objectCategorisationCache, task, result);
     }
 
     private void validateNotNull(Object value, String name) {
