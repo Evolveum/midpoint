@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_PASSWORD_VALUE;
+
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
@@ -16,7 +18,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
@@ -189,17 +190,31 @@ public class ObjectModificationConstraintEvaluator
         } else if (delta.isDelete()) {
             PrismObject<?> objectOld = ctx.elementContext.getObjectOld();
             return objectOld != null && objectOld.containsItem(path, false);
+        } else if (exactPathMatch) {
+            return pathMatchesExactly(
+                    emptyIfNull(delta.getModifications()), path, 0);
         } else {
-            if (exactPathMatch) {
+            ItemPath nameOnlyPath = path.namedSegmentsOnly();
+            PrismObject<?> oldObject = ctx.elementContext.getObjectOld();
+            PrismObject<?> newObject = ctx.elementContext.getObjectNew();
+            stateCheck(oldObject != null, "No 'old' object in %s", ctx);
+            stateCheck(newObject != null, "No 'new' object in %s", ctx);
+            if (!valuesChanged(oldObject.getValue(), newObject.getValue(), nameOnlyPath)) {
+                return false;
+            }
+            if (PATH_PASSWORD_VALUE.equivalent(nameOnlyPath) && oldObject.asObjectable() instanceof ShadowType) {
+                // Special treatment for shadow password values: Their comparison can produce false (phantom) changes, as
+                // the cached value (currently, always hashed) can get compared e.g. with an empty value (if the shadow is
+                // fetched from the resource), or an encrypted value, or even encrypted hashed value (in the case of LDAP-side
+                // password hashing).
+                //
+                // So, if there is a difference between old and new values, we use the delta comparison to check
+                // if the change is genuine. This may be imprecise, if there is e.g. ADD delta for the whole container,
+                // but that would be resolved in the future, if necessary.
                 return pathMatchesExactly(
                         emptyIfNull(delta.getModifications()), path, 0);
             } else {
-                ItemPath nameOnlyPath = path.namedSegmentsOnly();
-                PrismObject<?> oldObject = ctx.elementContext.getObjectOld();
-                PrismObject<?> newObject = ctx.elementContext.getObjectNew();
-                stateCheck(oldObject != null, "No 'old' object in %s", ctx);
-                stateCheck(newObject != null, "No 'new' object in %s", ctx);
-                return valuesChanged(oldObject.getValue(), newObject.getValue(), nameOnlyPath);
+                return true;
             }
         }
     }

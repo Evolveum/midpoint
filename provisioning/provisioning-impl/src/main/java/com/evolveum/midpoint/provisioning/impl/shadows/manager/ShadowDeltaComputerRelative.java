@@ -8,36 +8,34 @@
 package com.evolveum.midpoint.provisioning.impl.shadows.manager;
 
 import static com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowComputerUtil.*;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_PASSWORD;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.util.Collection;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.*;
-
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.provisioning.impl.RepoShadowModifications;
-
-import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsLocalBeans;
-import com.evolveum.midpoint.repo.common.ObjectMarkHelper;
-import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeValue;
-import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
-
-import com.evolveum.midpoint.schema.result.OperationResult;
-
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
+import com.evolveum.midpoint.provisioning.impl.RepoShadowModifications;
+import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsLocalBeans;
+import com.evolveum.midpoint.repo.common.ObjectMarkHelper;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeValue;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -48,8 +46,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Computes deltas to be applied to repository shadows when they are being updated by midPoint.
@@ -71,8 +67,8 @@ class ShadowDeltaComputerRelative {
     private final Collection<? extends ItemDelta<?, ?>> allModifications;
     private final Protector protector;
 
-    // Needed only for computation of effectiveMarkRefs
-    private final RepoShadow repoShadow;
+    // Needed only for computation of effectiveMarkRefs and diagnostics.
+    @NotNull private final RepoShadow repoShadow;
 
     @NotNull private final ShadowsLocalBeans b = ShadowsLocalBeans.get();
 
@@ -151,9 +147,10 @@ class ShadowDeltaComputerRelative {
                 resultingRepoModifications.add(activationModification);
             } else if (path.equivalent(SchemaConstants.PATH_PASSWORD_VALUE)) {
                 if (objectDefinition.areCredentialsCached()) {
-                    addPasswordValueDelta(resultingRepoModifications, modification);
+                    //noinspection unchecked
+                    addPasswordValueDelta(resultingRepoModifications, (PropertyDelta<ProtectedStringType>) modification);
                 }
-            } else if (path.startsWith(SchemaConstants.PATH_PASSWORD)
+            } else if (path.startsWith(PATH_PASSWORD)
                     && !path.startsWith(SchemaConstants.PATH_PASSWORD_METADATA)) {
                 // ignoring all other password related modifications, except for metadata that must go to shadow
             } else if (path.equivalent(ShadowType.F_NAME)) {
@@ -267,13 +264,14 @@ class ShadowDeltaComputerRelative {
                 || (objectDefinition.getAllIdentifiers().size() == 1 && objectDefinition.isPrimaryIdentifier(attrName));
     }
 
+    /** See See https://docs.evolveum.com/midpoint/devel/design/password-caching-4.9.1/. */
     private void addPasswordValueDelta(
-            RepoShadowModifications repoModifications, ItemDelta<?, ?> requestedPasswordRelatedDelta) throws SchemaException {
-        //noinspection unchecked
-        var passwordValueDelta = (PropertyDelta<ProtectedStringType>) requestedPasswordRelatedDelta;
-        hashValues(passwordValueDelta.getValuesToAdd());
-        hashValues(passwordValueDelta.getValuesToReplace());
-        repoModifications.add(requestedPasswordRelatedDelta);
+            RepoShadowModifications repoModifications, PropertyDelta<ProtectedStringType> requestedPasswordRelatedDelta)
+            throws SchemaException {
+        var clonedDelta = requestedPasswordRelatedDelta.clone();
+        hashValues(clonedDelta.getValuesToAdd());
+        hashValues(clonedDelta.getValuesToReplace());
+        repoModifications.add(clonedDelta);
     }
 
     private void hashValues(Collection<PrismPropertyValue<ProtectedStringType>> propertyValues) throws SchemaException {

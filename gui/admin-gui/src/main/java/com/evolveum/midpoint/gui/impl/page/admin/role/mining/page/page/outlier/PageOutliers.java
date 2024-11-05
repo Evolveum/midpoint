@@ -129,6 +129,16 @@ public class PageOutliers extends PageAdmin {
             }
 
             @Override
+            protected boolean isCreateNewObjectVisible() {
+                return false;
+            }
+
+            @Override
+            protected boolean isReportObjectButtonVisible() {
+                return false;
+            }
+
+            @Override
             protected List<InlineMenuItem> createInlineMenu() {
                 List<InlineMenuItem> menuItems = new ArrayList<>();
                 menuItems.add(PageOutliers.this.createMarkInlineMenu());
@@ -193,42 +203,6 @@ public class PageOutliers extends PageAdmin {
 
                 IColumn<SelectableBean<RoleAnalysisOutlierType>, String> column;
 
-                column = new AbstractExportableColumn<>(
-                        createStringResource("")) {
-
-                    @Override
-                    public IModel<?> getDataModel(IModel<SelectableBean<RoleAnalysisOutlierType>> iModel) {
-                        RoleAnalysisOutlierType outlierObject = iModel.getObject().getValue();
-                        Set<String> anomalies = resolveOutlierAnomalies(outlierObject);
-                        return Model.of(anomalies.size());
-                    }
-
-                    @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisOutlierType>>> cellItem,
-                            String componentId, IModel<SelectableBean<RoleAnalysisOutlierType>> model) {
-
-                        RoleAnalysisOutlierType outlierObject = model.getObject().getValue();
-                        Set<String> anomalies = resolveOutlierAnomalies(outlierObject);
-                        cellItem.add(new Label(componentId, anomalies.size()));
-                    }
-
-                    @Override
-                    public boolean isSortable() {
-                        return false;
-                    }
-
-                    @Override
-                    public Component getHeader(String componentId) {
-                        return new LabelWithHelpPanel(componentId,
-                                createStringResource("RoleAnalysisOutlierTable.outlier.access")) {
-                            @Override
-                            protected IModel<String> getHelpModel() {
-                                return createStringResource("RoleAnalysisOutlierTable.outlier.properties.help");
-                            }
-                        };
-                    }
-                };
-                defaultColumns.add(column);
                 column = new AbstractExportableColumn<>(
                         createStringResource("RoleAnalysisOutlierTable.outlier.access")) {
 

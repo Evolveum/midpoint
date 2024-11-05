@@ -2233,9 +2233,44 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected void assertIncompleteShadowPassword(PrismObject<ShadowType> shadow) {
-        PrismProperty<PolyStringType> passValProp = shadow.findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
+        var passValProp = ShadowUtil.getPasswordValueProperty(shadow.asObjectable());
         assertNotNull(passValProp, "No password value property in " + shadow);
         assertTrue(passValProp.isIncomplete(), "Password value property does not have 'incomplete' flag in " + shadow);
+        var passVal = passValProp.getValue();
+        assertNull(passVal, "Unexpected password value in " + shadow + ": " + passVal);
+    }
+
+    protected void assertHashedShadowPassword(PrismObject<ShadowType> shadow, @Nullable String expectedClearText)
+            throws SchemaException, EncryptionException {
+        var passVal = assertShadowPasswordPresent(shadow);
+        assertTrue(passVal.isHashed(), "Password value is not hashed in " + shadow);
+        if (expectedClearText != null
+                && !protector.compareCleartext(passVal, new ProtectedStringType().clearValue(expectedClearText))) {
+            fail("Expected cleartext '" + expectedClearText + "' does not match the hashed value in " + shadow);
+        }
+    }
+
+    protected void assertEncryptedShadowPassword(PrismObject<ShadowType> shadow, @Nullable String expectedClearText)
+            throws EncryptionException {
+        var passVal = assertShadowPasswordPresent(shadow);
+        assertTrue(passVal.isEncrypted(), "Password value is not encrypted in " + shadow);
+        var clearText = protector.decryptString(passVal);
+        if (expectedClearText != null) {
+            assertThat(clearText)
+                    .as("decrypted password")
+                    .isEqualTo(expectedClearText);
+        } else {
+            displayValue("decrypted password", clearText);
+        }
+    }
+
+    private static @NotNull ProtectedStringType assertShadowPasswordPresent(PrismObject<ShadowType> shadow) {
+        var passValProp = ShadowUtil.getPasswordValueProperty(shadow.asObjectable());
+        assertNotNull(passValProp, "No password value property in " + shadow);
+        assertFalse(passValProp.isIncomplete(), "Password value property does have 'incomplete' flag in " + shadow);
+        var passVal = passValProp.getRealValue();
+        assertNotNull(passVal, "No password value in " + shadow);
+        return passVal;
     }
 
     protected void assertNoShadowPassword(PrismObject<ShadowType> shadow) {

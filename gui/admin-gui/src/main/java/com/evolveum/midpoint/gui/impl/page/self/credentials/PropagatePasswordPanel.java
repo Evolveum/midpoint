@@ -206,8 +206,10 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
                 if (rOCDef != null) {
                     passwordAccountDto.setPasswordOutbound(getPasswordOutbound(resource, rOCDef));
                     CredentialsPolicyType credentialsPolicy = getPasswordCredentialsPolicy(rOCDef);
-                    if (credentialsPolicy != null && credentialsPolicy.getPassword() != null
+                    if (credentialsPolicy != null
+                            && credentialsPolicy.getPassword() != null
                             && credentialsPolicy.getPassword().getValuePolicyRef() != null) {
+                        // Actually, the value policy should be already resolved, so the following call is redundant.
                         PrismObject<ValuePolicyType> valuePolicy = WebModelServiceUtils.resolveReferenceNoFetch(
                                 credentialsPolicy.getPassword().getValuePolicyRef(), getPageBase(), task, task.getResult());
                         if (valuePolicy != null) {
@@ -528,8 +530,8 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
     private boolean getPasswordOutbound(ResourceType resource, ResourceObjectDefinition rOCDef) {
         for (MappingType mapping : rOCDef.getPasswordOutbound()) {
             if (MappingStrengthType.WEAK == mapping.getStrength()) {
-                CredentialsCapabilityType capability = ResourceTypeUtil.getEnabledCapability(resource, CredentialsCapabilityType.class);
-                if (CapabilityUtil.isPasswordReadable(capability)) {
+                var credentialsCapability = ResourceTypeUtil.getEnabledCapability(resource, CredentialsCapabilityType.class);
+                if (CapabilityUtil.isPasswordReadable(credentialsCapability)) {
                     return true;
                 }
                 continue;

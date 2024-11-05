@@ -7,6 +7,13 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows.manager;
 
+import static com.evolveum.midpoint.prism.polystring.PolyString.toPolyStringType;
+import static com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowComputerUtil.*;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -14,20 +21,14 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.RawRepoShadow;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import static com.evolveum.midpoint.prism.polystring.PolyString.toPolyStringType;
-import static com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowComputerUtil.*;
 
 /**
  * Computes a shadow to be stored in the repository.
@@ -149,18 +150,53 @@ class ShadowObjectComputer {
         return RawRepoShadow.of(repoShadowBean);
     }
 
-    private void preparePasswordForStorage(ProvisioningContext ctx, PasswordType password)
+    /**
+     * Removes, hashes, or keeps the password value property, depending on the circumstances.
+     *
+     * See https://docs.evolveum.com/midpoint/devel/design/password-caching-4.9.1/..
+     */
+    private void preparePasswordForStorage(ProvisioningContext ctx, @NotNull PasswordType password)
             throws SchemaException, EncryptionException {
-        ProtectedStringType passwordValue = password.getValue();
-        if (passwordValue == null) {
+
+        var passwordProperty = password.asPrismContainerValue().findProperty(PasswordType.F_VALUE);
+        if (passwordProperty == null) {
+            return; // nothing to hash or to remove from the shadow
+        }
+
+        // Caching disabled - we must remove the password value property (even if it is only of incomplete=true type)
+        if (!ctx.getObjectDefinitionRequired().areCredentialsCached()) {
+            removePasswordValueProperty(password);
             return;
         }
-        if (ctx.getObjectDefinitionRequired().areCredentialsCached()) {
-            if (!passwordValue.isHashed()) {
-                protector.hash(passwordValue);
+
+        // Caching enabled
+
+        var passwordRealValue = (ProtectedStringType) passwordProperty.getRealValue();
+        var passwordValueIncomplete = passwordProperty.isIncomplete();
+
+        if (passwordRealValue == null) {
+            if (passwordValueIncomplete) {
+                // Nothing to do; we'll save the property as is
+            } else {
+                // No value and not incomplete? Looks like an empty property. Just remove it.
+                removePasswordValueProperty(password);
             }
+        } else if (passwordRealValue.isHashed()) {
+            // The password is hashed. Currently, there's probably only one way how this could happen: the "asIs" password
+            // mapping took the hashed focus password, and copied the value here. It won't be propagated to the resource
+            // (as the plaintext value is unknown, and the connectors do not understand midPoint hashed values), so we simply
+            // should not store it in the cache.
+            //
+            // For the opposite direction (discovered shadows on the resource), there is currently no chance of getting
+            // hashed passwords here.
+            assert !passwordValueIncomplete : "Incomplete password value with a real value?";
+            removePasswordValueProperty(password);
         } else {
-            cleanupShadowPassword(password);
+            protector.hash(passwordRealValue);
         }
+    }
+
+    private static void removePasswordValueProperty(@NotNull PasswordType password) {
+        password.asPrismContainerValue().removeProperty(PasswordType.F_VALUE);
     }
 }
