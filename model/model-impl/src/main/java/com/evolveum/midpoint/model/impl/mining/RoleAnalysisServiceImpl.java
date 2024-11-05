@@ -102,6 +102,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     transient @Autowired RepositoryService repositoryService;
     transient @Autowired SchemaService schemaService;
 
+    private static final Integer RM_ITERATIVE_SEARCH_PAGE_SIZE = 10000;
+
     @Override
     public @Nullable PrismObject<UserType> getUserTypeObject(
             @NotNull String oid,
@@ -3434,7 +3436,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @Nullable AttributeAnalysisCache attributeAnalysisCache,
             @NotNull Task task,
             @NotNull OperationResult result) {
-
+        Collection<SelectorOptions<GetOperationOptions>> options = getDefaultRmIterativeSearchPageSizeOptions();
         ObjectQuery membershipQuery = buildMembershipSearchObjectQuery(userObjectFiler, roleObjectFilter);
 
         ListMultimap<String, String> userRolesMap = ArrayListMultimap.create();
@@ -3477,7 +3479,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         };
 
         try {
-            modelService.searchReferencesIterative(membershipQuery, handler, null, task, result);
+            modelService.searchReferencesIterative(membershipQuery, handler, options, task, result);
         } catch (SchemaException | SecurityViolationException | ConfigurationException | ObjectNotFoundException |
                 ExpressionEvaluationException | CommunicationException e) {
             throw new SystemException("Couldn't search assignments", e);
@@ -3503,6 +3505,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @Nullable AttributeAnalysisCache attributeAnalysisCache,
             @NotNull Task task,
             @NotNull OperationResult result) {
+        Collection<SelectorOptions<GetOperationOptions>> options = getDefaultRmIterativeSearchPageSizeOptions();
+
         ObjectQuery assignmentQuery = buildAssignmentSearchObjectQuery(userObjectFiler, roleObjectFilter, assignmentFilter);
 
         ListMultimap<String, String> userRolesMap = ArrayListMultimap.create();
@@ -3554,7 +3558,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         };
 
         try {
-            modelService.searchContainersIterative(AssignmentType.class, assignmentQuery, handler, null, task, result);
+            modelService.searchContainersIterative(AssignmentType.class, assignmentQuery, handler,
+                    options, task, result);
         } catch (SchemaException | SecurityViolationException | ConfigurationException | ObjectNotFoundException |
                 ExpressionEvaluationException | CommunicationException e) {
             throw new SystemException("Couldn't search assignments", e);
@@ -3585,7 +3590,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         ObjectFilter roleObjectFilter = transformSearchToObjectFilter(roleSearchFiler, RoleType.class);
         ObjectFilter assignmentFilter = transformSearchToObjectFilter(assignmentSearchFiler, AssignmentType.class);
 
-        ListMultimap<String, String> userRolesMap = assignmentSearch(userObjectFilter, roleObjectFilter, assignmentFilter, processMode, attributeAnalysisCache, task, result);
+        ListMultimap<String, String> userRolesMap = assignmentSearch(
+                userObjectFilter, roleObjectFilter, assignmentFilter, processMode, attributeAnalysisCache, task, result);
         ListMultimap<List<String>, String> compressedUsers = ArrayListMultimap.create();
 
         for (String userOid : userRolesMap.keySet()) {
@@ -3650,6 +3656,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             boolean roleAsKey,
             @NotNull Task task,
             @NotNull OperationResult result) {
+        Collection<SelectorOptions<GetOperationOptions>> options = getDefaultRmIterativeSearchPageSizeOptions();
 
         ObjectFilter userObjectFilter = transformSearchToObjectFilter(userSearchFiler, UserType.class);
         ObjectFilter roleObjectFilter = transformSearchToObjectFilter(roleSearchFiler, RoleType.class);
@@ -3704,7 +3711,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         };
 
         try {
-            modelService.searchContainersIterative(AssignmentType.class, query, handler, null, task, result);
+            modelService.searchContainersIterative(AssignmentType.class, query, handler,
+                    options, task, result);
         } catch (SchemaException | SecurityViolationException | ConfigurationException | ObjectNotFoundException |
                 ExpressionEvaluationException | CommunicationException e) {
             throw new SystemException("Couldn't search assignments", e);
@@ -3722,6 +3730,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             boolean userAsKey,
             @NotNull Task task,
             @NotNull OperationResult result) {
+        Collection<SelectorOptions<GetOperationOptions>> options = getDefaultRmIterativeSearchPageSizeOptions();
 
         ObjectFilter userObjectFilter = transformSearchToObjectFilter(userSearchFiler, UserType.class);
         ObjectFilter roleObjectFilter = transformSearchToObjectFilter(roleSearchFiler, RoleType.class);
@@ -3776,7 +3785,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         };
 
         try {
-            modelService.searchContainersIterative(AssignmentType.class, query, handler, null, task, result);
+            modelService.searchContainersIterative(AssignmentType.class, query, handler, options, task, result);
         } catch (SchemaException | SecurityViolationException | ConfigurationException | ObjectNotFoundException |
                 ExpressionEvaluationException | CommunicationException e) {
             throw new SystemException("Couldn't search assignments", e);
@@ -3898,6 +3907,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
         GetOperationOptionsBuilder getOperationOptionsBuilder = schemaService.getOperationOptionsBuilder();
         getOperationOptionsBuilder = getOperationOptionsBuilder.resolveNames();
+        getOperationOptionsBuilder.iterationPageSize(RM_ITERATIVE_SEARCH_PAGE_SIZE);
         Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder.build();
 
         Map<String, RoleAnalysisClusterType> mappedClusters = new HashMap<>();
@@ -3908,7 +3918,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         };
         try {
             repositoryService.searchContainersIterative(RoleAnalysisDetectionPatternType.class, query, handler,
-                    null, result);
+                    getDefaultRmIterativeSearchPageSizeOptions(), result);
         } catch (Exception ex) {
             throw new SystemException("Couldn't search cluster role suggestions", ex);
         }
@@ -3952,7 +3962,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         };
         try {
             repositoryService.searchContainersIterative(RoleAnalysisDetectionPatternType.class, query, handler,
-                    null, result);
+                    getDefaultRmIterativeSearchPageSizeOptions(), result);
         } catch (Exception ex) {
             throw new SystemException("Couldn't search role suggestions", ex);
         }
@@ -3989,7 +3999,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         };
         try {
             repositoryService.searchContainersIterative(RoleAnalysisOutlierPartitionType.class, query, handler,
-                    null, result);
+                    getDefaultRmIterativeSearchPageSizeOptions(), result);
         } catch (Exception ex) {
             throw new SystemException("Couldn't search cluster role suggestions", ex);
         }
@@ -4029,7 +4039,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         };
         try {
             repositoryService.searchContainersIterative(RoleAnalysisOutlierPartitionType.class, query, handler,
-                    null, result);
+                    getDefaultRmIterativeSearchPageSizeOptions(), result);
         } catch (Exception ex) {
             throw new SystemException("Couldn't search cluster role suggestions", ex);
         }
@@ -4068,7 +4078,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         };
         try {
             repositoryService.searchContainersIterative(RoleAnalysisOutlierPartitionType.class, query, handler,
-                    null, result);
+                    getDefaultRmIterativeSearchPageSizeOptions(), result);
         } catch (Exception ex) {
             throw new SystemException("Couldn't search cluster role suggestions", ex);
         }
@@ -4096,6 +4106,12 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             return null;
         }
 
+    }
+
+    private @NotNull Collection<SelectorOptions<GetOperationOptions>> getDefaultRmIterativeSearchPageSizeOptions() {
+        GetOperationOptionsBuilder optionsBuilder = schemaService.getOperationOptionsBuilder();
+        optionsBuilder.iterationPageSize(RM_ITERATIVE_SEARCH_PAGE_SIZE);
+        return optionsBuilder.build();
     }
 
 }

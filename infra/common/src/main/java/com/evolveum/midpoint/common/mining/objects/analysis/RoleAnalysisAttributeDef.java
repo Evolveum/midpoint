@@ -137,7 +137,9 @@ public class RoleAnalysisAttributeDef implements Serializable {
         if (object != null) {
             if (object instanceof PolyString) {
                 return ((PolyString) object).getOrig();
-            } else if (object instanceof PrismPropertyValueImpl) {
+            } else if(object instanceof ObjectReferenceType) {
+                return ((ObjectReferenceType) object).getOid();
+            }else if (object instanceof PrismPropertyValueImpl) {
                 Object realValue = ((PrismPropertyValueImpl<?>) object).getRealValue();
                 if (realValue != null) {
                     return realValue.toString();
