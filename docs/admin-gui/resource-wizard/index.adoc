@@ -692,6 +692,7 @@ If associations correspond to assignments, you typically want to use (inbound ma
 image::association-type/subject/provisioning-from-resource/step-4-correlation-items.png[link=association-type/subject/provisioning-from-resource/step-4-correlation-items.png,100%,title=Configuration of correlation items]
 
 Click btn:[Confirm settings] when finished to return to the previous page for correlation rules, but you must save your changes.
+
 Click btn:[Save correlation settings] when done to return to the previous page from which you started the correlation editor.
 
 Now we can go back to configure _Provisioning to resource_.
@@ -748,6 +749,11 @@ The resource object type wizard can be used also for editing existing resource s
 Navigate to one of the resource object panels (*Accounts*, *Entitlements* or *Generic*), select the object type by its display name and click btn:[Configure], then select button for particular part of object type wizard.
 
 image::resource-details.png[link=resource-details.png,100%,title=Resource detail]
+
+The existing association configuration can be also accessed from *Configure* menu, typically for *Accounts*.
+
+image::association-type/accessing-from-accounts.png[link=association-type/accessing-from-accounts.png,100%,title=Accessing existing association configuration from accounts]
+
 
 == Wizard for task creation
 
