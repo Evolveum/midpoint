@@ -542,87 +542,148 @@ After clicking on btn:[Configure association type], you will see a table of asso
 
 image::association-type/association-type-table.png[link=association-type/association-type-table.png,100%,title=Table of association types]
 
-The first step in creating a new association is to select the type of association, which is predefined by capabilities or connector.
+Click btn:[Add association type] to start configuring new association type.
+
+The first step in creating a new association is to select the type of association (by clicking on it), which is predefined by capabilities or connector.
 
 image::association-type/choice-association-type.png[link=association-type/choice-association-type.png,100%,title=Select association]
 
-After selecting the association, you will see a four-step wizard. The first step allows you to configure the basic settings.
+After selecting the association, you will see a four-step wizard. The first step allows you to configure the basic settings:
+
+* *Name* and *Display name* are used for naming purposes
+* *Description* allows a short description to be entered
+* *Lifecycle state* allows defining the lifecycle state, e.g. `Proposed` for xref:/midpoint/reference/admin-gui/simulations/[simulation] of the association configuration
 
 image::association-type/step-1-association-type-basic-config.png[link=association-type/step-1-association-type-basic-config.png,100%,title=Basic configuration]
 
-In the second step you have to select the subject of the association.
+Click btn:[Next: Subjects] to continue in the association type definition wizard.
+
+In the second step you have to select the subject (as the object type of the resource) of the association.
 If there is only one option, it will be selected and you can proceed to the next step.
 
 image::association-type/step-1-select-subject.png[link=association-type/step-1-select-subject.png,100%,title=Select subject]
 
-The next step is very similar to the previous one, but you select the object of association.
+Click btn:[Next: Objects] to continue in the association type definition wizard.
+
+The next step is very similar to the previous one, but you select the object (as the object type of the resource) of association.
 
 image::association-type/step-1-select-object.png[link=association-type/step-1-select-object.png,100%,title=Select object]
 
-On the last one, fill in the necessary fields to specify the reference attribute to specify the data corresponding to the association.
+Click btn:[Next: Data for association] to continue in the association type definition wizard.
+
+Fill in the necessary fields to specify the reference attribute to specify the data corresponding to the association and association tolerance:
+
+* *Reference attribute* name will be predefined by default (but can be changed to a custom name, e.g. instead of `group`, `ldapGroup` can be used).
+MidPoint automatically resolves duplicate reference attribute name: if you would define multiple association types, the reference attributes would be `group`, `group1` etc. by default.
+* *tolerant* allows specifying how midPoint tolerates associations (membership) with objects other than associated via midPoint.
+The default value `Undefined` is the same as `True` and makes midPoint keep the membership even if not defined via midPoint.
+
+NOTE: /midpoint/reference/concepts/mark/[] can redefine association (membership) tolerance.
 
 image::association-type/step-1-specify-data-for-association.png[link=association-type/step-1-specify-data-for-association.png,100%,title=Specify the data for association]
 
+Click btn:[Save settings] to save the association type configuration.
+
+Further configuration is required.
+
 After creating a new association type, you will see a page with three options.
-The first one represents the two-step wizard that you already see during the creation of the association type,
-concretising the first and last steps without parts for selecting subjects and objects.
-The third option is to select objects only.
+*Basic Attributes* tile represents the two-step wizard that you already see during the creation of the association type,
+allowing to access the first and last steps without parts for selecting subjects and objects.
+
+*Subject* tile allows <<Subject,detailed association subject configuration>>.
+
+*Object* tile allows to return back to object selection.
 
 image::association-type/choice-part.png[link=association-type/choice-part.png,100%,title=Association wizard]
-
-Now we click on the second option and we will see the second possibilities for configuring the subject of the association type.
 
 === Subject
 
 image::association-type/subject/choice-part.png[link=association-type/subject/choice-part.png,100%,title=Subject wizard]
 
-The first option is to select the subject step that you already see. Second and third options are configuration parts for provisioning from/to resource.
-As first we can see on provisioning from resource.
+*Select Subject* tile allows selecting the subject.
+
+*<<Provisioning from resource>>* and *<<Provisioning to resource>>* allow accessing configuration parts for provisioning from/to resource.
 
 ==== Provisioning from resource
+
 On this page we create provisioning rule(s) to specify how midPoint should read the association information and transform it to midPoint data, typically assignments.
 
 image::association-type/subject/provisioning-from-resource/table-new.png[link=association-type/subject/provisioning-from-resource/table-new.png,100%,title=Provisioning from resource]
 
-We can see that table is empty so come to create new provisioning rule.
+Click btn:[Add provisioning rule] to create a new provisioning rule.
 
 image::association-type/subject/provisioning-from-resource/step-1-basic-configuration.png[link=association-type/subject/provisioning-from-resource/step-1-basic-configuration.png,100%,title=Main configuration of association inbound mapping]
 
-We set basic attributes and save new rule. After saving we will see options that we can configure for provisioning rule.
+We can configure basic attributes of the provisioning rule:
+
+* *Name* is used to uniquely name this rule
+* *Strength* allows the association xref:/midpoint/reference/expressions/mappings/#_mapping_strength[] to be set
+* *Lifecycle state* allows defining the lifecycle state, e.g. `Proposed` for xref:/midpoint/reference/admin-gui/simulations/[simulation] of the provisioning rule.
+
+Click btn:[Save settings].
+
+Further configuration is required.
 
 image::association-type/subject/provisioning-from-resource/choice-part.png[link=association-type/subject/provisioning-from-resource/choice-part.png,100%,title=Provisioning from resource wizard]
 
-First option represent basic configuration that we already see.
+*Basic Attributes* tile allows returning back to the basic provisioning rule attributes definition.
+Other tiles are described below.
 
 ===== Mapping
-Second option represent mapping for provisioning.
+
+In this step, you can configure the mapping for reading the associations (inbound).
 
 image::association-type/subject/provisioning-from-resource/step-2-mapping.png[link=association-type/subject/provisioning-from-resource/step-2-mapping.png,100%,title=Provisioning from resource mappings]
 
-In this step we create a map that defines the transformation of association data from resource to midPoint data (inbound).
-We can use the expression *Shadow owner* which means assigning the role that owns the entitlement.
+In this step we create a new mapping using btn:[Add inbound] that defines the transformation of association data from resource to midPoint data (inbound):
+
+* *Name* is needed to uniquely identify this mapping
+* *From resource attribute* should be kept as it is
+* *Expression*: we can use the expression *Shadow owner* which means assigning the role that owns the entitlement
+* *Target* property should be set to `targetRef` (of the assignment corresponding to the association)
+* *Lifecycle state* allows you to define the lifecycle state. This can be used during xref:/midpoint/reference/admin-gui/simulations/[Simulations].
 
 The detailed steps for mapping include the same steps as editing the mapping of the object type.
 
 Click btn:[Save mappings] when done to return to the previous page from which you started the mapping editor.
 
 ===== Synchronization
-Third option represent synchronization rules for provisioning. This section specifies how midPoint reacts when a new synchronization event is detected.
+
+In this step, you can configure synchronization rules for provisioning. This section specifies how midPoint reacts when a new synchronization event is detected.
 
 image::association-type/subject/provisioning-from-resource/step-3-synchronization-table.png[link=association-type/subject/provisioning-from-resource/step-3-synchronization-table.png,100%,title=Synchronization]
+
+Click btn:[Add reaction] to add a new row in the table.
+
+For the situations, you can select an appropriate situation:
+
+* *Unmatched* refers to situation when there is no assignment corresponding to the association
+* *Matched* refers to situation when there is a direct assignment corresponding to the  association already
+* *Matched indirectly* refers to situation when there is an indirect assignment corresponding to the association already
+
+For the reactions, you can select:
+
+* *Add focus value* to allow creation of assignment corresponding to the association
+* *Synchronize* to synchronize data between association and assignment for existing assignments
+* *Undefined* to not do anything
+
+For each table entry:
+
+* *Lifecycle state* allows you to define the lifecycle state of the situation/reaction configuration. This can be used during xref:/midpoint/reference/admin-gui/simulations/[], e.g. specifying lifecycle state as `Proposed` will be used only to simulate the synchronization/reaction configuration, `Draft` disables the synchronization/reaction configuration etc.
 
 The detailed steps for synchronization rule include the same steps as editing the synchronization rule of the object type.
 
 Click btn:[Save synchronization settings] when done to return to the previous page from which you started the synchronization editor.
 
-
 ===== Correlation
-Last option represent correlation rules for provisioning.
+
+In this step, you can configure correlation rules for provisioning.
 Define a new correlation rule to specify how midPoint should correlate the associations to assignments.
 
 image::association-type/subject/provisioning-from-resource/step-4-correlation-rule-table.png[link=association-type/subject/provisioning-from-resource/step-4-correlation-rule-table.png,100%,title=Correlation rules]
 
 When you click on btn:[Edit] in item menu you will see table for items of correlation rule.
+If associations correspond to assignments, you typically want to use `targetRef` property (of the assignment) as correlator.
 
 image::association-type/subject/provisioning-from-resource/step-4-correlation-items.png[link=association-type/subject/provisioning-from-resource/step-4-correlation-items.png,100%,title=Configuration of correlation items]
 
@@ -632,33 +693,49 @@ Click btn:[Save correlation settings] when done to return to the previous page f
 Now we can go back to configure _Provisioning to resource_.
 
 ==== Provisioning to resource
-On this page we can create provisioning rule(s) to specify how midPoint should create the association information
-and transform it to resource data, typically from assignments.
+
+On this page we can create provisioning rule(s) to specify how midPoint should create the association information and transform it to resource data, typically from assignments.
 
 image::association-type/subject/provisioning-to-resource/table-new.png[link=association-type/subject/provisioning-to-resource/table-new.png,100%,title=Provisioning to resource]
 
 The first steps are the same as for provisioning from resources, we need to create a new rule.
 
+Click btn:[Add provisioning rule] to create a new provisioning rule.
+
 image::association-type/subject/provisioning-to-resource/step-1-basic-configuration.png[link=association-type/subject/provisioning-to-resource/step-1-basic-configuration.png,100%,title=Main configuration of association outbound mapping]
 
-We set basic attributes and save new rule. After saving we will see options that we can configure for provisioning rule.
+We can configure basic attributes of the provisioning rule:
+
+* *Name* is used to uniquely name this rule
+* *Strength* allows the association xref:/midpoint/reference/expressions/mappings/#_mapping_strength[] to be set
+* *Lifecycle state* allows defining the lifecycle state, e.g. `Proposed` for xref:/midpoint/reference/admin-gui/simulations/[simulation] of the provisioning rule.
+
+Click btn:[Save settings].
+
+Further configuration is required.
 
 image::association-type/subject/provisioning-to-resource/choice-part.png[link=association-type/subject/provisioning-to-resource/choice-part.png,100%,title=Provisioning to resource wizard]
 
-First option represent basic configuration that we already see.
+*Basic Attributes* tile allows returning back to the basic provisioning rule attributes definition.
+Other tiles are described below.
 
 ===== Mapping
-Second option represent mapping for provisioning.
+
+In this step, you can configure the mapping for creating the associations (outbound).
 
 image::association-type/subject/provisioning-to-resource/step-2-mapping.png[link=association-type/subject/provisioning-to-resource/step-2-mapping.png,100%,title=Provisioning to resource mappings]
 
-In this step we create a map which defines the transformation of midPoint data to association data (outbound).
-We can use the expression *Association from link* which means associate with the entitlement owned by the assigned role.
+In this step we create a new mapping using btn:[Add outbound] that defines the transformation of midPoint data to association data (outbound).
+
+* *Name* is needed to uniquely identify this mapping
+* *Source* should be kept as it is
+* *Expression*: we can use the expression *Association from link* which means associate with the entitlement owned by the assigned role.
+* *To resource attribute* should be kept as it is
+* *Lifecycle state* allows you to define the lifecycle state. This can be used during xref:/midpoint/reference/admin-gui/simulations/[Simulations].
 
 The detailed steps for mapping include the same steps as editing the mapping of the object type.
 
 Click btn:[Save mappings] when done to return to the previous page from which you started the mapping editor.
-
 
 == Wizard for existing resource
 
