@@ -64,9 +64,9 @@ public class PrismContainerPanel<C extends Containerable, PCW extends PrismConta
                     }
                     return null;
                 }));
-        valueContainer.add(AttributeAppender.append(
-                "tabindex",
-                () -> getModelObject() != null && getModelObject().isMultiValue() ? "0" : null));
+//        valueContainer.add(AttributeAppender.append(
+//                "tabindex",
+//                () -> getModelObject() != null && getModelObject().isMultiValue() ? "0" : null));
         return valueContainer;
     }
 
