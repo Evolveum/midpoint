@@ -59,8 +59,6 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
     private static final Trace LOGGER = TraceManager.getTrace(CertificationWorkItemTable.class);
 
     private static final String DOT_CLASS = CertificationWorkItemTable.class.getName() + ".";
-    private static final String OPERATION_LOAD_ACCESS_CERT_DEFINITION = DOT_CLASS + "loadAccessCertificationDefinition";
-    private static final String OPERATION_LOAD_CERTIFICATION_CONFIG = DOT_CLASS + "loadCertificationConfiguration";
     private static final String OPERATION_LOAD_MULTISELECT_CONFIG = DOT_CLASS + "loadMultiselectConfig";
 
     public CertificationWorkItemTable(String id) {
@@ -275,44 +273,10 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
     }
 
     private CompiledObjectCollectionView loadCampaignView() {
-        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ACCESS_CERT_DEFINITION);
-        OperationResult result = task.getResult();
+        CompiledObjectCollectionView compiledView = CertMiscUtil.loadCampaignView(getPageBase(), getCampaignOid());
+        sortCustomColumns(compiledView);
 
-        GuiObjectListViewType campaignDefinitionView = getCollectionViewConfigurationFromCampaignDefinition(task, result);
-
-        GuiObjectListViewType defaultView = null;
-        try {
-            OperationResult subResult = result.createSubresult(OPERATION_LOAD_CERTIFICATION_CONFIG);
-            var certificationConfig = getPageBase().getModelInteractionService().getCertificationConfiguration(subResult);
-            if (certificationConfig != null) {
-                defaultView = certificationConfig.getDefaultView();
-            }
-        } catch (Exception e) {
-            LOGGER.error("Couldn't load certification configuration from system configuration, ", e);
-        }
-
-        if (campaignDefinitionView == null && defaultView == null) {
-            return null;
-        }
-
-        try {
-            CompiledObjectCollectionView compiledView = new CompiledObjectCollectionView();
-            compiledView.setContainerType(AccessCertificationWorkItemType.COMPLEX_TYPE);
-
-            if (defaultView != null) {
-                getPageBase().getModelInteractionService().compileView(compiledView, defaultView, task, result);
-            }
-            if (campaignDefinitionView != null) {
-                getPageBase().getModelInteractionService().compileView(compiledView, campaignDefinitionView, task, result);
-            }
-
-            sortCustomColumns(compiledView);
-
-            return compiledView;
-        } catch (Exception e) {
-            LOGGER.error("Couldn't load certification work items view, ", e);
-        }
-        return null;
+        return compiledView;
     }
 
     @Override
@@ -336,26 +300,5 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
                     AbstractGuiColumn<?, ?> predefinedColumn = findPredefinedColumn(c);
                     return predefinedColumn != null ? predefinedColumn.getOrder() : 0;
                 }));
-    }
-
-    private GuiObjectListViewType getCollectionViewConfigurationFromCampaignDefinition(Task task, OperationResult result) {
-        String campaignOid = getCampaignOid();
-        if (campaignOid == null) {
-            return null;
-        }
-        var campaign = WebModelServiceUtils.loadObject(AccessCertificationCampaignType.class, getCampaignOid(), getPageBase(), task, result);
-        if (campaign == null) {
-            return null;
-        }
-        var definitionRef = campaign.asObjectable().getDefinitionRef();
-        if (definitionRef == null) {
-            return null;
-        }
-        PrismObject<AccessCertificationDefinitionType> definitionObj = WebModelServiceUtils.loadObject(definitionRef, getPageBase(), task, result);
-        if (definitionObj == null) {
-            return null;
-        }
-        AccessCertificationDefinitionType definition = definitionObj.asObjectable();
-        return definition.getView();
     }
 }

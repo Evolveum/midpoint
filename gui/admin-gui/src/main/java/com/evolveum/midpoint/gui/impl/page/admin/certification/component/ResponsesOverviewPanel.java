@@ -9,12 +9,21 @@ package com.evolveum.midpoint.gui.impl.page.admin.certification.component;
 
 import java.io.Serial;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.CertificationDetailsModel;
 
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.AvailableResponses;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscUtil;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
@@ -33,6 +42,9 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertificationItemResponseHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.DELEGATE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.values;
 
 @PanelType(name = "certResponses")
 @PanelInstance(identifier = "certResponses",
@@ -139,34 +151,44 @@ public class ResponsesOverviewPanel extends AbstractObjectMainPanel<AccessCertif
             protected List<ProgressBar> load() {
                 List<ProgressBar> progressBars = new ArrayList<>();
 
+                List<AccessCertificationResponseType> availableResponses = getAvailableResponses();
+
                 AccessCertificationCasesStatisticsType statisticsType = getStatistics();
-                CertificationItemResponseHelper responseHelper =
-                        new CertificationItemResponseHelper(AccessCertificationResponseType.ACCEPT);
-                ProgressBar accepted = new ProgressBar(statisticsType.getMarkedAsAccept(),
-                        responseHelper.getProgressBarState(),
-                        new SingleLocalizableMessage(responseHelper.getLabelKey()));
-                progressBars.add(accepted);
+                CertificationItemResponseHelper responseHelper = null;
+                if (availableResponses.contains(AccessCertificationResponseType.ACCEPT)) {
+                    responseHelper = new CertificationItemResponseHelper(AccessCertificationResponseType.ACCEPT);
+                    ProgressBar accepted = new ProgressBar(statisticsType.getMarkedAsAccept(),
+                            responseHelper.getProgressBarState(),
+                            new SingleLocalizableMessage(responseHelper.getLabelKey()));
+                    progressBars.add(accepted);
+                }
 
-                responseHelper =
-                        new CertificationItemResponseHelper(AccessCertificationResponseType.REVOKE);
-                ProgressBar revoked = new ProgressBar(statisticsType.getMarkedAsRevoke(),
-                        responseHelper.getProgressBarState(),
-                        new SingleLocalizableMessage(responseHelper.getLabelKey()));
-                progressBars.add(revoked);
+                if (availableResponses.contains(AccessCertificationResponseType.REVOKE)) {
+                    responseHelper =
+                            new CertificationItemResponseHelper(AccessCertificationResponseType.REVOKE);
+                    ProgressBar revoked = new ProgressBar(statisticsType.getMarkedAsRevoke(),
+                            responseHelper.getProgressBarState(),
+                            new SingleLocalizableMessage(responseHelper.getLabelKey()));
+                    progressBars.add(revoked);
+                }
 
-                responseHelper =
-                        new CertificationItemResponseHelper(AccessCertificationResponseType.REDUCE);
-                ProgressBar reduced = new ProgressBar(statisticsType.getMarkedAsReduce(),
-                        responseHelper.getProgressBarState(),
-                        new SingleLocalizableMessage(responseHelper.getLabelKey()));
-                progressBars.add(reduced);
+                if (availableResponses.contains(AccessCertificationResponseType.REDUCE)) {
+                    responseHelper =
+                            new CertificationItemResponseHelper(AccessCertificationResponseType.REDUCE);
+                    ProgressBar reduced = new ProgressBar(statisticsType.getMarkedAsReduce(),
+                            responseHelper.getProgressBarState(),
+                            new SingleLocalizableMessage(responseHelper.getLabelKey()));
+                    progressBars.add(reduced);
+                }
 
-                responseHelper =
-                        new CertificationItemResponseHelper(AccessCertificationResponseType.NOT_DECIDED);
-                ProgressBar notDecided = new ProgressBar(statisticsType.getMarkedAsNotDecide(),
-                        responseHelper.getProgressBarState(),
-                        new SingleLocalizableMessage(responseHelper.getLabelKey()));
-                progressBars.add(notDecided);
+                if (availableResponses.contains(AccessCertificationResponseType.NOT_DECIDED)) {
+                    responseHelper =
+                            new CertificationItemResponseHelper(AccessCertificationResponseType.NOT_DECIDED);
+                    ProgressBar notDecided = new ProgressBar(statisticsType.getMarkedAsNotDecide(),
+                            responseHelper.getProgressBarState(),
+                            new SingleLocalizableMessage(responseHelper.getLabelKey()));
+                    progressBars.add(notDecided);
+                }
 
                 responseHelper =
                         new CertificationItemResponseHelper(AccessCertificationResponseType.NO_RESPONSE);
@@ -177,6 +199,32 @@ public class ResponsesOverviewPanel extends AbstractObjectMainPanel<AccessCertif
                 return progressBars;
             }
         };
+    }
+
+    private List<AccessCertificationResponseType> getAvailableResponses() {
+        List<AccessCertificationResponseType> availableResponses = new AvailableResponses(getPageBase()).getResponseValues();
+        CompiledObjectCollectionView configuredActions = CertMiscUtil.loadCampaignView(getPageBase(),
+                getObjectWrapperModel().getObject().getOid());
+
+        if (configuredActions != null) {
+            configuredActions.getActions()
+                    .forEach(action -> {
+                        AccessCertificationResponseType configuredResponse = CertificationItemResponseHelper.getResponseForGuiAction(action);
+                        if (configuredResponse == null) {
+                            return;
+                        }
+                        if (!availableResponses.contains(configuredResponse)
+                                && WebComponentUtil.getElementVisibility(action.getVisibility())) {
+                            availableResponses.add(configuredResponse);
+                            return;
+                        }
+                        if (availableResponses.contains(configuredResponse)
+                                && !WebComponentUtil.getElementVisibility(action.getVisibility())) {
+                            availableResponses.remove(configuredResponse);
+                        }
+                    });
+        }
+        return availableResponses;
     }
 
     private @NotNull LoadableModel<List<ProgressBar>> createRemediedItemsStatisticModel() {
