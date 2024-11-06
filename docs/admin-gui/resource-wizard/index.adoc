@@ -577,6 +577,9 @@ Fill in the necessary fields to specify the reference attribute to specify the d
 MidPoint automatically resolves duplicate reference attribute name: if you would define multiple association types, the reference attributes would be `group`, `group1` etc. by default.
 * *tolerant* allows specifying how midPoint tolerates associations (membership) with objects other than associated via midPoint.
 The default value `Undefined` is the same as `True` and makes midPoint keep the membership even if not defined via midPoint.
+`False` would remove such associations when the resource object is reprocessed, e.g. during reconciliation.
+
+TIP: If in doubt, use `Undefined` or `True`.
 
 NOTE: /midpoint/reference/concepts/mark/[] can redefine association (membership) tolerance.
 
@@ -590,17 +593,18 @@ After creating a new association type, you will see a page with three options.
 *Basic Attributes* tile represents the two-step wizard that you already see during the creation of the association type,
 allowing to access the first and last steps without parts for selecting subjects and objects.
 
-*Subject* tile allows <<Subject,detailed association subject configuration>>.
+*Subject* tile allows entering <<Subject wizard>>.
 
 *Object* tile allows to return back to object selection.
 
 image::association-type/choice-part.png[link=association-type/choice-part.png,100%,title=Association wizard]
 
-=== Subject
+=== Subject wizard
+
+*Select Subject* tile allows selecting the subject.
 
 image::association-type/subject/choice-part.png[link=association-type/subject/choice-part.png,100%,title=Subject wizard]
 
-*Select Subject* tile allows selecting the subject.
 
 *<<Provisioning from resource>>* and *<<Provisioning to resource>>* allow accessing configuration parts for provisioning from/to resource.
 
@@ -617,7 +621,7 @@ image::association-type/subject/provisioning-from-resource/step-1-basic-configur
 We can configure basic attributes of the provisioning rule:
 
 * *Name* is used to uniquely name this rule
-* *Strength* allows the association xref:/midpoint/reference/expressions/mappings/#_mapping_strength[] to be set
+* *Strength* allows the association xref:/midpoint/reference/expressions/mappings/#_mapping_strength[mapping strength] to be set
 * *Lifecycle state* allows defining the lifecycle state, e.g. `Proposed` for xref:/midpoint/reference/admin-gui/simulations/[simulation] of the provisioning rule.
 
 Click btn:[Save settings].
@@ -635,7 +639,7 @@ In this step, you can configure the mapping for reading the associations (inboun
 
 image::association-type/subject/provisioning-from-resource/step-2-mapping.png[link=association-type/subject/provisioning-from-resource/step-2-mapping.png,100%,title=Provisioning from resource mappings]
 
-In this step we create a new mapping using btn:[Add inbound] that defines the transformation of association data from resource to midPoint data (inbound):
+Create a new mapping using btn:[Add inbound] that defines the transformation of association data from resource to midPoint data (inbound):
 
 * *Name* is needed to uniquely identify this mapping
 * *From resource attribute* should be kept as it is
@@ -683,7 +687,7 @@ Define a new correlation rule to specify how midPoint should correlate the assoc
 image::association-type/subject/provisioning-from-resource/step-4-correlation-rule-table.png[link=association-type/subject/provisioning-from-resource/step-4-correlation-rule-table.png,100%,title=Correlation rules]
 
 When you click on btn:[Edit] in item menu you will see table for items of correlation rule.
-If associations correspond to assignments, you typically want to use `targetRef` property (of the assignment) as correlator.
+If associations correspond to assignments, you typically want to use (inbound mapping for) `targetRef` property (of the assignment) as correlation item.
 
 image::association-type/subject/provisioning-from-resource/step-4-correlation-items.png[link=association-type/subject/provisioning-from-resource/step-4-correlation-items.png,100%,title=Configuration of correlation items]
 
@@ -707,7 +711,7 @@ image::association-type/subject/provisioning-to-resource/step-1-basic-configurat
 We can configure basic attributes of the provisioning rule:
 
 * *Name* is used to uniquely name this rule
-* *Strength* allows the association xref:/midpoint/reference/expressions/mappings/#_mapping_strength[] to be set
+* *Strength* allows the association xref:/midpoint/reference/expressions/mappings/#_mapping_strength[mapping strength] to be set
 * *Lifecycle state* allows defining the lifecycle state, e.g. `Proposed` for xref:/midpoint/reference/admin-gui/simulations/[simulation] of the provisioning rule.
 
 Click btn:[Save settings].
@@ -725,7 +729,7 @@ In this step, you can configure the mapping for creating the associations (outbo
 
 image::association-type/subject/provisioning-to-resource/step-2-mapping.png[link=association-type/subject/provisioning-to-resource/step-2-mapping.png,100%,title=Provisioning to resource mappings]
 
-In this step we create a new mapping using btn:[Add outbound] that defines the transformation of midPoint data to association data (outbound).
+Create a new mapping using btn:[Add outbound] that defines the transformation of midPoint data to association data (outbound).
 
 * *Name* is needed to uniquely identify this mapping
 * *Source* should be kept as it is
