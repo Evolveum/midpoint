@@ -363,7 +363,12 @@ public class CertMiscUtil {
                 AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaign);
                 int stageNumber = stage != null ? or0(stage.getNumber()) : 0;
                 int numberOfStages = CertCampaignTypeUtil.getNumberOfStages(campaign);
-                return stageNumber + "/" + numberOfStages;
+                StringBuilder sb = new StringBuilder();
+                sb.append(stageNumber);
+                if (numberOfStages > 0) {
+                    sb.append("/").append(numberOfStages);
+                }
+                return sb.toString();
             }
         };
     }
