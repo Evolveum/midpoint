@@ -20,6 +20,7 @@
             Allow access to list of certification cases in GUI. Allow access to pages that show object details,
             so the reviewer may examine data related to the request.
         </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#myActiveCertificationCampaigns</action>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#myCertificationDecisions</action>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#userDetails</action>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#roleDetails</action>
@@ -106,5 +107,8 @@
         </object>
         <item>name</item>
         <item>stageNumber</item>
+        <item>state</item>
+        <item>iteration</item>
+        <item>startTimestamp</item>
     </authorization>
 </role>
