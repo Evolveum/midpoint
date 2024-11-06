@@ -74,6 +74,8 @@ public class CertMiscUtil {
     private static final String OPERATION_LOAD_CAMPAIGNS_OIDS = "loadCampaignsOids";
     private static final String OPERATION_COUNT_CASES_PROGRESS = "countCasesProgress";
     private static final String OPERATION_COUNT_WORK_ITEMS_PROGRESS = "countWorkItemsProgress";
+    private static final String OPERATION_LOAD_ACCESS_CERT_DEFINITION = "loadAccessCertificationDefinition";
+    private static final String OPERATION_LOAD_CERTIFICATION_CONFIG = "loadCertificationConfiguration";
 
     public static String getStopReviewOnText(List<AccessCertificationResponseType> stopOn, PageBase page) {
         if (stopOn == null) {
@@ -361,7 +363,12 @@ public class CertMiscUtil {
                 AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaign);
                 int stageNumber = stage != null ? or0(stage.getNumber()) : 0;
                 int numberOfStages = CertCampaignTypeUtil.getNumberOfStages(campaign);
-                return stageNumber + "/" + numberOfStages;
+                StringBuilder sb = new StringBuilder();
+                sb.append(stageNumber);
+                if (numberOfStages > 0) {
+                    sb.append("/").append(numberOfStages);
+                }
+                return sb.toString();
             }
         };
     }
@@ -728,4 +735,67 @@ public class CertMiscUtil {
         }
         return null;
     }
+
+    public static CompiledObjectCollectionView loadCampaignView(PageBase pageBase, String campaignOid) {
+        Task task = pageBase.createSimpleTask(OPERATION_LOAD_ACCESS_CERT_DEFINITION);
+        OperationResult result = task.getResult();
+
+        GuiObjectListViewType campaignDefinitionView = getCollectionViewConfigurationFromCampaignDefinition(campaignOid, task,
+                result, pageBase);
+
+        GuiObjectListViewType defaultView = null;
+        try {
+            OperationResult subResult = result.createSubresult(OPERATION_LOAD_CERTIFICATION_CONFIG);
+            var certificationConfig = pageBase.getModelInteractionService().getCertificationConfiguration(subResult);
+            if (certificationConfig != null) {
+                defaultView = certificationConfig.getDefaultView();
+            }
+        } catch (Exception e) {
+            LOGGER.error("Couldn't load certification configuration from system configuration, ", e);
+        }
+
+        if (campaignDefinitionView == null && defaultView == null) {
+            return null;
+        }
+
+        try {
+            CompiledObjectCollectionView compiledView = new CompiledObjectCollectionView();
+            compiledView.setContainerType(AccessCertificationWorkItemType.COMPLEX_TYPE);
+
+            if (defaultView != null) {
+                pageBase.getModelInteractionService().compileView(compiledView, defaultView, task, result);
+            }
+            if (campaignDefinitionView != null) {
+                pageBase.getModelInteractionService().compileView(compiledView, campaignDefinitionView, task, result);
+            }
+
+            return compiledView;
+        } catch (Exception e) {
+            LOGGER.error("Couldn't load certification work items view, ", e);
+        }
+        return null;
+    }
+
+    private static GuiObjectListViewType getCollectionViewConfigurationFromCampaignDefinition(String campaignOid, Task task,
+            OperationResult result, PageBase pageBase) {
+        if (campaignOid == null) {
+            return null;
+        }
+        var campaign = WebModelServiceUtils.loadObject(AccessCertificationCampaignType.class, campaignOid, pageBase, task, result);
+        if (campaign == null) {
+            return null;
+        }
+        var definitionRef = campaign.asObjectable().getDefinitionRef();
+        if (definitionRef == null) {
+            return null;
+        }
+        PrismObject<AccessCertificationDefinitionType> definitionObj = WebModelServiceUtils.loadObject(definitionRef, pageBase, task, result);
+        if (definitionObj == null) {
+            return null;
+        }
+        AccessCertificationDefinitionType definition = definitionObj.asObjectable();
+        return definition.getView();
+    }
+
+
 }

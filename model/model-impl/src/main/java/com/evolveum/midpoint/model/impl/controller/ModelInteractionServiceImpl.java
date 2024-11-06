@@ -700,7 +700,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
     @Override
     public SecurityPolicyType getSecurityPolicy(ResourceObjectDefinition rOCDef, Task task, OperationResult parentResult)
-            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, ObjectNotFoundException {
+            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+            ExpressionEvaluationException, ObjectNotFoundException {
         OperationResult result = parentResult.createMinorSubresult(GET_SECURITY_POLICY);
         try {
             SecurityPolicyType securityPolicyType = securityHelper.locateProjectionSecurityPolicy(rOCDef, task, result);
@@ -711,10 +712,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
             return securityPolicyType;
         } catch (Throwable e) {
-            result.recordFatalError(e);
+            result.recordException(e);
             throw e;
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
         }
     }
 
@@ -1403,21 +1404,14 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             LOGGER.trace("Validating value started");
             evaluatorBuilder.build().validateStringValue(newValue, result);
             LOGGER.trace("Validating value finished");
-//
+
             result.computeStatus();
-
-//            if (!policyProcessor.validateValue(newValue, stringPolicy, createOriginResolver(object, result), "validate value " + (path!= null ? "for " + path : "") + " for " + object + " value " + valueToValidate, task, result)) {
-//                result.recordFatalError("Validation for value " + newValue + " against policy " + stringPolicy + " failed");
-//                LOGGER.error("Validation for value {} against policy {} failed", newValue, stringPolicy);
-//            }
-
         }
 
         parentResult.computeStatus();
         policyItemDefinition.setResult(parentResult.createOperationResultType());
 
         return parentResult.isAcceptable();
-
     }
 
     private ValuePolicyType resolveSecurityQuestionsPolicy(SecurityPolicyType securityPolicy, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {

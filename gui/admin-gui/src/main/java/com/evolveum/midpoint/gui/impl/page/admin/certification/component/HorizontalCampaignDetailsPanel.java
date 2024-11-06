@@ -44,7 +44,7 @@ public class HorizontalCampaignDetailsPanel extends BasePanel<List<DetailsTableI
             protected void populateItem(ListItem<DetailsTableItem> item) {
                 DetailsTableItem data = item.getModelObject();
                 if (data.isValueComponentBeforeLabel()) {
-                    item.add(item.getModelObject().createValueComponent(ID_DETAILS_COMPONENT_1));
+                    item.add(data.createValueComponent(ID_DETAILS_COMPONENT_1));
                     item.add(new Label(ID_DETAILS_COMPONENT_2, () -> data.getLabel().getObject()));
                 } else {
                     item.add(new Label(ID_DETAILS_COMPONENT_1, () -> data.getLabel().getObject()));

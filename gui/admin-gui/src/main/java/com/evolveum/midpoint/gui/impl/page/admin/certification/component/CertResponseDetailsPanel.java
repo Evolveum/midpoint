@@ -242,8 +242,7 @@ public class CertResponseDetailsPanel extends BasePanel<PrismContainerValueWrapp
 
     private String generateMessageTitle(PrismObject<UserType> performer, AccessCertificationWorkItemType workItem) {
         if (hasNoResponse(workItem)) {
-            ObjectReferenceType assigneeRef = workItem.getAssigneeRef().get(0);
-            String assigneeName = WebComponentUtil.getDisplayNameOrName(assigneeRef);
+            String assigneeName = WebComponentUtil.getDisplayNameOrName(performer);
             return createStringResource("CertResponseDetailsPanel.waitingForResponse", assigneeName).getString();
         }
         String resolverName = WebComponentUtil.getDisplayNameOrName(performer);

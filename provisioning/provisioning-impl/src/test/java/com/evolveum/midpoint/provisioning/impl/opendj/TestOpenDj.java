@@ -9,6 +9,7 @@ package com.evolveum.midpoint.provisioning.impl.opendj;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_PASSWORD;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_PASSWORD_VALUE;
 import static com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification.ACCOUNT_DEFAULT;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,8 +32,11 @@ import com.evolveum.midpoint.prism.impl.polystring.DistinguishedNameNormalizer;
 
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
+import org.jetbrains.annotations.NotNull;
 import org.opends.server.types.Entry;
 import org.opends.server.util.LDIFException;
 import org.springframework.test.annotation.DirtiesContext;
@@ -84,7 +88,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * Test for provisioning service implementation.
@@ -664,7 +667,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 //    }
 
     @Test
-    public void test110GetObject() throws Exception {
+    public void test110AddAndGetObject() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -706,12 +709,12 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertNotNull("Missing activation", provisioningShadow.getActivation());
         assertNotNull("Missing activation status", provisioningShadow.getActivation().getAdministrativeStatus());
         assertEquals("Not enabled", ActivationStatusType.ENABLED, provisioningShadow.getActivation().getAdministrativeStatus());
-        assertShadowPassword(provisioningShadow);
+        assertProvisioningShadowPassword(provisioningShadow, null);
         Object createTimestamp = ShadowUtil.getAttributeValue(provisioningShadow, new QName(NS_RI, "createTimestamp"));
         assertTimestamp("createTimestamp", createTimestamp);
 
         and("repo shadow is OK");
-        assertRepoShadowNew(provisioningShadow.getOid())
+        var repoShadow = assertRepoShadowNew(provisioningShadow.getOid())
                 .display()
                 .assertCachedOrigValues(QNAME_DN, "uid=jbond,ou=People,dc=example,dc=com")
                 .assertCachedNormValues(QNAME_DN, "uid=jbond,ou=people,dc=example,dc=com")
@@ -723,7 +726,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
                 .assertKind(ShadowKindType.ACCOUNT)
                 .assertObjectClass(OBJECT_CLASS_INETORGPERSON_QNAME)
                 .assertResource(RESOURCE_OPENDJ_OID)
-                .assertHasIndexedPrimaryIdentifierValue();
+                .assertHasIndexedPrimaryIdentifierValue()
+                .getObjectable();
+        assertRepoShadowPasswordWrittenAndFetched(repoShadow, null);
 
         and("search by DN norm value works");
 
@@ -759,17 +764,39 @@ public class TestOpenDj extends AbstractOpenDjTest {
                 (XMLGregorianCalendar) timestampValue);
     }
 
-    protected void assertShadowPassword(ShadowType provisioningShadow) throws Exception {
-        CredentialsType credentials = provisioningShadow.getCredentials();
-        if (credentials == null) {
-            return;
+    /** Password in fetched object should be null/incomplete/encrypted, depending on the resource. */
+    protected void assertProvisioningShadowPassword(ShadowType provisioningShadow, String expectedClearText) throws Exception {
+        assertNoShadowPassword(provisioningShadow.asPrismObject());
+    }
+
+    private void assertProvisioningShadowNoPassword(ShadowType provisioningShadow) {
+        assertNoShadowPassword(provisioningShadow.asPrismObject());
+    }
+
+    /** Password in repo shadow after the shadow is fetched. */
+    protected void assertRepoShadowPasswordFetched(ShadowType repoShadow, String expectedClearText) throws Exception {
+        assertNoShadowPassword(repoShadow.asPrismObject());
+    }
+
+    /** Password in repo shadow after known password is written. */
+    private void assertRepoShadowPasswordWritten(ShadowType repoShadow, String expectedClearText) throws Exception {
+        if (InternalsConfig.isShadowCachingOnByDefault()) {
+            assertHashedShadowPassword(repoShadow.asPrismObject(), expectedClearText);
+        } else {
+            assertNoShadowPassword(repoShadow.asPrismObject());
         }
-        PasswordType passwordType = credentials.getPassword();
-        if (passwordType == null) {
-            return;
-        }
-        ProtectedStringType passwordValue = passwordType.getValue();
-        assertNull("Unexpected password value in " + provisioningShadow + ": " + passwordValue, passwordValue);
+    }
+
+    /** Password in repo shadow after known password is written, and a shadow is fetched. */
+    protected void assertRepoShadowPasswordWrittenAndFetched(ShadowType repoShadow, String expectedClearText) throws Exception {
+        // For password unavailable from the resource, this should be the same as when only written (without fetching).
+        assertRepoShadowPasswordWritten(repoShadow, expectedClearText);
+    }
+
+    /** Password in repo shadow after known password is written, then password is unset on LDAP, and the shadow is fetched. */
+    protected void assertRepoShadowPasswordWrittenAndUnsetAndFetched(ShadowType repoShadow, String lastWritten) throws Exception {
+        // For password unavailable from the resource, this should be the same as when only written (without fetching).
+        assertRepoShadowPasswordWritten(repoShadow, lastWritten);
     }
 
     /**
@@ -1026,7 +1053,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         byte[] bytesIn = Files.readAllBytes(Paths.get(ProvisioningTestUtil.DOT_JPG_FILENAME));
         displayValue("Bytes in", MiscUtil.bytesToHex(bytesIn));
 
-        ItemName jpegPhotoQName = new ItemName(NS_RI, "jpegPhoto");
+        ItemName jpegPhotoQName = ItemName.from(NS_RI, "jpegPhoto");
         PropertyDelta<byte[]> jpegPhotoDelta =
                 prismContext.deltaFactory().property()
                         .create(ItemPath.create(ShadowType.F_ATTRIBUTES, jpegPhotoQName), null);
@@ -1111,8 +1138,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
         display("Object after change", shadow);
 
         PrismContainer<?> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
-        PrismAsserts.assertPropertyValue(attributesContainer, new ItemName(NS_RI, "givenName"), "Jack");
-        PrismAsserts.assertPropertyValue(attributesContainer, new ItemName(NS_RI, "title"), "Great Captain");
+        PrismAsserts.assertPropertyValue(attributesContainer, ItemName.from(NS_RI, "givenName"), "Jack");
+        PrismAsserts.assertPropertyValue(attributesContainer, ItemName.from(NS_RI, "title"), "Great Captain");
 
         assertShadows(hasNativeReferences() ? 2 : 3);
     }
@@ -1149,7 +1176,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
         displayDumpable("Object change", delta);
 
         when();
-        provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(), null, null, task, result);
+        provisioningService.modifyObject(
+                ShadowType.class, delta.getOid(), delta.getModifications(), null, null, task, result);
 
         then();
 
@@ -3223,7 +3251,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     }
 
     /** Checks adding a membership for a group that no longer exists. Correct exception should be returned. MID-10015. */
-    @Test(enabled=false) // MID-10015
+    @Test
     public void test500AddingNonExistingGroupMembership() throws CommonException {
         var task = getTestTask();
         var result = task.getResult();
@@ -3270,7 +3298,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     }
 
     /** Tests renaming a group (especially using native references). MID-9938. */
-    @Test(enabled = false) // MID-9938
+    @Test
     public void test510RenamingGroup() throws CommonException {
         var task = getTestTask();
         var result = task.getResult();
@@ -3321,6 +3349,309 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertShadowAfter(groupAfter.getPrismObject())
                 .attributes()
                 .assertValue(QNAME_DN, groupDnNew);
+    }
+
+    /**
+     * Reading new account (without pre-existing repo shadow), and updating it afterwards.
+     * Checking that the password is correctly cached throughout the scenario.
+     *
+     * 1. LDAP -> midPoint (discovered shadow with password)
+     * 2. LDAP -> midPoint (fetched shadow with password changed on LDAP)
+     * 3. LDAP <- midPoint (modified shadow password from midPoint)
+     * 4. LDAP -> midPoint (fetched shadow with previously modified password)
+     * 5. LDAP -> midPoint (fetched shadow with password unset on LDAP)
+     */
+    @Test
+    public void test520ModifyPasswordFromBothSides() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var accountName = getTestNameShort();
+        var password1 = "secret12345";
+        var password2 = "12345secret";
+        var password3 = "secret";
+
+        given("LDAP account");
+
+        createLdapAccount(accountName, password1);
+
+        when("1. discovered shadow with password");
+        var provisioningShadow1 = discoverShadow(accountName, task, result);
+
+        then("password is correct in fetched and cached shadow");
+
+        displayDumpable("shadow (provisioning)", provisioningShadow1);
+        assertProvisioningShadowPassword(provisioningShadow1, password1);
+
+        var oid = provisioningShadow1.getOid();
+        var repoShadow1 = assertRepoShadowNew(oid)
+                .display()
+                .getObjectable();
+        assertRepoShadowPasswordFetched(repoShadow1, password1);
+
+        when("2. fetched shadow with password changed on LDAP");
+        setLdapAccountPassword(accountName, password2);
+        var provisioningShadow2 = provisioningService.getShadow(oid, null, task, result).getBean();
+
+        then("password is correct in fetched and cached shadow");
+        assertProvisioningShadowPassword(provisioningShadow2, password2);
+
+        var repoShadow2 = assertRepoShadowNew(oid)
+                .display()
+                .getObjectable();
+        assertRepoShadowPasswordFetched(repoShadow2, password2);
+
+        when("3. modified shadow password from midPoint");
+        provisioningService.modifyObject(
+                ShadowType.class, oid,
+                Resource.of(resource)
+                        .deltaFor(OBJECT_CLASS_INETORGPERSON_QNAME)
+                        .item(PATH_PASSWORD_VALUE)
+                        .replace(new ProtectedStringType().clearValue(password3))
+                        .asItemDeltas(),
+                null, null, task, result);
+
+        var repoShadow3 = assertRepoShadowNew(oid)
+                .display()
+                .getObjectable();
+        assertRepoShadowPasswordWritten(repoShadow3, password3);
+
+        and("4. fetched shadow with previously modified password");
+        var provisioningShadow4 = provisioningService.getShadow(oid, null, task, result).getBean();
+
+        then("password is correct in fetched and cached shadow");
+        assertProvisioningShadowPassword(provisioningShadow4, password3);
+
+        var repoShadow4 = assertRepoShadowNew(oid)
+                .display()
+                .getObjectable();
+        assertRepoShadowPasswordWrittenAndFetched(repoShadow4, password3);
+
+        when("5. fetched shadow with password unset on LDAP");
+        unsetLdapAccountPassword(accountName);
+        var provisioningShadow5 = provisioningService.getShadow(oid, null, task, result).getBean();
+
+        then("password is correct in fetched and cached shadow");
+        assertProvisioningShadowNoPassword(provisioningShadow5);
+
+        var repoShadow5 = assertRepoShadowNew(oid)
+                .display()
+                .getObjectable();
+        assertRepoShadowPasswordWrittenAndUnsetAndFetched(repoShadow5, password3);
+    }
+
+    private static void setLdapAccountPassword(String uid, String password) throws IOException, LDIFException {
+        openDJController.executeLdifChange("""
+                dn: uid=%s,ou=People,dc=example,dc=com
+                changetype: modify
+                replace: userPassword
+                userPassword: %s""".formatted(uid, password));
+    }
+
+    private static void unsetLdapAccountPassword(String uid) throws IOException, LDIFException {
+        openDJController.executeLdifChange("""
+                dn: uid=%s,ou=People,dc=example,dc=com
+                changetype: modify
+                delete: userPassword""".formatted(uid));
+    }
+
+    private static void createLdapAccount(String uid, String password) throws IOException, LDIFException {
+        String entry = """
+                dn: uid=%s,ou=People,dc=example,dc=com
+                uid: %s
+                cn: New account
+                sn: Account
+                givenName: New
+                objectclass: top
+                objectclass: person
+                objectclass: organizationalPerson
+                objectclass: inetOrgPerson""".formatted(uid, uid);
+        if (password != null) {
+            entry += "\nuserPassword: " + password;
+        }
+        openDJController.addEntry(entry);
+    }
+
+    /**
+     * Setting and deleting password from LDAP.
+     *
+     * 1. LDAP -> midPoint (discovered shadow without password)
+     * 2. LDAP -> midPoint (fetched shadow with password set on LDAP)
+     * 3. LDAP -> midPoint (fetched shadow with password unset on LDAP)
+     */
+    @Test
+    public void test530SetAndUnsetPasswordFromLdap() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var accountName = getTestNameShort();
+        var password = "topSecret";
+
+        given("LDAP account without password");
+
+        createLdapAccount(accountName, null);
+
+        when("1. discovered shadow without password");
+        var provisioningShadow1 = discoverShadow(accountName, task, result);
+
+        then("password is correct in fetched and cached shadow");
+        displayDumpable("shadow (provisioning)", provisioningShadow1);
+        assertProvisioningShadowNoPassword(provisioningShadow1);
+        var oid = provisioningShadow1.getOid();
+        assertRepoShadowNew(oid)
+                .display()
+                .assertNoPassword();
+
+        when("2. fetched shadow with password set on LDAP");
+        setLdapAccountPassword(accountName, password);
+        var provisioningShadow2 = provisioningService.getShadow(oid, null, task, result).getBean();
+
+        then("password is correct in fetched and cached shadow");
+        assertProvisioningShadowPassword(provisioningShadow2, password);
+
+        var repoShadow2 = assertRepoShadowNew(oid)
+                .display()
+                .getObjectable();
+        assertRepoShadowPasswordFetched(repoShadow2, password);
+
+        when("3. fetched shadow with password unset on LDAP");
+        unsetLdapAccountPassword(accountName);
+        var provisioningShadow3 = provisioningService.getShadow(oid, null, task, result).getBean();
+
+        then("password is correct in fetched and cached shadow");
+        assertProvisioningShadowNoPassword(provisioningShadow3);
+        assertRepoShadowNew(oid)
+                .display()
+                .assertNoPassword();
+    }
+
+    /**
+     * Caching password from LDAP, with password caching being turned on and off.
+     *
+     * 1. LDAP -> midPoint (discovered shadow with password, caching enabled)
+     * 2. LDAP -> midPoint (fetched shadow with password, caching disabled)
+     * 3. LDAP -> midPoint (fetched shadow with password, caching enabled)
+     */
+    @Test
+    public void test540FetchPasswordFromLdapCachingOnAndOff() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var accountName = getTestNameShort();
+        var password = "topSecret";
+
+        given("LDAP account with password");
+
+        createLdapAccount(accountName, password);
+
+        when("1. discovered shadow with password, caching enabled");
+        var provisioningShadow1 = discoverShadow(accountName, task, result);
+
+        then("password is correct in cached shadow");
+        var oid = provisioningShadow1.getOid();
+        var repoShadow1 = assertRepoShadowNew(oid)
+                .display()
+                .getObjectable();
+        assertRepoShadowPasswordFetched(repoShadow1, password);
+
+        when("2. fetched shadow with password, caching disabled");
+        setResourceCaching(CachingStrategyType.NONE, task, result);
+        provisioningService.getShadow(oid, null, task, result).getBean();
+
+        then("there is no password in cached shadow");
+        assertRepoShadowNew(oid)
+                .display()
+                .assertNoPassword();
+
+        when("3. fetched shadow with password, caching enabled");
+        setResourceCaching(null, task, result); // so the defaults are applied
+        provisioningService.getShadow(oid, null, task, result).getBean();
+
+        then("password is correct in cached shadow");
+        var repoShadow3 = assertRepoShadowNew(oid)
+                .display()
+                .getObjectable();
+        assertRepoShadowPasswordFetched(repoShadow3, password);
+    }
+
+    private void setResourceCaching(CachingStrategyType strategy, Task task, OperationResult result) throws CommonException {
+        provisioningService.modifyObject(
+                ResourceType.class,
+                RESOURCE_OPENDJ_OID,
+                deltaFor(ResourceType.class)
+                        .item(ResourceType.F_CACHING, CachingPolicyType.F_CACHING_STRATEGY)
+                        .replace(strategy)
+                        .asItemDeltas(),
+                null, null, task, result);
+    }
+
+    /**
+     * Setting and deleting password from midPoint.
+     *
+     * 1. LDAP <- midPoint (added shadow without password)
+     * 2. LDAP <- midPoint (modified shadow: password set)
+     * 4. LDAP <- midPoint (modified shadow: password unset)
+     */
+    @Test
+    public void test550SetAndUnsetPasswordFromMidPoint() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var accountName = getTestNameShort();
+        var password = "topSecret";
+
+        when("1. added shadow without password");
+        var accountBefore = Resource.of(resource)
+                .getCompleteSchemaRequired()
+                .getObjectTypeDefinitionRequired(ACCOUNT_DEFAULT)
+                .createBlankShadow()
+                .addSimpleAttribute(QNAME_DN, "uid=" + accountName + ",ou=People,dc=example,dc=com")
+                .addSimpleAttribute(QNAME_UID, accountName)
+                .addSimpleAttribute(QNAME_CN, "New account")
+                .addSimpleAttribute(QNAME_SN, "Account")
+                .addSimpleAttribute(QNAME_GIVEN_NAME, "New");
+        var oid = provisioningService.addObject(accountBefore.getPrismObject(), null, null, task, result);
+
+        then("there's no password in the cached shadow");
+        assertRepoShadowNew(oid)
+                .display()
+                .assertNoPassword();
+
+        when("2. modified shadow: password set");
+        provisioningService.modifyObject(
+                ShadowType.class, oid,
+                Resource.of(resource)
+                        .deltaFor(OBJECT_CLASS_INETORGPERSON_QNAME)
+                        .item(PATH_PASSWORD_VALUE)
+                        .replace(new ProtectedStringType().clearValue(password))
+                        .asItemDeltas(),
+                null, null, task, result);
+
+        then("password is correct in the cached shadow");
+        var repoShadow2 = assertRepoShadowNew(oid)
+                .display()
+                .getObjectable();
+        assertRepoShadowPasswordWritten(repoShadow2, password);
+
+        when("3. modified shadow: password unset");
+        provisioningService.modifyObject(
+                ShadowType.class, oid,
+                Resource.of(resource)
+                        .deltaFor(OBJECT_CLASS_INETORGPERSON_QNAME)
+                        .item(PATH_PASSWORD_VALUE)
+                        .replace()
+                        .asItemDeltas(),
+                null, null, task, result);
+
+        assertRepoShadowNew(oid)
+                .display()
+                .assertNoPassword();
+    }
+
+    private @NotNull ShadowType discoverShadow(String accountName, Task task, OperationResult result) throws CommonException {
+        var shadows = provisioningService.searchShadows(
+                Resource.of(resource)
+                        .queryFor(OBJECT_CLASS_INETORGPERSON_QNAME)
+                        .and().item(PATH_UID).eq(accountName)
+                        .build(),
+                null, task, result);
+        return MiscUtil.extractSingletonRequired(shadows).getBean();
     }
 
     @Test
@@ -3601,6 +3932,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
         and("there was a model notification");
         syncServiceMock.assertNotifyChange();
     }
+
+    // Note: the resource has some capabilities disabled here, because of test70x
+    // So new tests should be added right after test500
 
     /**
      * Look inside OpenDJ logs to check for clues of undesirable behavior.
