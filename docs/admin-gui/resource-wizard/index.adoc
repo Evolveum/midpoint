@@ -205,7 +205,7 @@ You can choose your next step to configure other parts of your object type confi
 * <<Capabilities>> allows you to disable/override some functionality of the resource and/or connector without changing the connector implementation
 * <<Activation>> allows to configure rules (mappings) for activation
 * <<Credentials>> allows to configure mappings for credentials (e.g. passwords)
-* <<Associations>> allow to configure the resource for associations, e.g. account to group relations
+* <<Policies>> allow to configure the resource operation policies
 
 image::object-type/choice-part.png[link=object-type/choice-part.png,100%,title=Parts of object type configuration]
 
@@ -512,19 +512,22 @@ Object type policies define default behavior of midPoint based on the concept of
 
 image::object-type/step-8-policies.png[link=object-type/step-8-policies.png,100%,title=Object type policies]
 
-Default operation policy for those operations that do not have their behavior specified explicitly via object marks.
+Default operation policy defines behavior for operations if the object marks are not explicitly specified.
+For example, you may need to set the Default operation policy as `Unmanaged` to make all objects of the object type effectively read-only (outbound behavior will be ignored) during object management migration to midPoint.
+
+TIP: Default operation policy is heavily used in xref:/midpoint/methodology/group-synchronization/[]
 
 image::object-type/step-8-default-operation-policies.png[link=object-type/step-8-default-operation-policies.png,100%,title=Configuration of default operation policies]
 
 Click btn:[Save policies] when done to return to the previous page from which you started the default operation policies editor.
 
-Marking configuration allows to define automatic rules for object marking. Specify mark and its application time and optionally filter to denote objects which should be marked. Objects will be marked either always - whenever they are processed or at the classification time.
+Marking configuration allows to define automatic rules for object marking.
+Specify mark and its application time and optionally a *filter* to denote objects which should be marked.
+Objects will be marked either `always` - whenever they are processed or at the `classification` time - when the object is classified by midPoint for the first time.
 
 image::object-type/step-8-marking.png[link=object-type/step-8-marking.png,100%,title=Configuration of marking]
 
 Click btn:[Save marking rules] when done to return to the previous page from which you started the marking editor.
-
-
 
 == Association type configuration
 
