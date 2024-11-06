@@ -127,7 +127,7 @@ Therefore, the list of the available predefined columns is limited to the certif
 | Yes
 | Displays icon in case certification item has a comment. The icon's tooltip shows the comment itself.
 
-| Editable icon
+| Editable comment
 | certItemEditableComment
 | No
 | Contains editable input field for commenting the certification item.

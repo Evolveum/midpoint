@@ -297,11 +297,7 @@ Collection view can also contain columns and actions configuration.
                     </display>
                 </column>
                 <column>
-                    <name>comment</name>
-                    <path>output/comment</path>
-                    <display>
-                        <label/>
-                    </display>
+                    <name>certItemEditableComment</name>
                 </column>
                 <includeDefaultColumns>true</includeDefaultColumns>
                 <type>AccessCertificationWorkItemType</type>
