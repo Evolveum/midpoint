@@ -42,6 +42,10 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
 
     @Override
     public void setRequestCache(RequestCache requestCache) {
+        if (requestCache instanceof HttpSessionRequestCache httpSessionRequestCache) {
+            httpSessionRequestCache.setMatchingRequestParameterName(null);
+        }
+
         super.setRequestCache(requestCache);
         this.requestCache = requestCache;
     }
