@@ -20,6 +20,7 @@ import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 
 import java.io.Serial;
 import java.util.ArrayList;
@@ -34,6 +35,8 @@ public class CertificationItemsTabbedPanel extends BasePanel<PrismObjectWrapper<
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TABBED_PANEL = "tabbedPanel";
 
+    LoadableDetachableModel<List<ITab>> tabsModel;
+
     public CertificationItemsTabbedPanel(String id, IModel<PrismObjectWrapper<AccessCertificationCampaignType>> model) {
         super(id, model);
     }
@@ -41,8 +44,12 @@ public class CertificationItemsTabbedPanel extends BasePanel<PrismObjectWrapper<
     @Override
     protected void onInitialize() {
         super.onInitialize();
-
+        initTabsModel();
         initLayout();
+    }
+
+    private void initTabsModel() {
+        tabsModel = createTabsModel();
     }
 
     private void initLayout() {
@@ -50,14 +57,14 @@ public class CertificationItemsTabbedPanel extends BasePanel<PrismObjectWrapper<
         mainForm.setOutputMarkupId(true);
         add(mainForm);
 
-        IModel<List<ITab>> tabs = createTabsModel();
-        TabbedPanel<ITab> tabbedPanel = WebComponentUtil.createTabPanel(ID_TABBED_PANEL, getPageBase(), tabs.getObject(), null);
+        TabbedPanel<ITab> tabbedPanel = WebComponentUtil.createTabPanel(ID_TABBED_PANEL, getPageBase(), tabsModel.getObject(), null);
         tabbedPanel.add(new VisibleBehaviour(() -> or0(getCampaign().getStageNumber()) > 0));
+        selectCurrentStageTabPanel(tabbedPanel);
         mainForm.add(tabbedPanel);
     }
 
-    private LoadableModel<List<ITab>> createTabsModel() {
-        return new LoadableModel<>(true) {
+    private LoadableDetachableModel<List<ITab>> createTabsModel() {
+        return new LoadableDetachableModel<>() {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -91,5 +98,12 @@ public class CertificationItemsTabbedPanel extends BasePanel<PrismObjectWrapper<
 
     private AccessCertificationCampaignType getCampaign() {
         return getModelObject().getObject().asObjectable();
+    }
+
+    private void selectCurrentStageTabPanel(TabbedPanel<ITab> tabbedPanel) {
+        int currentStage = getCampaign().getStageNumber();
+        if (currentStage > 0 && currentStage <= tabbedPanel.getTabs().getObject().size()) {
+            tabbedPanel.setSelectedTab(currentStage - 1);
+        }
     }
 }
