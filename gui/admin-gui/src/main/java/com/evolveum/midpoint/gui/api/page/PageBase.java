@@ -25,6 +25,7 @@ import org.apache.wicket.extensions.ajax.markup.html.modal.ModalDialog;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.feedback.FeedbackMessages;
 import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
@@ -146,6 +147,9 @@ public abstract class PageBase extends PageAdminLTE {
                     .title(getString("PageBase.nonActiveSubscription"))
                     .body(getString("PageBase.nonActiveSubscriptionAndGenericRepo"))
                     .show(response);
+        }
+        if (isUserStatusVisible()) {
+            response.render(OnDomReadyHeaderItem.forScript("MidPointTheme.initPushMenuButton();"));
         }
     }
 
@@ -513,7 +517,11 @@ public abstract class PageBase extends PageAdminLTE {
     }
 
     private VisibleBehaviour createUserStatusBehaviour() {
-        return new VisibleBehaviour(() -> !isErrorPage() && isSideMenuVisible());
+        return new VisibleBehaviour(() -> isUserStatusVisible());
+    }
+
+    private boolean isUserStatusVisible() {
+        return !isErrorPage() && isSideMenuVisible();
     }
 
     protected boolean isSideMenuVisible() {
