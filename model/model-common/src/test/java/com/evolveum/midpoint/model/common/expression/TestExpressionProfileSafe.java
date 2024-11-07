@@ -67,6 +67,8 @@ public class TestExpressionProfileSafe extends TestExpression {
         assertScriptExecutionIncrement(0);
     }
 
+    // test156 is skipped
+
     @Test
     @Override
     public void test160ScriptJavaScript() throws Exception {

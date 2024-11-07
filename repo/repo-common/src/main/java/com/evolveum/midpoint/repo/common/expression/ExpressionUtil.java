@@ -14,6 +14,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.impl.DefaultReferencableImpl;
 import com.evolveum.midpoint.prism.util.*;
 import com.evolveum.midpoint.task.api.ExpressionEnvironment;
 import groovy.lang.GString;
@@ -380,7 +381,16 @@ public class ExpressionUtil {
         } else if (value instanceof PrismPropertyValue<?> ppv) {
             return ppv.getValue();
         } else if (value instanceof PrismReferenceValue prv) {
-            return prv.asReferencable();
+            var candidate = prv.asReferencable();
+            if (candidate instanceof DefaultReferencableImpl) {
+                // We have to convert this to ObjectReferenceType, see MID-10130
+                var ort = new ObjectReferenceType();
+                ort.setupReferenceValue(prv);
+                return ort;
+            } else {
+                // This is most probably ObjectReferenceType; but even if it's not, we don't want to touch it.
+                return candidate;
+            }
         } else {
             // Should we throw an exception here?
         }

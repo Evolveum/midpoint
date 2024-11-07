@@ -16,6 +16,8 @@ import java.util.stream.Collectors;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.validation.Validator;
 
+import com.evolveum.midpoint.prism.Referencable;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -55,6 +57,16 @@ public class TestMisc extends AbstractMiscTest {
     private static final File ROLE_SHIP_FILE = new File(TEST_DIR, "role-ship.xml");
     private static final String ROLE_SHIP_OID = "bbd19b9a-d511-11e7-8bf7-cfecde275e59";
 
+    private static final TestObject<?> ORG_ROOT = TestObject.file(
+            TEST_DIR, "org-root.xml", "0fec8f6d-4034-4202-b6e7-317cf87545ea");
+
+    private static final TestObject<?> TEMPLATE_SCRIPTED = TestObject.file(
+            TEST_DIR, "template-scripted.xml", "de691036-ecb0-4fce-9823-2393bcff3cbd");
+    private static final TestObject<?> ARCHETYPE_SCRIPTED = TestObject.file(
+            TEST_DIR, "archetype-scripted.xml", "357afd27-8462-43eb-8d1b-908bf623e0a0");
+    private static final TestObject<?> USER_SCRIPTED = TestObject.file(
+            TEST_DIR, "user-scripted.xml", "167cb7a4-f3be-4a8a-9d90-bb049e82da04");
+
     private static final TestObject<ArchetypeType> ARCHETYPE_NODE_GROUP_GUI = TestObject.file(TEST_DIR, "archetype-node-group-gui.xml", "05b6933a-b7fc-4543-b8fa-fd8b278ff9ee");
 
     protected static final File RESOURCE_SCRIPTY_FILE = new File(TEST_DIR, "resource-dummy-scripty.xml");
@@ -80,6 +92,9 @@ public class TestMisc extends AbstractMiscTest {
 
         importObjectFromFile(ROLE_SHIP_FILE);
         repoAdd(ARCHETYPE_NODE_GROUP_GUI, initResult);
+
+        initTestObjects(initTask, initResult,
+                ORG_ROOT, TEMPLATE_SCRIPTED, ARCHETYPE_SCRIPTED);
     }
 
     @Test
@@ -687,5 +702,29 @@ public class TestMisc extends AbstractMiscTest {
                 .collect(Collectors.toSet());
         assertThat(localNodeGroups).as("local node groups")
                 .containsExactlyInAnyOrder(ARCHETYPE_NODE_GROUP_GUI.oid);
+    }
+
+    /**
+     * This checks that only proper {@link Referencable} instances (like {@link ObjectReferenceType}) are passed to scripts.
+     *
+     * See MID-10130.
+     */
+    @Test
+    public void test710ReferenceVariableOnUserAdd() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("a user");
+        addObject(USER_SCRIPTED, task, result);
+
+        when("user is assigned to an org");
+        assignOrg(USER_SCRIPTED.oid, ORG_ROOT.oid, task, result);
+
+        then();
+        assertSuccess(result);
+
+        assertUserAfter(USER_SCRIPTED.oid)
+                .assertOrganizationalUnits("add:null", "modify:ObjectReferenceType");
     }
 }

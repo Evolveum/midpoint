@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2013-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+  <expression xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <script>
+        <code>
+            fooRef.class.simpleName
+        </code>
+    </script>
+</expression>

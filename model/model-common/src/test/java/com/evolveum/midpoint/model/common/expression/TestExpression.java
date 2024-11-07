@@ -71,12 +71,15 @@ public class TestExpression extends AbstractModelCommonTest {
     protected static final File EXPRESSION_SCRIPT_GROOVY_SIMPLE_FILE = new File(TEST_DIR, "expression-script-groovy-simple.xml");
     protected static final File EXPRESSION_SCRIPT_GROOVY_SYSTEM_ALLOW_FILE = new File(TEST_DIR, "expression-script-groovy-system-allow.xml");
     protected static final File EXPRESSION_SCRIPT_GROOVY_SYSTEM_DENY_FILE = new File(TEST_DIR, "expression-script-groovy-system-deny.xml");
+    protected static final File EXPRESSION_SCRIPT_GROOVY_REF_FILE = new File(TEST_DIR, "expression-script-groovy-ref.xml");
     protected static final File EXPRESSION_SCRIPT_JAVASCRIPT_FILE = new File(TEST_DIR, "expression-script-javascript.xml");
 
     protected static final String VAR_FOO_NAME = "foo";
     protected static final String VAR_FOO_VALUE = "F00";
     protected static final String VAR_BAR_NAME = "bar";
     protected static final String VAR_BAR_VALUE = "B4R";
+    protected static final String VAR_FOO_REF_NAME = "fooRef";
+    protected static final String VAR_FOO_REF_VALUE = "0d3dd30e-260a-41be-af34-d9ca50a2be79";
     protected static final String INPUT_VALUE = "garbage in";
     protected static final String GROOVY_SCRIPT_OUTPUT_SUCCESS = "SUCCESS";
 
@@ -290,6 +293,36 @@ public class TestExpression extends AbstractModelCommonTest {
         assertScriptExecutionIncrement(1);
     }
 
+    /** Checks that reference values are represented as {@link ObjectReferenceType}s in scripts. MID-10130 */
+    @Test
+    public void test156ScriptGroovyRef() throws Exception {
+
+        skipTestIf(getExpressionProfile() != null, "Test is not profile-safe (.class call is restricted)");
+
+        // GIVEN
+        OperationResult result = createOperationResult();
+
+        rememberScriptExecutionCount();
+
+        ExpressionType expressionType = parseExpression(EXPRESSION_SCRIPT_GROOVY_REF_FILE);
+        Collection<Source<?, ?>> sources = prepareStringSources();
+        VariablesMap variables = prepareBasicVariables();
+        var expressionContext = new ExpressionEvaluationContext(sources, variables, getTestNameShort(), createTask());
+
+        // WHEN
+        PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
+                evaluatePropertyExpression(expressionType, PrimitiveType.STRING, expressionContext, result);
+
+        // THEN
+        assertOutputTriple(outputTriple)
+                .assertEmptyMinus()
+                .assertEmptyPlus()
+                .zeroSet()
+                .assertSinglePropertyValue(ObjectReferenceType.class.getSimpleName());
+
+        assertScriptExecutionIncrement(1);
+    }
+
     @Test
     public void test160ScriptJavaScript() throws Exception {
         skipIfEcmaScriptEngineNotSupported();
@@ -384,6 +417,10 @@ public class TestExpression extends AbstractModelCommonTest {
         variables.put(ExpressionConstants.VAR_FOCUS, user, user.getDefinition());
         variables.put(VAR_FOO_NAME, VAR_FOO_VALUE, String.class);
         variables.put(VAR_BAR_NAME, VAR_BAR_VALUE, String.class);
+
+        var fooRefValue = prismContext.itemFactory().createReferenceValue(VAR_FOO_REF_VALUE, OrgType.COMPLEX_TYPE);
+        variables.put(VAR_FOO_REF_NAME, fooRefValue, Referencable.class);
+
         return variables;
     }
 
