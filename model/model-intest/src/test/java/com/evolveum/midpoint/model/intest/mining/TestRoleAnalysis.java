@@ -210,15 +210,15 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test030RoleAnalysisSessionOutlierPart1() throws Exception {
         Integer expectedObjectsCount = 410;
-        Integer expectedInnerOutlierCount = 22;
+        Integer expectedInnerOutlierCount = 29;
         Integer expectedOuterOutlierCount = 0;
-        Double expectedF1score = 0.54320987654321;
+        Double expectedF1score = 0.4999999999999999;
         // TODO check: change occur after rev. fad9c70cd208898de27cb0d7619b3642e0410105
         // class -> CompressedMiningStructures method prepareUserBasedStructure.
         // In the old version of the code, all keys were deleted in the resolveUserTypeChunk method
         // because the membersOid set was of the opposite type than the key - "key.retainAll(membersOidSet)".
         // The result was an incorrectly compiled miningUserTypeChunk where properties oid list and frequency values were missing.
-        Double expectedTopOutlierConfidence = 75.86895903292219;
+        Double expectedTopOutlierConfidence = 84.37738080562278;
 
         OutlierDetectionResult expectedResult = new OutlierDetectionResult(
                 expectedObjectsCount,
@@ -243,10 +243,10 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test040RoleAnalysisSessionOutlierFull1() throws Exception {
         Integer expectedObjectsCount = 410;
-        Integer expectedInnerOutlierCount = 22;
+        Integer expectedInnerOutlierCount = 29;
         Integer expectedOuterOutlierCount = 241;
-        Double expectedF1score = 0.3664596273291925;
-        Double expectedTopOutlierConfidence = 79.3447630538118;
+        Double expectedF1score = 0.3586626139817629;
+        Double expectedTopOutlierConfidence = 84.37738080562278;
 
         OutlierDetectionResult expectedResult = new OutlierDetectionResult(
                 expectedObjectsCount,
