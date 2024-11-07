@@ -37,7 +37,7 @@ public class CertificationItemsTabbedPanel extends BasePanel<PrismObjectWrapper<
 
     LoadableDetachableModel<List<ITab>> tabsModel;
 
-    public CertificationItemsTabbedPanel(String id, IModel<PrismObjectWrapper<AccessCertificationCampaignType>> model) {
+    public CertificationItemsTabbedPanel(String id, LoadableDetachableModel<PrismObjectWrapper<AccessCertificationCampaignType>> model) {
         super(id, model);
     }
 
@@ -46,10 +46,6 @@ public class CertificationItemsTabbedPanel extends BasePanel<PrismObjectWrapper<
         super.onInitialize();
         initTabsModel();
         initLayout();
-    }
-
-    private void initTabsModel() {
-        tabsModel = createTabsModel();
     }
 
     private void initLayout() {
@@ -63,8 +59,8 @@ public class CertificationItemsTabbedPanel extends BasePanel<PrismObjectWrapper<
         mainForm.add(tabbedPanel);
     }
 
-    private LoadableDetachableModel<List<ITab>> createTabsModel() {
-        return new LoadableDetachableModel<>() {
+    private void initTabsModel() {
+        tabsModel = new LoadableDetachableModel<>() {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -105,5 +101,14 @@ public class CertificationItemsTabbedPanel extends BasePanel<PrismObjectWrapper<
         if (currentStage > 0 && currentStage <= tabbedPanel.getTabs().getObject().size()) {
             tabbedPanel.setSelectedTab(currentStage - 1);
         }
+    }
+
+
+    @Override
+    protected void onDetach() {
+        tabsModel.detach();
+        getModel().detach();
+
+        super.onDetach();
     }
 }

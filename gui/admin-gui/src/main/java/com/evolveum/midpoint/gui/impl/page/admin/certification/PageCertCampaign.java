@@ -11,7 +11,6 @@ import java.io.Serial;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.component.CampaignActionButton;
@@ -78,6 +77,7 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
     private static final String OPERATION_LOAD_RUNNING_TASK = DOT_CLASS + "loadRunningTask";
 
     private LoadableDetachableModel<String> buttonLabelModel;
+    private LoadableDetachableModel<AccessCertificationCampaignType> campaignModel;
 
     private String runningTaskOid;
 
@@ -93,6 +93,11 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
     @Override
     protected void onInitialize() {
         super.onInitialize();
+    }
+
+    protected void initLayout() {
+        initCampaignModel();
+        super.initLayout();
     }
 
     private void initRunningTaskOid() {
@@ -181,7 +186,7 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
         buttonLabelModel = getActionButtonTitleModel();
 
         CampaignActionButton actionButton = new CampaignActionButton(rightButtonsView.newChildId(), PageCertCampaign.this,
-                getCampaignModel(), buttonLabelModel, runningTaskOid) {
+                campaignModel, buttonLabelModel, runningTaskOid) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -202,13 +207,13 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
         rightButtonsView.add(actionButton);
     }
 
-    private LoadableDetachableModel<AccessCertificationCampaignType> getCampaignModel() {
-        return new LoadableDetachableModel<>() {
+    private void initCampaignModel() {
+        campaignModel = new LoadableDetachableModel<>() {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected AccessCertificationCampaignType load() {
-                return getModelObjectType();
+                return getModelPrismObject().asObjectable();
             }
         };
     }
@@ -338,6 +343,7 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
 
     public void refresh(AjaxRequestTarget target, boolean soft) {
         getObjectDetailsModels().reset();
+        campaignModel.detach();
         if (getSummaryPanel() != null) {
             target.add(getSummaryPanel());
         }
@@ -351,5 +357,6 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
             target.add(get(ID_DETAILS_VIEW));
         }
         refreshTitle(target);
+        replacePanel(findDefaultConfiguration(), target);
     }
 }
