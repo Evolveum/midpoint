@@ -496,8 +496,10 @@ public class RoleAnalysisServiceUtils {
         } else {
             filter = filter
                     .and()
+                    .block()
                     .ref(AssignmentType.F_TARGET_REF)
-                    .type(RoleType.class);
+                    .type(RoleType.class)
+                    .endBlock();
         }
 
         if (assignmentFilter != null) {
@@ -588,8 +590,10 @@ public class RoleAnalysisServiceUtils {
         } else {
             filter = filter
                     .and()
+                    .block()
                     .ref(AssignmentType.F_TARGET_REF)
-                    .type(RoleType.class);
+                    .type(RoleType.class)
+                    .endBlock();
         }
 
         if (assignmentFilter != null) {
@@ -639,8 +643,10 @@ public class RoleAnalysisServiceUtils {
         } else {
             filter = filter
                     .and()
+                    .block()
                     .ref(AssignmentType.F_TARGET_REF)
-                    .type(RoleType.class);
+                    .type(RoleType.class)
+                    .endBlock();
         }
 
         if (assignmentFilter != null) {

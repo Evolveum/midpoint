@@ -179,6 +179,12 @@ public class OutlierClusterItemPanel<T extends Serializable>
                     .oid(element).type(UserType.COMPLEX_TYPE));
         }
 
+        cluster.setRoleAnalysisSessionRef(
+                new ObjectReferenceType()
+                        .type(RoleAnalysisSessionType.COMPLEX_TYPE)
+                        .oid(sessionOid)
+                        .targetName(session.getName()));
+
         UserAnalysisSessionOptionType userModeOptions = session.getUserModeOptions();
         SearchFilterType userSearchFilter = userModeOptions.getUserSearchFilter();
         SearchFilterType roleSearchFilter = userModeOptions.getRoleSearchFilter();
@@ -208,11 +214,6 @@ public class OutlierClusterItemPanel<T extends Serializable>
             roleAnalysisService.resolveOutliersZScore(roles, standardDeviation, sensitivity, frequencyThreshold);
         }
 
-        cluster.setRoleAnalysisSessionRef(
-                new ObjectReferenceType()
-                        .type(RoleAnalysisSessionType.COMPLEX_TYPE)
-                        .oid(sessionOid)
-                        .targetName(session.getName()));
         cluster.setClusterStatistics(new AnalysisClusterStatisticType()
                 .rolesCount(roles.size())
                 .usersCount(similarObjectOids.size()));
