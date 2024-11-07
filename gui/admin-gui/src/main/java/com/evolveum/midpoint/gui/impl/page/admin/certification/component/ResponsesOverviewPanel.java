@@ -9,13 +9,10 @@ package com.evolveum.midpoint.gui.impl.page.admin.certification.component;
 
 import java.io.Serial;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.CertificationDetailsModel;
 
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.AvailableResponses;
@@ -23,9 +20,9 @@ import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscU
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -42,9 +39,6 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertificationItemResponseHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.DELEGATE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.values;
 
 @PanelType(name = "certResponses")
 @PanelInstance(identifier = "certResponses",
@@ -256,7 +250,13 @@ public class ResponsesOverviewPanel extends AbstractObjectMainPanel<AccessCertif
     }
 
     private void addOrReplaceCertItemsTabbedPanel() {
-        CertificationItemsTabbedPanel items = new CertificationItemsTabbedPanel(ID_ITEMS_TABBED_PANEL, getObjectWrapperModel());
+        CertificationItemsTabbedPanel items = new CertificationItemsTabbedPanel(ID_ITEMS_TABBED_PANEL,
+                new LoadableDetachableModel<PrismObjectWrapper<AccessCertificationCampaignType>>() {
+                    @Override
+                    protected PrismObjectWrapper<AccessCertificationCampaignType> load() {
+                        return getObjectWrapper();
+                    }
+                });
         items.setOutputMarkupId(true);
         addOrReplace(items);
     }
