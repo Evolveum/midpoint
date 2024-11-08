@@ -822,6 +822,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:ObjectType</a:objectReferenceTargetType>
+                        <a:displayName>AccessCertificationCaseType.objectRef</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -833,6 +834,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:ObjectType</a:objectReferenceTargetType>
+                        <a:displayName>AccessCertificationCaseType.targetRef</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

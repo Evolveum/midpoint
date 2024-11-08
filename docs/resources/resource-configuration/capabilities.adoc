@@ -211,3 +211,32 @@ primary object class.
 |TestConnectionCapabilityType
 |Describes capability to test connection to the resource once the connector is configured.
 |===
+
+=== Behavior Capability
+
+The `BehaviorCapabilityType` is a container for various behavior-related capabilities.
+Currently, it contains only one capability `lastLoginTimestamp`.
+
+==== Last Login Timestamp Capability
+
+As name suggest, last login timestamp provides timestamp of last login for specific object on resource, most often account.
+This capability is natively recognized by midPoint if the resource object has attribute with name `\_LAST_LOGIN_DATE_` attribute (`long`).
+
+Last login timestamp capability can be also manually configured to point to different attribute using `attribute` element.
+It also allows to specify whether such attribute should be listed or omitted in attributes via `ignoreAttribute` flag.
+
+.Example of configured last login timestamp capability
+[source,xml]
+----
+<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+              xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+    <configured>
+        <cap:behavior>
+            <cap:lastLoginTimestamp>
+                <cap:attribute>ri:myLastLoginTimestampAttributeName</cap:attribute>
+                <cap:ignoreAttribute>true</cap:ignoreAttribute>
+            </cap:lastLoginTimestamp>
+        </cap:behavior>
+    </configured>
+</capabilities>
+----
