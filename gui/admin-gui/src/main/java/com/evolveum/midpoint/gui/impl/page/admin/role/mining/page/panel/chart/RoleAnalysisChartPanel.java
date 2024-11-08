@@ -518,8 +518,8 @@ public class RoleAnalysisChartPanel extends BasePanel<String> implements Popupab
                 loadUserModeMapStatistics().forEach((key, value) -> roleAnalysisModels.add(new RoleAnalysisModel(key, value)));
             } else {
                 loadUserModeMapStatistics().forEach((key, value) -> {
-                    for (int i = 0; i < key; i++) {
-                        roleAnalysisModels.add(new RoleAnalysisModel(1, value));
+                    for (int i = 0; i < value; i++) {
+                        roleAnalysisModels.add(new RoleAnalysisModel(key, 1));
                     }
                 });
             }
