@@ -46,7 +46,7 @@ public abstract class AjaxIconButton extends AjaxLink<String> {
     protected void onInitialize() {
         super.onInitialize();
 
-        if (title != null) {
+        if (title != null && !showTitleAsLabel) {
             add(AttributeModifier.replace("title", title));
         }
     }
