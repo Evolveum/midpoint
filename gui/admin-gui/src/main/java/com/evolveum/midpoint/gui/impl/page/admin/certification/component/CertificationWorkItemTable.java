@@ -93,27 +93,32 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
     @Override
     protected IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String> createCheckboxColumn() {
         if (!isPreview()) {
-            try {
-                OperationResult result = new OperationResult(OPERATION_LOAD_MULTISELECT_CONFIG);
-                var accessCertConfig = getPageBase().getModelInteractionService().getCertificationConfiguration(result);
-                if (accessCertConfig == null) {
-                    return new CheckBoxColumn<>(null);
-                }
-                MultiselectOptionType multiselect = accessCertConfig.getMultiselect();
-                if (multiselect == null) {
-                    return new CheckBoxColumn<>(null);
-                }
-                return switch (multiselect) {
-                    case NO_SELECT -> null;
-                    case SELECT_ALL -> new CheckBoxHeaderColumn<>();
-                    case SELECT_INDIVIDUAL_ITEMS -> new CheckBoxColumn<>(null);
-                };
-            } catch (Exception e) {
-                LOGGER.error("Couldn't load multiselect configuration for certification items", e);
-                return new CheckBoxHeaderColumn<>();
-            }
+            MultiselectOptionType multiselectOption = loadMultiselectConfig();
+            return switch (multiselectOption) {
+                case NO_SELECT -> null;
+                case SELECT_ALL -> new CheckBoxHeaderColumn<>();
+                case SELECT_INDIVIDUAL_ITEMS -> new CheckBoxColumn<>(null);
+            };
         }
         return null;
+    }
+
+    private MultiselectOptionType loadMultiselectConfig() {
+        try {
+            OperationResult result = new OperationResult(OPERATION_LOAD_MULTISELECT_CONFIG);
+            var accessCertConfig = getPageBase().getModelInteractionService().getCertificationConfiguration(result);
+            if (accessCertConfig == null) {
+                return MultiselectOptionType.SELECT_INDIVIDUAL_ITEMS;
+            }
+            MultiselectOptionType multiselect = accessCertConfig.getMultiselect();
+            if (multiselect == null) {
+                return MultiselectOptionType.SELECT_INDIVIDUAL_ITEMS;
+            }
+            return multiselect;
+        } catch (Exception e) {
+            LOGGER.error("Couldn't load multiselect configuration for certification items", e);
+            return MultiselectOptionType.SELECT_INDIVIDUAL_ITEMS;
+        }
     }
 
     @Override
@@ -187,6 +192,12 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
                 protected List<AccessCertificationWorkItemType> getSelectedItems() {
                     return getSelectedRealObjects();
                 }
+
+                @Override
+                protected boolean showHeaderActions() {
+                    return !MultiselectOptionType.NO_SELECT.equals(loadMultiselectConfig());
+                }
+
             };
         }
         return null;
