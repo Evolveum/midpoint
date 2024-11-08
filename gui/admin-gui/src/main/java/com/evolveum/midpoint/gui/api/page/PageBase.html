@@ -30,8 +30,8 @@
                 <i id="ajax_busy" class="fas fa-sync fa-spin fa-lg" style="visibility: hidden;"></i>
             </div>
             <div class="navbar-right">
-                <div class="nav-item d-none d-md-inline" style="min-width: 0; width: 100%">
-                    <ol class="breadcrumb d-none d-xl-flex justify-content-end p-0" wicket:message="aria-label:PageBase.breadcrumb" role="navigation" style="width: 100%; overflow: hidden;">
+                <div class="nav-item d-none d-md-inline" style="min-width: 0; width: 100%" wicket:message="aria-label:PageBase.breadcrumb" role="navigation">
+                    <ol class="breadcrumb d-none d-xl-flex justify-content-end p-0" style="width: 100%; overflow: hidden;">
                         <li wicket:id="breadcrumb" style="padding: 5px;">
                             <a wicket:id="bcLink">
                                 <i wicket:id="bcIcon"></i>&nbsp;
@@ -69,7 +69,7 @@
                     <wicket:enclosure child="logoutForm">
                         <li class="nav-item" role="menuitem">
                             <form method="post" wicket:id="logoutForm">
-                                <button type="submit" class="btn btn-link nav-link" wicket:message="title:PageBase.logout">
+                                <button type="submit" class="btn btn-link nav-link" wicket:message="title:PageBase.logout,aria-label:PageBase.logout">
                                     <i class="fas fa-power-off"></i>
                                 </button>
                             </form>

@@ -106,7 +106,9 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
         });
 
         if (filteredMenuItems.isEmpty()) {
-            return new Label(componentId); //this is hack, TODO: cleanup and refactor soif there aren't any inline (row) actions, nothing is displayed
+            Label label = new Label(componentId, pageBase.createStringResource("InlineMenuButtonColumn.header")); //this is hack, TODO: cleanup and refactor soif there aren't any inline (row) actions, nothing is displayed
+            label.add(AttributeAppender.append("class", "sr-only"));
+            return label;
         }
 
         return new MenuMultiButtonPanel<T>(componentId, rowModel, buttonMenuItems.size(), Model.ofList(filteredMenuItems)) {

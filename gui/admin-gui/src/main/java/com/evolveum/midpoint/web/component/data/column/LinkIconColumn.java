@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
+import com.evolveum.midpoint.gui.impl.component.data.column.icon.AbstractIconColumn;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -19,7 +21,7 @@ import java.io.Serializable;
 /**
  * @author lazyman
  */
-public class LinkIconColumn<T extends Serializable> extends AbstractColumn<T, String> {
+public class LinkIconColumn<T extends Serializable> extends AbstractIconColumn<T, String> {
 
     public LinkIconColumn(IModel<String> displayModel) {
         super(displayModel);
