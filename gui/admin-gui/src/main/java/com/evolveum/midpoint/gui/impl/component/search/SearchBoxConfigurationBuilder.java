@@ -81,7 +81,9 @@ public class SearchBoxConfigurationBuilder {
                 SimulationResultProcessedObjectType.F_STATE
         ));
         FIXED_SEARCH_ITEMS.put(AccessCertificationWorkItemType.class, Arrays.asList(
-                ItemPath.create(AccessCertificationWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME)
+                ItemPath.create(AccessCertificationWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME),
+                ItemPath.create(PrismConstants.T_PARENT, AccessCertificationCaseType.F_OBJECT_REF),
+                ItemPath.create(PrismConstants.T_PARENT, AccessCertificationCaseType.F_TARGET_REF)
         ));
         FIXED_SEARCH_ITEMS.put(AccessCertificationCaseType.class, List.of(
                 ItemPath.create(AccessCertificationCaseType.F_CURRENT_STAGE_OUTCOME)
