@@ -8,11 +8,16 @@
 package com.evolveum.midpoint.web.component.data.column;
 
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.impl.component.data.column.icon.AbstractIconColumn;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.IExportableColumn;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -20,7 +25,7 @@ import org.apache.wicket.model.Model;
 /**
  * @author lazyman
  */
-public abstract class IconColumn<T> extends AbstractColumn<T, String> {//implements IExportableColumn<T, String> {
+public abstract class IconColumn<T> extends AbstractIconColumn<T, String> {//implements IExportableColumn<T, String> {
     private static final long serialVersionUID = 1L;
 
     public IconColumn(IModel<String> displayModel) {
