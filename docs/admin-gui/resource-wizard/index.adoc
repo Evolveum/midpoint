@@ -36,6 +36,9 @@ There are the following possibilities:
 . *From Scratch* - you will need to configure all aspects of the resource
 . *Copy From Template* - the new resource will be based on a pre-existing resource template. The new resource will be created as a copy of that template.
 
+NOTE: A resource template is marked as such by setting the `template` property to `true`.
+See xref:/midpoint/reference/resources/resource-configuration/inheritance/[] for more information.
+
 image::step-1-type-of-resource.png[link=step-1-type-of-resource.png,100%, title=Type of resource]
 
 Selecting *From Scratch* option leads to a Resource catalog page:
