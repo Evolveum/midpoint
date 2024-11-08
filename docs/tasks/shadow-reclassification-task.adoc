@@ -6,7 +6,7 @@
 
 After a xref:/midpoint/reference/resources/shadow/[shadow object] is discovered on a resource, midPoint tries to assign a kind and an intent to it, or _classify_ it.
 Kind and intent define the type of the object from midPoint's point of view.
-(For more information, see xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[]).
+(For more information, see xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[].)
 Only after being classified, midPoint can reasonably work with the shadow: create or find a focus object for it, execute inbound and outbound mappings, and so on.
 
 MidPoint uses xref:/midpoint/reference/resources/resource-configuration/schema-handling/#_delineation[object type delineation] in order to classify the shadows.
@@ -79,12 +79,21 @@ As said above, midPoint never reclassifies shadows on its own.
 
 There is only a single exception to this rule:
 It the current type of a shadow (defined by kind and intent) no longer exists in the resource definition.
-This is the situation in which midPoint considers it to be quite safe to do the reclassification.
+This is the situation in which midPoint considers it to be quite safe to do the reclassification; mainly because the reclassification is probably no worse than keeping a reference to non-existing type.
 
 Such a situation can occur typically when you change the intent of the existing object type.
 In this case, reclassification will be automatically executed when reading shadows of that type from the resource.
-*If* the classification rules provide the new intent to all of original members of the object type, many of the problems mentioned above will not occur - *except* for the provenance metadata related ones.
-Hence, it is strongly advisable to avoid renaming intents carelessly.
+If the classification rules provide the new intent to all of original members of the object type, many of the problems mentioned above will not occur - except for the provenance metadata related ones.
+*Hence, it is strongly advisable to avoid renaming intents (in this way) carelessly.*
+
+== Limitations
+
+There are no known direct limitations of this feature.
+
+Nevertheless, be wary when specifying kind and intent in the query by which you select shadows that are to be reclassified:
+The query will get translated to the *current* delineation of shadows for given kind and intent; not covering all shadows currently marked by that kind/intent in the repository.
+Hence, specifying kind/intent may or may not provide the results you expect.
+It is safer to specify shadows via their object class, optionally with an attribute-based filter.
 
 == See Also
 
@@ -92,4 +101,4 @@ Hence, it is strongly advisable to avoid renaming intents carelessly.
 
 * xref:/midpoint/reference/tasks/activities/work/[]
 
-* xref:/midpoint/reference/simulation/tutorial/#_reclassification[Simulation Tutorial, Step HR-3: Change the Definition of the Object Type]
+* xref:/midpoint/reference/simulation/tutorial/#_reclassification['Simulation Tutorial, Step HR-3: Change the Definition of the Object Type']
