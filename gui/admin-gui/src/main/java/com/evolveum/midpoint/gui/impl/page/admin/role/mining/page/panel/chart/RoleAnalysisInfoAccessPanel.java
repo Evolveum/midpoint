@@ -19,13 +19,14 @@ import java.io.IOException;
 import java.io.Serial;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.ChartType;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -57,7 +58,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisM
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTableItem;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
 import com.evolveum.midpoint.prism.path.ParentPathSegment;
@@ -76,13 +76,11 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.PageDebugDow
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.wicket.chartjs.ChartConfiguration;
 import com.evolveum.wicket.chartjs.ChartJsPanel;
+
+import javax.xml.namespace.QName;
 
 public class RoleAnalysisInfoAccessPanel extends BasePanel<String> implements Popupable {
 
@@ -520,7 +518,13 @@ public class RoleAnalysisInfoAccessPanel extends BasePanel<String> implements Po
     @NotNull
     private SearchResultList<PrismContainerValue<?>> loadAggregateStatistics() {
         RepositoryService repositoryService = getPageBase().getRepositoryService();
+        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
         OperationResult result = new OperationResult(OP_LOAD_STATISTICS);
+
+        Collection<QName> memberRelations = getPageBase().getRelationRegistry()
+                .getAllRelationsFor(RelationKindType.MEMBER);
+
+        S_FilterExit filter = roleAnalysisService.buildStatisticsAssignmentSearchFilter(memberRelations);
 
         SearchResultList<PrismContainerValue<?>> aggregateResult = new SearchResultList<>();
 
@@ -528,10 +532,10 @@ public class RoleAnalysisInfoAccessPanel extends BasePanel<String> implements Po
         try {
             spec.retrieve(F_NAME, ItemPath.create(AssignmentType.F_TARGET_REF, new ObjectReferencePathSegment(), F_NAME))
                     .retrieve(AssignmentType.F_TARGET_REF)
-                    .filter(PrismContext.get().queryFor(AssignmentType.class).ownedBy(UserType.class, UserType.F_ASSIGNMENT)
-                            .and().ref(AssignmentType.F_TARGET_REF).type(RoleType.class).buildFilter())
+                    .filter(filter.buildFilter())
                     .count(F_ASSIGNMENT, ItemPath.SELF_PATH)
                     .groupBy(ItemPath.create(new ParentPathSegment(), F_ASSIGNMENT));
+
 
             AggregateQuery.ResultItem resultItem = spec.getResultItem(F_ASSIGNMENT);
             spec.orderBy(resultItem, OrderDirection.DESCENDING);

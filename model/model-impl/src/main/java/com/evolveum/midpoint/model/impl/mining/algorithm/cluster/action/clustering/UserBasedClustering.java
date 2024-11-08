@@ -82,7 +82,8 @@ public class UserBasedClustering implements Clusterable {
                 assignmentSearchFilter,
                 attributeAnalysisCache,
                 task,
-                result);
+                result,
+                session);
 
         handler.iterateActualStatus();
 

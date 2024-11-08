@@ -22,7 +22,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType.
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -35,6 +34,7 @@ import com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 
 import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
+import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.prism.query.builder.S_QueryExit;
 import com.evolveum.midpoint.repo.api.AggregateQuery;
 
@@ -101,6 +101,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     transient @Autowired ModelService modelService;
     transient @Autowired RepositoryService repositoryService;
     transient @Autowired SchemaService schemaService;
+    //poc
+    transient @Autowired RelationRegistry relationRegistry;
 
     private static final Integer RM_ITERATIVE_SEARCH_PAGE_SIZE = 10000;
 
@@ -568,10 +570,10 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
             try {
 
-                if (outlierPartitions == null || outlierPartitions.size() == 1) {
+                if (outlierPartitions == null || (outlierPartitions.size() == 1
+                        && outlierPartitions.get(0).getClusterRef().getOid().equals(cluster.getOid()))) {
                     repositoryService.deleteObject(RoleAnalysisOutlierType.class, outlierObject.getOid(), result);
                 } else {
-
                     RoleAnalysisOutlierPartitionType partitionToDelete = null;
 
                     double overallConfidence = 0;
@@ -2186,10 +2188,15 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     public int countUserOwnedRoleAssignment(OperationResult result) {
         int aggregateResult = 0;
         var spec = AggregateQuery.forType(AssignmentType.class);
+
+        Collection<QName> memberRelations = relationRegistry
+                .getAllRelationsFor(RelationKindType.MEMBER);
+
+        S_FilterExit filter = this.buildStatisticsAssignmentSearchFilter(memberRelations);
+
         try {
             spec.count(F_NAME, ItemPath.create(AssignmentType.F_TARGET_REF, new ObjectReferencePathSegment(), F_NAME))
-                    .filter(PrismContext.get().queryFor(AssignmentType.class).ownedBy(UserType.class, F_ASSIGNMENT)
-                            .and().ref(AssignmentType.F_TARGET_REF).type(RoleType.class).buildFilter())
+                    .filter(filter.buildFilter())
                     .count(F_ASSIGNMENT, ItemPath.SELF_PATH);
 
             aggregateResult = repositoryService.countAggregate(spec, result);
@@ -3070,9 +3077,10 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             List<String> outliersMembers,
             @Nullable SearchFilterType userSearchFilter,
             @NotNull OperationResult result,
-            @NotNull Task task) {
+            @NotNull Task task,
+            @NotNull RoleAnalysisSessionType sessionObject) {
         ListMultimap<List<String>, String> listStringListMultimap = this.prepareAssignmentChunkMapRolesAsKey(
-                userSearchFilter, null, null, RoleAnalysisProcessModeType.USER, null, task, result);
+                userSearchFilter, null, null, RoleAnalysisProcessModeType.USER, null, task, result, sessionObject);
 
         Iterator<Map.Entry<List<String>, String>> iterator = listStringListMultimap.entries().iterator();
         while (iterator.hasNext()) {
@@ -3435,11 +3443,32 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull RoleAnalysisProcessModeType processMode,
             @Nullable AttributeAnalysisCache attributeAnalysisCache,
             @NotNull Task task,
-            @NotNull OperationResult result) {
+            @NotNull OperationResult result,
+            @NotNull RoleAnalysisSessionType sessionObject) {
+
+        RoleAnalysisSessionStatisticType sessionStatistic = sessionObject.getSessionStatistic();
+        if (sessionStatistic == null) {
+            sessionStatistic = new RoleAnalysisSessionStatisticType();
+            sessionObject.setSessionStatistic(sessionStatistic);
+        }
+
+        addPocIfNeded(sessionStatistic);
+
+        switchSessionStatisticUnwantedAccessToCurrent(sessionStatistic);
+        //oids roles diff+ uniq+ anomaly
+        Set<String> unwantedAccess = getUnwantedAccesses(sessionStatistic);
+        boolean unwantedAccessNotSet = unwantedAccess.isEmpty();
+
+        Set<String> unwantedUsers = getUnwantedUsers(sessionStatistic);
+        boolean unwantedUsersNotSet = unwantedUsers.isEmpty();
+
+        int minAccessPopularity = getSessionAccessPopularityOptionsValue(sessionObject);
+        int minUserPopularity = getSessionMinUserPopularityOptionsValue(sessionObject);
+        int maxUserPopularity = getSessionMaxUserPopularityOptionsValue(sessionObject);
+
         Collection<SelectorOptions<GetOperationOptions>> options = getDefaultRmIterativeSearchPageSizeOptions();
         ObjectQuery membershipQuery = buildMembershipSearchObjectQuery(userObjectFiler, roleObjectFilter);
 
-        ListMultimap<String, String> userRolesMap = ArrayListMultimap.create();
         ListMultimap<String, String> roleMembersMap = ArrayListMultimap.create();
 
         boolean userMode = processMode.equals(RoleAnalysisProcessModeType.USER);
@@ -3469,11 +3498,15 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                 return true;
             }
 
-            roleMembersMap.put(roleOid, ownerOid.toString());
-
-            if (userMode) {
-                userRolesMap.put(ownerOid.toString(), roleOid);
+            if (!unwantedAccessNotSet && unwantedAccess.contains(roleOid)) {
+                return true;
             }
+
+            if (!unwantedUsersNotSet && unwantedUsers.contains(ownerOid.toString())) {
+                return true;
+            }
+
+            roleMembersMap.put(roleOid, ownerOid.toString());
 
             return true;
         };
@@ -3485,8 +3518,42 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             throw new SystemException("Couldn't search assignments", e);
         }
 
+        Set<String> nonPopularRoles = new HashSet<>();
+        roleMembersMap.keySet().forEach(roleOid -> {
+            if (roleMembersMap.get(roleOid).size() < minAccessPopularity) {
+                nonPopularRoles.add(roleOid);
+            }
+        });
+        sessionStatistic.getUniq().getUniqRolesNext().addAll(nonPopularRoles);
+        sessionStatistic.getUniq().setUniqRolesCurrentCount(nonPopularRoles.size());
+
+        ListMultimap<String, String> userRolesMap = ArrayListMultimap.create();
+        for (Map.Entry<String, String> entry : roleMembersMap.entries()) {
+            String roleOid = entry.getKey();
+            String ownerOid = entry.getValue();
+            userRolesMap.put(ownerOid, roleOid);
+        }
+
+        Set<String> nonPopularUsers = new HashSet<>();
+        userRolesMap.keys().forEach(userOid -> {
+            int size = userRolesMap.get(userOid).size();
+            if (maxUserPopularity > 0) {
+                if (size < minUserPopularity || size > maxUserPopularity) {
+                    nonPopularUsers.add(userOid);
+                }
+            } else {
+                if (size < minUserPopularity) {
+                    nonPopularUsers.add(userOid);
+                }
+            }
+
+        });
+        sessionStatistic.getUsers().getUsersNext().addAll(nonPopularUsers);
+        sessionStatistic.getUsers().setUsersCurrentCount(nonPopularUsers.size());
+
         if (attributeAnalysisCache != null) {
             attributeAnalysisCache.setRoleMemberCache(roleMembersMap);
+            attributeAnalysisCache.setUserMemberCache(userRolesMap);
         }
 
         if (userMode) {
@@ -3504,12 +3571,32 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull RoleAnalysisProcessModeType processMode,
             @Nullable AttributeAnalysisCache attributeAnalysisCache,
             @NotNull Task task,
-            @NotNull OperationResult result) {
+            @NotNull OperationResult result,
+            @NotNull RoleAnalysisSessionType sessionObject) {
+        int minAccessPopularity = getSessionAccessPopularityOptionsValue(sessionObject);
+        int minUserPopularity = getSessionMinUserPopularityOptionsValue(sessionObject);
+        int maxUserPopularity = getSessionMaxUserPopularityOptionsValue(sessionObject);
+
+        RoleAnalysisSessionStatisticType sessionStatistic = sessionObject.getSessionStatistic();
+        if (sessionStatistic == null) {
+            sessionStatistic = new RoleAnalysisSessionStatisticType();
+            sessionObject.setSessionStatistic(sessionStatistic);
+        }
+
+        addPocIfNeded(sessionStatistic);
+
+        switchSessionStatisticUnwantedAccessToCurrent(sessionStatistic);
+        //oids roles diff+ uniq+ anomaly
+        Set<String> unwantedAccess = getUnwantedAccesses(sessionStatistic);
+        boolean unwantedAccessNotSet = unwantedAccess.isEmpty();
+
+        Set<String> unwantedUsers = getUnwantedUsers(sessionStatistic);
+        boolean unwantedUsersNotSet = unwantedUsers.isEmpty();
+
         Collection<SelectorOptions<GetOperationOptions>> options = getDefaultRmIterativeSearchPageSizeOptions();
 
         ObjectQuery assignmentQuery = buildAssignmentSearchObjectQuery(userObjectFiler, roleObjectFilter, assignmentFilter);
 
-        ListMultimap<String, String> userRolesMap = ArrayListMultimap.create();
         ListMultimap<String, String> roleMembersMap = ArrayListMultimap.create();
 
         boolean userMode = processMode.equals(RoleAnalysisProcessModeType.USER);
@@ -3537,7 +3624,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             }
 
             String roleOid = targetRef.getOid();
-
             if (ownerOid == null) {
                 LOGGER.error("Owner oid retrieved null value during assignment search");
                 return true;
@@ -3548,11 +3634,15 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                 return true;
             }
 
-            roleMembersMap.put(roleOid, ownerOid.toString());
-
-            if (userMode) {
-                userRolesMap.put(ownerOid.toString(), roleOid);
+            if (!unwantedAccessNotSet && unwantedAccess.contains(roleOid)) {
+                return true;
             }
+
+            if (!unwantedUsersNotSet && unwantedUsers.contains(ownerOid.toString())) {
+                return true;
+            }
+
+            roleMembersMap.put(roleOid, ownerOid.toString());
 
             return true;
         };
@@ -3565,8 +3655,43 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             throw new SystemException("Couldn't search assignments", e);
         }
 
+        Set<String> nonPopularRoles = new HashSet<>();
+        roleMembersMap.keySet().forEach(roleOid -> {
+            if (roleMembersMap.get(roleOid).size() < minAccessPopularity) {
+                nonPopularRoles.add(roleOid);
+            }
+        });
+
+        sessionStatistic.getUniq().getUniqRolesNext().addAll(nonPopularRoles);
+        sessionStatistic.getUniq().setUniqRolesCurrentCount(nonPopularRoles.size());
+
+        ListMultimap<String, String> userRolesMap = ArrayListMultimap.create();
+        for (Map.Entry<String, String> entry : roleMembersMap.entries()) {
+            String roleOid = entry.getKey();
+            String ownerOid = entry.getValue();
+            userRolesMap.put(ownerOid, roleOid);
+        }
+
+        Set<String> nonPopularUsers = new HashSet<>();
+        userRolesMap.keys().forEach(userOid -> {
+            int size = userRolesMap.get(userOid).size();
+            if (maxUserPopularity > 0) {
+                if (size < minUserPopularity || size > maxUserPopularity) {
+                    nonPopularUsers.add(userOid);
+                }
+            } else {
+                if (size < minUserPopularity) {
+                    nonPopularUsers.add(userOid);
+                }
+            }
+
+        });
+        sessionStatistic.getUsers().getUsersNext().addAll(nonPopularUsers);
+        sessionStatistic.getUsers().setUsersCurrentCount(nonPopularUsers.size());
+
         if (attributeAnalysisCache != null) {
             attributeAnalysisCache.setRoleMemberCache(roleMembersMap);
+            attributeAnalysisCache.setUserMemberCache(userRolesMap);
         }
 
         if (userMode) {
@@ -3584,14 +3709,15 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull RoleAnalysisProcessModeType processMode,
             @Nullable AttributeAnalysisCache attributeAnalysisCache,
             @NotNull Task task,
-            @NotNull OperationResult result) {
+            @NotNull OperationResult result,
+            @NotNull RoleAnalysisSessionType sessionObject) {
 
         ObjectFilter userObjectFilter = transformSearchToObjectFilter(userSearchFiler, UserType.class);
         ObjectFilter roleObjectFilter = transformSearchToObjectFilter(roleSearchFiler, RoleType.class);
         ObjectFilter assignmentFilter = transformSearchToObjectFilter(assignmentSearchFiler, AssignmentType.class);
 
         ListMultimap<String, String> userRolesMap = assignmentSearch(
-                userObjectFilter, roleObjectFilter, assignmentFilter, processMode, attributeAnalysisCache, task, result);
+                userObjectFilter, roleObjectFilter, assignmentFilter, processMode, attributeAnalysisCache, task, result, sessionObject);
         ListMultimap<List<String>, String> compressedUsers = ArrayListMultimap.create();
 
         for (String userOid : userRolesMap.keySet()) {
@@ -3610,7 +3736,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull RoleAnalysisProcessModeType processMode,
             @Nullable AttributeAnalysisCache attributeAnalysisCache,
             @NotNull Task task,
-            @NotNull OperationResult result) {
+            @NotNull OperationResult result,
+            @NotNull RoleAnalysisSessionType sessionObject) {
 
         ObjectFilter userObjectFilter = transformSearchToObjectFilter(userSearchFiler, UserType.class);
         ObjectFilter roleObjectFilter = transformSearchToObjectFilter(roleSearchFiler, RoleType.class);
@@ -3618,7 +3745,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
         ListMultimap<String, String> userRolesMap = this.membershipSearch(
                 userObjectFilter, roleObjectFilter, assignmentFilter,
-                processMode, attributeAnalysisCache, task, result);
+                processMode, attributeAnalysisCache, task, result, sessionObject);
         ListMultimap<List<String>, String> compressedUsers = ArrayListMultimap.create();
 
         for (String userOid : userRolesMap.keySet()) {
@@ -3655,7 +3782,27 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull Set<String> roleMembers,
             boolean roleAsKey,
             @NotNull Task task,
-            @NotNull OperationResult result) {
+            @NotNull OperationResult result,
+            @NotNull RoleAnalysisClusterType clusterObject) {
+
+        RoleAnalysisSessionType sessionObject = null;
+        if (clusterObject.getRoleAnalysisSessionRef() != null) {
+            PrismObject<RoleAnalysisSessionType> prismSession = this.getSessionTypeObject(
+                    clusterObject.getRoleAnalysisSessionRef().getOid(), task, result);
+            if (prismSession != null) {
+                sessionObject = prismSession.asObjectable();
+            }
+        }
+
+        RoleAnalysisSessionStatisticType sessionStatistic = sessionObject.getSessionStatistic();
+
+        //oids roles diff+ uniq+ anomaly
+        Set<String> unwantedAccess = getUnwantedAccesses(sessionStatistic);
+        boolean unwantedAccessNotSet = unwantedAccess.isEmpty();
+
+        Set<String> unwantedUsers = getUnwantedUsers(sessionStatistic);
+        boolean unwantedUsersNotSet = unwantedUsers.isEmpty();
+
         Collection<SelectorOptions<GetOperationOptions>> options = getDefaultRmIterativeSearchPageSizeOptions();
 
         ObjectFilter userObjectFilter = transformSearchToObjectFilter(userSearchFiler, UserType.class);
@@ -3701,11 +3848,15 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                 return true;
             }
 
-            if (roleAsKey) {
-                roleMemberCache.put(roleOid, ownerOid.toString());
-            } else {
-                roleMemberCache.put(ownerOid.toString(), roleOid);
+            if (!unwantedAccessNotSet && unwantedAccess.contains(roleOid)) {
+                return true;
             }
+
+            if (!unwantedUsersNotSet && unwantedUsers.contains(ownerOid.toString())) {
+                return true;
+            }
+
+            roleMemberCache.put(roleOid, ownerOid.toString());
 
             return true;
         };
@@ -3717,8 +3868,17 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                 ExpressionEvaluationException | CommunicationException e) {
             throw new SystemException("Couldn't search assignments", e);
         }
-
-        return roleMemberCache;
+        if (roleAsKey) {
+            return roleMemberCache;
+        } else {
+            ListMultimap<String, String> userRolesMap = ArrayListMultimap.create();
+            for (Map.Entry<String, String> entry : roleMemberCache.entries()) {
+                String roleOid = entry.getKey();
+                String ownerOid = entry.getValue();
+                userRolesMap.put(ownerOid, roleOid);
+            }
+            return userRolesMap;
+        }
     }
 
     @Override
@@ -3729,7 +3889,27 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull Set<String> userMembers,
             boolean userAsKey,
             @NotNull Task task,
-            @NotNull OperationResult result) {
+            @NotNull OperationResult result,
+            @NotNull RoleAnalysisClusterType clusterObject) {
+
+        RoleAnalysisSessionType sessionObject = null;
+        if (clusterObject.getRoleAnalysisSessionRef() != null) {
+            PrismObject<RoleAnalysisSessionType> prismSession = this.getSessionTypeObject(
+                    clusterObject.getRoleAnalysisSessionRef().getOid(), task, result);
+            if (prismSession != null) {
+                sessionObject = prismSession.asObjectable();
+            }
+        }
+
+        RoleAnalysisSessionStatisticType sessionStatistic = sessionObject.getSessionStatistic();
+
+        //oids roles diff+ uniq+ anomaly
+        Set<String> unwantedAccess = getUnwantedAccesses(sessionStatistic);
+        boolean unwantedAccessNotSet = unwantedAccess.isEmpty();
+
+        Set<String> unwantedUsers = getUnwantedUsers(sessionStatistic);
+        boolean unwantedUsersNotSet = unwantedUsers.isEmpty();
+
         Collection<SelectorOptions<GetOperationOptions>> options = getDefaultRmIterativeSearchPageSizeOptions();
 
         ObjectFilter userObjectFilter = transformSearchToObjectFilter(userSearchFiler, UserType.class);
@@ -3774,12 +3954,15 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                 LOGGER.error("Target role oid retrieved null value during search");
                 return true;
             }
-
-            if (userAsKey) {
-                roleMemberCache.put(ownerOid.toString(), roleOid);
-            } else {
-                roleMemberCache.put(roleOid, ownerOid.toString());
+            if (!unwantedAccessNotSet && unwantedAccess.contains(roleOid)) {
+                return true;
             }
+
+            if (!unwantedUsersNotSet && unwantedUsers.contains(ownerOid.toString())) {
+                return true;
+            }
+
+            roleMemberCache.put(roleOid, ownerOid.toString());
 
             return true;
         };
@@ -3791,7 +3974,17 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             throw new SystemException("Couldn't search assignments", e);
         }
 
-        return roleMemberCache;
+        if (!userAsKey) {
+            return roleMemberCache;
+        } else {
+            ListMultimap<String, String> userRolesMap = ArrayListMultimap.create();
+            for (Map.Entry<String, String> entry : roleMemberCache.entries()) {
+                String roleOid = entry.getKey();
+                String ownerOid = entry.getValue();
+                userRolesMap.put(ownerOid, roleOid);
+            }
+            return userRolesMap;
+        }
     }
 
     public List<DetectedPattern> getSessionRoleSuggestion(
@@ -4086,33 +4279,277 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         return partitionOutlierMap;
     }
 
-    public PrismObject<UserType> getOutlierTargetUser(
-            @NotNull RoleAnalysisOutlierType outlier,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
-        ObjectReferenceType objectRef = outlier.getObjectRef();
-        if (objectRef == null) {
-            return null;
-        }
-        String targetOid = objectRef.getOid();
-        if (targetOid == null) {
-            return null;
-        }
-        try {
-            return modelService.getObject(UserType.class, targetOid, null, null, result);
-        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | CommunicationException |
-                ConfigurationException | ExpressionEvaluationException e) {
-            LOGGER.error("Couldn't get target user for outlier {}", outlier, e);
-            return null;
-        }
-
-    }
-
     private @NotNull Collection<SelectorOptions<GetOperationOptions>> getDefaultRmIterativeSearchPageSizeOptions() {
         GetOperationOptionsBuilder optionsBuilder = schemaService.getOperationOptionsBuilder();
         optionsBuilder.iterationPageSize(RM_ITERATIVE_SEARCH_PAGE_SIZE);
         return optionsBuilder.build();
     }
 
+    private int getSessionAccessPopularityOptionsValue(@Nullable RoleAnalysisSessionType session) {
+        if (session == null) {
+            return 0;
+        }
+
+        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+        if (analysisOption == null) {
+            return 0;
+        }
+
+        RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
+
+        if (processMode == null) {
+            return 0;
+        }
+        AbstractAnalysisSessionOptionType sessionOptions = null;
+        if (processMode == RoleAnalysisProcessModeType.ROLE) {
+            sessionOptions = session.getRoleModeOptions();
+        } else if (processMode == RoleAnalysisProcessModeType.USER) {
+            sessionOptions = session.getUserModeOptions();
+        }
+
+        if (sessionOptions == null || sessionOptions.getAccessPopularity() == null) {
+            return 0;
+        }
+
+        return sessionOptions.getAccessPopularity();
+    }
+
+    private int getSessionMinUserPopularityOptionsValue(@Nullable RoleAnalysisSessionType session) {
+        if (session == null) {
+            return 0;
+        }
+
+        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+        if (analysisOption == null) {
+            return 0;
+        }
+
+        RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
+
+        if (processMode == null) {
+            return 0;
+        }
+        AbstractAnalysisSessionOptionType sessionOptions = null;
+        if (processMode == RoleAnalysisProcessModeType.ROLE) {
+            sessionOptions = session.getRoleModeOptions();
+        } else if (processMode == RoleAnalysisProcessModeType.USER) {
+            sessionOptions = session.getUserModeOptions();
+        }
+
+        if (sessionOptions == null || sessionOptions.getMinUsersPopularity() == null) {
+            return 0;
+        }
+
+        return sessionOptions.getMinUsersPopularity();
+    }
+
+    private int getSessionMaxUserPopularityOptionsValue(@Nullable RoleAnalysisSessionType session) {
+        if (session == null) {
+            return 0;
+        }
+
+        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+        if (analysisOption == null) {
+            return 0;
+        }
+
+        RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
+
+        if (processMode == null) {
+            return 0;
+        }
+        AbstractAnalysisSessionOptionType sessionOptions = null;
+        if (processMode == RoleAnalysisProcessModeType.ROLE) {
+            sessionOptions = session.getRoleModeOptions();
+        } else if (processMode == RoleAnalysisProcessModeType.USER) {
+            sessionOptions = session.getUserModeOptions();
+        }
+
+        if (sessionOptions == null || sessionOptions.getMaxUsersPopularity() == null) {
+            return 0;
+        }
+
+        return sessionOptions.getMaxUsersPopularity();
+    }
+
+    private static @NotNull Set<String> getUnwantedAccesses(RoleAnalysisSessionStatisticType sessionStatistic) {
+        Set<String> unwantedAccess = new HashSet<>();
+        if (sessionStatistic != null) {
+
+            addPocIfNeded(sessionStatistic);
+
+            Uniq uniq = sessionStatistic.getUniq();
+            Diff diff = sessionStatistic.getDiff();
+            Anomaly anomaly = sessionStatistic.getAnomaly();
+
+            List<String> uniqRoles = uniq.getUniqRolesCurrent();
+            List<String> diffRoles = diff.getDiffRolesCurrent();
+            List<String> anomalyRoles = anomaly.getAnomalyRolesCurrent();
+            if (uniqRoles != null) {
+                unwantedAccess.addAll(uniqRoles);
+            }
+            if (diffRoles != null) {
+                unwantedAccess.addAll(diffRoles);
+            }
+            if (anomalyRoles != null) {
+                unwantedAccess.addAll(anomalyRoles);
+            }
+        }
+        return unwantedAccess;
+    }
+
+    private static @NotNull Set<String> getUnwantedUsers(RoleAnalysisSessionStatisticType sessionStatistic) {
+        Set<String> unwantedUsers = new HashSet<>();
+        if (sessionStatistic != null) {
+
+            addPocIfNeded(sessionStatistic);
+
+            Users users = sessionStatistic.getUsers();
+
+            List<String> usersCurrent = users.getUsersCurrent();
+            if (usersCurrent != null) {
+                unwantedUsers.addAll(usersCurrent);
+            }
+        }
+        return unwantedUsers;
+    }
+
+    private static void switchSessionStatisticUnwantedAccessToCurrent(RoleAnalysisSessionStatisticType sessionStatistic) {
+        if (sessionStatistic != null) {
+
+            addPocIfNeded(sessionStatistic);
+
+            Uniq uniq = sessionStatistic.getUniq();
+            Diff diff = sessionStatistic.getDiff();
+            Anomaly anomaly = sessionStatistic.getAnomaly();
+            Users users = sessionStatistic.getUsers();
+
+            List<String> uniqRolesNext = uniq.getUniqRolesNext();
+            List<String> diffRolesNext = diff.getDiffRolesNext();
+            List<String> anomalyRolesNext = anomaly.getAnomalyRolesNext();
+            List<String> usersNext = users.getUsersNext();
+
+            uniq.getUniqRolesCurrent().addAll(uniqRolesNext);
+            diff.getDiffRolesCurrent().addAll(diffRolesNext);
+            anomaly.getAnomalyRolesCurrent().addAll(anomalyRolesNext);
+            users.getUsersCurrent().addAll(usersNext);
+
+            uniq.setUniqRolesCurrentCount(uniqRolesNext.size());
+            diff.setDiffRolesCurrentCount(diffRolesNext.size());
+            anomaly.setAnomalyRolesCurrentCount(anomalyRolesNext.size());
+            users.setUsersCurrentCount(usersNext.size());
+
+            uniq.getUniqRolesNext().clear();
+            diff.getDiffRolesNext().clear();
+            anomaly.getAnomalyRolesNext().clear();
+            users.getUsersNext().clear();
+
+            uniq.setUniqRolesNextCount(0);
+            diff.setDiffRolesNextCount(0);
+            anomaly.setAnomalyRolesNextCount(0);
+            users.setUsersNextCount(0);
+        }
+    }
+
+    public static void switchToNewStatisticsUnwantedAccess(
+            RoleAnalysisSessionStatisticType sessionStatisticOld,
+            RoleAnalysisSessionStatisticType sessionStatisticNew) {
+        if (sessionStatisticNew == null || sessionStatisticOld == null) {
+            return;
+        }
+
+        addPocIfNeded(sessionStatisticNew);
+
+        addPocIfNeded(sessionStatisticOld);
+
+        Uniq uniqOld = sessionStatisticOld.getUniq();
+        Diff diffOld = sessionStatisticOld.getDiff();
+        Anomaly anomalyOld = sessionStatisticOld.getAnomaly();
+        Users usersOld = sessionStatisticOld.getUsers();
+
+        Uniq uniqNew = sessionStatisticNew.getUniq();
+        Diff diffNew = sessionStatisticNew.getDiff();
+        Anomaly anomalyNew = sessionStatisticNew.getAnomaly();
+        Users usersNew = sessionStatisticNew.getUsers();
+
+        List<String> uniqRolesNext = uniqOld.getUniqRolesNext();
+        List<String> diffRolesNext = diffOld.getDiffRolesNext();
+        List<String> anomalyRolesNext = anomalyOld.getAnomalyRolesNext();
+        List<String> usersNext = usersOld.getUsersNext();
+
+        uniqNew.getUniqRolesNext().clear();
+        diffNew.getDiffRolesNext().clear();
+        anomalyNew.getAnomalyRolesNext().clear();
+        usersNew.getUsersNext().clear();
+
+        uniqNew.setUniqRolesNextCount(0);
+        diffNew.setDiffRolesNextCount(0);
+        anomalyNew.setAnomalyRolesNextCount(0);
+        usersNew.setUsersNextCount(0);
+
+        uniqNew.getUniqRolesNext().addAll(uniqRolesNext);
+        diffNew.getDiffRolesNext().addAll(diffRolesNext);
+        anomalyNew.getAnomalyRolesNext().addAll(anomalyRolesNext);
+        usersNew.getUsersNext().addAll(usersNext);
+
+        uniqNew.setUniqRolesNextCount(uniqRolesNext.size());
+        diffNew.setDiffRolesNextCount(diffRolesNext.size());
+        anomalyNew.setAnomalyRolesNextCount(anomalyRolesNext.size());
+        usersNew.setUsersNextCount(usersNext.size());
+
+        List<String> uniqRolesCurrent = uniqOld.getUniqRolesCurrent();
+        List<String> diffRolesCurrent = diffOld.getDiffRolesCurrent();
+        List<String> anomalyRolesCurrent = anomalyOld.getAnomalyRolesCurrent();
+        List<String> usersCurrent = usersOld.getUsersCurrent();
+
+        uniqNew.getUniqRolesCurrent().clear();
+        diffOld.getDiffRolesCurrent().clear();
+        anomalyOld.getAnomalyRolesCurrent().clear();
+        usersOld.getUsersCurrent().clear();
+
+        uniqNew.setUniqRolesCurrentCount(0);
+        diffNew.setDiffRolesCurrentCount(0);
+        anomalyNew.setAnomalyRolesCurrentCount(0);
+        usersNew.setUsersCurrentCount(0);
+
+        uniqNew.getUniqRolesCurrent().addAll(uniqRolesCurrent);
+        diffNew.getDiffRolesCurrent().addAll(diffRolesCurrent);
+        anomalyNew.getAnomalyRolesCurrent().addAll(anomalyRolesCurrent);
+        usersNew.getUsersCurrent().addAll(usersCurrent);
+
+        uniqNew.setUniqRolesCurrentCount(uniqRolesCurrent.size());
+        diffNew.setDiffRolesCurrentCount(diffRolesCurrent.size());
+        anomalyNew.setAnomalyRolesCurrentCount(anomalyRolesCurrent.size());
+        usersNew.setUsersCurrentCount(usersCurrent.size());
+    }
+
+    private static void addPocIfNeded(RoleAnalysisSessionStatisticType sessionStatisticNew) {
+        if (sessionStatisticNew.getUniq() == null) {
+            sessionStatisticNew.setUniq(new Uniq());
+        }
+        if (sessionStatisticNew.getDiff() == null) {
+            sessionStatisticNew.setDiff(new Diff());
+        }
+        if (sessionStatisticNew.getAnomaly() == null) {
+            sessionStatisticNew.setAnomaly(new Anomaly());
+        }
+        if (sessionStatisticNew.getUsers() == null) {
+            sessionStatisticNew.setUsers(new Users());
+        }
+    }
+
+    public S_FilterExit buildStatisticsAssignmentSearchFilter(@NotNull Collection<QName> memberRelations) {
+        S_FilterExit sFilterExit = PrismContext.get().queryFor(AssignmentType.class)
+                .ownedBy(UserType.class, F_ASSIGNMENT)
+                .block().item(FocusType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS).eq(ActivationStatusType.ENABLED)
+                .endBlock()
+                .and().item(AssignmentType.F_TARGET_REF).refRelation(memberRelations.toArray(new QName[0]))
+                .and()
+                .exists(AssignmentType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE)
+                .type(RoleType.class)
+                .block().item(FocusType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS).eq(ActivationStatusType.ENABLED)
+                .endBlock();
+        return sFilterExit;
+    }
 }
 

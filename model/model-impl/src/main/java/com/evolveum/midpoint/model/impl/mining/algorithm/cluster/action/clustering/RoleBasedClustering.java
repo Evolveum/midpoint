@@ -81,7 +81,8 @@ public class RoleBasedClustering implements Clusterable {
                 assignmentSearchFilter,
                 attributeAnalysisCache,
                 task,
-                result);
+                result,
+                session);
 
         handler.iterateActualStatus();
 

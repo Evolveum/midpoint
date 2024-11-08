@@ -62,9 +62,10 @@ public abstract class AbstractRoleAnalysisConfiguration implements RoleAnalysisC
     //TODO load from system config
     public AnalysisAttributeSettingType getDefaultAnalysisAttributes() {
         AnalysisAttributeSettingType value = new AnalysisAttributeSettingType();
-        value.getPath().add(UserType.F_TITLE.toBean());
-        value.getPath().add(UserType.F_PARENT_ORG_REF.toBean());
-        value.getPath().add(UserType.F_ARCHETYPE_REF.toBean());
+//      //TODO poc reason (parent org ref is un-completed feature)
+//        value.getPath().add(UserType.F_TITLE.toBean());
+//        value.getPath().add(UserType.F_PARENT_ORG_REF.toBean());
+//        value.getPath().add(UserType.F_ARCHETYPE_REF.toBean());
         value.getPath().add(UserType.F_LOCALITY.toBean());
 
 //        AnalysisAttributeRuleType rule = new AnalysisAttributeRuleType();

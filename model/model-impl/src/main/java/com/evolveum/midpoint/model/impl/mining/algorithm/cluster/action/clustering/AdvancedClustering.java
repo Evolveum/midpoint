@@ -89,7 +89,7 @@ public class AdvancedClustering implements Clusterable {
         List<DataPoint> dataPoints = loadInitialData(roleAnalysisService, handler, isIndirect,
                 RoleAnalysisProcessModeType.ROLE, roleAnalysisAttributeDefConverts,
                 userSearchFilter, roleSearchFilter, assignmentSearchFilter,
-                attributeAnalysisCache, task, result);
+                attributeAnalysisCache, task, result, session);
 
         if (dataPoints.isEmpty()) {
             LOGGER.warn("No data to process.");
@@ -147,7 +147,8 @@ public class AdvancedClustering implements Clusterable {
                 assignmentSearchFilter,
                 attributeAnalysisCache,
                 task,
-                result);
+                result,
+                session);
 
         if (dataPoints.isEmpty()) {
             LOGGER.info("No data to process.");
@@ -180,7 +181,8 @@ public class AdvancedClustering implements Clusterable {
             @Nullable SearchFilterType assignmentSearchFilter,
             @NotNull AttributeAnalysisCache attributeAnalysisCache,
             @NotNull Task task,
-            @NotNull OperationResult result) {
+            @NotNull OperationResult result,
+            @NotNull RoleAnalysisSessionType sessionObject) {
 
         handler.enterNewStep(LOAD_DATA_STEP);
         handler.setOperationCountToProcess(1);
@@ -195,7 +197,8 @@ public class AdvancedClustering implements Clusterable {
                     assignmentSearchFilter,
                     attributeAnalysisCache,
                     task,
-                    result);
+                    result,
+                    sessionObject);
         } else {
             chunkMap = loadUserBasedMultimapData(
                     roleAnalysisService,
@@ -205,7 +208,8 @@ public class AdvancedClustering implements Clusterable {
                     assignmentSearchFilter,
                     attributeAnalysisCache,
                     task,
-                    result);
+                    result,
+                    sessionObject);
         }
         handler.iterateActualStatus();
 

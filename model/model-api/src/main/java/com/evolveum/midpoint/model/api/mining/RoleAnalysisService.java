@@ -11,6 +11,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
 import com.evolveum.midpoint.common.mining.objects.statistic.UserAccessDistribution;
+import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
@@ -1006,7 +1007,7 @@ public interface RoleAnalysisService {
             List<String> outliersMembers,
             @Nullable SearchFilterType query,
             @NotNull OperationResult result,
-            @NotNull Task task);
+            @NotNull Task task, @NotNull RoleAnalysisSessionType sessionObject);
 
     /**
      * This method is used to calculate the threshold range for outlier detection.
@@ -1157,6 +1158,7 @@ public interface RoleAnalysisService {
      * @param attributeAnalysisCache The cache for attribute analysis.
      * @param task The task in the context of which the operation is executed.
      * @param result The result of the operation.
+     * @param sessionObject poc
      * @return A ListMultimap where the keys are either user OIDs or role OIDs, and the values are
      * the corresponding role OIDs or user OIDs, depending on the process mode.
      */
@@ -1167,7 +1169,7 @@ public interface RoleAnalysisService {
             @NotNull RoleAnalysisProcessModeType processMode,
             @Nullable AttributeAnalysisCache attributeAnalysisCache,
             @NotNull Task task,
-            @NotNull OperationResult result);
+            @NotNull OperationResult result, @NotNull RoleAnalysisSessionType sessionObject);
 
     /**
      * Prepares a map of assignment chunks.
@@ -1180,6 +1182,7 @@ public interface RoleAnalysisService {
      * @param attributeAnalysisCache The cache for attribute analysis.
      * @param task The task in the context of which the operation is executed.
      * @param result The result of the operation.
+     * @param sessionObject poc
      * @return A ListMultimap where the keys are lists of role OIDs and the values are user OIDs.
      */
     ListMultimap<List<String>, String> prepareAssignmentChunkMapRolesAsKey(
@@ -1189,7 +1192,7 @@ public interface RoleAnalysisService {
             @NotNull RoleAnalysisProcessModeType processMode,
             @Nullable AttributeAnalysisCache attributeAnalysisCache,
             @NotNull Task task,
-            @NotNull OperationResult result);
+            @NotNull OperationResult result, @NotNull RoleAnalysisSessionType sessionObject);
 
     /**
      * Searches for user membership based on the provided filters and process mode.
@@ -1201,6 +1204,7 @@ public interface RoleAnalysisService {
      * @param attributeAnalysisCache The cache for attribute analysis.
      * @param task The task in the context of which the operation is executed.
      * @param result The result of the operation.
+     * @param sessionObject poc
      * @return A ListMultimap where the keys are either user OIDs or role OIDs, and the values are
      * the corresponding role OIDs or user OIDs, depending on the process mode.
      */
@@ -1210,7 +1214,7 @@ public interface RoleAnalysisService {
             @Nullable ObjectFilter assignmentFilter,
             @NotNull RoleAnalysisProcessModeType processMode,
             @Nullable AttributeAnalysisCache attributeAnalysisCache, @NotNull Task task,
-            @NotNull OperationResult result);
+            @NotNull OperationResult result, @NotNull RoleAnalysisSessionType sessionObject);
 
     /**
      * Prepares a map of role membership chunks.
@@ -1223,6 +1227,7 @@ public interface RoleAnalysisService {
      * @param attributeAnalysisCache The cache for attribute analysis.
      * @param task The task in the context of which the operation is executed.
      * @param result The result of the operation.
+     * @param sessionObject poc
      * @return A ListMultimap where the keys are lists of role OIDs and the values are user OIDs.
      */
     ListMultimap<List<String>, String> prepareMembershipChunkMapRolesAsKey(
@@ -1232,7 +1237,8 @@ public interface RoleAnalysisService {
             @NotNull RoleAnalysisProcessModeType processMode,
             @Nullable AttributeAnalysisCache attributeAnalysisCache,
             @NotNull Task task,
-            @NotNull OperationResult result);
+            @NotNull OperationResult result,
+            @NotNull RoleAnalysisSessionType sessionObject);
 
     /**
      * Transforms a SearchFilterType to an ObjectFilter for the specified object class.
@@ -1256,6 +1262,7 @@ public interface RoleAnalysisService {
      * @param roleAsKey Boolean flag to determine if roles should be used as keys in the result map.
      * @param task The task in which the operation is performed.
      * @param result The operation result.
+     * @param clusterObject poc
      * @return A ListMultimap containing the role members mapped by either role or user identifiers.
      */
     @NotNull ListMultimap<String, String> assignmentRoleMemberSearch(
@@ -1265,7 +1272,8 @@ public interface RoleAnalysisService {
             @NotNull Set<String> roleMembers,
             boolean roleAsKey,
             @NotNull Task task,
-            @NotNull OperationResult result);
+            @NotNull OperationResult result,
+            @NotNull RoleAnalysisClusterType clusterObject);
 
     /**
      * Searches for user access assignments based on the provided filters and user members set.
@@ -1286,7 +1294,8 @@ public interface RoleAnalysisService {
             @NotNull Set<String> userMembers,
             boolean userAsKey,
             @NotNull Task task,
-            @NotNull OperationResult result);
+            @NotNull OperationResult result,
+            @NotNull RoleAnalysisClusterType clusterObject);
 
     /**
      * Retrieves role suggestions for a given session by searching for detected patterns.
@@ -1377,5 +1386,7 @@ public interface RoleAnalysisService {
             @Nullable Boolean sortDescending,
             @NotNull Task task,
             @NotNull OperationResult result);
+
+    S_FilterExit buildStatisticsAssignmentSearchFilter(@NotNull Collection<QName> memberRelations);
 
 }

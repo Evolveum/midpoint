@@ -15,12 +15,14 @@ import java.io.Serial;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.AnalysisInfoWidgetDto;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.mining.PageRoleSuggestions;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.outlier.PageOutliers;
+import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.AttributeModifier;
@@ -48,7 +50,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.Icon
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel.RoleAnalysisDistributionProgressPanel;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
 import com.evolveum.midpoint.prism.query.OrderDirection;
@@ -61,6 +62,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
+import javax.xml.namespace.QName;
 
 public class RoleAnalysisInfoPanel extends BasePanel<AnalysisInfoWidgetDto> {
 
@@ -714,7 +717,13 @@ public class RoleAnalysisInfoPanel extends BasePanel<AnalysisInfoWidgetDto> {
 
     private double countAppliedDirectlyRoles() {
         RepositoryService repositoryService = getPageBase().getRepositoryService();
+        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
         OperationResult result = new OperationResult("OP_LOAD_STATISTICS");
+
+        Collection<QName> memberRelations = getPageBase().getRelationRegistry()
+                .getAllRelationsFor(RelationKindType.MEMBER);
+
+        S_FilterExit filter = roleAnalysisService.buildStatisticsAssignmentSearchFilter(memberRelations);
 
         SearchResultList<PrismContainerValue<?>> aggregateResult = new SearchResultList<>();
 
@@ -722,8 +731,7 @@ public class RoleAnalysisInfoPanel extends BasePanel<AnalysisInfoWidgetDto> {
         try {
             spec.retrieve(F_NAME, ItemPath.create(AssignmentType.F_TARGET_REF, new ObjectReferencePathSegment(), F_NAME))
                     .retrieve(AssignmentType.F_TARGET_REF)
-                    .filter(PrismContext.get().queryFor(AssignmentType.class).ownedBy(UserType.class, AssignmentHolderType.F_ASSIGNMENT)
-                            .and().ref(AssignmentType.F_TARGET_REF).type(RoleType.class).buildFilter())
+                    .filter(filter.buildFilter())
                     .count(F_ASSIGNMENT, ItemPath.SELF_PATH);
 
             AggregateQuery.ResultItem resultItem = spec.getResultItem(F_ASSIGNMENT);

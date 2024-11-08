@@ -7,14 +7,12 @@
 
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.context;
 
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
 
 import com.evolveum.midpoint.model.impl.mining.utils.DebugOutlierDetectionEvaluation;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -36,6 +34,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import static com.evolveum.midpoint.model.impl.mining.RoleAnalysisServiceImpl.switchToNewStatisticsUnwantedAccess;
 
 /**
  * Clustering action.
@@ -213,19 +213,86 @@ public class ClusteringActionExecutor extends BaseAction {
 
         meanDensity = meanDensity / (clusters.size() - countOutliers);
 
+        RoleAnalysisSessionStatisticType oldSessionStatistics = session.getSessionStatistic();
+
         meanDensity = Math.min(meanDensity, 100.000);
         RoleAnalysisSessionStatisticType sessionStatistic = new RoleAnalysisSessionStatisticType();
         sessionStatistic.setProcessedObjectCount(processedObjectCount);
         sessionStatistic.setMeanDensity(meanDensity);
         sessionStatistic.setClusterCount(clusters.size());
 
+        switchToNewStatisticsUnwantedAccess(oldSessionStatistics, sessionStatistic);
+
         handler.enterNewStep("Update Session");
         handler.setOperationCountToProcess(clusters.size());
+
+        RoleAnalysisProcedureType analysisProcedureType = analysisOption.getAnalysisProcedureType();
+        if (analysisProcedureType == RoleAnalysisProcedureType.OUTLIER_DETECTION) {
+            resolveAnomalyNoise(clusters, session, attributeAnalysisCache, roleAnalysisService, sessionStatistic, task, result);
+        }
         roleAnalysisService
                 .updateSessionStatistics(sessionRef, sessionStatistic, task, result);
 
         // Development only helper method - DO NOT RUN IN REAL ENVIRONMENT!
         //logDebugOutlierDetectionEvaluation(sessionOid, modelService, roleAnalysisService, task);
+    }
+
+    public void resolveAnomalyNoise(
+            List<PrismObject<RoleAnalysisClusterType>> clusters,
+            RoleAnalysisSessionType session,
+            AttributeAnalysisCache analysisCache,
+            RoleAnalysisService roleAnalysisService,
+            RoleAnalysisSessionStatisticType sessionStatistic, Task task,
+            OperationResult result) {
+        ListMultimap<String, String> roleMemberCache = analysisCache.getRoleMemberCache();
+
+        ListMultimap<String, String> userRolesMap = ArrayListMultimap.create();
+        for (Map.Entry<String, String> entry : roleMemberCache.entries()) {
+            String roleOid = entry.getKey();
+            String ownerOid = entry.getValue();
+            userRolesMap.put(ownerOid, roleOid);
+        }
+
+        String sessionOid = session.getOid();
+
+        Map<RoleAnalysisOutlierPartitionType, RoleAnalysisOutlierType> allSessionOutlierPartitions = roleAnalysisService
+                .getSessionOutlierPartitionsMap(sessionOid, null, true, task, result);
+        ListMultimap<String, String> outlierAnomalyMap = ArrayListMultimap.create();
+        Set<String> sessionAnomalyOids = new HashSet<>();
+        allSessionOutlierPartitions.forEach((partition, outlier) -> {
+            List<DetectedAnomalyResult> detectedAnomalyResult = partition.getDetectedAnomalyResult();
+            if (detectedAnomalyResult != null) {
+                detectedAnomalyResult.forEach(anomaly -> {
+                    String anomalyRoleOid = anomaly.getTargetObjectRef().getOid();
+                    outlierAnomalyMap.put(outlier.getObjectRef().getOid(), anomalyRoleOid);
+                    sessionAnomalyOids.add(anomalyRoleOid);
+                });
+            }
+        });
+
+        for (PrismObject<RoleAnalysisClusterType> prismCluster : clusters) {
+            RoleAnalysisClusterType clusterObject = prismCluster.asObjectable();
+            List<ObjectReferenceType> member = clusterObject.getMember();
+            for (ObjectReferenceType userMember : member) {
+                String userMemberOid = userMember.getOid();
+                List<String> strings = userRolesMap.get(userMemberOid);
+                Set<String> userAnomalyOids = new HashSet<>();
+                for (String anomalyOid : sessionAnomalyOids) {
+                    if (strings.contains(anomalyOid)) {
+                        userAnomalyOids.add(anomalyOid);
+                    }
+                }
+
+                if (!userAnomalyOids.isEmpty()) {
+                    HashSet<String> outlierAnomaly = new HashSet<>(outlierAnomalyMap.get(userMemberOid));
+                    userAnomalyOids.removeAll(outlierAnomaly);
+                    sessionAnomalyOids.removeAll(userAnomalyOids);
+                }
+            }
+
+        }
+        sessionStatistic.getAnomaly().getAnomalyRolesNext().addAll(sessionAnomalyOids);
+        sessionStatistic.getAnomaly().setAnomalyRolesCurrentCount(sessionAnomalyOids.size());
     }
 
     /**

@@ -434,9 +434,14 @@ public class OutliersDetectionUtil {
         return occurInCluster;
     }
 
-    public static double calculateOutlierRoleAssignmentFrequencyConfidence(@NotNull PrismObject<UserType> prismUser,
+    public static double calculateOutlierRoleAssignmentFrequencyConfidence(@NotNull AttributeAnalysisCache analysisCache, @NotNull PrismObject<UserType> prismUser,
             int allRolesForGroup) {
-        List<String> rolesOidAssignment = getRolesOidAssignment(prismUser.asObjectable());
+        ListMultimap<String, String> userMemberCache = analysisCache.getUserMemberCache();
+        List<String> rolesOidAssignment = userMemberCache.get(prismUser.getOid());
+
+        if(rolesOidAssignment.isEmpty()) {
+            rolesOidAssignment = getRolesOidAssignment(prismUser.asObjectable());
+        }
         int userRolesCount = rolesOidAssignment.size();
         return ((double) userRolesCount / allRolesForGroup) * 100;
     }
@@ -611,7 +616,7 @@ public class OutliersDetectionUtil {
             partitionAnalysis.setAttributeAnalysis(attributeAnalysis);
         }
 
-        double assignmentFrequencyConfidence = calculateOutlierRoleAssignmentFrequencyConfidence(
+        double assignmentFrequencyConfidence = calculateOutlierRoleAssignmentFrequencyConfidence(analysisCache,
                 userObject, countOfRoles);
         partitionAnalysis.setOutlierAssignmentFrequencyConfidence(assignmentFrequencyConfidence);
 
