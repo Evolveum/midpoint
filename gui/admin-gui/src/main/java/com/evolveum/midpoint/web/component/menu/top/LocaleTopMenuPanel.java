@@ -11,8 +11,10 @@ import com.evolveum.midpoint.common.AvailableLocale;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 
 /**
@@ -22,6 +24,7 @@ public class LocaleTopMenuPanel extends LocalePanel {
 
     private static final long serialVersionUID = 1L;
 
+    private static final String ID_LINK = "link";
     private static final String ID_ICON = "icon";
     private static final String ID_LOCALES_MENU = "localesMenu";
 
@@ -30,10 +33,24 @@ public class LocaleTopMenuPanel extends LocalePanel {
 
         setRenderBodyOnly(true);
 
+        WebMarkupContainer link = new WebMarkupContainer(ID_LINK);
+        link.setOutputMarkupId(true);
+        link.add(AttributeAppender.append(
+                "title",
+                createStringResource(
+                        "LocaleTopMenuPanel.changingOfLanguage",
+                        getSelectedLocaleDescriptor() == null ? "" : getSelectedLocaleDescriptor().getName())));
+        link.add(AttributeAppender.append(
+                "aria-label",
+                createStringResource(
+                        "LocaleTopMenuPanel.changingOfLanguage",
+                        getSelectedLocaleDescriptor() == null ? "" : getSelectedLocaleDescriptor().getName())));
+        add(link);
+
         Label image = new Label(ID_ICON);
         image.add(AttributeModifier.append("class", getSelectedFlagIcon()));
         image.setOutputMarkupId(true);
-        add(image);
+        link.add(image);
 
         LocalesDropDownMenu localesMenu = new LocalesDropDownMenu(ID_LOCALES_MENU) {
 
@@ -51,7 +68,7 @@ public class LocaleTopMenuPanel extends LocalePanel {
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
 
-        String selectId = get(ID_ICON).getMarkupId();
+        String selectId = get(createComponentPath(ID_LINK, ID_ICON)).getMarkupId();
         response.render(OnDomReadyHeaderItem.forScript("$('#" + selectId + "').selectpicker({});"));
     }
 }

@@ -108,7 +108,6 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
                     return null;
                 }));
 
-        link.add(AttributeModifier.append("title", labelModel));
         item.add(link);
 
         WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
@@ -191,7 +190,6 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         WebMarkupContainer subLinkIcon = new WebMarkupContainer(ID_SUB_LINK_ICON);
         subLinkIcon.add(AttributeAppender.append("class", new PropertyModel<>(menuItem, MainMenuItem.F_ICON_CLASS)));
         subLink.add(subLinkIcon);
-        subLink.add(AttributeModifier.append("title", labelModel));
 
         Label srCurrentMessage = new Label(
                 ID_SR_CURRENT_MESSAGE_SUB_ITEM,

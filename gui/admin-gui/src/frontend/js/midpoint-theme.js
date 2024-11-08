@@ -602,6 +602,28 @@ breakLongerTextInTableCell(cellId) {
         })
     }
 
+    initPushMenuButton() {
+        $('a[data-widget="pushmenu"]').on("click", function (e) {
+            setAriaExpandedForPushMenu($(this), false);
+        });
+        setAriaExpandedForPushMenu($('a[data-widget="pushmenu"]'), true);
+
+        function setAriaExpandedForPushMenu(menuButton, processAfterClick) {
+            var valueExpand = "true";
+            var valueCollapse = "false";
+            if (!processAfterClick) {
+                valueExpand = "false";
+                valueCollapse = "true";
+            }
+
+            if ($('body').hasClass('sidebar-collapse')) {
+                menuButton.attr("aria-expanded", valueCollapse);
+            } else {
+                menuButton.attr("aria-expanded", valueExpand);
+            }
+        }
+    }
+
     createSparkline(id, options, data) {
         $(function () {
             var chart = new Sparkline($(id)[0], options)

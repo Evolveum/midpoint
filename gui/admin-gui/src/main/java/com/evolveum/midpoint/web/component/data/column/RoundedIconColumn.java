@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
+import com.evolveum.midpoint.gui.impl.component.data.column.icon.AbstractIconColumn;
+
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -21,7 +23,7 @@ import org.apache.wicket.request.resource.IResource;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class RoundedIconColumn<T, S> extends AbstractColumn<T, S> {
+public class RoundedIconColumn<T, S> extends AbstractIconColumn<T, S> {
 
     public RoundedIconColumn(IModel<String> title) {
         super(title);
