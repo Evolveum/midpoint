@@ -11,6 +11,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.common.AvailableLocale;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -59,6 +61,10 @@ public class LocalesDropDownMenu extends BasePanel<List<AvailableLocale.LocaleDe
                         changeLocale(target, item.getModelObject());
                     }
                 };
+                localeLink.add(AttributeAppender.append(
+                        "aria-label",
+                        () -> LocalizationUtil.translate(
+                                "LocalesDropDownMenu.link.label", new Object[]{item.getModelObject().getName()})));
                 item.add(localeLink);
 
                 Label image = new Label(ID_LOCALES_ICON);
