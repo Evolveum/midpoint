@@ -10,14 +10,17 @@ package com.evolveum.midpoint.web.component.data.column;
 import java.io.Serializable;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.impl.model.SelectableObjectModel;
 
 import com.evolveum.midpoint.gui.impl.util.TableUtil;
 
 import com.evolveum.midpoint.web.component.util.SelectableRow;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -72,6 +75,13 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
             }
 
         });
+
+        panel.getPanelComponent().add(AttributeAppender.append("aria-label", () -> {
+            if (getDisplayModel() == null || StringUtils.isBlank(getDisplayModel().getObject())) {
+                return LocalizationUtil.translate("CheckBoxHeaderColumn.header");
+            }
+            return getDisplayModel().getObject();
+        }));
 
         return panel;
     }

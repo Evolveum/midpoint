@@ -33,6 +33,15 @@ public class ReferenceSearchItemPanel extends PropertySearchItemPanel<ReferenceS
     }
 
     @Override
+    protected Component getSearchItemFieldPanel() {
+        Component component = super.getSearchItemFieldPanel();
+        if (component != null) {
+            return component.get(PopoverSearchPanel.ID_TEXT_FIELD);
+        }
+        return null;
+    }
+
+    @Override
     protected Component initSearchItemField(String id) {
         return new ReferenceValueSearchPanel(id,
                 new PropertyModel<>(getModel(), ReferenceSearchItemWrapper.F_VALUE), getModelObject().getDef()){

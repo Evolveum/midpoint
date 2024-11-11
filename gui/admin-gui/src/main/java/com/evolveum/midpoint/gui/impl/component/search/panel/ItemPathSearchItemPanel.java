@@ -19,6 +19,15 @@ public class ItemPathSearchItemPanel extends SingleSearchItemPanel<ItemPathSearc
     }
 
     @Override
+    protected Component getSearchItemFieldPanel() {
+        Component component = super.getSearchItemFieldPanel();
+        if (component != null) {
+            return component.get(PopoverSearchPanel.ID_TEXT_FIELD);
+        }
+        return null;
+    }
+
+    @Override
     protected Component initSearchItemField(String id) {
         return new ItemPathSearchPanel(id, new PropertyModel(getModel(), ItemPathSearchItemWrapper.F_VALUE));
 
