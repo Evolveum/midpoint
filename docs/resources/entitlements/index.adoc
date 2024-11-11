@@ -14,7 +14,7 @@ compliance:
 :page-wiki-metadata-modify-user: vera
 :page-wiki-metadata-modify-date: 2020-03-31T14:52:37.580+02:00
 :page-toc: top
-:page-upkeep-status: yellow
+:page-upkeep-status: green
 
 == Introduction
 
@@ -76,8 +76,6 @@ Similarly to account attributes, midPoint always reads fresh data from the resou
 Therefore midPoint does not need to remember the association.
 It can read it directly from the resource anytime.
 And that's exactly what midPoint does when an account xref:/midpoint/reference/resources/shadow/[shadow] is retrieved:
-
-//#*TODO* update this figure - associations are represented in slightly different way now#
 
 image::schemas-entitlement-3.png[]
 

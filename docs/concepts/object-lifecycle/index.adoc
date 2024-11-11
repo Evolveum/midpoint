@@ -173,3 +173,5 @@ When the focus (user) is in state marked as "Assignments active: no" (like `draf
 * xref:/midpoint/reference/concepts/activation/[Activation]
 
 * xref:/midpoint/reference/roles-policies/role-lifecycle/[Role Lifecycle]
+
+* xref:/midpoint/reference/concepts/configuration-item-lifecycle/[]

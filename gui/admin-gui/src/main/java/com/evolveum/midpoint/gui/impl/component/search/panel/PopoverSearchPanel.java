@@ -27,7 +27,7 @@ public abstract class PopoverSearchPanel<T> extends BasePanel<T> {
 
     @Serial private static final long serialVersionUID = 1L;
 
-    private static final String ID_TEXT_FIELD = "valueTextField";
+    public static final String ID_TEXT_FIELD = "valueTextField";
     public static final String ID_POPOVER_PANEL = "popoverPanel";
     private static final String ID_POPOVER = "popover";
 
