@@ -4394,6 +4394,12 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             if (anomalyRoles != null) {
                 unwantedAccess.addAll(anomalyRoles);
             }
+
+            RolesInNoise rolesInNoise = sessionStatistic.getRolesInNoise();
+            List<String> rolesInNoiseCurrent = rolesInNoise.getRolesInNoiseCurrent();
+            if (rolesInNoiseCurrent != null) {
+                unwantedAccess.addAll(rolesInNoiseCurrent);
+            }
         }
         return unwantedAccess;
     }
@@ -4405,11 +4411,17 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             addPocIfNeded(sessionStatistic);
 
             Users users = sessionStatistic.getUsers();
-
             List<String> usersCurrent = users.getUsersCurrent();
             if (usersCurrent != null) {
                 unwantedUsers.addAll(usersCurrent);
             }
+
+            UsersInNoise usersInNoise = sessionStatistic.getUsersInNoise();
+            List<String> usersInNoiseCurrent = usersInNoise.getUsersInNoiseCurrent();
+            if (usersInNoiseCurrent != null) {
+                unwantedUsers.addAll(usersInNoiseCurrent);
+            }
+
         }
         return unwantedUsers;
     }
@@ -4423,31 +4435,43 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             Diff diff = sessionStatistic.getDiff();
             Anomaly anomaly = sessionStatistic.getAnomaly();
             Users users = sessionStatistic.getUsers();
+            RolesInNoise rolesInNoise = sessionStatistic.getRolesInNoise();
+            UsersInNoise usersInNoise = sessionStatistic.getUsersInNoise();
 
             List<String> uniqRolesNext = uniq.getUniqRolesNext();
             List<String> diffRolesNext = diff.getDiffRolesNext();
             List<String> anomalyRolesNext = anomaly.getAnomalyRolesNext();
             List<String> usersNext = users.getUsersNext();
+            List<String> rolesInNoiseNext = rolesInNoise.getRolesInNoiseNext();
+            List<String> usersInNoiseNext = usersInNoise.getUsersInNoiseNext();
 
             uniq.getUniqRolesCurrent().addAll(uniqRolesNext);
             diff.getDiffRolesCurrent().addAll(diffRolesNext);
             anomaly.getAnomalyRolesCurrent().addAll(anomalyRolesNext);
             users.getUsersCurrent().addAll(usersNext);
+            rolesInNoise.getRolesInNoiseCurrent().addAll(rolesInNoiseNext);
+            usersInNoise.getUsersInNoiseCurrent().addAll(usersInNoiseNext);
 
             uniq.setUniqRolesCurrentCount(uniqRolesNext.size());
             diff.setDiffRolesCurrentCount(diffRolesNext.size());
             anomaly.setAnomalyRolesCurrentCount(anomalyRolesNext.size());
             users.setUsersCurrentCount(usersNext.size());
+            rolesInNoise.setRolesInNoiseCurrentCount(rolesInNoiseNext.size());
+            usersInNoise.setUsersInNoiseCurrentCount(usersInNoiseNext.size());
 
             uniq.getUniqRolesNext().clear();
             diff.getDiffRolesNext().clear();
             anomaly.getAnomalyRolesNext().clear();
             users.getUsersNext().clear();
+            rolesInNoise.getRolesInNoiseNext().clear();
+            usersInNoise.getUsersInNoiseNext().clear();
 
             uniq.setUniqRolesNextCount(0);
             diff.setDiffRolesNextCount(0);
             anomaly.setAnomalyRolesNextCount(0);
             users.setUsersNextCount(0);
+            rolesInNoise.setRolesInNoiseNextCount(0);
+            usersInNoise.setUsersInNoiseNextCount(0);
         }
     }
 
@@ -4466,61 +4490,85 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         Diff diffOld = sessionStatisticOld.getDiff();
         Anomaly anomalyOld = sessionStatisticOld.getAnomaly();
         Users usersOld = sessionStatisticOld.getUsers();
+        RolesInNoise rolesInNoiseOld = sessionStatisticOld.getRolesInNoise();
+        UsersInNoise usersInNoiseOld = sessionStatisticOld.getUsersInNoise();
 
         Uniq uniqNew = sessionStatisticNew.getUniq();
         Diff diffNew = sessionStatisticNew.getDiff();
         Anomaly anomalyNew = sessionStatisticNew.getAnomaly();
         Users usersNew = sessionStatisticNew.getUsers();
+        RolesInNoise rolesInNoiseNew = sessionStatisticNew.getRolesInNoise();
+        UsersInNoise usersInNoiseNew = sessionStatisticNew.getUsersInNoise();
 
         List<String> uniqRolesNext = uniqOld.getUniqRolesNext();
         List<String> diffRolesNext = diffOld.getDiffRolesNext();
         List<String> anomalyRolesNext = anomalyOld.getAnomalyRolesNext();
         List<String> usersNext = usersOld.getUsersNext();
+        List<String> rolesInNoiseNext = rolesInNoiseOld.getRolesInNoiseNext();
+        List<String> usersInNoiseNext = usersInNoiseOld.getUsersInNoiseNext();
 
         uniqNew.getUniqRolesNext().clear();
         diffNew.getDiffRolesNext().clear();
         anomalyNew.getAnomalyRolesNext().clear();
         usersNew.getUsersNext().clear();
+        rolesInNoiseNew.getRolesInNoiseNext().clear();
+        usersInNoiseNew.getUsersInNoiseNext().clear();
 
         uniqNew.setUniqRolesNextCount(0);
         diffNew.setDiffRolesNextCount(0);
         anomalyNew.setAnomalyRolesNextCount(0);
         usersNew.setUsersNextCount(0);
+        rolesInNoiseNew.setRolesInNoiseNextCount(0);
+        usersInNoiseNew.setUsersInNoiseNextCount(0);
 
         uniqNew.getUniqRolesNext().addAll(uniqRolesNext);
         diffNew.getDiffRolesNext().addAll(diffRolesNext);
         anomalyNew.getAnomalyRolesNext().addAll(anomalyRolesNext);
         usersNew.getUsersNext().addAll(usersNext);
+        rolesInNoiseNew.getRolesInNoiseNext().addAll(rolesInNoiseNext);
+        usersInNoiseNew.getUsersInNoiseNext().addAll(usersInNoiseNext);
 
         uniqNew.setUniqRolesNextCount(uniqRolesNext.size());
         diffNew.setDiffRolesNextCount(diffRolesNext.size());
         anomalyNew.setAnomalyRolesNextCount(anomalyRolesNext.size());
         usersNew.setUsersNextCount(usersNext.size());
+        rolesInNoiseNew.setRolesInNoiseNextCount(rolesInNoiseNext.size());
+        usersInNoiseNew.setUsersInNoiseNextCount(usersInNoiseNext.size());
 
         List<String> uniqRolesCurrent = uniqOld.getUniqRolesCurrent();
         List<String> diffRolesCurrent = diffOld.getDiffRolesCurrent();
         List<String> anomalyRolesCurrent = anomalyOld.getAnomalyRolesCurrent();
         List<String> usersCurrent = usersOld.getUsersCurrent();
+        List<String> rolesInNoiseCurrent = rolesInNoiseOld.getRolesInNoiseCurrent();
+        List<String> usersInNoiseCurrent = usersInNoiseOld.getUsersInNoiseCurrent();
 
         uniqNew.getUniqRolesCurrent().clear();
         diffOld.getDiffRolesCurrent().clear();
         anomalyOld.getAnomalyRolesCurrent().clear();
         usersOld.getUsersCurrent().clear();
+        rolesInNoiseOld.getRolesInNoiseCurrent().clear();
+        usersInNoiseOld.getUsersInNoiseCurrent().clear();
 
         uniqNew.setUniqRolesCurrentCount(0);
         diffNew.setDiffRolesCurrentCount(0);
         anomalyNew.setAnomalyRolesCurrentCount(0);
         usersNew.setUsersCurrentCount(0);
+        rolesInNoiseNew.setRolesInNoiseCurrentCount(0);
+        usersInNoiseNew.setUsersInNoiseCurrentCount(0);
 
         uniqNew.getUniqRolesCurrent().addAll(uniqRolesCurrent);
         diffNew.getDiffRolesCurrent().addAll(diffRolesCurrent);
         anomalyNew.getAnomalyRolesCurrent().addAll(anomalyRolesCurrent);
         usersNew.getUsersCurrent().addAll(usersCurrent);
+        rolesInNoiseNew.getRolesInNoiseCurrent().addAll(rolesInNoiseCurrent);
+        usersInNoiseNew.getUsersInNoiseCurrent().addAll(usersInNoiseCurrent);
 
         uniqNew.setUniqRolesCurrentCount(uniqRolesCurrent.size());
         diffNew.setDiffRolesCurrentCount(diffRolesCurrent.size());
         anomalyNew.setAnomalyRolesCurrentCount(anomalyRolesCurrent.size());
         usersNew.setUsersCurrentCount(usersCurrent.size());
+        rolesInNoiseNew.setRolesInNoiseCurrentCount(rolesInNoiseCurrent.size());
+        usersInNoiseNew.setUsersInNoiseCurrentCount(usersInNoiseCurrent.size());
     }
 
     private static void addPocIfNeded(RoleAnalysisSessionStatisticType sessionStatisticNew) {
@@ -4535,6 +4583,12 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         }
         if (sessionStatisticNew.getUsers() == null) {
             sessionStatisticNew.setUsers(new Users());
+        }
+        if (sessionStatisticNew.getUsersInNoise() == null) {
+            sessionStatisticNew.setUsersInNoise(new UsersInNoise());
+        }
+        if (sessionStatisticNew.getRolesInNoise() == null) {
+            sessionStatisticNew.setRolesInNoise(new RolesInNoise());
         }
     }
 

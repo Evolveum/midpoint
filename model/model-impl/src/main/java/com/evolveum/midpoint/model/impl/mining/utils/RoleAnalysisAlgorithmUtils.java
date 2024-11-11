@@ -124,6 +124,7 @@ public class RoleAnalysisAlgorithmUtils {
             processMetricAnalysis(cluster, session, maxReduction, executeDetection);
         }
 
+        Set<String> membersInNoiseClusters = new HashSet<>();
         Set<String> propertiesInNoiseClusters = new HashSet<>();
         handler.enterNewStep("Prepare Outliers");
         handler.setOperationCountToProcess(dataPoints.size());
@@ -137,6 +138,7 @@ public class RoleAnalysisAlgorithmUtils {
 
             for (DataPoint dataPoint : dataPoints) {
                 propertiesInNoiseClusters.addAll(dataPoint.getProperties());
+                membersInNoiseClusters.addAll(dataPoint.getMembers());
 
                 OutlierNoiseCategoryType pointStatus = dataPoint.getPointStatus();
                 if (pointStatus == OutlierNoiseCategoryType.OVERAL_NOISE) {
@@ -204,9 +206,23 @@ public class RoleAnalysisAlgorithmUtils {
 
         }
 
+        RoleAnalysisSessionStatisticType sessionStatistic = session.getSessionStatistic();
+        if(processMode == RoleAnalysisProcessModeType.ROLE){
+            sessionStatistic.getUsersInNoise().getUsersInNoiseNext().addAll(propertiesInNoiseClusters);
+            sessionStatistic.getRolesInNoise().getRolesInNoiseNext().addAll(membersInNoiseClusters);
+
+            sessionStatistic.getUsersInNoise().setUsersInNoiseNextCount(propertiesInNoiseClusters.size());
+            sessionStatistic.getRolesInNoise().setRolesInNoiseNextCount(membersInNoiseClusters.size());
+        }else{
+            sessionStatistic.getRolesInNoise().getRolesInNoiseNext().addAll(propertiesInNoiseClusters);
+            sessionStatistic.getUsersInNoise().getUsersInNoiseNext().addAll(membersInNoiseClusters);
+
+            sessionStatistic.getRolesInNoise().setRolesInNoiseNextCount(propertiesInNoiseClusters.size());
+            sessionStatistic.getUsersInNoise().setUsersInNoiseNextCount(membersInNoiseClusters.size());
+        }
+
         Set<String> propertiesOnlyInNoiseClusters = new HashSet<>(propertiesInNoiseClusters);
         propertiesOnlyInNoiseClusters.removeAll(propertiesInClusters);
-        RoleAnalysisSessionStatisticType sessionStatistic = session.getSessionStatistic();
         sessionStatistic.getDiff().getDiffRolesNext().addAll(propertiesOnlyInNoiseClusters);
         sessionStatistic.getDiff().setDiffRolesNextCount(propertiesOnlyInNoiseClusters.size());
 
