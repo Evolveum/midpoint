@@ -12,6 +12,8 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -55,8 +57,8 @@ public abstract class GuiActionColumn<T extends Serializable, C extends Containe
 
     @Override
     public Component getHeader(String componentId) {
-        List<AbstractGuiAction<C>> headerActions = getHeaderActions();
-        return new ActionsPanel<C>(componentId, Model.ofList(headerActions)) {
+        List<AbstractGuiAction<C>> headerActions = showHeaderActions() ? getHeaderActions() : Collections.emptyList();
+        ActionsPanel actionsPanel = new ActionsPanel<C>(componentId, Model.ofList(headerActions)) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -64,6 +66,8 @@ public abstract class GuiActionColumn<T extends Serializable, C extends Containe
                 return getSelectedItems();
             }
         };
+        actionsPanel.add(new VisibleBehaviour(() -> !headerActions.isEmpty() && showHeaderActions()));
+        return actionsPanel;
     }
 
     private List<AbstractGuiAction<C>> getHeaderActions() {
@@ -71,6 +75,10 @@ public abstract class GuiActionColumn<T extends Serializable, C extends Containe
                 .stream()
                 .filter(AbstractGuiAction::isBulkAction)
                 .toList();
+    }
+
+    protected boolean showHeaderActions() {
+        return true;
     }
 
     protected abstract C unwrapRowModelObject(T rowModelObject);
