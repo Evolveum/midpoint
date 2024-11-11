@@ -61,23 +61,23 @@ import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
- * Processor for evaluating credential policies.
+ * Processor for evaluating credential policies on the focus object.
  *
  * This class is processing the credential-related settings of security policy: credential lifetime, history and so on.
  *
  * Specific responsibilities:
+ *
  * 1) Validates the operation (add, modify) with regards to security policies.
  * 2) Emits secondary deltas related to changes being executed (e.g. password history, metadata, etc).
  *
  * This class is supposed to be quite generic. It should be able to operate on all credential types.
  *
  * This class does NOT directly deal with details of value policies, validation and generation. That task is
- * delegated to ValuePolicyProcessor.
+ * delegated to {@link ValuePolicyProcessor}.
  *
  * @author mamut
  * @author katkav
  * @author semancik
- *
  */
 public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType, P extends CredentialPolicyType,
         F extends FocusType> {

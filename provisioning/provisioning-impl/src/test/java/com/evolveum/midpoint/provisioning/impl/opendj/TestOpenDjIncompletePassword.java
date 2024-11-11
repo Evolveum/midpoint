@@ -7,21 +7,19 @@
 package com.evolveum.midpoint.provisioning.impl.opendj;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
+
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
+
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * Test for provisioning service implementation using embedded OpenDj instance.
@@ -50,21 +48,34 @@ public class TestOpenDjIncompletePassword extends TestOpenDj {
     }
 
     @Override
-    protected void assertShadowPassword(ShadowType provisioningShadow) {
-        CredentialsType credentials = provisioningShadow.getCredentials();
-        if (credentials == null) {
-            return;
-        }
-        PasswordType passwordType = credentials.getPassword();
-        if (passwordType == null) {
-            return;
-        }
-        ProtectedStringType passwordValue = passwordType.getValue();
-        assertNull("Unexpected password value in " + provisioningShadow + ": " + passwordValue, passwordValue);
+    protected void assertProvisioningShadowPassword(ShadowType provisioningShadow, String expectedClearText) {
+        assertIncompleteShadowPassword(provisioningShadow.asPrismObject());
+    }
 
-        PrismContainerValue<PasswordType> passwordContainer = passwordType.asPrismContainerValue();
-        PrismProperty<ProtectedStringType> valueProp = passwordContainer.findProperty(PasswordType.F_VALUE);
-        assertTrue("Incomplete flag is NOT set for password value in " + provisioningShadow, valueProp.isIncomplete());
+    @Override
+    protected void assertRepoShadowPasswordFetched(ShadowType repoShadow, String expectedClearText) {
+        if (InternalsConfig.isShadowCachingOnByDefault()) {
+            assertIncompleteShadowPassword(repoShadow.asPrismObject());
+        } else {
+            assertNoShadowPassword(repoShadow.asPrismObject());
+        }
+    }
+
+    @Override
+    protected void assertRepoShadowPasswordWrittenAndFetched(ShadowType repoShadow, String expectedClearText)
+            throws SchemaException, EncryptionException {
+        if (InternalsConfig.isShadowCachingOnByDefault()) {
+            // It is hashed, because it was written first (with known value), and fetched second (with incomplete=true)
+            assertHashedShadowPassword(repoShadow.asPrismObject(), expectedClearText);
+        } else {
+            assertNoShadowPassword(repoShadow.asPrismObject());
+        }
+    }
+
+    @Override
+    protected void assertRepoShadowPasswordWrittenAndUnsetAndFetched(ShadowType repoShadow, String lastWritten) {
+        // We know that there is no password, so it should be gone from the shadow.
+        assertNoShadowPassword(repoShadow.asPrismObject());
     }
 
     @Override

@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
 import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.provisioning.api.EventDispatcher;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
@@ -64,6 +65,7 @@ public class ShadowsLocalBeans {
     @Autowired ProvisioningContextFactory ctxFactory;
     @Autowired EventDispatcher eventDispatcher;
     @Autowired DefinitionsHelper definitionsHelper;
+    public @Autowired Protector protector;
 
     @Autowired CacheConfigurationManager cacheConfigurationManager;
 

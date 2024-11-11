@@ -28,7 +28,6 @@ import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationActivityH
 
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.*;
 
 import com.evolveum.midpoint.schema.processor.ObjectFactory;
@@ -582,18 +581,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertPropertyValue(userRappBefore, UserType.F_ORGANIZATIONAL_UNIT,
                 PolyString.fromOrig("The crew of The Elaine"));
 
-        // We are importing from dummy lime resource. There is a weak password inbound mapping in the (default) dummy resource.
-        // In "use fresh" mode, the shadow for default dummy resource is fetched (for some reason), and the weak mapping is
-        // executed, providing the generated password to rapp user. But in "use cached" mode, the shadow for default dummy
-        // resource is not fetched, and (because the password is not cached in 4.9 - see MID-10050), the mapping is not evaluated!
-        //
-        // To ensure the same behavior for both cases, we invalidate the default dummy resource here.
-        //
-        // Note that the weak password mapping, combined with normal password inbound mapping from lime resource
-        // (with a null value for rapp), create an unpredictable situation: the result depends on whether the weak mapping
-        // is evaluated or not.
-        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_OID);
-
         loginImportUser();
 
         // WHEN
@@ -674,9 +661,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
-        // see the comment in test160
-        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_OID);
-
         loginImportUser();
 
         when();
@@ -721,9 +705,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertUsers(getNumberOfUsers() + 4);
         dummyAuditService.clear();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
-
-        // see the comment in test160
-        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_OID);
 
         loginImportUser();
 
@@ -779,9 +760,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertNoAssignments(userRappBefore);
 
         assertUsers(getNumberOfUsers() + 4);
-
-        // see the comment in test160
-        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_OID);
 
         loginImportUser();
 
@@ -867,9 +845,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userRappBefore, 1);
 
         assertUsers(getNumberOfUsers() + 4);
-
-        // see the comment in test160
-        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_OID);
 
         loginImportUser();
 
@@ -1843,9 +1818,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         displayValue("Dummy resource (azure)", dummyResourceAzure.debugDump());
 
-        // password via inbounds is generated twice if there's no caching
-        // when caching, some executions are skipped, see the comment regarding invalidation in test160
-        assertReconAuditModifications(isUseCachedData() ? 1 : 2, TASK_RECONCILE_DUMMY_AZURE.oid);
+        assertReconAuditModifications(2, TASK_RECONCILE_DUMMY_AZURE.oid); // password via inbounds is generated twice
     }
 
     /**
@@ -1987,8 +1960,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         displayValue("Dummy resource (azure)", dummyResourceAzure.debugDump());
 
-        // password via inbounds is generated twice if not using cached
-        assertReconAuditModifications(isUseCachedData() ? 1 : 2, TASK_RECONCILE_DUMMY_AZURE.oid);
+        assertReconAuditModifications(2, TASK_RECONCILE_DUMMY_AZURE.oid); // password via inbounds is generated twice
     }
 
     /**
@@ -2133,7 +2105,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         // Audit record structure is somehow complex here.
         // I am not sure about the correct number of mods, but 3 looks good.
-        assertReconAuditModifications(isUseCachedData() ? 2 : 3, TASK_RECONCILE_DUMMY_LIME.oid);
+        assertReconAuditModifications(3, TASK_RECONCILE_DUMMY_LIME.oid);
     }
 
     @Test
@@ -2512,7 +2484,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         // Audit record structure is somehow complex here.
         // I am not sure about the correct number of mods, but 3 looks good.
-        assertReconAuditModifications(isUseCachedData() ? 1 : 3, TASK_RECONCILE_DUMMY_LIME.oid);
+        assertReconAuditModifications(3, TASK_RECONCILE_DUMMY_LIME.oid);
     }
 
     /**
@@ -3472,9 +3444,5 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
             assertAccount(user, resourceOid);
         }
         assertAdministrativeStatusEnabled(user);
-    }
-
-    private boolean isUseCachedData() {
-        return InternalsConfig.isShadowCachingFullByDefault();
     }
 }

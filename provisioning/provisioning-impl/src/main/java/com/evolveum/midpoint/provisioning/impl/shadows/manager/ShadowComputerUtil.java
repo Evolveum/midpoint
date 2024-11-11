@@ -113,10 +113,6 @@ class ShadowComputerUtil {
                 attrDef.getItemName(), ObjectReferenceType.COMPLEX_TYPE, 0, -1);
     }
 
-    static void cleanupShadowPassword(PasswordType p) {
-        p.setValue(null);
-    }
-
     static void addPasswordMetadata(PasswordType p, XMLGregorianCalendar now, ObjectReferenceType ownerRef)
             throws SchemaException {
         var valueMetadata = p.asPrismContainerValue().getValueMetadata();

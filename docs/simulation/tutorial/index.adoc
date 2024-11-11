@@ -78,6 +78,7 @@ image::accounts-intent-default.png[Content of HR resource with preliminary class
 
 The intents were immediately set to `default`, because the accounts were not classified before.
 
+[#_reclassification]
 === Step HR-3: Change the Definition of the Object Type
 
 Imagine we want to change the definition of the object type so that real persons (recognized by having a non-empty last name) will have the intent of `person` instead of `default`.

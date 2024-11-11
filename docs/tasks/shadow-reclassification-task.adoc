@@ -1,0 +1,104 @@
+= Shadow Reclassification Task
+:page-toc: top
+:page-upkeep-status: green
+
+== Introduction
+
+After a xref:/midpoint/reference/resources/shadow/[shadow object] is discovered on a resource, midPoint tries to assign a kind and an intent to it, or _classify_ it.
+Kind and intent define the type of the object from midPoint's point of view.
+(For more information, see xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[].)
+Only after being classified, midPoint can reasonably work with the shadow: create or find a focus object for it, execute inbound and outbound mappings, and so on.
+
+MidPoint uses xref:/midpoint/reference/resources/resource-configuration/schema-handling/#_delineation[object type delineation] in order to classify the shadows.
+
+However, there may be situations - often occurring during solution development or testing - when you need to change the delineation of object types either because you've found out that it is not quite correct, or, what is more often, you need to split existing object types to finer-grained ones.
+All new (unclassified) objects will get classified using the new delineation automatically.
+But, primarily to ensure solution stability, midPoint does *not* reclassify shadows that are already classified.
+
+== Shadow Reclassification Activity
+
+Fortunately, there is an option there: the `shadowReclassification` activity.
+This activity takes specified shadows and forces their reclassification.
+It can be run within a task like this:
+
+.Listing 1: Task that reclassifies all `user` objects on a given resource
+[source,xml]
+----
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+    <name>Reclassification</name>
+    <executionState>runnable</executionState>
+    <activity>
+        <work>
+            <shadowReclassification>
+                <resourceObjects>
+                    <resourceRef oid="648da342-108c-4c70-b88a-4ca06f53e756"/>
+                    <objectclass>ri:user</objectclass>
+                </resourceObjects>
+            </shadowReclassification>
+        </work>
+    </activity>
+</task>
+----
+
+=== Configuration Items
+
+.Shadow reconciliation activity configuration items
+[%autowidth]
+|===
+| Item | Meaning
+
+| `resourceObjects`
+| What resource objects are to be reclassified.
+See xref:/midpoint/reference/tasks/activities/resource-object-set-specification/[].
+|===
+
+== Considerations
+
+Reclassification of shadows is safe if both these conditions are met:
+
+. There are no focus objects referencing these shadows.
+. There are no associations between these shadows.
+
+But what it the above is not true?
+Be prepared that the behavior of objects can *radically change* after reclassification:
+
+. Both inbound and outbound mappings can be totally different.
+. Synchronization to focus objects (users, roles, orgs, and so on), including the archetypes, can be totally different.
+This includes correlation algorithms.
+. Participation of shadows in associations can change, as associations are defined over object types.
+. Participation of shadows in simulated references (and, hence, the associations again) can change, as simulated references can be defined over object types as well.
+. Because xref:/midpoint/reference/concepts/metadata/[provenance metadata] (which are used to provide default xref:/midpoint/reference/expressions/mappings/range/[provenance-based mapping ranges] for multi-value items) are bound to object type and association type, after changing any of these, the respective xref:/midpoint/reference/expressions/mappings/#_mapping_maintenance_tasks[mapping maintenance tasks] must be done.
+
+Note that reclassification can be xref:/midpoint/reference/simulation/[simulated], so that you can see which objects will be reclassified and to what values.
+(You will not see the other consequences listed above, though.)
+
+== Automatic reclassification
+
+As said above, midPoint never reclassifies shadows on its own.
+
+There is only a single exception to this rule:
+It the current type of a shadow (defined by kind and intent) no longer exists in the resource definition.
+This is the situation in which midPoint considers it to be quite safe to do the reclassification; mainly because the reclassification is probably no worse than keeping a reference to non-existing type.
+
+Such a situation can occur typically when you change the intent of the existing object type.
+In this case, reclassification will be automatically executed when reading shadows of that type from the resource.
+If the classification rules provide the new intent to all of original members of the object type, many of the problems mentioned above will not occur - except for the provenance metadata related ones.
+*Hence, it is strongly advisable to avoid renaming intents (in this way) carelessly.*
+
+== Limitations
+
+There are no known direct limitations of this feature.
+
+Nevertheless, be wary when specifying kind and intent in the query by which you select shadows that are to be reclassified:
+The query will get translated to the *current* delineation of shadows for given kind and intent; not covering all shadows currently marked by that kind/intent in the repository.
+Hence, specifying kind/intent may or may not provide the results you expect.
+It is safer to specify shadows via their object class, optionally with an attribute-based filter.
+
+== See Also
+
+* xref:/midpoint/reference/tasks/shadow-refresh-task/[]
+
+* xref:/midpoint/reference/tasks/activities/work/[]
+
+* xref:/midpoint/reference/simulation/tutorial/#_reclassification['Simulation Tutorial, Step HR-3: Change the Definition of the Object Type']

@@ -59,13 +59,19 @@ The super-resource is defined by including the `super` item in the child resourc
 
 The referenced super-resource may or may not be a fully-functional one.
 It may well be so that it is only a template, lacking key information necessary to connect to it, obtain its schema and capabilities, and so on.
-Such resources have to be marked as `abstract`, to avoid being directly used by midPoint.
 
-.Listing 2. The super (parent) resource, marked as abstract
+There are two relevant properties here:
+
+* If `template` is set to `true`, it tells midPoint that this is in fact a template that is to be presented to users in Resource Wizard as a starting point for creation of new resources.
+* If `abstract` is set to `true`, it tells midPoint to avoid using this resource directly, because it lacks the necessary information needed e.g. to connect to it.
+The templates are usually abstract resources.
+
+.Listing 2. The super (parent) resource, marked as an abstract template
 [source,xml]
 ----
 <resource oid="873a5483-ded8-4607-ac06-ea5ae92ce755">
     <name>GenericAD</name>
+    <template>true</template>
     <abstract>true</abstract>
     ...
 </resource>

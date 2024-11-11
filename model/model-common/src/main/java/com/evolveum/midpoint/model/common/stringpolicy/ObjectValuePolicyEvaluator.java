@@ -332,7 +332,8 @@ public class ObjectValuePolicyEvaluator {
         if (passwordEquals(newPasswordPs, existingPassword.getValue())) {
             LOGGER.trace("{} matched current value", shortDesc);
 
-            if (!SecurityUtil.isHistoryAllowExistingPasswordReuse(credentialPolicy) || isMaxAgeViolated()) { // existing password can be reused even when stored in focus, it has to be valid according to maxAge setting
+            if (!SecurityUtil.isHistoryAllowExistingPasswordReuse(credentialPolicy) || isMaxAgeViolated()) {
+                // existing password can be reused even when stored in focus, it has to be valid according to maxAge setting
                 appendHistoryViolationMessage(messages, result);
                 return;
             }
@@ -385,8 +386,8 @@ public class ObjectValuePolicyEvaluator {
 
     @SuppressWarnings("SameParameterValue")
     @NotNull
-    private List<PasswordHistoryEntryType> getSortedHistoryList(PrismContainer<PasswordHistoryEntryType> historyEntries,
-            boolean ascending) {
+    private List<PasswordHistoryEntryType> getSortedHistoryList(
+            PrismContainer<PasswordHistoryEntryType> historyEntries, boolean ascending) {
         if (historyEntries == null || historyEntries.isEmpty()) {
             return Collections.emptyList();
         }

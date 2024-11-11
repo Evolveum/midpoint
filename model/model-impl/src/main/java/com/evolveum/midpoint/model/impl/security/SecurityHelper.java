@@ -6,12 +6,7 @@
  */
 package com.evolveum.midpoint.model.impl.security;
 
-import javax.xml.datatype.Duration;
-
-import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-
-import com.evolveum.midpoint.schema.util.ArchetypeTypeUtil;
+import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -24,14 +19,15 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
-import com.evolveum.midpoint.repo.common.SystemObjectCache;
+import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
-import com.evolveum.midpoint.repo.common.AuditHelper;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.common.AuditHelper;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ArchetypeTypeUtil;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.HttpConnectionInformation;
 import com.evolveum.midpoint.security.api.SecurityUtil;
@@ -42,8 +38,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import java.util.List;
 
 /**
  * @author semancik
@@ -57,16 +51,12 @@ public class SecurityHelper implements ModelAuditRecorder {
     @Autowired private AuditHelper auditHelper;
     @Autowired private ModelObjectResolver objectResolver;
     @Autowired private SecurityEnforcer securityEnforcer;
-    @Autowired private PrismContext prismContext;
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private ArchetypeManager archetypeManager;
 
     @Override
     public void auditLoginSuccess(@NotNull ObjectType object, @NotNull ConnectionEnvironment connEnv) {
-        FocusType focus = null;
-        if (object instanceof FocusType){
-            focus = (FocusType) object;
-        }
+        var focus = object instanceof FocusType focus1 ? focus1 : null;
         auditLogin(object.getName().getOrig(), focus, connEnv, OperationResultStatus.SUCCESS, null);
     }
 
@@ -75,7 +65,11 @@ public class SecurityHelper implements ModelAuditRecorder {
         auditLogin(username, focus, connEnv, OperationResultStatus.FATAL_ERROR, message);
     }
 
-    private void auditLogin(@Nullable String username, @Nullable FocusType focus, @NotNull ConnectionEnvironment connEnv, @NotNull OperationResultStatus status,
+    private void auditLogin(
+            @Nullable String username,
+            @Nullable FocusType focus,
+            @NotNull ConnectionEnvironment connEnv,
+            @NotNull OperationResultStatus status,
             @Nullable String message) {
         String channel = connEnv.getChannel();
         if (!SecurityUtil.isAuditedLoginAndLogout(getSystemConfig(), channel)) {
@@ -217,7 +211,7 @@ public class SecurityHelper implements ModelAuditRecorder {
         LOGGER.trace("Found organization security policy: {}", orgSecurityPolicy);
         if (orgSecurityPolicy != null) {
             SecurityPolicyType orgSecurityPolicyType = orgSecurityPolicy.asObjectable();
-            postProcessSecurityPolicy(orgSecurityPolicyType, task, result);
+            resolveValuePolicyRefs(orgSecurityPolicyType, task, result);
             return orgSecurityPolicyType;
         } else {
             return null;
@@ -230,8 +224,7 @@ public class SecurityHelper implements ModelAuditRecorder {
                 "security policy", task, result);
         LOGGER.trace("Found archetype security policy: {}", archetypeSecurityPolicy);
         if (archetypeSecurityPolicy != null) {
-//            SecurityPolicyType securityPolicyType = archetypeSecurityPolicy.asObjectable();
-            postProcessSecurityPolicy(archetypeSecurityPolicy, task, result);
+            resolveValuePolicyRefs(archetypeSecurityPolicy, task, result);
             return archetypeSecurityPolicy;
         } else {
             return null;
@@ -320,30 +313,8 @@ public class SecurityHelper implements ModelAuditRecorder {
                 topLevelSecurityPolicy.getCredentialsReset()));
         mergedSecurityPolicy.setIdentityRecovery(mergeIdentityRecovery(lowLevelSecurityPolicy.getIdentityRecovery(),
                 topLevelSecurityPolicy.getIdentityRecovery()));
-//        return mergedSecurityPolicy.asPrismObject();
-//        PrismObject<SecurityPolicyType> mergedSecurityPolicy = mergeSecurityPolicies(lowLevelSecurityPolicy.asPrismObject(), topLevelSecurityPolicy.asPrismObject());
-        return mergedSecurityPolicy;// != null ? mergedSecurityPolicy.asObjectable() : null;
+        return mergedSecurityPolicy;
     }
-
-    /**
-     *
-     * @param lowLevelSecurityPolicy    means the security policy referenced from child archetype
-     * @param topLevelSecurityPolicy    means the security policy referenced from super archetype
-     * @return
-     */
-//    private PrismObject<SecurityPolicyType> mergeSecurityPoliciesss(PrismObject<SecurityPolicyType> lowLevelSecurityPolicy,
-//            PrismObject<SecurityPolicyType> topLevelSecurityPolicy) {
-//        if (lowLevelSecurityPolicy == null && topLevelSecurityPolicy == null) {
-//            return null;
-//        }
-//        if (topLevelSecurityPolicy == null) {
-//            return lowLevelSecurityPolicy.clone();
-//        }
-//        if (lowLevelSecurityPolicy == null) {
-//            return topLevelSecurityPolicy.clone();
-//        }
-//
-//    }
 
     private AuthenticationsPolicyType mergeSecurityPolicyAuthentication(AuthenticationsPolicyType lowLevelAuthentication, AuthenticationsPolicyType topLevelAuthentication) {
         if (lowLevelAuthentication == null && topLevelAuthentication == null) {
@@ -555,8 +526,9 @@ public class SecurityHelper implements ModelAuditRecorder {
         return resolveGlobalSecurityPolicy(focus, systemConfiguration.asObjectable(), task, result);
     }
 
-    public SecurityPolicyType locateProjectionSecurityPolicy(ResourceObjectDefinition structuralObjectClassDefinition,
-            Task task, OperationResult result)
+    /** Returns resolved value policy references. */
+    public @Nullable SecurityPolicyType locateProjectionSecurityPolicy(
+            ResourceObjectDefinition structuralObjectClassDefinition, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException {
         LOGGER.trace("locateProjectionSecurityPolicy starting");
@@ -569,11 +541,7 @@ public class SecurityHelper implements ModelAuditRecorder {
         // TODO Use read-only option. (But deal with the fact that we modify the returned object...)
         SecurityPolicyType securityPolicy = objectResolver.resolve(securityPolicyRef, SecurityPolicyType.class,
                 null, " projection security policy", task, result);
-        if (securityPolicy == null) {
-            LOGGER.debug("Security policy {} defined for the projection does not exist", securityPolicyRef);
-            return null;
-        }
-        postProcessSecurityPolicy(securityPolicy, task, result);
+        resolveValuePolicyRefs(securityPolicy, task, result);
         return securityPolicy;
     }
 
@@ -588,7 +556,7 @@ public class SecurityHelper implements ModelAuditRecorder {
             try {
                 SecurityPolicyType globalSecurityPolicyType = objectResolver.resolve(globalSecurityPolicyRef, SecurityPolicyType.class, null, "global security policy reference in system configuration", task, result);
                 LOGGER.trace("Using global security policy: {}", globalSecurityPolicyType);
-                postProcessSecurityPolicy(globalSecurityPolicyType, task, result);
+                resolveValuePolicyRefs(globalSecurityPolicyType, task, result);
                 traceSecurityPolicy(globalSecurityPolicyType, focus);
                 return globalSecurityPolicyType;
             } catch (ObjectNotFoundException | SchemaException e) {
@@ -620,57 +588,39 @@ public class SecurityHelper implements ModelAuditRecorder {
 
     }
 
-    private void postProcessSecurityPolicy(SecurityPolicyType securityPolicyType, Task task, OperationResult result) {
-        CredentialsPolicyType creds = securityPolicyType.getCredentials();
-        if (creds != null) {
-            PasswordCredentialsPolicyType passwd = creds.getPassword();
+    private void resolveValuePolicyRefs(SecurityPolicyType securityPolicy, Task task, OperationResult result) {
+        var credentialsPolicy = securityPolicy.getCredentials();
+        if (credentialsPolicy != null) {
+            PasswordCredentialsPolicyType passwd = credentialsPolicy.getPassword();
             if (passwd != null) {
-                postProcessPasswordCredentialPolicy(securityPolicyType, passwd, task, result);
+                resolveValuePolicyRef(securityPolicy, passwd, "password credential policy", task, result);
             }
-            for (NonceCredentialsPolicyType nonce : creds.getNonce()) {
-                postProcessCredentialPolicy(securityPolicyType, nonce, "nonce credential policy", task, result);
+            for (NonceCredentialsPolicyType nonce : credentialsPolicy.getNonce()) {
+                resolveValuePolicyRef(securityPolicy, nonce, "nonce credential policy", task, result);
             }
-            SecurityQuestionsCredentialsPolicyType securityQuestions = creds.getSecurityQuestions();
+            SecurityQuestionsCredentialsPolicyType securityQuestions = credentialsPolicy.getSecurityQuestions();
             if (securityQuestions != null) {
-                postProcessCredentialPolicy(securityPolicyType, securityQuestions, "security questions credential policy", task, result);
+                resolveValuePolicyRef(
+                        securityPolicy, securityQuestions, "security questions credential policy", task, result);
             }
         }
     }
 
-    private void postProcessPasswordCredentialPolicy(SecurityPolicyType securityPolicyType, PasswordCredentialsPolicyType passwd, Task task, OperationResult result) {
-        postProcessCredentialPolicy(securityPolicyType, passwd, "password credential policy", task, result);
-    }
-
-    private ValuePolicyType postProcessCredentialPolicy(SecurityPolicyType securityPolicyType, CredentialPolicyType credPolicy, String credShortDesc, Task task, OperationResult result) {
+    private void resolveValuePolicyRef(
+            SecurityPolicyType securityPolicy, CredentialPolicyType credPolicy, String credShortDesc,
+            Task task, OperationResult result) {
         ObjectReferenceType valuePolicyRef = credPolicy.getValuePolicyRef();
         if (valuePolicyRef == null) {
-            return null;
+            return;
         }
-        ValuePolicyType valuePolicyType;
         try {
-            valuePolicyType = objectResolver.resolve(valuePolicyRef, ValuePolicyType.class, null, credShortDesc + " in " + securityPolicyType, task, result);
-        } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
-            LOGGER.warn("{} {} referenced from {} was not found", credShortDesc, valuePolicyRef.getOid(), securityPolicyType);
-            return null;
+            var valuePolicy = objectResolver.resolve(
+                    valuePolicyRef, ValuePolicyType.class, null,
+                    credShortDesc + " in " + securityPolicy, task, result);
+            valuePolicyRef.asReferenceValue().setObject(valuePolicy.asPrismObject());
+        } catch (CommonException e) {
+            LOGGER.warn("{} {} referenced from {} couldn't be resolved", credShortDesc, valuePolicyRef.getOid(), securityPolicy);
         }
-        valuePolicyRef.asReferenceValue().setObject(valuePolicyType.asPrismObject());
-        return valuePolicyType;
-    }
-
-    private SecurityPolicyType postProcessPasswordPolicy(ValuePolicyType passwordPolicyType) {
-        SecurityPolicyType securityPolicyType = new SecurityPolicyType();
-        CredentialsPolicyType creds = new CredentialsPolicyType();
-        PasswordCredentialsPolicyType passwd = new PasswordCredentialsPolicyType();
-        ObjectReferenceType passwordPolicyRef = new ObjectReferenceType();
-        passwordPolicyRef.asReferenceValue().setObject(passwordPolicyType.asPrismObject());
-        passwd.setValuePolicyRef(passwordPolicyRef);
-        creds.setPassword(passwd);
-        securityPolicyType.setCredentials(creds);
-        return securityPolicyType;
-    }
-
-    private Duration daysToDuration(int days) {
-        return XmlTypeConverter.createDuration((long) days * 1000 * 60 * 60 * 24);
     }
 
     public SecurityEnforcer getSecurityEnforcer() {

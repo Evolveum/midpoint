@@ -569,7 +569,7 @@ public class RequestAccess implements Serializable {
 
         for (EvaluatedAssignment evaluatedAssignment : assignments) {
             for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getAllTargetsPolicyRules()) {
-                if (!policyRule.containsEnabledAction()) {
+                if (!policyRule.isTriggered() || !policyRule.containsEnabledAction()) {
                     continue;
                 }
 

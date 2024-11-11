@@ -297,9 +297,9 @@ public abstract class ShadowAssociationsCollection implements DebugDumpable {
         }
 
         private static AssociationsContainerValueBased fromDelta(ContainerDelta<?> containerDelta) throws SchemaException {
-            schemaCheck(containerDelta.getValuesToReplace() == null,
+            schemaCheck(!containerDelta.isReplace(),
                     "REPLACE associations delta is not supported: %s", containerDelta);
-            schemaCheck(containerDelta.isDelete(),
+            schemaCheck(!containerDelta.isDelete(),
                     "DELETE associations delta is not supported: %s", containerDelta);
             return fromValues(containerDelta.getValuesToAdd());
         }
