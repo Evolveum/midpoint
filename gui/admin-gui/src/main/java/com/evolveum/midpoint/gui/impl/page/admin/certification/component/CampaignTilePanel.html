@@ -10,10 +10,11 @@
 <wicket:panel>
     <div class="d-flex flex-wrap w-100 align-items-center">
         <div class="d-flex flex-wrap flex-grow-1 justify-content-start" wicket:id="selectTileCheckbox"/>
-        <span class="d-flex flex-wrap flex-grow-1 justify-content-center col-md-5 h-50 align-items-center" wicket:id="status"/>
-        <a class="d-flex flex-wrap flex-grow-1 h-50 ml-2" wicket:id="redirectToTaskButton">
+        <span class="d-flex flex-wrap flex-grow-1 justify-content-center h-50 align-items-center" wicket:id="status"/>
+        <a class="d-flex flex-wrap flex-grow-1 h-50 ml-2 colored-form-info rounded" style="margin-left: -1px !important;"
+                wicket:id="redirectToTaskButton">
 <!--            <i class="fa fa-spinner fa-spin-pulse"></i>-->
-            <span wicket:id="runningTaskProgressLabel"/>
+            <span class="ml-1" wicket:id="runningTaskProgressLabel"/>
         </a>
         <div wicket:id="menu" class="d-flex flex-grow-1  justify-content-end"/>
     </div>

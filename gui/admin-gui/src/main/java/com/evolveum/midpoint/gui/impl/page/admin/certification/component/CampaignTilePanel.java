@@ -140,11 +140,16 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
 
                 TaskInformation taskInformation = TaskInformation.createForTask(runningTask, runningTask);
                 String info = WebComponentUtil.getTaskProgressDescription(taskInformation, true, getPageBase());
+
+                StringBuilder sb = new StringBuilder();
+                sb.append(createStringResource("TaskType.progress").getString() + ": ");
                 //todo hack for now
                 if ("0".equals(info)) {
-                    return "0%";
+                    sb.append("0%");
+                    return sb.toString();
                 }
-                return StringUtils.isEmpty(info) ? "" : info;
+                sb.append(StringUtils.isEmpty(info) ? "" : info);
+                return sb.toString();
             }
         };
     }
@@ -182,7 +187,7 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
 
         BadgePanel status = new BadgePanel(ID_STATUS, statusModel);
         status.setOutputMarkupId(true);
-        status.add(new VisibleBehaviour(this::isAuthorizedForCampaignActions));
+        status.add(new VisibleBehaviour(() -> isAuthorizedForCampaignActions() && StringUtils.isEmpty(runningTaskOid)));
         add(status);
 
         AjaxLink<String> redirectToTaskButton = new AjaxLink<>(ID_REDIRECT_TO_TASK_BUTTON) {
