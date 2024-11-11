@@ -10,10 +10,12 @@
 <body>
 <wicket:panel>
     <div class="d-flex gap-2 pl-2 pr-1 bg-light rounded-sm align-items-center" style="min-height:31px"  wicket:id="searchItemContainer">
-        <div class="search-item-label" wicket:id="searchItemLabel"/>
+        <div class="d-flex gap-1 pr-2 align-items-center">
+            <div class="search-item-label" wicket:id="searchItemLabel" />
+            <i wicket:id="help" tabindex="0" role="button" class="clickable-by-enter"/>
+        </div>
         <div class="search-item-label" wicket:id="searchItemField"/>
-        <i wicket:id="help" class="lh-n"/>
-        <a wicket:id="removeButton" class="btn btn-xs px-1">
+        <a wicket:id="removeButton" class="btn btn-xs px-1" wicket:message="title:SingleSearchItemPanel.remove">
             <i class="fa fa-times fa-lg"/>
         </a>
     </div>

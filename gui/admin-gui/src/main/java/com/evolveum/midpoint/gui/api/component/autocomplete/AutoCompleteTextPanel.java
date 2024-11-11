@@ -12,10 +12,12 @@ import java.util.Iterator;
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.attributes.ThrottlingSettings;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteSettings;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteTextField;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.IAutoCompleteRenderer;
@@ -102,6 +104,12 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
                 }
             });
         }
+        input.add(AttributeAppender.onAttribute("aria-expanded", oldValue -> {
+            if (StringUtils.isBlank(oldValue)) {
+                return "false";
+            }
+            return oldValue;
+        }));
         add(input);
     }
 

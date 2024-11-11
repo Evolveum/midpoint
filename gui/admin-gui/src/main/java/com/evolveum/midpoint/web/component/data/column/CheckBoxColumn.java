@@ -57,6 +57,12 @@ public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<T, St
 //                target.add(cellItem.findParent(SelectableDataTable.SelectableRowItem.class));
             }
         };
+        check.getPanelComponent().add(AttributeAppender.append("aria-label", () -> {
+            if (getDisplayModel() == null || StringUtils.isBlank(getDisplayModel().getObject())) {
+                return LocalizationUtil.translate("CheckBoxColumn.header");
+            }
+            return getDisplayModel().getObject();
+        }));
         check.setOutputMarkupId(true);
         processBehaviourOfCheckBox(check, rowModel);
 

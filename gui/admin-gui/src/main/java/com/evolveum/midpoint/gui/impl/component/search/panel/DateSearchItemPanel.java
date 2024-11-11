@@ -21,6 +21,15 @@ public class DateSearchItemPanel extends PropertySearchItemPanel<DateSearchItemW
     }
 
     @Override
+    protected Component getSearchItemFieldPanel() {
+        Component component = super.getSearchItemFieldPanel();
+        if (component != null) {
+            return component.get(PopoverSearchPanel.ID_TEXT_FIELD);
+        }
+        return null;
+    }
+
+    @Override
     protected Component initSearchItemField(String id) {
         return new DateIntervalSearchPanel(id,
                 new PropertyModel(getModel(), DateSearchItemWrapper.F_FROM_DATE),

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.component.form;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteReferenceRenderer;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 import com.evolveum.midpoint.gui.api.component.autocomplete.ReferenceConverter;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -67,6 +68,12 @@ public class ReferenceAutocompletePanel<R extends Referencable> extends ValueCho
                 ID_EDIT_BUTTON_LABEL,
                 getPageBase().createStringResource("ReferenceAutocompletePanel.button.select", getTypeTranslation()));
         label.add(new VisibleBehaviour(this::isButtonLabelVisible));
+        getEditButton().add(AttributeAppender.append("title", () -> {
+            if (!isButtonLabelVisible()) {
+                return LocalizationUtil.translate("ReferenceAutocompletePanel.button.select");
+            }
+            return null;
+        }));
         getEditButton().add(label);
     }
 
