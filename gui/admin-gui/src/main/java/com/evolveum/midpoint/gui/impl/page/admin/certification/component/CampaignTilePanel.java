@@ -84,6 +84,7 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
     LoadableDetachableModel<Badge> statusModel;
     LoadableDetachableModel<String> stageModel;
     LoadableDetachableModel<String> iterationModel;
+    LoadableDetachableModel<AccessCertificationCampaignType> campaignModel;
 
     public CampaignTilePanel(String id, IModel<TemplateTile<SelectableBean<AccessCertificationCampaignType>>> model) {
         super(id, model);
@@ -92,12 +93,24 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
     @Override
     protected void onInitialize() {
         super.onInitialize();
+        initCampaignModel();
         initRunningTaskOid();
         initRunningTaskLabelModel();
         initStatusBadgeModel();
         initStageModel();
         initIterationModel();
         initLayout();
+    }
+
+    private void initCampaignModel() {
+        campaignModel = new LoadableDetachableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected AccessCertificationCampaignType load() {
+                return getCampaign();
+            }
+        };
     }
 
     private void initRunningTaskOid() {
@@ -127,11 +140,16 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
 
                 TaskInformation taskInformation = TaskInformation.createForTask(runningTask, runningTask);
                 String info = WebComponentUtil.getTaskProgressDescription(taskInformation, true, getPageBase());
+
+                StringBuilder sb = new StringBuilder();
+                sb.append(createStringResource("TaskType.progress").getString() + ": ");
                 //todo hack for now
                 if ("0".equals(info)) {
-                    return "0%";
+                    sb.append("0%");
+                    return sb.toString();
                 }
-                return StringUtils.isEmpty(info) ? "" : info;
+                sb.append(StringUtils.isEmpty(info) ? "" : info);
+                return sb.toString();
             }
         };
     }
@@ -169,7 +187,7 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
 
         BadgePanel status = new BadgePanel(ID_STATUS, statusModel);
         status.setOutputMarkupId(true);
-        status.add(new VisibleBehaviour(this::isAuthorizedForCampaignActions));
+        status.add(new VisibleBehaviour(() -> isAuthorizedForCampaignActions() && StringUtils.isEmpty(runningTaskOid)));
         add(status);
 
         AjaxLink<String> redirectToTaskButton = new AjaxLink<>(ID_REDIRECT_TO_TASK_BUTTON) {
@@ -235,14 +253,14 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
 
         LoadableDetachableModel<String> buttonLabelModel = getActionButtonTitleModel();
 
-        CampaignActionButton actionButton = new CampaignActionButton(ID_ACTION_BUTTON, getPageBase(), getCampaignModel(),
+        CampaignActionButton actionButton = new CampaignActionButton(ID_ACTION_BUTTON, getPageBase(), campaignModel,
                 buttonLabelModel, runningTaskOid) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void refresh(AjaxRequestTarget target) {
                 CampaignTilePanel.this.runningTaskOid = getRunningTaskOid();
-                getCampaignModel().detach();
+                campaignModel.detach();
                 buttonLabelModel.detach();
                 runningTaskLabelModel.detach();
                 statusModel.detach();
@@ -345,15 +363,6 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
             @Override
             protected String load() {
                 return WebComponentUtil.getName(getCampaign());
-            }
-        };
-    }
-
-    public LoadableDetachableModel<AccessCertificationCampaignType> getCampaignModel() {
-        return new LoadableDetachableModel<AccessCertificationCampaignType>() {
-            @Override
-            protected AccessCertificationCampaignType load() {
-                return getCampaign();
             }
         };
     }
