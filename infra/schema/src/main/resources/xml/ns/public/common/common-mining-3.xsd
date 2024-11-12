@@ -1482,7 +1482,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Number of properties objects
+                            Number of processed assignment
                             that are part of clusters belonging to role analysis session.
                         </p>
                     </xsd:documentation>
