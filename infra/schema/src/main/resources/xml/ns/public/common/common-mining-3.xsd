@@ -1473,7 +1473,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>RoleAnalysisSessionStatisticType.processedObjectCount</a:displayName>
+                        <a:displayName>RoleAnalysisSessionStatisticType.processedPropertiesCount</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1487,7 +1487,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>RoleAnalysisSessionStatisticType.processedObjectCount</a:displayName>
+                        <a:displayName>RoleAnalysisSessionStatisticType.processedAssignmentCount</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
