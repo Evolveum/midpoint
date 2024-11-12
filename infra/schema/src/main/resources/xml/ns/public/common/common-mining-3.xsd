@@ -1390,6 +1390,61 @@
         </xsd:annotation>
         <xsd:sequence>
 
+            <xsd:element name="processedPropertiesCount" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Number of properties objects
+                            that are part of clusters belonging to role analysis session.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisSessionStatisticType.processedPropertiesCount</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="processedAssignmentCount" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Number of processed assignment
+                            that are part of clusters belonging to role analysis session.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisSessionStatisticType.processedAssignmentCount</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="clusterCount" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Number of cluster objects
+                            that are part of clusters belonging to role analysis session.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisSessionStatisticType.clusterCount</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="meanDensity" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            It expresses the average overlap density of child clusters (RoleAnalysisClusterType).
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisSessionStatisticType.meanDensity</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
             <xsd:element name="users" type="tns:Users" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1460,62 +1515,6 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>RoleAnalysisSessionStatisticType.processedObjectCount</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="processedPropertiesCount" type="xsd:int" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            Number of properties objects
-                            that are part of clusters belonging to role analysis session.
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>RoleAnalysisSessionStatisticType.processedPropertiesCount</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="processedAssignmentCount" type="xsd:int" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            Number of processed assignment
-                            that are part of clusters belonging to role analysis session.
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>RoleAnalysisSessionStatisticType.processedAssignmentCount</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-
-
-            <xsd:element name="clusterCount" type="xsd:int" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            Number of cluster objects
-                            that are part of clusters belonging to role analysis session.
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>RoleAnalysisSessionStatisticType.clusterCount</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="meanDensity" type="xsd:double" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            It expresses the average overlap density of child clusters (RoleAnalysisClusterType).
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>RoleAnalysisSessionStatisticType.meanDensity</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
