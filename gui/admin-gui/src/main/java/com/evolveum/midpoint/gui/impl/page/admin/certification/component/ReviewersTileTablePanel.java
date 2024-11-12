@@ -163,7 +163,7 @@ public class ReviewersTileTablePanel extends TileTablePanel<Tile<UserType>, User
             ReviewerStatisticDto rs2 = reviewerStatisticDtoMap.get(r2);
 
             if (!isPercentageSorting) {
-                return Long.compare(rs2.getOpenNotDecidedItemsCount(), rs1.getOpenNotDecidedItemsCount());
+                return Long.compare(rs2.getNotDecidedItemsCount(), rs1.getNotDecidedItemsCount());
             }
 
             float r1ItemsPercent = rs1.getOpenNotDecidedItemsPercentage();
