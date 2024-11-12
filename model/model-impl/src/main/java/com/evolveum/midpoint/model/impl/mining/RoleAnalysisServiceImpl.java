@@ -3526,6 +3526,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         });
         sessionStatistic.getUniq().getUniqRolesNext().addAll(nonPopularRoles);
         sessionStatistic.getUniq().setUniqRolesCurrentCount(nonPopularRoles.size());
+        sessionStatistic.setProcessedPropertiesCount(roleMembersMap.keySet().size());
+        sessionStatistic.setProcessedAssignmentCount(roleMembersMap.keys().size());
 
         ListMultimap<String, String> userRolesMap = ArrayListMultimap.create();
         for (Map.Entry<String, String> entry : roleMembersMap.entries()) {
@@ -3664,7 +3666,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
         sessionStatistic.getUniq().getUniqRolesNext().addAll(nonPopularRoles);
         sessionStatistic.getUniq().setUniqRolesCurrentCount(nonPopularRoles.size());
-
+        sessionStatistic.setProcessedPropertiesCount(roleMembersMap.keySet().size());
+        sessionStatistic.setProcessedAssignmentCount(roleMembersMap.keys().size());
         ListMultimap<String, String> userRolesMap = ArrayListMultimap.create();
         for (Map.Entry<String, String> entry : roleMembersMap.entries()) {
             String roleOid = entry.getKey();
@@ -4593,7 +4596,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     }
 
     public S_FilterExit buildStatisticsAssignmentSearchFilter(@NotNull Collection<QName> memberRelations) {
-        S_FilterExit sFilterExit = PrismContext.get().queryFor(AssignmentType.class)
+        return PrismContext.get().queryFor(AssignmentType.class)
                 .ownedBy(UserType.class, F_ASSIGNMENT)
                 .block().item(FocusType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS).eq(ActivationStatusType.ENABLED)
                 .endBlock()
@@ -4603,7 +4606,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                 .type(RoleType.class)
                 .block().item(FocusType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS).eq(ActivationStatusType.ENABLED)
                 .endBlock();
-        return sFilterExit;
     }
 }
 

@@ -1464,6 +1464,34 @@
                 </xsd:annotation>
             </xsd:element>
 
+            <xsd:element name="processedPropertiesCount" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Number of properties objects
+                            that are part of clusters belonging to role analysis session.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisSessionStatisticType.processedObjectCount</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="processedAssignmentCount" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Number of properties objects
+                            that are part of clusters belonging to role analysis session.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisSessionStatisticType.processedObjectCount</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
 
             <xsd:element name="clusterCount" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
