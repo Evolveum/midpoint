@@ -58,6 +58,24 @@ public abstract class SingleSearchItemPanel<S extends AbstractSearchItemWrapper>
         initLayout();
     }
 
+    @Override
+    protected void onBeforeRender() {
+        super.onBeforeRender();
+        Label searchItemLabel = (Label) get(createComponentPath(ID_SEARCH_ITEM_CONTAINER, ID_SEARCH_ITEM_LABEL));
+        Component searchItemField = getSearchItemFieldPanel();
+        if (searchItemField instanceof InputPanel inputPanel) {
+            inputPanel.getBaseFormComponent().add(AttributeAppender.append(
+                    "aria-labelledby",
+                    searchItemLabel.getMarkupId()));
+        }
+    }
+
+    protected Component getSearchItemFieldPanel() {
+        return get(createComponentPath(ID_SEARCH_ITEM_CONTAINER, ID_SEARCH_ITEM_FIELD));
+    }
+
+    ;
+
     protected void initLayout() {
         setOutputMarkupId(true);
 
@@ -92,8 +110,8 @@ public abstract class SingleSearchItemPanel<S extends AbstractSearchItemWrapper>
         searchItemContainer.add(help);
 
         Component searchItemField = initSearchItemField(ID_SEARCH_ITEM_FIELD);
-        if (searchItemField instanceof InputPanel && !(searchItemField instanceof AutoCompleteTextPanel)) {
-            FormComponent<?> baseFormComponent = ((InputPanel) searchItemField).getBaseFormComponent();
+        if (searchItemField instanceof InputPanel inputPanel && !(searchItemField instanceof AutoCompleteTextPanel)) {
+            FormComponent<?> baseFormComponent = inputPanel.getBaseFormComponent();
             baseFormComponent.add(AttributeAppender.append("style", "max-width: 400px !important;"));
             baseFormComponent.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
             baseFormComponent.add(AttributeAppender.append("readonly", () -> isFieldEnabled() ? null : "readonly"));

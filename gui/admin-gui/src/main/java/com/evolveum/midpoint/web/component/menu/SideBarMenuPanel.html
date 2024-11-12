@@ -11,7 +11,7 @@
         <div class="image">
             <div wicket:id="menuPhoto" class="user-image img-circle elevation-1" wicket:message="alt:SideBarMenuPanel.loginUserPhoto"/>
         </div>
-        <div class="info" tabindex="0" role="region">
+        <div class="info" role="region">
             <div class="sr-only"><wicket:message key="SideBarMenuPanel.loginUser"/></div>
             <div class="sr-only"><wicket:message key="SideBarMenuPanel.loginUserUsername"/></div>
             <div class="text-lightblue text-capitalize pl-1" wicket:id="username"/>
@@ -23,7 +23,7 @@
     <nav class="mt-2">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" wicket:id="sidebar" wicket:message="aria-label:SideBarMenuPanel.label">
             <wicket:container wicket:id="menuItems">
-                <li class="nav-header pr-3" wicket:id="header" role="separator" aria-haspopup="true" tabindex="0">
+                <li class="nav-header pr-3" wicket:id="header" role="menuitem" aria-haspopup="true" tabindex="0">
                     <div class="d-flex">
                         <span wicket:id="name"/>
                         <span class="ml-auto">
@@ -32,7 +32,7 @@
                     </div>
                 </li>
                 <wicket:container wicket:id="items">
-                    <wicket:container wicket:id="item"/>
+                    <wicket:container wicket:id="item" role="menuitem"/>
                 </wicket:container>
             </wicket:container>
         </ul>

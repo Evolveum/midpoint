@@ -45,6 +45,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 
 * Update GUI views after changing of the archetype, that is used in the view. See bug:MID-9776[].
 * Adding support for PKCE (Proof Key for Code Exchange) as additional security for OIDC authentication module. See bug:MID-10155[].
+* Adding new configuration attribute for OIDC authentication module, that is used for ID Token signing algorithm. See xref:/midpoint/reference/security/authentication/flexible-authentication/modules/oidc/[Oidc Module].
 
 === Releases Of Other Components
 

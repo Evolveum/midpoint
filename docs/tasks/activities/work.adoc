@@ -8,7 +8,7 @@ As of midPoint 4.4, the following items are supported (MT means "Supports multi-
 |===
 | Item | Meaning | Activity type | MT | MN | Parameter | Meaning | Default
 
-.2+| `recomputation`
+.2+| xref:/midpoint/reference/tasks/recompute-task/[`recomputation`]
 .2+| Recomputes specified objects.
 .2+| Simple
 .2+| Y
@@ -62,13 +62,13 @@ As of midPoint 4.4, the following items are supported (MT means "Supports multi-
 | See xref:/midpoint/reference/tasks/synchronization-tasks/live-synchronization/[].
 | `false`
 
-| `shadowReclassification`
-| Reclassification of specified resource objects.
+| xref:/midpoint/reference/tasks/shadow-reclassification-task/[`shadowReclassification`]
+| Reclassification of specified resource objects shadows.
 | Simple
 | N
 | Y
 | `resourceObjects`
-| What xref:../resource-object-set-specification/[resource objects] to import.
+| What xref:../resource-object-set-specification/[resource objects] to reclassify.
 | This is obligatory parameter.
 
 | `cleanup`

@@ -7,12 +7,16 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -53,6 +57,12 @@ public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<T, St
 //                target.add(cellItem.findParent(SelectableDataTable.SelectableRowItem.class));
             }
         };
+        check.getPanelComponent().add(AttributeAppender.append("aria-label", () -> {
+            if (getDisplayModel() == null || StringUtils.isBlank(getDisplayModel().getObject())) {
+                return LocalizationUtil.translate("CheckBoxColumn.header");
+            }
+            return getDisplayModel().getObject();
+        }));
         check.setOutputMarkupId(true);
         processBehaviourOfCheckBox(check, rowModel);
 
@@ -89,5 +99,14 @@ public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<T, St
 
     protected String getPropertyExpression() {
         return propertyExpression;
+    }
+
+    @Override
+    public Component getHeader(String componentId) {
+        if (getDisplayModel() == null || StringUtils.isBlank(getDisplayModel().getObject())) {
+            Label label = new Label(componentId, () -> LocalizationUtil.translate("CheckBoxColumn.header"));
+            label.add(AttributeAppender.append("class", "sr-only"));
+        }
+        return super.getHeader(componentId);
     }
 }

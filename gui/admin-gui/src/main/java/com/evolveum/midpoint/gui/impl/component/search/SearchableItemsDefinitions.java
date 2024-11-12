@@ -229,6 +229,8 @@ public class SearchableItemsDefinitions {
 
         SEARCHABLE_OBJECTS.put(AccessCertificationWorkItemType.class, Arrays.asList(
                 ItemPath.create(AccessCertificationWorkItemType.F_NAME),
+                ItemPath.create(PrismConstants.T_PARENT, AccessCertificationCaseType.F_OBJECT_REF),
+                ItemPath.create(PrismConstants.T_PARENT, AccessCertificationCaseType.F_TARGET_REF),
                 ItemPath.create(AccessCertificationWorkItemType.F_ASSIGNEE_REF),
                 ItemPath.create(AccessCertificationWorkItemType.F_ORIGINAL_ASSIGNEE_REF),
                 ItemPath.create(AccessCertificationWorkItemType.F_CANDIDATE_REF),

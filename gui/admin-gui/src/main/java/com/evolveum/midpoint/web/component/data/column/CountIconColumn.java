@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.web.component.data.column;
 
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+import com.evolveum.midpoint.gui.impl.component.data.column.icon.AbstractIconColumn;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
 import org.apache.commons.lang3.StringUtils;
@@ -22,7 +23,7 @@ import java.util.Map;
 /**
  * @author skublik
  */
-public abstract class CountIconColumn<T> extends AbstractColumn<T, String> {//implements IExportableColumn<T, String> {
+public abstract class CountIconColumn<T> extends AbstractIconColumn<T, String> {//implements IExportableColumn<T, String> {
     private static final long serialVersionUID = 1L;
 
     public CountIconColumn(IModel<String> displayModel) {

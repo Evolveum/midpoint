@@ -141,7 +141,8 @@ It can have a value of `none` (no caching) and `passive` (passive caching as des
 
 | `credentials/password`
 | Scope of the caching for the password.
-| `all` (or `none` for xref:#caching_only_read_capability[caching-only read capability])
+| `all`
+| `none`
 
 |===
 

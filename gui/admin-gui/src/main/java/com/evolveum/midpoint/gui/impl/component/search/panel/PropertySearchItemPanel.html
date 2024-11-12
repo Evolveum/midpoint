@@ -12,11 +12,11 @@
     <div class="d-flex gap-1 pl-2 pr-1 bg-light rounded-sm align-items-center"  wicket:id="searchItemContainer">
         <div class="d-flex gap-1 pr-2 align-items-center">
             <div class="search-item-label" wicket:id="searchItemLabel" />
-            <i wicket:id="help" tabindex="0"/>
+            <i wicket:id="help" tabindex="0" role="button" class="clickable-by-enter"/>
         </div>
         <div class="search-item-field" wicket:id="searchItemField" />
         <div class="search-item-field" wicket:id="checkDisable"/>
-        <a wicket:id="removeButton" class="btn btn-xs px-1">
+        <a wicket:id="removeButton" class="btn btn-xs px-1" wicket:message="title:SingleSearchItemPanel.remove">
             <i class="fa fa-times fa-lg"/>
         </a>
     </div>

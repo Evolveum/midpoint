@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.component.search.panel;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.impl.component.input.DateTimePickerPanel;
 
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
@@ -60,6 +61,7 @@ public class DateIntervalSearchPopupPanel extends PopoverSearchPopupPanel {
         popoverForm.add(fromValueContainer);
         DateTimePickerPanel fromDatePanel = DateTimePickerPanel.createByXMLGregorianCalendarModel(ID_DATE_FROM_VALUE, fromDateModel);
         fromDatePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        fromDatePanel.getBaseFormComponent().add(AttributeAppender.append("aria-label", LocalizationUtil.translate("UserReportConfigPanel.dateFrom")));
         fromValueContainer.add(fromDatePanel);
         validator.setDateFrom(fromDatePanel.getBaseFormComponent());
 
@@ -68,6 +70,7 @@ public class DateIntervalSearchPopupPanel extends PopoverSearchPopupPanel {
         popoverForm.add(toContainer);
         DateTimePickerPanel toDatePanel = DateTimePickerPanel.createByXMLGregorianCalendarModel(ID_DATE_TO_VALUE, toDateModel);
         toDatePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        toDatePanel.getBaseFormComponent().add(AttributeAppender.append("aria-label", LocalizationUtil.translate("UserReportConfigPanel.dateTo")));
         toContainer.add(toDatePanel);
         validator.setDateFrom(toDatePanel.getBaseFormComponent());
     }

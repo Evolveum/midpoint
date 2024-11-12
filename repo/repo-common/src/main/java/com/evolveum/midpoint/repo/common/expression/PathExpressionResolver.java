@@ -147,14 +147,14 @@ class PathExpressionResolver {
         Object rootValue = root.getValue();
         if (rootValue == null) {
             return determineNullTypedValue(root);
-        } else if (rootValue instanceof Objectable) {
-            return determineTypedValue(((Objectable) rootValue).asPrismObject(), false, result);
-        } else if (rootValue instanceof PrismObject<?>) {
-            return determineTypedValue((PrismObject<?>) rootValue, false, result);
-        } else if (rootValue instanceof PrismContainer<?>) {
-            return determineTypedValue((PrismContainer<?>) rootValue, false, result);
-        } else if (rootValue instanceof PrismContainerValue<?>) {
-            return determineTypedValue((PrismContainerValue<?>) rootValue);
+        } else if (rootValue instanceof Objectable objectable) {
+            return determineTypedValue(objectable.asPrismObject(), false, result);
+        } else if (rootValue instanceof PrismObject<?> prismObject) {
+            return determineTypedValue(prismObject, false, result);
+        } else if (rootValue instanceof PrismContainer<?> prismContainer) {
+            return determineTypedValue(prismContainer, false, result);
+        } else if (rootValue instanceof PrismContainerValue<?> prismContainerValue) {
+            return determineTypedValue(prismContainerValue);
         } else if (rootValue instanceof Containerable containerable) {
             return determineTypedValue(containerable.asPrismContainerValue());
         } else if (rootValue instanceof Item<?, ?>) {
@@ -163,8 +163,8 @@ class PathExpressionResolver {
                     "Cannot apply path " + relativePath + " to " + root + " in " + shortDesc);
         } else if (rootValue instanceof ObjectDeltaObject<?>) {
             return determineTypedValueOdo(root);
-        } else if (rootValue instanceof ItemDeltaItem<?, ?>) {
-            return determineTypedValue((ItemDeltaItem<?,?>) rootValue);
+        } else if (rootValue instanceof ItemDeltaItem<?, ?> itemDeltaItem) {
+            return determineTypedValue(itemDeltaItem);
         } else {
             throw new IllegalArgumentException(
                     "Unexpected root " + rootValue + " (relative path:" + relativePath + ") in " + shortDesc);
@@ -207,8 +207,8 @@ class PathExpressionResolver {
                 value = partiallyResolvedItem.getItem();
             } else {
                 Object parentValue = partiallyResolvedItem.getItem().getRealValue();
-                if (parentValue instanceof Structured) {
-                    value = ((Structured)parentValue).resolve(partiallyResolvedItem.getResidualPath());
+                if (parentValue instanceof Structured structured) {
+                    value = structured.resolve(partiallyResolvedItem.getResidualPath());
                 } else {
                     throw new SchemaException(
                             "No sub-path %s in %s".formatted(
@@ -216,7 +216,7 @@ class PathExpressionResolver {
                 }
             }
         }
-        if (value instanceof Item && ((Item<?, ?>) value).isIncomplete()) {
+        if (value instanceof Item<?, ?> item && item.isIncomplete()) {
             if (objectAlreadyFetched) {
                 LOGGER.warn("Referencing incomplete item {} in {} but it is marked as incomplete even if the object was fully fetched", value, rootContainer);
             } else if (!(rootContainer instanceof PrismObject<?> rootObject)) {
@@ -226,8 +226,7 @@ class PathExpressionResolver {
                 //noinspection unchecked
                 Class<? extends ObjectType> type = (Class<? extends ObjectType>) rootObject.asObjectable().getClass();
                 // Let's retrieve everything (at least for now). In the future we could ask just for the single item.
-                Collection<SelectorOptions<GetOperationOptions>> options =
-                        SelectorOptions.createCollection(GetOperationOptions.createRetrieve());
+                var options = GetOperationOptions.createRetrieveCollection();
                 ObjectType object = objectResolver.getObject(type, rootObject.getOid(), options, task, result);
                 return determineTypedValue(object.asPrismObject(), true, result);
             }

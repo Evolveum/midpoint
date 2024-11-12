@@ -31,6 +31,9 @@ import org.springframework.security.oauth2.client.oidc.authentication.OidcIdToke
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.oauth2.jose.jws.JwsAlgorithm;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoderFactory;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.util.MultiValueMap;
@@ -40,6 +43,7 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author skublik
@@ -57,14 +61,42 @@ public class OidcClientProvider extends RemoteModuleProvider {
     public OidcClientProvider(Map<String, OidcAdditionalConfiguration> additionalConfiguration) {
         this.additionalConfiguration = additionalConfiguration;
         initJwkResolver();
-        JwtDecoderFactory<ClientRegistration> decoder = new OidcIdTokenDecoderFactory();
+        OidcIdTokenDecoderFactory decoder = new OidcIdTokenDecoderFactory();
         OAuth2AuthorizationCodeGrantRequestEntityConverter requestEntityConverter =
                 new OAuth2AuthorizationCodeGrantRequestEntityConverter();
         requestEntityConverter.addParametersConverter(createParameterConverter());
         DefaultAuthorizationCodeTokenResponseClient client = new DefaultAuthorizationCodeTokenResponseClient();
         client.setRequestEntityConverter(requestEntityConverter);
+        decoder.setJwsAlgorithmResolver(getAlgorithmResolver());
         oidcProvider = new OidcAuthorizationCodeAuthenticationProvider(client, getUserService(decoder));
         oidcProvider.setJwtDecoderFactory(decoder);
+    }
+
+    private Function<ClientRegistration, JwsAlgorithm> getAlgorithmResolver() {
+        return clientRegistration -> {
+            String signingAlg = additionalConfiguration.get(clientRegistration.getRegistrationId()).getIdTokenSingingAlg();
+
+            if (StringUtils.isBlank(signingAlg)) {
+                return SignatureAlgorithm.RS256;
+            }
+
+            JwsAlgorithm ret;
+            try {
+                ret = SignatureAlgorithm.valueOf(signingAlg);
+            } catch (IllegalArgumentException e) {
+                try {
+                    ret = MacAlgorithm.valueOf(signingAlg);
+                } catch (IllegalArgumentException ex) {
+                    ArrayList<String> supportedValues = new ArrayList<>();
+                    supportedValues.addAll(Arrays.stream(SignatureAlgorithm.values()).map(Enum::name).toList());
+                    supportedValues.addAll(Arrays.stream(MacAlgorithm.values()).map(Enum::name).toList());
+                    LOGGER.error("Couldn't ' parse signing algorithm '" + signingAlg + "', supported values are " +
+                            String.join(", ", supportedValues) + ", using default RS256");
+                    return SignatureAlgorithm.RS256;
+                }
+            }
+            return ret;
+        };
     }
 
     private Converter<OAuth2AuthorizationCodeGrantRequest, MultiValueMap<String, String>> createParameterConverter() {
