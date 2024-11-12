@@ -3526,7 +3526,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         });
         sessionStatistic.getUniq().getUniqRolesNext().addAll(nonPopularRoles);
         sessionStatistic.getUniq().setUniqRolesCurrentCount(nonPopularRoles.size());
-        sessionStatistic.setProcessedPropertiesCount(roleMembersMap.keySet().size());
         sessionStatistic.setProcessedAssignmentCount(roleMembersMap.keys().size());
 
         ListMultimap<String, String> userRolesMap = ArrayListMultimap.create();
@@ -3534,6 +3533,12 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             String roleOid = entry.getKey();
             String ownerOid = entry.getValue();
             userRolesMap.put(ownerOid, roleOid);
+        }
+
+        if (processMode == RoleAnalysisProcessModeType.USER) {
+            sessionStatistic.setProcessedPropertiesCount(roleMembersMap.keySet().size());
+        } else if (processMode == RoleAnalysisProcessModeType.ROLE) {
+            sessionStatistic.setProcessedPropertiesCount(userRolesMap.keySet().size());
         }
 
         Set<String> nonPopularUsers = new HashSet<>();
@@ -3666,13 +3671,19 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
         sessionStatistic.getUniq().getUniqRolesNext().addAll(nonPopularRoles);
         sessionStatistic.getUniq().setUniqRolesCurrentCount(nonPopularRoles.size());
-        sessionStatistic.setProcessedPropertiesCount(roleMembersMap.keySet().size());
         sessionStatistic.setProcessedAssignmentCount(roleMembersMap.keys().size());
+
         ListMultimap<String, String> userRolesMap = ArrayListMultimap.create();
         for (Map.Entry<String, String> entry : roleMembersMap.entries()) {
             String roleOid = entry.getKey();
             String ownerOid = entry.getValue();
             userRolesMap.put(ownerOid, roleOid);
+        }
+
+        if (processMode == RoleAnalysisProcessModeType.USER) {
+            sessionStatistic.setProcessedPropertiesCount(roleMembersMap.keySet().size());
+        } else if (processMode == RoleAnalysisProcessModeType.ROLE) {
+            sessionStatistic.setProcessedPropertiesCount(userRolesMap.keySet().size());
         }
 
         Set<String> nonPopularUsers = new HashSet<>();
@@ -4495,6 +4506,11 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         Users usersOld = sessionStatisticOld.getUsers();
         RolesInNoise rolesInNoiseOld = sessionStatisticOld.getRolesInNoise();
         UsersInNoise usersInNoiseOld = sessionStatisticOld.getUsersInNoise();
+
+        Integer processedAssignmentCount = sessionStatisticOld.getProcessedAssignmentCount();
+        Integer processedPropertiesCount = sessionStatisticOld.getProcessedPropertiesCount();
+        sessionStatisticNew.setProcessedAssignmentCount(processedAssignmentCount);
+        sessionStatisticNew.setProcessedPropertiesCount(processedPropertiesCount);
 
         Uniq uniqNew = sessionStatisticNew.getUniq();
         Diff diffNew = sessionStatisticNew.getDiff();
