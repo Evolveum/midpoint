@@ -52,6 +52,10 @@ Identifier of algorithm for digitally sign or create a MAC of the content. (RFC7
 | false
 | _String_
 
+| `idTokenSigningAlgorithm`
+| JWA algorithm used for signing ID tokens. (RFC7518 section-3.1)
+| false
+| _String_
 
 | `scope`
 | OpenID Connect Clients use scope values as defined in 3.3 of OAuth 2.0 [RFC6749] to specify what access privileges are being requested for Access Tokens. Scope contains 'openid', so we don't need set it. Scope is multivalue attribute, so please set every value of scope to separate tags.
