@@ -13,14 +13,14 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 
+import javax.annotation.Nullable;
 import javax.xml.namespace.QName;
 import java.io.Serial;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 //TODO remove duplication (TBD)
@@ -64,9 +64,13 @@ public class ObjectSimpleAttributeSelectionProvider extends ChoiceProvider<ItemP
 
         List<ItemPath> paths = new ArrayList<>();
         for (ItemDefinition<?> def : userDef.getDefinitions()) {
-            ItemPath itemPath = createPossibleAttribute(def);
-            if (itemPath != null) {
-                paths.add(itemPath);
+            Set<ItemPath> itemPathSet = createPossibleAttribute(def);
+            if(itemPathSet != null) {
+                for (ItemPath path : itemPathSet) {
+                    if (path != null) {
+                        paths.add(path);
+                    }
+                }
             }
         }
 
@@ -86,26 +90,52 @@ public class ObjectSimpleAttributeSelectionProvider extends ChoiceProvider<ItemP
 
     }
 
-    private static ItemPath createPossibleAttribute(ItemDefinition<?> def) {
+    private static @Nullable Set<ItemPath> createPossibleAttribute(ItemDefinition<?> def) {
+        Set<ItemPath> paths = new HashSet<>();
         //TODO we want extension references, but maybe we can somehow filter relevant defs from static schema?
-        if (def instanceof PrismReferenceDefinition refDef && !refDef.isOperational()) {
-            return refDef.getItemName();
+        // Think about !refDef.isOperational() and searchable items.
+        if (def instanceof PrismReferenceDefinition refDef && !refDef.isOperational() && refDef.isSingleValue()) {
+            return Collections.singleton(refDef.getItemName());
         }
-        if (def instanceof PrismPropertyDefinition<?> propertyDef) {
-            if (RoleAnalysisAttributeDefUtils.isSupportedPropertyType(propertyDef.getTypeClass())
-                    && !propertyDef.isOperational()) { // TODO differentiate searchable items && def.isSearchable()) {
-                return propertyDef.getItemName();
-            }
+
+        if (def instanceof PrismPropertyDefinition<?> propertyDef
+                && RoleAnalysisAttributeDefUtils.isSupportedPropertyType(propertyDef.getTypeClass())
+                && !propertyDef.isOperational()
+                && propertyDef.isSingleValue()) { // TODO differentiate searchable items && def.isSearchable()) {
+            return Collections.singleton(propertyDef.getItemName());
         }
+
         if (def instanceof PrismContainerDefinition<?> containerDef) {
-            ItemPath itemName = containerDef.getItemName();
-            for (ItemDefinition<?> itemDef : containerDef.getDefinitions()) {
-                ItemPath additionalName = createPossibleAttribute(itemDef);
-                if (additionalName != null) {
-                    return ItemPath.create(itemName, additionalName);
-                }
+            Set<ItemPath> possibleAttributeFromContainerDef = createPossibleAttributeFromContainerDef(containerDef);
+            if (possibleAttributeFromContainerDef != null && !possibleAttributeFromContainerDef.isEmpty()) {
+                paths.addAll(possibleAttributeFromContainerDef);
+                return paths;
             }
         }
+
         return null;
+    }
+
+    private static @Nullable Set<ItemPath> createPossibleAttributeFromContainerDef(
+            @NotNull PrismContainerDefinition<?> containerDef) {
+        Set<ItemPath> paths = new HashSet<>();
+        if (containerDef.isMultiValue()) {
+            return null;
+        }
+
+        for (ItemDefinition<?> def : containerDef.getDefinitions()) {
+            if (def instanceof PrismReferenceDefinition refDef && !refDef.isOperational() && refDef.isSingleValue()) {
+                paths.add(refDef.getItemName());
+            }
+
+            if (def instanceof PrismPropertyDefinition<?> propertyDef
+                    && RoleAnalysisAttributeDefUtils.isSupportedPropertyType(propertyDef.getTypeClass())
+                    && !propertyDef.isOperational()
+                    && propertyDef.isSingleValue()) {
+                paths.add(propertyDef.getItemName());
+            }
+
+        }
+        return paths;
     }
 }
