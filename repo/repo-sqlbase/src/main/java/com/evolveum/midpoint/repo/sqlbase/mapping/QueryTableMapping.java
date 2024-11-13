@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sqlbase.mapping;
 
+import java.sql.Array;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -360,5 +361,12 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
 
     protected static Path<?>[] paths(Path<?>... path) {
         return path;
+    }
+
+    protected static Path<?>[] appendPaths(Path<?>[] original, Path<?>... path) {
+        var ret = new ArrayList<Path<?>>();
+        Collections.addAll(ret, original);
+        Collections.addAll(ret, path);
+        return ret.toArray(new Path<?>[original.length + path.length]);
     }
 }
