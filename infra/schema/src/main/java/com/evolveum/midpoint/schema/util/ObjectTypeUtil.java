@@ -20,6 +20,7 @@ import java.util.stream.Stream;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.lazy.LazyXNodeBasedPrismValue;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 
@@ -747,21 +748,26 @@ public class ObjectTypeUtil {
 
     public static void normalizeAllRelations(PrismValue value, RelationRegistry relationRegistry) {
         if (value != null) {
-            value.accept(createNormalizingVisitor(relationRegistry));
+            value.acceptVisitor(createNormalizingVisitor(relationRegistry));
         }
     }
 
     public static void normalizeAllRelations(Item<?, ?> item, RelationRegistry relationRegistry) {
         if (item != null) {
-            item.accept(createNormalizingVisitor(relationRegistry));
+            item.acceptVisitor(createNormalizingVisitor(relationRegistry));
         }
     }
 
-    private static Visitor createNormalizingVisitor(RelationRegistry relationRegistry) {
+    private static PrismVisitor createNormalizingVisitor(RelationRegistry relationRegistry) {
         return v -> {
+
             if (v instanceof PrismReferenceValue) {
                 normalizeRelation((PrismReferenceValue) v, relationRegistry);
             }
+            if (v instanceof PrismValue pv && LazyXNodeBasedPrismValue.isNotMaterialized(pv)) {
+                return false;
+            }
+            return true;
         };
     }
 
