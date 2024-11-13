@@ -16,10 +16,10 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 
-import javax.annotation.Nullable;
 import javax.xml.namespace.QName;
 import java.io.Serial;
 import java.util.*;

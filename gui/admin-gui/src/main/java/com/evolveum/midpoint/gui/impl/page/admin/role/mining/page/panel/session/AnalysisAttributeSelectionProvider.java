@@ -16,10 +16,10 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 
-import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -57,7 +57,6 @@ public class AnalysisAttributeSelectionProvider extends ChoiceProvider<ItemPathT
     public List<String> collectAvailableDefinitions(String input) {
 
         PrismContainerDefinition<UserType> userDef = PrismContext.get().getSchemaRegistry().findContainerDefinitionByType(UserType.COMPLEX_TYPE);
-
         List<ItemPath> paths = new ArrayList<>();
         for (ItemDefinition<?> def : userDef.getDefinitions()) {
             Set<ItemPath> itemPathSet = createPossibleAttribute(def);
