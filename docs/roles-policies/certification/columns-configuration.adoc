@@ -132,6 +132,10 @@ Therefore, the list of the available predefined columns is limited to the certif
 | No
 | Contains editable input field for commenting the certification item.
 
+| View details link column
+| certItemDetailsLink
+| No
+| Column with a "View details" link to display the popup with certification item object and target information, responses information and decision buttons.
 
 |===
 
