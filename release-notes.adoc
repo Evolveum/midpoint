@@ -9,8 +9,8 @@ visibility: hidden
 :page-liquid:
 :page-toc: top
 
-Release {release-version} is a sixtieth midPoint release, code-named _Verne_.
-The {release-version} release brings improvements in role engineering, certification, approvals, stability and miscellaneous improvements.
+Release {release-version} is a TODO midPoint release, code-named _Verne_.
+The {release-version} release brings improvements TODO and miscellaneous bugfixes.
 
 ++++
 {% include release-data.html %}
@@ -41,6 +41,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 * Adding support for PKCE (Proof Key for Code Exchange) as additional security for OIDC authentication module. See bug:MID-10155[].
 * bug:MID-10147[] Added support for new capability `lastLoginTimestamp`.
 * Adding new configuration attribute for OIDC authentication module, that is used for ID Token signing algorithm. See xref:/midpoint/reference/security/authentication/flexible-authentication/modules/oidc/[Oidc Module].
+* Fixing of unused matching request parameter in saved request for redirecting after fail/success authentication. See bug:MID-10184[].
 
 == Changes With Respect To Version 4.8
 
@@ -148,6 +149,7 @@ This means that table's columns and actions can be configured for certification 
 ** As a part of midPoint 4.9 release, we have released also a new xref:/midpoint/methodology/[midPoint deployment methodology].
 Please refer to xref:/midpoint/methodology/group-synchronization/[] for more information.
 
+* Also, please have a look at changes mentioned in <<Changes with Respect To Version 4.9>>.
 
 === Other Improvements
 
@@ -469,6 +471,9 @@ Please refer to the xrefv:/midpoint/reference/support-4.9/upgrade/upgrade-guide/
 The guide describes the steps applicable for upgrades of all midPoint releases.
 Following sections provide details regarding release {release-version}.
 
+=== Upgrade From MidPoint 4.9
+TODO
+
 === Upgrade From MidPoint 4.8
 
 MidPoint {release-version} data model is backwards compatible with previous midPoint version.
@@ -497,6 +502,9 @@ Note that:
 Upgrade from midPoint versions other than 4.8.x to midPoint {release-version} is not supported directly.
 Please upgrade to 4.8.5 first.
 
+=== Deprecation, Feature Removal And Major Incompatible Changes Since 4.9
+TODO
+
 === Deprecation, Feature Removal And Major Incompatible Changes Since 4.8
 
 NOTE: This section is relevant to the majority of midPoint deployments.
@@ -518,6 +526,9 @@ It refers to the most significant functionality removals and changes in this ver
 //
 // * Ninja command line options were consolidated, some options were renamed.
 // More info xrefv:/midpoint/reference/support-4.9/deployment/ninja[here] and in bug:MID-7483[].
+
+=== Changes In Initial Objects Since 4.9
+TODO
 
 === Changes In Initial Objects Since 4.8
 
@@ -555,6 +566,9 @@ Please review link:https://github.com/Evolveum/midpoint/commits/master/gui/admin
 
 TIP: Copies of initial object files are located in `config/initial-objects` directory of midPoint distribution packages. These files can be used as a reference during upgrades.
 On-line version can be found in https://github.com/Evolveum/midpoint/tree/v{release-version}/config/initial-objects[midPoint source code].
+
+=== Schema Changes Since 4.9
+TODO
 
 === Schema Changes Since 4.8
 
@@ -601,6 +615,10 @@ Make sure you don't use any removed items.
 You can use `ninja` tool for this.
 
 * Be sure to apply the changes to initial objects 800-804 (object marks), as well as to your custom object marks to handle the membership in the expected way.
+
+[#_behavior_changes_since_4_9]
+=== Behavior Changes Since 4.9
+TODO
 
 [#_behavior_changes_since_4_8]
 === Behavior Changes Since 4.8
@@ -693,6 +711,9 @@ All these features can be configured - or even turned off in the extreme case - 
 Moreover, we plan to improve the performance in the forthcoming releases.
 
 === Java and REST API Changes Since 4.8
+TODO
+
+=== Java and REST API Changes Since 4.8
 
 NOTE: As for the Java API, this section describes changes in `midpoint` and `basic` function libraries.
 (MidPoint does not have explicitly defined Java API, yet.
@@ -706,6 +727,9 @@ But these two objects are something that can be unofficially considered to be th
 // * The following methods were not checking authorizations of currently logged-in user, and were fixed to do so:
 // `midpoint.countAccounts`, `midpoint.getObjectsInConflictOnPropertyValue`, `midpoint.isUniquePropertyValue`.
 // See bug:MID-6241[] and commit https://github.com/Evolveum/midpoint/commit/1471bba52e363f81feabbec6f997507d8a7655fb[1471bb].
+
+=== Internal Changes Since 4.9
+TODO
 
 === Internal Changes Since 4.8
 
@@ -735,3 +759,4 @@ You should not be affected by this; however, if you use some of the unofficial/u
 ++++
 {% include release-issues.html %}
 ++++
+
