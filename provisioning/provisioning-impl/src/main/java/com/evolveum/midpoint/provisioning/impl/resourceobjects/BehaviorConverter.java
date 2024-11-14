@@ -7,9 +7,10 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -34,10 +35,19 @@ public class BehaviorConverter {
 
     private static final Trace LOGGER = TraceManager.getTrace(ActivationConverter.class);
 
+    /**
+     * This map is just to cache instances of {@link SimpleDateFormat} since they are expensive to create.
+     */
+    private static final Map<String, DateFormat> LAST_LOGIN_TIMESTAMP_DATE_FORMAT = new HashMap<>();
+
     @NotNull private final ProvisioningContext ctx;
 
     BehaviorConverter(@NotNull ProvisioningContext ctx) {
         this.ctx = ctx;
+    }
+
+    private static synchronized DateFormat getLastLoginTimestampDateFormat(String format) {
+        return LAST_LOGIN_TIMESTAMP_DATE_FORMAT.computeIfAbsent(format, f -> new SimpleDateFormat(f));
     }
 
     //region Resource object -> midPoint (simulating/native -> behavior)
@@ -101,18 +111,32 @@ public class BehaviorConverter {
         if (filteredValues.size() > 1) {
             LOGGER.warn("An object on {} has last login timestamp values for simulated {} attribute, expecting just one value",
                     ctx.getResource(), filteredValues.size());
-            result.setPartialError("An object on " + ctx.getResource() + " has last login timestamp values for simulated "
-                    + filteredValues.size() + " attribute, expecting just one value");
+            result.setPartialError(
+                    "An object on " + ctx.getResource() + " has last login timestamp values for simulated "
+                            + filteredValues.size() + " attribute, expecting just one value");
         }
 
         Object value = filteredValues.get(0);
+        String format = lastLoginTimestampCapability.getFormat();
+        if (format != null) {
+            DateFormat df = getLastLoginTimestampDateFormat(format);
+            try {
+                value = df.parse(value.toString()).getTime();
+            } catch (ParseException ex) {
+                LOGGER.warn("An object on {} has last login timestamp values for simulated attribute, wrong format: {}",
+                        ctx.getResource(), ex.getMessage());
+                result.setPartialError(
+                        "An object on " + ctx.getResource()
+                                + " has last login timestamp values for simulated attribute, wrong format: " + ex.getMessage());
+            }
+        }
 
         if (!Boolean.FALSE.equals(lastLoginTimestampCapability.isIgnoreAttribute())) {
             removeSimulatingAttribute(resourceObject, lastLoginTimestampCapability.getAttribute());
         }
 
-        if (value instanceof Long longValue) {
-            return XmlTypeConverter.createXMLGregorianCalendar(longValue);
+        if (value instanceof Long l) {
+            return XmlTypeConverter.createXMLGregorianCalendar(l);
         }
         if (value instanceof XMLGregorianCalendar cal) {
             return cal;
