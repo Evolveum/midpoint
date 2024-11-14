@@ -7,7 +7,7 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
-    <div class="feedback-message card" wicket:id="detailsBox">
+    <div class="feedback-message card" role="alert" wicket:id="detailsBox">
         <div class="card-header">
             <h3 class="card-title mw-100" style="word-break: break-all" wicket:id="message">
                 <i class="mr-2 fa" wicket:id="iconType"></i>
@@ -25,16 +25,16 @@
             </h3>
 
             <div class="card-tools">
-                <a wicket:id="showAll" class="btn btn-tool">
+                <a wicket:id="showAll" class="btn btn-tool" wicket:message="title:OperationResultPanel.button.showAll">
                     <i class="fa fa-chevron-left"></i>
                 </a>
-                <a wicket:id="hideAll" class="btn btn-tool">
+                <a wicket:id="hideAll" class="btn btn-tool" wicket:message="title:OperationResultPanel.button.hideAll">
                     <i class="fa fa-chevron-down"></i>
                 </a>
-                <a wicket:id="downloadXml" class="btn btn-tool">
+                <a wicket:id="downloadXml" class="btn btn-tool" wicket:message="title:OperationResultPanel.button.downloadXml">
                     <i class="fa fa-download"></i>
                 </a>
-                <a wicket:id="close" data-widget="remove" class="btn btn-tool">
+                <a wicket:id="close" data-widget="remove" class="btn btn-tool" wicket:message="title:OperationResultPanel.button.close">
                     <i class="fa fa-times"></i>
                 </a>
             </div>

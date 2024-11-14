@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.input.DateTimePickerPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
@@ -282,12 +283,16 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         DateTimePickerPanel validFrom = DateTimePickerPanel.createByDateModel(ID_DELEGATION_VALID_FROM,
                 AssignmentsUtil.createDateModel(new PropertyModel<>(getModel(),
                     AssignmentEditorDto.F_ACTIVATION + ".validFrom")));
+        validFrom.getBaseFormComponent().add(
+                AttributeAppender.append("aria-label", LocalizationUtil.translate("ActivationType.validFrom")));
         validFrom.setEnabled(getModel().getObject().isEditable());
         body.add(validFrom);
 
         DateTimePickerPanel validTo = DateTimePickerPanel.createByDateModel(ID_DELEGATION_VALID_TO,
                 AssignmentsUtil.createDateModel(new PropertyModel<>(getModel(),
                     AssignmentEditorDto.F_ACTIVATION + ".validTo")));
+        validTo.getBaseFormComponent().add(
+                AttributeAppender.append("aria-label", LocalizationUtil.translate("ActivationType.validTo")));
         validTo.setEnabled(getModel().getObject().isEditable());
         body.add(validTo);
 
