@@ -54,6 +54,8 @@ public class FulltextSearchPanel extends BasePanel<FulltextQueryWrapper> {
         fullTextInput.setOutputMarkupId(true);
         fullTextInput.add(new AttributeAppender("placeholder",
                 createStringResource("SearchPanel.fullTextSearch")));
+        fullTextInput.add(new AttributeAppender("title",
+                createStringResource("SearchPanel.fullTextSearch")));
         fullTextContainer.add(fullTextInput);
 
     }

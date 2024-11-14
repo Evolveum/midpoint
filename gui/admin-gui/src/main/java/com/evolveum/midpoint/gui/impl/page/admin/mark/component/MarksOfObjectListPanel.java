@@ -207,7 +207,12 @@ public class MarksOfObjectListPanel<O extends ObjectType> extends MainObjectList
                             PrismPropertyWrapperModel.fromContainerValueWrapper(
                                     getModelPolicyStatement(rowModel),
                                     PolicyStatementType.F_TYPE),
-                            AbstractItemWrapperColumn.ColumnType.VALUE));
+                            AbstractItemWrapperColumn.ColumnType.VALUE) {
+                        @Override
+                        protected IModel<String> getCustomHeaderModel() {
+                            return getDisplayModel();
+                        }
+                    });
                 }
             }
         });

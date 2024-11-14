@@ -29,6 +29,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 
+import java.io.Serializable;
+
 /**
  * @author katka
  */
@@ -47,6 +49,10 @@ public class PrismPropertyWrapperColumnPanel<T> extends AbstractItemWrapperColum
         super.onBeforeRender();
         if (ColumnType.VALUE == getColumnType()) {
             visitChildren(FormComponent.class, (formComponent, object) -> {
+                if (getCustomHeaderModel() != null && StringUtils.isNotBlank(getCustomHeaderModel().getObject())) {
+                    formComponent.add(AttributeAppender.replace("aria-label", getCustomHeaderModel()));
+                    formComponent.add(AttributeAppender.remove("aria-labelledby"));
+                }
                 formComponent.add(AttributeAppender.append("class", () -> {
                     if (formComponent.hasErrorMessage()) {
                         return INVALID_FIELD_CLASS;
@@ -89,6 +95,10 @@ public class PrismPropertyWrapperColumnPanel<T> extends AbstractItemWrapperColum
 
             });
         }
+    }
+
+    protected IModel<String> getCustomHeaderModel() {
+        return null;
     }
 
     @Override
