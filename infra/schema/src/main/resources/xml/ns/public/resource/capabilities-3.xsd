@@ -935,6 +935,16 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="format" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Option that controls how attribute value is parsed using SimpleDateFormat utility class.
+
+                                This option is meaningful only for simulated lastLoginTimestamp, i.e. in case that the
+                                "attribute" element above is set.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
                 <xsd:attribute name="id" type="xsd:long"/>
             </xsd:extension>
