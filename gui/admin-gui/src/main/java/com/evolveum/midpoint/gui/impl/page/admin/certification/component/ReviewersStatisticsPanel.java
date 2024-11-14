@@ -66,6 +66,7 @@ public class ReviewersStatisticsPanel extends BasePanel {
     private StatisticListBoxPanel<ObjectReferenceType> reviewersPopupPanel;
 
     private List<StatisticBoxDto<ObjectReferenceType>> sortedReviewerList = new ArrayList<>();
+
     public ReviewersStatisticsPanel(String id, CertificationDetailsModel model) {
         super(id);
         this.model = model;
@@ -106,7 +107,14 @@ public class ReviewersStatisticsPanel extends BasePanel {
                         createStatisticBoxLabel(statisticObject.getStatisticObject(), reviewersStatisticModel), "",
                         createPercentageLabel(statisticObject.getStatisticObject(), reviewersStatisticModel));
                 WidgetRmChartComponent<DoughnutChartConfiguration> chartComponent = new WidgetRmChartComponent<>(id,
-                        Model.of(new DisplayType()), Model.of(infoDto));
+                        Model.of(new DisplayType()), Model.of(infoDto)) {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected boolean isChartInnerLabelVisible() {
+                        return super.isChartInnerLabelVisible() && chartDataExists();
+                    }
+                };
                 chartComponent.setOutputMarkupId(true);
                 chartComponent.add(AttributeAppender.append(CLASS_CSS,"col-auto p-0"));
                 chartComponent.add(AttributeAppender.append("style","min-width: 210px;"));
@@ -171,13 +179,13 @@ public class ReviewersStatisticsPanel extends BasePanel {
             protected HashMap<ObjectReferenceType, ReviewerStatisticDto> load() {
                 HashMap<ObjectReferenceType, ReviewerStatisticDto> reviewersUnresolvedItemsCount = new HashMap<>();
                 AccessCertificationCampaignType campaign = model.getObjectType();
-                List<ObjectReferenceType> reviewers = CertMiscUtil.loadCampaignReviewers(campaign.getOid(),
+                List<ObjectReferenceType> reviewers = CertMiscUtil.loadCampaignReviewers(campaign,
                         ReviewersStatisticsPanel.this.getPageBase());
 
                 reviewers.forEach(reviewerRef -> {
                     PrismObject<FocusType> reviewerObj = WebModelServiceUtils.loadObject(reviewerRef, getPageBase());
                     reviewersUnresolvedItemsCount.put(reviewerRef,
-                        new ReviewerStatisticDto(reviewerRef, getNotDecidedOpenItemsCount(reviewerObj), getAllOpenItemsCount(reviewerObj)));
+                        new ReviewerStatisticDto(reviewerRef, getNotDecidedItemsCount(reviewerObj), getAllItemsCount(reviewerObj)));
                 });
                 return reviewersUnresolvedItemsCount;
             }
@@ -195,8 +203,8 @@ public class ReviewersStatisticsPanel extends BasePanel {
 
         dataset.setFill(true);
 
-        long notDecidedCertItemsCount = reviewerStatisticDto.getOpenNotDecidedItemsCount();
-        long allOpenCertItemsCount = reviewerStatisticDto.getAllOpenItemsCount();
+        long notDecidedCertItemsCount = reviewerStatisticDto.getNotDecidedItemsCount();
+        long allOpenCertItemsCount = reviewerStatisticDto.getAllItemsCount();
         long decidedCertItemsCount = allOpenCertItemsCount - notDecidedCertItemsCount;
 
         dataset.addData(decidedCertItemsCount);
@@ -242,7 +250,7 @@ public class ReviewersStatisticsPanel extends BasePanel {
                     ReviewerStatisticDto rs2 = reviewersStatistics.get(r2);
 
                     if (Boolean.FALSE.equals(percentageSortingModel.getObject())) {
-                        return Long.compare(rs2.getOpenNotDecidedItemsCount(), rs1.getOpenNotDecidedItemsCount());
+                        return Long.compare(rs2.getNotDecidedItemsCount(), rs1.getNotDecidedItemsCount());
                     }
 
                     float r1ItemsPercent = rs1.getOpenNotDecidedItemsPercentage();
@@ -270,7 +278,7 @@ public class ReviewersStatisticsPanel extends BasePanel {
             ReviewerStatisticDto rs2 = reviewersStatistics.get(r2.getStatisticObject());
 
             if (Boolean.FALSE.equals(percentageSortingModel.getObject())) {
-                return Long.compare(rs2.getOpenNotDecidedItemsCount(), rs1.getOpenNotDecidedItemsCount());
+                return Long.compare(rs2.getNotDecidedItemsCount(), rs1.getNotDecidedItemsCount());
             }
 
             float r1ItemsPercent = rs1.getOpenNotDecidedItemsPercentage();
@@ -280,24 +288,42 @@ public class ReviewersStatisticsPanel extends BasePanel {
         return reviewersList;
     }
 
-    private long getNotDecidedOpenItemsCount(PrismObject<FocusType> reviewer) {
+    private long getNotDecidedItemsCount(PrismObject<FocusType> reviewer) {
         if (reviewer == null) {
             return 0;
         }
-        String campaignOid = model.getObjectType().getOid();
-        MidPointPrincipal principal = MidPointPrincipal.create(reviewer.asObjectable());
-        return CertMiscUtil.countOpenCertItems(Collections.singletonList(campaignOid), principal,
-                true, getPageBase());
+        if (isInReviewStage()) {
+            String campaignOid = model.getObjectType().getOid();
+            MidPointPrincipal principal = MidPointPrincipal.create(reviewer.asObjectable());
+            return CertMiscUtil.countOpenCertItems(Collections.singletonList(campaignOid), principal,
+                    true, getPageBase());
+        } else if (isReviewStageDone()) {
+            return CertMiscUtil.countCertItemsForClosedStageAndIteration(model.getObjectType(), true, getPageBase());
+        }
+        return 0;
     }
 
-    private long getAllOpenItemsCount(PrismObject<FocusType> reviewer) {
+    private long getAllItemsCount(PrismObject<FocusType> reviewer) {
         if (reviewer == null) {
             return 0;
         }
-        String campaignOid = model.getObjectType().getOid();
-        MidPointPrincipal principal = MidPointPrincipal.create(reviewer.asObjectable());
-        return CertMiscUtil.countOpenCertItems(Collections.singletonList(campaignOid), principal,
-                false, getPageBase());
+        if (isInReviewStage()) {
+            String campaignOid = model.getObjectType().getOid();
+            MidPointPrincipal principal = MidPointPrincipal.create(reviewer.asObjectable());
+            return CertMiscUtil.countOpenCertItems(Collections.singletonList(campaignOid), principal,
+                    false, getPageBase());
+        } else if (isReviewStageDone()) {
+            return CertMiscUtil.countCertItemsForClosedStageAndIteration(model.getObjectType(), false, getPageBase());
+        }
+        return 0;
+    }
+
+    private boolean isInReviewStage() {
+        return AccessCertificationCampaignStateType.IN_REVIEW_STAGE.equals(model.getObjectType().getState());
+    }
+
+    private boolean isReviewStageDone() {
+        return AccessCertificationCampaignStateType.REVIEW_STAGE_DONE.equals(model.getObjectType().getState());
     }
 
     private boolean reviewersCountExceedsLimit() {
@@ -384,8 +410,9 @@ public class ReviewersStatisticsPanel extends BasePanel {
     private String createStatisticBoxLabel(ObjectReferenceType reviewerRef,
             IModel<HashMap<ObjectReferenceType, ReviewerStatisticDto>> reviewersStatisticModel) {
         ReviewerStatisticDto reviewerStatistic = reviewersStatisticModel.getObject().get(reviewerRef);
-        return getString("ReviewersStatisticsPanel.statistic.itemsWaitingForDecision",
-                reviewerStatistic.getOpenNotDecidedItemsCount(), reviewerStatistic.getAllOpenItemsCount());
+        String messageKey = isReviewStageDone() ? "ReviewersStatisticsPanel.statistic.notDecidedItemsCount"
+                : "ReviewersStatisticsPanel.statistic.itemsWaitingForDecision";
+        return getString(messageKey, reviewerStatistic.getNotDecidedItemsCount(), reviewerStatistic.getAllItemsCount());
     }
 
     private String createPercentageLabel(ObjectReferenceType reviewerRef,

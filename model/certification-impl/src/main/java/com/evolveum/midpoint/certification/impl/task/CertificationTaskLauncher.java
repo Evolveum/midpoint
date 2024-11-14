@@ -15,6 +15,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -26,6 +27,8 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+
+import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 
 /**
  * Launches certification activity tasks.
@@ -48,10 +51,11 @@ public class CertificationTaskLauncher {
                 .certificationCampaignRef(campaign.getOid(), AccessCertificationCampaignType.COMPLEX_TYPE);
 
         startTask(
-                campaign.getOid(),
+                campaign,
                 activityDef,
                 "Remediation for " + campaign.getName(),
                 "remediation",
+                "PageCertCampaign.taskName.remediation",
                 parentResult,
                 SystemObjectsType.ARCHETYPE_CERTIFICATION_REMEDIATION_TASK.value());
     }
@@ -63,10 +67,11 @@ public class CertificationTaskLauncher {
                 .certificationCampaignRef(campaign.getOid(), AccessCertificationCampaignType.COMPLEX_TYPE);
 
         startTask(
-                campaign.getOid(),
+                campaign,
                 activityDef,
                 "Campaign open first stage for " + campaign.getName(),
                 "first stage",
+                "PageCertCampaign.taskName.openFirstStage",
                 parentResult,
                 SystemObjectsType.ARCHETYPE_CERTIFICATION_START_CAMPAIGN_TASK.value());
     }
@@ -78,10 +83,11 @@ public class CertificationTaskLauncher {
                 .certificationCampaignRef(campaign.getOid(), AccessCertificationCampaignType.COMPLEX_TYPE);
 
         startTask(
-                campaign.getOid(),
+                campaign,
                 activityDef,
                 "Campaign next stage for " + campaign.getName(),
                 "next stage",
+                "PageCertCampaign.taskName.openNextStage",
                 parentResult,
                 SystemObjectsType.ARCHETYPE_CERTIFICATION_OPEN_NEXT_STAGE_TASK.value());
     }
@@ -93,10 +99,11 @@ public class CertificationTaskLauncher {
                 .certificationCampaignRef(campaign.getOid(), AccessCertificationCampaignType.COMPLEX_TYPE);
 
         startTask(
-                campaign.getOid(),
+                campaign,
                 activityDef,
                 "Campaign close current stage for " + campaign.getName(),
                 "first stage",
+                "PageCertCampaign.taskName.closeCurrentStage",
                 parentResult,
                 SystemObjectsType.ARCHETYPE_CERTIFICATION_CLOSE_CURRENT_STAGE_TASK.value());
     }
@@ -108,21 +115,24 @@ public class CertificationTaskLauncher {
                 .certificationCampaignRef(campaign.getOid(), AccessCertificationCampaignType.COMPLEX_TYPE);
 
         startTask(
-                campaign.getOid(),
+                campaign,
                 activityDef,
                 "Campaign reiteration for " + campaign.getName(),
                 "first stage",
+                "PageCertCampaign.taskName.reiteration",
                 parentResult,
                 SystemObjectsType.ARCHETYPE_CERTIFICATION_REITERATE_CAMPAIGN_TASK.value());
     }
 
     private void startTask(
-            String campaignOid,
+            AccessCertificationCampaignType campaign,
             ActivityDefinitionType activityDef,
             String taskName,
             String description,
+            String userMessageKey,
             OperationResult parentResult,
             @NotNull String archetypeOid) {
+        String campaignOid = campaign.getOid();
         LOGGER.info("Launching " + description + "task for campaign {} as asynchronous task", campaignOid);
 
         OperationResult result = parentResult.createSubresult("launch " + description + " task");
@@ -177,6 +187,10 @@ public class CertificationTaskLauncher {
             result.recordStatus(
                     OperationResultStatus.IN_PROGRESS,
                     StringUtils.capitalize(description) + " task " + task + " was successfully started, please use Server Tasks to see its status.");
+            result.setUserFriendlyMessage(new LocalizableMessageBuilder()
+                    .key(userMessageKey)
+                    .arg(campaign.getName())
+                    .build());
         }
 
         LOGGER.trace(StringUtils.capitalize(description) + " for {} switched to background, control thread returning with task {}", campaignOid, task);

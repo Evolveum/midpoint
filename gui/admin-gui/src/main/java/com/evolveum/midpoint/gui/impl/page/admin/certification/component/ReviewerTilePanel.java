@@ -82,8 +82,8 @@ public class ReviewerTilePanel extends TilePanel<Tile<UserType>, UserType> {
 
         dataset.setFill(true);
 
-        long notDecidedCertItemsCount = statisticDto.getOpenNotDecidedItemsCount();
-        long allOpenCertItemsCount = statisticDto.getAllOpenItemsCount();
+        long notDecidedCertItemsCount = statisticDto.getNotDecidedItemsCount();
+        long allOpenCertItemsCount = statisticDto.getAllItemsCount();
         long decidedCertItemsCount = allOpenCertItemsCount - notDecidedCertItemsCount;
 
         dataset.addData(decidedCertItemsCount);
@@ -112,7 +112,7 @@ public class ReviewerTilePanel extends TilePanel<Tile<UserType>, UserType> {
 
     private String createStatisticBoxLabel() {
         return getString("ReviewersStatisticsPanel.statistic.itemsWaitingForDecision",
-                statisticDto.getOpenNotDecidedItemsCount(), statisticDto.getAllOpenItemsCount());
+                statisticDto.getNotDecidedItemsCount(), statisticDto.getAllItemsCount());
     }
 
     private String createPercentageLabel() {

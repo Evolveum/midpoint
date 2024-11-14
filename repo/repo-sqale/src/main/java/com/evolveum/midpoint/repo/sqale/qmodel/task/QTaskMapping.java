@@ -109,10 +109,11 @@ public class QTaskMapping
     @Override
     public @NotNull Path<?>[] selectExpressions(
             QTask entity, Collection<SelectorOptions<GetOperationOptions>> options) {
+        var ret = super.selectExpressions(entity, options);
         if (SelectorOptions.hasToFetchPathNotRetrievedByDefault(F_RESULT, options)) {
-            return new Path[] { entity.oid, entity.objectType, entity.fullObject, entity.fullResult };
+            return appendPaths(ret, entity.fullResult);
         }
-        return new Path[] { entity.oid,entity.objectType,  entity.fullObject };
+        return ret;
     }
 
     @Override

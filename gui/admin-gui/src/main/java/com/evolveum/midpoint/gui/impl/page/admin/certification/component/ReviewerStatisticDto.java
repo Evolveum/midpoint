@@ -14,36 +14,36 @@ import java.io.Serializable;
 public class ReviewerStatisticDto implements Serializable {
 
     private final ObjectReferenceType reviewerRef;
-    private final long openNotDecidedItemsCount;
-    private final long allOpenItemsCount;
+    private final long notDecidedItemsCount;
+    private final long allItemsCount;
 
-    public ReviewerStatisticDto(ObjectReferenceType reviewerRef, long openNotDecidedItemsCount, long allOpenItemsCount) {
+    public ReviewerStatisticDto(ObjectReferenceType reviewerRef, long notDecidedItemsCount, long allItemsCount) {
         this.reviewerRef = reviewerRef;
-        this.openNotDecidedItemsCount = openNotDecidedItemsCount;
-        this.allOpenItemsCount = allOpenItemsCount;
+        this.notDecidedItemsCount = notDecidedItemsCount;
+        this.allItemsCount = allItemsCount;
     }
 
     public ObjectReferenceType getReviewerRef() {
         return reviewerRef;
     }
 
-    public long getOpenNotDecidedItemsCount() {
-        return openNotDecidedItemsCount;
+    public long getNotDecidedItemsCount() {
+        return notDecidedItemsCount;
     }
 
-    public long getAllOpenItemsCount() {
-        return allOpenItemsCount;
+    public long getAllItemsCount() {
+        return allItemsCount;
     }
 
     public float getOpenNotDecidedItemsPercentage() {
-        if (allOpenItemsCount == 0) {
+        if (allItemsCount == 0) {
             return 0;
         }
-        return (float) openNotDecidedItemsCount / allOpenItemsCount * 100;
+        return (float) notDecidedItemsCount / allItemsCount * 100;
     }
 
     public float getOpenDecidedItemsPercentage() {
-        if (allOpenItemsCount == 0) {
+        if (allItemsCount == 0) {
             return 0;
         }
         return 100 - getOpenNotDecidedItemsPercentage();

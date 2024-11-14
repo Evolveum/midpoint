@@ -19,6 +19,9 @@ import com.evolveum.midpoint.gui.impl.component.action.CertItemResolveAction;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.column.AbstractGuiColumn;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.ColumnTypeConfigContext;
 
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.path.ItemPath;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -235,7 +238,9 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
     private ContainerListDataProvider<AccessCertificationWorkItemType> createProvider(IModel<Search<AccessCertificationWorkItemType>> searchModel) {
         Collection<SelectorOptions<GetOperationOptions>> options = getPageBase()
                 .getOperationOptionsBuilder()
-                .resolveNames()
+                .item(AccessCertificationWorkItemType.F_ASSIGNEE_REF).resolve()
+                .item(ItemPath.create(PrismConstants.T_PARENT, AccessCertificationCaseType.F_OBJECT_REF)).resolve()
+                .item(ItemPath.create(PrismConstants.T_PARENT, AccessCertificationCaseType.F_TARGET_REF)).resolve()
                 .build();
         ContainerListDataProvider<AccessCertificationWorkItemType> provider = new ContainerListDataProvider<>(this,
                 searchModel, options) {

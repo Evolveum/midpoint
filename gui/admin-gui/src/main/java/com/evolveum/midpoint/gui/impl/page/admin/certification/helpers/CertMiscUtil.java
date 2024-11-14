@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
+import com.evolveum.midpoint.prism.query.builder.S_MatchingRuleEntry;
 import com.evolveum.midpoint.repo.api.AggregateQuery;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -316,6 +317,48 @@ public class CertMiscUtil {
         return count;
     }
 
+    public static long countCertItemsForClosedStageAndIteration(AccessCertificationCampaignType campaign,
+            boolean notDecidedOnly, PageBase pageBase) {
+        if (!AccessCertificationCampaignStateType.REVIEW_STAGE_DONE.equals(campaign.getState())) {
+            return 0;
+        }
+        long count = 0;
+
+        var campaignOid = campaign.getOid();
+        var iteration = campaign.getIteration();
+        var stage = or0(campaign.getStageNumber());
+
+        Task task = pageBase.createSimpleTask("countCertificationWorkItems");
+        OperationResult result = task.getResult();
+        try {
+            ObjectQuery query = null;
+
+            S_MatchingRuleEntry queryPart = PrismContext.get().queryFor(AccessCertificationWorkItemType.class)
+                    .ownerId(campaignOid)
+                    .and()
+                    .item(AccessCertificationWorkItemType.F_STAGE_NUMBER)
+                    .eq(stage)
+                    .and()
+                    .item(AccessCertificationWorkItemType.F_ITERATION)
+                    .eq(iteration);
+            if (notDecidedOnly) {
+                query = queryPart
+                        .and()
+                        .item(AccessCertificationWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME)
+                        .isNull()
+                        .build();
+            } else {
+                query = queryPart.build();
+            }
+            count = pageBase.getModelService()
+                    .countContainers(AccessCertificationWorkItemType.class, query, null, task, result);
+        } catch (Exception ex) {
+            LOGGER.error("Couldn't count certification work items", ex);
+            pageBase.showResult(result);
+        }
+        return count;
+    }
+
     public static List<String> getActiveCampaignsOids(boolean onlyForLoggedInUser, PageBase pageBase) {
         OperationResult result = new OperationResult(OPERATION_LOAD_CAMPAIGNS_OIDS);
         ObjectQuery campaignsQuery;
@@ -361,7 +404,7 @@ public class CertMiscUtil {
                     return "";
                 }
                 AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaign);
-                int stageNumber = stage != null ? or0(stage.getNumber()) : 0;
+                int stageNumber = stage != null ? or0(stage.getNumber()) : campaign.getStageNumber();
                 int numberOfStages = CertCampaignTypeUtil.getNumberOfStages(campaign);
                 StringBuilder sb = new StringBuilder();
                 sb.append(stageNumber);
@@ -563,7 +606,7 @@ public class CertMiscUtil {
         return actionsList.contains(action);
     }
 
-    public static List<ObjectReferenceType> loadCampaignReviewers(String campaignOid, PageBase pageBase) {
+    public static List<ObjectReferenceType> loadCampaignReviewers(AccessCertificationCampaignType campaign, PageBase pageBase) {
         OperationResult result = new OperationResult("loadCampaignReviewers");
         try {
             var outcomePath = ItemPath.create(AccessCertificationWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME);
@@ -573,8 +616,18 @@ public class CertMiscUtil {
                     .retrieve(AbstractWorkItemOutputType.F_OUTCOME, outcomePath)
                     .count(AccessCertificationCaseType.F_WORK_ITEM, ItemPath.SELF_PATH);
 
-            spec.filter(PrismContext.get().queryFor(AbstractWorkItemType.class)
+            var campaignOid = campaign.getOid();
+            var iteration = campaign.getIteration();
+            var stage = or0(campaign.getStageNumber());
+
+            spec.filter(PrismContext.get().queryFor(AccessCertificationWorkItemType.class)
                     .ownerId(campaignOid)
+                    .and()
+                    .item(AccessCertificationWorkItemType.F_STAGE_NUMBER)
+                    .eq(stage)
+                    .and()
+                    .item(AccessCertificationWorkItemType.F_ITERATION)
+                    .eq(iteration)
                     .buildFilter()
             );
             spec.orderBy(spec.getResultItem(AccessCertificationWorkItemType.F_ASSIGNEE_REF), OrderDirection.DESCENDING);
