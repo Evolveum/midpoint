@@ -492,7 +492,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         // 1 query for user, plus additional queries for items in  separate table (linkRef, roleMembershipRef, assignmentRef, operationExecution)
         assertThat(queryBuffer).hasSize(1 + QUserMapping.getUserMapping().additionalSelectsByDefault());
         entry = queryBuffer.remove();
-        assertThat(entry.sql).startsWith("select u.oid, u.objectType, u.fullObject");
+        assertThat(entry.sql).startsWith("select u.oid, u.objectType, u.version, u.fullObject");
     }
 
     @Test
@@ -527,7 +527,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
                 .extracting(o -> ((PrismObjectValue<?>) o).asObjectable().getName().getOrig())
                 .containsExactly(name);
         assertThat(response.getImplementationLevelQuery()).asString()
-                .isEqualToIgnoringWhitespace("select u.oid, u.objectType, u.fullObject from m_user u"
+                .isEqualToIgnoringWhitespace("select u.oid, u.objectType, u.version, u.fullObject from m_user u"
                         + " where u.nameNorm = ? and u.nameOrig = ? and u.administrativeStatus = ?"
                         + " limit ?");
         // 1 query for user, plus additional queries for items in  separate table (linkRef, roleMembershipRef, assignmentRef, operationExecution)
@@ -555,7 +555,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         assertThat(response).isNotNull();
         assertThat(response.getQueryResult()).isNullOrEmpty();
         assertThat(response.getImplementationLevelQuery()).asString()
-                .isEqualToIgnoringWhitespace("select u.oid, u.objectType, u.fullObject from m_user u"
+                .isEqualToIgnoringWhitespace("select u.oid, u.objectType, u.version, u.fullObject from m_user u"
                         + " where u.nameNorm = ? and u.nameOrig = ?"
                         + " limit ?");
 
