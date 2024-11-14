@@ -152,6 +152,9 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
     private static final TestObject<ArchetypeType> ARCHETYPE_GENERIC_AD_ROLE = TestObject.file(
             TEST_DIR, "archetype-generic-ad-role.xml", "ba9ae6c7-362b-41d4-b713-3a0040945b0c");
 
+    private static final TestObject<?> ARCHETYPE_ORG_WITH_GROUP = TestObject.file(
+            TEST_DIR, "archetype-org-with-group.xml", "ccbc679a-c9b5-4e2d-9027-8578695a7ff5");
+
     private final ZonedDateTime sciencesContractFrom = ZonedDateTime.now();
 
     // HR objects
@@ -203,7 +206,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
 
         initTestObjects(initTask, initResult,
                 ARCHETYPE_PERSON, ARCHETYPE_COST_CENTER, ARCHETYPE_DOCUMENT, ARCHETYPE_DOCUMENT_NON_TOLERANT,
-                ARCHETYPE_AD_ROLE, ARCHETYPE_APP_ROLE, ARCHETYPE_GENERIC_AD_ROLE);
+                ARCHETYPE_AD_ROLE, ARCHETYPE_APP_ROLE, ARCHETYPE_GENERIC_AD_ROLE, ARCHETYPE_ORG_WITH_GROUP);
 
         // The subresult is created to avoid failing on benign warnings from the above objects' initialization
         var subResult = initResult.createSubresult("initializeResources");
@@ -1145,9 +1148,9 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .assertShadowOids(scenario.groupShadowOid());
     }
 
-    /** Testing whether we can induce the group membership explicitly (the legacy way). MID-9994. */
+    /** Testing whether we can induce the group membership explicitly via shadow OID (the legacy way). MID-9994. */
     @Test
-    public void test380InducingGroupMembershipExplicitly() throws Exception {
+    public void test380InducingGroupMembershipViaShadowOid() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
         var userName = "user-" + getTestNameShort();
@@ -1196,7 +1199,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
 
     /** Testing whether we can induce the group membership explicitly (the legacy way) - for two association types. MID-9994. */
     @Test
-    public void test385InducingGroupMembershipExplicitlyForTwoGroupTypes() throws Exception {
+    public void test385InducingGroupMembershipViaShadowOidForTwoGroupTypes() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
         var userName = "user-" + getTestNameShort();
@@ -1272,6 +1275,70 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
         deleteObject(ShadowType.class, appGroupShadowOid, task, result);
         deleteObject(RoleType.class, genericRoleOid, task, result);
         deleteObject(ShadowType.class, genericGroupShadowOid, task, result);
+    }
+
+    /**
+     * Testing whether we can induce the group membership explicitly via `associationFromLink`
+     * with custom projection discriminator in a metarole.
+     *
+     *   org-child --> org-parent
+     *       |             |
+     *       |             |
+     *       V             V
+     *     archetype:org-with-group
+     *
+     * The archetype provides a group (for the org), plus a group membership to the user (with custom order constraint).
+     *
+     * The user in this test has an assignment to `org-child` (providing membership in both child and parent groups)
+     * and `operators` role, testing the adding of membership via built-in mechanism.
+     */
+    @Test(description = "MID-10209")
+    public void test390InducingGroupMembershipViaAssociationFromLink() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        var orgParentName = "org-parent-" + getTestNameShort();
+        var orgChildName = "org-child-" + getTestNameShort();
+        var userName = "user-" + getTestNameShort();
+
+        given("org-parent and org-child are created");
+        var orgParent = new OrgType()
+                .name(orgParentName)
+                .assignment(ARCHETYPE_ORG_WITH_GROUP.assignmentTo());
+        var orgParentOid = addObject(orgParent, task, result);
+        var parentGroupShadowOid = assertOrg(orgParentOid, "parent org before")
+                .singleLink()
+                .getOid();
+
+        var orgChild = new OrgType()
+                .name(orgChildName)
+                .assignment(ARCHETYPE_ORG_WITH_GROUP.assignmentTo())
+                .assignment(new AssignmentType()
+                        .targetRef(orgParentOid, OrgType.COMPLEX_TYPE));
+        var orgChildOid = addObject(orgChild, task, result);
+        var childGroupShadowOid = assertOrg(orgChildOid, "child org before")
+                .singleLink()
+                .getOid();
+
+        when("org-child is assigned to a user");
+        var user = new UserType()
+                .name(userName)
+                .assignment(new AssignmentType()
+                        .targetRef(orgChildOid, OrgType.COMPLEX_TYPE))
+                .assignment(new AssignmentType()
+                        .targetRef(roleOperators.getOid(), RoleType.COMPLEX_TYPE));
+        addObject(user, task, result);
+
+        then("user is a member of both groups (parent and child)");
+        assertSuccess(result);
+        assertUserAfter(user.getOid())
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .singleLink()
+                .resolveTarget()
+                .display()
+                .associations()
+                .association(DummyAdTrivialScenario.Account.LinkNames.GROUP.q())
+                .assertShadowOids(parentGroupShadowOid, childGroupShadowOid, shadowOperatorsOid);
     }
 
     /**

@@ -286,4 +286,11 @@ public class ShadowReferenceAttributeValue extends PrismReferenceValueImpl {
     public void shortDump(StringBuilder sb) {
         sb.append(this); // FIXME
     }
+
+    @Override
+    public String toHumanReadableString() {
+        StringBuilder sb = new StringBuilder();
+        shortDump(sb); // FIXME
+        return sb.toString();
+    }
 }
