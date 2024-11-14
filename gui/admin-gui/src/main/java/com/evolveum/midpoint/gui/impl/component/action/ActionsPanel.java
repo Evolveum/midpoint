@@ -66,14 +66,15 @@ public abstract class ActionsPanel<C extends Containerable> extends BasePanel<Li
         buttonsPanel.setOutputMarkupId(true);
         add(buttonsPanel);
 
+        IModel<List<AbstractGuiAction<C>>> dropdownActionsListModel = getDropdownActionsListModel();
         ActionDropdownButtonPanel<C> actionsDropdownPanel = new ActionDropdownButtonPanel<>(ID_ACTIONS_DROPDOWN_PANEL,
-                null, getModel(), rowObject) {
+                null, dropdownActionsListModel, rowObject) {
 
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected String getSpecialButtonClass() {
-                return "btn-xs btn-default";
+                return getButtonPanelClass();
             }
 
             @Override
@@ -81,13 +82,21 @@ public abstract class ActionsPanel<C extends Containerable> extends BasePanel<Li
                 return ActionsPanel.this.getObjectsToProcess();
             }
         };
+        actionsDropdownPanel.add(new VisibleBehaviour(() -> !dropdownActionsListModel.getObject().isEmpty()));
         add(actionsDropdownPanel);
     }
 
     private IModel<List<AbstractGuiAction<C>>> getButtonsListModel() {
         return () -> getModelObject()
                 .stream()
-                .filter(AbstractGuiAction::isButton)
+                .filter(action -> action.isButton() && action.isVisible(rowObject))
+                .toList();
+    }
+
+    private IModel<List<AbstractGuiAction<C>>> getDropdownActionsListModel() {
+        return () -> getModelObject()
+                .stream()
+                .filter(action -> !action.isButton() && action.isVisible(rowObject))
                 .toList();
     }
 
@@ -110,9 +119,13 @@ public abstract class ActionsPanel<C extends Containerable> extends BasePanel<Li
             }
         };
 
-        btn.add(AttributeAppender.append("class", "btn btn-default btn-xs"));
+        btn.add(AttributeAppender.append("class", this::getButtonPanelClass));
         btn.titleAsLabel(true);
         return btn;
+    }
+
+    protected String getButtonPanelClass() {
+        return "btn btn-default btn-xs";
     }
 
     private CompositedIconBuilder getIconCompositedBuilder(AbstractGuiAction<C> action) {

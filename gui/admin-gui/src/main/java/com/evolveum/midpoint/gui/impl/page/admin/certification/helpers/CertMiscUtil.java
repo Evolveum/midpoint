@@ -495,7 +495,7 @@ public class CertMiscUtil {
         availableResponses.removeIf(r -> r.equals(response));
     }
 
-    private static AbstractGuiAction<AccessCertificationWorkItemType> createAction(AccessCertificationResponseType response, PageBase pageBase) {
+    public static AbstractGuiAction<AccessCertificationWorkItemType> createAction(AccessCertificationResponseType response, PageBase pageBase) {
         CertificationItemResponseHelper helper = new CertificationItemResponseHelper(response);
         Class<? extends AbstractGuiAction<AccessCertificationWorkItemType>> actionClass = helper.getGuiActionForResponse();
         if (actionClass == null) {
@@ -787,6 +787,33 @@ public class CertMiscUtil {
             LOGGER.trace("No constructor found for column.", e);
         }
         return null;
+    }
+
+    public static List<AccessCertificationResponseType> gatherAvailableResponsesForCampaign(String campaignOid,
+            PageBase pageBase) {
+        List<AccessCertificationResponseType> availableResponses = new AvailableResponses(pageBase).getResponseValues();
+        CompiledObjectCollectionView configuredActions = CertMiscUtil.loadCampaignView(pageBase,
+                campaignOid);
+
+        if (configuredActions != null) {
+            configuredActions.getActions()
+                    .forEach(action -> {
+                        AccessCertificationResponseType configuredResponse = CertificationItemResponseHelper.getResponseForGuiAction(action);
+                        if (configuredResponse == null) {
+                            return;
+                        }
+                        if (!availableResponses.contains(configuredResponse)
+                                && WebComponentUtil.getElementVisibility(action.getVisibility())) {
+                            availableResponses.add(configuredResponse);
+                            return;
+                        }
+                        if (availableResponses.contains(configuredResponse)
+                                && !WebComponentUtil.getElementVisibility(action.getVisibility())) {
+                            availableResponses.remove(configuredResponse);
+                        }
+                    });
+        }
+        return availableResponses;
     }
 
     public static CompiledObjectCollectionView loadCampaignView(PageBase pageBase, String campaignOid) {
