@@ -223,6 +223,7 @@ As name suggest, last login timestamp provides timestamp of last login for speci
 This capability is natively recognized by midPoint if the resource object has attribute with name `\_LAST_LOGIN_DATE_` attribute (`long`).
 
 Last login timestamp capability can be also manually configured to point to different attribute using `attribute` element.
+If attribute is `string` type, then `format` element can be used to specify format of the timestamp.
 It also allows to specify whether such attribute should be listed or omitted in attributes via `ignoreAttribute` flag.
 
 .Example of configured last login timestamp capability
@@ -234,6 +235,7 @@ It also allows to specify whether such attribute should be listed or omitted in 
         <cap:behavior>
             <cap:lastLoginTimestamp>
                 <cap:attribute>ri:myLastLoginTimestampAttributeName</cap:attribute>
+                <cap:format>yyyy-MM-dd'T'HH:mm:ss.SSSXXX</cap:format>
                 <cap:ignoreAttribute>true</cap:ignoreAttribute>
             </cap:lastLoginTimestamp>
         </cap:behavior>
