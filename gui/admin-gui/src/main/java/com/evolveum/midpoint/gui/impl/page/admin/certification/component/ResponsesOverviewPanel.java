@@ -196,29 +196,7 @@ public class ResponsesOverviewPanel extends AbstractObjectMainPanel<AccessCertif
     }
 
     private List<AccessCertificationResponseType> getAvailableResponses() {
-        List<AccessCertificationResponseType> availableResponses = new AvailableResponses(getPageBase()).getResponseValues();
-        CompiledObjectCollectionView configuredActions = CertMiscUtil.loadCampaignView(getPageBase(),
-                getObjectWrapperModel().getObject().getOid());
-
-        if (configuredActions != null) {
-            configuredActions.getActions()
-                    .forEach(action -> {
-                        AccessCertificationResponseType configuredResponse = CertificationItemResponseHelper.getResponseForGuiAction(action);
-                        if (configuredResponse == null) {
-                            return;
-                        }
-                        if (!availableResponses.contains(configuredResponse)
-                                && WebComponentUtil.getElementVisibility(action.getVisibility())) {
-                            availableResponses.add(configuredResponse);
-                            return;
-                        }
-                        if (availableResponses.contains(configuredResponse)
-                                && !WebComponentUtil.getElementVisibility(action.getVisibility())) {
-                            availableResponses.remove(configuredResponse);
-                        }
-                    });
-        }
-        return availableResponses;
+        return CertMiscUtil.gatherAvailableResponsesForCampaign(getObjectWrapperModel().getObject().getOid(), getPageBase());
     }
 
     private @NotNull LoadableModel<List<ProgressBar>> createRemediedItemsStatisticModel() {
