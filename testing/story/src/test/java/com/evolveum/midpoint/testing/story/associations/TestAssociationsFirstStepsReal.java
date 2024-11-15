@@ -46,7 +46,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  *
  * Currently, it is here to diagnose the disappearing role membership (MID-10094).
  *
- * It is not included in the standard test suite - for now.
+ * *It is not included in the standard test suite - for now.*
  *
  * What it does:
  *
