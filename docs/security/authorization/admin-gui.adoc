@@ -477,6 +477,10 @@ use #selfRequestAssignments instead
 | List tasks
 |
 
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#tasksView
+| Showing menu items for xref:/midpoint/reference/admin-gui/collections-views/[views] that are configured for tasks.
+|
+
 | http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#taskAdd
 | Create task
 |
