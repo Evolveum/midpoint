@@ -17,16 +17,24 @@
                     <i class="helpTextIcon" wicket:id="help"/>
                 </span>
             </wicket:enclosure>
-            <button wicket:id="sortProperties" wicket:message="title:PrismObjectPanel.sortProperties" class="btn btn-tool"></button>
-            <button wicket:id="addChildContainer" wicket:message="title:PrismObjectPanel.addChildContainer" class="btn btn-tool" trigger="hover">
-                <i class="fa fa-plus-circle"></i>
-            </button>
-            <button wicket:id="removeButton" wicket:message="title:PrismObjectPanel.deleteContainer" class="btn btn-tool" trigger="hover">
-                <i class="fa fa-minus-circle"></i>
-            </button>
-            <a class="btn btn-tool" wicket:id="showMetadata">
-                <i class="fa fa-tag"></i>
-            </a>
+            <wicket:enclosure child="sortProperties">
+                <button wicket:id="sortProperties" wicket:message="title:PrismObjectPanel.sortProperties" class="btn btn-tool"></button>
+            </wicket:enclosure>
+            <wicket:enclosure child="addChildContainer">
+                <button wicket:id="addChildContainer" wicket:message="title:PrismObjectPanel.addChildContainer" class="btn btn-tool" trigger="hover">
+                    <i class="fa fa-plus-circle"></i>
+                </button>
+            </wicket:enclosure>
+            <wicket:enclosure child="removeButton">
+                <button wicket:id="removeButton" wicket:message="title:PrismObjectPanel.deleteContainer" class="btn btn-tool" trigger="hover">
+                    <i class="fa fa-minus-circle"></i>
+                </button>
+            </wicket:enclosure>
+            <wicket:enclosure child="showMetadata">
+                <button class="btn btn-tool" wicket:id="showMetadata" wicket:message="title:PageBase.button.metadata">
+                    <i class="fa fa-tag"></i>
+                </button>
+            </wicket:enclosure>
         </div>
         <div class="mb-3 ml-3" wicket:id="metadata"/>
 

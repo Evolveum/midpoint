@@ -61,7 +61,7 @@ public abstract class AjaxCompositedIconSubmitButton extends AjaxSubmitLink {
     protected void onInitialize() {
         super.onInitialize();
 
-        if (title != null) {
+        if (title != null && !titleAsLabel) {
             add(AttributeModifier.replace("title", title));
         }
     }

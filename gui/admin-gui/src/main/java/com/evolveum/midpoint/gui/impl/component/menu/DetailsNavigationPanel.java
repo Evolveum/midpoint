@@ -156,7 +156,6 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
                 target.add(getPageBase().getFeedbackPanel());
             }
         };
-        link.add(AttributeAppender.append("title", createButtonLabel(item.getModel())));
 
         link.add(AttributeModifier.append(
                 "aria-current",
