@@ -3170,8 +3170,7 @@ public final class WebComponentUtil {
             }
             return Collections.singletonList(
                     prismContext.queryFactory().createOrdering(
-                            ItemPath.create(new QName(SchemaConstantsGenerated.NS_COMMON, sortParam.getProperty())), order));
-
+                            ItemPath.fromString(sortParam.getProperty()), order));
         } else {
             return null;
         }

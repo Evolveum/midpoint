@@ -13,7 +13,7 @@
     <parent>
         <artifactId>provisioning</artifactId>
         <groupId>com.evolveum.midpoint.provisioning</groupId>
-        <version>4.8.5-SNAPSHOT</version>
+        <version>4.8.6-SNAPSHOT</version>
     </parent>
 
     <artifactId>provisioning-impl</artifactId>

@@ -154,9 +154,14 @@ public class MidpointExceptionHandlingConfigurer<H extends HttpSecurityBuilder<H
 
     private RequestCache getRequestCache(H http) {
         RequestCache result = http.getSharedObject(RequestCache.class);
-        if (result != null) {
-            return result;
+        if (result == null) {
+            result = new HttpSessionRequestCache();
         }
-        return new HttpSessionRequestCache();
+
+        if (result instanceof HttpSessionRequestCache httpSessionRequestCache) {
+            httpSessionRequestCache.setMatchingRequestParameterName(null);
+        }
+
+        return result;
     }
 }

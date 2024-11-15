@@ -1,14 +1,15 @@
 ---
 layout: release
-release-version: '4.8.5'
+release-version: '4.8.6'
 visibility: hidden
 ---
-= MidPoint 4.8 "Curie" - Update 5
-:release-version: 4.8.5
+= MidPoint 4.8 "Curie" - Update 6
+:release-version: 4.8.6
+:page-visibility: hidden
 :page-liquid:
 :page-toc: top
 
-Release {release-version} is a fifty-ninth midPoint release, code-named _Curie_.
+Release {release-version} is a sixty-first midPoint release, code-named _Curie_.
 The {release-version} release brings security, stability and miscellaneous bugfixes.
 
 ++++
@@ -55,6 +56,7 @@ See bug:MID-9754[].
 * Fixed assignments count issue to display the number of the just existing assignments. See bug:MID-10099[].
 * Fixed the issue with the extension attribute of ProtectedStringType which was always editable regardless on permissions. See bug:MID-10103[].
 * Fixed warning message translation during password change. See bug:MID-10108[].
+* Fixed localization for visualization of modify assignment delta. See bug:MID-10091[].
 
 == Changes with Respect To Version 4.8.3
 
