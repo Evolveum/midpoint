@@ -345,7 +345,14 @@ public class ShadowedObjectConstruction {
 
         ShadowAssociationType associationValueBean = associationValue.asContainerable();
         QName associationName = associationValueBean.getName();
-        RefinedAssociationDefinition rAssociationDef = getAssociationDefinition(associationName);
+        var rAssociationDef = ctx.getObjectClassDefinition().findAssociationDefinition(associationName);
+        if (rAssociationDef == null) {
+            // This is quite legal. Imagine that we are looking for account/type1 type that has an association defined,
+            // but the shadow is classified (after being fetched) as account/type2 that does not have the association.
+            // We should simply ignore such association.
+            LOGGER.trace("Entitlement association with name {} does not exist in {}", associationName, ctx);
+            return false;
+        }
         ShadowKindType entitlementKind = firstNonNull(rAssociationDef.getKind(), ShadowKindType.ENTITLEMENT);
 
         for (String entitlementIntent : rAssociationDef.getIntents()) {
@@ -414,23 +421,6 @@ public class ShadowedObjectConstruction {
                     associationValue, resourceObject, e.getMessage(), e);
             return null;
         }
-    }
-
-    @NotNull
-    private RefinedAssociationDefinition getAssociationDefinition(QName associationName) throws SchemaException,
-            ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
-        RefinedAssociationDefinition rEntitlementAssociationDef = ctx.getObjectClassDefinition()
-                .findAssociationDefinition(associationName);
-        if (rEntitlementAssociationDef == null) {
-            LOGGER.trace("Entitlement association with name {} couldn't be found in {} {}\nresource shadow:\n{}\nrepo shadow:\n{}",
-                    associationName, ctx.getObjectClassDefinition(), ctx.getDesc(),
-                    resourceObject.debugDumpLazily(1), repoShadow.debugDumpLazily(1));
-            LOGGER.trace("Full refined definition: {}", ctx.getObjectClassDefinition().debugDumpLazily());
-            throw new SchemaException("Entitlement association with name " + associationName
-                    + " couldn't be found in " + ctx.getObjectClassDefinition() + " " + ctx.getDesc()
-                    + ", with using shadow coordinates " + ctx.isUseRefinedDefinition());
-        }
-        return rEntitlementAssociationDef;
     }
 
     @Contract("_, null -> fail")

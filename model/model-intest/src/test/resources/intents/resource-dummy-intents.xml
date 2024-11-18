@@ -1,0 +1,147 @@
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+        oid="82fcb11c-136d-4d9e-a2bb-6e6c79c547e4">
+
+    <name>resource-dummy-intents</name>
+    <connectorRef type="ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+        <icfc:configurationProperties>
+            <icfi:instanceId>intents</icfi:instanceId>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>main</intent>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute>
+                <ref>icfs:name</ref>
+                <inbound>
+                    <target>
+                        <path>name</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <association>
+                <ref>ri:priv</ref>
+                <kind>entitlement</kind>
+                <intent>privilege</intent>
+                <direction>subjectToObject</direction>
+                <associationAttribute>ri:privileges</associationAttribute>
+                <valueAttribute>icfs:name</valueAttribute>
+            </association>
+        </objectType>
+        <objectType>
+            <kind>account</kind>
+            <intent>test</intent>
+            <default>false</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute>
+                <ref>icfs:name</ref>
+                <inbound>
+                    <target>
+                        <path>name</path>
+                    </target>
+                </inbound>
+            </attribute>
+        </objectType>
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>privilege</intent>
+            <objectClass>ri:CustomprivilegeObjectClass</objectClass>
+        </objectType>
+    </schemaHandling>
+    <synchronization>
+        <objectSynchronization>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <kind>account</kind>
+            <intent>main</intent>
+            <focusType>UserType</focusType>
+            <enabled>true</enabled>
+            <condition>
+                <variable>
+                    <name>userId</name>
+                    <path>$projection/attributes/icfs:name</path>
+                </variable>
+                <script>
+                    <code><![CDATA[
+                        def matcher = userId =~ /^([012456789][\d]{5})$/
+                        return matcher.find()
+                        ]]></code>
+                </script>
+            </condition>
+            <correlation>
+                <q:equal>
+                    <q:path>name</q:path>
+                    <expression>
+                        <path>$projection/attributes/icfs:name</path>
+                    </expression>
+                </q:equal>
+            </correlation>
+            <reaction>
+                <situation>unmatched</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+                </action>
+            </reaction>
+        </objectSynchronization>
+        <objectSynchronization>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <kind>account</kind>
+            <intent>test</intent>
+            <focusType>UserType</focusType>
+            <enabled>true</enabled>
+            <condition>
+                <variable>
+                    <name>userId</name>
+                    <path>$projection/attributes/icfs:name</path>
+                </variable>
+                <script>
+                    <code><![CDATA[
+                        return (userId =~ /^([tT][\d]{6})$/).find()
+                        ]]></code>
+                </script>
+            </condition>
+            <correlation>
+                <q:equal>
+                    <q:path>name</q:path>
+                    <expression>
+                        <path>$projection/attributes/icfs:name</path>
+                    </expression>
+                </q:equal>
+            </correlation>
+            <reaction>
+                <situation>unmatched</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+                </action>
+            </reaction>
+        </objectSynchronization>
+    </synchronization>
+</resource>
