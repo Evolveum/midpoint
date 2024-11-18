@@ -1081,7 +1081,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 .asObjectDelta(user1Oid);
 
         when("modifyObject is called");
-        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+        var ret = repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
 
         then("operation is successful, ref target doesn't have to exist");
         assertThatOperationResult(result).isSuccess();

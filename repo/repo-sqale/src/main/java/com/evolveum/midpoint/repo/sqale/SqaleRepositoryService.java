@@ -231,7 +231,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         } finally {
             opResult.close();
         }
-        if (result == null || result.get(root.fullObject) == null) {
+        // USed to be result.get(root.fullObject) == null (with excludes it is allowed to have fullObject == null
+        if (result == null ) {
             throw new ObjectNotFoundException(rootMapping.schemaType(), oid.toString(), isAllowNotFound(options));
         }
 
@@ -662,6 +663,11 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             boolean reindex = updateContext.reindexNeeded() || options.isForceReindex();
             // Only reindex if mapping supports reindex (most mappings, except simulation result)
             reindex = reindex && updateContext.mapping().isReindexSupported();
+            // FIXME: If reindex needed is detected and this is partial update (without full object)
+
+
+            // object needs to be reloaded.
+
             if (reindex) {
                 // UpdateTables is false, we want only to process modifications on fullObject
                 // do not modify nested items.
@@ -757,7 +763,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         rootRow.objectType = MObjectType.fromSchemaType(mapped.schemaObject.getClass());
         // we don't care about full object in row
 
-        return new RootUpdateContext<>(sqlRepoContext, jdbcSession, mapped.schemaObject, rootRow);
+        var skipFullObject = SqaleUtils.isWithoutFullObject(mapped.schemaObject);
+        return new RootUpdateContext<>(sqlRepoContext, jdbcSession, mapped.schemaObject, rootRow, skipFullObject);
     }
 
     private void checkModifications(@NotNull Collection<? extends ItemDelta<?, ?>> modifications) {
@@ -2053,7 +2060,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             RootUpdateContext<SequenceType, QObject<MObject>, MObject> updateContext =
-                    prepareUpdateContext(jdbcSession, SequenceType.class, oid);
+                    prepareUpdateContext(jdbcSession, SequenceType.class, oid, Collections.emptyList(), RepoModifyOptions.createForceReindex());
             SequenceType sequence = updateContext.getPrismObject().asObjectable();
 
             logger.trace("OBJECT before:\n{}", sequence.debugDumpLazily());
@@ -2107,7 +2114,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             throws SchemaException, ObjectNotFoundException, RepositoryException {
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             RootUpdateContext<SequenceType, QObject<MObject>, MObject> updateContext =
-                    prepareUpdateContext(jdbcSession, SequenceType.class, oid);
+                    prepareUpdateContext(jdbcSession, SequenceType.class, oid, Collections.emptyList(), RepoModifyOptions.createForceReindex());
             SequenceType sequence = updateContext.getPrismObject().asObjectable();
 
             logger.trace("OBJECT before:\n{}", sequence.debugDumpLazily());
