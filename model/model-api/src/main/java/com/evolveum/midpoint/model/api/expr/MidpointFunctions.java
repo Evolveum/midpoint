@@ -1325,6 +1325,8 @@ public interface MidpointFunctions {
      * If this method returns true value then the script code is evaluating "new" value.
      * That means a value that is going to be set to target, e.g.
      * value from "add" or "replace" parts of the delta.
+     * If the script evaluates existing value that is not being modified (e.g. during 
+     * a recomputation), that is also considered as "new" (going to be set to target) value.
      * If this method returns false value then the script code is evaluating "old" value.
      * That means a value that is used for the purposes of removing values from target,
      * e.g. value from "delete" part of the delta or values from an existing object.
