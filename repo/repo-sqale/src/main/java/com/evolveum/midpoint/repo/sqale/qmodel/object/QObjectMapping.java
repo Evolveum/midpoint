@@ -617,7 +617,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
                     }
                     if (matchedPath.isSubPathOrEquivalent(option.getItemPath())) {
                         matchedPath = option.getItemPath();
-                        if (option.getOptions().getRetrieve() != null) {
+                        if (option.getOptions() != null && option.getOptions().getRetrieve() != null) {
                             matchedOption = option.getOptions().getRetrieve();
                         }
                     }
