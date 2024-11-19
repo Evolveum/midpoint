@@ -11,10 +11,17 @@ import static com.evolveum.midpoint.security.api.MidPointPrincipalManager.DOT_CL
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -28,9 +35,6 @@ import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.util.FileReference;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismSerializer;
-import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -49,6 +53,8 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
     private int processedRoleIterator = 0;
     private int processedUserIterator = 0;
     private int processedOrgIterator = 0;
+    private final SequentialAnonymizer defaultAttributeNameAnonymizer = new SequentialAnonymizer("default_attr");
+    private final SequentialAnonymizer extensionAttributeNameAnonymizer = new SequentialAnonymizer("extension_attr");
 
     private boolean orgAllowed;
     private boolean firstObject = true;
@@ -67,6 +73,11 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
     private List<String> applicationRoleSuffix;
     private List<String> businessRolePrefix;
     private List<String> businessRoleSuffix;
+
+
+    private static final Set<ItemPath> ATTR_PATHS_USER = extractDefaultAttributePaths(UserType.COMPLEX_TYPE);
+    private static final Set<ItemPath> ATTR_PATHS_ROLE = extractDefaultAttributePaths(RoleType.COMPLEX_TYPE);
+    private static final Set<ItemPath> ATTR_PATHS_ORG = extractDefaultAttributePaths(OrgType.COMPLEX_TYPE);
 
     public ExportMiningConsumerWorker(NinjaContext context, ExportMiningOptions options, BlockingQueue<FocusType> queue,
             OperationStatus operation) {
@@ -142,6 +153,9 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
     @NotNull
     private OrgType getPreparedOrgObject(@NotNull FocusType object) {
         OrgType org = new OrgType();
+
+        fillAttributes(object, org, ATTR_PATHS_ORG);
+
         org.setName(encryptOrgName(object.getName().toString(), processedOrgIterator++, nameMode, encryptKey));
         org.setOid(encryptedUUID(object.getOid(), securityMode, encryptKey));
 
@@ -172,6 +186,7 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
     @NotNull
     private UserType getPreparedUserObject(@NotNull FocusType object) {
         UserType user = new UserType();
+        fillAttributes(object, user, ATTR_PATHS_USER);
 
         List<AssignmentType> assignment = object.getAssignment();
         if (assignment == null || assignment.isEmpty()) {
@@ -212,6 +227,8 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
     @NotNull
     private RoleType getPreparedRoleObject(@NotNull FocusType object) {
         RoleType role = new RoleType();
+        fillAttributes(object, role, ATTR_PATHS_ROLE);
+
         String roleName = object.getName().toString();
         PolyStringType encryptedName = encryptRoleName(roleName, processedRoleIterator++, nameMode, encryptKey);
         role.setName(encryptedName);
@@ -342,4 +359,87 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
 
         return null;
     }
+
+    private static Set<ItemPath> extractDefaultAttributePaths(QName type) {
+        var def = PrismContext.get().getSchemaRegistry().findContainerDefinitionByType(OrgType.COMPLEX_TYPE);
+        return extractAttributePaths(def);
+    }
+
+
+    private static Set<ItemPath> extractAttributePaths(PrismContainerDefinition<?> containerDef) {
+        Set<ItemPath> paths = new HashSet<>();
+        for (ItemDefinition<?> def : containerDef.getDefinitions()) {
+            if (def.isOperational() || !def.isSingleValue()) {
+                // unsupported types
+                continue;
+            }
+            if (def instanceof PrismReferenceDefinition refDef) {
+                paths.add(refDef.getItemName());
+            }
+            if (def instanceof PrismPropertyDefinition<?> propertyDef && RoleAnalysisAttributeDefUtils.isSupportedPropertyType(propertyDef.getTypeClass())) {
+                paths.add(propertyDef.getItemName());
+            }
+        }
+        return paths;
+    }
+
+    private Object anonymizeAttributeValue(Item<?, ?> item) {
+        var def = item.getDefinition();
+        var type = def.getTypeClass();
+        var realValue = Objects.requireNonNull(item.getRealValue());
+
+        if (def instanceof PrismReferenceDefinition) {
+            var referenceValue = (ObjectReferenceType) realValue;
+            return encryptObjectReference(referenceValue, securityMode, encryptKey);
+        }
+
+        // NOTE: do not encrypt ordinal values and booleans
+        var shouldAnonymizeValue = !List.of(Integer.class, Double.class, Boolean.class).contains(type);
+
+        if (shouldAnonymizeValue) {
+            return encrypt(realValue.toString(), encryptKey);
+        }
+        return realValue;
+    }
+
+    private void anonymizeAttribute(FocusType newObject, PrismContainer<?> itemContainer, ItemPath path, SequentialAnonymizer attributeNameAnonymizer) {
+        Item<?, ?> item = itemContainer.findItem(path);
+        if (item == null || item.getRealValue() == null) {
+            return;
+        }
+        try {
+            String originalAtributeName = item.getDefinition().getItemName().toString();
+            String anonymizedAttributeName = attributeNameAnonymizer.anonymize(originalAtributeName);
+            Object anonymizedAttributeValue = anonymizeAttributeValue(item);
+
+            QName propertyName = new QName(item.getDefinition().getItemName().getNamespaceURI(), anonymizedAttributeName);
+            PrismPropertyDefinition<Object> propertyDefinition = context
+                    .getPrismContext()
+                    .definitionFactory()
+                    .newPropertyDefinition(propertyName, DOMUtil.XSD_STRING);
+            PrismProperty<Object> anonymizedProperty = propertyDefinition.instantiate();
+            anonymizedProperty.setRealValue(anonymizedAttributeValue);
+            newObject.asPrismObject().addExtensionItem(anonymizedProperty);
+        } catch (Exception e) {
+            LOGGER.error("Failed to clone item for {} object {}. ", itemContainer.getClass(), item, e);
+        }
+    }
+
+    private void fillAttributes(@NotNull FocusType origObject, @NotNull FocusType newObject, @NotNull Set<ItemPath> defaultAttributePaths) {
+        var origContainer = origObject.asPrismObject();
+        newObject.extension(new ExtensionType());
+
+        for (var path: defaultAttributePaths) {
+            anonymizeAttribute(newObject, origContainer, path, defaultAttributeNameAnonymizer);
+        }
+
+        if (origContainer.getExtension() != null) {
+            PrismContainerDefinition<?> definition = origContainer.getExtensionContainerValue().getDefinition();
+            var extensionAttributePaths = extractAttributePaths(definition);
+            for (var path: extensionAttributePaths) {
+                anonymizeAttribute(newObject, origContainer.getExtension(), path, extensionAttributeNameAnonymizer);
+            }
+        }
+    }
+
 }
