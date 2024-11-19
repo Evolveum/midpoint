@@ -102,7 +102,12 @@ public class ActivityRunResult implements ShortDumpable {
         this.runResultStatus = runResultStatus;
     }
 
-    public OperationResultStatus getOperationResultStatus() {
+    public void setRunResultStatus(TaskRunResultStatus runResultStatus, Throwable throwable) {
+        this.runResultStatus = runResultStatus;
+        this.throwable = throwable;
+    }
+
+   public  OperationResultStatus getOperationResultStatus() {
         return operationResultStatus;
     }
 
