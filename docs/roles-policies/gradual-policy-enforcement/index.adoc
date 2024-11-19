@@ -63,6 +63,7 @@ Therefore, there is a simple policy rule in `Financial auditor` role that exclud
                     <targetRef oid="82d0d8a6-9459-46e3-87e8-3f469f34fd2d" type="RoleType"/>
                 </exclusion>
             </policyConstraints>
+            <markRef oid="00000000-0000-0000-0000-000000000811"/>
             <policyActions>
                 <record/>
             </policyActions>
@@ -72,6 +73,8 @@ Therefore, there is a simple policy rule in `Financial auditor` role that exclud
 ----
 
 The rule has `policyActions` set to `record`, therefore it will not interfere with operations, it will just record the situation using feature:object-mark[object mark] `Exclusion violation`.
+
+NOTE: For midPoint 4.9, the mark reference (`markRef`) needs to be explicitly specified.
 
 Second step is to recompute all the users, to make sure that updated policy is applied.
 Users that are in conflict with the policy will be marked by `Exclusion violation` mark.
@@ -102,6 +105,7 @@ Once all the violations are addressed, the policy can be changed to full enforce
                     <targetRef oid="82d0d8a6-9459-46e3-87e8-3f469f34fd2d" type="RoleType"/>
                 </exclusion>
             </policyConstraints>
+            <markRef oid="00000000-0000-0000-0000-000000000811"/>
             <policyActions>
                 <enforcement/>
             </policyActions>
