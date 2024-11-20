@@ -55,6 +55,7 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
     private int processedOrgIterator = 0;
     private final SequentialAnonymizer defaultAttributeNameAnonymizer = new SequentialAnonymizer("default_attr");
     private final SequentialAnonymizer extensionAttributeNameAnonymizer = new SequentialAnonymizer("extension_attr");
+    private AttributeValueAnonymizer attributeValuesAnonymizer;
 
     private boolean orgAllowed;
     private boolean firstObject = true;
@@ -94,6 +95,8 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
         orgAllowed = options.isIncludeOrg();
 
         nameMode = options.getNameMode();
+
+        attributeValuesAnonymizer = new AttributeValueAnonymizer(nameMode, encryptKey);
 
         SerializationOptions serializationOptions = SerializationOptions.createSerializeForExport()
                 .serializeReferenceNames(true)
@@ -364,7 +367,7 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
     }
 
     private static Set<ItemPath> extractDefaultAttributePaths(QName type) {
-        var def = PrismContext.get().getSchemaRegistry().findContainerDefinitionByType(OrgType.COMPLEX_TYPE);
+        var def = PrismContext.get().getSchemaRegistry().findContainerDefinitionByType(type);
         return extractAttributePaths(def);
     }
 
@@ -400,7 +403,8 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
         var shouldAnonymizeValue = !List.of(Integer.class, Double.class, Boolean.class).contains(type);
 
         if (shouldAnonymizeValue) {
-            return encrypt(realValue.toString(), encryptKey);
+            var attributeName = item.getDefinition().getItemName().toString();
+            return attributeValuesAnonymizer.anonymize(attributeName, realValue.toString());
         }
         return realValue;
     }

@@ -77,6 +77,42 @@ public class RoleMiningExportUtils implements Serializable {
         }
     }
 
+    private static class ScopedSequentialAnonymizer {
+        private final Map<String, SequentialAnonymizer> scopedAnonymizers = new HashMap<>();
+        private final String baseName;
+
+        public ScopedSequentialAnonymizer(String baseName) {
+            this.baseName = baseName;
+        }
+
+        public String anonymize(String scope, String value) {
+            if (!scopedAnonymizers.containsKey(scope)) {
+                scopedAnonymizers.put(scope, new SequentialAnonymizer(baseName));
+            }
+            return scopedAnonymizers.get(scope).anonymize(value);
+        }
+    }
+
+    public static class AttributeValueAnonymizer {
+        private final ScopedSequentialAnonymizer sequentialAnonymizer = new ScopedSequentialAnonymizer("att");
+        private final NameMode nameMode;
+        private final String encryptKey;
+
+        public AttributeValueAnonymizer(NameMode nameMode, String encryptKey) {
+            this.nameMode = nameMode;
+            this.encryptKey = encryptKey;
+        }
+
+        public String anonymize(String attributeName, String attributeValue) {
+            var anonymized = switch(nameMode) {
+                case ENCRYPTED -> encrypt(attributeValue, encryptKey);
+                case SEQUENTIAL -> sequentialAnonymizer.anonymize(attributeName, attributeValue);
+                case ORIGINAL -> attributeValue;
+            };
+            return anonymized + EXPORT_SUFFIX;
+        }
+    }
+
     private static PolyStringType encryptName(String name, int iterator, String prefix, @NotNull NameMode nameMode, String key) {
         if (nameMode.equals(NameMode.ENCRYPTED)) {
             return PolyStringType.fromOrig(encrypt(name, key) + EXPORT_SUFFIX);
@@ -152,7 +188,7 @@ public class RoleMiningExportUtils implements Serializable {
         }
     }
 
-    public static String encrypt(String value, String key) {
+    private static String encrypt(String value, String key) {
 
         if (value == null) {
             return null;
