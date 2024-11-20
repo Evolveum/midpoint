@@ -58,6 +58,7 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
     private AttributeValueAnonymizer attributeValuesAnonymizer;
 
     private boolean orgAllowed;
+    private boolean attributesAllowed;
     private boolean firstObject = true;
     private boolean jsonFormat = false;
 
@@ -93,6 +94,7 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
         securityMode = options.getSecurityLevel();
         encryptKey = RoleMiningExportUtils.updateEncryptKey(securityMode);
         orgAllowed = options.isIncludeOrg();
+        attributesAllowed = options.isIncludeAttributes();
 
         nameMode = options.getNameMode();
 
@@ -433,6 +435,9 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
     }
 
     private void fillAttributes(@NotNull FocusType origObject, @NotNull FocusType newObject, @NotNull Set<ItemPath> defaultAttributePaths) {
+        if (!attributesAllowed) {
+            return;
+        }
         var origContainer = origObject.asPrismObject();
         newObject.extension(new ExtensionType());
 
