@@ -266,7 +266,9 @@ h| Out
 |No
 |No
 |Shadow object which we do not want to be synchronized / modified by midPoint. (same as protected), but reason may be different.
+
 |*Invalid data*
+|No
 |No
 |No
 |No
