@@ -229,6 +229,19 @@ import java.util.List;
         type = "ObjectOperationPolicyType",
         expanded = true
 )
+
+@PanelInstance(
+        identifier = "shadowBehaviorPanel",
+        applicableForType = ShadowType.class,
+        display = @PanelDisplay(
+                label = "ShadowType.shadowBehavior",
+                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                order = 30
+        ),
+        containerPath = "behavior",
+        type = "ShadowBehaviorType",
+        expanded = true
+)
 public class GenericSingleContainerPanel<C extends Containerable, O extends ObjectType> extends AbstractObjectMainPanel<O, ObjectDetailsModels<O>> {
 
     private static final String ID_DETAILS = "details";

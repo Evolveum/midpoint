@@ -1,0 +1,51 @@
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<archetype
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="2698206c-fd6c-4810-99c6-b3bfc8b67b65">
+    <name>org-with-group-2</name>
+    <documentation>
+        Just like `org-with-group`, but on a different resource.
+    </documentation>
+    <inducement>
+        <construction>
+            <resourceRef oid="1c77ef70-61de-4666-8221-5edbb426b000"/>
+            <kind>entitlement</kind>
+            <intent>org-group</intent>
+        </construction>
+    </inducement>
+    <inducement>
+        <construction>
+            <resourceRef oid="1c77ef70-61de-4666-8221-5edbb426b000"/>
+            <kind>account</kind>
+            <intent>default</intent>
+            <association>
+                <ref>ri:orgGroup</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <associationFromLink>
+                            <projectionDiscriminator>
+                                <kind>entitlement</kind>
+                                <intent>org-group</intent>
+                            </projectionDiscriminator>
+                            <!-- This should be the org that holds this archetype. -->
+                            <assignmentPathIndex>-2</assignmentPathIndex>
+                        </associationFromLink>
+                    </expression>
+                </outbound>
+            </association>
+        </construction>
+        <orderConstraint>
+            <orderMin>1</orderMin>
+            <orderMax>unbounded</orderMax>
+        </orderConstraint>
+        <focusType>UserType</focusType>
+    </inducement>
+</archetype>

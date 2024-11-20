@@ -13,6 +13,8 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
+import com.evolveum.midpoint.gui.impl.component.action.ActionsPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconWithLabelPanel;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
@@ -22,25 +24,29 @@ import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTablePanel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.util.ObjectReferenceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.data.column.ObjectReferenceColumnPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertificationItemResponseHelper;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.IResource;
+import org.checkerframework.checker.units.qual.C;
 
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -57,14 +63,25 @@ public class CertResponseDetailsPanel extends BasePanel<PrismContainerValueWrapp
     private static final String ID_DETAILS_PANEL = "detailsPanel";
     private static final String ID_ACTIONS_PANEL = "actionsPanel";
     private static final String ID_NO_ACTIONS_LABEL = "noActionsLabel";
+    private static final String ID_CANCEL_BUTTON = "cancelButton";
+    private static final String ID_ACTIONS_BUTTON_PANEL = "actionsButtonPanel";
 
     int stageNumber;
     int iteration;
+    AccessCertificationWorkItemType certItem;
 
     public CertResponseDetailsPanel(String id, IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> model, int stageNumber) {
         super(id, model);
         this.stageNumber = stageNumber;
         this.iteration = getModelObject().getRealValue().getIteration();
+    }
+
+    public CertResponseDetailsPanel(String id, IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> model,
+            AccessCertificationWorkItemType certItem, int stageNumber) {
+        super(id, model);
+        this.stageNumber = stageNumber;
+        this.iteration = getModelObject().getRealValue().getIteration();
+        this.certItem = certItem;
     }
 
     @Override
@@ -82,6 +99,9 @@ public class CertResponseDetailsPanel extends BasePanel<PrismContainerValueWrapp
         addDetailsPanel();
 
         addActionsPanel();
+
+        addCancelButton();
+        addActionButtonsPanel();
     }
 
     private void addDetailsPanel() {
@@ -271,6 +291,48 @@ public class CertResponseDetailsPanel extends BasePanel<PrismContainerValueWrapp
             }
             return WebComponentUtil.createJpegPhotoResource(performer);
         };
+    }
+
+    private void addCancelButton() {
+        AjaxButton cancelButton = new AjaxButton(ID_CANCEL_BUTTON,
+                createStringResource("userBrowserDialog.button.cancelButton")) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                CertResponseDetailsPanel.this.getPageBase().hideMainPopup(target);
+            }
+        };
+        cancelButton.setOutputMarkupId(true);
+        add(cancelButton);
+    }
+
+    private void addActionButtonsPanel() {
+        List<AbstractGuiAction<AccessCertificationWorkItemType>> actions = getAvailableActions(certItem);
+
+        ActionsPanel<AccessCertificationWorkItemType> actionsPanel
+                = new ActionsPanel<>(ID_ACTIONS_BUTTON_PANEL, Model.ofList(actions), certItem) {
+            @Serial
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected List<AccessCertificationWorkItemType> getObjectsToProcess() {
+                return Collections.singletonList(certItem);
+            }
+
+            @Override
+            protected String getButtonPanelClass() {
+                return "btn btn-outline-secondary";
+            }
+        };
+        actionsPanel.setOutputMarkupId(true);
+        actionsPanel.add(new VisibleEnableBehaviour(() -> certItem != null && !actions.isEmpty()));
+        add(actionsPanel);
+    }
+
+    protected List<AbstractGuiAction<AccessCertificationWorkItemType>> getAvailableActions(AccessCertificationWorkItemType workItem) {
+        return new ArrayList<>();
     }
 
     @Override

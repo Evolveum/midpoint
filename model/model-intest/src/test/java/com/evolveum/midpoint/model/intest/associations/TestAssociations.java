@@ -104,8 +104,10 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
     private static final String ROLE_TESTERS_NAME = "testers";
     private static final String ROLE_OPERATORS_NAME = "operators";
 
+    private static final ItemName RI_GROUP = ItemName.from(NS_RI, "group");
     private static final ItemName RI_APP_GROUP = ItemName.from(NS_RI, "appGroup");
     private static final ItemName RI_GENERIC_GROUP = ItemName.from(NS_RI, "genericGroup");
+    private static final ItemName RI_ORG_GROUP = ItemName.from(NS_RI, "orgGroup");
 
     private static final ItemName RI_USER_DOCUMENT_ACCESS = ItemName.from(NS_RI, "userDocumentAccess");
 
@@ -113,7 +115,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
     private static DummyDmsScenario dmsScenario;
     private static DummyDmsScenario dmsScenarioNonTolerant;
     private static DummyAdTrivialScenario adScenario;
-    private static DummyAdTrivialScenario adTwoGroupTypesScenario;
+    private static DummyAdTrivialScenario adMoreAssociationTypesScenario;
 
     private static final DummyTestResource RESOURCE_DUMMY_HR = new DummyTestResource(
             TEST_DIR, "resource-dummy-hr.xml", "ded54130-8ce5-4c8d-ac30-c3bf4fc82337", "hr",
@@ -132,10 +134,10 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
             TEST_DIR, "resource-dummy-ad.xml", "a817af1e-a1ef-4dcf-aab4-04e266c93e74", "ad",
             c -> adScenario = DummyAdTrivialScenario.on(c).initialize());
 
-    private static final DummyTestResource RESOURCE_DUMMY_AD_TWO_GROUP_TYPES = new DummyTestResource(
-            TEST_DIR, "resource-dummy-ad-two-group-types.xml", "1c77ef70-61de-4666-8221-5edbb426b000",
-            "ad-two-group-types",
-            c -> adTwoGroupTypesScenario = DummyAdTrivialScenario.on(c).initialize());
+    private static final DummyTestResource RESOURCE_DUMMY_AD_MORE_ASSOCIATION_TYPES = new DummyTestResource(
+            TEST_DIR, "resource-dummy-ad-more-association-types.xml", "1c77ef70-61de-4666-8221-5edbb426b000",
+            "ad-more-association-types",
+            c -> adMoreAssociationTypesScenario = DummyAdTrivialScenario.on(c).initialize());
 
     private static final TestObject<ArchetypeType> ARCHETYPE_PERSON = TestObject.file(
             TEST_DIR, "archetype-person.xml", "184a5aa5-3e28-46c7-b9ed-a1dabaacc11d");
@@ -154,6 +156,8 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
 
     private static final TestObject<?> ARCHETYPE_ORG_WITH_GROUP = TestObject.file(
             TEST_DIR, "archetype-org-with-group.xml", "ccbc679a-c9b5-4e2d-9027-8578695a7ff5");
+    private static final TestObject<?> ARCHETYPE_ORG_WITH_GROUP_2 = TestObject.file(
+            TEST_DIR, "archetype-org-with-group-2.xml", "2698206c-fd6c-4810-99c6-b3bfc8b67b65");
 
     private final ZonedDateTime sciencesContractFrom = ZonedDateTime.now();
 
@@ -206,7 +210,8 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
 
         initTestObjects(initTask, initResult,
                 ARCHETYPE_PERSON, ARCHETYPE_COST_CENTER, ARCHETYPE_DOCUMENT, ARCHETYPE_DOCUMENT_NON_TOLERANT,
-                ARCHETYPE_AD_ROLE, ARCHETYPE_APP_ROLE, ARCHETYPE_GENERIC_AD_ROLE, ARCHETYPE_ORG_WITH_GROUP);
+                ARCHETYPE_AD_ROLE, ARCHETYPE_APP_ROLE, ARCHETYPE_GENERIC_AD_ROLE,
+                ARCHETYPE_ORG_WITH_GROUP, ARCHETYPE_ORG_WITH_GROUP_2);
 
         // The subresult is created to avoid failing on benign warnings from the above objects' initialization
         var subResult = initResult.createSubresult("initializeResources");
@@ -225,7 +230,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
             createCommonAdObjects();
             importGroups(subResult);
 
-            RESOURCE_DUMMY_AD_TWO_GROUP_TYPES.initAndTest(this, initTask, subResult);
+            RESOURCE_DUMMY_AD_MORE_ASSOCIATION_TYPES.initAndTest(this, initTask, subResult);
         } finally {
             subResult.close();
         }
@@ -772,7 +777,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
 
         assertShadowAfter(shadows.get(0))
                 .associations()
-                .association(DummyAdTrivialScenario.Account.LinkNames.GROUP.q())
+                .association(RI_GROUP)
                 .assertSize(1);
 
         // Details not checked here, see test100
@@ -883,7 +888,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .resolveTarget()
                 .display()
                 .associations()
-                .association(DummyAdTrivialScenario.Account.LinkNames.GROUP.q())
+                .association(RI_GROUP)
                 .singleValue()
                 .assertSingleObjectRef(shadowGuestsOid);
         // @formatter:on
@@ -923,7 +928,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                     .resolveTarget()
                         .display()
                         .associations()
-                            .association(DummyAdTrivialScenario.Account.LinkNames.GROUP.q())
+                            .association(RI_GROUP)
                                 .forShadowOid(shadowGuestsOid).end()
                                 .forShadowOid(shadowTestersOid).end()
                                 .forShadowOid(shadowOperatorsOid).end()
@@ -1084,7 +1089,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .resolveTarget()
                 .display()
                 .associations()
-                .association(DummyAdTrivialScenario.Account.LinkNames.GROUP.q())
+                .association(RI_GROUP)
                 .assertShadowOids(groupShadowOid);
 
         when("second user's group membership is deleted on the resource and the user is reconciled");
@@ -1106,7 +1111,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .resolveTarget()
                 .display()
                 .associations()
-                .association(DummyAdTrivialScenario.Account.LinkNames.GROUP.q())
+                .association(RI_GROUP)
                 .assertShadowOids(groupShadowOid);
     }
 
@@ -1144,7 +1149,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .resolveTarget()
                 .display()
                 .associations()
-                .association(DummyAdTrivialScenario.Account.LinkNames.GROUP.q())
+                .association(RI_GROUP)
                 .assertShadowOids(scenario.groupShadowOid());
     }
 
@@ -1188,7 +1193,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .resolveTarget()
                 .display()
                 .associations()
-                .association(DummyAdTrivialScenario.Account.LinkNames.GROUP.q())
+                .association(RI_GROUP)
                 .assertShadowOids(groupShadowOid);
 
         // Clean-up objects, to avoid synchronization of no-owner managed group (causes problems here: addFocus, no mappings)
@@ -1209,20 +1214,20 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
         var genericGroupName = "generic-group-" + getTestNameShort();
 
         given("groups on the resource, marked as managed");
-        adTwoGroupTypesScenario.group.add(appGroupName)
+        adMoreAssociationTypesScenario.group.add(appGroupName)
                 .addAttributeValue(DummyAdTrivialScenario.Group.AttributeNames.TYPE.local(), "application");
-        adTwoGroupTypesScenario.group.add(genericGroupName)
+        adMoreAssociationTypesScenario.group.add(genericGroupName)
                 .addAttributeValue(DummyAdTrivialScenario.Group.AttributeNames.TYPE.local(), "generic");
         var appGroupShadowOid = findShadowRequest()
-                .withResource(RESOURCE_DUMMY_AD_TWO_GROUP_TYPES.getObjectable())
-                .withWholeObjectClass(adTwoGroupTypesScenario.group.getObjectClassName().xsd())
+                .withResource(RESOURCE_DUMMY_AD_MORE_ASSOCIATION_TYPES.getObjectable())
+                .withWholeObjectClass(adMoreAssociationTypesScenario.group.getObjectClassName().xsd())
                 .withNameValue(appGroupName)
                 .findRequired(task, result)
                 .getOidRequired();
         markShadow(appGroupShadowOid, MARK_MANAGED.oid, task, result);
         var genericGroupShadowOid = findShadowRequest()
-                .withResource(RESOURCE_DUMMY_AD_TWO_GROUP_TYPES.getObjectable())
-                .withWholeObjectClass(adTwoGroupTypesScenario.group.getObjectClassName().xsd())
+                .withResource(RESOURCE_DUMMY_AD_MORE_ASSOCIATION_TYPES.getObjectable())
+                .withWholeObjectClass(adMoreAssociationTypesScenario.group.getObjectClassName().xsd())
                 .withNameValue(genericGroupName)
                 .findRequired(task, result)
                 .getOidRequired();
@@ -1337,8 +1342,63 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .resolveTarget()
                 .display()
                 .associations()
-                .association(DummyAdTrivialScenario.Account.LinkNames.GROUP.q())
+                .association(RI_GROUP)
                 .assertShadowOids(parentGroupShadowOid, childGroupShadowOid, shadowOperatorsOid);
+    }
+
+    /**
+     * The same as {@link #test390InducingGroupMembershipViaAssociationFromLink()} but on a different resource: Now we are doing
+     * it for association with a name `ri:orgGroup` that is different from the underlying reference attribute name `ri:group`.
+     *
+     * (Role `operators` is not used here.)
+     *
+     * See MID-10214.
+     */
+    @Test
+    public void test395InducingGroupMembershipViaAssociationFromLinkForDifferentAssociationName() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        var orgParentName = "org-parent-" + getTestNameShort();
+        var orgChildName = "org-child-" + getTestNameShort();
+        var userName = "user-" + getTestNameShort();
+
+        given("org-parent and org-child are created");
+        var orgParent = new OrgType()
+                .name(orgParentName)
+                .assignment(ARCHETYPE_ORG_WITH_GROUP_2.assignmentTo());
+        var orgParentOid = addObject(orgParent, task, result);
+        var parentGroupShadowOid = assertOrg(orgParentOid, "parent org before")
+                .singleLink()
+                .getOid();
+
+        var orgChild = new OrgType()
+                .name(orgChildName)
+                .assignment(ARCHETYPE_ORG_WITH_GROUP_2.assignmentTo())
+                .assignment(new AssignmentType()
+                        .targetRef(orgParentOid, OrgType.COMPLEX_TYPE));
+        var orgChildOid = addObject(orgChild, task, result);
+        var childGroupShadowOid = assertOrg(orgChildOid, "child org before")
+                .singleLink()
+                .getOid();
+
+        when("org-child is assigned to a user");
+        var user = new UserType()
+                .name(userName)
+                .assignment(new AssignmentType()
+                        .targetRef(orgChildOid, OrgType.COMPLEX_TYPE));
+        addObject(user, task, result);
+
+        then("user is a member of both groups (parent and child)");
+        assertSuccess(result);
+        assertUserAfter(user.getOid())
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .singleLink()
+                .resolveTarget()
+                .display()
+                .associations()
+                .association(RI_ORG_GROUP)
+                .assertShadowOids(parentGroupShadowOid, childGroupShadowOid);
     }
 
     /**

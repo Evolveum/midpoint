@@ -143,11 +143,12 @@ public class BehaviorConverter {
         }
 
         LOGGER.warn(
-                "An object on {} has value for simulated last login timestamp attribute of wrong type {} expecting Long/XMLGregorianCalendar",
+                "An object on {} has value for simulated last login timestamp attribute of wrong type {} expecting "
+                        + "Long/XMLGregorianCalendar. Probably missing format in the configured capability.",
                 ctx.getResource(), value.getClass().getName());
         result.setPartialError("An object on " + ctx.getResource()
                 + " has value for simulated last login timestamp attribute of wrong type " + value.getClass().getName()
-                + " expecting Long/XMLGregorianCalendar");
+                + " expecting Long/XMLGregorianCalendar. Probably missing format in the configured capability.");
         return null;
     }
 

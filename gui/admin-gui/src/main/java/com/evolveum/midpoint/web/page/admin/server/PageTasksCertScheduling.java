@@ -19,7 +19,7 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
                 @AuthorizationAction(actionUri = PageAdminTasks.AUTHORIZATION_TASKS_ALL,
                         label = PageAdminTasks.AUTH_TASKS_ALL_LABEL,
                         description = PageAdminTasks.AUTH_TASKS_ALL_DESCRIPTION),
-                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_TASKS_URL,
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_TASKS_VIEW_URL,
                         label = "PageTasks.auth.tasks.label",
                         description = "PageTasks.auth.tasks.description") })
 public class PageTasksCertScheduling extends PageTasks {
