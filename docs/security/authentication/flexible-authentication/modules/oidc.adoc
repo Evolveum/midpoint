@@ -185,8 +185,9 @@ Definition for OpenID Provider. Possible attributes are:
 | false
 | _String_
 
-
 |===
+
+WARNING: If your OpenID provider uses the HTTPS protocol, don't forget to add certification to Midpoint's keystore.
 
 Required attribute is only `issuerUri`, because midPoint gets configuration for all other URIs from 'issuerUri'/.well-known/openid-configuration. MidPoint can write error to log file that some from optional configuration URIs is null and required. This error we can see when 'issuerUri'/.well-known/openid-configuration is unavailable.
 
@@ -348,6 +349,8 @@ If Midpoint is located behind a reverse proxy it may be useful to set the _publi
 == Configuration for REST
 
 Configuration for REST is provided via attribute _resourceServer_, that is type _OidcResourceServerAuthenticationModuleType_. When we want to use OIDC module for REST, midPoint works as resource server. REST request has to contain WWW-Authentication header with syntax `Authorization: Bearer {token}`.
+
+WARNING: If your OpenID server uses the HTTPS protocol, don't forget to add certification to Midpoint's keystore.
 
 Resource server contains following attributes:
 
