@@ -7,11 +7,13 @@
 
 package com.evolveum.midpoint.gui.impl.component.action;
 
+import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.component.CertResponseDetailsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscUtil;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerValueWrapperImpl;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -23,16 +25,16 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.application.ActionType;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.Model;
 
+import java.io.Serial;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.util.MiscUtil.or0;
 
@@ -93,9 +95,26 @@ public class CertItemCheckResponsesAction extends AbstractGuiAction<AccessCertif
         }
         PrismContainerValueWrapper<AccessCertificationCaseType> caseWrapper =
                 new PrismContainerValueWrapperImpl<>(null, certCaseValue, ValueStatus.NOT_CHANGED);
-            CertResponseDetailsPanel panel = new CertResponseDetailsPanel(pageBase.getMainPopupBodyId(),
-                    Model.of(caseWrapper), currentStageNumber);
-            pageBase.showMainPopup(panel, target);
+        CertResponseDetailsPanel panel = new CertResponseDetailsPanel(pageBase.getMainPopupBodyId(),
+                Model.of(caseWrapper), workItem, currentStageNumber) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            protected List<AbstractGuiAction<AccessCertificationWorkItemType>> getAvailableActions(
+                    AccessCertificationWorkItemType workItem) {
+                List<AccessCertificationResponseType> availableResponses = CertMiscUtil.gatherAvailableResponsesForCampaign(
+                        campaign.getOid(), pageBase);
+                if (workItem.getOutput() != null && workItem.getOutput().getOutcome() != null) {
+                    AccessCertificationResponseType outcome = OutcomeUtils.fromUri(workItem.getOutput().getOutcome());
+                    availableResponses.remove(outcome);
+                }
+                return availableResponses.stream()
+                                .map(response -> CertMiscUtil.createAction(response, pageBase))
+                                .filter(Objects::nonNull)
+                                .collect(Collectors.toList());
+            }
+        };
+        pageBase.showMainPopup(panel, target);
     }
 
     private ObjectFilter createIdFilter(PageBase pageBase, long caseId) {
