@@ -155,6 +155,7 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
         OrgType org = new OrgType();
 
         fillAttributes(object, org, ATTR_PATHS_ORG);
+        fillActivation(object, org);
 
         org.setName(encryptOrgName(object.getName().toString(), processedOrgIterator++, nameMode, encryptKey));
         org.setOid(encryptedUUID(object.getOid(), securityMode, encryptKey));
@@ -187,6 +188,7 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
     private UserType getPreparedUserObject(@NotNull FocusType object) {
         UserType user = new UserType();
         fillAttributes(object, user, ATTR_PATHS_USER);
+        fillActivation(object, user);
 
         List<AssignmentType> assignment = object.getAssignment();
         if (assignment == null || assignment.isEmpty()) {
@@ -228,6 +230,7 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
     private RoleType getPreparedRoleObject(@NotNull FocusType object) {
         RoleType role = new RoleType();
         fillAttributes(object, role, ATTR_PATHS_ROLE);
+        fillActivation(object, role);
 
         String roleName = object.getName().toString();
         PolyStringType encryptedName = encryptRoleName(roleName, processedRoleIterator++, nameMode, encryptKey);
@@ -440,6 +443,14 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
                 anonymizeAttribute(newObject, origContainer.getExtension(), path, extensionAttributeNameAnonymizer);
             }
         }
+    }
+
+    private void fillActivation(@NotNull FocusType origObject, @NotNull FocusType newObject) {
+        if (origObject.getActivation() == null) {
+            return;
+        }
+        var activation = new ActivationType().effectiveStatus(origObject.getActivation().getEffectiveStatus());
+        newObject.setActivation(activation);
     }
 
 }
