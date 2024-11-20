@@ -84,7 +84,7 @@ See the xref:/midpoint/reference/resources/entitlements/[Entitlements] page for 
 
 === Attributes
 
-Construction assignments can be used to define a specific attribute values or expressions for created resource objects.
+Construction assignments can be used to define an outbound mapping for a specified attribute of the constructed resource object.
 
 The following example specifies that an _account_ should be created on the resource.
 It also specified that the attribute `title` of such account should be set to a fixed value `Bloody Pirate`.
@@ -108,24 +108,30 @@ It also specified that the attribute `title` of such account should be set to a 
     </assignment>
 ----
 
-[TIP]
-.Assignment vs direct account modifications
+This _attribute_ definition in assignment use the same principle that is used for resource xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings].
+Therefore, the full scale of xref:/midpoint/reference/expressions/mappings/[mapping capabilities] can be used here.
+Other xref:/midpoint/reference/resources/resource-configuration/schema-handling/#attribute-definitions[configuration options of resource attribute], like _tolerance_ or _limitations_, can't be used in assignments.
+
+The new outbound mapping defined in assignment is representing a policy, which will be merged with other policies before the target resource object is provisioned or modified.
+Most importantly the resulting values are merged with the results of resource's xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings].
+The values are merged by default and no special configuration is required.
+
+[NOTE]
+.Do not overuse
 ====
-Setting an attribute using an assignment is very different than just setting the attribute value directly on the account.
-As this is an assignment, this specification of the attribute specifies a _policy_.
-I.e. it specifies that the account _should_ always have this value.
-Therefore if midPoint detects that the value of attribute `title` has changed (e.g. during a reconciliation) then midPoint will try to fix the situation and will set the attribute to the correct value.
+Do not overuse the ability of assignments to enforce attribute values.
+Assignments usually specify exceptions to the policies.
+The lower is the number of exceptions the more consistent the policies are.
+Consistent policies are easier to maintain.
+Care should be taken even if this ability is used in a form of xref:/midpoint/reference/roles-policies/rbac/[role inducements].
+Some legacy IDM systems had no other way how to define a policy for attribute values than roles.
+Therefore, some IDM engineers have tendency to abuse RBAC mechanisms to define global policies.
+This is *not* the case with midPoint.
+MidPoint has a clean and elegant mechanism for specifying resource-global policies: xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings].
 
-On the other hand if an attribute value is changed directly on the account (e.g. using a midPoint GUI) then the initial result will be the same: the account attribute is changed.
-But if the value is not specified in assignment it will *not* be part of the policy.
-And if someone changes the account attribute value later the midPoint will *not* set it back.
-This is the primary difference:
-
-* Assignment is a policy.
-MidPoint will try to correct the situation when it has a chance (and reason) to do so.
-
-* Direct account modifications just change the reality.
-MidPoint will *not* try to re-apply them later.
+*Rule of the thumb:* xref:/midpoint/reference/expressions/mappings/outbound-mapping/[Outbound mappings] should be used to set attribute values if possible.
+If not then xref:/midpoint/reference/roles-policies/rbac/[role inducements] should be used.
+Specifying attribute values in assignments should be used only if no other mechanisms is sufficient to implement the policy.
 
 ====
 
@@ -159,33 +165,6 @@ It produces values similar to "Jack Sparrow is the best pirate Caribbean has eve
         </construction>
     </assignment>
 ----
-
-An observant reader had surely noticed similarity with xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings].
-The same xref:/midpoint/reference/expressions/mappings/[mapping] principle is used in both outbound mappings and assignments.
-Therefore the full scale of mapping capabilities can be used in assignments.
-
-The values specified by assignments are merged with other policies before the target resource object is provisioned or modified.
-Most importantly the values are merged with the results of xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings].
-The values are merged by default and no special configuration is required.
-
-[NOTE]
-.Do not overuse
-====
-Do not overuse the ability of assignments to enforce attribute values.
-Assignments usually specify exceptions to the policies.
-The lower is the number of exceptions the more consistent the policies are.
-Consistent policies are easier to maintain.
-Care should be taken even if this ability is used in a form of xref:/midpoint/reference/roles-policies/rbac/[role inducements].
-Some legacy IDM systems had no other way how to define a policy for attribute values than roles.
-Therefore some IDM engineers have tendency to abuse RBAC mechanisms to define global policies.
-This is *not* the case with midPoint.
-MidPoint has a clean and elegant mechanism for specifying resource-global policies: xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings].
-
-*Rule of the thumb:* xref:/midpoint/reference/expressions/mappings/outbound-mapping/[Outbound mappings] should be used to set attribute values if possible.
-If not then xref:/midpoint/reference/roles-policies/rbac/[role inducements] should be used.
-Specifying attribute values in assignments should be used only if no other mechanisms is sufficient to implement the policy.
-
-====
 
 === Strong and Weak Constructions
 
