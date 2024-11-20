@@ -80,6 +80,7 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
     private static final Set<ItemPath> ATTR_PATHS_USER = extractDefaultAttributePaths(UserType.COMPLEX_TYPE);
     private static final Set<ItemPath> ATTR_PATHS_ROLE = extractDefaultAttributePaths(RoleType.COMPLEX_TYPE);
     private static final Set<ItemPath> ATTR_PATHS_ORG = extractDefaultAttributePaths(OrgType.COMPLEX_TYPE);
+    private static final String ARCHETYPE_REF_ATTRIBUTE_NAME = "archetypeRef";
 
     public ExportMiningConsumerWorker(NinjaContext context, ExportMiningOptions options, BlockingQueue<FocusType> queue,
             OperationStatus operation) {
@@ -377,7 +378,8 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
     private static Set<ItemPath> extractAttributePaths(PrismContainerDefinition<?> containerDef) {
         Set<ItemPath> paths = new HashSet<>();
         for (ItemDefinition<?> def : containerDef.getDefinitions()) {
-            if (def.isOperational() || !def.isSingleValue()) {
+            var isArchetypeRef = def.getItemName().toString().equals(ARCHETYPE_REF_ATTRIBUTE_NAME);
+            if (!isArchetypeRef && (def.isOperational() || !def.isSingleValue())) {
                 // unsupported types
                 continue;
             }
