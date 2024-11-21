@@ -56,111 +56,104 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 
     public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
     public static final String RESOURCE_DUMMY_OID = "ef2bc95b-76e0-59e2-86d6-9999dddddddd";
-    public static final String RESOURCE_DUMMY_INTENT_GROUP = "group";
+    static final String RESOURCE_DUMMY_INTENT_GROUP = "group";
 
-    protected static final String RESOURCE_DUMMY_NONEXISTENT_OID = "ef2bc95b-000-000-000-009900dddddd";
+    static final String RESOURCE_DUMMY_NONEXISTENT_OID = "ef2bc95b-000-000-000-009900dddddd";
 
     protected static final File ACCOUNT_WILL_FILE = new File(TEST_DIR, "account-will.xml");
     protected static final String ACCOUNT_WILL_OID = "c0c010c0-d34d-b44f-f11d-33322212dddd";
     protected static final String ACCOUNT_WILL_USERNAME = "Will";
-    protected static final String ACCOUNT_WILL_PASSWORD = "3lizab3th";
-    protected static final String ACCOUNT_WILL_PASSWORD_123 = "3lizab3th123";
-    protected static final String ACCOUNT_WILL_PASSWORD_321 = "3lizab3th321";
-    protected static final XMLGregorianCalendar ACCOUNT_WILL_ENABLE_TIMESTAMP = XmlTypeConverter.createXMLGregorianCalendar(2013, 5, 30, 12, 30, 42);
+    static final String ACCOUNT_WILL_PASSWORD = "3lizab3th";
+    static final String ACCOUNT_WILL_PASSWORD_123 = "3lizab3th123";
+    static final String ACCOUNT_WILL_PASSWORD_321 = "3lizab3th321";
+    static final XMLGregorianCalendar ACCOUNT_WILL_ENABLE_TIMESTAMP = XmlTypeConverter.createXMLGregorianCalendar(2013, 5, 30, 12, 30, 42);
 
-    protected static final File ACCOUNT_ELIZABETH_FILE = new File(TEST_DIR, "account-elizabeth.xml");
-    protected static final String ACCOUNT_ELIZABETH_OID = "ca42f312-3bc3-11e7-a32d-73a68a0f363b";
-    protected static final String ACCOUNT_ELIZABETH_USERNAME = "elizabeth";
-    protected static final String ACCOUNT_ELIZABETH_FULLNAME = "Elizabeth Swan";
+    static final File ACCOUNT_ELIZABETH_FILE = new File(TEST_DIR, "account-elizabeth.xml");
+    static final String ACCOUNT_ELIZABETH_OID = "ca42f312-3bc3-11e7-a32d-73a68a0f363b";
+    static final String ACCOUNT_ELIZABETH_USERNAME = "elizabeth";
+    static final String ACCOUNT_ELIZABETH_FULLNAME = "Elizabeth Swan";
 
-    protected static final String ACCOUNT_DAEMON_USERNAME = "daemon";
-    protected static final String ACCOUNT_DAEMON_OID = "c0c010c0-dddd-dddd-dddd-dddddddae604";
-    protected static final File ACCOUNT_DAEMON_FILE = new File(TEST_DIR, "account-daemon.xml");
+    static final String ACCOUNT_DAEMON_USERNAME = "daemon";
+    static final String ACCOUNT_DAEMON_OID = "c0c010c0-dddd-dddd-dddd-dddddddae604";
+    private static final File ACCOUNT_DAEMON_FILE = new File(TEST_DIR, "account-daemon.xml");
 
-    protected static final String ACCOUNT_RELIC_USERNAME = "relic";
-    protected static final String ACCOUNT_RELIC_OID = "3689fda4-5c4c-11e9-b144-43a245ea74a9";
-    protected static final File ACCOUNT_RELIC_FILE = new File(TEST_DIR, "account-relic.xml");
+    static final String ACCOUNT_RELIC_USERNAME = "relic";
+    static final String ACCOUNT_RELIC_OID = "3689fda4-5c4c-11e9-b144-43a245ea74a9";
+    static final File ACCOUNT_RELIC_FILE = new File(TEST_DIR, "account-relic.xml");
 
-    protected static final String ACCOUNT_DAVIEJONES_USERNAME = "daviejones";
+    static final String ACCOUNT_DAVIEJONES_USERNAME = "daviejones";
 
     protected static final File ACCOUNT_MORGAN_FILE = new File(TEST_DIR, "account-morgan.xml");
     protected static final String ACCOUNT_MORGAN_OID = "c0c010c0-d34d-b44f-f11d-444400008888";
-    protected static final String ACCOUNT_MORGAN_NAME = "morgan";
-    protected static final String ACCOUNT_CPTMORGAN_NAME = "cptmorgan";
-    protected static final String ACCOUNT_MORGAN_FULLNAME = "Captain Morgan";
-    protected static final String ACCOUNT_MORGAN_PASSWORD = "sh1verM3T1mb3rs";
-    protected static final String ACCOUNT_MORGAN_PASSWORD_ENLIST_TIMESTAMP = "1663-05-30T14:15:16Z";
-    protected static final String ACCOUNT_MORGAN_PASSWORD_ENLIST_TIMESTAMP_MODIFIED = "1666-07-08T09:10:11Z";
+    static final String ACCOUNT_MORGAN_NAME = "morgan";
+    static final String ACCOUNT_CPTMORGAN_NAME = "cptmorgan";
+    static final String ACCOUNT_MORGAN_FULLNAME = "Captain Morgan";
+    static final String ACCOUNT_MORGAN_PASSWORD = "sh1verM3T1mb3rs";
+    static final String ACCOUNT_MORGAN_PASSWORD_ENLIST_TIMESTAMP = "1663-05-30T14:15:16Z";
+    static final String ACCOUNT_MORGAN_PASSWORD_ENLIST_TIMESTAMP_MODIFIED = "1666-07-08T09:10:11Z";
 
-    protected static final File ACCOUNT_LECHUCK_FILE = new File(TEST_DIR, "account-lechuck.xml");
-    protected static final String ACCOUNT_LECHUCK_OID = "c0c010c0-d34d-b44f-f11d-444400009aa9";
-    protected static final String ACCOUNT_LECHUCK_NAME = "lechuck";
+    static final File ACCOUNT_LECHUCK_FILE = new File(TEST_DIR, "account-lechuck.xml");
+    static final String ACCOUNT_LECHUCK_OID = "c0c010c0-d34d-b44f-f11d-444400009aa9";
+    static final String ACCOUNT_LECHUCK_NAME = "lechuck";
 
-    protected static final File ACCOUNT_WALLY_FILE = new File(TEST_DIR, "account-wally.xml");
-    protected static final String ACCOUNT_WALLY_OID = "20b46da4-2bad-11e9-b807-7b7672a5eebe";
-    protected static final String ACCOUNT_WALLY_NAME = "wally";
+    static final File ACCOUNT_WALLY_FILE = new File(TEST_DIR, "account-wally.xml");
 
-    protected static final File GROUP_PIRATES_FILE = new File(TEST_DIR, "group-pirates.xml");
-    protected static final String GROUP_PIRATES_OID = "c0c010c0-d34d-b44f-f11d-3332eeee0000";
-    protected static final String GROUP_PIRATES_NAME = "pirates";
+    static final File GROUP_PIRATES_FILE = new File(TEST_DIR, "group-pirates.xml");
+    static final String GROUP_PIRATES_OID = "c0c010c0-d34d-b44f-f11d-3332eeee0000";
+    static final String GROUP_PIRATES_NAME = "pirates";
 
-    protected static final File PRIVILEGE_PILLAGE_FILE = new File(TEST_DIR, "privilege-pillage.xml");
-    protected static final String PRIVILEGE_PILLAGE_OID = "c0c010c0-d34d-b44f-f11d-3332eeff0000";
-    protected static final String PRIVILEGE_PILLAGE_NAME = "pillage";
+    static final File PRIVILEGE_PILLAGE_FILE = new File(TEST_DIR, "privilege-pillage.xml");
+    static final String PRIVILEGE_PILLAGE_OID = "c0c010c0-d34d-b44f-f11d-3332eeff0000";
+    static final String PRIVILEGE_PILLAGE_NAME = "pillage";
 
-    protected static final File PRIVILEGE_BARGAIN_FILE = new File(TEST_DIR, "privilege-bargain.xml");
-    protected static final String PRIVILEGE_BARGAIN_OID = "c0c010c0-d34d-b44f-f11d-3332eeff0001";
-    protected static final String PRIVILEGE_BARGAIN_NAME = "bargain";
+    static final File PRIVILEGE_BARGAIN_FILE = new File(TEST_DIR, "privilege-bargain.xml");
+    static final String PRIVILEGE_BARGAIN_OID = "c0c010c0-d34d-b44f-f11d-3332eeff0001";
+    static final String PRIVILEGE_BARGAIN_NAME = "bargain";
 
-    protected static final String PRIVILEGE_NONSENSE_NAME = "NoNsEnSe";
+    static final String PRIVILEGE_NONSENSE_NAME = "NoNsEnSe";
 
-    protected static final File ACCOUNT_SCRIPT_FILE = new File(TEST_DIR, "account-script.xml");
-    protected static final String ACCOUNT_NEW_SCRIPT_OID = "c0c010c0-d34d-b44f-f11d-33322212abcd";
-    protected static final File ENABLE_ACCOUNT_FILE = new File(TEST_DIR, "modify-will-enable.xml");
-    protected static final File DISABLE_ACCOUNT_FILE = new File(TEST_DIR, "modify-will-disable.xml");
-    protected static final File MODIFY_WILL_FULLNAME_FILE = new File(TEST_DIR, "modify-will-fullname.xml");
-    protected static final File SCRIPTS_FILE = new File(TEST_DIR, "scripts.xml");
+    static final File ACCOUNT_SCRIPT_FILE = new File(TEST_DIR, "account-script.xml");
+    static final String ACCOUNT_NEW_SCRIPT_OID = "c0c010c0-d34d-b44f-f11d-33322212abcd";
+    static final File MODIFY_WILL_FULLNAME_FILE = new File(TEST_DIR, "modify-will-fullname.xml");
+    static final File SCRIPTS_FILE = new File(TEST_DIR, "scripts.xml");
 
-    protected static final String NOT_PRESENT_OID = "deaddead-dead-dead-dead-deaddeaddead";
+    static final String NOT_PRESENT_OID = "deaddead-dead-dead-dead-deaddeaddead";
 
-    protected static final String OBJECTCLASS_GROUP_LOCAL_NAME = "GroupObjectClass";
-    protected static final String OBJECTCLASS_PRIVILEGE_LOCAL_NAME = "CustomprivilegeObjectClass";
+    static final String OBJECTCLASS_GROUP_LOCAL_NAME = "GroupObjectClass";
+    static final String OBJECTCLASS_PRIVILEGE_LOCAL_NAME = "CustomprivilegeObjectClass";
 
     protected static final QName ASSOCIATION_GROUP_NAME = new QName(MidPointConstants.NS_RI, "group");
-    protected static final QName ASSOCIATION_PRIV_NAME = new QName(MidPointConstants.NS_RI, "priv");
-
-    protected static final ObjectClassName AC_GROUP_MEMBERSHIP_NAME = ObjectClassName.custom("groupMembership");
-    protected static final ObjectClassName AC_ACCOUNT_PRIVILEGE_NAME = ObjectClassName.custom("accountPrivilege");
+    static final QName ASSOCIATION_PRIV_NAME = new QName(MidPointConstants.NS_RI, "priv");
 
     protected PrismObject<ResourceType> resource;
     protected ResourceType resourceBean;
     /** True if the resource was successfully tested and {@link #resource} and {@link #resourceBean} contain complete schema. */
-    protected boolean resourceInitialized;
-    protected static boolean resourceShutDown;
+    boolean resourceInitialized;
+    static boolean resourceShutDown;
     protected static DummyResource dummyResource;
     protected static DummyResourceContoller dummyResourceCtl;
 
-    protected String accountWillCurrentPassword = ACCOUNT_WILL_PASSWORD;
+    String accountWillCurrentPassword = ACCOUNT_WILL_PASSWORD;
 
-    protected static final TestObject<ArchetypeType> ARCHETYPE_OBJECT_MARK = TestObject.classPath(
+    private static final TestObject<ArchetypeType> ARCHETYPE_OBJECT_MARK = TestObject.classPath(
             "initial-objects/archetype", "701-archetype-object-mark.xml", SystemObjectsType.ARCHETYPE_OBJECT_MARK.value());
 
     private static final TestObject<ArchetypeType> ARCHETYPE_SHADOW_POLICY_MARK = TestObject.classPath(
             "initial-objects/archetype", "705-archetype-shadow-policy-mark.xml",
             SystemObjectsType.ARCHETYPE_SHADOW_POLICY_MARK.value());
 
-    protected static final TestObject<MarkType> MARK_PROTECTED_SHADOW = TestObject.classPath(
+    private static final TestObject<MarkType> MARK_PROTECTED_SHADOW = TestObject.classPath(
             "initial-objects/mark", "800-mark-protected.xml",
             SystemObjectsType.MARK_PROTECTED.value());
 
-    protected static final TestObject<MarkType> MARK_INVALID_DATA = TestObject.classPath(
+    static final TestObject<MarkType> MARK_INVALID_DATA = TestObject.classPath(
             "initial-objects/mark", "804-mark-invalid-data.xml",
             SystemObjectsType.MARK_INVALID_DATA.value());
 
     @Autowired
     protected ProvisioningContextFactory provisioningContextFactory;
 
-    protected String daemonIcfUid;
+    String daemonIcfUid;
 
     @Override
     protected PrismObject<ResourceType> getResource() {
@@ -245,11 +238,11 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
         }
     }
 
-    protected String getIcfUid(RawRepoShadow shadow) {
+    String getIcfUid(RawRepoShadow shadow) {
         return getIcfUid(shadow.getPrismObject());
     }
 
-    protected String getIcfUid(AbstractShadow shadow) {
+    String getIcfUid(AbstractShadow shadow) {
         return getIcfUid(shadow.getPrismObject());
     }
 
@@ -257,11 +250,6 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
     protected String getIcfUid(PrismObject<ShadowType> shadow) {
         Object value = shadow.findProperty(SchemaConstants.ICFS_UID_PATH).getRealValue();
         return value instanceof PolyString polyString ? polyString.getOrig() : (String) value;
-    }
-
-    protected String getIcfName(PrismObject<ShadowType> shadow) {
-        PrismProperty<String> icfUidAttr = shadow.findProperty(SchemaConstants.ICFS_NAME_PATH);
-        return icfUidAttr.getRealValue();
     }
 
     protected File getResourceDummyFile() {
@@ -338,7 +326,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
         }
     }
 
-    protected DummyAccount getDummyAccountAssert(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+    DummyAccount getDummyAccountAssert(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         if (isIcfNameUidSame()) {
             return dummyResource.getAccountByName(icfName);
         } else {
@@ -378,7 +366,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
         }
     }
 
-    protected DummyGroup getDummyGroupAssert(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+    DummyGroup getDummyGroupAssert(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         if (isIcfNameUidSame()) {
             return dummyResource.getGroupByName(icfName);
         } else {
@@ -398,7 +386,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
         }
     }
 
-    protected DummyPrivilege getDummyPrivilegeAssert(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+    DummyPrivilege getDummyPrivilegeAssert(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         if (isIcfNameUidSame()) {
             return dummyResource.getPrivilegeByName(icfName);
         } else {
@@ -429,7 +417,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
         TestUtil.assertSetEquals("Wrong values of attribute " + attributeName + " in " + object.getShortTypeName() + " " + object, attributeValues, expectedValues);
     }
 
-    protected void assertNoDummyAttribute(DummyObject object, String attributeName) {
+    void assertNoDummyAttribute(DummyObject object, String attributeName) {
         Set<Object> attributeValues = object.getAttributeValues(attributeName, Object.class);
         assertNotNull("Unexpected attribute " + attributeName + " in " + object.getShortTypeName() + " " + object + ": " + attributeValues, attributeValues);
     }
@@ -480,11 +468,11 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
                         .toList());
     }
 
-    protected void assertGroupAssociation(AbstractShadow account, String entitlementOid) {
+    void assertGroupAssociation(AbstractShadow account, String entitlementOid) {
         assertAssociation(account, ASSOCIATION_GROUP_NAME, entitlementOid);
     }
 
-    protected void assertPrivAssociation(AbstractShadow account, String entitlementOid) {
+    void assertPrivAssociation(AbstractShadow account, String entitlementOid) {
         assertAssociation(account, ASSOCIATION_PRIV_NAME, entitlementOid);
     }
 
@@ -492,7 +480,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
         ProvisioningTestUtil.checkRepoAccountShadow(repoShadow);
     }
 
-    protected void assertDummyConnectorInstances(int expectedConnectorInstances)
+    void assertDummyConnectorInstances(int expectedConnectorInstances)
             throws NumberFormatException, SchemaException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
         Task task = getTestTask();
@@ -512,7 +500,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
      * Deletes all accounts on given dummy resource: from the resource and from the repository.
      * The accounts can be broken, so we do the deletion on the very low level (repo + dummy resource).
      */
-    protected void cleanupAccounts(DummyTestResource resource, OperationResult result) throws SchemaException,
+    void cleanupAccounts(DummyTestResource resource, OperationResult result) throws SchemaException,
             ObjectNotFoundException, InterruptedException, FileNotFoundException, ConnectException, SchemaViolationException,
             ConflictException, ObjectDoesNotExistException {
         SearchResultList<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, getAllAccountsQuery(resource), null, result);

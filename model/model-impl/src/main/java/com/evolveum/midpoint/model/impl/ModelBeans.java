@@ -16,6 +16,9 @@ import com.evolveum.midpoint.model.impl.security.AuthorizationMigrator;
 
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerRegistry;
 
+import com.evolveum.midpoint.repo.common.security.CredentialsStorageManager;
+import com.evolveum.midpoint.repo.common.security.SecurityPolicyFinder;
+
 import jakarta.annotation.PostConstruct;
 
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
@@ -51,7 +54,6 @@ import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.scriptExecutor.PolicyRuleScriptExecutor;
 import com.evolveum.midpoint.model.impl.migrator.Migrator;
-import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.model.impl.simulation.SimulationResultManagerImpl;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
 import com.evolveum.midpoint.model.impl.sync.reactions.SynchronizationActionFactory;
@@ -108,6 +110,7 @@ public class ModelBeans {
     @Autowired public ModelCommonBeans commonBeans;
     @Autowired public ContextLoader contextLoader;
     @Autowired public CredentialsProcessor credentialsProcessor;
+    @Autowired public CredentialsStorageManager credentialsStorageManager;
     @Autowired public Protector protector;
     @Autowired public ClockworkMedic medic;
     @Autowired public ProvisioningService provisioningService;
@@ -139,7 +142,7 @@ public class ModelBeans {
     @Autowired public Projector projector;
     @Autowired public PolicyRuleProcessor policyRuleProcessor;
     @Autowired public ClockworkHookHelper clockworkHookHelper;
-    @Autowired public SecurityHelper securityHelper;
+    @Autowired public SecurityPolicyFinder securityPolicyFinder;
     @Autowired public CorrelatorFactoryRegistryImpl correlatorFactoryRegistry;
     @Autowired public CorrelationCaseManager correlationCaseManager;
     @Autowired public CorrelationService correlationService;

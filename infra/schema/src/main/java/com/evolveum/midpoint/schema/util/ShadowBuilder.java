@@ -13,6 +13,8 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,6 +59,15 @@ public class ShadowBuilder {
         ShadowUtil
                 .getOrCreateAttributesContainer(shadow)
                 .addReferenceAttribute(attrName, referencedShadow, true);
+        return this;
+    }
+
+    public ShadowBuilder withPassword(@NotNull String clearValue) {
+        return withPassword(new ProtectedStringType().clearValue(clearValue));
+    }
+
+    public ShadowBuilder withPassword(@NotNull ProtectedStringType value) {
+        ShadowUtil.setPassword(shadow, value);
         return this;
     }
 

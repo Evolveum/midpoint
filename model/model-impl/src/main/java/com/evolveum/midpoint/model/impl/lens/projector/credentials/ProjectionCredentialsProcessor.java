@@ -360,7 +360,7 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
 
         ObjectDelta<ShadowType> accountDelta = projectionContext.getCurrentDelta();
 
-        if (accountDelta == null){
+        if (accountDelta == null) {
             LOGGER.trace("Skipping processing password policies. Shadow delta not specified.");
             return;
         }

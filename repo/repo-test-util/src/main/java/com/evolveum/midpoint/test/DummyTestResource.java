@@ -17,6 +17,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.FailableProcessor;
 import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 /**
@@ -43,6 +44,18 @@ public class DummyTestResource extends TestResource {
         super(new FileBasedTestObjectSource(dir, fileName), oid);
         this.name = name;
         this.controllerInitLambda = controllerInitLambda;
+    }
+
+    public DummyTestResource(
+            TestObjectSource source, String oid, String name, FailableProcessor<DummyResourceContoller> controllerInitLambda) {
+        super(source, oid);
+        this.name = name;
+        this.controllerInitLambda = controllerInitLambda;
+    }
+
+    public static DummyTestResource fromTestObject(
+            TestObject<?> object, String instanceName, FailableProcessor<DummyResourceContoller> controllerInitLambda) {
+        return new DummyTestResource(object.source, object.oid, instanceName, controllerInitLambda);
     }
 
     @Override

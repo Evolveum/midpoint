@@ -88,7 +88,7 @@ public class FocusChangeExecution<O extends ObjectType> extends ElementChangeExe
             focusDelta = focusContext.getObjectAny().createModifyDelta();
         }
 
-        if (ObjectDelta.isAdd(focusDelta)) {
+        if (focusDelta.isAdd()) {
             applyArchetypePolicyToAddedObject();
         }
 
@@ -234,7 +234,9 @@ public class FocusChangeExecution<O extends ObjectType> extends ElementChangeExe
 
     private void removeOrHashCredentialsDeltas() throws SchemaException {
         try {
-            focusDelta = b.credentialsProcessor.transformFocusExecutionDelta(context, focusDelta);
+            focusDelta = b.credentialsStorageManager.transformFocusExecutionDelta(
+                    context.getFocusContext().getCredentialsPolicy(),
+                    focusDelta);
         } catch (EncryptionException e) {
             throw new SystemException(e.getMessage(), e);
         }
