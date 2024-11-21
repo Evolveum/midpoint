@@ -3456,10 +3456,10 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
         switchSessionStatisticUnwantedAccessToCurrent(sessionStatistic);
         //oids roles diff+ uniq+ anomaly
-        Set<String> unwantedAccess = getUnwantedAccesses(sessionStatistic);
+        Set<String> unwantedAccess = getUnwantedAccesses(sessionStatistic, processMode);
         boolean unwantedAccessNotSet = unwantedAccess.isEmpty();
 
-        Set<String> unwantedUsers = getUnwantedUsers(sessionStatistic);
+        Set<String> unwantedUsers = getUnwantedUsers(sessionStatistic, processMode);
         boolean unwantedUsersNotSet = unwantedUsers.isEmpty();
 
         int minAccessPopularity = getSessionAccessPopularityOptionsValue(sessionObject);
@@ -3518,14 +3518,21 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             throw new SystemException("Couldn't search assignments", e);
         }
 
-        Set<String> nonPopularRoles = new HashSet<>();
+        Set<String> nonPopularRolesMin = new HashSet<>();
+        Set<String> nonPopularRolesMax = new HashSet<>();
         roleMembersMap.keySet().forEach(roleOid -> {
             if (roleMembersMap.get(roleOid).size() < minAccessPopularity) {
-                nonPopularRoles.add(roleOid);
+                nonPopularRolesMin.add(roleOid);
+            }
+            if (roleMembersMap.get(roleOid).size() > maxUserPopularity) {
+                nonPopularRolesMax.add(roleOid);
             }
         });
-        sessionStatistic.getUniq().getUniqRolesNext().addAll(nonPopularRoles);
-        sessionStatistic.getUniq().setUniqRolesCurrentCount(nonPopularRoles.size());
+        sessionStatistic.getUniq().getUniqRolesNextMin().addAll(nonPopularRolesMin);
+        sessionStatistic.getUniq().setUniqRolesCurrentCountMin(nonPopularRolesMin.size());
+        sessionStatistic.getUniq().getUniqRolesNextMax().addAll(nonPopularRolesMax);
+        sessionStatistic.getUniq().setUniqRolesCurrentCountMax(nonPopularRolesMax.size());
+
         sessionStatistic.setProcessedAssignmentCount(roleMembersMap.keys().size());
 
         ListMultimap<String, String> userRolesMap = ArrayListMultimap.create();
@@ -3541,22 +3548,25 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             sessionStatistic.setProcessedPropertiesCount(userRolesMap.keySet().size());
         }
 
-        Set<String> nonPopularUsers = new HashSet<>();
+        Set<String> nonPopularUsersMin = new HashSet<>();
+        Set<String> nonPopularUsersMax = new HashSet<>();
         userRolesMap.keys().forEach(userOid -> {
             int size = userRolesMap.get(userOid).size();
             if (maxUserPopularity > 0) {
-                if (size < minUserPopularity || size > maxUserPopularity) {
-                    nonPopularUsers.add(userOid);
-                }
-            } else {
-                if (size < minUserPopularity) {
-                    nonPopularUsers.add(userOid);
+                if (size > maxUserPopularity) {
+                    nonPopularUsersMax.add(userOid);
                 }
             }
 
+            if (size < minUserPopularity) {
+                nonPopularUsersMin.add(userOid);
+            }
+
         });
-        sessionStatistic.getUsers().getUsersNext().addAll(nonPopularUsers);
-        sessionStatistic.getUsers().setUsersCurrentCount(nonPopularUsers.size());
+        sessionStatistic.getUsers().getUsersNextMin().addAll(nonPopularUsersMin);
+        sessionStatistic.getUsers().setUsersCurrentCountMin(nonPopularUsersMin.size());
+        sessionStatistic.getUsers().getUsersNextMax().addAll(nonPopularUsersMax);
+        sessionStatistic.getUsers().setUsersCurrentCountMax(nonPopularUsersMax.size());
 
         if (attributeAnalysisCache != null) {
             attributeAnalysisCache.setRoleMemberCache(roleMembersMap);
@@ -3594,10 +3604,10 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
         switchSessionStatisticUnwantedAccessToCurrent(sessionStatistic);
         //oids roles diff+ uniq+ anomaly
-        Set<String> unwantedAccess = getUnwantedAccesses(sessionStatistic);
+        Set<String> unwantedAccess = getUnwantedAccesses(sessionStatistic, processMode);
         boolean unwantedAccessNotSet = unwantedAccess.isEmpty();
 
-        Set<String> unwantedUsers = getUnwantedUsers(sessionStatistic);
+        Set<String> unwantedUsers = getUnwantedUsers(sessionStatistic, processMode);
         boolean unwantedUsersNotSet = unwantedUsers.isEmpty();
 
         Collection<SelectorOptions<GetOperationOptions>> options = getDefaultRmIterativeSearchPageSizeOptions();
@@ -3662,15 +3672,22 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             throw new SystemException("Couldn't search assignments", e);
         }
 
-        Set<String> nonPopularRoles = new HashSet<>();
+        Set<String> nonPopularRolesMin = new HashSet<>();
+        Set<String> nonPopularRolesMax = new HashSet<>();
         roleMembersMap.keySet().forEach(roleOid -> {
             if (roleMembersMap.get(roleOid).size() < minAccessPopularity) {
-                nonPopularRoles.add(roleOid);
+                nonPopularRolesMin.add(roleOid);
+            }
+
+            if (roleMembersMap.get(roleOid).size() > maxUserPopularity) {
+                nonPopularRolesMax.add(roleOid);
             }
         });
 
-        sessionStatistic.getUniq().getUniqRolesNext().addAll(nonPopularRoles);
-        sessionStatistic.getUniq().setUniqRolesCurrentCount(nonPopularRoles.size());
+        sessionStatistic.getUniq().getUniqRolesNextMin().addAll(nonPopularRolesMin);
+        sessionStatistic.getUniq().setUniqRolesCurrentCountMin(nonPopularRolesMin.size());
+        sessionStatistic.getUniq().getUniqRolesNextMax().addAll(nonPopularRolesMax);
+        sessionStatistic.getUniq().setUniqRolesCurrentCountMax(nonPopularRolesMax.size());
         sessionStatistic.setProcessedAssignmentCount(roleMembersMap.keys().size());
 
         ListMultimap<String, String> userRolesMap = ArrayListMultimap.create();
@@ -3686,22 +3703,24 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             sessionStatistic.setProcessedPropertiesCount(userRolesMap.keySet().size());
         }
 
-        Set<String> nonPopularUsers = new HashSet<>();
+        Set<String> nonPopularUsersMin = new HashSet<>();
+        Set<String> nonPopularUsersMax = new HashSet<>();
         userRolesMap.keys().forEach(userOid -> {
             int size = userRolesMap.get(userOid).size();
             if (maxUserPopularity > 0) {
-                if (size < minUserPopularity || size > maxUserPopularity) {
-                    nonPopularUsers.add(userOid);
-                }
-            } else {
-                if (size < minUserPopularity) {
-                    nonPopularUsers.add(userOid);
+                if (size > maxUserPopularity) {
+                    nonPopularUsersMax.add(userOid);
                 }
             }
 
+            if (size < minUserPopularity) {
+                nonPopularUsersMin.add(userOid);
+            }
         });
-        sessionStatistic.getUsers().getUsersNext().addAll(nonPopularUsers);
-        sessionStatistic.getUsers().setUsersCurrentCount(nonPopularUsers.size());
+        sessionStatistic.getUsers().getUsersNextMin().addAll(nonPopularUsersMin);
+        sessionStatistic.getUsers().setUsersCurrentCountMin(nonPopularUsersMin.size());
+        sessionStatistic.getUsers().getUsersNextMax().addAll(nonPopularUsersMax);
+        sessionStatistic.getUsers().setUsersCurrentCountMax(nonPopularUsersMax.size());
 
         if (attributeAnalysisCache != null) {
             attributeAnalysisCache.setRoleMemberCache(roleMembersMap);
@@ -3809,12 +3828,14 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         }
 
         RoleAnalysisSessionStatisticType sessionStatistic = sessionObject.getSessionStatistic();
+        RoleAnalysisOptionType analysisOption = sessionObject.getAnalysisOption();
+        RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
 
         //oids roles diff+ uniq+ anomaly
-        Set<String> unwantedAccess = getUnwantedAccesses(sessionStatistic);
+        Set<String> unwantedAccess = getUnwantedAccesses(sessionStatistic, processMode);
         boolean unwantedAccessNotSet = unwantedAccess.isEmpty();
 
-        Set<String> unwantedUsers = getUnwantedUsers(sessionStatistic);
+        Set<String> unwantedUsers = getUnwantedUsers(sessionStatistic, processMode);
         boolean unwantedUsersNotSet = unwantedUsers.isEmpty();
 
         Collection<SelectorOptions<GetOperationOptions>> options = getDefaultRmIterativeSearchPageSizeOptions();
@@ -3916,12 +3937,14 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         }
 
         RoleAnalysisSessionStatisticType sessionStatistic = sessionObject.getSessionStatistic();
+        RoleAnalysisOptionType analysisOption = sessionObject.getAnalysisOption();
+        RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
 
         //oids roles diff+ uniq+ anomaly
-        Set<String> unwantedAccess = getUnwantedAccesses(sessionStatistic);
+        Set<String> unwantedAccess = getUnwantedAccesses(sessionStatistic, processMode);
         boolean unwantedAccessNotSet = unwantedAccess.isEmpty();
 
-        Set<String> unwantedUsers = getUnwantedUsers(sessionStatistic);
+        Set<String> unwantedUsers = getUnwantedUsers(sessionStatistic, processMode);
         boolean unwantedUsersNotSet = unwantedUsers.isEmpty();
 
         Collection<SelectorOptions<GetOperationOptions>> options = getDefaultRmIterativeSearchPageSizeOptions();
@@ -4321,11 +4344,11 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             sessionOptions = session.getUserModeOptions();
         }
 
-        if (sessionOptions == null || sessionOptions.getAccessPopularity() == null) {
+        if (sessionOptions == null || sessionOptions.getMinAccessPopularity() == null) {
             return 0;
         }
 
-        return sessionOptions.getAccessPopularity();
+        return sessionOptions.getMinAccessPopularity();
     }
 
     private int getSessionMinUserPopularityOptionsValue(@Nullable RoleAnalysisSessionType session) {
@@ -4386,7 +4409,9 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         return sessionOptions.getMaxUsersPopularity();
     }
 
-    private static @NotNull Set<String> getUnwantedAccesses(RoleAnalysisSessionStatisticType sessionStatistic) {
+    private static @NotNull Set<String> getUnwantedAccesses(
+            RoleAnalysisSessionStatisticType sessionStatistic,
+            RoleAnalysisProcessModeType processMode) {
         Set<String> unwantedAccess = new HashSet<>();
         if (sessionStatistic != null) {
 
@@ -4396,15 +4421,26 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             Diff diff = sessionStatistic.getDiff();
             Anomaly anomaly = sessionStatistic.getAnomaly();
 
-            List<String> uniqRoles = uniq.getUniqRolesCurrent();
+            List<String> uniqRolesMin = uniq.getUniqRolesCurrentMin();
+            List<String> uniqRolesMax = uniq.getUniqRolesCurrentMax();
+
             List<String> diffRoles = diff.getDiffRolesCurrent();
             List<String> anomalyRoles = anomaly.getAnomalyRolesCurrent();
-            if (uniqRoles != null) {
-                unwantedAccess.addAll(uniqRoles);
+
+            if (uniqRolesMin != null) {
+                unwantedAccess.addAll(uniqRolesMin);
             }
-            if (diffRoles != null) {
-                unwantedAccess.addAll(diffRoles);
+
+            if (uniqRolesMax != null) {
+                unwantedAccess.addAll(uniqRolesMax);
             }
+
+            if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
+                if (diffRoles != null) {
+                    unwantedAccess.addAll(diffRoles);
+                }
+            }
+
             if (anomalyRoles != null) {
                 unwantedAccess.addAll(anomalyRoles);
             }
@@ -4418,16 +4454,32 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         return unwantedAccess;
     }
 
-    private static @NotNull Set<String> getUnwantedUsers(RoleAnalysisSessionStatisticType sessionStatistic) {
+    private static @NotNull Set<String> getUnwantedUsers(
+            RoleAnalysisSessionStatisticType sessionStatistic,
+            RoleAnalysisProcessModeType processMode) {
         Set<String> unwantedUsers = new HashSet<>();
         if (sessionStatistic != null) {
 
             addPocIfNeded(sessionStatistic);
 
             Users users = sessionStatistic.getUsers();
-            List<String> usersCurrent = users.getUsersCurrent();
-            if (usersCurrent != null) {
-                unwantedUsers.addAll(usersCurrent);
+            Diff diff = sessionStatistic.getDiff();
+            List<String> usersCurrentMin = users.getUsersCurrentMin();
+            List<String> usersCurrentMax = users.getUsersCurrentMax();
+            List<String> diffRolesCurrent = diff.getDiffRolesCurrent();
+
+            if (usersCurrentMin != null) {
+                unwantedUsers.addAll(usersCurrentMin);
+            }
+
+            if (usersCurrentMax != null) {
+                unwantedUsers.addAll(usersCurrentMax);
+            }
+
+            if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
+                if (diffRolesCurrent != null) {
+                    unwantedUsers.addAll(diffRolesCurrent);
+                }
             }
 
             UsersInNoise usersInNoise = sessionStatistic.getUsersInNoise();
@@ -4452,38 +4504,63 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             RolesInNoise rolesInNoise = sessionStatistic.getRolesInNoise();
             UsersInNoise usersInNoise = sessionStatistic.getUsersInNoise();
 
-            List<String> uniqRolesNext = uniq.getUniqRolesNext();
+            List<String> uniqRolesNextMin = uniq.getUniqRolesNextMin();
+            List<String> uniqRolesNextMax = uniq.getUniqRolesNextMax();
+
             List<String> diffRolesNext = diff.getDiffRolesNext();
             List<String> anomalyRolesNext = anomaly.getAnomalyRolesNext();
-            List<String> usersNext = users.getUsersNext();
+
+            List<String> usersNextMin = users.getUsersNextMin();
+            List<String> usersNextMax = users.getUsersNextMax();
+
             List<String> rolesInNoiseNext = rolesInNoise.getRolesInNoiseNext();
             List<String> usersInNoiseNext = usersInNoise.getUsersInNoiseNext();
 
-            uniq.getUniqRolesCurrent().addAll(uniqRolesNext);
+            uniq.getUniqRolesCurrentMin().addAll(uniqRolesNextMin);
+            uniq.getUniqRolesCurrentMax().addAll(uniqRolesNextMax);
+
             diff.getDiffRolesCurrent().addAll(diffRolesNext);
             anomaly.getAnomalyRolesCurrent().addAll(anomalyRolesNext);
-            users.getUsersCurrent().addAll(usersNext);
+
+            users.getUsersCurrentMin().addAll(usersNextMin);
+            users.getUsersCurrentMax().addAll(usersNextMax);
+
             rolesInNoise.getRolesInNoiseCurrent().addAll(rolesInNoiseNext);
             usersInNoise.getUsersInNoiseCurrent().addAll(usersInNoiseNext);
 
-            uniq.setUniqRolesCurrentCount(uniqRolesNext.size());
+            uniq.setUniqRolesCurrentCountMin(uniqRolesNextMin.size());
+            uniq.setUniqRolesCurrentCountMax(uniqRolesNextMax.size());
+
             diff.setDiffRolesCurrentCount(diffRolesNext.size());
             anomaly.setAnomalyRolesCurrentCount(anomalyRolesNext.size());
-            users.setUsersCurrentCount(usersNext.size());
+
+            users.setUsersCurrentCountMin(usersNextMin.size());
+            users.setUsersCurrentCountMax(usersNextMax.size());
+
             rolesInNoise.setRolesInNoiseCurrentCount(rolesInNoiseNext.size());
             usersInNoise.setUsersInNoiseCurrentCount(usersInNoiseNext.size());
 
-            uniq.getUniqRolesNext().clear();
+            uniq.getUniqRolesNextMin().clear();
+            uniq.getUniqRolesNextMax().clear();
+
             diff.getDiffRolesNext().clear();
             anomaly.getAnomalyRolesNext().clear();
-            users.getUsersNext().clear();
+
+            users.getUsersNextMin().clear();
+            users.getUsersNextMax().clear();
+
             rolesInNoise.getRolesInNoiseNext().clear();
             usersInNoise.getUsersInNoiseNext().clear();
 
-            uniq.setUniqRolesNextCount(0);
+            uniq.setUniqRolesNextCountMin(0);
+            uniq.setUniqRolesNextCountMax(0);
+
             diff.setDiffRolesNextCount(0);
             anomaly.setAnomalyRolesNextCount(0);
-            users.setUsersNextCount(0);
+
+            users.setUsersNextCountMin(0);
+            users.setUsersNextCountMax(0);
+
             rolesInNoise.setRolesInNoiseNextCount(0);
             usersInNoise.setUsersInNoiseNextCount(0);
         }
@@ -4519,73 +4596,123 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         RolesInNoise rolesInNoiseNew = sessionStatisticNew.getRolesInNoise();
         UsersInNoise usersInNoiseNew = sessionStatisticNew.getUsersInNoise();
 
-        List<String> uniqRolesNext = uniqOld.getUniqRolesNext();
+        List<String> uniqRolesNextMin = uniqOld.getUniqRolesNextMin();
+        List<String> uniqRolesNextMax = uniqOld.getUniqRolesNextMax();
+
         List<String> diffRolesNext = diffOld.getDiffRolesNext();
         List<String> anomalyRolesNext = anomalyOld.getAnomalyRolesNext();
-        List<String> usersNext = usersOld.getUsersNext();
+
+        List<String> usersNextMin = usersOld.getUsersNextMin();
+        List<String> usersNextMax = usersOld.getUsersNextMax();
+
         List<String> rolesInNoiseNext = rolesInNoiseOld.getRolesInNoiseNext();
         List<String> usersInNoiseNext = usersInNoiseOld.getUsersInNoiseNext();
 
-        uniqNew.getUniqRolesNext().clear();
+        uniqNew.getUniqRolesNextMin().clear();
+        uniqNew.getUniqRolesNextMax().clear();
+
         diffNew.getDiffRolesNext().clear();
         anomalyNew.getAnomalyRolesNext().clear();
-        usersNew.getUsersNext().clear();
+
+        usersNew.getUsersNextMin().clear();
+        usersNew.getUsersNextMax().clear();
+
         rolesInNoiseNew.getRolesInNoiseNext().clear();
         usersInNoiseNew.getUsersInNoiseNext().clear();
 
-        uniqNew.setUniqRolesNextCount(0);
+        uniqNew.setUniqRolesNextCountMin(0);
+        uniqNew.setUniqRolesNextCountMax(0);
+
         diffNew.setDiffRolesNextCount(0);
         anomalyNew.setAnomalyRolesNextCount(0);
-        usersNew.setUsersNextCount(0);
+
+        usersNew.setUsersNextCountMin(0);
+        usersNew.setUsersNextCountMax(0);
+
         rolesInNoiseNew.setRolesInNoiseNextCount(0);
         usersInNoiseNew.setUsersInNoiseNextCount(0);
 
-        uniqNew.getUniqRolesNext().addAll(uniqRolesNext);
+        uniqNew.getUniqRolesNextMin().addAll(uniqRolesNextMin);
+        uniqNew.getUniqRolesNextMax().addAll(uniqRolesNextMax);
+
         diffNew.getDiffRolesNext().addAll(diffRolesNext);
         anomalyNew.getAnomalyRolesNext().addAll(anomalyRolesNext);
-        usersNew.getUsersNext().addAll(usersNext);
+
+        usersNew.getUsersNextMin().addAll(usersNextMin);
+        usersNew.getUsersNextMax().addAll(usersNextMax);
+
         rolesInNoiseNew.getRolesInNoiseNext().addAll(rolesInNoiseNext);
         usersInNoiseNew.getUsersInNoiseNext().addAll(usersInNoiseNext);
 
-        uniqNew.setUniqRolesNextCount(uniqRolesNext.size());
+        uniqNew.setUniqRolesNextCountMin(uniqRolesNextMin.size());
+        uniqNew.setUniqRolesNextCountMax(uniqRolesNextMax.size());
+
         diffNew.setDiffRolesNextCount(diffRolesNext.size());
         anomalyNew.setAnomalyRolesNextCount(anomalyRolesNext.size());
-        usersNew.setUsersNextCount(usersNext.size());
+
+        usersNew.setUsersNextCountMin(usersNextMin.size());
+        usersNew.setUsersNextCountMax(usersNextMax.size());
+
         rolesInNoiseNew.setRolesInNoiseNextCount(rolesInNoiseNext.size());
         usersInNoiseNew.setUsersInNoiseNextCount(usersInNoiseNext.size());
 
-        List<String> uniqRolesCurrent = uniqOld.getUniqRolesCurrent();
+        List<String> uniqRolesCurrentMin = uniqOld.getUniqRolesCurrentMin();
+        List<String> uniqRolesCurrentMax = uniqOld.getUniqRolesCurrentMax();
+
         List<String> diffRolesCurrent = diffOld.getDiffRolesCurrent();
         List<String> anomalyRolesCurrent = anomalyOld.getAnomalyRolesCurrent();
-        List<String> usersCurrent = usersOld.getUsersCurrent();
+
+        List<String> usersCurrentMin = usersOld.getUsersCurrentMin();
+        List<String> usersCurrentMax = usersOld.getUsersCurrentMax();
+
         List<String> rolesInNoiseCurrent = rolesInNoiseOld.getRolesInNoiseCurrent();
         List<String> usersInNoiseCurrent = usersInNoiseOld.getUsersInNoiseCurrent();
 
-        uniqNew.getUniqRolesCurrent().clear();
+        uniqNew.getUniqRolesCurrentMin().clear();
+        uniqNew.getUniqRolesCurrentMax().clear();
+
         diffOld.getDiffRolesCurrent().clear();
         anomalyOld.getAnomalyRolesCurrent().clear();
-        usersOld.getUsersCurrent().clear();
+
+        usersOld.getUsersCurrentMin().clear();
+        usersOld.getUsersCurrentMax().clear();
+
         rolesInNoiseOld.getRolesInNoiseCurrent().clear();
         usersInNoiseOld.getUsersInNoiseCurrent().clear();
 
-        uniqNew.setUniqRolesCurrentCount(0);
+        uniqNew.setUniqRolesCurrentCountMin(0);
+        uniqNew.setUniqRolesCurrentCountMax(0);
+
         diffNew.setDiffRolesCurrentCount(0);
         anomalyNew.setAnomalyRolesCurrentCount(0);
-        usersNew.setUsersCurrentCount(0);
+
+        usersNew.setUsersCurrentCountMin(0);
+        usersNew.setUsersCurrentCountMax(0);
+
         rolesInNoiseNew.setRolesInNoiseCurrentCount(0);
         usersInNoiseNew.setUsersInNoiseCurrentCount(0);
 
-        uniqNew.getUniqRolesCurrent().addAll(uniqRolesCurrent);
+        uniqNew.getUniqRolesCurrentMin().addAll(uniqRolesCurrentMin);
+        uniqNew.getUniqRolesCurrentMax().addAll(uniqRolesCurrentMax);
+
         diffNew.getDiffRolesCurrent().addAll(diffRolesCurrent);
         anomalyNew.getAnomalyRolesCurrent().addAll(anomalyRolesCurrent);
-        usersNew.getUsersCurrent().addAll(usersCurrent);
+
+        usersNew.getUsersCurrentMin().addAll(usersCurrentMin);
+        usersNew.getUsersCurrentMax().addAll(usersCurrentMax);
+
         rolesInNoiseNew.getRolesInNoiseCurrent().addAll(rolesInNoiseCurrent);
         usersInNoiseNew.getUsersInNoiseCurrent().addAll(usersInNoiseCurrent);
 
-        uniqNew.setUniqRolesCurrentCount(uniqRolesCurrent.size());
+        uniqNew.setUniqRolesCurrentCountMin(uniqRolesCurrentMin.size());
+        uniqNew.setUniqRolesCurrentCountMax(uniqRolesCurrentMax.size());
+
         diffNew.setDiffRolesCurrentCount(diffRolesCurrent.size());
         anomalyNew.setAnomalyRolesCurrentCount(anomalyRolesCurrent.size());
-        usersNew.setUsersCurrentCount(usersCurrent.size());
+
+        usersNew.setUsersCurrentCountMin(usersCurrentMin.size());
+        usersNew.setUsersCurrentCountMax(usersCurrentMax.size());
+
         rolesInNoiseNew.setRolesInNoiseCurrentCount(rolesInNoiseCurrent.size());
         usersInNoiseNew.setUsersInNoiseCurrentCount(usersInNoiseCurrent.size());
     }

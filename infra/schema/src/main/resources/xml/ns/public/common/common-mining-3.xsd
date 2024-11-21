@@ -1233,7 +1233,17 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="accessPopularity" type="xsd:int" minOccurs="0">
+            <xsd:element name="minAccessPopularity" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            POC
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="maxAccessPopularity" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -2813,7 +2823,7 @@
         </xsd:annotation>
         <xsd:sequence>
 
-            <xsd:element name="uniqRolesNextCount" type="xsd:int" minOccurs="0">
+            <xsd:element name="uniqRolesNextCountMin" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         POC
@@ -2821,7 +2831,7 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="uniqRolesCurrentCount" type="xsd:int" minOccurs="0">
+            <xsd:element name="uniqRolesCurrentCountMin" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         POC
@@ -2829,7 +2839,7 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="uniqRolesNext" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="uniqRolesNextMin" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         POC
@@ -2837,7 +2847,39 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="uniqRolesCurrent" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="uniqRolesCurrentMin" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        POC
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="uniqRolesNextCountMax" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        POC
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="uniqRolesCurrentCountMax" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        POC
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="uniqRolesNextMax" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        POC
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="uniqRolesCurrentMax" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         POC
@@ -2957,7 +2999,7 @@
         </xsd:annotation>
         <xsd:sequence>
 
-            <xsd:element name="usersNextCount" type="xsd:int" minOccurs="0">
+            <xsd:element name="usersNextCountMin" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         POC
@@ -2965,7 +3007,7 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="usersCurrentCount" type="xsd:int" minOccurs="0">
+            <xsd:element name="usersCurrentCountMin" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         POC
@@ -2973,7 +3015,7 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="usersNext" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="usersNextMin" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         POC
@@ -2981,7 +3023,39 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="usersCurrent" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="usersCurrentMin" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        POC
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="usersNextCountMax" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        POC
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="usersCurrentCountMax" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        POC
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="usersNextMax" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        POC
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="usersCurrentMax" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         POC
