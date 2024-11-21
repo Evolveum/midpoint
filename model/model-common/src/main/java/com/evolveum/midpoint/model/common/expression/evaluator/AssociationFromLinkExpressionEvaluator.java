@@ -209,7 +209,7 @@ public class AssociationFromLinkExpressionEvaluator
 
             return outputAttribute;
         } catch (CommonException e) {
-            throw new SystemException("Couldn't search for relevant shadows: " + e.getMessage(), e);
+            throw new SystemException("Couldn't search for relevant shadows: " + e.getMessage(), e); // TODO preserve exc. type
         }
     }
 

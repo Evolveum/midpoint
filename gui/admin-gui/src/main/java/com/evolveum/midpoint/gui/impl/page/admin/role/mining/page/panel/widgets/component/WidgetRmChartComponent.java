@@ -49,8 +49,12 @@ public class WidgetRmChartComponent<T extends ChartConfiguration> extends BasePa
         Label label = new Label(ID_CHART_INNER_LABEL, new PropertyModel<>(
                 chartedHeaderDtoModel, ChartedHeaderDto.F_CHART_INNER_LABEL));
         label.setOutputMarkupId(true);
-        label.add(new VisibleBehaviour(() -> chartedHeaderDtoModel.getObject().getChartInnerLabel() != null));
+        label.add(new VisibleBehaviour(this::isChartInnerLabelVisible));
         add(label);
+    }
+
+    protected boolean isChartInnerLabelVisible() {
+        return chartedHeaderDtoModel.getObject().getChartInnerLabel() != null;
     }
 
     private void initLayout() {
@@ -68,7 +72,7 @@ public class WidgetRmChartComponent<T extends ChartConfiguration> extends BasePa
         add(new Label(ID_CHART_VALUE, new PropertyModel<>(chartedHeaderDtoModel, ChartedHeaderDto.F_CHART_VALUE)));
     }
 
-    private boolean chartDataExists() {
+    protected boolean chartDataExists() {
         if (chartedHeaderDtoModel == null || chartedHeaderDtoModel.getObject() == null) {
             return false;
         }

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2020 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource oid="2ff74f69-4107-495d-9fbd-9251e6996ed3"
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <name>Dummy Behavior Simulated Format</name>
+    <connectorRef type="c:ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration
+        xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+        xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+
+        <icfc:configurationProperties>
+            <icfi:instanceId>behavior-simulated-format</icfi:instanceId>
+            <icfi:caseIgnoreId>true</icfi:caseIgnoreId>
+            <icfi:uidMode>uuid</icfi:uidMode>
+            <icfi:supportLastLoginDate>false</icfi:supportLastLoginDate>
+        </icfc:configurationProperties>
+        <icfc:resultsHandlerConfiguration>
+            <icfc:enableFilteredResultsHandler>true</icfc:enableFilteredResultsHandler>
+            <icfc:enableCaseInsensitiveFilter>true</icfc:enableCaseInsensitiveFilter>
+        </icfc:resultsHandlerConfiguration>
+    </connectorConfiguration>
+    <schemaHandling>
+        <objectType>
+            <intent>default</intent>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute>
+                <ref>icfs:uid</ref>
+            </attribute>
+            <attribute>
+                <ref>icfs:name</ref>
+            </attribute>
+            <configuredCapabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="cap:CapabilityCollectionType">
+                <cap:behavior>
+                    <cap:lastLoginTimestamp>
+                        <cap:attribute>ri:customLastLoginDateFormatted</cap:attribute>
+                        <cap:format>yyyy-MM-dd'T'HH:mm</cap:format>
+                    </cap:lastLoginTimestamp>
+                </cap:behavior>
+            </configuredCapabilities>
+        </objectType>
+    </schemaHandling>
+</resource>

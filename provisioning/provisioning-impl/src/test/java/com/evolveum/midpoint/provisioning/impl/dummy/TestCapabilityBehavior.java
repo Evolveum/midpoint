@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
 import java.io.File;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import javax.xml.namespace.QName;
 
@@ -72,13 +74,22 @@ public class TestCapabilityBehavior extends AbstractProvisioningIntegrationTest 
     private static final DummyTestResource RESOURCE_DUMMY_BEHAVIOR_NATIVE =
             createResource("resource-dummy-behavior-native.xml", "8dce1680-63b4-41ea-bd68-e37cc697c82c", "behavior-native");
 
+    private static final DummyTestResource RESOURCE_DUMMY_BEHAVIOR_SIMULATED_FORMAT =
+            createResource("resource-dummy-behavior-simulated-format.xml", "2ff74f69-4107-495d-9fbd-9251e6996ed3", "behavior-simulated-format");
+
     private static final String ATTR_LAST_LOGIN_DATE = "customLastLoginDate";
 
     private static final QName ATTR_LAST_LOGIN_DATE_QNAME = new QName(SchemaConstants.NS_RI, ATTR_LAST_LOGIN_DATE);
 
+    private static final String ATTR_LAST_LOGIN_DATE_FORMAT = "customLastLoginDateFormatted";
+
+    private static final QName ATTR_LAST_LOGIN_DATE_FORMAT_QNAME = new QName(SchemaConstants.NS_RI, ATTR_LAST_LOGIN_DATE_FORMAT);
+
     private static final long LAST_LOGIN_DATE = 1234567890L;
 
     private static final long CUSTOM_LAST_LOGIN_DATE = 9876543210L;
+
+    private static final String CUSTOM_LAST_LOGIN_DATE_FORMATTED = "2021-07-01T12:34";
 
     private static final String ACCOUNT_JACK = "jack";
 
@@ -90,16 +101,16 @@ public class TestCapabilityBehavior extends AbstractProvisioningIntegrationTest 
         initResource(RESOURCE_DUMMY_BEHAVIOR_SIMULATED, initTask, initResult);
         initResource(RESOURCE_DUMMY_BEHAVIOR_NATIVE_SIMULATED, initTask, initResult);
         initResource(RESOURCE_DUMMY_BEHAVIOR_NONE, initTask, initResult);
+        initResource(RESOURCE_DUMMY_BEHAVIOR_SIMULATED_FORMAT, initTask, initResult);
     }
 
     private void initResource(DummyTestResource resource, Task initTask, OperationResult initResult) throws Exception {
         resource.initAndTest(this, initTask, initResult);
 
-        resource.controller.getAccountObjectClass().addAttributeDefinition("customLastLoginDate", Long.class, false, false);
-
         DummyAccount account = new DummyAccount(ACCOUNT_JACK);
         account.setLastLoginDate(new Date(LAST_LOGIN_DATE));
         account.addAttributeValue(ATTR_LAST_LOGIN_DATE, CUSTOM_LAST_LOGIN_DATE);
+        account.addAttributeValue(ATTR_LAST_LOGIN_DATE_FORMAT, CUSTOM_LAST_LOGIN_DATE_FORMATTED);
         resource.controller.getDummyResource().addAccount(account);
     }
 
@@ -108,8 +119,12 @@ public class TestCapabilityBehavior extends AbstractProvisioningIntegrationTest 
                 TEST_DIR,
                 fileName,
                 oid, name,
-                c -> c.getAccountObjectClass()
-                        .addAttributeDefinition(ATTR_LAST_LOGIN_DATE, long.class, false, false));
+                c -> {
+                    c.getAccountObjectClass()
+                            .addAttributeDefinition(ATTR_LAST_LOGIN_DATE, long.class, false, false);
+                    c.getAccountObjectClass()
+                            .addAttributeDefinition(ATTR_LAST_LOGIN_DATE_FORMAT, String.class, false, false);
+                });
     }
 
     /**
@@ -175,7 +190,28 @@ public class TestCapabilityBehavior extends AbstractProvisioningIntegrationTest 
         Object customValue = ShadowUtil.getAttributeValue(shadowObj.asPrismObject(), ATTR_LAST_LOGIN_DATE_QNAME);
         Assertions.assertThat(customValue)
                 .isEqualTo(CUSTOM_LAST_LOGIN_DATE);
+    }
 
+    @Test
+    public void test500TestConfiguredWithCustomFormat() throws Exception {
+        assertBehaviorCapability(RESOURCE_DUMMY_BEHAVIOR_SIMULATED_FORMAT.get(), true);
+
+        LastLoginTimestampCapabilityType capability = RESOURCE_DUMMY_BEHAVIOR_SIMULATED_FORMAT.getObjectable()
+                .getSchemaHandling().getObjectType().get(0).getConfiguredCapabilities().getBehavior().getLastLoginTimestamp();
+
+        String formatString = capability.getFormat();
+        DateFormat format = new SimpleDateFormat(formatString);
+
+        Date date = format.parse(CUSTOM_LAST_LOGIN_DATE_FORMATTED);
+
+        ShadowType shadowObj = getShadow(RESOURCE_DUMMY_BEHAVIOR_SIMULATED_FORMAT.oid);
+        ShadowBehaviorType behavior = shadowObj.getBehavior();
+        Assertions.assertThat(behavior).isNotNull();
+        Assertions.assertThat(behavior.getLastLoginTimestamp().toGregorianCalendar().getTimeInMillis())
+                .isEqualTo(date.getTime());
+
+        String customValue = ShadowUtil.getAttributeValue(shadowObj.asPrismObject(), ATTR_LAST_LOGIN_DATE_FORMAT_QNAME);
+        Assertions.assertThat(customValue).isNull();
     }
 
     private ShadowType getShadow(String resourceOid) throws Exception {

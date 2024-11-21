@@ -10,7 +10,7 @@
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-    <name>ad-two-group-types</name>
+    <name>ad-more-association-types</name>
     <connectorRef type="ConnectorType">
         <filter>
             <q:and>
@@ -28,7 +28,7 @@
     <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
                    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
         <icfc:configurationProperties>
-            <icfi:instanceId>ad-two-group-types</icfi:instanceId>
+            <icfi:instanceId>ad-more-association-types</icfi:instanceId>
             <icfi:useLegacySchema>false</icfi:useLegacySchema>
         </icfc:configurationProperties>
     </connectorConfiguration>
@@ -136,7 +136,7 @@
             <delineation>
                 <objectClass>ri:group</objectClass>
                 <filter>
-                    <q:text>attributes/ri:type != 'application'</q:text>
+                    <q:text>attributes/ri:type = 'generic'</q:text>
                 </filter>
             </delineation>
             <focus>
@@ -152,6 +152,72 @@
                         <path>name</path>
                     </target>
                 </inbound>
+            </attribute>
+            <synchronization>
+                <reaction>
+                    <situation>unmatched</situation>
+                    <actions>
+                        <addFocus/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>unlinked</situation>
+                    <actions>
+                        <link/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>linked</situation>
+                    <actions>
+                        <synchronize/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>deleted</situation>
+                    <actions>
+                        <deleteFocus/>
+                    </actions>
+                </reaction>
+            </synchronization>
+        </objectType>
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>org-group</intent>
+            <delineation>
+                <objectClass>ri:group</objectClass>
+                <filter>
+                    <q:text>attributes/ri:type = 'org'</q:text>
+                </filter>
+            </delineation>
+            <documentation>To be linked to org objects. See `TestAssociations.test395` and MID-10214.</documentation>
+            <focus>
+                <type>OrgType</type>
+                <archetypeRef oid="2698206c-fd6c-4810-99c6-b3bfc8b67b65"/>
+            </focus>
+            <attribute>
+                <ref>icfs:name</ref>
+                <correlator/>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <path>name</path>
+                    </target>
+                </inbound>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>name</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:type</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <value>org</value>
+                    </expression>
+                </outbound>
             </attribute>
             <synchronization>
                 <reaction>
@@ -317,6 +383,76 @@
                 <objectType>
                     <kind>entitlement</kind>
                     <intent>generic-group</intent>
+                </objectType>
+            </object>
+        </associationType>
+        <associationType>
+            <name>userOrgGroupMembership</name>
+            <subject>
+                <objectType>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                </objectType>
+                <association>
+                    <ref>ri:orgGroup</ref>
+                    <sourceAttributeRef>ri:group</sourceAttributeRef>
+                    <outbound>
+                        <name>org-group-outbound</name>
+                        <expression>
+                            <associationConstruction>
+                                <objectRef>
+                                    <mapping>
+                                        <expression>
+                                            <associationFromLink/>
+                                        </expression>
+                                    </mapping>
+                                </objectRef>
+                            </associationConstruction>
+                        </expression>
+                    </outbound>
+                    <inbound>
+                        <name>org-group-inbound</name>
+                        <expression>
+                            <associationSynchronization>
+                                <objectRef>
+                                    <correlator/>
+                                    <mapping>
+                                        <expression>
+                                            <shadowOwnerReferenceSearch/>
+                                        </expression>
+                                        <target>
+                                            <path>targetRef</path>
+                                        </target>
+                                    </mapping>
+                                </objectRef>
+                                <synchronization>
+                                    <reaction>
+                                        <situation>unmatched</situation>
+                                        <actions>
+                                            <addFocusValue/>
+                                        </actions>
+                                    </reaction>
+                                    <reaction>
+                                        <situation>matched</situation>
+                                        <actions>
+                                            <synchronize/>
+                                        </actions>
+                                    </reaction>
+                                    <reaction>
+                                        <situation>matchedIndirectly</situation>
+                                        <!-- no actions here -->
+                                    </reaction>
+                                </synchronization>
+                            </associationSynchronization>
+                        </expression>
+                    </inbound>
+                    <tolerant>false</tolerant> <!-- overridden by marks -->
+                </association>
+            </subject>
+            <object>
+                <objectType>
+                    <kind>entitlement</kind>
+                    <intent>org-group</intent>
                 </objectType>
             </object>
         </associationType>

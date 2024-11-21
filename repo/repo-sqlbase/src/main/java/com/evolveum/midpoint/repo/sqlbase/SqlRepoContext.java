@@ -178,7 +178,7 @@ public class SqlRepoContext {
         try {
             PrismContext prismContext = schemaService.prismContext();
             // "Postel mode": be tolerant what you read. We need this to tolerate (custom) schema changes
-            ParsingContext parsingContext = prismContext.createParsingContextForCompatibilityMode();
+            ParsingContext parsingContext = createParsingContext();
             RootXNode xnodeValue;
             T value;
             try (var tracker = SqlBaseOperationTracker.parseJson2XNode(schemaType.getSimpleName())) {
@@ -192,6 +192,10 @@ public class SqlRepoContext {
         } catch (RuntimeException e) {
             throw new SchemaException("Unexpected exception while parsing serialized form: " + e, e);
         }
+    }
+
+    protected ParsingContext createParsingContext() {
+        return schemaService.prismContext().createParsingContextForCompatibilityMode();
     }
 
     @NotNull

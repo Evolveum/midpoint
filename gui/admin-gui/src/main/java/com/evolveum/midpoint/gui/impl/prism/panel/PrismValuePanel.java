@@ -120,7 +120,6 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
             }
         };
         buttonContainer.add(showMetadataButton);
-        showMetadataButton.add(AttributeAppender.append("title", createShowMetadataTitleModel()));
 
         showMetadataButton.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().getValueMetadata() != null && CollectionUtils.isNotEmpty(getModelObject().getValueMetadata().getValues())));
         showMetadataButton.add(AttributeAppender.append(
@@ -128,12 +127,6 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
         addToHeader(buttonContainer);
         return buttonContainer;
-    }
-
-    private IModel<String> createShowMetadataTitleModel() {
-        return () -> getParentPage().createStringResource(
-                "PrismContainerValuePanel.showMetadata." + PrismValuePanel.this.getModelObject().isShowMetadata())
-                .getString();
     }
 
     protected void addToHeader(WebMarkupContainer headerContainer) {

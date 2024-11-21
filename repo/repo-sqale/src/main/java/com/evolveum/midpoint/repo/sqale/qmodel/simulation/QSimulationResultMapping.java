@@ -89,7 +89,7 @@ public class QSimulationResultMapping
     public @NotNull Path<?>[] selectExpressions(QSimulationResult entity,
             Collection<SelectorOptions<GetOperationOptions>> options) {
         // We always want to know if result is partitioned
-        return new Path[] { entity.oid, entity.objectType, entity.fullObject, entity.partitioned };
+        return appendPaths(super.selectExpressions(entity,options), entity.partitioned);
     }
 
     @Override

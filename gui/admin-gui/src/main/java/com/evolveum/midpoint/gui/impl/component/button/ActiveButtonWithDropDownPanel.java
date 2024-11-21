@@ -81,6 +81,9 @@ public abstract class ActiveButtonWithDropDownPanel<T> extends BasePanel<List<T>
         };
         dropdownButton.setOutputMarkupId(true);
         dropdownButton.add(AttributeModifier.append("class", getButtonColorCssClass()));
+        dropdownButton.add(AttributeModifier.append(
+                "aria-label",
+                createStringResource("ActiveButtonWithDropDownPanel.dropdownButton", labelModel.getObject())));
         add(dropdownButton);
 
         ListView<T> menuItems = new ListView<>(ID_MENU_ITEMS, getModel()) {

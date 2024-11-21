@@ -39,6 +39,7 @@ import com.google.common.collect.*;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
+import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.api.RepositoryObjectDiagnosticData;
@@ -96,7 +97,6 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
     public static QObjectMapping<?, ?, ?> getObjectMapping() {
         return Objects.requireNonNull(instance);
     }
-
 
     private boolean storeSplitted = true;
 
@@ -193,18 +193,24 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
     }
 
     @Override
+    @MustBeInvokedByOverriders
     public @NotNull Path<?>[] selectExpressions(
             Q entity, Collection<SelectorOptions<GetOperationOptions>> options) {
-
+        var paths = new ArrayList<Path<?>>();
+        paths.add(entity.oid);
+        paths.add(entity.objectType);
+        paths.add(entity.version);
         if (isExcludeAll(options)) {
-            // We have options to exclude everything
-            return paths(entity.oid, entity.objectType, entity.nameNorm, entity.nameOrig, entity.version);
+            // We have options to exclude everything, so at least we should fetch name, since lot of code assumes name is present
+            paths.add( entity.nameOrig);
+            paths.add(entity.nameNorm);
+        } else {
+           paths.add(entity.fullObject);
         }
-
         // TODO: there is currently no support for index-only extensions (from entity.ext).
         //  See how QShadowMapping.loadIndexOnly() is used, and probably compose the result of this call
         //  using super... call in the subclasses. (joining arrays? providing mutable list?)
-        return paths(entity.oid, entity.objectType, entity.fullObject);
+        return paths.toArray(new Path<?>[0]);
     }
 
     @Override
@@ -236,7 +242,6 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
             //noinspection unchecked
             ret = (S) repoType.createObject()
                 .oid(oid.toString())
-                .version(Objects.requireNonNull(row.get(entityPath.version)).toString())
                 .name(new PolyStringType(new PolyString(row.get(entityPath.nameOrig), row.get(entityPath.nameNorm))));
         } else {
             // We load full object
@@ -247,6 +252,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
                 ret.asPrismContainer().setUserData(RepositoryService.KEY_DIAG_DATA, diagData);
             }
         }
+        ret.version(Objects.requireNonNull(row.get(entityPath.version)).toString());
         upgradeLegacyMetadataToValueMetadata(ret);
         return ret;
     }
@@ -478,12 +484,22 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
      * Serializes schema object and sets {@link R#fullObject}.
      */
     public void setFullObject(R row, S schemaObject) throws SchemaException {
-        if (schemaObject.getOid() == null || schemaObject.getVersion() == null) {
+        var version = schemaObject.getVersion();
+        if (schemaObject.getOid() == null || version == null) {
             throw new IllegalArgumentException(
                     "Serialized object must have assigned OID and version: " + schemaObject);
         }
 
-        row.fullObject = createFullObject(schemaObject);
+        // We do not want version to be stored inside object, otherwise we will need to
+        // recompute full object on every change to separately serialized items
+        // We do not create clone without version because it would create additional memory constraints
+        schemaObject.version(null);
+        try {
+            row.fullObject = createFullObject(schemaObject);
+        } finally {
+            // The users of repository expects version to be present
+            schemaObject.version(version);
+        }
     }
 
     @Override
@@ -524,7 +540,6 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         }
         return fullObjectSkips;
     }
-
 
     private class FullObjectItemMapping<IQ extends FlexibleRelationalPathBase<IR>, IR> {
 

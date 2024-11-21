@@ -8,6 +8,7 @@ package com.evolveum.midpoint.schema.util.cid;
 
 import java.util.*;
 
+import com.evolveum.midpoint.prism.impl.lazy.LazyPrismContainerValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
 import jakarta.xml.bind.JAXBElement;
@@ -124,12 +125,16 @@ public class ContainerValueIdGenerator {
 
     /** Checks given {@link PrismValue} for missing PCV IDs (deeply). */
     private void checkValueDeeply(PrismValue rootValue) {
-        rootValue.accept(visitable -> {
+        rootValue.acceptVisitor(visitable -> {
             if (visitable instanceof PrismContainerValue<?> pcv) {
                 var def = pcv.getDefinition();
                 if (def != null && def.isMultiValue()) {
                     checkPcvId(pcv); // prism objects are OK here, they are not multivalued
                 }
+                if (LazyPrismContainerValue.isNotMaterialized(pcv)) {
+                    return false;
+                }
+
             } else if (visitable instanceof PrismPropertyValue<?> ppv
                 && ppv.getRealValue() instanceof ExpressionType expression) {
                 for (JAXBElement<?> evaluatorElement : expression.getExpressionEvaluator()) {
@@ -139,6 +144,7 @@ public class ContainerValueIdGenerator {
                     }
                 }
             }
+            return true;
             // The value metadata will be visited automatically
         });
     }

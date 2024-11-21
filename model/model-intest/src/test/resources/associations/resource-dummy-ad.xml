@@ -85,6 +85,9 @@
             <intent>group</intent>
             <delineation>
                 <objectClass>ri:group</objectClass>
+                <filter>
+                    <q:text>attributes/ri:type != 'org'</q:text>
+                </filter>
             </delineation>
             <focus>
                 <type>RoleType</type>
@@ -99,6 +102,72 @@
                         <path>name</path>
                     </target>
                 </inbound>
+            </attribute>
+            <synchronization>
+                <reaction>
+                    <situation>unmatched</situation>
+                    <actions>
+                        <addFocus/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>unlinked</situation>
+                    <actions>
+                        <link/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>linked</situation>
+                    <actions>
+                        <synchronize/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>deleted</situation>
+                    <actions>
+                        <deleteFocus/>
+                    </actions>
+                </reaction>
+            </synchronization>
+        </objectType>
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>org-group</intent>
+            <documentation>To be linked to org objects. See `TestAssociations.test390` and MID-10209.</documentation>
+            <delineation>
+                <objectClass>ri:group</objectClass>
+                <filter>
+                    <q:text>attributes/ri:type = 'org'</q:text>
+                </filter>
+            </delineation>
+            <focus>
+                <type>OrgType</type>
+                <archetypeRef oid="ccbc679a-c9b5-4e2d-9027-8578695a7ff5"/>
+            </focus>
+            <attribute>
+                <ref>icfs:name</ref>
+                <correlator/>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <path>name</path>
+                    </target>
+                </inbound>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>name</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:type</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <value>org</value>
+                    </expression>
+                </outbound>
             </attribute>
             <synchronization>
                 <reaction>

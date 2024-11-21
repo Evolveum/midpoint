@@ -78,6 +78,16 @@ public interface ShadowAssociationDefinition
         return getObjectParticipants().keySet();
     }
 
+    /** Call only on simple associations! */
+    default @NotNull QName getSingleObjectParticipantName() throws SchemaException {
+        assert !isComplex();
+        var participantNames = getObjectParticipantNames();
+        return MiscUtil.extractSingletonRequired(
+                participantNames,
+                () -> new SchemaException("Multiple object participants in " + this + ": " + participantNames),
+                () -> new SchemaException("No object participant in " + this + ": " + participantNames));
+    }
+
     // FIXME is this really correct? Why don't we look at our own participant types?
     default boolean matches(@NotNull ShadowType potentialTarget) {
         return getReferenceAttributeDefinition().getTargetParticipantTypes().stream()
@@ -112,23 +122,28 @@ public interface ShadowAssociationDefinition
     @Override
     @NotNull ShadowAssociation instantiate() throws SchemaException;
 
+    /** Call only on simple associations! */
     default ShadowAssociationValue createValueFromFullDefaultObject(@NotNull AbstractShadow object) throws SchemaException {
         return createValueFromDefaultObject(object, true);
     }
 
+    /** Call only on simple associations! */
     default ShadowAssociationValue createValueFromDefaultObject(@NotNull AbstractShadow object, boolean full)
             throws SchemaException {
+        assert !isComplex();
         var newValue = instantiate().createNewValue();
         newValue.getOrCreateObjectsContainer()
-                .addReferenceAttribute(getItemName(), object, full);
+                .addReferenceAttribute(getSingleObjectParticipantName(), object, full);
         return newValue.clone(); // to make it parent-less
     }
 
+    /** Call only on simple associations! */
     default ShadowAssociationValue createValueFromDefaultObjectRef(@NotNull ShadowReferenceAttributeValue refAttrValue)
             throws SchemaException {
+        assert !isComplex();
         var newValue = instantiate().createNewValue();
         newValue.getOrCreateObjectsContainer()
-                .addReferenceAttribute(getItemName(), refAttrValue);
+                .addReferenceAttribute(getSingleObjectParticipantName(), refAttrValue);
         return newValue.clone(); // to make it parent-less
     }
 

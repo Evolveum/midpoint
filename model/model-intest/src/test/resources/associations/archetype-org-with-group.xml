@@ -1,0 +1,53 @@
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<archetype
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="ccbc679a-c9b5-4e2d-9027-8578695a7ff5">
+    <name>org-with-group</name>
+    <documentation>
+        An org that has an AD group as its projection; and induces the membership in the following way:
+        The user account should have the AD group membership not only if the user is the direct member of the org,
+        but also if it is the direct member of any child org. This is ensured by the specific order constraint in the inducement.
+    </documentation>
+    <inducement>
+        <construction>
+            <resourceRef oid="a817af1e-a1ef-4dcf-aab4-04e266c93e74"/>
+            <kind>entitlement</kind>
+            <intent>org-group</intent>
+        </construction>
+    </inducement>
+    <inducement>
+        <construction>
+            <resourceRef oid="a817af1e-a1ef-4dcf-aab4-04e266c93e74"/>
+            <kind>account</kind>
+            <intent>default</intent>
+            <association>
+                <ref>ri:group</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <associationFromLink>
+                            <projectionDiscriminator>
+                                <kind>entitlement</kind>
+                                <intent>org-group</intent>
+                            </projectionDiscriminator>
+                            <!-- This should be the org that holds this archetype. -->
+                            <assignmentPathIndex>-2</assignmentPathIndex>
+                        </associationFromLink>
+                    </expression>
+                </outbound>
+            </association>
+        </construction>
+        <orderConstraint>
+            <orderMin>1</orderMin>
+            <orderMax>unbounded</orderMax>
+        </orderConstraint>
+        <focusType>UserType</focusType>
+    </inducement>
+</archetype>

@@ -58,7 +58,7 @@ public class StringLimitationPanel extends BasePanel<StringLimitationResult> {
         }));
         icon.setOutputMarkupId(true);
         icon.add(AttributeModifier.append(
-                "aria-label",
+                "title",
                 (IModel<String>) () -> LocalizationUtil.translate("StringLimitationPanel.decision." + Boolean.TRUE.equals(getModelObject().isSuccess()))));
         add(icon);
 

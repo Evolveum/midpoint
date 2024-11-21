@@ -215,6 +215,8 @@ public class LifecycleStatePanel extends InputPanel {
             return display.getCssClass() + " form-control form-control-sm resizing-select" + customCssClassForInputField();
         }));
 
+        input.add(AttributeAppender.append("aria-label", createStringResource("ObjectType.lifecycleState")));
+
         add(input);
     }
 

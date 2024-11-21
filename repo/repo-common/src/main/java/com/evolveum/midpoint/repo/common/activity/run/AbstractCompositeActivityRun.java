@@ -141,11 +141,11 @@ public abstract class AbstractCompositeActivityRun<
         // should have caused the whole run to stop. So we wouldn't be here.
         assert runResult.getRunResultStatus() == null;
         if (childRunResult.isInterrupted() || !canRun()) {
-            runResult.setRunResultStatus(INTERRUPTED);
+            runResult.setRunResultStatus(INTERRUPTED, childRunResult.getThrowable());
         } else if (childRunResult.isPermanentError()) {
-            runResult.setRunResultStatus(PERMANENT_ERROR);
+            runResult.setRunResultStatus(PERMANENT_ERROR, childRunResult.getThrowable());
         } else if (childRunResult.isTemporaryError()) {
-            runResult.setRunResultStatus(TEMPORARY_ERROR);
+            runResult.setRunResultStatus(TEMPORARY_ERROR, childRunResult.getThrowable());
         } else if (childRunResult.isWaiting()) {
             runResult.setRunResultStatus(IS_WAITING);
         }
@@ -165,6 +165,7 @@ public abstract class AbstractCompositeActivityRun<
         // We rely on the fact that in the case of temporary/permanent error the appropriate
         // operation result status should be set as well.
         runResult.setOperationResultStatus(OperationResultUtil.aggregateFinishedResults(childStatuses));
+
     }
 
     private void logEnd() {
