@@ -44,6 +44,9 @@
  * == Limitations
  *
  * The architecture of this package is not finished yet. It is more-or-less an experiment for now.
+ *
+ * Some mergers here are custom (handwritten) ones, like {@link com.evolveum.midpoint.schema.merger.securitypolicy.SecurityPolicyCustomMerger}.
+ * They may be migrated to the generic merger in the future.
  */
 package com.evolveum.midpoint.schema.merger;
 

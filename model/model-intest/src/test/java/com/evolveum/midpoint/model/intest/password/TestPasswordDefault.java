@@ -60,6 +60,11 @@ public class TestPasswordDefault extends AbstractPasswordTest {
         display("User before", userBefore);
         assertLiveLinks(userBefore, 4);
 
+        // If caching is enabled, there is a cached password on RED resource. Once it was legal, now it's illegal.
+        // If the cache would be used, the reconciliation below would NOT fail, because there would be no delta -> no check.
+        // We want the check to be done, so we need to invalidate the cache.
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_RED_OID);
+
         // WHEN
         when();
         reconcileUser(USER_JACK_OID, task, result);

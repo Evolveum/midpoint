@@ -16,9 +16,7 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.model.impl.lens.FocusGoneException;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.schema.util.ArchetypeTypeUtil;
-import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.repo.common.security.SecurityPolicyFinder;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,12 +32,15 @@ import com.evolveum.midpoint.model.impl.lens.executor.FocusChangeExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
-import com.evolveum.midpoint.model.impl.security.SecurityHelper;
+import com.evolveum.midpoint.model.impl.security.ModelSecurityPolicyFinder;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ArchetypeTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -58,7 +59,8 @@ public class ContextLoader implements ProjectorProcessor {
 
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService cacheRepositoryService;
     @Autowired private ArchetypeManager archetypeManager;
-    @Autowired private SecurityHelper securityHelper;
+    @Autowired private ModelSecurityPolicyFinder modelSecurityPolicyFinder;
+    @Autowired private SecurityPolicyFinder securityPolicyFinder;
 
     private static final Trace LOGGER = TraceManager.getTrace(ContextLoader.class);
 
@@ -257,8 +259,9 @@ public class ContextLoader implements ProjectorProcessor {
         var assignment = new AssignmentType()
                 .targetRef(enforcedArchetypeOid, ArchetypeType.COMPLEX_TYPE);
 
-        assignment.asPrismContainerValue().getValueMetadata().add(new ValueMetadataType()
-                .asPrismContainerValue());
+        //noinspection unchecked
+        assignment.asPrismContainerValue().getValueMetadata().add(
+                new ValueMetadataType().asPrismContainerValue());
 
         focusContext.swallowToSecondaryDelta(
                 PrismContext.get().deltaFor(AssignmentHolderType.class)
@@ -417,9 +420,10 @@ public class ContextLoader implements ProjectorProcessor {
         }
         LensFocusContext<FocusType> focusContext = (LensFocusContext<FocusType>) genericFocusContext;
         PrismObject<FocusType> focus = focusContext.getObjectAny();
-        SecurityPolicyType globalSecurityPolicy = determineAndSetGlobalSecurityPolicy(context, focus, task, result);
+        SecurityPolicyType globalSecurityPolicy = determineAndSetGlobalSecurityPolicy(context, task, result);
         SecurityPolicyType focusSecurityPolicy =
-                determineAndSetFocusSecurityPolicy(focusContext, focus, context.getSystemConfiguration(), forceReload, task, result);
+                determineAndSetFocusSecurityPolicy(
+                        focusContext, focus, context.getSystemConfiguration(), forceReload, task, result);
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Security policies:\n  Global:\n{}\n  Focus:\n{}",
@@ -431,16 +435,14 @@ public class ContextLoader implements ProjectorProcessor {
     }
 
     @NotNull
-    private <O extends ObjectType> SecurityPolicyType determineAndSetGlobalSecurityPolicy(LensContext<O> context,
-            PrismObject<FocusType> focus, Task task, OperationResult result)
+    private <O extends ObjectType> SecurityPolicyType determineAndSetGlobalSecurityPolicy(
+            LensContext<O> context, Task task, OperationResult result)
             throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         SecurityPolicyType existingPolicy = context.getGlobalSecurityPolicy();
         if (existingPolicy != null) {
             return existingPolicy;
         } else {
-            SecurityPolicyType loadedPolicy =
-                    securityHelper.locateGlobalSecurityPolicy(focus, context.getSystemConfiguration(), task, result);
-
+            var loadedPolicy = securityPolicyFinder.locateGlobalSecurityPolicy(context.getSystemConfiguration(), true, result);
             // using empty policy to avoid repeated lookups
             SecurityPolicyType resultingPolicy = Objects.requireNonNullElseGet(loadedPolicy, SecurityPolicyType::new);
             context.setGlobalSecurityPolicy(resultingPolicy);
@@ -456,20 +458,7 @@ public class ContextLoader implements ProjectorProcessor {
         if (existingPolicy != null && !forceReload) {
             return existingPolicy;
         } else {
-            SecurityPolicyType loadedPolicy = securityHelper.locateSecurityPolicy(focus, null, systemConfiguration,
-                    task, result);  //todo review please locateSecurityPolicy tries to load security policy from org
-                                    //and archetypes at first but if no one is found, return global security policy. therefore the usage
-                                    //method locateFocusSecurityPolicyFromOrgs was replaced with locateSecurityPolicy and the following
-                                    //peace of code was commented
-//            SecurityPolicyType resultingPolicy;
-//            if (loadedPolicy != null) {
-//                resultingPolicy = loadedPolicy;
-//            } else {
-//                // Not very clean. In fact we should store focus security policy separate from global
-//                // policy to avoid confusion. But need to do this to fix MID-4793 and backport the fix.
-//                // Therefore avoiding big changes. TODO: fix properly later
-//                resultingPolicy = globalSecurityPolicy;
-//            }
+            var loadedPolicy = modelSecurityPolicyFinder.locateSecurityPolicyForFocus(focus, systemConfiguration, task, result);
             focusContext.setSecurityPolicy(loadedPolicy);
             return loadedPolicy;
         }

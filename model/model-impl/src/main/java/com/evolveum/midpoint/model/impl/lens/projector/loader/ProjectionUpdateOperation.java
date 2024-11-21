@@ -251,7 +251,7 @@ class ProjectionUpdateOperation<F extends ObjectType> {
         if (structuralObjectDefinition != null) {
             LOGGER.trace("setProjectionSecurityPolicy: structural object class def = {}", structuralObjectDefinition);
             SecurityPolicyType projectionSecurityPolicy =
-                    beans.securityHelper.locateProjectionSecurityPolicy(structuralObjectDefinition, task, result);
+                    beans.securityPolicyFinder.locateResourceObjectSecurityPolicyLegacy(structuralObjectDefinition, result);
             LOGGER.trace("Located security policy for: {},\n {}", projectionContext, projectionSecurityPolicy);
             projectionContext.setProjectionSecurityPolicy(projectionSecurityPolicy);
         } else {

@@ -126,7 +126,7 @@ class AuthenticationWrapper {
             var operation = "loadSecurityPolicyForArchetype";
             Task task = taskManager.createTaskInstance(operation);
             OperationResult result = new OperationResult(operation);
-            return modelInteractionService.getSecurityPolicy(null, archetypeOid, task, result);
+            return modelInteractionService.getSecurityPolicyForArchetype(archetypeOid, task, result);
         } catch (Exception ex) {
             LOGGER.debug("Couldn't load security policy for archetype");
         }

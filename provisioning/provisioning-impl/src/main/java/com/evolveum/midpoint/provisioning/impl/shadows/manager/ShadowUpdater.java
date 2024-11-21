@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.provisioning.impl.shadows.PendingOperation;
 import com.evolveum.midpoint.provisioning.impl.shadows.RepoShadowWithState;
 import com.evolveum.midpoint.repo.api.ModifyObjectResult;
@@ -117,7 +118,7 @@ public class ShadowUpdater {
             ObjectNotFoundException {
 
         var repoModifications =
-                new ShadowDeltaComputerRelative(ctx, repoShadow, modifications, protector)
+                new ShadowDeltaComputerRelative(ctx, repoShadow, modifications)
                         .computeShadowModifications(result);
 
         executeRepoShadowModifications(ctx, repoShadow, repoModifications, result);
@@ -461,7 +462,7 @@ public class ShadowUpdater {
             @Nullable ResourceObjectClassification newClassification,
             @NotNull EffectiveMarksAndPolicies effectiveMarksAndPolicies,
             OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException {
+            throws SchemaException, ObjectNotFoundException, ConfigurationException, EncryptionException {
 
         LOGGER.trace(
                 """
@@ -494,7 +495,7 @@ public class ShadowUpdater {
         RepoShadowModifications shadowModifications =
                 ShadowDeltaComputerAbsolute.computeShadowModifications(
                         ctx, repoShadow.shadow(), resourceObject, resourceObjectDelta,
-                        effectiveMarksAndPolicies, true);
+                        effectiveMarksAndPolicies, true, result);
 
         executeRepoShadowModifications(ctx, repoShadow.shadow(), shadowModifications, result);
 

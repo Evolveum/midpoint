@@ -190,8 +190,7 @@ public class PageIdentityRecovery extends AbstractPageLogin {
                     var task = createAnonymousTask(OPERATION_GET_SECURITY_POLICY);
                     var result = new OperationResult(OPERATION_GET_SECURITY_POLICY);
                     try {
-                        return getModelInteractionService().getSecurityPolicy(null, archetypeOid,
-                                task, result);
+                        return getModelInteractionService().getSecurityPolicyForArchetype(archetypeOid, task, result);
                     } catch (Exception e) {
                         LOGGER.debug("Unable to load the configured items list for identity recovery page, ", e);
                     }

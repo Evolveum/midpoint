@@ -406,6 +406,10 @@ public class ShadowUtil {
         valueProperty.setIncomplete(true);
     }
 
+    public static void removePasswordValueProperty(@NotNull PasswordType password) {
+        password.asPrismContainerValue().removeProperty(PasswordType.F_VALUE);
+    }
+
     public static @NotNull PasswordType getOrCreateShadowPassword(ShadowType shadow) {
         CredentialsType credentials = shadow.getCredentials();
         if (credentials == null) {
