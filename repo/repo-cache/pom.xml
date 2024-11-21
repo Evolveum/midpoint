@@ -13,7 +13,7 @@
     <parent>
         <artifactId>repo</artifactId>
         <groupId>com.evolveum.midpoint.repo</groupId>
-        <version>4.4.10-SNAPSHOT</version>
+        <version>4.4.10</version>
     </parent>
 
     <artifactId>repo-cache</artifactId>
@@ -30,12 +30,12 @@
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-api</artifactId>
-            <version>4.4.10-SNAPSHOT</version>
+            <version>4.4.10</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>schema</artifactId>
-            <version>4.4.10-SNAPSHOT</version>
+            <version>4.4.10</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.commons</groupId>
@@ -69,7 +69,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-sql-impl-test</artifactId>
-            <version>4.4.10-SNAPSHOT</version>
+            <version>4.4.10</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -81,7 +81,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>system-init</artifactId>
-            <version>4.4.10-SNAPSHOT</version>
+            <version>4.4.10</version>
             <scope>test</scope>
         </dependency>
         <dependency>

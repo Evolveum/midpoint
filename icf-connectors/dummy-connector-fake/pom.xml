@@ -13,7 +13,7 @@
     <parent>
         <artifactId>icf-connectors</artifactId>
         <groupId>com.evolveum.icf</groupId>
-        <version>4.4.10-SNAPSHOT</version>
+        <version>4.4.10</version>
     </parent>
 
     <artifactId>dummy-connector-fake</artifactId>

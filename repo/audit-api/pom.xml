@@ -12,7 +12,7 @@
     <parent>
         <artifactId>repo</artifactId>
         <groupId>com.evolveum.midpoint.repo</groupId>
-        <version>4.4.10-SNAPSHOT</version>
+        <version>4.4.10</version>
     </parent>
 
     <artifactId>audit-api</artifactId>
@@ -38,7 +38,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>schema</artifactId>
-            <version>4.4.10-SNAPSHOT</version>
+            <version>4.4.10</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -48,7 +48,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>task-api</artifactId>
-            <version>4.4.10-SNAPSHOT</version>
+            <version>4.4.10</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>
