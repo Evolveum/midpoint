@@ -12,7 +12,7 @@
     <parent>
         <artifactId>model</artifactId>
         <groupId>com.evolveum.midpoint.model</groupId>
-        <version>4.4.10</version>
+        <version>4.4.11-SNAPSHOT</version>
     </parent>
 
     <artifactId>model-common</artifactId>
@@ -58,37 +58,37 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>schema</artifactId>
-            <version>4.4.10</version>
+            <version>4.4.11-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>common</artifactId>
-            <version>4.4.10</version>
+            <version>4.4.11-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>model-api</artifactId>
-            <version>4.4.10</version>
+            <version>4.4.11-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-common</artifactId>
-            <version>4.4.10</version>
+            <version>4.4.11-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-api</artifactId>
-            <version>4.4.10</version>
+            <version>4.4.11-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>task-api</artifactId>
-            <version>4.4.10</version>
+            <version>4.4.11-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>security-api</artifactId>
-            <version>4.4.10</version>
+            <version>4.4.11-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>commons-lang</groupId>
@@ -176,7 +176,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-test-util</artifactId>
-            <version>4.4.10</version>
+            <version>4.4.11-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
