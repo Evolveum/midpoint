@@ -60,6 +60,8 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         super.initSystem(initTask, initResult);
         modelService.postInit(initResult);
 
+        repoAddObjectFromFile(SECURITY_POLICY_FILE, initResult);
+
         DummyResourceContoller dummyResourceCtl = DummyResourceContoller.create(null, resourceDummy);
         dummyResourceCtl.extendSchemaPirate();
         dummyResource = dummyResourceCtl.getDummyResource();
