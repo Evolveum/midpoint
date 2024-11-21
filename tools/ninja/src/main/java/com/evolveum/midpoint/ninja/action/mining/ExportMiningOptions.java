@@ -16,6 +16,8 @@ import com.beust.jcommander.Parameters;
 
 import com.evolveum.midpoint.common.RoleMiningExportUtils;
 import com.evolveum.midpoint.ninja.action.BasicExportOptions;
+import com.evolveum.midpoint.ninja.util.ItemPathConverter;
+import com.evolveum.midpoint.prism.path.ItemPath;
 
 @Parameters(resourceBundle = "messages", commandDescriptionKey = "exportMining")
 public class ExportMiningOptions extends BaseMiningOptions implements BasicExportOptions {
@@ -37,6 +39,9 @@ public class ExportMiningOptions extends BaseMiningOptions implements BasicExpor
     public static final String P_ORG_LONG = "--disable-org";
     public static final String P_ATTRIBUTE = "-da";
     public static final String P_ATTRIBUTE_LONG = "--disable-attribute";
+    public static final String P_EXCLUDE_ATTRIBUTES_USER_LONG = "--exclude-user-attribute";
+    public static final String P_EXCLUDE_ATTRIBUTES_ROLE_LONG = "--exclude-role-attribute";
+    public static final String P_EXCLUDE_ATTRIBUTES_ORG_LONG = "--exclude-org-attribute";
     public static final String P_NAME_OPTIONS = "-nm";
     public static final String P_NAME_OPTIONS_LONG = "--name-mode";
     public static final String P_ARCHETYPE_OID_APPLICATION_LONG = "--application-role-archetype-oid";
@@ -81,6 +86,18 @@ public class ExportMiningOptions extends BaseMiningOptions implements BasicExpor
     @Parameter(names = { P_ARCHETYPE_OID_BUSINESS_LONG },
             descriptionKey = "export.business.role.archetype.oid")
     private String businessRoleArchetypeOid = "00000000-0000-0000-0000-000000000321";
+
+    @Parameter(names = { P_EXCLUDE_ATTRIBUTES_USER_LONG }, descriptionKey = "export.exclude.attributes.user",
+            validateWith = ItemPathConverter.class, converter = ItemPathConverter.class)
+    private List<ItemPath> excludedAttributesUser = new ArrayList<>();
+
+    @Parameter(names = { P_EXCLUDE_ATTRIBUTES_ROLE_LONG }, descriptionKey = "export.exclude.attributes.role",
+            validateWith = ItemPathConverter.class, converter = ItemPathConverter.class)
+    private List<ItemPath> excludedAttributesRole = new ArrayList<>();
+
+    @Parameter(names = { P_EXCLUDE_ATTRIBUTES_ORG_LONG }, descriptionKey = "export.exclude.attributes.org",
+            validateWith = ItemPathConverter.class, converter = ItemPathConverter.class)
+    private List<ItemPath> excludedAttributesOrg = new ArrayList<>();
 
     public RoleMiningExportUtils.SecurityMode getSecurityLevel() {
         return securityMode;
@@ -144,5 +161,21 @@ public class ExportMiningOptions extends BaseMiningOptions implements BasicExpor
         }
         String[] separateSuffixes = businessRoleSuffix.split(DELIMITER);
         return new ArrayList<>(Arrays.asList(separateSuffixes));
+    }
+
+    private List<String> itemPathsToStrings(List<ItemPath> itemPaths) {
+        return itemPaths.stream().map(ItemPath::toString).toList();
+    }
+
+    public List<String> getExcludedAttributesUser() {
+        return itemPathsToStrings(excludedAttributesUser);
+    }
+
+    public List<String> getExcludedAttributesRole() {
+        return itemPathsToStrings(excludedAttributesRole);
+    }
+
+    public List<String> getExcludedAttributesOrg() {
+        return itemPathsToStrings(excludedAttributesOrg);
     }
 }
