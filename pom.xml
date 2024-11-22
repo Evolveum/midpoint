@@ -190,6 +190,11 @@
         -->
         <surefire.args>-Xms1024m -Xmx4096m --add-exports java.management/sun.management=ALL-UNNAMED</surefire.args>
         <failsafe.args>-Xms1024m -Xmx4096m -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED</failsafe.args>
+        <!-- surefire & failsafe argument line for integration with jacoco code coverage
+             by default it is empty (no jacoco) but jacoco-maven-plugin) sets it to actual configuration in build.
+             this argLine should be used as @{jacoco.argLine} to not replace it during POM reading for surefire and failsafe
+        -->
+        <jacoco.argLine></jacoco.argLine>
         <!--
         Some modules support "full" or "fast" suite for integration tests.
         This can be used as command line switch for mvn: -DintegrationTestSuite=fast
@@ -1940,7 +1945,7 @@
                             <midpoint.home>target/midpoint-home</midpoint.home>
                             <java.util.logging.config.file>${project.build.directory}/test-classes/logging.properties</java.util.logging.config.file>
                         </systemPropertyVariables>
-                        <argLine>${surefire.args}</argLine>
+                        <argLine>@{jacoco.argLine} ${surefire.args}</argLine>
                         <suiteXmlFiles>
                             <suiteXmlFile>testng-unit.xml</suiteXmlFile>
                         </suiteXmlFiles>
@@ -1990,7 +1995,7 @@
                             <midpoint.home>target/midpoint-home</midpoint.home>
                             <java.util.logging.config.file>${project.build.directory}/test-classes/logging.properties</java.util.logging.config.file>
                         </systemPropertyVariables>
-                        <argLine>${failsafe.args}</argLine>
+                        <argLine>@{jacoco.argLine} ${failsafe.args}</argLine>
                         <suiteXmlFiles>
                             <suiteXmlFile>testng-integration.xml</suiteXmlFile>
                         </suiteXmlFiles>
@@ -2130,6 +2135,35 @@
                 <surefire.args>-Xmx4g --add-exports java.management/sun.management=ALL-UNNAMED -Dtest.config.file=test-config-new-repo.xml</surefire.args>
                 <failsafe.args>-Xmx4g --add-exports java.management/sun.management=ALL-UNNAMED -Duser.language=en -Dtest.config.file=test-config-new-repo.xml</failsafe.args>
             </properties>
+        </profile>
+        <profile>
+            <id>coverage</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>jacoco-initialize</id>
+                                <goals>
+                                    <goal>prepare-agent</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>jacoco-site</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>report</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <propertyName>jacoco.argLine</propertyName>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 </project>
