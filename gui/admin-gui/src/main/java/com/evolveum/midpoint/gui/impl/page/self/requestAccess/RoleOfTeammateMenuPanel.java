@@ -20,6 +20,8 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -88,7 +90,13 @@ public class RoleOfTeammateMenuPanel<T extends Serializable>
     private void initLayout() {
         add(AttributeAppender.append("class", () -> getModelObject().isOpen() ? "open" : null));
 
-        WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER);
+        WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER){
+            @Override
+            public void renderHead(IHeaderResponse response) {
+                super.renderHead(response);
+                response.render(OnDomReadyHeaderItem.forScript("MidPointTheme.initSelect2MultiChoice(" + getMarkupId() + ");"));
+            }
+        };
         container.setOutputMarkupId(true);
         container.setOutputMarkupPlaceholderTag(true);
         container.add(new VisibleBehaviour(() -> getModelObject().isActive()));

@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.impl.component.input.DateTimePickerPanel;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
@@ -56,11 +57,15 @@ public class CustomValidityPanel extends BasePanel<CustomValidity> {
     private void initLayout() {
         DateTimePickerPanel from = DateTimePickerPanel.createByDateModel(ID_FROM, new PropertyModel<>(getModel(), "from"));
         from.add(new VisibleBehaviour(this::isFromFieldVisible));
+        from.getBaseFormComponent().add(
+                AttributeAppender.append("aria-label", createStringResource("ActivationType.validFrom")));
         from.setOutputMarkupId(true);
         add(from);
 
         DateTimePickerPanel to = DateTimePickerPanel.createByDateModel(ID_TO, new PropertyModel<>(getModel(), "to"));
         to.add(new VisibleBehaviour(this::isToFieldVisible));
+        to.getBaseFormComponent().add(
+                AttributeAppender.append("aria-label", createStringResource("ActivationType.validTo")));
         to.setOutputMarkupId(true);
         add(to);
     }

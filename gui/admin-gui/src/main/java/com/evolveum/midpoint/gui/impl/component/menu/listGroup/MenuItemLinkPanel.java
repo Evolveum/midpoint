@@ -65,8 +65,6 @@ public abstract class MenuItemLinkPanel<T extends Serializable> extends BasePane
         link.add(icon);
 
         Label label = new Label(ID_LABEL, createLabelModel());
-        label.add(new TooltipBehavior());
-        label.add(AttributeAppender.append("title", createLabelModel()));
         link.add(label);
 
         Label badge = new Label(ID_BADGE, () -> getModelObject().getBadge());
