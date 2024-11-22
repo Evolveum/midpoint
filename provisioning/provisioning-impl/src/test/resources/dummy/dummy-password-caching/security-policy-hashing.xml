@@ -1,0 +1,19 @@
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<securityPolicy
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="8481f7bd-cdb2-4f16-9a11-27b51a1eec18">
+    <name>hashing</name>
+    <credentials>
+        <password>
+            <storageMethod>
+                <storageType>hashing</storageType>
+            </storageMethod>
+        </password>
+    </credentials>
+</securityPolicy>

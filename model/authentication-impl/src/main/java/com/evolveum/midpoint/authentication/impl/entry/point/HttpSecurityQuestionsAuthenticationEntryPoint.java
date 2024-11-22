@@ -178,8 +178,9 @@ public class HttpSecurityQuestionsAuthenticationEntryPoint extends HttpAuthentic
             SecurityPolicyType securityPolicyType;
             try {
                 SecurityContextHolder.getContext().setAuthentication(new AnonymousAuthenticationToken("rest_sec_q_auth", "REST", AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS")));
-                securityPolicyType = modelInteractionService.getSecurityPolicy(user, null, task, result);
-            } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
+                securityPolicyType = modelInteractionService.getSecurityPolicy(user, task, result);
+            } catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException |
+                    ExpressionEvaluationException e) {
                 return null;
             }
             if (securityPolicyType.getCredentials() != null && securityPolicyType.getCredentials().getSecurityQuestions() != null){

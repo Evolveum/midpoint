@@ -1693,7 +1693,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     private NonceCredentialsPolicyType getNonceCredentialsPolicy(UserType user, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        SecurityPolicyType securityPolicy = modelInteractionService.getSecurityPolicy(user.asPrismObject(), null, task, result);
+        SecurityPolicyType securityPolicy = modelInteractionService.getSecurityPolicy(user.asPrismObject(), task, result);
         if (securityPolicy == null) {
             return null;
         }
@@ -1714,9 +1714,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     private String getNonceCredentialsPolicyName(UserType user, Task task, OperationResult result) throws
-            ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException{
-        SecurityPolicyType securityPolicy = modelInteractionService.getSecurityPolicy(user.asPrismObject(),null, task, result);
+            SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        SecurityPolicyType securityPolicy = modelInteractionService.getSecurityPolicy(user.asPrismObject(), task, result);
         if (securityPolicy.getFlow() == null) {
             return null;
         }
@@ -1854,7 +1854,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
                 OperationResult result = new OperationResult("load security policy");
 
                 try {
-                    return modelInteractionService.getSecurityPolicy(user, null, task, result);
+                    return modelInteractionService.getSecurityPolicy(user, task, result);
                 } catch (CommonException e) {
                     LOGGER.error("Could not retrieve security policy: {}", e.getMessage(), e);
                     return null;

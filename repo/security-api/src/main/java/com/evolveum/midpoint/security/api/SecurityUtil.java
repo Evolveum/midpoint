@@ -27,10 +27,8 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+
+import java.util.*;
 import java.util.function.Function;
 
 /**
@@ -89,14 +87,27 @@ public class SecurityUtil {
         if (principalObject == null) {
             return null;
         }
-        if (!(principalObject instanceof MidPointPrincipal)) {
+        if (!(principalObject instanceof MidPointPrincipal midPointPrincipal)) {
             return principalObject.toString();
         }
-        return ((MidPointPrincipal)principalObject).getUsername();
+        return midPointPrincipal.getUsername();
     }
 
-    public static <T> T getCredentialPolicyItem(CredentialPolicyType defaultPolicy, CredentialPolicyType policy,
-            Function<CredentialPolicyType, T> getter) {
+    public static @NotNull CredentialsStorageTypeType getPasswordStorageType(@Nullable CredentialsPolicyType credentialsPolicy) {
+        return getCredentialStorageType(
+                credentialsPolicy != null ? credentialsPolicy.getDefault() : null,
+                credentialsPolicy != null ? credentialsPolicy.getPassword() : null);
+    }
+
+    public static @NotNull CredentialsStorageTypeType getCredentialStorageType(
+            @Nullable CredentialPolicyType defaultPolicy, @Nullable CredentialPolicyType specificPolicy) {
+        var storageMethod = getCredentialPolicyItem(defaultPolicy, specificPolicy, CredentialPolicyType::getStorageMethod);
+        var storageType = storageMethod != null ? storageMethod.getStorageType() : null;
+        return Objects.requireNonNullElse(storageType, CredentialsStorageTypeType.ENCRYPTION);
+    }
+
+    private static <T> T getCredentialPolicyItem(
+            CredentialPolicyType defaultPolicy, CredentialPolicyType policy, Function<CredentialPolicyType, T> getter) {
         if (policy != null) {
             T val = getter.apply(policy);
             if (val != null) {
@@ -135,8 +146,9 @@ public class SecurityUtil {
         if (securityPolicy == null || securityPolicy.getAuthentication() == null) {
             return null;
         }
-        AuthenticationSequenceType invitationSequence = securityPolicy.getAuthentication().getSequence().stream().filter(s -> s.getChannel() != null
-                && SchemaConstants.CHANNEL_INVITATION_URI.equals(s.getChannel().getChannelId()))
+        AuthenticationSequenceType invitationSequence = securityPolicy.getAuthentication().getSequence().stream()
+                .filter(s -> s.getChannel() != null
+                        && SchemaConstants.CHANNEL_INVITATION_URI.equals(s.getChannel().getChannelId()))
                 .findFirst()
                 .orElse(null);
         if (invitationSequence == null) {
@@ -429,8 +441,8 @@ public class SecurityUtil {
 
     public static String getPrincipalOidIfAuthenticated() {
         Authentication authentication = getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof MidPointPrincipal) {
-            return ((MidPointPrincipal) authentication.getPrincipal()).getOid();
+        if (authentication != null && authentication.getPrincipal() instanceof MidPointPrincipal midPointPrincipal) {
+            return midPointPrincipal.getOid();
         } else {
             return null;
         }

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.provisioning.impl.shadows.manager;
 
 import static com.evolveum.midpoint.prism.polystring.PolyString.toPolyStringType;
 import static com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowComputerUtil.*;
+import static com.evolveum.midpoint.schema.util.ShadowUtil.removePasswordValueProperty;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,13 +17,15 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.repo.common.security.CredentialsStorageManager;
+import com.evolveum.midpoint.repo.common.security.SecurityPolicyFinder;
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttribute;
 import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.RawRepoShadow;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -40,23 +43,25 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 class ShadowObjectComputer {
 
     @Autowired private Clock clock;
-    @Autowired private Protector protector;
+    @Autowired CredentialsStorageManager credentialsStorageManager;
+    @Autowired SecurityPolicyFinder securityPolicyFinder;
 
     /**
      * Creates a copy of a resource object (or other) shadow that is suitable for repository storage.
      */
     @NotNull RawRepoShadow createShadowForRepoStorage(
-            ProvisioningContext ctx, AbstractShadow resourceObjectOrOtherShadow)
+            ProvisioningContext ctx, AbstractShadow resourceObjectOrOtherShadow, OperationResult result)
             throws SchemaException, EncryptionException {
 
         resourceObjectOrOtherShadow.checkConsistence();
 
+        // We start from a clone of the resource object shadow.
         // An alternative would be to start with a clean shadow and fill-in the data from resource object.
-        // But we could easily miss something. So let's clone the shadow instead.
+        // But we could easily miss something. So let's do it this way.
         var repoShadowBean = resourceObjectOrOtherShadow.getBean().clone();
         var repoShadowObject = repoShadowBean.asPrismObject();
 
-        // Associations are not stored in the repository at all.
+        // Associations are not stored in the repository at all. Only underlying reference attributes are.
         repoShadowObject.removeContainer(ShadowType.F_ASSOCIATIONS);
 
         // Attributes will be created anew, not as RAC but as PrismContainer. This is because normalization-aware
@@ -65,8 +70,7 @@ class ShadowObjectComputer {
         repoShadowObject.removeContainer(ShadowType.F_ATTRIBUTES);
 
         // For similar reason, we remove any traces of RACD from the definition.
-        PrismObjectDefinition<ShadowType> standardDefinition =
-                PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
+        var standardDefinition = PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
         repoShadowObject.applyDefinition(standardDefinition);
 
         // For resource objects, this information is obviously limited, as there are no pending operations known.
@@ -127,7 +131,7 @@ class ShadowObjectComputer {
         if (credentials != null) {
             PasswordType password = credentials.getPassword();
             if (password != null) {
-                preparePasswordForStorage(ctx, password);
+                preparePasswordForStorage(ctx, password, result);
                 addPasswordMetadata(password, clock.currentTimeXMLGregorianCalendar(), ctx.getTask().getOwnerRef());
             }
             // TODO: other credential types - later
@@ -155,23 +159,26 @@ class ShadowObjectComputer {
      *
      * See https://docs.evolveum.com/midpoint/devel/design/password-caching-4.9.1/..
      */
-    private void preparePasswordForStorage(ProvisioningContext ctx, @NotNull PasswordType password)
+    private void preparePasswordForStorage(ProvisioningContext ctx, @NotNull PasswordType password, OperationResult result)
             throws SchemaException, EncryptionException {
 
-        var passwordProperty = password.asPrismContainerValue().findProperty(PasswordType.F_VALUE);
+        //noinspection unchecked
+        PrismProperty<ProtectedStringType> passwordProperty = password.asPrismContainerValue().findProperty(PasswordType.F_VALUE);
         if (passwordProperty == null) {
             return; // nothing to hash or to remove from the shadow
         }
 
+        var definition = ctx.getObjectDefinitionRequired();
+
         // Caching disabled - we must remove the password value property (even if it is only of incomplete=true type)
-        if (!ctx.getObjectDefinitionRequired().areCredentialsCached()) {
+        if (!definition.areCredentialsCached()) {
             removePasswordValueProperty(password);
             return;
         }
 
         // Caching enabled
 
-        var passwordRealValue = (ProtectedStringType) passwordProperty.getRealValue();
+        var passwordRealValue = passwordProperty.getRealValue();
         var passwordValueIncomplete = passwordProperty.isIncomplete();
 
         if (passwordRealValue == null) {
@@ -189,14 +196,17 @@ class ShadowObjectComputer {
             //
             // For the opposite direction (discovered shadows on the resource), there is currently no chance of getting
             // hashed passwords here.
+            //
+            // See similar code in ShadowDeltaComputerRelative#addPasswordValueDelta.
+            //
+            // TODO maybe we should not allow obtaining hashed passwords (from clients) in the shadows at all?
+            // TODO maybe this should be dealt with in CredentialsStorageManager? Think again about it.
             assert !passwordValueIncomplete : "Incomplete password value with a real value?";
             removePasswordValueProperty(password);
         } else {
-            protector.hash(passwordRealValue);
+            var credentialsPolicy = securityPolicyFinder.locateResourceObjectCredentialsPolicy(definition, result);
+            var legacyCaching = definition.areCredentialsCachedLegacy();
+            credentialsStorageManager.transformShadowPasswordWithRealValue(credentialsPolicy, legacyCaching, passwordProperty);
         }
-    }
-
-    private static void removePasswordValueProperty(@NotNull PasswordType password) {
-        password.asPrismContainerValue().removeProperty(PasswordType.F_VALUE);
     }
 }

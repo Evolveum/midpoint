@@ -1851,7 +1851,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
             assertNotNull("No password value in repo shadow " + shadowRepo, protectedString);
             assertProtectedString(
                     "Wrong password value in repo shadow " + shadowRepo, expectedPassword,
-                    protectedString, CredentialsStorageTypeType.HASHING);
+                    protectedString, CredentialsStorageTypeType.ENCRYPTION);
         } else {
             ProtectedStringType passwordValue = passwordBean.getValue();
             assertNull("Unexpected password value in repo shadow " + shadowRepo, passwordValue);

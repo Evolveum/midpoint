@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_PASSWO
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.util.Collection;
+import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
@@ -19,7 +20,6 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -65,7 +65,6 @@ class ShadowDeltaComputerRelative {
 
     private final ProvisioningContext ctx;
     private final Collection<? extends ItemDelta<?, ?>> allModifications;
-    private final Protector protector;
 
     // Needed only for computation of effectiveMarkRefs and diagnostics.
     @NotNull private final RepoShadow repoShadow;
@@ -75,11 +74,9 @@ class ShadowDeltaComputerRelative {
     ShadowDeltaComputerRelative(
             @NotNull ProvisioningContext ctx,
             @NotNull RepoShadow repoShadow,
-            @NotNull Collection<? extends ItemDelta<?, ?>> allModifications,
-            @NotNull Protector protector) {
+            @NotNull Collection<? extends ItemDelta<?, ?>> allModifications) {
         this.ctx = ctx;
         this.allModifications = allModifications;
-        this.protector = protector;
         this.repoShadow = repoShadow;
     }
 
@@ -148,7 +145,7 @@ class ShadowDeltaComputerRelative {
             } else if (path.equivalent(SchemaConstants.PATH_PASSWORD_VALUE)) {
                 if (objectDefinition.areCredentialsCached()) {
                     //noinspection unchecked
-                    addPasswordValueDelta(resultingRepoModifications, (PropertyDelta<ProtectedStringType>) modification);
+                    addPasswordValueDelta(resultingRepoModifications, (PropertyDelta<ProtectedStringType>) modification, result);
                 }
             } else if (path.startsWith(PATH_PASSWORD)
                     && !path.startsWith(SchemaConstants.PATH_PASSWORD_METADATA)) {
@@ -264,33 +261,33 @@ class ShadowDeltaComputerRelative {
                 || (objectDefinition.getAllIdentifiers().size() == 1 && objectDefinition.isPrimaryIdentifier(attrName));
     }
 
-    /** See See https://docs.evolveum.com/midpoint/devel/design/password-caching-4.9.1/. */
+    /** See https://docs.evolveum.com/midpoint/devel/design/password-caching-4.9.1/. */
     private void addPasswordValueDelta(
-            RepoShadowModifications repoModifications, PropertyDelta<ProtectedStringType> requestedPasswordRelatedDelta)
+            RepoShadowModifications repoModifications,
+            PropertyDelta<ProtectedStringType> requestedPasswordRelatedDelta,
+            OperationResult result)
             throws SchemaException {
-        var clonedDelta = requestedPasswordRelatedDelta.clone();
-        hashValues(clonedDelta.getValuesToAdd());
-        hashValues(clonedDelta.getValuesToReplace());
-        repoModifications.add(clonedDelta);
-    }
-
-    private void hashValues(Collection<PrismPropertyValue<ProtectedStringType>> propertyValues) throws SchemaException {
-        if (propertyValues == null) {
-            return;
-        }
-        for (PrismPropertyValue<ProtectedStringType> propertyValue : propertyValues) {
-            ProtectedStringType psVal = propertyValue.getValue();
-            if (psVal == null) {
+        try {
+            var newPasswordPrismValue =
+                    MiscUtil.extractSingleton(
+                            requestedPasswordRelatedDelta.getNewValues(),
+                            () -> new IllegalStateException(
+                                    "Multiple password values in %s".formatted(requestedPasswordRelatedDelta)));
+            if (newPasswordPrismValue != null && Objects.requireNonNull(newPasswordPrismValue.getRealValue()).isHashed()) {
+                // We do not want to store hashed password in the shadow.
+                // See the same code in ShadowObjectComputer#preparePasswordForStorage.
+                //
+                // TODO but is ignoring them the best way? Shouldn't we clear them? What will the connectors do?
                 return;
             }
-            if (psVal.isHashed()) {
-                return;
-            }
-            try {
-                protector.hash(psVal);
-            } catch (EncryptionException e) {
-                throw new SchemaException("Cannot hash value", e);
-            }
+            ResourceObjectDefinition definition = ctx.getObjectDefinitionRequired();
+            repoModifications.add(
+                    b.credentialsStorageManager.transformShadowPasswordDelta(
+                            b.securityPolicyFinder.locateResourceObjectCredentialsPolicy(definition, result),
+                            definition.areCredentialsCachedLegacy(),
+                            requestedPasswordRelatedDelta));
+        } catch (EncryptionException e) {
+            throw new SchemaException("Couldn't hash password value", e);
         }
     }
 }
