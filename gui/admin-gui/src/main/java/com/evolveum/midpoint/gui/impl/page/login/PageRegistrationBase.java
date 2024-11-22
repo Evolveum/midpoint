@@ -155,7 +155,7 @@ public class PageRegistrationBase extends PageAdminLTE {
             OperationResult result = new OperationResult(OPERATION_GET_SECURITY_POLICY);
 
             try {
-                return getModelInteractionService().getSecurityPolicy((PrismObject<UserType>) null, getArchetypeOid(), task, result);
+                return getModelInteractionService().getSecurityPolicyForArchetype(getArchetypeOid(), task, result);
             } catch (CommonException e) {
                 LOGGER.error("Could not retrieve security policy: {}", e.getMessage(), e);
                 return null;

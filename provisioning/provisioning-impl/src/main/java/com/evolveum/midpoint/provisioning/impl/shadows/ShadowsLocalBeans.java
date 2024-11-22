@@ -7,6 +7,13 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
+import com.evolveum.midpoint.repo.common.security.SecurityPolicyFinder;
+
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.provisioning.api.EventDispatcher;
@@ -15,20 +22,13 @@ import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectCon
 import com.evolveum.midpoint.provisioning.impl.resources.ResourceManager;
 import com.evolveum.midpoint.provisioning.impl.shadows.errors.ErrorHandlerLocator;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.OperationResultRecorder;
-import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowFinder;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowCreator;
+import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowFinder;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowUpdater;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.schema.SchemaService;
+import com.evolveum.midpoint.repo.common.security.CredentialsStorageManager;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.util.annotation.Experimental;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import jakarta.annotation.PostConstruct;
 
 /**
  * Beans useful for non-Spring components within this package and its children.
@@ -56,7 +56,6 @@ public class ShadowsLocalBeans {
     @Autowired ShadowUpdater shadowUpdater;
     @Autowired ShadowCreator shadowCreator;
     @Autowired AssociationsHelper associationsHelper;
-    @Autowired ExpressionFactory expressionFactory;
     @Autowired @Qualifier("cacheRepositoryService") RepositoryService repositoryService;
     @Autowired ErrorHandlerLocator errorHandlerLocator;
     @Autowired ResourceManager resourceManager;
@@ -64,10 +63,10 @@ public class ShadowsLocalBeans {
     @Autowired ResourceObjectConverter resourceObjectConverter;
     @Autowired ProvisioningContextFactory ctxFactory;
     @Autowired EventDispatcher eventDispatcher;
-    @Autowired DefinitionsHelper definitionsHelper;
     public @Autowired Protector protector;
 
     @Autowired CacheConfigurationManager cacheConfigurationManager;
 
-    @Autowired SchemaService schemaService;
+    @Autowired public SecurityPolicyFinder securityPolicyFinder;
+    @Autowired public CredentialsStorageManager credentialsStorageManager;
 }

@@ -89,8 +89,7 @@ public abstract class PageAbstractAuthenticationModule<MA extends ModuleAuthenti
                 Task task = createAnonymousTask(OPERATION_LOAD_RESET_PASSWORD_POLICY);
                 OperationResult parentResult = new OperationResult(OPERATION_LOAD_RESET_PASSWORD_POLICY);
                 try {
-                    return getModelInteractionService().getSecurityPolicy((PrismObject<? extends FocusType>) null,
-                            getArchetypeOid(), task, parentResult);
+                    return getModelInteractionService().getSecurityPolicyForArchetype(getArchetypeOid(), task, parentResult);
                 } catch (CommonException e) {
                     LOGGER.warn("Cannot read credentials policy: " + e.getMessage(), e);
                 }
