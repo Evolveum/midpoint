@@ -35,8 +35,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import static com.evolveum.midpoint.model.impl.mining.RoleAnalysisServiceImpl.switchToNewStatisticsUnwantedAccess;
-
 /**
  * Clustering action.
  * <p>
@@ -213,22 +211,19 @@ public class ClusteringActionExecutor extends BaseAction {
 
         meanDensity = meanDensity / (clusters.size() - countOutliers);
 
-        RoleAnalysisSessionStatisticType oldSessionStatistics = session.getSessionStatistic();
+        RoleAnalysisSessionStatisticType sessionStatistic = session.getSessionStatistic();
 
         meanDensity = Math.min(meanDensity, 100.000);
-        RoleAnalysisSessionStatisticType sessionStatistic = new RoleAnalysisSessionStatisticType();
         sessionStatistic.setProcessedObjectCount(processedObjectCount);
         sessionStatistic.setMeanDensity(meanDensity);
         sessionStatistic.setClusterCount(clusters.size());
-
-        switchToNewStatisticsUnwantedAccess(oldSessionStatistics, sessionStatistic);
 
         handler.enterNewStep("Update Session");
         handler.setOperationCountToProcess(clusters.size());
 
         RoleAnalysisProcedureType analysisProcedureType = analysisOption.getAnalysisProcedureType();
         if (analysisProcedureType == RoleAnalysisProcedureType.OUTLIER_DETECTION) {
-            resolveAnomalyNoise(clusters, session, attributeAnalysisCache, roleAnalysisService, sessionStatistic, task, result);
+            resolveAnomalyNoise(clusters, session, attributeAnalysisCache, roleAnalysisService, task, result);
         }
         roleAnalysisService
                 .updateSessionStatistics(sessionRef, sessionStatistic, task, result);
@@ -242,7 +237,7 @@ public class ClusteringActionExecutor extends BaseAction {
             RoleAnalysisSessionType session,
             AttributeAnalysisCache analysisCache,
             RoleAnalysisService roleAnalysisService,
-            RoleAnalysisSessionStatisticType sessionStatistic, Task task,
+            Task task,
             OperationResult result) {
         ListMultimap<String, String> roleMemberCache = analysisCache.getRoleMemberCache();
 
@@ -291,8 +286,21 @@ public class ClusteringActionExecutor extends BaseAction {
             }
 
         }
-        sessionStatistic.getAnomaly().getAnomalyRolesNext().addAll(sessionAnomalyOids);
-        sessionStatistic.getAnomaly().setAnomalyRolesCurrentCount(sessionAnomalyOids.size());
+
+        loadSessionAnomalyCategorization(roleAnalysisService, session, sessionAnomalyOids, task, result);
+    }
+
+    private static void loadSessionAnomalyCategorization(@NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull RoleAnalysisSessionType session,
+            @NotNull Set<String> sessionAnomalyOids,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        RolesAnalysisObjectCategorizationType sessionObjectCategorization = session.getSessionObjectCategorization();
+        RoleAnalysisOverallAnomalyType overallAnomaly = new RoleAnalysisOverallAnomalyType();
+        overallAnomaly.getAnomalyRef().addAll(sessionAnomalyOids);
+        overallAnomaly.setAnomalyCount(sessionAnomalyOids.size());
+        sessionObjectCategorization.setOverallAnomaly(overallAnomaly);
+        roleAnalysisService.updateSessionObjectCategorization(session, sessionObjectCategorization, task, result);
     }
 
     /**

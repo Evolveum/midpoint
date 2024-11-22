@@ -971,6 +971,21 @@
 
                     </xsd:element>
 
+                    <xsd:element name="sessionObjectCategorization" type="c:RolesAnalysisObjectCategorizationType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    The container consists of statistical/categorization data about the role
+                                    analysis session processed objects.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>RolesAnalysisObjectCategorizationType.objectCategorization</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+
+                    </xsd:element>
+
                     <xsd:element name="defaultDetectionOption" type="c:RoleAnalysisDetectionOptionType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -1237,7 +1252,8 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            POC
+                            Represents the minimum number of members with access to a role required for the role to be considered popular.
+                            Roles with fewer members are marked as unpopular and excluded from clustering and analysis.
                         </p>
                     </xsd:documentation>
                 </xsd:annotation>
@@ -1247,7 +1263,11 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            POC
+                            Represents the maximum number of members with access to a role.
+                            This value is used to identify roles with high popularity and may
+                            influence clustering and analysis procedures by prioritizing roles
+                            with a higher number of members.
+                            Roles with more members than the specified value are marked as popular.
                         </p>
                     </xsd:documentation>
                 </xsd:annotation>
@@ -1257,7 +1277,9 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            POC
+                            Represents the minimum number of role access assignment required for a user to be considered popular.
+                            User with fewer role access are marked as unpopular and may be excluded from certain analyses
+                            or clustering processes.
                         </p>
                     </xsd:documentation>
                 </xsd:annotation>
@@ -1267,7 +1289,9 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            POC
+                            Represents the maximum number of role access assignments allowed for a user to be considered popular.
+                            Users with more role access than this threshold may be marked as overly popular and can be flagged
+                            for further analysis or excluded from certain clustering processes.
                         </p>
                     </xsd:documentation>
                 </xsd:annotation>
@@ -1399,7 +1423,6 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-
             <xsd:element name="processedPropertiesCount" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1452,66 +1475,6 @@
                     <xsd:appinfo>
                         <a:displayName>RoleAnalysisSessionStatisticType.meanDensity</a:displayName>
                     </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="users" type="tns:Users" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            POC
-                        </p>
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="uniq" type="tns:Uniq" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            POC
-                        </p>
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="diff" type="tns:Diff" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            POC
-                        </p>
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="anomaly" type="tns:Anomaly" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            POC
-                        </p>
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="usersInNoise" type="tns:UsersInNoise" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            POC
-                        </p>
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="rolesInNoise" type="tns:RolesInNoise" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            POC
-                        </p>
-                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
 
@@ -2812,7 +2775,7 @@
     <xsd:element name="outlierCategoryType" type="tns:OutlierCategoryType"/>
 
 
-    <xsd:complexType name="Uniq">
+    <xsd:complexType name="RolesAnalysisObjectCategorizationType">
         <xsd:annotation>
             <xsd:documentation>
                 POC
@@ -2823,75 +2786,102 @@
         </xsd:annotation>
         <xsd:sequence>
 
-            <xsd:element name="uniqRolesNextCountMin" type="xsd:int" minOccurs="0">
+            <xsd:element name="noiseRoles" type="tns:RoleAnalysisNoiseRolesType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        POC
+                        <p>
+                            POC
+                        </p>
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="uniqRolesCurrentCountMin" type="xsd:int" minOccurs="0">
+            <xsd:element name="noiseUsers" type="tns:RoleAnalysisNoiseUsersType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        POC
+                        <p>
+                            POC
+                        </p>
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="uniqRolesNextMin" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="unpopularRoles" type="tns:RoleAnalysisUnpopularRolesType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        POC
+                        <p>
+                            POC
+                        </p>
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="uniqRolesCurrentMin" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="abovePopularRoles" type="tns:RoleAnalysisAbovePopularRolesType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        POC
+                        <p>
+                            POC
+                        </p>
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="uniqRolesNextCountMax" type="xsd:int" minOccurs="0">
+            <xsd:element name="unpopularUsers" type="tns:RoleAnalysisUnpopularUsersType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        POC
+                        <p>
+                            POC
+                        </p>
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="uniqRolesCurrentCountMax" type="xsd:int" minOccurs="0">
+            <xsd:element name="abovePopularUsers" type="tns:RoleAnalysisAbovePopularUsersType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        POC
+                        <p>
+                            POC
+                        </p>
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="uniqRolesNextMax" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="uniqNoiseProperties" type="tns:RoleAnalysisUniqNoisePropertiesType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        POC
+                        <p>
+                            POC
+                        </p>
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="uniqRolesCurrentMax" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="overallAnomaly" type="tns:RoleAnalysisOverallAnomalyType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        POC
+                        <p>
+                            POC
+                        </p>
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+
+            <xsd:element name="exclude" type="tns:RoleAnalysisExcludeType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            POC
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="uniq" type="tns:Uniq"/>
+    <xsd:element name="rolesAnalysisObjectCategorizationType" type="tns:RolesAnalysisObjectCategorizationType"/>
 
-    <xsd:complexType name="Diff">
+    <xsd:complexType name="RoleAnalysisNoiseRolesType">
         <xsd:annotation>
             <xsd:documentation>
                 POC
@@ -2902,7 +2892,7 @@
         </xsd:annotation>
         <xsd:sequence>
 
-            <xsd:element name="diffRolesNextCount" type="xsd:int" minOccurs="0">
+            <xsd:element name="rolesCount" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         POC
@@ -2910,23 +2900,7 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="diffRolesCurrentCount" type="xsd:int" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        POC
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="diffRolesNext" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        POC
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="diffRolesCurrent" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="roleRef" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         POC
@@ -2937,9 +2911,9 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="diff" type="tns:Diff"/>
+    <xsd:element name="roleAnalysisNoiseRoles" type="tns:RoleAnalysisNoiseRolesType"/>
 
-    <xsd:complexType name="Anomaly">
+    <xsd:complexType name="RoleAnalysisNoiseUsersType">
         <xsd:annotation>
             <xsd:documentation>
                 POC
@@ -2950,7 +2924,7 @@
         </xsd:annotation>
         <xsd:sequence>
 
-            <xsd:element name="anomalyRolesNextCount" type="xsd:int" minOccurs="0">
+            <xsd:element name="userCount" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         POC
@@ -2958,23 +2932,7 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="anomalyRolesCurrentCount" type="xsd:int" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        POC
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="anomalyRolesNext" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        POC
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="anomalyRolesCurrent" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="userRef" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         POC
@@ -2985,10 +2943,9 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="anomaly" type="tns:Anomaly"/>
+    <xsd:element name="roleAnalysisNoiseUsers" type="tns:RoleAnalysisNoiseUsersType"/>
 
-
-    <xsd:complexType name="Users">
+    <xsd:complexType name="RoleAnalysisUnpopularRolesType">
         <xsd:annotation>
             <xsd:documentation>
                 POC
@@ -2999,7 +2956,7 @@
         </xsd:annotation>
         <xsd:sequence>
 
-            <xsd:element name="usersNextCountMin" type="xsd:int" minOccurs="0">
+            <xsd:element name="rolesCount" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         POC
@@ -3007,55 +2964,7 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="usersCurrentCountMin" type="xsd:int" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        POC
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="usersNextMin" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        POC
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="usersCurrentMin" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        POC
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="usersNextCountMax" type="xsd:int" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        POC
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="usersCurrentCountMax" type="xsd:int" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        POC
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="usersNextMax" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        POC
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="usersCurrentMax" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="roleRef" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         POC
@@ -3066,9 +2975,9 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="users" type="tns:Users"/>
+    <xsd:element name="roleAnalysisUnpopularRoles" type="tns:RoleAnalysisUnpopularRolesType"/>
 
-    <xsd:complexType name="RolesInNoise">
+    <xsd:complexType name="RoleAnalysisAbovePopularRolesType">
         <xsd:annotation>
             <xsd:documentation>
                 POC
@@ -3079,7 +2988,7 @@
         </xsd:annotation>
         <xsd:sequence>
 
-            <xsd:element name="rolesInNoiseNextCount" type="xsd:int" minOccurs="0">
+            <xsd:element name="rolesCount" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         POC
@@ -3087,23 +2996,7 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="rolesInNoiseCurrentCount" type="xsd:int" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        POC
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="rolesInNoiseNext" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        POC
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="rolesInNoiseCurrent" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="roleRef" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         POC
@@ -3114,9 +3007,9 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="rolesInNoise" type="tns:RolesInNoise"/>
+    <xsd:element name="roleAnalysisAbovePopularRoles" type="tns:RoleAnalysisAbovePopularRolesType"/>
 
-    <xsd:complexType name="UsersInNoise">
+    <xsd:complexType name="RoleAnalysisUnpopularUsersType">
         <xsd:annotation>
             <xsd:documentation>
                 POC
@@ -3127,7 +3020,7 @@
         </xsd:annotation>
         <xsd:sequence>
 
-            <xsd:element name="usersInNoiseNextCount" type="xsd:int" minOccurs="0">
+            <xsd:element name="userCount" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         POC
@@ -3135,23 +3028,7 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="usersInNoiseCurrentCount" type="xsd:int" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        POC
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="usersInNoiseNext" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        POC
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="usersInNoiseCurrent" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="userRef" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         POC
@@ -3162,6 +3039,136 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="usersInNoise" type="tns:UsersInNoise"/>
+    <xsd:element name="roleAnalysisUnpopularUsers" type="tns:RoleAnalysisUnpopularUsersType"/>
+
+    <xsd:complexType name="RoleAnalysisAbovePopularUsersType">
+        <xsd:annotation>
+            <xsd:documentation>
+                POC
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+
+            <xsd:element name="userCount" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        POC
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="userRef" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        POC
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="roleAnalysisAbovePopularUsers" type="tns:RoleAnalysisAbovePopularUsersType"/>
+
+    <xsd:complexType name="RoleAnalysisUniqNoisePropertiesType">
+        <xsd:annotation>
+            <xsd:documentation>
+                POC
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+
+            <xsd:element name="propertiesCount" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        POC
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="propertiesRef" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        POC
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="roleAnalysisUniqNoiseProperties" type="tns:RoleAnalysisUniqNoisePropertiesType"/>
+
+    <xsd:complexType name="RoleAnalysisOverallAnomalyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                POC
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+
+            <xsd:element name="anomalyCount" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        POC
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="anomalyRef" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        POC
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="roleAnalysisOverallAnomaly" type="tns:RoleAnalysisOverallAnomalyType"/>
+
+    <xsd:complexType name="RoleAnalysisExcludeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                POC
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+
+            <xsd:element name="excludeUserRef" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Users can be flagged for further analysis or excluded from certain clustering processes.
+                        Manual exclusion.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="excludeRoleRef" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Role can be flagged for further analysis or excluded from certain clustering processes.
+                        Manual exclusion.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="roleAnalysisExcludeType" type="tns:RoleAnalysisExcludeType"/>
 
 </xsd:schema>

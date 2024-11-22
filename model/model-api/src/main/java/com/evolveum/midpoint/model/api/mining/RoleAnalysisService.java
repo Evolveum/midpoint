@@ -1389,4 +1389,10 @@ public interface RoleAnalysisService {
 
     S_FilterExit buildStatisticsAssignmentSearchFilter(@NotNull Collection<QName> memberRelations);
 
+    void updateSessionObjectCategorization(
+            @NotNull RoleAnalysisSessionType sessionObject,
+            @NotNull RolesAnalysisObjectCategorizationType sessionObjectCategorization,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
 }

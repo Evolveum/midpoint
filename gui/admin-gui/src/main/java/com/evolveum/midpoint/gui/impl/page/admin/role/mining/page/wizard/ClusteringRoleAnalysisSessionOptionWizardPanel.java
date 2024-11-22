@@ -7,9 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard;
 
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPanel;
-
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
@@ -53,14 +50,24 @@ public class ClusteringRoleAnalysisSessionOptionWizardPanel extends AbstractForm
 
     @Override
     protected ItemVisibilityHandler getVisibilityHandler() {
+        AssignmentHolderDetailsModel<RoleAnalysisSessionType> detailsModel = getDetailsModel();
+        String orig = detailsModel.getObjectType().getName().getOrig();
+        boolean applyAdvanceSetting = orig.startsWith("advs_");
+
         return wrapper -> {
             ItemName itemName = wrapper.getItemName();
+
+            if (!applyAdvanceSetting && (itemName.equals(AbstractAnalysisSessionOptionType.F_MAX_ACCESS_POPULARITY)
+                    || itemName.equals(AbstractAnalysisSessionOptionType.F_MIN_USERS_POPULARITY)
+                    || itemName.equals(AbstractAnalysisSessionOptionType.F_MAX_USERS_POPULARITY))) {
+                return ItemVisibility.HIDDEN;
+            }
 
             if (itemName.equals(AbstractAnalysisSessionOptionType.F_USER_SEARCH_FILTER)
                     || itemName.equals(AbstractAnalysisSessionOptionType.F_ROLE_SEARCH_FILTER)
                     || itemName.equals(AbstractAnalysisSessionOptionType.F_ASSIGNMENT_SEARCH_FILTER)
                     || itemName.equals(AbstractAnalysisSessionOptionType.F_IS_INDIRECT)
-                   ) {
+            ) {
                 return ItemVisibility.HIDDEN;
             }
 

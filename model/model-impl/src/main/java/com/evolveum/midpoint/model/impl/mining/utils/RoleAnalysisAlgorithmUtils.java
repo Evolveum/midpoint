@@ -206,27 +206,53 @@ public class RoleAnalysisAlgorithmUtils {
 
         }
 
-        RoleAnalysisSessionStatisticType sessionStatistic = session.getSessionStatistic();
-        if(processMode == RoleAnalysisProcessModeType.ROLE){
-            sessionStatistic.getUsersInNoise().getUsersInNoiseNext().addAll(propertiesInNoiseClusters);
-            sessionStatistic.getRolesInNoise().getRolesInNoiseNext().addAll(membersInNoiseClusters);
+        loadSessionObjectCategorization(roleAnalysisService,
+                session,
+                processMode,
+                propertiesInNoiseClusters,
+                membersInNoiseClusters,
+                propertiesInClusters,
+                task,
+                result);
+        return clusterTypeObjectWithStatistic;
+    }
 
-            sessionStatistic.getUsersInNoise().setUsersInNoiseNextCount(propertiesInNoiseClusters.size());
-            sessionStatistic.getRolesInNoise().setRolesInNoiseNextCount(membersInNoiseClusters.size());
-        }else{
-            sessionStatistic.getRolesInNoise().getRolesInNoiseNext().addAll(propertiesInNoiseClusters);
-            sessionStatistic.getUsersInNoise().getUsersInNoiseNext().addAll(membersInNoiseClusters);
-
-            sessionStatistic.getRolesInNoise().setRolesInNoiseNextCount(propertiesInNoiseClusters.size());
-            sessionStatistic.getUsersInNoise().setUsersInNoiseNextCount(membersInNoiseClusters.size());
+    private static void loadSessionObjectCategorization(
+            @NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull RoleAnalysisSessionType session,
+            @NotNull RoleAnalysisProcessModeType processMode,
+            @NotNull Set<String> propertiesInNoiseClusters,
+            @NotNull Set<String> membersInNoiseClusters,
+            @NotNull Set<String> propertiesInClusters,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        RolesAnalysisObjectCategorizationType sessionObjectCategorization = session.getSessionObjectCategorization();
+        RoleAnalysisNoiseUsersType noiseUsers = new RoleAnalysisNoiseUsersType();
+        RoleAnalysisNoiseRolesType noiseRoles = new RoleAnalysisNoiseRolesType();
+        if (processMode == RoleAnalysisProcessModeType.ROLE) {
+            noiseUsers.getUserRef().addAll(propertiesInNoiseClusters);
+            noiseRoles.getRoleRef().addAll(membersInNoiseClusters);
+            noiseUsers.setUserCount(propertiesInNoiseClusters.size());
+            noiseRoles.setRolesCount(membersInNoiseClusters.size());
+            sessionObjectCategorization.setNoiseUsers(noiseUsers);
+            sessionObjectCategorization.setNoiseRoles(noiseRoles);
+        } else {
+            noiseRoles.getRoleRef().addAll(propertiesInNoiseClusters);
+            noiseUsers.getUserRef().addAll(membersInNoiseClusters);
+            noiseRoles.setRolesCount(propertiesInNoiseClusters.size());
+            noiseUsers.setUserCount(membersInNoiseClusters.size());
+            sessionObjectCategorization.setNoiseRoles(noiseRoles);
+            sessionObjectCategorization.setNoiseUsers(noiseUsers);
         }
 
         Set<String> propertiesOnlyInNoiseClusters = new HashSet<>(propertiesInNoiseClusters);
         propertiesOnlyInNoiseClusters.removeAll(propertiesInClusters);
-        sessionStatistic.getDiff().getDiffRolesNext().addAll(propertiesOnlyInNoiseClusters);
-        sessionStatistic.getDiff().setDiffRolesNextCount(propertiesOnlyInNoiseClusters.size());
 
-        return clusterTypeObjectWithStatistic;
+        RoleAnalysisUniqNoisePropertiesType uniqNoiseProperties = new RoleAnalysisUniqNoisePropertiesType();
+        uniqNoiseProperties.getPropertiesRef().addAll(propertiesOnlyInNoiseClusters);
+        uniqNoiseProperties.setPropertiesCount(propertiesOnlyInNoiseClusters.size());
+        sessionObjectCategorization.setUniqNoiseProperties(uniqNoiseProperties);
+        roleAnalysisService.updateSessionObjectCategorization(session, sessionObjectCategorization, task, result);
     }
 
     private @Nullable ClusterStatistic statisticLoad(
