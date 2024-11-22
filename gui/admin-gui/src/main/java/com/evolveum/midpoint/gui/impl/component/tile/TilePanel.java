@@ -55,6 +55,7 @@ public class TilePanel<T extends Tile<O>, O extends Serializable> extends BasePa
                 "tile-panel d-flex flex-column align-items-center rounded p-3 justify-content-center" :
                 "tile-panel d-flex flex-row vertical align-items-center rounded justify-content-left"));
         add(AttributeAppender.append("class", () -> getModelObject().isSelected() ? "active" : null));
+        add(AttributeAppender.append("aria-checked", () -> getModelObject().isSelected() ? "true" : "false"));
         setOutputMarkupId(true);
 
         Component icon = createIconPanel(ID_ICON);

@@ -13,6 +13,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.input.Select2MultiChoicePanel;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -357,17 +359,21 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
             }
         };
 
-        Select2MultiChoice<ObjectReferenceType> multiselect = new Select2MultiChoice<>(ID_MULTISELECT, multiselectModel,
-                new ObjectReferenceProvider(this));
-
         AutocompleteSearchConfigurationType config = getAutocompleteConfiguration();
         int minLength = config.getAutocompleteMinChars() != null ? config.getAutocompleteMinChars() : AUTOCOMPLETE_MIN_CHARS;
         if (minLength < 0) {
             minLength = AUTOCOMPLETE_MIN_CHARS;
         }
-        multiselect.getSettings()
-                .setMinimumInputLength(minLength);
-        multiselect.add(new AjaxFormComponentUpdatingBehavior("change") {
+
+        Select2MultiChoicePanel<ObjectReferenceType> multiselect = new Select2MultiChoicePanel<>(ID_MULTISELECT, multiselectModel,
+                new ObjectReferenceProvider(this), minLength){
+            @Override
+            protected IModel<String> getAriaLabelModel() {
+                return PersonOfInterestPanel.this.createStringResource("PersonOfInterestPanel.selectFieldLabel");
+            }
+        };
+
+        multiselect.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {

@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumnPanel;
-import com.evolveum.midpoint.gui.impl.component.input.Select2MultiChoicePanel;
+import com.evolveum.midpoint.gui.impl.component.input.Select2MultiChoiceColumnPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardTable;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismValueWrapperImpl;
@@ -230,7 +230,7 @@ public abstract class CorrelationItemsTable extends AbstractWizardTable<ItemsSub
                     }
                 };
 
-                return new Select2MultiChoicePanel<>(componentId, multiselectModel, new StringTextChoiceProvider() {
+                return new Select2MultiChoiceColumnPanel<>(componentId, multiselectModel, new StringTextChoiceProvider() {
                     @Override
                     public void query(String input, int i, Response<String> response) {
                         response.addAll(getContainerModel().getObject().getValues().stream()

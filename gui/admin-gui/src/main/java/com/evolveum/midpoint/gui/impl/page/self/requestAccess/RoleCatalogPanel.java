@@ -11,6 +11,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -592,6 +594,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                     Toggle<ViewToggle> asList = new Toggle<>("fa-solid fa-table-list", null);
                     asList.setActive(ViewToggle.TABLE == toggle);
                     asList.setValue(ViewToggle.TABLE);
+                    asList.setTitle(LocalizationUtil.translate("TileTablePanel.switchToTable"));
                     list.add(asList);
                 }
 
@@ -599,6 +602,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                     Toggle<ViewToggle> asTile = new Toggle<>("fa-solid fa-table-cells", null);
                     asTile.setActive(ViewToggle.TILE == toggle);
                     asTile.setValue(ViewToggle.TILE);
+                    asTile.setTitle(LocalizationUtil.translate("TileTablePanel.switchToTile"));
                     list.add(asTile);
                 }
 

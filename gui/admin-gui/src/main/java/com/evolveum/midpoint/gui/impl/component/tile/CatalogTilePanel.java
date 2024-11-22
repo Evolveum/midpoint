@@ -59,6 +59,7 @@ public class CatalogTilePanel<T extends Serializable> extends ObjectTilePanel<T,
         });
 
         Component add = createAddButton(ID_ADD);
+        addAriaDescribedByForButton(add);
         add(add);
     }
 
