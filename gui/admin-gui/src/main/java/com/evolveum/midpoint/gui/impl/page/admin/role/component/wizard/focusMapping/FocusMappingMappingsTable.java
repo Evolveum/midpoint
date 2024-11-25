@@ -12,12 +12,10 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.impl.component.input.FocusDefinitionsMappingProvider;
-import com.evolveum.midpoint.gui.impl.component.input.Select2MultiChoicePanel;
+import com.evolveum.midpoint.gui.impl.component.input.Select2MultiChoiceColumnPanel;
 import com.evolveum.midpoint.gui.impl.component.input.SourceOfFocusMappingProvider;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attributeMapping.AbstractMappingsTable;
 
-import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -35,11 +33,8 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import javax.xml.namespace.QName;
 
 /**
  * @author lskublik
@@ -137,7 +132,7 @@ public class FocusMappingMappingsTable extends AbstractMappingsTable<MappingsTyp
 
                 SourceOfFocusMappingProvider provider = new SourceOfFocusMappingProvider(
                         (IModel<PrismPropertyWrapper<VariableBindingDefinitionType>>) rowModel);
-                return new Select2MultiChoicePanel<>(componentId, multiselectModel, provider);
+                return new Select2MultiChoiceColumnPanel<>(componentId, multiselectModel, provider);
             }
 
             @Override

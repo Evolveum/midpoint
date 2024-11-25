@@ -220,6 +220,64 @@ export default class MidPointTheme {
                 });
     }
 
+initSelect2MultiChoice(containerHtmlElement) {
+    var container = $("#" + containerHtmlElement.id)
+    if (container.length) {
+        var select = container.find("select");
+        if (select.length){
+            var attribute = select.attr("aria-label")
+
+            var combobox = container.find("span[role='combobox']");
+            var selectContainer = container.find(".select2-container");
+
+            if (attribute != null) {
+                var input = container.find("input");
+
+                if (!input.length) {
+                    if (selectContainer.length) {
+                        selectContainer.on("click", function (e, t) {
+                            var input = $("input.select2-search__field[aria-controls='select2-" + select.attr("id") + "-results']");
+                            if (input.length) {
+                                input.attr("aria-label", attribute);
+                            }
+                        });
+                    }
+                } else {
+                    input.attr("aria-label", attribute);
+                }
+
+                if (combobox.length) {
+                    combobox.attr("aria-label", attribute);
+                }
+
+                var textbox = container.find("span[role='textbox']");
+                if (textbox.length) {
+                    textbox.attr("aria-label", attribute);
+                }
+            }
+
+            if (combobox.length) {
+                if (selectContainer.length) {
+                    var selectContainerId = "select2-" + select.attr("id") +"-container-custom";
+                    selectContainer.attr("id", selectContainerId)
+                    combobox.attr("aria-controls", selectContainerId);
+                }
+
+                combobox.on("keydown", function (e, t) {
+                    if (e.key == " " || e.code == "Space" || e.keyCode == 32 ||
+                        e.key == "Enter" || e.keyCode == 13) {
+                            var input = $("input.select2-search__field[aria-controls='select2-" + select.attr("id") + "-results']");
+                            if (input.length){
+                                input.get(0).focus();
+                            }
+                    }
+                });
+
+            }
+        }
+    }
+}
+
 initDateTimePicker(containerId, configuration) {
     new TempusDominus(containerId, configuration);
 }

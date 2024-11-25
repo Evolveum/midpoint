@@ -15,7 +15,7 @@
             <label class="col-form-label font-weight-bold">
                 <wicket:message key="ObjectReferenceType.relation"/>
             </label>
-            <select class="form-control" wicket:id="relation"/>
+            <select class="form-control" wicket:id="relation" required wicket:message="aria-label:ObjectReferenceType.relation"/>
         </div>
     </div>
     <wicket:enclosure child="administrativeStatus">
@@ -25,7 +25,7 @@
                     <wicket:message key="ActivationType.administrativeStatus"/>
                     <span class="text-gray font-weight-light">- <wicket:message key="ShoppingCartEditPanel.optional"/></span>
                 </label>
-                <select class="form-control" wicket:id="administrativeStatus"/>
+                <select class="form-control" wicket:id="administrativeStatus" wicket:message="aria-label:ActivationType.administrativeStatus"/>
             </div>
         </div>
     </wicket:enclosure>
