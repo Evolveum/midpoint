@@ -115,6 +115,27 @@ The mugs of all captains should come with owner's name on it, so no scurvy seado
 
 ****
 
+[TIP]
+.Assignments and inducements vs. direct account modifications
+====
+Setting an attribute using an assignment or inducement is very different from just setting the attribute value directly on the account.
+As this is an assignment/inducement, this specification of the attribute specifies a _policy_.
+I.e. it specifies that the account _should_ always have this value.
+Therefore, if midPoint detects that the value of source attribute has changed (e.g. during a reconciliation) then midPoint will try to fix the situation and will set the attribute to the correct value.
+
+On the other hand if an attribute value is changed directly on the account (e.g. using a midPoint GUI) then the initial result will be the same: the account attribute is changed.
+But if the value is not specified in assignment it will *not* be part of the policy.
+And if someone changes the account attribute value later the midPoint will *not* set it back.
+This is the primary difference:
+
+* Assignments and inducements are policies.
+MidPoint will try to correct the situation when it has a chance (and reason) to do so.
+
+* Direct account modifications just change the reality.
+MidPoint will *not* try to re-apply them later.
+
+====
+
 xref:/midpoint/reference/expressions/[Mappings and expressions] are used to define dynamic implied account attributes.
 xref:/midpoint/reference/concepts/item-path/[Simple paths] are perhaps the most easy to use and most useful in common situations.
 There are also xref:/midpoint/reference/expressions/expressions/script/[scripting expressions] for more complex cases.

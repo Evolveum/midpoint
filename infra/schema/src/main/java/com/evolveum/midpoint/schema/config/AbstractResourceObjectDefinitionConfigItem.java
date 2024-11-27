@@ -34,7 +34,7 @@ public class AbstractResourceObjectDefinitionConfigItem<B extends ResourceObject
 
     void checkSyntaxOfAttributeNames() throws ConfigurationException {
         for (var attrDefCI : getAttributes()) {
-            attrDefCI.getAttributeNameSyntax();
+            attrDefCI.getAttributeName();
         }
     }
 
@@ -73,7 +73,7 @@ public class AbstractResourceObjectDefinitionConfigItem<B extends ResourceObject
             throws ConfigurationException {
         List<ResourceAttributeDefinitionConfigItem> matching = new ArrayList<>();
         for (var attrDef : getAttributes()) {
-            if (QNameUtil.match(attrDef.getAttributeNameSyntax(), attrName)) {
+            if (QNameUtil.match(attrDef.getAttributeName(), attrName)) {
                 matching.add(attrDef);
             }
         }

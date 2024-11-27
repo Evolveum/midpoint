@@ -7,9 +7,9 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
     <wicket:panel>
-        <div class="d-flex flex-wrap gap-3 justify-content-center mt-5" wicket:id="listContainer">
+        <div class="d-flex flex-wrap gap-3 justify-content-center mt-5" wicket:id="listContainer" role="radiogroup">
             <wicket:container wicket:id="list">
-                <div class="simple-tile selectable" wicket:id="tile"/>
+                <div class="simple-tile selectable clickable-by-enter" wicket:id="tile" role="radio" tabindex="0"/>
             </wicket:container>
         </div>
     </wicket:panel>

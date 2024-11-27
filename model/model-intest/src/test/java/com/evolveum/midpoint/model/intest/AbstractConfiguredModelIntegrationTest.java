@@ -574,8 +574,10 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractEmptyModelIn
                 .getLastScanTimestamp(activityPath);
     }
 
-    protected void assertPasswordMetadata(PrismObject<UserType> user, boolean create, XMLGregorianCalendar start, XMLGregorianCalendar end) {
-        assertPasswordMetadata(user, CredentialsType.F_PASSWORD, create, start, end, USER_ADMINISTRATOR_OID, SchemaConstants.CHANNEL_USER_URI);
+    protected void assertPasswordMetadata(
+            PrismObject<UserType> user, boolean create, XMLGregorianCalendar start, XMLGregorianCalendar end) {
+        assertPasswordMetadata(
+                user, CredentialsType.F_PASSWORD, create, start, end, USER_ADMINISTRATOR_OID, SchemaConstants.CHANNEL_USER_URI);
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })

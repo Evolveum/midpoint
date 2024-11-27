@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -64,16 +66,9 @@ public class ModelObjectResolver implements ObjectResolver {
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
-        String oid = ref.getOid();
-        Class<?> typeClass = null;
-        QName typeQName = ref.getType();
-        if (typeQName != null) {
-            typeClass = prismContext.getSchemaRegistry().determineCompileTimeClass(typeQName);
-        }
-        if (typeClass != null && expectedType.isAssignableFrom(typeClass)) {
-            expectedType = (Class<O>) typeClass;
-        }
-        return getObject(expectedType, oid, options, task, result);
+        var type = ObjectTypeUtil.getTypeClass(ref, expectedType);
+        var oid = ref.getOid();
+        return getObject(type, oid, options, task, result);
     }
 
     public <O extends ObjectType> PrismObject<O> resolve(
@@ -142,6 +137,7 @@ public class ModelObjectResolver implements ObjectResolver {
                 default -> object = cacheRepositoryService.getObject(clazz, oid, options, result);
             }
             objectType = object.asObjectable();
+            // TODO maybe we should remove this check; it should be ensured by the called getObject methods
             if (!clazz.isInstance(objectType)) {
                 throw new ObjectNotFoundException(
                         String.format(

@@ -20,6 +20,7 @@ import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.HiddenField;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -184,7 +185,9 @@ public class PageArchetypeSelection extends PageAbstractAuthenticationModule<Arc
                 .icon(new IconType().cssClass(CLASS_TEST_CONNECTION_MENU_ITEM))
                 .help(undefinedArchetypeHelp);
 
-        return createTile(archetype, archetypeDisplay);
+        Tile<ArchetypeType> tile = createTile(archetype, archetypeDisplay);
+        tile.setSelected(true);
+        return tile;
     }
 
 
@@ -214,6 +217,8 @@ public class PageArchetypeSelection extends PageAbstractAuthenticationModule<Arc
                 target.add(getArchetypesContainer());
             }
         };
+        tilePanel.add(AttributeAppender.append(
+                "aria-checked", () -> tileModel.getObject().isSelected() ? "true" : "false"));
         tilePanel.setHorizontal(false);
         return tilePanel;
     }

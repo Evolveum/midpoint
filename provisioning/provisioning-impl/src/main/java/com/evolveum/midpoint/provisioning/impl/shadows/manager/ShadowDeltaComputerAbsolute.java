@@ -134,18 +134,18 @@ class ShadowDeltaComputerAbsolute {
             @NotNull ResourceObjectShadow resourceObject,
             @Nullable ObjectDelta<ShadowType> resourceObjectDelta,
             @NotNull EffectiveMarksAndPolicies effectiveMarksAndPolicies,
-            boolean fromResource)
-            throws SchemaException, ConfigurationException {
+            boolean fromResource, OperationResult result)
+            throws SchemaException, ConfigurationException, EncryptionException {
         var computer = new ShadowDeltaComputerAbsolute(
                 ctx, repoShadow, resourceObject, resourceObjectDelta, effectiveMarksAndPolicies, fromResource);
-        return computer.execute();
+        return computer.execute(result);
     }
 
     /**
      * Objects are NOT updated. Only {@link #computedModifications} is created.
      */
-    private @NotNull RepoShadowModifications execute()
-            throws SchemaException, ConfigurationException {
+    private @NotNull RepoShadowModifications execute(OperationResult result)
+            throws SchemaException, ConfigurationException, EncryptionException {
 
         // Note: these updateXXX method work by adding respective deltas (if needed) to the computedShadowDelta
         // They do not change repoShadow nor resourceObject.
@@ -165,7 +165,7 @@ class ShadowDeltaComputerAbsolute {
         if (fromResource) { // TODO reconsider this
             var definition = ctx.getObjectDefinitionRequired();
             updateCachedActivation(definition.isActivationCached());
-            updateCachedCredentials(definition.areCredentialsCached());
+            updateCachedCredentials(definition.areCredentialsCached(), definition.areCredentialsCachedLegacy(), result);
             if (definition.isCachingEnabled()) {
                 updateCachingMetadata(incompleteCacheableItems);
             } else {
@@ -257,7 +257,13 @@ class ShadowDeltaComputerAbsolute {
      * Currently, we expect the password is always returned (if it's readable).
      * See {@link ShadowItemsToReturnProvider} and MID-10160.
      */
-    private void updateCachedCredentials(boolean cached) throws SchemaException {
+    private void updateCachedCredentials(boolean cached, boolean cachedLegacy, OperationResult result)
+            throws SchemaException, EncryptionException {
+
+        if (cachedLegacy) {
+            return; // This is the legacy behavior: NOT updating the shadow regarding credentials
+        }
+
         var currentProperty = ShadowUtil.getPasswordValueProperty(resourceObject.getBean());
 
         // Case 0: not cached
@@ -308,7 +314,11 @@ class ShadowDeltaComputerAbsolute {
         // Case 3: regular (known) value
         var value = currentProperty.getRealValue(ProtectedStringType.class); // fails if there are multiple values
         if (value != null && value.canGetCleartext()) {
-            replaceCachedPassword(value);
+            var credentialsPolicy =
+                    b.securityPolicyFinder.locateResourceObjectCredentialsPolicy(ctx.getObjectDefinitionRequired(), result);
+            var oldValue = ShadowUtil.getPasswordValue(repoShadow.getBean());
+            computedModifications.add(
+                    b.credentialsStorageManager.createShadowPasswordDelta(credentialsPolicy, oldValue, value));
         } else {
             LOGGER.warn("Empty or non-clear-retrievable password in {}, ignoring: {} (context: {})", resourceObject, value, ctx);
         }
@@ -322,32 +332,6 @@ class ShadowDeltaComputerAbsolute {
                             .item(PATH_PASSWORD_VALUE).replace()
                             .asItemDelta());
         }
-    }
-
-    private void replaceCachedPassword(@NotNull ProtectedStringType value) throws SchemaException {
-        assert value.canGetCleartext();
-        var oldValue = ShadowUtil.getPasswordValue(repoShadow.getBean());
-        // The old value may be really missing, or it may be of "incomplete=true" variety.
-        // We know for sure that it's hashed. So we are interested in the cleartext matching status only.
-        try {
-            if (b.protector.compareCleartext(oldValue, value)) {
-                LOGGER.trace("Not updating password because it is up-to-date in repo");
-                return;
-            }
-        } catch (EncryptionException e) {
-            throw new SchemaException("Cannot compare stored value", e);
-        }
-
-        var hashedValue = value.clone();
-        try {
-            b.protector.hash(hashedValue);
-        } catch (EncryptionException e) {
-            throw new SchemaException("Cannot hash value", e);
-        }
-        computedModifications.add(
-                PrismContext.get().deltaFor(ShadowType.class)
-                        .item(PATH_PASSWORD_VALUE).replace(hashedValue)
-                        .asItemDelta());
     }
 
     private void updateCachedActivation(boolean cached) {

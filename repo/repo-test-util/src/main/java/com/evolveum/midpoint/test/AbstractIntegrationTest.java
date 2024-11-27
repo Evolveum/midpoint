@@ -2049,11 +2049,13 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         assertEncryptedUserPassword(user, expectedClearPassword);
     }
 
-    protected void assertEncryptedUserPassword(PrismObject<UserType> user, String expectedClearPassword) throws EncryptionException, SchemaException {
+    protected void assertEncryptedUserPassword(PrismObject<UserType> user, String expectedClearPassword)
+            throws EncryptionException, SchemaException {
         assertUserPassword(user, expectedClearPassword, CredentialsStorageTypeType.ENCRYPTION);
     }
 
-    protected PasswordType assertUserPassword(PrismObject<UserType> user, String expectedClearPassword) throws EncryptionException, SchemaException {
+    protected PasswordType assertUserPassword(PrismObject<UserType> user, String expectedClearPassword)
+            throws EncryptionException, SchemaException {
         return assertUserPassword(user, expectedClearPassword, getPasswordStorageType());
     }
 
@@ -2232,6 +2234,22 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         passwordType.setValue(ps);
     }
 
+    protected PasswordType assertShadowPassword(
+            ShadowType shadow, String expectedClearPassword, CredentialsStorageTypeType storageType)
+            throws EncryptionException, SchemaException {
+        CredentialsType creds = shadow.getCredentials();
+        assertNotNull(creds, "No credentials in " + shadow);
+        PasswordType password = creds.getPassword();
+        assertNotNull(password, "No password in " + shadow);
+        ProtectedStringType protectedActualPassword = password.getValue();
+        assertProtectedString("Password for " + shadow, expectedClearPassword, protectedActualPassword, storageType);
+        return password;
+    }
+
+    protected void assertIncompleteShadowPassword(ShadowType shadow) {
+        assertIncompleteShadowPassword(shadow.asPrismObject());
+    }
+
     protected void assertIncompleteShadowPassword(PrismObject<ShadowType> shadow) {
         var passValProp = ShadowUtil.getPasswordValueProperty(shadow.asObjectable());
         assertNotNull(passValProp, "No password value property in " + shadow);
@@ -2240,6 +2258,13 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         assertNull(passVal, "Unexpected password value in " + shadow + ": " + passVal);
     }
 
+    // Expected clear text of `null` means that the password should be there, should be hashed, but we don't check the value
+    protected void assertHashedShadowPassword(ShadowType shadow, @Nullable String expectedClearText)
+            throws SchemaException, EncryptionException {
+        assertHashedShadowPassword(shadow.asPrismObject(), expectedClearText);
+    }
+
+    // Expected clear text of `null` means that the password should be there, should be hashed, but we don't check the value
     protected void assertHashedShadowPassword(PrismObject<ShadowType> shadow, @Nullable String expectedClearText)
             throws SchemaException, EncryptionException {
         var passVal = assertShadowPasswordPresent(shadow);
@@ -2250,6 +2275,13 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         }
     }
 
+    // Expected clear text of `null` means that the password should be there, should be encrypted, but we don't check the value
+    protected void assertEncryptedShadowPassword(ShadowType shadow, @Nullable String expectedClearText)
+            throws EncryptionException {
+        assertEncryptedShadowPassword(shadow.asPrismObject(), expectedClearText);
+    }
+
+    // Expected clear text of `null` means that the password should be there, should be encrypted, but we don't check the value
     protected void assertEncryptedShadowPassword(PrismObject<ShadowType> shadow, @Nullable String expectedClearText)
             throws EncryptionException {
         var passVal = assertShadowPasswordPresent(shadow);
@@ -2271,6 +2303,10 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         var passVal = passValProp.getRealValue();
         assertNotNull(passVal, "No password value in " + shadow);
         return passVal;
+    }
+
+    protected void assertNoShadowPassword(ShadowType shadow) {
+        assertNoShadowPassword(shadow.asPrismObject());
     }
 
     protected void assertNoShadowPassword(PrismObject<ShadowType> shadow) {
@@ -2333,7 +2369,6 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         PasswordType password = creds.getPassword();
         assertNotNull(password, "No password in shadow " + shadow);
         ValueMetadataType metadata = ValueMetadataTypeUtil.getMetadata(password);
-        assertNotNull(metadata, "No metadata in shadow " + shadow);
         assertMetadata("Password metadata in " + shadow, metadata, passwordCreated, false,
                 startCal, endCal, actorOid, channel);
     }

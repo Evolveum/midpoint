@@ -11,6 +11,9 @@ import com.evolveum.midpoint.web.component.prism.InputPanel;
 
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
 import org.wicketstuff.select2.ChoiceProvider;
@@ -40,20 +43,42 @@ public class Select2MultiChoicePanel<T> extends InputPanel {
         this.model = model;
         this.provider = provider;
         this.minimumInputLength = minimumInputLength;
-    }
-
-    @Override
-    protected void onInitialize() {
-        super.onInitialize();
         initLayout();
     }
 
+    @Override
+    public void renderHead(IHeaderResponse response) {
+        super.renderHead(response);
+        response.render(OnDomReadyHeaderItem.forScript("MidPointTheme.initSelect2MultiChoice(" + getMarkupId() + ");"));
+    }
+
     private void initLayout() {
+        setOutputMarkupId(true);
         Select2MultiChoice<T> multiselect = new Select2MultiChoice<>(ID_SELECT, model, provider);
         multiselect.getSettings()
                 .setMinimumInputLength(minimumInputLength);
         multiselect.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
+
+
+        IModel<String> ariaLabelModel = getAriaLabelModel();
+        if (ariaLabelModel != null) {
+            multiselect.add(AttributeAppender.append("aria-label", ariaLabelModel));
+        }
+
+        if (isInColumn()) {
+            multiselect.add(AttributeAppender.append("class", "form-control-sm"));
+            multiselect.add(AttributeAppender.append("style", "width: 101%;"));
+        }
+
         add(multiselect);
+    }
+
+    protected IModel<String> getAriaLabelModel() {
+        return null;
+    }
+
+    protected boolean isInColumn() {
+        return false;
     }
 
     @Override

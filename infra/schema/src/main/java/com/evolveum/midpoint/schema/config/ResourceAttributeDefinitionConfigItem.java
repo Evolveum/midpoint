@@ -31,7 +31,7 @@ public class ResourceAttributeDefinitionConfigItem extends ConfigurationItem<Res
         super(original);
     }
 
-    public @NotNull QName getAttributeNameSyntax() throws ConfigurationException {
+    public @NotNull QName getAttributeName() throws ConfigurationException {
         var ref = value().getRef();
         if (ref == null) {
             throw configException("Missing 'ref' element in %s", DESC);

@@ -6073,7 +6073,7 @@
             <xsd:enumeration value="filterAll">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The expression will be interpreted as an NONE filter.
+                        The expression will be interpreted as an ALL filter.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="FILTER_ALL"/>

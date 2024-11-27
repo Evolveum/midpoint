@@ -25,6 +25,8 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.scripting.BulkActionsExecutor;
+import com.evolveum.midpoint.model.impl.security.ModelSecurityPolicyFinder;
+import com.evolveum.midpoint.repo.common.security.SecurityPolicyFinder;
 import com.evolveum.midpoint.security.api.*;
 import com.evolveum.midpoint.security.enforcer.api.*;
 
@@ -161,6 +163,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Autowired private SimulationResultManager simulationResultManager;
     @Autowired private ProvisioningService provisioningService;
     @Autowired private ClockworkHookHelper clockworkHookHelper;
+    @Autowired private SecurityPolicyFinder securityPolicyFinder;
+    @Autowired private ModelSecurityPolicyFinder modelSecurityPolicyFinder;
 
     private static final String OPERATION_GENERATE_VALUE = ModelInteractionService.class.getName() + ".generateValue";
     private static final String OPERATION_VALIDATE_VALUE = ModelInteractionService.class.getName() + ".validateValue";
@@ -628,7 +632,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             throws SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
 
-        SecurityPolicyType securityPolicyType = getSecurityPolicy(focus, null, task, parentResult);
+        SecurityPolicyType securityPolicyType = getSecurityPolicy(focus, task, parentResult);
         if (securityPolicyType == null) {
             return null;
         }
@@ -647,7 +651,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException {
 
-        SecurityPolicyType securityPolicy = getSecurityPolicy(focus, null, task, parentResult);
+        SecurityPolicyType securityPolicy = getSecurityPolicy(focus, task, parentResult);
 
         if (securityPolicy == null) {
             LOGGER.warn("No security policy, cannot process nonce credential"); //TODO correct level?
@@ -671,24 +675,40 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public <F extends FocusType> SecurityPolicyType getSecurityPolicy(PrismObject<F> focus, String archetypeOid,
-            Task task, OperationResult parentResult) throws SchemaException, CommunicationException, ConfigurationException,
+    public SecurityPolicyType getSecurityPolicy(
+            @Nullable PrismObject<? extends FocusType> focus, Task task, OperationResult parentResult)
+            throws SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
         OperationResult result = parentResult.createMinorSubresult(GET_SECURITY_POLICY);
         try {
-            PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
-            if (systemConfiguration == null) {
-                result.recordNotApplicable("no system configuration");
-                return null;
-            }
-
-            SecurityPolicyType securityPolicy = securityHelper.locateSecurityPolicy(focus, archetypeOid, systemConfiguration,
-                    task, result);
+            var systemConfiguration = systemObjectCache.getSystemConfiguration(result);
+            var securityPolicy =
+                    modelSecurityPolicyFinder.locateSecurityPolicyForFocus(focus, systemConfiguration, task, result);
             if (securityPolicy == null) {
-                result.recordNotApplicable("no security policy");
-                return null;
+                result.setNotApplicable("no security policy");
             }
+            return securityPolicy;
+        } catch (Throwable e) {
+            result.recordException(e);
+            throw e;
+        } finally {
+            result.close();
+        }
+    }
 
+    @Override
+    public SecurityPolicyType getSecurityPolicyForArchetype(
+            @Nullable String archetypeOid, @NotNull Task task, @NotNull OperationResult parentResult)
+            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+            ExpressionEvaluationException {
+        OperationResult result = parentResult.createMinorSubresult(GET_SECURITY_POLICY_FOR_ARCHETYPE);
+        try {
+            var systemConfiguration = systemObjectCache.getSystemConfiguration(result);
+            var securityPolicy =
+                    modelSecurityPolicyFinder.locateSecurityPolicyForArchetype(archetypeOid, systemConfiguration, task, result);
+            if (securityPolicy == null) {
+                result.setNotApplicable("no security policy");
+            }
             return securityPolicy;
         } catch (Throwable e) {
             result.recordException(e);
@@ -704,13 +724,11 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             ExpressionEvaluationException, ObjectNotFoundException {
         OperationResult result = parentResult.createMinorSubresult(GET_SECURITY_POLICY);
         try {
-            SecurityPolicyType securityPolicyType = securityHelper.locateProjectionSecurityPolicy(rOCDef, task, result);
-            if (securityPolicyType == null) {
+            SecurityPolicyType securityPolicy = securityPolicyFinder.locateResourceObjectSecurityPolicyLegacy(rOCDef, result);
+            if (securityPolicy == null) {
                 result.recordNotApplicableIfUnknown();
-                return null;
             }
-
-            return securityPolicyType;
+            return securityPolicy;
         } catch (Throwable e) {
             result.recordException(e);
             throw e;
@@ -1242,22 +1260,25 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         }
     }
 
+    // TODO unify with the other code for policies
+    //  - e.g. this code ignores defaults for credentials and does its own "merging" of policies.
+    //  Then consider moving to [Model]SecurityPolicyFinder.
     private <O extends ObjectType> ValuePolicyType getValuePolicy(PrismObject<O> object, Task task,
-            OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException,
+            OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         // user-level policy
         CredentialsPolicyType credentialsPolicy = null;
-        PrismObject<UserType> user = null;
         if (object != null && object.getCompileTimeClass().isAssignableFrom(UserType.class)) {
             LOGGER.trace("Start to resolve policy for user");
-            user = (PrismObject<UserType>) object;
-            credentialsPolicy = getCredentialsPolicy(user, task, parentResult);
+            //noinspection unchecked
+            credentialsPolicy = getCredentialsPolicy((PrismObject<UserType>) object, task, result);
             LOGGER.trace("Resolved user policy: {}", credentialsPolicy);
         }
 
-        SystemConfigurationType systemConfigurationType = getSystemConfiguration(parentResult);
+        SystemConfigurationType systemConfigurationType = getSystemConfiguration(result);
         if (!containsValuePolicyDefinition(credentialsPolicy)) {
-            SecurityPolicyType securityPolicy = securityHelper.locateGlobalSecurityPolicy(user, systemConfigurationType.asPrismObject(), task, parentResult);
+            var securityPolicy =
+                    securityPolicyFinder.locateGlobalSecurityPolicy(systemConfigurationType.asPrismObject(), true, result);
             if (securityPolicy != null) {
                 credentialsPolicy = securityPolicy.getCredentials();
                 LOGGER.trace("Resolved policy from global security policy: {}", credentialsPolicy);
@@ -1266,7 +1287,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
         if (containsValuePolicyDefinition(credentialsPolicy)) {
             if (credentialsPolicy.getPassword().getValuePolicyRef() != null) {
-                return objectResolver.resolve(credentialsPolicy.getPassword().getValuePolicyRef(), ValuePolicyType.class, null, "valuePolicyRef in password credential policy", task, parentResult);
+                return objectResolver.resolve(credentialsPolicy.getPassword().getValuePolicyRef(), ValuePolicyType.class, null, "valuePolicyRef in password credential policy", task, result);
             }
         }
 
@@ -1384,13 +1405,13 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 //noinspection unchecked
                 PrismObject<? extends FocusType> focus = (PrismObject<? extends FocusType>) object;
                 if (path.isSuperPathOrEquivalent(SchemaConstants.PATH_PASSWORD)) {
-                    evaluatorBuilder.securityPolicy(getSecurityPolicy(focus, null, task, parentResult));
+                    evaluatorBuilder.securityPolicy(getSecurityPolicy(focus, task, parentResult));
                     PrismContainer<PasswordType> passwordContainer = focus.findContainer(SchemaConstants.PATH_PASSWORD);
                     PasswordType password = passwordContainer != null ? passwordContainer.getValue().asContainerable() : null;
                     evaluatorBuilder.oldCredential(password);
                 } else if (path.isSuperPathOrEquivalent(SchemaConstants.PATH_SECURITY_QUESTIONS)) {
                     LOGGER.trace("Setting security questions related policy.");
-                    SecurityPolicyType securityPolicy = getSecurityPolicy(focus, null, task, parentResult);
+                    SecurityPolicyType securityPolicy = getSecurityPolicy(focus, task, parentResult);
                     evaluatorBuilder.securityPolicy(securityPolicy);
                     PrismContainer<SecurityQuestionsCredentialsType> securityQuestionsContainer =
                             focus.findContainer(SchemaConstants.PATH_SECURITY_QUESTIONS);
@@ -1749,7 +1770,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
         }
 
-        SecurityPolicyType securityPolicy = getSecurityPolicy(user, null, task, parentResult);
+        SecurityPolicyType securityPolicy = getSecurityPolicy(user, task, parentResult);
         CredentialsResetPolicyType resetPolicyType = securityPolicy.getCredentialsReset();
         //TODO: search according tot he credentialID and others
         if (resetPolicyType == null) {

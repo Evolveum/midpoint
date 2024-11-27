@@ -10,9 +10,9 @@
         <div class="w-100" wicket:id="fragments"/>
 
         <wicket:fragment wicket:id="tileFragment">
-            <div class="d-flex flex-wrap gap-3 justify-content-center mt-5" wicket:id="listContainer">
+            <div class="d-flex flex-wrap gap-3 justify-content-center mt-5" wicket:id="listContainer" role="radiogroup">
                 <wicket:container wicket:id="list">
-                    <div class="simple-tile selectable" wicket:id="tile"/>
+                    <div tabindex="0" class="simple-tile selectable clickable-by-enter" wicket:id="tile" role="radio"/>
                 </wicket:container>
             </div>
         </wicket:fragment>
@@ -27,7 +27,7 @@
                 </div>
                 <div class="card-body">
                     <div class="input-group">
-                        <select wicket:id="multiselect" class="form-control flex-grow-1"></select>
+                        <div wicket:id="multiselect" class="flex-grow-1 input-group-prepend"/>
                         <div class="input-group-append">
                             <a class="btn btn-default" type="button" wicket:id="selectManually">
                                 <i class="fa-solid fa-arrow-pointer mr-1"></i>

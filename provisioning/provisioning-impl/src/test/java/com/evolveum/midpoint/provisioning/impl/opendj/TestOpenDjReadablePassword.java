@@ -52,7 +52,7 @@ public class TestOpenDjReadablePassword extends TestOpenDj {
     protected void assertRepoShadowPasswordFetched(ShadowType repoShadow, String expectedClearText) throws Exception {
         if (InternalsConfig.isShadowCachingOnByDefault()) {
             // The cleartext is different, like "{SSHA}ehkK+5px6g..."
-            assertHashedShadowPassword(repoShadow.asPrismObject(), null);
+            assertEncryptedShadowPassword(repoShadow.asPrismObject(), null);
         } else {
             assertNoShadowPassword(repoShadow.asPrismObject());
         }
