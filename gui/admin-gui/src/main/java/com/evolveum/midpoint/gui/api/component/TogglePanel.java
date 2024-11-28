@@ -78,10 +78,11 @@ public class TogglePanel<O extends Serializable> extends BasePanel<List<Toggle<O
 
     private IModel<String> getTitleModel(ListItem<Toggle<O>> item) {
         return () -> {
-            if (StringUtils.isBlank(item.getModelObject().getTitle())) {
+            String title = item.getModelObject().getTitle();
+            if (StringUtils.isBlank(title)) {
                 return null;
             }
-            return getString(item.getModelObject().getTitle(), null, item.getModelObject().getTitle());
+            return getString(title, null, title);
         };
     }
 
