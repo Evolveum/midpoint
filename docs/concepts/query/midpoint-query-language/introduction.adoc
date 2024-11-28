@@ -74,8 +74,12 @@ Following tables summarizes common property filters:
 .Examples of comparison filters on users
 `familyName = "Doe"`::
 equals filter - All users with familyName Doe
+`familyName = ("Doe", "Smith")`::
+equals multi value filter - All users with familyName Doe or Smith
 `name != "Administrator"`::
 not equals filter - Everyone except administrator
+`name != ("Administrator", "Leonardo")`::
+not equals multi value filter - Everyone except administrator and leonardo
 `activation/validTo < "2022-01-01"`::
 less filter - All users which will not be valid after 2021
 
