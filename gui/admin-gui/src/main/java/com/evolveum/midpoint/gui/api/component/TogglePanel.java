@@ -64,8 +64,8 @@ public class TogglePanel<O extends Serializable> extends BasePanel<List<Toggle<O
                 };
                 button.add(AttributeAppender.append("class", () -> item.getModelObject().isActive() ? "active" : null));
                 button.add(AttributeAppender.replace("aria-pressed", () -> item.getModelObject().isActive() ? "true" : "false"));
-                button.add(AttributeAppender.append("title",
-                        () -> getString(item.getModelObject().getTitle(), null, item.getModelObject().getTitle())));
+                button.add(AttributeAppender.append("title", getTitleModel(item)));
+                button.add(AttributeAppender.append("aria-label", getTitleModel(item)));
 
                 item.add(button);
 
@@ -74,6 +74,16 @@ public class TogglePanel<O extends Serializable> extends BasePanel<List<Toggle<O
             }
         };
         add(buttons);
+    }
+
+    private IModel<String> getTitleModel(ListItem<Toggle<O>> item) {
+        return () -> {
+            String title = item.getModelObject().getTitle();
+            if (StringUtils.isBlank(title)) {
+                return null;
+            }
+            return getString(title, null, title);
+        };
     }
 
     protected Component createButtonContent(String id, IModel<Toggle<O>> model) {
