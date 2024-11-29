@@ -37,22 +37,22 @@ to a file, not its content, is the actual value.
             <importFolder>${midpoint.home}/import</importFolder>
         </webApplication>
         <repository>
-            <!--
-            Uncomment this section to use the new Native repository (and comment the rest).
-            For more see: https://docs.evolveum.com/midpoint/reference/repository/configuration/
-            Don't forget to switch Sql/Sqale audit service factory accordingly (lower in this config).
+            <!-- Populate jdbc url, username and password with correct values -->
             <type>native</type>
             <jdbcUrl>jdbc:postgresql://localhost:5432/midpoint</jdbcUrl>
             <jdbcUsername>midpoint</jdbcUsername>
             <jdbcPassword>password</jdbcPassword>
-            -->
 
-            <!-- Old Generic repository placeholders for quick start. -->
+            <!--
+            Uncomment this section to use the old generic repository (and comment previous parts).
+            Database should be sqlserver or oracle.
+            Don't forget to switch Sql/Sqale audit service factory accordingly (lower in this config).
             <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</repositoryServiceFactoryClass>
-            <database></database>   <!-- sqlserver, postgresql or oracle -->
-            <jdbcUsername></jdbcUsername> <!-- username for the database -->
-            <jdbcPassword></jdbcPassword> <!-- password for the database -->
-            <jdbcUrl></jdbcUrl> <!-- jdbc url for the database -->
+            <database></database>
+            <jdbcUsername></jdbcUsername>
+            <jdbcPassword></jdbcPassword>
+            <jdbcUrl></jdbcUrl>
+            -->
         </repository>
         <audit>
             <auditService>
@@ -60,8 +60,8 @@ to a file, not its content, is the actual value.
             </auditService>
             <auditService>
                 <!-- Use SqlAuditServiceFactory for old generic repository and SqaleAuditServiceFactory for new Native one. -->
-                <auditServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory</auditServiceFactoryClass>
-                <!--<auditServiceFactoryClass>com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory</auditServiceFactoryClass>-->
+                <auditServiceFactoryClass>com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory</auditServiceFactoryClass>
+                <!--<auditServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory</auditServiceFactoryClass>-->
             </auditService>
         </audit>
         <icf>
