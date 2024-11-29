@@ -145,7 +145,7 @@ public class CapabilitiesPanel extends BasePanel<PrismContainerValueWrapper<Capa
                                     getPageBase().getMainPopupBodyId(), item.getModel()) {
                                 @Override
                                 public IModel<String> getTitle() {
-                                    return getLabelModel(item.getModelObject());
+                                    return getLabelModel(item.getModel());
                                 }
 
                                 @Override
@@ -161,7 +161,7 @@ public class CapabilitiesPanel extends BasePanel<PrismContainerValueWrapper<Capa
                 };
 
                 button.setOutputMarkupId(true);
-                button.add(new Label(ID_LABEL, getLabelModel(item.getModelObject())));
+                button.add(new Label(ID_LABEL, getLabelModel(item.getModel())));
                 item.add(button);
 
                 WebComponent iconBg = new WebComponent(ID_ICON_BACKGROUND);
@@ -232,11 +232,16 @@ public class CapabilitiesPanel extends BasePanel<PrismContainerValueWrapper<Capa
         };
     }
 
-    private IModel<String> getLabelModel(PrismContainerWrapper<CapabilityType> modelObject) {
-        if (StringUtils.isEmpty(modelObject.getDisplayName())) {
-            return Model.of(modelObject.getItemName().getLocalPart());
-        }
-        return getPageBase().createStringResource(modelObject.getDisplayName());
+    private IModel<String> getLabelModel(IModel<PrismContainerWrapper<CapabilityType>> model) {
+        return () -> {
+            PrismContainerWrapper<CapabilityType> wrapper = model.getObject();
+            String displayName = wrapper.getDisplayName();
+            if (StringUtils.isNotEmpty(displayName)) {
+                return getString(displayName, null, displayName);
+            }
+
+            return wrapper.getItemName().getLocalPart();
+        };
     }
 
     private String getIcon(PrismContainerWrapper<CapabilityType> capability) {
@@ -336,6 +341,12 @@ public class CapabilitiesPanel extends BasePanel<PrismContainerValueWrapper<Capa
 
         if (CredentialsCapabilityType.F_PASSWORD.equivalent(modelObject.getItemName())) {
             return ResourceTypeUtil.isPasswordCapabilityEnabled(
+                    resourceWithApplyDelta.getObject(),
+                    objectTypeWithApplyDelta.getObject());
+        }
+
+        if (BehaviorCapabilityType.F_LAST_LOGIN_TIMESTAMP.equivalent(modelObject.getItemName())) {
+            return ResourceTypeUtil.isLastLoginTimestampCapabilityEnabled(
                     resourceWithApplyDelta.getObject(),
                     objectTypeWithApplyDelta.getObject());
         }

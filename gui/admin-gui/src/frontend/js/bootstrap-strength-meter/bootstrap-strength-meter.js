@@ -45,7 +45,7 @@
                 init: function() {
                     progressBar = settings.container;
                     progressBar.attr('aria-valuemin', 0)
-                            .attr('aria-valuemay', 100);
+                            .attr('aria-valuemax', 100);
 
                     input.on('input', core.keyup);
                     input.on('keyup', core.keyup)
@@ -81,7 +81,7 @@
                     }
 
                     progressBar
-                            .attr('area-valuenow', width)
+                            .attr('aria-valuenow', width)
                             .css('width', width + '%');
 
                     for (var value in settings.hierarchy) {

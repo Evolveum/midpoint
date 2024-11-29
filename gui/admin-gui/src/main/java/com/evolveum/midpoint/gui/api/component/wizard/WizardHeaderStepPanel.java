@@ -48,6 +48,7 @@ public class WizardHeaderStepPanel extends BasePanel<String> {
 
     private void initLayout() {
         add(AttributeAppender.append("class", () -> isActiveIndex() ? "step active" : "step"));
+        add(AttributeAppender.append("aria-current", () -> isActiveIndex() ? "step" : null));
 
         Label stepStatus = new Label(ID_STATUS, () -> {
             String key = "";
