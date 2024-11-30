@@ -226,7 +226,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         assertEquals("Unexpected secondary identifiers: " + accountDefinition.getSecondaryIdentifiers(), 1, accountDefinition.getSecondaryIdentifiers().size());
     }
 
-    private Collection<ShadowSimpleAttribute<?>> addSampleResourceObject(String name, String givenName, String familyName)
+    private Collection<ShadowAttribute<?, ?, ?, ?>> addSampleResourceObject(String name, String givenName, String familyName)
             throws Exception {
         OperationResult result = new OperationResult(this.getClass().getName() + ".testAdd");
 
@@ -266,14 +266,14 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
     public void test100AddDeleteObject() throws Exception {
         OperationResult result = createOperationResult();
 
-        Collection<ShadowSimpleAttribute<?>> identifiers = addSampleResourceObject("john", "John", "Smith");
+        var attributes = addSampleResourceObject("john", "John", "Smith");
 
         var ctx = createExecutionContext();
 
         String uid;
-        for (ShadowSimpleAttribute<?> simpleAttribute : identifiers) {
-            if (SchemaConstants.ICFS_UID.equals(simpleAttribute.getElementName())) {
-                uid = simpleAttribute.getValue(String.class).getValue();
+        for (var attribute : attributes) {
+            if (SchemaConstants.ICFS_UID.equals(attribute.getElementName())) {
+                uid = ((ShadowSimpleAttribute<?>) attribute).getValue(String.class).getValue();
                 System.out.println("uuid:" + uid);
                 assertNotNull(uid);
             }
@@ -282,7 +282,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         ResourceObjectClassDefinition accountDefinition =
                 resourceSchema.findObjectClassDefinitionRequired(OpenDJController.OBJECT_CLASS_INETORGPERSON_QNAME);
         var identification =
-                ResourceObjectIdentification.fromAttributes(accountDefinition, identifiers)
+                ResourceObjectIdentification.fromAttributes(accountDefinition, attributes)
                         .ensurePrimary();
 
         cc.deleteObject(identification, null, ctx, result);
@@ -301,7 +301,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
     public void test110ChangeModifyObject() throws Exception {
         OperationResult result = createOperationResult();
 
-        Collection<ShadowSimpleAttribute<?>> identifiers = addSampleResourceObject("john", "John", "Smith");
+        var attributes = addSampleResourceObject("john", "John", "Smith");
 
         Set<Operation> changes = new HashSet<>();
 
@@ -313,7 +313,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         ResourceObjectClassDefinition accountDefinition =
                 resourceSchema.findObjectClassDefinitionRequired(OpenDJController.OBJECT_CLASS_INETORGPERSON_QNAME);
         var identification = ResourceObjectIdentification
-                .fromAttributes(accountDefinition, identifiers)
+                .fromAttributes(accountDefinition, attributes)
                 .ensurePrimary();
 
         var ctx = createExecutionContext();
