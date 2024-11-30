@@ -135,14 +135,11 @@ public class TestDummyPasswordCaching extends AbstractDummyTest {
             when("discovering account");
             createAccount(resource, accountName, password);
             var provisioningShadow = discoverShadow(resource, accountName, task, result);
+            var oid = provisioningShadow.getOid();
 
             then("password is correct in fetched and cached shadow");
-            var repoShadow = getShadowRepo(provisioningShadow.getOid());
-            displayDumpable("shadow (provisioning)", provisioningShadow);
-            displayDumpable("shadow (repo)", repoShadow);
-
             assertAccountPasswordAfterRead(scenario, provisioningShadow, password);
-            assertRepoPasswordAfterDiscovery(scenario, repoShadow.getBean(), password);
+            assertRepoPasswordAfterDiscovery(scenario, getShadowRepo(oid), password);
         }
     }
 
@@ -164,11 +161,11 @@ public class TestDummyPasswordCaching extends AbstractDummyTest {
             when("discovering account");
             createAccount(resource, accountName, null);
             var provisioningShadow = discoverShadow(resource, accountName, task, result);
+            var oid = provisioningShadow.getOid();
 
             then("no password in fetched and cached shadow");
-            var repoShadow = getShadowRepo(provisioningShadow.getOid());
             assertNoShadowPassword(provisioningShadow);
-            assertNoShadowPassword(repoShadow.getPrismObject());
+            assertNoShadowPassword(getShadowRepo(oid).getPrismObject());
         }
     }
 
@@ -177,6 +174,10 @@ public class TestDummyPasswordCaching extends AbstractDummyTest {
      *
      * An account is created without a password, discovered, then modified on the resource to have a password.
      * Fetched again - and checked.
+     *
+     * Then again: modified on the resource, fetched, and checked.
+     *
+     * Finally, the password is removed from the resource, fetched, and checked.
      */
     @Test
     public void test120FetchAccount() throws Exception {
@@ -201,25 +202,25 @@ public class TestDummyPasswordCaching extends AbstractDummyTest {
             var provisioningShadow1 = fetchShadow(oid, task, result);
 
             then("password is correct in fetched and cached shadow");
-            var repoShadow1 = getShadowRepo(provisioningShadow1.getOid());
-            displayDumpable("shadow (provisioning)", provisioningShadow1);
-            displayDumpable("shadow (repo)", repoShadow1);
-
+            var repoShadow1 = getShadowRepo(oid);
             assertAccountPasswordAfterRead(scenario, provisioningShadow1, password1);
-            assertRepoPasswordAfterGet(scenario, repoShadow1.getBean(), password1, repoShadow0);
+            assertRepoPasswordAfterGet(scenario, repoShadow1, password1, repoShadow0);
 
             when("password is modified on the resource (again) and fetched (again)");
             setAccountPassword(resource, accountName, password2);
-
             var provisioningShadow2 = fetchShadow(oid, task, result);
 
             then("password is correct in fetched and cached shadow");
-            var repoShadow2 = getShadowRepo(provisioningShadow2.getOid());
-            displayDumpable("shadow (provisioning)", provisioningShadow2);
-            displayDumpable("shadow (repo)", repoShadow2);
-
             assertAccountPasswordAfterRead(scenario, provisioningShadow2, password2);
-            assertRepoPasswordAfterGet(scenario, repoShadow2.getBean(), password2, repoShadow1);
+            assertRepoPasswordAfterGet(scenario, getShadowRepo(oid), password2, repoShadow1);
+
+            when("password is removed on the resource and fetched");
+            setAccountPassword(resource, accountName, null);
+            var provisioningShadow3 = fetchShadow(oid, task, result);
+
+            then("password is correct (empty) in fetched and cached shadow");
+            assertNoShadowPassword(provisioningShadow3);
+            assertNoShadowPassword(getShadowRepo(oid).getBean());
         }
     }
 
@@ -228,9 +229,12 @@ public class TestDummyPasswordCaching extends AbstractDummyTest {
      *
      * Account is discovered under the original security policy. Then the policy is changed and the account is fetched again.
      * Cached data should be updated to cover the new policy.
+     *
+     * The limitation is that if a password is not fully readable, and it was provided from midPoint, the conversion will not
+     * take place - yet.
      */
     @Test
-    public void test130FetchAccountUnderChangedPolicy() throws Exception {
+    public void test130FetchAccountUnderChangedStoragePolicy() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
         var password = "secret";
@@ -246,7 +250,7 @@ public class TestDummyPasswordCaching extends AbstractDummyTest {
                     .getOid();
 
             var repoShadow0 = getShadowRepo(oid);
-            assertRepoPasswordAfterDiscovery(scenario, repoShadow0.getBean(), password);
+            assertRepoPasswordAfterDiscovery(scenario, repoShadow0, password);
 
             when("security policy is changed and the account is fetched");
             var modifiedScenario = scenario.withNextStorage();
@@ -255,9 +259,47 @@ public class TestDummyPasswordCaching extends AbstractDummyTest {
                 fetchShadow(oid, task, result);
 
                 then("password is correct in the cached shadow");
-                var repoShadow1 = getShadowRepo(oid);
-                displayDumpable("shadow (repo)", repoShadow1);
-                assertRepoPasswordAfterGet(modifiedScenario, repoShadow1.getBean(), password, repoShadow0);
+                assertRepoPasswordAfterGet(
+                        modifiedScenario, getShadowRepo(oid), password, repoShadow0);
+            } finally {
+                updateResourceWithScenario(resource, scenario, task, result);
+            }
+        }
+    }
+
+    /**
+     * Checks that cached passwords gets erased when the caching is turned off.
+     * This works regardless of the readability, full/legacy caching mode, and storage type (encrypted/hashed).
+     * So, to get rid of cached passwords, simple re-reading of shadows is enough.
+     */
+    @Test
+    public void test140FetchAccountAfterCachingIsTurnedOff() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var password = "secret";
+
+        for (var scenario : SCENARIOS) {
+            if (scenario.caching == Caching.OFF) {
+                continue; // no need to turn off something that is originally not on
+            }
+            given("scenario " + scenario);
+            var resource = getOrCreateResource(scenario);
+            var accountName = getTestNameShort() + "-" + scenario;
+
+            and("an account created (via midPoint) with a password");
+            var oid = createAccountViaMidPoint(resource, accountName, password, task, result);
+
+            var repoShadow0 = getShadowRepo(oid);
+            assertRepoPasswordAfterMidPointAdd(scenario, repoShadow0, password);
+
+            when("caching is turned off and the account is fetched");
+            var modifiedScenario = scenario.withCachingOff();
+            try {
+                updateResourceWithScenario(resource, modifiedScenario, task, result);
+                fetchShadow(oid, task, result);
+
+                then("there is no password in the cached shadow");
+                assertNoShadowPassword(getShadowRepo(oid).getBean());
             } finally {
                 updateResourceWithScenario(resource, scenario, task, result);
             }
@@ -288,41 +330,136 @@ public class TestDummyPasswordCaching extends AbstractDummyTest {
             var accountName = getTestNameShort() + "-" + scenario;
 
             when("creating account");
-            var shadowToCreate = Resource.of(resource.get())
-                    .shadow(ACCOUNT_DEFAULT)
-                    .withSimpleAttribute(ICFS_NAME, accountName)
-                    .withPassword(password1)
-                    .asPrismObject();
-            var oid = provisioningService.addObject(shadowToCreate, null, null, task, result);
+            var oid = createAccountViaMidPoint(resource, accountName, password1, task, result);
 
             then("password is correct in cached shadow");
-            var repoShadow1 = getShadowRepo(oid);
-            displayDumpable("shadow (repo)", repoShadow1);
-            assertRepoPasswordAfterMidPointAdd(scenario, repoShadow1.getBean(), password1);
+            assertRepoPasswordAfterMidPointAdd(scenario, getShadowRepo(oid), password1);
 
             when("modifying account password via midPoint (encrypted)");
-            setAccountPasswordByMidPoint(resource, oid, encrypted(password2), task, result);
+            setAccountPasswordViaMidPoint(resource, oid, encrypted(password2), task, result);
 
             then("password is correct in cached shadow");
-            var repoShadow2 = getShadowRepo(oid);
-            displayDumpable("shadow (repo)", repoShadow2);
-            assertRepoPasswordAfterMidPointModify(scenario, repoShadow2.getBean(), password2);
+            assertRepoPasswordAfterMidPointModify(scenario, getShadowRepo(oid), password2);
 
             when("modifying account password via midPoint (cleartext)");
-            setAccountPasswordByMidPoint(resource, oid, clear(password3), task, result);
+            setAccountPasswordViaMidPoint(resource, oid, clear(password3), task, result);
+
+            then("password is correct in cached shadow");
+            assertRepoPasswordAfterMidPointModify(scenario, getShadowRepo(oid), password3);
+
+            when("modifying account password via midPoint (hashed)");
+            setAccountPasswordViaMidPoint(resource, oid, hashed(password4), task, result);
+
+            then("password is correct (untouched) in cached shadow (hashed password => no change)");
+            assertRepoPasswordAfterMidPointModify(scenario, getShadowRepo(oid), password3);
+
+            when("deleting the password via midPoint (REPLACE to no values)");
+            setAccountPasswordViaMidPoint(resource, oid, null, task, result);
+
+            then("password is no longer in cached shadow");
+            assertNoShadowPassword(getShadowRepo(oid).getBean());
+        }
+    }
+
+    /**
+     * Here the password is changed from both sides: on the resource and from midPoint.
+     *
+     * Just as in {@link #test200CreateAndModifyAccount()}, we test midPoint-side modification
+     * with clear, encrypted, and hashed values.
+     */
+    @Test
+    public void test210ModifyPasswordFromBothSides() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var password0 = "secret";
+        var password2 = "password-2-resource";
+        var password3 = "password-3-midPoint-encrypted";
+        var password4 = "password-4-resource";
+        var password5 = "password-5-midPoint-clear";
+        var password6 = "password-6-resource";
+        var password7 = "password-7-midPoint-hashed";
+        var password8 = "password-8-resource";
+
+        for (var scenario : SCENARIOS) {
+            given("scenario " + scenario);
+            var resource = getOrCreateResource(scenario);
+            var accountName = getTestNameShort() + "-" + scenario;
+
+            when("creating account");
+            var oid = createAccountViaMidPoint(resource, accountName, password0, task, result);
+
+            then("password is correct in cached shadow");
+            var repoShadow0 = getShadowRepo(oid);
+            assertRepoPasswordAfterMidPointAdd(scenario, repoShadow0, password0);
+
+            when("account is fetched");
+            var provisioningShadow1 = fetchShadow(oid, task, result);
+
+            then("password is correct in fetched and cached shadow");
+            var repoShadow1 = getShadowRepo(oid);
+            assertAccountPasswordAfterRead(scenario, provisioningShadow1, password0);
+            assertRepoPasswordAfterGet(scenario, repoShadow1, password0, repoShadow0);
+
+            when("password is modified on the resource and fetched");
+            setAccountPassword(resource, accountName, password2);
+            var provisioningShadow2 = fetchShadow(oid, task, result);
+
+            then("password is correct in fetched and cached shadow");
+            assertAccountPasswordAfterRead(scenario, provisioningShadow2, password2);
+            assertRepoPasswordAfterGet(scenario, getShadowRepo(oid), password2, repoShadow1);
+
+            when("password is modified via midPoint (encrypted)");
+            setAccountPasswordViaMidPoint(resource, oid, encrypted(password3), task, result);
 
             then("password is correct in cached shadow");
             var repoShadow3 = getShadowRepo(oid);
-            displayDumpable("shadow (repo)", repoShadow3);
-            assertRepoPasswordAfterMidPointModify(scenario, repoShadow3.getBean(), password3);
+            assertRepoPasswordAfterMidPointModify(scenario, repoShadow3, password3);
+
+            when("password is modified on the resource and fetched");
+            setAccountPassword(resource, accountName, password4);
+            var provisioningShadow4 = fetchShadow(oid, task, result);
+
+            then("password is correct in fetched and cached shadow");
+            assertAccountPasswordAfterRead(scenario, provisioningShadow4, password4);
+            assertRepoPasswordAfterGet(scenario, getShadowRepo(oid), password4, repoShadow3);
+
+            when("password is modified via midPoint (cleartext)");
+            setAccountPasswordViaMidPoint(resource, oid, clear(password5), task, result);
+
+            then("password is correct in cached shadow");
+            var repoShadow5 = getShadowRepo(oid);
+            assertRepoPasswordAfterMidPointModify(scenario, repoShadow5, password5);
+
+            when("password is modified on the resource and fetched");
+            setAccountPassword(resource, accountName, password6);
+            var provisioningShadow6 = fetchShadow(oid, task, result);
+
+            then("password is correct in fetched and cached shadow");
+            assertAccountPasswordAfterRead(scenario, provisioningShadow6, password6);
+            assertRepoPasswordAfterGet(scenario, getShadowRepo(oid), password6, repoShadow5);
 
             when("modifying account password via midPoint (hashed)");
-            setAccountPasswordByMidPoint(resource, oid, hashed(password4), task, result);
+            setAccountPasswordViaMidPoint(resource, oid, hashed(password7), task, result);
 
-            then("password is correct (untouched) in cached shadow");
-            var repoShadow4 = getShadowRepo(oid);
-            displayDumpable("shadow (repo)", repoShadow4);
-            assertRepoPasswordAfterMidPointModify(scenario, repoShadow3.getBean(), password3); // hashed password => no change
+            then("password is correct (untouched) in cached shadow (hashed password => no change)");
+            var repoShadow7 = getShadowRepo(oid);
+            assertRepoPasswordAfterMidPointModify(
+                    scenario, repoShadow7,
+                    scenario.readability == Readability.FULL && scenario.caching != Caching.LEGACY ? password6 : password5);
+
+            when("password is modified on the resource and fetched");
+            setAccountPassword(resource, accountName, password8);
+            var provisioningShadow8 = fetchShadow(oid, task, result);
+
+            then("password is correct in fetched and cached shadow");
+            assertAccountPasswordAfterRead(scenario, provisioningShadow8, password8);
+            assertRepoPasswordAfterGet(scenario, getShadowRepo(oid), password8, repoShadow7);
+
+            when("deleting the password via midPoint (REPLACE to no values)");
+            setAccountPasswordViaMidPoint(resource, oid, null, task, result);
+
+            then("password is no longer in cached shadow");
+            assertNoShadowPassword(getShadowRepo(oid).getBean());
         }
     }
 
@@ -355,26 +492,37 @@ public class TestDummyPasswordCaching extends AbstractDummyTest {
     }
 
     /** Assuming the shadow was not there before. */
-    private void assertRepoPasswordAfterDiscovery(Scenario scenario, ShadowType repoShadow, String password) throws Exception {
+    private void assertRepoPasswordAfterDiscovery(Scenario scenario, RawRepoShadow repoShadow, String password) throws Exception {
+        var shadowBean = repoShadow.getBean();
         if (scenario.readability == Readability.NONE || scenario.caching == Caching.OFF) {
-            assertNoShadowPassword(repoShadow);
+            assertNoShadowPassword(shadowBean);
         } else if (scenario.readability == Readability.EXISTENCE) {
-            assertIncompleteShadowPassword(repoShadow); // for both caching ON and LEGACY, we store only the "incomplete" flag
+            assertIncompleteShadowPassword(shadowBean); // for both caching ON and LEGACY, we store only the "incomplete" flag
         } else if (scenario.caching == Caching.LEGACY) {
             // We cache only hashed values in legacy mode
-            assertHashedShadowPassword(repoShadow, password);
+            assertHashedShadowPassword(shadowBean, password);
         } else {
             assert scenario.readability == Readability.FULL;
             assert scenario.caching == Caching.ON;
-            assertShadowPassword(repoShadow, password, scenario.storage.getStorageType());
+            assertShadowPassword(shadowBean, password, scenario.storage.getStorageType());
         }
     }
 
     /** Assuming the shadow was already there, with the value of `repoShadowBefore`. */
     private void assertRepoPasswordAfterGet(
-            Scenario scenario, ShadowType repoShadow, String password, RawRepoShadow repoShadowBefore) throws Exception {
+            Scenario scenario, RawRepoShadow repoShadowAfter, String password, RawRepoShadow repoShadowBefore) throws Exception {
+        var repoShadow = repoShadowAfter.getBean();
         if (scenario.readability == Readability.NONE) {
-            assertNoShadowPassword(repoShadow);
+            // "Get" should preserve the value in the shadow if the password is not readable
+            var passwordValueBefore = ShadowUtil.getPasswordValueProperty(repoShadowBefore.getBean());
+            if (passwordValueBefore != null && passwordValueBefore.hasAnyValue()) {
+                var passwordValueAfter = ShadowUtil.getPasswordValueProperty(repoShadow);
+                assertThat(passwordValueAfter)
+                        .as("password after (password unreadable)")
+                        .isEqualTo(passwordValueBefore);
+            } else {
+                assertNoShadowPassword(repoShadow);
+            }
         } else if (scenario.caching == Caching.OFF) {
             assertNoShadowPassword(repoShadow);
         } else if (scenario.caching == Caching.LEGACY) {
@@ -385,7 +533,16 @@ public class TestDummyPasswordCaching extends AbstractDummyTest {
                     .as("password after (legacy caching)")
                     .isEqualTo(passwordValueBefore);
         } else if (scenario.readability == Readability.EXISTENCE) {
-            assertIncompleteShadowPassword(repoShadow); // FIXME if needed
+            // "Get" should preserve the value in the shadow if only the existence is reported
+            var passwordValueBefore = ShadowUtil.getPasswordValueProperty(repoShadowBefore.getBean());
+            if (passwordValueBefore != null && passwordValueBefore.hasAnyValue()) {
+                var passwordValueAfter = ShadowUtil.getPasswordValueProperty(repoShadow);
+                assertThat(passwordValueAfter)
+                        .as("password after (password existence readability)")
+                        .isEqualTo(passwordValueBefore);
+            } else {
+                assertIncompleteShadowPassword(repoShadow);
+            }
         } else {
             assert scenario.readability == Readability.FULL;
             assert scenario.caching == Caching.ON;
@@ -393,16 +550,17 @@ public class TestDummyPasswordCaching extends AbstractDummyTest {
         }
     }
 
-    private void assertRepoPasswordAfterMidPointAdd(Scenario scenario, @NotNull ShadowType repoShadow, String password)
+    private void assertRepoPasswordAfterMidPointAdd(Scenario scenario, @NotNull RawRepoShadow repoShadow, String password)
             throws Exception {
+        var bean = repoShadow.getBean();
         switch (scenario.caching) {
-            case OFF -> assertNoShadowPassword(repoShadow);
-            case LEGACY -> assertHashedShadowPassword(repoShadow, password); // This is the only mode for legacy
-            case ON -> assertShadowPassword(repoShadow, password, scenario.storage.getStorageType());
+            case OFF -> assertNoShadowPassword(bean);
+            case LEGACY -> assertHashedShadowPassword(bean, password); // This is the only mode for legacy
+            case ON -> assertShadowPassword(bean, password, scenario.storage.getStorageType());
         }
     }
 
-    private void assertRepoPasswordAfterMidPointModify(Scenario scenario, @NotNull ShadowType repoShadow, String password)
+    private void assertRepoPasswordAfterMidPointModify(Scenario scenario, @NotNull RawRepoShadow repoShadow, String password)
             throws Exception {
         assertRepoPasswordAfterMidPointAdd(scenario, repoShadow, password); // should be the same
     }
@@ -455,7 +613,18 @@ public class TestDummyPasswordCaching extends AbstractDummyTest {
                 .setPassword(password);
     }
 
-    private void setAccountPasswordByMidPoint(
+    private String createAccountViaMidPoint(
+            DummyTestResource resource, String accountName, String password, Task task, OperationResult result)
+            throws CommonException {
+        var shadowToCreate = Resource.of(resource.get())
+                .shadow(ACCOUNT_DEFAULT)
+                .withSimpleAttribute(ICFS_NAME, accountName)
+                .withPassword(password)
+                .asPrismObject();
+        return provisioningService.addObject(shadowToCreate, null, null, task, result);
+    }
+
+    private void setAccountPasswordViaMidPoint(
             DummyTestResource resource, String shadowOid, @Nullable ProtectedStringType value, Task task, OperationResult result)
             throws Exception {
         provisioningService.modifyObject(
@@ -558,6 +727,11 @@ public class TestDummyPasswordCaching extends AbstractDummyTest {
         /** Returns the same scenario but with the storage type changed to the next one. */
         Scenario withNextStorage() {
             return new Scenario(readability, caching, storage == Storage.ENCRYPTING ? Storage.HASHING : Storage.ENCRYPTING);
+        }
+
+        /** Returns the same scenario but with caching turned off. */
+        Scenario withCachingOff() {
+            return new Scenario(readability, Caching.OFF, storage);
         }
     }
 }
