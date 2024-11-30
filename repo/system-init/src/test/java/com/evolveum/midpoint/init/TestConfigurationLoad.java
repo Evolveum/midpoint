@@ -32,8 +32,7 @@ public class TestConfigurationLoad extends AbstractUnitTest {
         StartupConfiguration sc = new StartupConfiguration();
         sc.init();
         Configuration c = sc.getConfiguration(MidpointConfiguration.REPOSITORY_CONFIGURATION);
-        assertEquals(c.getString("repositoryServiceFactoryClass"),
-                "com.evolveum.midpoint.repo.sql.SqlRepositoryFactory");
+        assertEquals(c.getString("type"), "native");
         logger.info("{}", sc);
 
         Iterator<String> i = c.getKeys();
