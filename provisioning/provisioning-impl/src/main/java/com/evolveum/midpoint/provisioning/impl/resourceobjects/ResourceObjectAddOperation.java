@@ -204,7 +204,7 @@ class ResourceObjectAddOperation extends ResourceObjectProvisioningOperation {
         ShadowAttributesContainer targetAttrContainer = originalObject.getAttributesContainer();
         for (var addedAttribute : emptyIfNull(knownCreatedObjectAttributes)) {
 
-            targetAttrContainer.removeProperty(addedAttribute.getElementName());
+            targetAttrContainer.removeAttribute(addedAttribute.getElementName());
 
             // must be cloned because the method above does not unset the parent in the PrismValue being removed (should be fixed)
             var clone = addedAttribute.clone();

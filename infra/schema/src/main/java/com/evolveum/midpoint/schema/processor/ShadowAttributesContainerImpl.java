@@ -195,6 +195,13 @@ public final class ShadowAttributesContainerImpl
     }
 
     @Override
+    public void removeAttribute(@NotNull ItemName name) {
+        if (hasAnyValue()) {
+            getValue().removeItem(name);
+        }
+    }
+
+    @Override
     public ShadowAttributesContainerImpl cloneComplex(CloneStrategy strategy) {
         ShadowAttributesContainerImpl clone = new ShadowAttributesContainerImpl(getElementName(), getDefinition());
         copyValues(strategy, clone);
