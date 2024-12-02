@@ -10,6 +10,8 @@ package com.evolveum.midpoint.web.component.prism.show;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -89,12 +91,14 @@ public class ChangesPanel extends BasePanel<List<VisualizationDto>> {
             protected List<Toggle<ChangesView>> load() {
                 List<Toggle<ChangesView>> toggles = new ArrayList<>();
 
-                Toggle<ChangesView> simple = new Toggle<>("fa-solid fa-magnifying-glass mr-1", "ChangesView.SIMPLE");
+                Toggle<ChangesView> simple = new Toggle<>("fa-solid fa-magnifying-glass mr-1",
+                        LocalizationUtil.createKeyForEnum(ChangesView.SIMPLE));
                 simple.setValue(ChangesView.SIMPLE);
                 simple.setActive(changesView.getObject() == simple.getValue());
                 toggles.add(simple);
 
-                Toggle<ChangesView> advanced = new Toggle<>("fa-solid fa-microscope mr-1", "ChangesView.ADVANCED");
+                Toggle<ChangesView> advanced = new Toggle<>("fa-solid fa-microscope mr-1",
+                        LocalizationUtil.createKeyForEnum(ChangesView.ADVANCED));
                 advanced.setValue(ChangesView.ADVANCED);
                 advanced.setActive(changesView.getObject() == advanced.getValue());
                 toggles.add(advanced);

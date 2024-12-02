@@ -49,6 +49,7 @@ public abstract class MenuItemLinkPanel<T extends Serializable> extends BasePane
         add(AttributeAppender.append("class", "item " + "level-" + (level + 1)));
         add(AttributeAppender.append("class", () -> getModelObject().isActive() ? "active" : null));
         add(AttributeAppender.append("class", () -> getModelObject().isDisabled() ? "disabled" : null));
+
         AjaxLink link = new AjaxLink<>(ID_LINK) {
 
             @Override
@@ -90,6 +91,9 @@ public abstract class MenuItemLinkPanel<T extends Serializable> extends BasePane
 
     protected boolean isChevronLinkVisible() {
         ListGroupMenuItem<T> item = getModelObject();
+        if (!item.isLoaded()) {
+            item.getItems();
+        }
         return StringUtils.isEmpty(item.getBadge()) && !item.isEmpty();
     }
 
