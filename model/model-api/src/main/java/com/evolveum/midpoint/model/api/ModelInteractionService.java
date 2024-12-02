@@ -85,6 +85,7 @@ public interface ModelInteractionService {
     String GET_AUTHENTICATIONS_POLICY = CLASS_NAME_WITH_DOT + "getAuthenticationsPolicy";
     String GET_REGISTRATIONS_POLICY = CLASS_NAME_WITH_DOT + "getRegistrationsPolicy";
     String GET_SECURITY_POLICY = CLASS_NAME_WITH_DOT + "resolveSecurityPolicy";
+    String GET_SECURITY_POLICY_FOR_ARCHETYPE = CLASS_NAME_WITH_DOT + "resolveSecurityPolicyForArchetype";
     String CHECK_PASSWORD = CLASS_NAME_WITH_DOT + "checkPassword";
     String GET_CONNECTOR_OPERATIONAL_STATUS = CLASS_NAME_WITH_DOT + "getConnectorOperationalStatus";
     String MERGE_OBJECTS_PREVIEW_DELTA = CLASS_NAME_WITH_DOT + "mergeObjectsPreviewDelta";
@@ -268,11 +269,29 @@ public interface ModelInteractionService {
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException;
 
-    //TODO needs Class<F> type parameter
-    <F extends FocusType> SecurityPolicyType getSecurityPolicy(
-            PrismObject<F> focus, String archetypeOid, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, CommunicationException,
+    /** Returns security policy for given focus (or global policy if the focus is not specified). */
+    @Nullable SecurityPolicyType getSecurityPolicy(
+            @Nullable PrismObject<? extends FocusType> focus, Task task, OperationResult parentResult)
+            throws SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+
+    /** Returns security policy for given archetype (or global policy if the archetype is not specified). */
+    SecurityPolicyType getSecurityPolicyForArchetype(
+            @Nullable String archetypeOid, Task task, OperationResult parentResult)
+            throws SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+
+    /** Returns security policy for given focus (if specified) or for archetype (if specified), or the global one. */
+    default <F extends FocusType> SecurityPolicyType getSecurityPolicy(
+            PrismObject<F> focus, String archetypeOid, Task task, OperationResult parentResult)
+            throws SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        if (focus != null) {
+            return getSecurityPolicy(focus, task, parentResult);
+        } else {
+            return getSecurityPolicyForArchetype(archetypeOid, task, parentResult);
+        }
+    }
 
     /** Returns resolved value policy references. */
     SecurityPolicyType getSecurityPolicy(ResourceObjectDefinition rOCDef, Task task, OperationResult parentResult)

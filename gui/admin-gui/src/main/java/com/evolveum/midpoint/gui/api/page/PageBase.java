@@ -384,6 +384,9 @@ public abstract class PageBase extends PageAdminLTE {
         cartLink.add(new VisibleBehaviour(() -> getPage() instanceof PageRequestAccess || !getSessionStorage().getRequestAccess().getShoppingCartAssignments().isEmpty()));
         mainHeader.add(cartLink);
 
+        cartLink.add(AttributeAppender.append("title", createStringResource("PageBase.cartLink")));
+        cartLink.add(AttributeAppender.append("aria-label", createStringResource("PageBase.cartLink")));
+
         Label cartCount = new Label(ID_CART_COUNT, () -> {
             List list = getSessionStorage().getRequestAccess().getShoppingCartAssignments();
             return list.isEmpty() ? null : list.size();

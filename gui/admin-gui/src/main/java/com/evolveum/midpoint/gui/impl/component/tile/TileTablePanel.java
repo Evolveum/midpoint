@@ -14,6 +14,7 @@ import java.util.List;
 import com.evolveum.midpoint.gui.api.component.Toggle;
 import com.evolveum.midpoint.gui.api.component.TogglePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 
@@ -110,6 +111,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         WebMarkupContainer tilesContainer = createTilesContainer(ID_TILES_CONTAINER, provider, tableId);
         tilesContainer.add(new VisibleBehaviour(this::isTileViewVisible));
         tilesContainer.add(AttributeModifier.append("class", getTilesContainerAdditionalClass()));
+        tilesContainer.add(AttributeModifier.append("role", getTilesContainerRole()));
         tilesContainer.setOutputMarkupId(true);
         tilesView.add(tilesContainer);
 
@@ -134,6 +136,10 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         BoxedTablePanel table = createTablePanel(ID_TABLE, provider, tableId);
         table.add(new VisibleBehaviour(this::isTableVisible));
         add(table);
+    }
+
+    protected String getTilesContainerRole() {
+        return "list";
     }
 
     public void initHeaderFragment(WebMarkupContainer tilesView) {
@@ -164,6 +170,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
                 item.add(AttributeAppender.append("style", () -> getTileCssStyle()));
 
                 Component tile = createTile(ID_TILE, item.getModel());
+                tile.add(AttributeAppender.append("role", getTileRole()));
                 item.add(tile);
             }
 
@@ -172,6 +179,10 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
                 return List.of(createTileObject(object));
             }
         };
+    }
+
+    protected String getTileRole() {
+        return "listitem";
     }
 
     protected String getTileCssStyle() {
@@ -227,11 +238,13 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
                 Toggle<ViewToggle> asList = new Toggle<>("fa-solid fa-table-list", null);
                 asList.setActive(ViewToggle.TABLE == toggle);
                 asList.setValue(ViewToggle.TABLE);
+                asList.setTitle(LocalizationUtil.translate("TileTablePanel.switchToTable"));
                 list.add(asList);
 
                 Toggle<ViewToggle> asTile = new Toggle<>("fa-solid fa-table-cells", null);
                 asTile.setActive(ViewToggle.TILE == toggle);
                 asTile.setValue(ViewToggle.TILE);
+                asTile.setTitle(LocalizationUtil.translate("TileTablePanel.switchToTile"));
                 list.add(asTile);
 
                 return list;

@@ -781,7 +781,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     /** Password in repo shadow after known password is written. */
     private void assertRepoShadowPasswordWritten(ShadowType repoShadow, String expectedClearText) throws Exception {
         if (InternalsConfig.isShadowCachingOnByDefault()) {
-            assertHashedShadowPassword(repoShadow.asPrismObject(), expectedClearText);
+            assertEncryptedShadowPassword(repoShadow.asPrismObject(), expectedClearText);
         } else {
             assertNoShadowPassword(repoShadow.asPrismObject());
         }

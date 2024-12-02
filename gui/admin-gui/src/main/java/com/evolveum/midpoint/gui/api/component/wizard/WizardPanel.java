@@ -10,6 +10,8 @@ package com.evolveum.midpoint.gui.api.component.wizard;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -19,6 +21,7 @@ import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
@@ -119,9 +122,9 @@ public class WizardPanel extends BasePanel implements WizardListener {
 
             @Override
             protected void populateItem(ListItem<IModel<String>> listItem) {
-                WizardHeaderStepPanel step = new WizardHeaderStepPanel(ID_STEP, listItem.getIndex(), listItem.getModelObject());
+                WizardHeaderStepPanel step = new WizardHeaderStepPanel(
+                        ID_STEP, listItem.getIndex(), wizardModel.getActiveStepIndex(), listItem.getModelObject());
                 // todo fix, if steps are invisible index might shift?
-                step.add(AttributeAppender.append("class", () -> wizardModel.getActiveStepIndex() == listItem.getIndex() ? "active" : null));
                 listItem.add(step);
 
                 WebMarkupContainer line = new WebMarkupContainer(ID_LINE);

@@ -296,6 +296,14 @@ public class ResourceTypeUtil {
         return isEnabled(passwordCap);
     }
 
+    public static boolean isLastLoginTimestampCapabilityEnabled(ResourceType resource, ResourceObjectTypeDefinitionType def) {
+        BehaviorCapabilityType cap = getEnabledCapability(resource, def, BehaviorCapabilityType.class);
+        if (!CapabilityUtil.isEnabled(cap)) {
+            return false;
+        }
+        return CapabilityUtil.isEnabled(cap.getLastLoginTimestamp());
+    }
+
     private static PasswordCapabilityType getEffectivePasswordCapability(
             ResourceType resource, ResourceObjectTypeDefinitionType typeDefinitionBean) {
         CredentialsCapabilityType cct = getEnabledCapability(resource, typeDefinitionBean, CredentialsCapabilityType.class);

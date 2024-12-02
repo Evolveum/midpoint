@@ -42,6 +42,7 @@ public class CatalogTilePanel<T extends Serializable> extends ObjectTilePanel<T,
         add(AttributeAppender.append("class", () -> getModelObject().isSelected() ? "active" : null));
 
         RoundedIconPanel check = new RoundedIconPanel(ID_CHECK, () -> "fa fa-check", () -> getModelObject().getCheckState(), () -> getModelObject().getCheckTitle());
+        check.setOutputMarkupId(true);
         add(check);
 
         Label info = new Label(ID_INFO);
@@ -59,6 +60,7 @@ public class CatalogTilePanel<T extends Serializable> extends ObjectTilePanel<T,
         });
 
         Component add = createAddButton(ID_ADD);
+        addAriaDescribedByForButton(add);
         add(add);
     }
 
@@ -74,5 +76,14 @@ public class CatalogTilePanel<T extends Serializable> extends ObjectTilePanel<T,
 
     protected void onAdd(AjaxRequestTarget target) {
 
+    }
+
+    @Override
+    protected void addAriaDescribedByForButton(Component details) {
+        super.addAriaDescribedByForButton(details);
+
+        details.add(AttributeAppender.append(
+                "aria-describedby",
+                () -> RoundedIconPanel.State.NONE != getModelObject().getCheckState() ? CatalogTilePanel.this.get(ID_CHECK).getMarkupId() : null));
     }
 }

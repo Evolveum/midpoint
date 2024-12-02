@@ -145,6 +145,10 @@ public class ListGroupMenuItem<T extends Serializable> implements Serializable {
     }
 
     public boolean isEmpty() {
-        return items.isLoaded() && getItems().isEmpty();
+        if (!isLoaded()) {
+            return true;
+        }
+
+        return getItems().isEmpty();
     }
 }

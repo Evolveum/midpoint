@@ -211,10 +211,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     @Autowired protected RoleAnalysisService roleAnalysisService;
 
     @Autowired
-    @Qualifier("cacheRepositoryService")
-    protected RepositoryService repositoryService;
-
-    @Autowired
     @Qualifier("repositoryService")
     protected RepositoryService plainRepositoryService;
 
@@ -5537,23 +5533,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             AuthorizationDecisionType decision = constraints.findItemDecision(expectedAllowedItemPath);
             assertEquals("Wrong decision for item " + expectedAllowedItemPath, AuthorizationDecisionType.ALLOW, decision);
         }
-    }
-
-    @Override
-    protected void assertEncryptedUserPassword(String userOid, String expectedClearPassword) throws EncryptionException, ObjectNotFoundException, SchemaException {
-        OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName() + ".assertEncryptedUserPassword");
-        PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
-        assertEncryptedUserPassword(user, expectedClearPassword);
-    }
-
-    @Override
-    protected void assertEncryptedUserPassword(PrismObject<UserType> user, String expectedClearPassword) throws EncryptionException {
-        UserType userType = user.asObjectable();
-        ProtectedStringType protectedActualPassword = userType.getCredentials().getPassword().getValue();
-        String actualClearPassword = protector.decryptString(protectedActualPassword);
-        assertEquals("Wrong password for " + user, expectedClearPassword, actualClearPassword);
     }
 
     protected void assertPasswordMetadata(PrismObject<UserType> user, ItemName credentialType, boolean create,

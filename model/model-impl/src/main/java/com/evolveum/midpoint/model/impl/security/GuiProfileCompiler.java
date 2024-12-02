@@ -6,19 +6,11 @@
  */
 package com.evolveum.midpoint.model.impl.security;
 
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
-import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.security.api.ProfileCompilerOptions;
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
-
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -28,31 +20,39 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.schema.merger.AdminGuiConfigurationMergeManager;
+import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.model.impl.controller.CollectionProcessor;
 import com.evolveum.midpoint.model.impl.lens.LoginAssignmentCollector;
+import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
-import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
+import com.evolveum.midpoint.schema.SchemaService;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.merger.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationTransformer;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.ProfileCompilerOptions;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 
 /**
  * Compiles user interface profile for a particular user. The profile contains essential information needed to efficiently render
@@ -69,9 +69,8 @@ public class GuiProfileCompiler {
 
     private static final Trace LOGGER = TraceManager.getTrace(GuiProfileCompiler.class);
 
-    @Autowired private SecurityHelper securityHelper;
+    @Autowired private ModelSecurityPolicyFinder modelSecurityPolicyFinder;
     @Autowired private SystemObjectCache systemObjectCache;
-    @Autowired private RelationRegistry relationRegistry;
     @Autowired private CollectionProcessor collectionProcessor;
     @Autowired PrismContext prismContext;
     @Autowired @Qualifier("modelObjectResolver") private ObjectResolver objectResolver;
@@ -112,8 +111,9 @@ public class GuiProfileCompiler {
 
         if (options.isLocateSecurityPolicy()
                 && (!options.isTryReusingSecurityPolicy() || principal.getApplicableSecurityPolicy() == null)) {
-            principal.setApplicableSecurityPolicy(securityHelper.locateSecurityPolicy(principal.getFocus().asPrismObject(),
-                    null, systemConfiguration, task, result));
+            principal.setApplicableSecurityPolicy(
+                    modelSecurityPolicyFinder.locateSecurityPolicyForFocus(
+                            principal.getFocus().asPrismObject(), systemConfiguration, task, result));
         }
 
         List<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();

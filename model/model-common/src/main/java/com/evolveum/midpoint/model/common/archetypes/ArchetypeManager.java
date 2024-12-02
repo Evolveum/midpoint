@@ -174,10 +174,10 @@ public class ArchetypeManager implements Cache {
      *
      * (See the class-level note about resolving dangling references.)
      */
-    public ArchetypeType determineStructuralArchetype(@Nullable AssignmentHolderType assignmentHolder, OperationResult result)
+    public ArchetypeType determineStructuralArchetype(@Nullable ObjectType object, OperationResult result)
             throws SchemaException {
         return ArchetypeTypeUtil.getStructuralArchetype(
-                determineArchetypes(assignmentHolder, result));
+                determineArchetypes(object, result));
     }
 
     /**

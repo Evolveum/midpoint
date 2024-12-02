@@ -15,9 +15,9 @@
         <div wicket:id="csrfField"/>
         <input type="hidden" wicket:id="archetypeOid"/>
         <input type="hidden" wicket:id="allowUndefinedArchetype"/>
-        <div role="list" class="tiles-wizard d-flex flex-wrap gap-2h justify-content-center mb-2" wicket:id="archetypeSelectionPanel">
+        <div role="radiogroup" class="tiles-wizard d-flex flex-wrap gap-2h justify-content-center mb-2" wicket:id="archetypeSelectionPanel">
             <wicket:container wicket:id="archetypes">
-                <div role="option" tabindex="0" aria-selected="false" class="card mb-0 simple-tile selectable" wicket:id="archetype"/>
+                <div role="radio" tabindex="0" class="clickable-by-enter card mb-0 simple-tile selectable" wicket:id="archetype"/>
             </wicket:container>
         </div>
         <div class="mt-4">

@@ -295,6 +295,11 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     /** This definition is always immutable. */
     private transient CompositeObjectDefinition compositeObjectDefinition;
 
+    /**
+     * Security policy for given projection; derived from the resource object type definition.
+     *
+     * *Limitation: Currently does NOT include global security policy.*
+     */
     private SecurityPolicyType projectionSecurityPolicy;
 
     /**

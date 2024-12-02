@@ -8,9 +8,10 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <button type="button" class="step-trigger" role="tab">
+    <div class="step-trigger">
+        <span class="sr-only" wicket:id="status"/>
         <span class="bs-stepper-circle" wicket:id="circle"/>
         <span class="bs-stepper-label" wicket:id="label"/>
-    </button>
+    </div>
 </wicket:panel>
 </html>

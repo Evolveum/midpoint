@@ -26,17 +26,17 @@
                                 <wicket:message key="ShoppingCartPanel.validity"/>
                                 <i class="fas fa-info-circle fa-xs text-primary" wicket:id="validityInfo" wicket:message="title:CartSummaryPanel.validityTitle"></i>
                             </label>
-                            <select class="form-control" wicket:id="validity"/>
+                            <select class="form-control" wicket:id="validity" wicket:message="aria-label:CartSummaryPanel.validityTitle"></select>
                         </div>
                     </wicket:enclosure>
-                    <div class="form-group" wicket:id="customValidity"/>
+                    <div class="form-group" wicket:id="customValidity"></div>
                     <wicket:enclosure child="comment">
                         <div class="form-group">
                             <label>
                                 <wicket:message key="ShoppingCartPanel.comment"/>
                                 <i class="fas fa-info-circle fa-xs text-primary" wicket:id="commentInfo" wicket:message="title:CartSummaryPanel.commentTitle"></i>
                             </label>
-                            <textarea class="form-control" rows="4" wicket:id="comment"></textarea>
+                            <textarea class="form-control" rows="4" wicket:id="comment" wicket:message="aria-label:CartSummaryPanel.commentTitle"></textarea>
                         </div>
                     </wicket:enclosure>
                     <div class="form-group mb-1">
@@ -45,7 +45,7 @@
                             <wicket:message key="ShoppingCartPanel.openConflict"/>
                         </a>
 
-                        <div class="text-danger" wicket:id="messages"/>
+                        <div class="text-danger" wicket:id="messages"></div>
 
                         <a class="btn btn-success w-100" wicket:id="submit">
                             <i class="fas fa-credit-card mr-1"></i>

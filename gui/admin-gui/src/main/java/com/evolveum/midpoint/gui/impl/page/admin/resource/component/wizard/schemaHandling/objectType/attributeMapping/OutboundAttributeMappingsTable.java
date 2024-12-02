@@ -9,23 +9,16 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
-import com.evolveum.midpoint.gui.impl.component.input.Select2MultiChoicePanel;
+import com.evolveum.midpoint.gui.impl.component.input.Select2MultiChoiceColumnPanel;
 import com.evolveum.midpoint.gui.impl.component.input.FocusDefinitionsMappingProvider;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismValueWrapperImpl;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -146,7 +139,7 @@ public abstract class OutboundAttributeMappingsTable<P extends Containerable> ex
                 } else {
                     provider = new FocusDefinitionsMappingProvider((IModel<PrismPropertyWrapper<VariableBindingDefinitionType>>) rowModel);
                 }
-                return new Select2MultiChoicePanel<>(componentId, multiselectModel, provider);
+                return new Select2MultiChoiceColumnPanel<>(componentId, multiselectModel, provider);
             }
 
             @Override

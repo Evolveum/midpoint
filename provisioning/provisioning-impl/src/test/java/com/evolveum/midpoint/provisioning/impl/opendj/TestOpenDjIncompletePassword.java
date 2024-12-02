@@ -33,7 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapa
 @DirtiesContext
 public class TestOpenDjIncompletePassword extends TestOpenDj {
 
-    protected static final File RESOURCE_OPENDJ_INCOMPLETE_PASSWORD_FILE = new File(TEST_DIR, "resource-opendj-incomplete-password.xml");
+    private static final File RESOURCE_OPENDJ_INCOMPLETE_PASSWORD_FILE = new File(TEST_DIR, "resource-opendj-incomplete-password.xml");
 
     @Override
     protected File getResourceOpenDjFile() {
@@ -65,8 +65,8 @@ public class TestOpenDjIncompletePassword extends TestOpenDj {
     protected void assertRepoShadowPasswordWrittenAndFetched(ShadowType repoShadow, String expectedClearText)
             throws SchemaException, EncryptionException {
         if (InternalsConfig.isShadowCachingOnByDefault()) {
-            // It is hashed, because it was written first (with known value), and fetched second (with incomplete=true)
-            assertHashedShadowPassword(repoShadow.asPrismObject(), expectedClearText);
+            // It is encrypted, because it was written first (with known value), and fetched second (with incomplete=true)
+            assertEncryptedShadowPassword(repoShadow.asPrismObject(), expectedClearText);
         } else {
             assertNoShadowPassword(repoShadow.asPrismObject());
         }

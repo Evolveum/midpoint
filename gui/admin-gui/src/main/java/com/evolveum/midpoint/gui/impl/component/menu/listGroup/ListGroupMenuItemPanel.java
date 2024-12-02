@@ -47,6 +47,17 @@ public class ListGroupMenuItemPanel<T extends Serializable> extends BasePanel<Li
 
     private void initLayout(int level) {
         add(AttributeAppender.append("class", () -> getModelObject().isOpen() ? "open" : null));
+        add(AttributeAppender.append("aria-current", () -> getModelObject().isActive() ? "page" : null));
+        add(AttributeAppender.append("aria-haspopup", () -> getModelObject().isEmpty() ? "false" : "true"));
+        add(AttributeAppender.append("aria-expanded", () -> {
+            if (getModelObject().isEmpty()){
+                return null;
+            }
+            if (getModelObject().isOpen()){
+                return "true";
+            }
+            return "false";
+        }));
 
         MenuItemLinkPanel link = new MenuItemLinkPanel(ID_LINK, getModel(), level) {
 
