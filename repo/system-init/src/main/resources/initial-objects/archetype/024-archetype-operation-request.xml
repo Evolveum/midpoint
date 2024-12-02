@@ -19,6 +19,7 @@
             <pluralLabel>Operation requests</pluralLabel>
             <icon>
                 <cssClass>fa fa-play-circle</cssClass>
+                <color>#001f3f</color>
             </icon>
         </display>
         <adminGuiConfiguration>
