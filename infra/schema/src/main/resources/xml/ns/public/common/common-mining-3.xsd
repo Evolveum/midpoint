@@ -986,6 +986,21 @@
 
                     </xsd:element>
 
+                    <xsd:element name="identifiedCharacteristics" type="c:RoleAnalysisIdentifiedCharacteristicsType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    The container consists of statistical/categorization data about the role
+                                    analysis session processed objects.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>RoleAnalysisIdentifiedCharacteristicsType.identifiedCharacteristics</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+
+                    </xsd:element>
+
                     <xsd:element name="defaultDetectionOption" type="c:RoleAnalysisDetectionOptionType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -3166,9 +3181,308 @@
                 </xsd:annotation>
             </xsd:element>
 
+            <xsd:element name="excludeCategory" type="tns:RoleAnalysisObjectCategorizationType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Category classification.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="roleAnalysisExcludeType" type="tns:RoleAnalysisExcludeType"/>
+
+
+    <!--TODO: better naming-->
+    <xsd:complexType name="RoleAnalysisIdentifiedCharacteristicsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Objects above which a specific characteristic has been identified.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+
+            <xsd:element name="rolesCount" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Included roles count.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="usersCount" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Included users count.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="focusCount" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Included focus count.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="roles" type="tns:RoleAnalysisIdentifiedCharacteristicsItemsType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Contains specific characteristics of the role type objects.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="users" type="tns:RoleAnalysisIdentifiedCharacteristicsItemsType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Contains specific characteristics of the user type objects.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="focus" type="tns:RoleAnalysisIdentifiedCharacteristicsItemsType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Contains specific characteristics of the focus type object (except user and role type object).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="identifiedCharacteristics" type="tns:RoleAnalysisIdentifiedCharacteristicsType"/>
+
+    <!--TODO: better naming-->
+    <xsd:complexType name="RoleAnalysisIdentifiedCharacteristicsItemsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Contains specific characteristics of the object.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+
+            <xsd:element name="unPopularCount" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Number of unpopular objects.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="abovePopularCount" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Number of above popular objects.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="noiseCount" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Number of noise objects.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="noiseExclusiveCount" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Number of noise exclusive objects.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="anomalyCount" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Number of anomaly objects.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="anomalyExclusiveCount" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Number of anomaly exclusive objects.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="outlierCount" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Number of outlier objects.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="item" type="tns:RoleAnalysisIdentifiedCharacteristicsItemType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Roles with identified characteristics.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="items" type="tns:RoleAnalysisIdentifiedCharacteristicsItemsType"/>
+
+    <!--TODO: better naming-->
+    <xsd:complexType name="RoleAnalysisIdentifiedCharacteristicsItemType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Contains specific characteristics of the object.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+
+            <xsd:element name="objectRef" type="tns:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to the object that has been identified.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="category" type="tns:RoleAnalysisObjectCategorizationType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Category classification.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="item" type="tns:RoleAnalysisIdentifiedCharacteristicsItemType"/>
+
+    <!--TODO: better naming-->
+    <xsd:simpleType name="RoleAnalysisObjectCategorizationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Category classification.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="un_popular">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Unpopular roles or users.
+                        Objects that are not frequently used or accessed.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="UN_POPULAR"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="above_popular">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Above popular roles or users.
+                        Objects that are frequently used or accessed.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ABOVE_POPULAR"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="noise_exclusive">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Noise exclusive roles or users.
+                        Objects that appears only in noise clusters.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NOISE_EXCLUSIVE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="noise">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Objects that appears in noise clusters.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NOISE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="anomaly_exclusive">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Anomaly roles or users.
+                        Currently, user-mode outlier detection, this category is used only if role is
+                        marked as anomaly in every analysis user object.
+                        (In the future, it will be used for more complex role mode analysis)
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ANOMALY_EXCLUSIVE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="anomaly">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Anomaly roles or users.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ANOMALY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="outlier">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Outlier roles or users.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OUTLIER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
 </xsd:schema>
