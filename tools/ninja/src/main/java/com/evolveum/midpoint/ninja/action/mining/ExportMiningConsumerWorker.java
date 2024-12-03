@@ -11,21 +11,23 @@ import static com.evolveum.midpoint.security.api.MidPointPrincipalManager.DOT_CL
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 
 import com.evolveum.midpoint.util.logging.TraceManager;
+
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -78,9 +80,14 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
     private List<String> businessRoleSuffix;
 
 
-    private Set<ItemPath> attrPathsUser;
-    private Set<ItemPath> attrPathsRole;
-    private Set<ItemPath> attrPathsOrg;
+    // NOTE: this class is used to mark attributes that we don't know the schema definition in Ninja - extension attributes defined via GUI
+    static class UnknownAttributeType {}
+
+    record AttributeInfo(ItemName itemName, Class<?> typeClass) { }
+
+    private Set<AttributeInfo> attrPathsUser;
+    private Set<AttributeInfo> attrPathsRole;
+    private Set<AttributeInfo> attrPathsOrg;
 
     private static final String ARCHETYPE_REF_ATTRIBUTE_NAME = "archetypeRef";
     private static final List<String> DEFAULT_EXCLUDED_ATTRIBUTES = List.of("description", "documentation", "emailAddress",
@@ -105,7 +112,7 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
         nameMode = options.getNameMode();
 
         attrPathsUser = extractDefaultAttributePaths(UserType.COMPLEX_TYPE, options.getExcludedAttributesUser());
-        attrPathsRole = extractDefaultAttributePaths(RoleType.COMPLEX_TYPE, options.getExcludedAttributesUser());
+        attrPathsRole = extractDefaultAttributePaths(RoleType.COMPLEX_TYPE, options.getExcludedAttributesRole());
         attrPathsOrg = extractDefaultAttributePaths(OrgType.COMPLEX_TYPE, options.getExcludedAttributesOrg());
 
         attributeValuesAnonymizer = new AttributeValueAnonymizer(nameMode, encryptKey);
@@ -378,73 +385,97 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
         return null;
     }
 
-    private Set<ItemPath> extractDefaultAttributePaths(QName type, List<String> excludedDefaultAttributes) {
-        var def = PrismContext.get().getSchemaRegistry().findContainerDefinitionByType(type);
-        var excludedAttributes = Stream.concat(excludedDefaultAttributes.stream(), DEFAULT_EXCLUDED_ATTRIBUTES.stream()).toList();
-        return extractAttributePaths(def, excludedAttributes);
-    }
-
-
-    private Set<ItemPath> extractAttributePaths(PrismContainerDefinition<?> containerDef, List<String> excludedAttributeNames) {
-        Set<ItemPath> paths = new HashSet<>();
-        for (ItemDefinition<?> def : containerDef.getDefinitions()) {
-            var attributeName = def.getItemName().toString();
-            if (excludedAttributeNames.contains(attributeName)) {
-                continue;
-            }
-            var isArchetypeRef = attributeName.equals(ARCHETYPE_REF_ATTRIBUTE_NAME);
-            if (!isArchetypeRef && (def.isOperational() || !def.isSingleValue())) {
-                // unsupported types
-                continue;
-            }
-            if (def instanceof PrismReferenceDefinition refDef) {
-                paths.add(refDef.getItemName());
-            }
-            if (def instanceof PrismPropertyDefinition<?> propertyDef && RoleAnalysisAttributeDefUtils.isSupportedPropertyType(propertyDef.getTypeClass())) {
-                paths.add(propertyDef.getItemName());
-            }
+    private AttributeInfo makeAttributeInfo(ItemDefinition<?> def, ItemName itemName, List<String> excludedAttributeNames) {
+        var attributeName = itemName.toString();
+        if (excludedAttributeNames.contains(attributeName)) {
+            return null;
         }
-        return paths;
+        if (def == null) {
+            // extension attributes from GUI schema does not contain definition in Ninja
+            return new AttributeInfo(itemName, UnknownAttributeType.class);
+        }
+        var isArchetypeRef = attributeName.equals(ARCHETYPE_REF_ATTRIBUTE_NAME);
+        if (!isArchetypeRef && (def.isOperational() || !def.isSingleValue())) {
+            // unsupported types
+            return null;
+        }
+        if (def instanceof PrismReferenceDefinition) {
+            return new AttributeInfo(itemName, PrismReferenceDefinition.class);
+        }
+        if (def instanceof PrismPropertyDefinition<?> propertyDef && RoleAnalysisAttributeDefUtils.isSupportedPropertyType(propertyDef.getTypeClass())) {
+            return new AttributeInfo(itemName, propertyDef.getTypeClass());
+        }
+        return null;
     }
 
-    private Object anonymizeAttributeValue(Item<?, ?> item) {
-        var def = item.getDefinition();
-        var type = def.getTypeClass();
-        var realValue = Objects.requireNonNull(item.getRealValue());
+    private Set<AttributeInfo> extractDefaultAttributePaths(QName type, List<String> excludedDefaultAttributes) {
+        var containerDef = PrismContext.get().getSchemaRegistry().findContainerDefinitionByType(type);
+        var excludedAttributes = Stream.concat(excludedDefaultAttributes.stream(), DEFAULT_EXCLUDED_ATTRIBUTES.stream()).toList();
+        return containerDef.getDefinitions().stream()
+                .map(def -> makeAttributeInfo(def, def.getItemName(), excludedAttributes))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toUnmodifiableSet());
+    }
 
-        if (def instanceof PrismReferenceDefinition) {
+
+    private Set<AttributeInfo> extractExtensionAttributePaths(PrismContainerValue<?> containerValue, List<String> excludedAttributeNames) {
+        return containerValue.getItems().stream()
+                .map(item -> makeAttributeInfo(item.getDefinition(), item.getElementName(), excludedAttributeNames))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toUnmodifiableSet());
+    }
+
+    private Object anonymizeAttributeValue(Item<?, ?> item, AttributeInfo attributeInfo) {
+        var typeClass = attributeInfo.typeClass();
+        var realValue = Objects.requireNonNull(item.getRealValue());
+        var attributeName = attributeInfo.itemName().toString();
+
+        if (PrismReferenceDefinition.class.equals(typeClass)) {
+            // anonymize references
             var referenceValue = (ObjectReferenceType) realValue;
             return encryptObjectReference(referenceValue, securityMode, encryptKey);
         }
 
-        // NOTE: do not encrypt ordinal values and booleans
-        var shouldAnonymizeValue = !List.of(Integer.class, Double.class, Boolean.class).contains(type);
+        if (typeClass.equals(UnknownAttributeType.class)) {
+            // anonymize attributes with unknown (extension schema from GUI)
+            RawType rawValue = item.getValues().get(0).getRealValue();
+            try {
+                var value = Objects.requireNonNull(rawValue).getValue();
+                return attributeValuesAnonymizer.anonymize(attributeName, value.toString());
+            } catch (SchemaException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        // NOTE: do not encrypt ordinal values
+        var shouldAnonymizeValue = !List.of(Integer.class, Double.class).contains(typeClass);
 
         if (shouldAnonymizeValue) {
-            var attributeName = item.getDefinition().getItemName().toString();
+            // anonymize attributes with known schema
             return attributeValuesAnonymizer.anonymize(attributeName, realValue.toString());
         }
+
         return realValue;
     }
 
     public String anonymizeAttributeName(Item<?, ?> item, SequentialAnonymizer attributeNameAnonymizer) {
-        String originalAtributeName = item.getDefinition().getItemName().toString();
+        String originalAttributeName = item.getElementName().toString();
         if (nameMode.equals(NameMode.ORIGINAL)) {
-            return originalAtributeName;
+            return originalAttributeName;
         }
-        return attributeNameAnonymizer.anonymize(originalAtributeName);
+        return attributeNameAnonymizer.anonymize(originalAttributeName);
     }
 
-    private void anonymizeAttribute(FocusType newObject, PrismContainer<?> itemContainer, ItemPath path, SequentialAnonymizer attributeNameAnonymizer) {
-        Item<?, ?> item = itemContainer.findItem(path);
+    private void anonymizeAttribute(FocusType newObject, PrismContainer<?> itemContainer, AttributeInfo attributeInfo, SequentialAnonymizer attributeNameAnonymizer) {
+        Item<?, ?> item = itemContainer.findItem(attributeInfo.itemName());
         if (item == null || item.getRealValue() == null) {
             return;
         }
         try {
             String anonymizedAttributeName = anonymizeAttributeName(item, attributeNameAnonymizer);
-            Object anonymizedAttributeValue = anonymizeAttributeValue(item);
+            Object anonymizedAttributeValue = anonymizeAttributeValue(item, attributeInfo);
 
-            QName propertyName = new QName(item.getDefinition().getItemName().getNamespaceURI(), anonymizedAttributeName);
+            QName propertyName = new QName(attributeInfo.itemName().getNamespaceURI(), anonymizedAttributeName);
             PrismPropertyDefinition<Object> propertyDefinition = context
                     .getPrismContext()
                     .definitionFactory()
@@ -460,7 +491,7 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
     private void fillAttributes(
             @NotNull FocusType origObject,
             @NotNull FocusType newObject,
-            @NotNull Set<ItemPath> defaultAttributePaths,
+            @NotNull Set<AttributeInfo> defaultAttributePaths,
             @NotNull List<String> excludedAttributes
     ) {
         if (!attributesAllowed) {
@@ -474,8 +505,7 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
         }
 
         if (origContainer.getExtension() != null) {
-            PrismContainerDefinition<?> definition = origContainer.getExtensionContainerValue().getDefinition();
-            var extensionAttributePaths = extractAttributePaths(definition, excludedAttributes);
+            var extensionAttributePaths = extractExtensionAttributePaths(origContainer.getExtensionContainerValue(), excludedAttributes);
             for (var path: extensionAttributePaths) {
                 anonymizeAttribute(newObject, origContainer.getExtension(), path, extensionAttributeNameAnonymizer);
             }
