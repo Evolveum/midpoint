@@ -19,6 +19,7 @@
             <pluralLabel>Manual provisioning cases</pluralLabel>
             <icon>
                 <cssClass>far fa-hand-paper</cssClass>
+                <color>#001f3f</color>
             </icon>
         </display>
         <adminGuiConfiguration>
