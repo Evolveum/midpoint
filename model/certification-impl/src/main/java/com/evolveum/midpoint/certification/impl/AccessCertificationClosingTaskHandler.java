@@ -15,6 +15,8 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.LocalizableMessageBuilder;
+
 import jakarta.annotation.PostConstruct;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -269,6 +271,10 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
         result.setBackgroundTaskOid(task.getOid());
         if (result.isInProgress()) {
             result.recordStatus(OperationResultStatus.IN_PROGRESS, "Closing task "+task+" was successfully started, please use Server Tasks to see its status.");
+            result.setUserFriendlyMessage(new LocalizableMessageBuilder()
+                    .key("PageCertCampaign.taskName.closeCampaign")
+                    .arg(campaign.getName())
+                    .build());
         }
 
         LOGGER.trace("Closing task for {} switched to background, control thread returning with task {}", toShortString(campaign), task);
