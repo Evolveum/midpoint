@@ -790,7 +790,7 @@ class ConnectorInstanceConnIdImpl implements ConnectorInstance, ConnectorContext
         } finally {
             result.close();
         }
-        return UcfAddReturnValue.of(ShadowUtil.getSimpleAttributes(shadow), result);
+        return UcfAddReturnValue.of(ShadowUtil.getAttributes(shadow), result);
     }
 
     private void validateShadowOnAdd(PrismObject<? extends ShadowType> shadow) throws SchemaException {

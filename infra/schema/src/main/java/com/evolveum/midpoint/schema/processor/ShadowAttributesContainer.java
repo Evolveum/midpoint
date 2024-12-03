@@ -10,6 +10,8 @@ package com.evolveum.midpoint.schema.processor;
 import java.util.Collection;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemName;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Item;
@@ -224,4 +226,6 @@ public interface ShadowAttributesContainer extends ShadowItemsContainer, PrismCo
     ShadowAttributesContainer clone();
 
     void remove(ShadowAttribute<?, ?, ?, ?> item);
+
+    void removeAttribute(@NotNull ItemName name);
 }
