@@ -78,9 +78,6 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
     private List<String> businessRoleSuffix;
 
 
-    // NOTE: this class is used to mark attributes that we don't know the schema definition in Ninja - extension attributes defined via GUI
-    static class UnknownAttributeType {}
-
     record AttributeInfo(ItemName itemName, Class<?> typeClass) { }
 
     private Set<AttributeInfo> attrPathsUser;
@@ -89,8 +86,8 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
 
     private static final String ARCHETYPE_REF_ATTRIBUTE_NAME = "archetypeRef";
     private static final List<String> DEFAULT_EXCLUDED_ATTRIBUTES = List.of("description", "documentation", "emailAddress",
-            "telephoneNumber", "fullName", "givenName", "familyName", "additionalName", "nickName", "personalNumber", "identifier",
-            "jpegPhoto");
+            "telephoneNumber", "name", "fullName", "givenName", "familyName", "additionalName", "nickName", "personalNumber",
+            "identifier", "jpegPhoto");
 
     public ExportMiningConsumerWorker(NinjaContext context, ExportMiningOptions options, BlockingQueue<FocusType> queue,
             OperationStatus operation) {
@@ -390,7 +387,7 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
         }
         if (def == null) {
             // extension attributes from GUI schema does not contain definition in Ninja
-            return new AttributeInfo(itemName, UnknownAttributeType.class);
+            return new AttributeInfo(itemName, String.class);
         }
         var isArchetypeRef = attributeName.equals(ARCHETYPE_REF_ATTRIBUTE_NAME);
         if (!isArchetypeRef && (def.isOperational() || !def.isSingleValue())) {
@@ -423,9 +420,19 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
                 .collect(Collectors.toUnmodifiableSet());
     }
 
+    private Object parseRealValue(Item<?, ?> item) throws SchemaException {
+        if (item.hasCompleteDefinition()) {
+            return Objects.requireNonNull(item.getRealValue());
+        }
+        // it is unknown if item without definition is multivalued, therefore take any value
+        RawType rawValue = item.getAnyValue().getRealValue();
+        // WORKAROUND: parsing as PolyStringType works for PolyString and all other primitive types
+        return Objects.requireNonNull(rawValue).getParsedRealValue(PolyStringType.class);
+    }
+
     private Object anonymizeAttributeValue(Item<?, ?> item, AttributeInfo attributeInfo) throws SchemaException {
         var typeClass = attributeInfo.typeClass();
-        var realValue = Objects.requireNonNull(item.getRealValue());
+        var realValue = parseRealValue(item);
         var attributeName = attributeInfo.itemName().toString();
 
         if (PrismReferenceDefinition.class.equals(typeClass)) {
@@ -434,14 +441,8 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
             return encryptObjectReference(referenceValue, securityMode, encryptKey);
         }
 
-        if (typeClass.equals(UnknownAttributeType.class)) {
-            // anonymize attributes with unknown (extension schema from GUI)
-            RawType rawValue = item.getValues().get(0).getRealValue();
-            var value = Objects.requireNonNull(rawValue).getValue();
-            return attributeValuesAnonymizer.anonymize(attributeName, value.toString());
-        }
-
-        if (!options.isAnonymizeOrdinalAttributeValues() && List.of(Integer.class, Long.class, Double.class).contains(typeClass)) {
+        var isOrdinalValue = List.of(Integer.class, Long.class, Double.class).contains(typeClass);
+        if (!options.isAnonymizeOrdinalAttributeValues() && isOrdinalValue) {
             // do not anonymize ordinal values
             return realValue;
         }
@@ -459,10 +460,10 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
 
     private void anonymizeAttribute(FocusType newObject, PrismContainer<?> itemContainer, AttributeInfo attributeInfo, SequentialAnonymizer attributeNameAnonymizer) {
         Item<?, ?> item = itemContainer.findItem(attributeInfo.itemName());
-        if (item == null || item.getRealValue() == null) {
-            return;
-        }
         try {
+            if (item == null || item.hasNoValues()) {
+                return;
+            }
             String attributeName = options.isAnonymizeAttributeNames()
                     ? anonymizeAttributeName(item, attributeNameAnonymizer)
                     : item.getElementName().toString();
@@ -477,7 +478,7 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
             anonymizedProperty.setRealValue(anonymizedAttributeValue);
             newObject.asPrismObject().addExtensionItem(anonymizedProperty);
         } catch (Exception e) {
-            context.getLog().warn("Failed to anonymize attribute:\n{}\n{}. ", attributeInfo, item, e);
+            context.getLog().warn("Failed to anonymize attribute: \n{}\n{}\n{}", e, attributeInfo, item);
         }
     }
 
