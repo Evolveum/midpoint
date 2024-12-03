@@ -42,6 +42,8 @@ public class ExportMiningOptions extends BaseMiningOptions implements BasicExpor
     public static final String P_EXCLUDE_ATTRIBUTES_USER_LONG = "--exclude-user-attribute";
     public static final String P_EXCLUDE_ATTRIBUTES_ROLE_LONG = "--exclude-role-attribute";
     public static final String P_EXCLUDE_ATTRIBUTES_ORG_LONG = "--exclude-org-attribute";
+    public static final String P_ANONYMIZE_ATTRIBUTE_NAMES = "--anonymize-attribute-names";
+    public static final String P_ANONYMIZE_ORDINAL_ATTRIBUTE_VALUES = "--anonymize-ordinal-attribute-values";
     public static final String P_NAME_OPTIONS = "-nm";
     public static final String P_NAME_OPTIONS_LONG = "--name-mode";
     public static final String P_ARCHETYPE_OID_APPLICATION_LONG = "--application-role-archetype-oid";
@@ -98,6 +100,12 @@ public class ExportMiningOptions extends BaseMiningOptions implements BasicExpor
     @Parameter(names = { P_EXCLUDE_ATTRIBUTES_ORG_LONG }, descriptionKey = "export.exclude.attributes.org",
             validateWith = ItemPathConverter.class, converter = ItemPathConverter.class)
     private List<ItemPath> excludedAttributesOrg = new ArrayList<>();
+
+    @Parameter(names = { P_ANONYMIZE_ATTRIBUTE_NAMES }, descriptionKey = "export.anonymizeAttributeNames")
+    private Boolean anonymizeAttributeNames = false;
+
+    @Parameter(names = { P_ANONYMIZE_ORDINAL_ATTRIBUTE_VALUES }, descriptionKey = "export.anonymizeOrdinalAttributeValues")
+    private Boolean anonymizeOrdinalAttributeValues = false;
 
     public RoleMiningExportUtils.SecurityMode getSecurityLevel() {
         return securityMode;
@@ -177,5 +185,13 @@ public class ExportMiningOptions extends BaseMiningOptions implements BasicExpor
 
     public List<String> getExcludedAttributesOrg() {
         return itemPathsToStrings(excludedAttributesOrg);
+    }
+
+    public Boolean isAnonymizeAttributeNames() {
+        return anonymizeAttributeNames;
+    }
+
+    public Boolean isAnonymizeOrdinalAttributeValues() {
+        return anonymizeOrdinalAttributeValues;
     }
 }

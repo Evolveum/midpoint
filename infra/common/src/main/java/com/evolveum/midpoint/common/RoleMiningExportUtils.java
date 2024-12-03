@@ -63,7 +63,7 @@ public class RoleMiningExportUtils implements Serializable {
     public static class SequentialAnonymizer {
         private final Map<String, String> anonymizedValues = new HashMap<>();
         private final String baseName;
-        private int index = 0;
+        private long index = 0;
 
         public SequentialAnonymizer(String baseName) {
             this.baseName = baseName;

@@ -441,15 +441,12 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
             return attributeValuesAnonymizer.anonymize(attributeName, value.toString());
         }
 
-        // NOTE: do not encrypt ordinal values
-        var shouldAnonymizeValue = !List.of(Integer.class, Double.class).contains(typeClass);
-
-        if (shouldAnonymizeValue) {
-            // anonymize attributes with known schema
-            return attributeValuesAnonymizer.anonymize(attributeName, realValue.toString());
+        if (!options.isAnonymizeOrdinalAttributeValues() && List.of(Integer.class, Long.class, Double.class).contains(typeClass)) {
+            // do not anonymize ordinal values
+            return realValue;
         }
 
-        return realValue;
+        return attributeValuesAnonymizer.anonymize(attributeName, realValue.toString());
     }
 
     public String anonymizeAttributeName(Item<?, ?> item, SequentialAnonymizer attributeNameAnonymizer) {
@@ -466,10 +463,12 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
             return;
         }
         try {
-            String anonymizedAttributeName = anonymizeAttributeName(item, attributeNameAnonymizer);
+            String attributeName = options.isAnonymizeAttributeNames()
+                    ? anonymizeAttributeName(item, attributeNameAnonymizer)
+                    : item.getElementName().toString();
             Object anonymizedAttributeValue = anonymizeAttributeValue(item, attributeInfo);
 
-            QName propertyName = new QName(attributeInfo.itemName().getNamespaceURI(), anonymizedAttributeName);
+            QName propertyName = new QName(attributeInfo.itemName().getNamespaceURI(), attributeName);
             PrismPropertyDefinition<Object> propertyDefinition = context
                     .getPrismContext()
                     .definitionFactory()
