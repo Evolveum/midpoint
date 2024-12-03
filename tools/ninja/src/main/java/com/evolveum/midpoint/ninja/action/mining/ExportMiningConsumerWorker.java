@@ -42,6 +42,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+/**
+ * Anonymize and write midpoint's objects.
+ * - it is currently assumed to run in a single thread, therefore the state does not need to be shared and thread safe
+ */
 public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<ExportMiningOptions, FocusType> {
 
     OperationResult operationResult = new OperationResult(DOT_CLASS + "searchObjectByCondition");

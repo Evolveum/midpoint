@@ -69,6 +69,7 @@ public class ExportMiningRepositoryAction extends RepositoryAction<ExportMiningO
 
         executor.execute(new ProgressReporterWorker<>(context, options, queue, operation));
 
+        // NOTE: the consumer is designed to be executed in a single thread
         Runnable consumer = createConsumer(queue, operation);
         executor.execute(consumer);
 
