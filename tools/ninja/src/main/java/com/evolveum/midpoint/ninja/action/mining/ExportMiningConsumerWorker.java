@@ -23,9 +23,6 @@ import com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-
-import com.evolveum.midpoint.util.logging.TraceManager;
 
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
@@ -42,13 +39,10 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<ExportMiningOptions, FocusType> {
-
-    private static final Trace LOGGER = TraceManager.getTrace(ExportMiningConsumerWorker.class);
 
     OperationResult operationResult = new OperationResult(DOT_CLASS + "searchObjectByCondition");
 
@@ -335,7 +329,7 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
             return !context.getRepository().searchObjects(OrgType.class,
                     objectQuery, null, operationResult).isEmpty();
         } catch (SchemaException e) {
-            LoggingUtils.logException(LOGGER, "Failed to search organization object. ", e);
+            context.getLog().error("Failed to search organization object. ", e);
         }
         return false;
     }
@@ -351,7 +345,7 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
             return !context.getRepository().searchObjects(RoleType.class,
                     objectQuery, null, operationResult).isEmpty();
         } catch (SchemaException e) {
-            LoggingUtils.logException(LOGGER, "Failed to search role object. ", e);
+            context.getLog().error("Failed to search role object. ", e);
         }
         return false;
     }
@@ -361,7 +355,7 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
             this.filterRole = NinjaUtils.createObjectFilter(roleFileReference, context, RoleType.class);
             this.filterOrg = NinjaUtils.createObjectFilter(orgFileReference, context, OrgType.class);
         } catch (IOException | SchemaException e) {
-            LoggingUtils.logException(LOGGER, "Failed to crate object filter. ", e);
+            context.getLog().error("Failed to crate object filter. ", e);
         }
     }
 
@@ -425,7 +419,7 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
                 .collect(Collectors.toUnmodifiableSet());
     }
 
-    private Object anonymizeAttributeValue(Item<?, ?> item, AttributeInfo attributeInfo) {
+    private Object anonymizeAttributeValue(Item<?, ?> item, AttributeInfo attributeInfo) throws SchemaException {
         var typeClass = attributeInfo.typeClass();
         var realValue = Objects.requireNonNull(item.getRealValue());
         var attributeName = attributeInfo.itemName().toString();
@@ -439,12 +433,8 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
         if (typeClass.equals(UnknownAttributeType.class)) {
             // anonymize attributes with unknown (extension schema from GUI)
             RawType rawValue = item.getValues().get(0).getRealValue();
-            try {
-                var value = Objects.requireNonNull(rawValue).getValue();
-                return attributeValuesAnonymizer.anonymize(attributeName, value.toString());
-            } catch (SchemaException e) {
-                throw new RuntimeException(e);
-            }
+            var value = Objects.requireNonNull(rawValue).getValue();
+            return attributeValuesAnonymizer.anonymize(attributeName, value.toString());
         }
 
         // NOTE: do not encrypt ordinal values
@@ -484,7 +474,7 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
             anonymizedProperty.setRealValue(anonymizedAttributeValue);
             newObject.asPrismObject().addExtensionItem(anonymizedProperty);
         } catch (Exception e) {
-            LOGGER.error("Failed to clone item for {} object {}. ", itemContainer.getClass(), item, e);
+            context.getLog().warn("Failed to anonymize attribute:\n{}\n{}. ", attributeInfo, item, e);
         }
     }
 
