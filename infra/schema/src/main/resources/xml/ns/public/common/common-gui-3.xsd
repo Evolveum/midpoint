@@ -631,7 +631,16 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="enabled" type="xsd:boolean" minOccurs="0" default="true"/>
-            <xsd:element name="autocompleteConfiguration" type="tns:AutocompleteSearchConfigurationType" minOccurs="0"/>
+            <xsd:element name="autocompleteConfiguration" type="tns:AutocompleteSearchConfigurationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:container/>
+                        <a:schemaContext>
+                            <a:type>UserType</a:type>
+                        </a:schemaContext>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
