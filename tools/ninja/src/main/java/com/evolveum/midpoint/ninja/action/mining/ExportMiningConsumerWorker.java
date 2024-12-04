@@ -12,12 +12,19 @@ import static com.evolveum.midpoint.security.api.MidPointPrincipalManager.DOT_CL
 import java.io.IOException;
 import java.io.Writer;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.util.DOMUtil;
 
-import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,20 +35,18 @@ import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.util.FileReference;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismSerializer;
-import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+/**
+ * Anonymize and write midpoint's objects.
+ * - it is currently assumed to run in a single thread, therefore the state does not need to be shared and thread safe
+ */
 public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<ExportMiningOptions, FocusType> {
-
-    private static final Trace LOGGER = TraceManager.getTrace(ExportMiningConsumerWorker.class);
 
     OperationResult operationResult = new OperationResult(DOT_CLASS + "searchObjectByCondition");
 
@@ -49,8 +54,12 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
     private int processedRoleIterator = 0;
     private int processedUserIterator = 0;
     private int processedOrgIterator = 0;
+    private final SequentialAnonymizer defaultAttributeNameAnonymizer = new SequentialAnonymizer("default_attr");
+    private final SequentialAnonymizer extensionAttributeNameAnonymizer = new SequentialAnonymizer("extension_attr");
+    private AttributeValueAnonymizer attributeValuesAnonymizer;
 
     private boolean orgAllowed;
+    private boolean attributesAllowed;
     private boolean firstObject = true;
     private boolean jsonFormat = false;
 
@@ -68,6 +77,16 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
     private List<String> businessRolePrefix;
     private List<String> businessRoleSuffix;
 
+
+    private Set<ItemName> attrPathsUser;
+    private Set<ItemName> attrPathsRole;
+    private Set<ItemName> attrPathsOrg;
+
+    private static final String ARCHETYPE_REF_ATTRIBUTE_NAME = "archetypeRef";
+    private static final List<String> DEFAULT_EXCLUDED_ATTRIBUTES = List.of("description", "documentation", "emailAddress",
+            "telephoneNumber", "name", "fullName", "givenName", "familyName", "additionalName", "nickName", "personalNumber",
+            "identifier", "jpegPhoto");
+
     public ExportMiningConsumerWorker(NinjaContext context, ExportMiningOptions options, BlockingQueue<FocusType> queue,
             OperationStatus operation) {
         super(context, options, queue, operation);
@@ -81,8 +100,15 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
         securityMode = options.getSecurityLevel();
         encryptKey = RoleMiningExportUtils.updateEncryptKey(securityMode);
         orgAllowed = options.isIncludeOrg();
+        attributesAllowed = options.isIncludeAttributes();
 
         nameMode = options.getNameMode();
+
+        attrPathsUser = extractDefaultAttributePaths(UserType.COMPLEX_TYPE, options.getExcludedAttributesUser());
+        attrPathsRole = extractDefaultAttributePaths(RoleType.COMPLEX_TYPE, options.getExcludedAttributesRole());
+        attrPathsOrg = extractDefaultAttributePaths(OrgType.COMPLEX_TYPE, options.getExcludedAttributesOrg());
+
+        attributeValuesAnonymizer = new AttributeValueAnonymizer(nameMode, encryptKey);
 
         SerializationOptions serializationOptions = SerializationOptions.createSerializeForExport()
                 .serializeReferenceNames(true)
@@ -142,6 +168,10 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
     @NotNull
     private OrgType getPreparedOrgObject(@NotNull FocusType object) {
         OrgType org = new OrgType();
+
+        fillAttributes(object, org, attrPathsOrg, options.getExcludedAttributesOrg());
+        fillActivation(object, org);
+
         org.setName(encryptOrgName(object.getName().toString(), processedOrgIterator++, nameMode, encryptKey));
         org.setOid(encryptedUUID(object.getOid(), securityMode, encryptKey));
 
@@ -172,6 +202,8 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
     @NotNull
     private UserType getPreparedUserObject(@NotNull FocusType object) {
         UserType user = new UserType();
+        fillAttributes(object, user, attrPathsUser, options.getExcludedAttributesUser());
+        fillActivation(object, user);
 
         List<AssignmentType> assignment = object.getAssignment();
         if (assignment == null || assignment.isEmpty()) {
@@ -212,6 +244,9 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
     @NotNull
     private RoleType getPreparedRoleObject(@NotNull FocusType object) {
         RoleType role = new RoleType();
+        fillAttributes(object, role, attrPathsRole, options.getExcludedAttributesRole());
+        fillActivation(object, role);
+
         String roleName = object.getName().toString();
         PolyStringType encryptedName = encryptRoleName(roleName, processedRoleIterator++, nameMode, encryptKey);
         role.setName(encryptedName);
@@ -293,7 +328,7 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
             return !context.getRepository().searchObjects(OrgType.class,
                     objectQuery, null, operationResult).isEmpty();
         } catch (SchemaException e) {
-            LoggingUtils.logException(LOGGER, "Failed to search organization object. ", e);
+            context.getLog().error("Failed to search organization object. ", e);
         }
         return false;
     }
@@ -309,7 +344,7 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
             return !context.getRepository().searchObjects(RoleType.class,
                     objectQuery, null, operationResult).isEmpty();
         } catch (SchemaException e) {
-            LoggingUtils.logException(LOGGER, "Failed to search role object. ", e);
+            context.getLog().error("Failed to search role object. ", e);
         }
         return false;
     }
@@ -319,7 +354,7 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
             this.filterRole = NinjaUtils.createObjectFilter(roleFileReference, context, RoleType.class);
             this.filterOrg = NinjaUtils.createObjectFilter(orgFileReference, context, OrgType.class);
         } catch (IOException | SchemaException e) {
-            LoggingUtils.logException(LOGGER, "Failed to crate object filter. ", e);
+            context.getLog().error("Failed to crate object filter. ", e);
         }
     }
 
@@ -342,4 +377,165 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
 
         return null;
     }
+
+    public static boolean isSupportedPropertyType(@NotNull Class<?> typeClass) {
+        return typeClass.equals(Integer.class) || typeClass.equals(Integer.TYPE) ||
+                typeClass.equals(Long.class) || typeClass.equals(Long.TYPE) ||
+                typeClass.equals(Boolean.class) || typeClass.equals(Boolean.TYPE) ||
+                typeClass.equals(Double.class) || typeClass.equals(Double.TYPE) ||
+                typeClass.equals(String.class) ||
+                typeClass.equals(PolyString.class);
+    }
+
+    private boolean filterSupportedAttribute(ItemDefinition<?> def, ItemName itemName, List<String> excludedAttributeNames) {
+        var attributeName = itemName.toString();
+        if (excludedAttributeNames.contains(attributeName)) {
+            return false;
+        }
+        if (def == null) {
+            // extension attributes from GUI schema does not contain definition in Ninja
+            return true;
+        }
+        if (def.getTypeClass() == null) {
+            // was null in `idempotence` attribute, does not seem to be needed
+            return false;
+        }
+        var isArchetypeRef = attributeName.equals(ARCHETYPE_REF_ATTRIBUTE_NAME);
+        if (!isArchetypeRef && (def.isOperational() || !def.isSingleValue())) {
+            // unsupported types
+            return false;
+        }
+        if (def instanceof PrismReferenceDefinition) {
+            return true;
+        }
+        if (def instanceof PrismPropertyDefinition<?> propertyDef && isSupportedPropertyType(propertyDef.getTypeClass())) {
+            return true;
+        }
+        return false;
+    }
+
+    private Set<ItemName> extractDefaultAttributePaths(QName type, List<String> excludedDefaultAttributes) {
+        var containerDef = PrismContext.get().getSchemaRegistry().findContainerDefinitionByType(type);
+        var excludedAttributes = Stream.concat(excludedDefaultAttributes.stream(), DEFAULT_EXCLUDED_ATTRIBUTES.stream()).toList();
+        return containerDef.getDefinitions().stream()
+                .filter(def -> filterSupportedAttribute(def, def.getItemName(), excludedAttributes))
+                .map(ItemDefinition::getItemName)
+                .collect(Collectors.toUnmodifiableSet());
+    }
+
+
+    private Set<ItemName> extractExtensionAttributePaths(PrismContainerValue<?> containerValue, List<String> excludedAttributeNames) {
+        return containerValue.getItems().stream()
+                .filter(item -> filterSupportedAttribute(item.getDefinition(), item.getElementName(), excludedAttributeNames))
+                .map(Item::getElementName)
+                .collect(Collectors.toUnmodifiableSet());
+    }
+
+    private Object tryParseUnknownValue(RawType raw, Class<?> clazz) {
+        try {
+            return Objects.requireNonNull(raw).getParsedRealValue(clazz);
+        } catch (SchemaException e) {
+            return null;
+        }
+    }
+
+    private Object parseRealValue(Item<?, ?> item) {
+        if (item.hasCompleteDefinition()) {
+            return Objects.requireNonNull(item.getRealValue());
+        }
+        // it is unknown if item without definition is multivalued, therefore take any value
+        RawType rawValue = item.getAnyValue().getRealValue();
+        for (Class<?> possibleClass: List.of(String.class, PolyStringType.class, ObjectReferenceType.class)) {
+            Object result = tryParseUnknownValue(rawValue, possibleClass);
+            if (result != null) {
+                return result;
+            }
+        }
+        throw new RuntimeException("Cannot parse attribute value: " + item.getElementName());
+    }
+
+    private Object anonymizeAttributeValue(Item<?, ?> item, ItemName itemName) {
+        var realValue = parseRealValue(item);
+        var typeClass = realValue.getClass();
+        var attributeName = itemName.toString();
+
+        if (ObjectReferenceType.class.equals(typeClass)) {
+            // anonymize references
+            var referenceValue = (ObjectReferenceType) realValue;
+            return encryptObjectReference(referenceValue, securityMode, encryptKey);
+        }
+
+        var isOrdinalValue = List.of(Integer.class, Long.class, Double.class).contains(typeClass);
+        if (!options.isAnonymizeOrdinalAttributeValues() && isOrdinalValue) {
+            // do not anonymize ordinal values
+            return realValue;
+        }
+
+        return attributeValuesAnonymizer.anonymize(attributeName, realValue.toString());
+    }
+
+    public String anonymizeAttributeName(Item<?, ?> item, SequentialAnonymizer attributeNameAnonymizer) {
+        String originalAttributeName = item.getElementName().toString();
+        if (nameMode.equals(NameMode.ORIGINAL)) {
+            return originalAttributeName;
+        }
+        return attributeNameAnonymizer.anonymize(originalAttributeName);
+    }
+
+    private void anonymizeAttribute(FocusType newObject, PrismContainer<?> itemContainer, ItemName itemName, SequentialAnonymizer attributeNameAnonymizer) {
+        Item<?, ?> item = itemContainer.findItem(itemName);
+        try {
+            if (item == null || item.hasNoValues()) {
+                return;
+            }
+            String attributeName = options.isAnonymizeAttributeNames()
+                    ? anonymizeAttributeName(item, attributeNameAnonymizer)
+                    : item.getElementName().toString();
+            Object anonymizedAttributeValue = anonymizeAttributeValue(item, itemName);
+
+            QName propertyName = new QName(itemName.getNamespaceURI(), attributeName);
+            PrismPropertyDefinition<Object> propertyDefinition = context
+                    .getPrismContext()
+                    .definitionFactory()
+                    .createPropertyDefinition(propertyName, DOMUtil.XSD_STRING);
+            PrismProperty<Object> anonymizedProperty = propertyDefinition.instantiate();
+            anonymizedProperty.setRealValue(anonymizedAttributeValue);
+            newObject.asPrismObject().addExtensionItem(anonymizedProperty);
+        } catch (Exception e) {
+            context.getLog().warn("Failed to anonymize attribute: \n{}\n{}\n{}", e, itemName, item);
+        }
+    }
+
+    private void fillAttributes(
+            @NotNull FocusType origObject,
+            @NotNull FocusType newObject,
+            @NotNull Set<ItemName> defaultAttributePaths,
+            @NotNull List<String> excludedAttributes
+    ) {
+        if (!attributesAllowed) {
+            return;
+        }
+        var origContainer = origObject.asPrismObject();
+        newObject.extension(new ExtensionType());
+
+        for (var path: defaultAttributePaths) {
+            anonymizeAttribute(newObject, origContainer, path, defaultAttributeNameAnonymizer);
+        }
+
+        if (origContainer.getExtension() != null) {
+            var extensionAttributePaths = extractExtensionAttributePaths(origContainer.getExtensionContainerValue(), excludedAttributes);
+            for (var path: extensionAttributePaths) {
+                anonymizeAttribute(newObject, origContainer.getExtension(), path, extensionAttributeNameAnonymizer);
+            }
+        }
+    }
+
+    private void fillActivation(@NotNull FocusType origObject, @NotNull FocusType newObject) {
+        if (origObject.getActivation() == null) {
+            return;
+        }
+        var activation = new ActivationType().effectiveStatus(origObject.getActivation().getEffectiveStatus());
+        newObject.setActivation(activation);
+    }
+
 }
