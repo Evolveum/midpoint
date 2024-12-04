@@ -10,6 +10,7 @@ import java.util.*;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
+import com.evolveum.midpoint.common.mining.objects.analysis.cache.ObjectCategorisationCache;
 import com.evolveum.midpoint.common.mining.objects.statistic.UserAccessDistribution;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -189,6 +190,19 @@ public interface RoleAnalysisService {
     void updateSessionStatistics(
             @NotNull ObjectReferenceType sessionRef,
             @NotNull RoleAnalysisSessionStatisticType sessionStatistic,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    /**
+     * Modifies identified characteristics of a RoleAnalysisSessionType object.
+     * @param sessionRef The session reference.
+     * @param identifiedCharacteristics The identified characteristics to modify.
+     * @param task The task associated with this operation.
+     * @param result The operation result.
+     */
+    void updateSessionIdentifiedCharacteristics(
+            @NotNull ObjectReferenceType sessionRef,
+            @NotNull RoleAnalysisIdentifiedCharacteristicsType identifiedCharacteristics,
             @NotNull Task task,
             @NotNull OperationResult result);
 
@@ -1156,6 +1170,7 @@ public interface RoleAnalysisService {
      * @param assignmentFilter An optional filter to apply to the assignment objects.
      * @param processMode The process mode to determine whether to search in user mode or role mode.
      * @param attributeAnalysisCache The cache for attribute analysis.
+     * @param objectCategorisationCache
      * @param task The task in the context of which the operation is executed.
      * @param result The result of the operation.
      * @param sessionObject poc
@@ -1168,7 +1183,7 @@ public interface RoleAnalysisService {
             @Nullable ObjectFilter assignmentFilter,
             @NotNull RoleAnalysisProcessModeType processMode,
             @Nullable AttributeAnalysisCache attributeAnalysisCache,
-            @NotNull Task task,
+            @NotNull ObjectCategorisationCache objectCategorisationCache, @NotNull Task task,
             @NotNull OperationResult result, @NotNull RoleAnalysisSessionType sessionObject);
 
     /**
@@ -1180,6 +1195,7 @@ public interface RoleAnalysisService {
      * @param assignmentSearchFiler An optional filter to apply to the assignment search.
      * @param processMode The process mode to determine whether to search in user mode or role mode.
      * @param attributeAnalysisCache The cache for attribute analysis.
+     * @param objectCategorisationCache
      * @param task The task in the context of which the operation is executed.
      * @param result The result of the operation.
      * @param sessionObject poc
@@ -1191,7 +1207,7 @@ public interface RoleAnalysisService {
             @Nullable SearchFilterType assignmentSearchFiler,
             @NotNull RoleAnalysisProcessModeType processMode,
             @Nullable AttributeAnalysisCache attributeAnalysisCache,
-            @NotNull Task task,
+            @NotNull ObjectCategorisationCache objectCategorisationCache, @NotNull Task task,
             @NotNull OperationResult result, @NotNull RoleAnalysisSessionType sessionObject);
 
     /**
@@ -1202,6 +1218,7 @@ public interface RoleAnalysisService {
      * @param assignmentFilter An optional filter to apply to the assignment objects.
      * @param processMode The process mode to determine whether to search in user mode or role mode.
      * @param attributeAnalysisCache The cache for attribute analysis.
+     * @param objectCategorisationCache The cache for object categorisation.
      * @param task The task in the context of which the operation is executed.
      * @param result The result of the operation.
      * @param sessionObject poc
@@ -1213,7 +1230,9 @@ public interface RoleAnalysisService {
             @Nullable ObjectFilter roleObjectFilter,
             @Nullable ObjectFilter assignmentFilter,
             @NotNull RoleAnalysisProcessModeType processMode,
-            @Nullable AttributeAnalysisCache attributeAnalysisCache, @NotNull Task task,
+            @Nullable AttributeAnalysisCache attributeAnalysisCache,
+            @Nullable ObjectCategorisationCache objectCategorisationCache,
+            @NotNull Task task,
             @NotNull OperationResult result, @NotNull RoleAnalysisSessionType sessionObject);
 
     /**
@@ -1225,6 +1244,7 @@ public interface RoleAnalysisService {
      * @param assignmentSearchFiler An optional filter to apply to the assignment search.
      * @param processMode The process mode to determine whether to search in user mode or role mode.
      * @param attributeAnalysisCache The cache for attribute analysis.
+     * @param objectCategorisationCache The cache for object categorisation.
      * @param task The task in the context of which the operation is executed.
      * @param result The result of the operation.
      * @param sessionObject poc
@@ -1236,6 +1256,7 @@ public interface RoleAnalysisService {
             @Nullable SearchFilterType assignmentSearchFiler,
             @NotNull RoleAnalysisProcessModeType processMode,
             @Nullable AttributeAnalysisCache attributeAnalysisCache,
+            @Nullable ObjectCategorisationCache objectCategorisationCache,
             @NotNull Task task,
             @NotNull OperationResult result,
             @NotNull RoleAnalysisSessionType sessionObject);
@@ -1392,6 +1413,22 @@ public interface RoleAnalysisService {
     void updateSessionObjectCategorization(
             @NotNull RoleAnalysisSessionType sessionObject,
             @NotNull RolesAnalysisObjectCategorizationType sessionObjectCategorization,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    /**
+     * Retrieves the categorization of a role analysis object based on the provided object reference and session ID.
+     *
+     * @param objectRef The reference to the object whose categorization is to be retrieved.
+     * @param sessionOid The OID of the session in which the object is analyzed.
+     * @param task The task in which the operation is performed.
+     * @param result The operation result.
+     * @return A list of RoleAnalysisObjectCategorizationType representing the categorization of the object,
+     *         or null if the object or session is not found.
+     */
+    @Nullable List<RoleAnalysisObjectCategorizationType> getObjectRoleAnalysisObjectCategorization(
+            @NotNull ObjectReferenceType objectRef,
+            @NotNull String sessionOid,
             @NotNull Task task,
             @NotNull OperationResult result);
 

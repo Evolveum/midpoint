@@ -28,6 +28,7 @@ import java.util.stream.IntStream;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.mining.objects.analysis.cache.ObjectCategorisationCache;
 import com.evolveum.midpoint.common.mining.objects.detection.BasePattern;
 import com.evolveum.midpoint.common.mining.objects.statistic.UserAccessDistribution;
 import com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils;
@@ -415,6 +416,25 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
                 CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
             LOGGER.error("Couldn't update role analysis session statistic {}", sessionRef, e);
+        }
+    }
+
+    @Override
+    public void updateSessionIdentifiedCharacteristics(
+            @NotNull ObjectReferenceType sessionRef,
+            @NotNull RoleAnalysisIdentifiedCharacteristicsType identifiedCharacteristics,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        try {
+            ObjectDelta<RoleAnalysisSessionType> delta = PrismContext.get().deltaFor(RoleAnalysisSessionType.class)
+                    .item(RoleAnalysisSessionType.F_IDENTIFIED_CHARACTERISTICS)
+                    .replace(identifiedCharacteristics.clone())
+                    .asObjectDelta(sessionRef.getOid());
+
+            modelService.executeChanges(singleton(delta), null, task, result);
+        } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
+                CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
+            LOGGER.error("Couldn't update role analysis session identifiedCharacteristics {}", sessionRef, e);
         }
     }
 
@@ -3076,7 +3096,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull Task task,
             @NotNull RoleAnalysisSessionType sessionObject) {
         ListMultimap<List<String>, String> listStringListMultimap = this.prepareAssignmentChunkMapRolesAsKey(
-                userSearchFilter, null, null, RoleAnalysisProcessModeType.USER, null, task, result, sessionObject);
+                userSearchFilter, null, null, RoleAnalysisProcessModeType.USER,
+                null, null, task, result, sessionObject);
 
         Iterator<Map.Entry<List<String>, String>> iterator = listStringListMultimap.entries().iterator();
         while (iterator.hasNext()) {
@@ -3438,6 +3459,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @Nullable ObjectFilter assignmentFilter,
             @NotNull RoleAnalysisProcessModeType processMode,
             @Nullable AttributeAnalysisCache attributeAnalysisCache,
+            @Nullable ObjectCategorisationCache objectCategorisationCache,
             @NotNull Task task,
             @NotNull OperationResult result,
             @NotNull RoleAnalysisSessionType sessionObject) {
@@ -3513,8 +3535,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             throw new SystemException("Couldn't search assignments", e);
         }
 
-        loadSessionPopularityAccessCategorization(sessionObject, roleMembersMap, sessionObjectCategorization, task, result);
-
         sessionStatistic.setProcessedAssignmentCount(roleMembersMap.keys().size());
 
         ListMultimap<String, String> userRolesMap = ArrayListMultimap.create();
@@ -3530,7 +3550,12 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             sessionStatistic.setProcessedPropertiesCount(userRolesMap.keySet().size());
         }
 
-        loadSessionPopularityUserCategorization(sessionObject, userRolesMap, sessionObjectCategorization, task, result);
+        if (objectCategorisationCache != null) {
+            loadSessionPopularityAccessCategorization(objectCategorisationCache, sessionObject, roleMembersMap,
+                    sessionObjectCategorization, task, result);
+            loadSessionPopularityUserCategorization(objectCategorisationCache, sessionObject, userRolesMap,
+                    sessionObjectCategorization, task, result);
+        }
 
         if (attributeAnalysisCache != null) {
             attributeAnalysisCache.setRoleMemberCache(roleMembersMap);
@@ -3551,6 +3576,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @Nullable ObjectFilter assignmentFilter,
             @NotNull RoleAnalysisProcessModeType processMode,
             @Nullable AttributeAnalysisCache attributeAnalysisCache,
+            @Nullable ObjectCategorisationCache objectCategorisationCache,
             @NotNull Task task,
             @NotNull OperationResult result,
             @NotNull RoleAnalysisSessionType sessionObject) {
@@ -3634,7 +3660,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             throw new SystemException("Couldn't search assignments", e);
         }
 
-        loadSessionPopularityAccessCategorization(sessionObject, roleMembersMap, sessionObjectCategorization, task, result);
         sessionStatistic.setProcessedAssignmentCount(roleMembersMap.keys().size());
 
         ListMultimap<String, String> userRolesMap = ArrayListMultimap.create();
@@ -3650,7 +3675,12 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             sessionStatistic.setProcessedPropertiesCount(userRolesMap.keySet().size());
         }
 
-        loadSessionPopularityUserCategorization(sessionObject, userRolesMap, sessionObjectCategorization, task, result);
+        if (objectCategorisationCache != null) {
+            loadSessionPopularityAccessCategorization(objectCategorisationCache, sessionObject, roleMembersMap,
+                    sessionObjectCategorization, task, result);
+            loadSessionPopularityUserCategorization(objectCategorisationCache, sessionObject, userRolesMap,
+                    sessionObjectCategorization, task, result);
+        }
 
         if (attributeAnalysisCache != null) {
             attributeAnalysisCache.setRoleMemberCache(roleMembersMap);
@@ -3671,6 +3701,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @Nullable SearchFilterType assignmentSearchFiler,
             @NotNull RoleAnalysisProcessModeType processMode,
             @Nullable AttributeAnalysisCache attributeAnalysisCache,
+            @Nullable ObjectCategorisationCache objectCategorisationCache,
             @NotNull Task task,
             @NotNull OperationResult result,
             @NotNull RoleAnalysisSessionType sessionObject) {
@@ -3680,7 +3711,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         ObjectFilter assignmentFilter = transformSearchToObjectFilter(assignmentSearchFiler, AssignmentType.class);
 
         ListMultimap<String, String> userRolesMap = assignmentSearch(
-                userObjectFilter, roleObjectFilter, assignmentFilter, processMode, attributeAnalysisCache, task, result, sessionObject);
+                userObjectFilter, roleObjectFilter, assignmentFilter, processMode,
+                attributeAnalysisCache, objectCategorisationCache, task, result, sessionObject);
         ListMultimap<List<String>, String> compressedUsers = ArrayListMultimap.create();
 
         for (String userOid : userRolesMap.keySet()) {
@@ -3698,6 +3730,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @Nullable SearchFilterType assignmentSearchFiler,
             @NotNull RoleAnalysisProcessModeType processMode,
             @Nullable AttributeAnalysisCache attributeAnalysisCache,
+            @NotNull ObjectCategorisationCache objectCategorisationCache,
             @NotNull Task task,
             @NotNull OperationResult result,
             @NotNull RoleAnalysisSessionType sessionObject) {
@@ -3708,7 +3741,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
         ListMultimap<String, String> userRolesMap = this.membershipSearch(
                 userObjectFilter, roleObjectFilter, assignmentFilter,
-                processMode, attributeAnalysisCache, task, result, sessionObject);
+                processMode, attributeAnalysisCache, objectCategorisationCache, task, result, sessionObject);
         ListMultimap<List<String>, String> compressedUsers = ArrayListMultimap.create();
 
         for (String userOid : userRolesMap.keySet()) {
@@ -4361,38 +4394,79 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
     private static @NotNull Set<String> getUnwantedAccesses(
             @NotNull RoleAnalysisSessionType sessionObject) {
-        RolesAnalysisObjectCategorizationType sessionObjectCategorization = sessionObject.getSessionObjectCategorization();
-        if (sessionObjectCategorization == null) {
+        RoleAnalysisIdentifiedCharacteristicsType identifiedCharacteristics = sessionObject.getIdentifiedCharacteristics();
+        if (identifiedCharacteristics == null) {
             return new HashSet<>();
         }
-        RoleAnalysisExcludeType excludeObject = sessionObjectCategorization.getExclude();
-        Set<String> unwantedAccess = new HashSet<>();
-        if (excludeObject != null) {
-            List<String> excludeRoleRef = excludeObject.getExcludeRoleRef();
-            if (excludeRoleRef != null) {
-                return new HashSet<>(excludeRoleRef);
-            }
 
+        RoleAnalysisExcludeType excludeObject = identifiedCharacteristics.getExclude();
+        if (excludeObject == null) {
+            return new HashSet<>();
+        }
+
+        Set<String> unwantedAccess = new HashSet<>();
+        List<String> excludeRoleRef = excludeObject.getExcludeRoleRef();
+        if (excludeRoleRef != null) {
+            unwantedAccess.addAll(excludeRoleRef);
+        }
+
+        List<RoleAnalysisObjectCategorizationType> excludeRoleCategory = excludeObject.getExcludeRoleCategory();
+        if (excludeRoleCategory != null) {
+            RoleAnalysisIdentifiedCharacteristicsItemsType roles = identifiedCharacteristics.getRoles();
+            if (roles != null) {
+                roles.getItem().forEach(role -> {
+                    List<RoleAnalysisObjectCategorizationType> category = role.getCategory();
+                    if (category != null) {
+                        for (RoleAnalysisObjectCategorizationType roleCategory : category) {
+                            if (excludeRoleCategory.contains(roleCategory)) {
+                                unwantedAccess.add(role.getObjectRef().getOid());
+                                break;
+                            }
+                        }
+                    }
+                });
+
+            }
         }
         return unwantedAccess;
     }
 
     private static @NotNull Set<String> getUnwantedUsers(
             @NotNull RoleAnalysisSessionType sessionObject) {
-        RolesAnalysisObjectCategorizationType sessionObjectCategorization = sessionObject.getSessionObjectCategorization();
-        if (sessionObjectCategorization == null) {
+        RoleAnalysisIdentifiedCharacteristicsType identifiedCharacteristics = sessionObject.getIdentifiedCharacteristics();
+        if (identifiedCharacteristics == null) {
             return new HashSet<>();
         }
 
-        RoleAnalysisExcludeType excludeObject = sessionObjectCategorization.getExclude();
-        Set<String> unwantedUsers = new HashSet<>();
-        if (excludeObject != null) {
-            List<String> excludeUserRef = excludeObject.getExcludeUserRef();
-            if (excludeUserRef != null) {
-                return new HashSet<>(excludeUserRef);
-            }
-
+        RoleAnalysisExcludeType excludeObject = identifiedCharacteristics.getExclude();
+        if (excludeObject == null) {
+            return new HashSet<>();
         }
+
+        Set<String> unwantedUsers = new HashSet<>();
+        List<String> excludeUserRef = excludeObject.getExcludeUserRef();
+        if (excludeUserRef != null) {
+            return new HashSet<>(excludeUserRef);
+        }
+
+        List<RoleAnalysisObjectCategorizationType> excludeUserCategory = excludeObject.getExcludeUserCategory();
+        if (excludeUserCategory != null) {
+            RoleAnalysisIdentifiedCharacteristicsItemsType users = identifiedCharacteristics.getUsers();
+            if (users != null) {
+                users.getItem().forEach(user -> {
+                    List<RoleAnalysisObjectCategorizationType> category = user.getCategory();
+                    if (category != null) {
+                        for (RoleAnalysisObjectCategorizationType userCategory : category) {
+                            if (excludeUserCategory.contains(userCategory)) {
+                                unwantedUsers.add(user.getObjectRef().getOid());
+                                break;
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
         return unwantedUsers;
     }
 
@@ -4410,6 +4484,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     }
 
     private void loadSessionPopularityUserCategorization(
+            @NotNull ObjectCategorisationCache objectCategorisationCache,
             @NotNull RoleAnalysisSessionType sessionObject,
             @NotNull ListMultimap<String, String> userRolesMap,
             @NotNull RolesAnalysisObjectCategorizationType sessionObjectCategorization,
@@ -4433,6 +4508,16 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                 }
 
             });
+
+            for (String userOid : nonPopularUsersMin) {
+                objectCategorisationCache
+                        .putCategory(userOid, RoleAnalysisObjectCategorizationType.UN_POPULAR, UserType.COMPLEX_TYPE);
+            }
+
+            for (String userOid : nonPopularUsersMax) {
+                objectCategorisationCache
+                        .putCategory(userOid, RoleAnalysisObjectCategorizationType.ABOVE_POPULAR, UserType.COMPLEX_TYPE);
+            }
 
             RoleAnalysisUnpopularUsersType unpopularUsers = new RoleAnalysisUnpopularUsersType();
             unpopularUsers.getUserRef().addAll(nonPopularUsersMin);
@@ -4469,6 +4554,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     }
 
     private void loadSessionPopularityAccessCategorization(
+            @NotNull ObjectCategorisationCache objectCategorisationCache,
             @NotNull RoleAnalysisSessionType sessionObject,
             @NotNull ListMultimap<String, String> roleMembersMap,
             @NotNull RolesAnalysisObjectCategorizationType sessionObjectCategorization,
@@ -4490,6 +4576,16 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                 }
             });
 
+            for (String roleOid : nonPopularRolesMin) {
+                objectCategorisationCache
+                        .putCategory(roleOid, RoleAnalysisObjectCategorizationType.UN_POPULAR, RoleType.COMPLEX_TYPE);
+            }
+
+            for (String roleOid : nonPopularRolesMax) {
+                objectCategorisationCache
+                        .putCategory(roleOid, RoleAnalysisObjectCategorizationType.ABOVE_POPULAR, RoleType.COMPLEX_TYPE);
+            }
+
             RoleAnalysisUnpopularRolesType unpopularRoles = new RoleAnalysisUnpopularRolesType();
             unpopularRoles.getRoleRef().addAll(nonPopularRolesMin);
             unpopularRoles.setRolesCount(nonPopularRolesMin.size());
@@ -4503,6 +4599,52 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             this.updateSessionObjectCategorization(sessionObject, sessionObjectCategorization, task, result);
 
         }
+    }
+
+    @Override
+    public @Nullable List<RoleAnalysisObjectCategorizationType> getObjectRoleAnalysisObjectCategorization(
+            @NotNull ObjectReferenceType objectRef,
+            @NotNull String sessionOid,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        String targetObjectOid = objectRef.getOid();
+        QName targetObjectType = objectRef.getType();
+        Objects.requireNonNull(targetObjectOid, "ObjectRef oid must not be null");
+        Objects.requireNonNull(targetObjectType, "ObjectRef type must not be null");
+
+        @Nullable PrismObject<RoleAnalysisSessionType> sessionObject = getSessionTypeObject(sessionOid, task, result);
+        if (sessionObject == null) {
+            return null;
+        }
+
+        RoleAnalysisSessionType session = sessionObject.asObjectable();
+        RoleAnalysisIdentifiedCharacteristicsType identifiedCharacteristics = session.getIdentifiedCharacteristics();
+
+        if (targetObjectType.equals(UserType.COMPLEX_TYPE)) {
+            RoleAnalysisIdentifiedCharacteristicsItemsType users = identifiedCharacteristics.getUsers();
+            if (users == null) {
+                return null;
+            }
+
+            for (RoleAnalysisIdentifiedCharacteristicsItemType user : users.getItem()) {
+                if (user.getObjectRef().getOid().equals(targetObjectOid)) {
+                    return user.getCategory();
+                }
+            }
+        } else if (targetObjectType.equals(RoleType.COMPLEX_TYPE)) {
+            RoleAnalysisIdentifiedCharacteristicsItemsType roles = identifiedCharacteristics.getRoles();
+            if (roles == null) {
+                return null;
+            }
+
+            for (RoleAnalysisIdentifiedCharacteristicsItemType role : roles.getItem()) {
+                if (role.getObjectRef().getOid().equals(targetObjectOid)) {
+                    return role.getCategory();
+                }
+            }
+        }
+
+        return null;
     }
 }
 

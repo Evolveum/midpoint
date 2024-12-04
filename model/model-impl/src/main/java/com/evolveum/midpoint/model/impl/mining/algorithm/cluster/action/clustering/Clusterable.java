@@ -10,6 +10,7 @@ package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.cluster
 import java.util.List;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
+import com.evolveum.midpoint.common.mining.objects.analysis.cache.ObjectCategorisationCache;
 import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
 import com.evolveum.midpoint.model.api.ModelService;
 
@@ -36,6 +37,7 @@ public interface Clusterable {
      * @param session The role analysis session.
      * @param handler The progress increment handler.
      * @param attributeAnalysisCache The cache for attribute analysis.
+     * @param objectCategorisationCache The cache for object categorisation.
      * @param task The task being executed.
      * @param result The operation result.
      * @return A list of PrismObject instances representing the cluster.
@@ -47,6 +49,7 @@ public interface Clusterable {
             @NotNull RoleAnalysisSessionType session,
             @NotNull RoleAnalysisProgressIncrement handler,
             @NotNull AttributeAnalysisCache attributeAnalysisCache,
+            @NotNull ObjectCategorisationCache objectCategorisationCache,
             @NotNull Task task,
             @NotNull OperationResult result);
 }

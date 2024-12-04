@@ -20,6 +20,8 @@ import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttribut
 
 import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
 
+import com.evolveum.midpoint.common.mining.objects.analysis.cache.ObjectCategorisationCache;
+
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,6 +57,7 @@ public class RoleAnalysisAlgorithmUtils {
      * @param clusters The clusters to process.
      * @param session The role analysis session.
      * @param attributeAnalysisCache The attribute analysis cache.
+     * @param objectCategorisationCache The object categorization cache.
      * @param handler A progress handler to report processing status.
      * @param task The current task.
      * @param result The operation result.
@@ -67,6 +70,7 @@ public class RoleAnalysisAlgorithmUtils {
             @NotNull List<Cluster<DataPoint>> clusters,
             @NotNull RoleAnalysisSessionType session,
             @NotNull AttributeAnalysisCache attributeAnalysisCache,
+            @NotNull ObjectCategorisationCache objectCategorisationCache,
             @NotNull RoleAnalysisProgressIncrement handler,
             @NotNull Task task,
             @NotNull OperationResult result) {
@@ -207,6 +211,7 @@ public class RoleAnalysisAlgorithmUtils {
         }
 
         loadSessionObjectCategorization(roleAnalysisService,
+                objectCategorisationCache,
                 session,
                 processMode,
                 propertiesInNoiseClusters,
@@ -219,6 +224,7 @@ public class RoleAnalysisAlgorithmUtils {
 
     private static void loadSessionObjectCategorization(
             @NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull ObjectCategorisationCache objectCategorisationCache,
             @NotNull RoleAnalysisSessionType session,
             @NotNull RoleAnalysisProcessModeType processMode,
             @NotNull Set<String> propertiesInNoiseClusters,
@@ -230,6 +236,11 @@ public class RoleAnalysisAlgorithmUtils {
         RoleAnalysisNoiseUsersType noiseUsers = new RoleAnalysisNoiseUsersType();
         RoleAnalysisNoiseRolesType noiseRoles = new RoleAnalysisNoiseRolesType();
         if (processMode == RoleAnalysisProcessModeType.ROLE) {
+            objectCategorisationCache.putAllCategory(propertiesInNoiseClusters,
+                    RoleAnalysisObjectCategorizationType.NOISE, UserType.COMPLEX_TYPE);
+            objectCategorisationCache.putAllCategory(membersInNoiseClusters,
+                    RoleAnalysisObjectCategorizationType.NOISE, RoleType.COMPLEX_TYPE);
+
             noiseUsers.getUserRef().addAll(propertiesInNoiseClusters);
             noiseRoles.getRoleRef().addAll(membersInNoiseClusters);
             noiseUsers.setUserCount(propertiesInNoiseClusters.size());
@@ -237,6 +248,12 @@ public class RoleAnalysisAlgorithmUtils {
             sessionObjectCategorization.setNoiseUsers(noiseUsers);
             sessionObjectCategorization.setNoiseRoles(noiseRoles);
         } else {
+            objectCategorisationCache.putAllCategory(propertiesInNoiseClusters,
+                    RoleAnalysisObjectCategorizationType.NOISE, RoleType.COMPLEX_TYPE);
+
+            objectCategorisationCache.putAllCategory(membersInNoiseClusters,
+                    RoleAnalysisObjectCategorizationType.NOISE, UserType.COMPLEX_TYPE);
+
             noiseRoles.getRoleRef().addAll(propertiesInNoiseClusters);
             noiseUsers.getUserRef().addAll(membersInNoiseClusters);
             noiseRoles.setRolesCount(propertiesInNoiseClusters.size());
@@ -252,6 +269,15 @@ public class RoleAnalysisAlgorithmUtils {
         uniqNoiseProperties.getPropertiesRef().addAll(propertiesOnlyInNoiseClusters);
         uniqNoiseProperties.setPropertiesCount(propertiesOnlyInNoiseClusters.size());
         sessionObjectCategorization.setUniqNoiseProperties(uniqNoiseProperties);
+
+        if (processMode == RoleAnalysisProcessModeType.ROLE) {
+            objectCategorisationCache.putAllCategory(propertiesOnlyInNoiseClusters,
+                    RoleAnalysisObjectCategorizationType.NOISE_EXCLUSIVE, UserType.COMPLEX_TYPE);
+        } else {
+            objectCategorisationCache.putAllCategory(propertiesOnlyInNoiseClusters,
+                    RoleAnalysisObjectCategorizationType.NOISE_EXCLUSIVE, RoleType.COMPLEX_TYPE);
+        }
+
         roleAnalysisService.updateSessionObjectCategorization(session, sessionObjectCategorization, task, result);
     }
 

@@ -479,6 +479,10 @@
                 </xsd:annotation>
             </xsd:element>
 
+            <!--TODO add category classification here? -->
+            <!--(Check it) We cant use RoleAnalysisIdentifiedCharacteristicsItemType because targetObjectRef is searchable.-->
+            <!--Currently, we need fetch session object and compare anomaly with RoleAnalysisIdentifiedCharacteristicsItemsType.-->
+
             <xsd:element name="createTimestamp" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -600,9 +604,9 @@
 
             <!-- TODO important!!! whats if cluster is outlier_cluster, in this case is outlier OUTER OUTLIER, so we need store*
  TODO *refs of all similar object or store all statistics data, NEED TO BE RESOLVED -->
-            <!-- Lets store two types in case of USER MODE - RoleAnalysisClusterType and UserType,
+            <!-- Let's store two types in case of USER MODE - RoleAnalysisClusterType and UserType,
             when similarObjects refs is size of 1 and type of RoleAnalysisClusterType we can return similar object from
-            cluster object else we must to store similar user so UserType objects
+            cluster object else we must store similar user so UserType objects
             also this can be decided from outlier category -->
             <xsd:element name="similarObjects" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
@@ -2029,7 +2033,7 @@
             <xsd:enumeration value="partial">
                 <xsd:annotation>
                     <xsd:documentation>
-                        This mapping should be used for skiping potential large clustering objects.
+                        This mapping should be used for skipping potential large clustering objects.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="PARTIAL"/>
@@ -2039,7 +2043,7 @@
             <xsd:enumeration value="skip">
                 <xsd:annotation>
                     <xsd:documentation>
-                        This mapping should be used for skiping detection pattern on clustering objects.
+                        This mapping should be used for skipping detection pattern on clustering objects.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="SKIP"/>
@@ -3155,7 +3159,7 @@
     <xsd:complexType name="RoleAnalysisExcludeType">
         <xsd:annotation>
             <xsd:documentation>
-                POC
+                Object that should be excluded from the analysis in next analysis round.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -3181,10 +3185,18 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="excludeCategory" type="tns:RoleAnalysisObjectCategorizationType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="excludeRoleCategory" type="tns:RoleAnalysisObjectCategorizationType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Category classification.
+                        Category classification. Role excluded from future clustering processes.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="excludeUserCategory" type="tns:RoleAnalysisObjectCategorizationType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Category classification. User excluded from future clustering processes.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -3237,7 +3249,7 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="roles" type="tns:RoleAnalysisIdentifiedCharacteristicsItemsType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="roles" type="tns:RoleAnalysisIdentifiedCharacteristicsItemsType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Contains specific characteristics of the role type objects.
@@ -3245,7 +3257,7 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="users" type="tns:RoleAnalysisIdentifiedCharacteristicsItemsType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="users" type="tns:RoleAnalysisIdentifiedCharacteristicsItemsType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Contains specific characteristics of the user type objects.
@@ -3253,10 +3265,20 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="focus" type="tns:RoleAnalysisIdentifiedCharacteristicsItemsType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="focus" type="tns:RoleAnalysisIdentifiedCharacteristicsItemsType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Contains specific characteristics of the focus type object (except user and role type object).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="exclude" type="tns:RoleAnalysisExcludeType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Object that should be excluded from the analysis in next analysis round.
+                        </p>
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

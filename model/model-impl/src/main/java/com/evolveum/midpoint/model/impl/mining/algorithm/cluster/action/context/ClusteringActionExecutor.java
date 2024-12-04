@@ -12,8 +12,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
 
+import com.evolveum.midpoint.common.mining.objects.analysis.cache.ObjectCategorisationCache;
 import com.evolveum.midpoint.model.impl.mining.utils.DebugOutlierDetectionEvaluation;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -55,6 +55,8 @@ public class ClusteringActionExecutor extends BaseAction {
     private static final Trace LOGGER = TraceManager.getTrace(ClusteringActionExecutor.class);
 
     private final AttributeAnalysisCache attributeAnalysisCache = new AttributeAnalysisCache();
+
+    private final ObjectCategorisationCache objectCategorisationCache = new ObjectCategorisationCache();
 
     private final RoleAnalysisProgressIncrement handler = new RoleAnalysisProgressIncrement("Density Clustering",
             7, this::incrementProgress);
@@ -128,7 +130,7 @@ public class ClusteringActionExecutor extends BaseAction {
         this.clusterable = new ClusteringBehavioralResolver();
 
         List<PrismObject<RoleAnalysisClusterType>> clusterObjects = clusterable.executeClustering(
-                roleAnalysisService, modelService, session, handler, attributeAnalysisCache, task, result);
+                roleAnalysisService, modelService, session, handler, attributeAnalysisCache, objectCategorisationCache, task, result);
 
         if (!clusterObjects.isEmpty()) {
             importObjects(roleAnalysisService, clusterObjects, session, task, result);
@@ -159,10 +161,6 @@ public class ClusteringActionExecutor extends BaseAction {
             sessionOptions = session.getUserModeOptions();
             complexType = UserType.COMPLEX_TYPE;
         }
-
-        SearchFilterType userSearchFilter = sessionOptions.getUserSearchFilter();
-        SearchFilterType roleSearchFilter = sessionOptions.getRoleSearchFilter();
-        SearchFilterType assignmentSearchFilter = sessionOptions.getAssignmentSearchFilter();
 
         double meanDensity = 0;
         int countOutliers = 0;
@@ -225,8 +223,14 @@ public class ClusteringActionExecutor extends BaseAction {
         if (analysisProcedureType == RoleAnalysisProcedureType.OUTLIER_DETECTION) {
             resolveAnomalyNoise(clusters, session, attributeAnalysisCache, roleAnalysisService, task, result);
         }
+
         roleAnalysisService
                 .updateSessionStatistics(sessionRef, sessionStatistic, task, result);
+
+        RoleAnalysisIdentifiedCharacteristicsType characteristicsContainer = objectCategorisationCache.build();
+
+        roleAnalysisService
+                .updateSessionIdentifiedCharacteristics(sessionRef, characteristicsContainer, task, result);
 
         // Development only helper method - DO NOT RUN IN REAL ENVIRONMENT!
         //logDebugOutlierDetectionEvaluation(sessionOid, modelService, roleAnalysisService, task);
@@ -254,7 +258,9 @@ public class ClusteringActionExecutor extends BaseAction {
                 .getSessionOutlierPartitionsMap(sessionOid, null, true, task, result);
         ListMultimap<String, String> outlierAnomalyMap = ArrayListMultimap.create();
         Set<String> sessionAnomalyOids = new HashSet<>();
+        Set<String> sessionOutlierOids = new HashSet<>();
         allSessionOutlierPartitions.forEach((partition, outlier) -> {
+            sessionOutlierOids.add(outlier.getObjectRef().getOid());
             List<DetectedAnomalyResult> detectedAnomalyResult = partition.getDetectedAnomalyResult();
             if (detectedAnomalyResult != null) {
                 detectedAnomalyResult.forEach(anomaly -> {
@@ -264,6 +270,9 @@ public class ClusteringActionExecutor extends BaseAction {
                 });
             }
         });
+
+        loadSessionAnomalyCategorization(objectCategorisationCache, sessionAnomalyOids);
+        loadSessionOutlierCategorization(objectCategorisationCache, sessionOutlierOids);
 
         for (PrismObject<RoleAnalysisClusterType> prismCluster : clusters) {
             RoleAnalysisClusterType clusterObject = prismCluster.asObjectable();
@@ -287,10 +296,27 @@ public class ClusteringActionExecutor extends BaseAction {
 
         }
 
-        loadSessionAnomalyCategorization(roleAnalysisService, session, sessionAnomalyOids, task, result);
+        loadSessionExclusiveAnomalyCategorization(roleAnalysisService, objectCategorisationCache, session, sessionAnomalyOids, task, result);
     }
 
-    private static void loadSessionAnomalyCategorization(@NotNull RoleAnalysisService roleAnalysisService,
+    //Temporary only user mode
+    private static void loadSessionAnomalyCategorization(
+            @NotNull ObjectCategorisationCache objectCategorisationCache,
+            @NotNull Set<String> sessionAnomalyOids) {
+        objectCategorisationCache.putAllCategory(sessionAnomalyOids,
+                RoleAnalysisObjectCategorizationType.ANOMALY, RoleType.COMPLEX_TYPE);
+    }
+
+    //Temporary only user mode
+    private static void loadSessionOutlierCategorization(
+            @NotNull ObjectCategorisationCache objectCategorisationCache,
+            @NotNull Set<String> sessionAnomalyOids) {
+        objectCategorisationCache.putAllCategory(sessionAnomalyOids,
+                RoleAnalysisObjectCategorizationType.OUTLIER, UserType.COMPLEX_TYPE);
+    }
+
+    private static void loadSessionExclusiveAnomalyCategorization(@NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull ObjectCategorisationCache objectCategorisationCache,
             @NotNull RoleAnalysisSessionType session,
             @NotNull Set<String> sessionAnomalyOids,
             @NotNull Task task,
@@ -301,6 +327,9 @@ public class ClusteringActionExecutor extends BaseAction {
         overallAnomaly.setAnomalyCount(sessionAnomalyOids.size());
         sessionObjectCategorization.setOverallAnomaly(overallAnomaly);
         roleAnalysisService.updateSessionObjectCategorization(session, sessionObjectCategorization, task, result);
+
+        objectCategorisationCache.putAllCategory(sessionAnomalyOids,
+                RoleAnalysisObjectCategorizationType.ANOMALY_EXCLUSIVE, RoleType.COMPLEX_TYPE);
     }
 
     /**

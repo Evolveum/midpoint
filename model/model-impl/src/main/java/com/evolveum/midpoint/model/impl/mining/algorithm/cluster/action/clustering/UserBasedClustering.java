@@ -14,6 +14,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
 
+import com.evolveum.midpoint.common.mining.objects.analysis.cache.ObjectCategorisationCache;
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,13 +44,14 @@ public class UserBasedClustering implements Clusterable {
     /**
      * Executes the clustering operation for role analysis.
      *
-     * @param roleAnalysisService The role analysis service for performing operations.
-     * @param modelService The model service for performing operations.
-     * @param session The role analysis session object to be processed.
-     * @param handler The progress increment handler for tracking the execution progress.
-     * @param attributeAnalysisCache The cache for storing attribute analysis results.
-     * @param task The task being executed.
-     * @param result The operation result to record the outcome.
+     * @param roleAnalysisService       The role analysis service for performing operations.
+     * @param modelService              The model service for performing operations.
+     * @param session                   The role analysis session object to be processed.
+     * @param handler                   The progress increment handler for tracking the execution progress.
+     * @param attributeAnalysisCache    The cache for storing attribute analysis results.
+     * @param objectCategorisationCache The cache for storing object categorisation results.
+     * @param task                      The task being executed.
+     * @param result                    The operation result to record the outcome.
      * @return A list of PrismObject instances representing the role analysis clusters.
      */
     @Override
@@ -58,7 +60,7 @@ public class UserBasedClustering implements Clusterable {
             @NotNull ModelService modelService,
             @NotNull RoleAnalysisSessionType session,
             @NotNull RoleAnalysisProgressIncrement handler,
-            @NotNull AttributeAnalysisCache attributeAnalysisCache, @NotNull Task task,
+            @NotNull AttributeAnalysisCache attributeAnalysisCache, @NotNull ObjectCategorisationCache objectCategorisationCache, @NotNull Task task,
             @NotNull OperationResult result) {
 
         UserAnalysisSessionOptionType userModeOptions = session.getUserModeOptions();
@@ -81,7 +83,7 @@ public class UserBasedClustering implements Clusterable {
                 roleSearchFilter,
                 assignmentSearchFilter,
                 attributeAnalysisCache,
-                task,
+                objectCategorisationCache, task,
                 result,
                 session);
 
@@ -105,7 +107,7 @@ public class UserBasedClustering implements Clusterable {
         List<Cluster<DataPoint>> clusters = dbscan.cluster(dataPoints, handler);
 
         return new RoleAnalysisAlgorithmUtils().processClusters(roleAnalysisService, dataPoints, clusters, session,
-                attributeAnalysisCache, handler, task, result);
+                attributeAnalysisCache, objectCategorisationCache, handler, task, result);
     }
 
 }
