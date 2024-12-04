@@ -296,7 +296,7 @@ public class ClusteringActionExecutor extends BaseAction {
 
         }
 
-        loadSessionExclusiveAnomalyCategorization(roleAnalysisService, objectCategorisationCache, session, sessionAnomalyOids, task, result);
+        loadSessionExclusiveAnomalyCategorization(objectCategorisationCache, sessionAnomalyOids);
     }
 
     //Temporary only user mode
@@ -315,19 +315,8 @@ public class ClusteringActionExecutor extends BaseAction {
                 RoleAnalysisObjectCategorizationType.OUTLIER, UserType.COMPLEX_TYPE);
     }
 
-    private static void loadSessionExclusiveAnomalyCategorization(@NotNull RoleAnalysisService roleAnalysisService,
-            @NotNull ObjectCategorisationCache objectCategorisationCache,
-            @NotNull RoleAnalysisSessionType session,
-            @NotNull Set<String> sessionAnomalyOids,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
-        RolesAnalysisObjectCategorizationType sessionObjectCategorization = session.getSessionObjectCategorization();
-        RoleAnalysisOverallAnomalyType overallAnomaly = new RoleAnalysisOverallAnomalyType();
-        overallAnomaly.getAnomalyRef().addAll(sessionAnomalyOids);
-        overallAnomaly.setAnomalyCount(sessionAnomalyOids.size());
-        sessionObjectCategorization.setOverallAnomaly(overallAnomaly);
-        roleAnalysisService.updateSessionObjectCategorization(session, sessionObjectCategorization, task, result);
-
+    private static void loadSessionExclusiveAnomalyCategorization(@NotNull ObjectCategorisationCache objectCategorisationCache,
+            @NotNull Set<String> sessionAnomalyOids) {
         objectCategorisationCache.putAllCategory(sessionAnomalyOids,
                 RoleAnalysisObjectCategorizationType.ANOMALY_EXCLUSIVE, RoleType.COMPLEX_TYPE);
     }

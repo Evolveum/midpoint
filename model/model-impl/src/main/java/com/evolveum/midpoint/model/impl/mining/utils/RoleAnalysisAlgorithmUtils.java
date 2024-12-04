@@ -232,43 +232,22 @@ public class RoleAnalysisAlgorithmUtils {
             @NotNull Set<String> propertiesInClusters,
             @NotNull Task task,
             @NotNull OperationResult result) {
-        RolesAnalysisObjectCategorizationType sessionObjectCategorization = session.getSessionObjectCategorization();
-        RoleAnalysisNoiseUsersType noiseUsers = new RoleAnalysisNoiseUsersType();
-        RoleAnalysisNoiseRolesType noiseRoles = new RoleAnalysisNoiseRolesType();
+
         if (processMode == RoleAnalysisProcessModeType.ROLE) {
             objectCategorisationCache.putAllCategory(propertiesInNoiseClusters,
                     RoleAnalysisObjectCategorizationType.NOISE, UserType.COMPLEX_TYPE);
             objectCategorisationCache.putAllCategory(membersInNoiseClusters,
                     RoleAnalysisObjectCategorizationType.NOISE, RoleType.COMPLEX_TYPE);
-
-            noiseUsers.getUserRef().addAll(propertiesInNoiseClusters);
-            noiseRoles.getRoleRef().addAll(membersInNoiseClusters);
-            noiseUsers.setUserCount(propertiesInNoiseClusters.size());
-            noiseRoles.setRolesCount(membersInNoiseClusters.size());
-            sessionObjectCategorization.setNoiseUsers(noiseUsers);
-            sessionObjectCategorization.setNoiseRoles(noiseRoles);
         } else {
             objectCategorisationCache.putAllCategory(propertiesInNoiseClusters,
                     RoleAnalysisObjectCategorizationType.NOISE, RoleType.COMPLEX_TYPE);
 
             objectCategorisationCache.putAllCategory(membersInNoiseClusters,
                     RoleAnalysisObjectCategorizationType.NOISE, UserType.COMPLEX_TYPE);
-
-            noiseRoles.getRoleRef().addAll(propertiesInNoiseClusters);
-            noiseUsers.getUserRef().addAll(membersInNoiseClusters);
-            noiseRoles.setRolesCount(propertiesInNoiseClusters.size());
-            noiseUsers.setUserCount(membersInNoiseClusters.size());
-            sessionObjectCategorization.setNoiseRoles(noiseRoles);
-            sessionObjectCategorization.setNoiseUsers(noiseUsers);
         }
 
         Set<String> propertiesOnlyInNoiseClusters = new HashSet<>(propertiesInNoiseClusters);
         propertiesOnlyInNoiseClusters.removeAll(propertiesInClusters);
-
-        RoleAnalysisUniqNoisePropertiesType uniqNoiseProperties = new RoleAnalysisUniqNoisePropertiesType();
-        uniqNoiseProperties.getPropertiesRef().addAll(propertiesOnlyInNoiseClusters);
-        uniqNoiseProperties.setPropertiesCount(propertiesOnlyInNoiseClusters.size());
-        sessionObjectCategorization.setUniqNoiseProperties(uniqNoiseProperties);
 
         if (processMode == RoleAnalysisProcessModeType.ROLE) {
             objectCategorisationCache.putAllCategory(propertiesOnlyInNoiseClusters,
@@ -277,8 +256,6 @@ public class RoleAnalysisAlgorithmUtils {
             objectCategorisationCache.putAllCategory(propertiesOnlyInNoiseClusters,
                     RoleAnalysisObjectCategorizationType.NOISE_EXCLUSIVE, RoleType.COMPLEX_TYPE);
         }
-
-        roleAnalysisService.updateSessionObjectCategorization(session, sessionObjectCategorization, task, result);
     }
 
     private @Nullable ClusterStatistic statisticLoad(

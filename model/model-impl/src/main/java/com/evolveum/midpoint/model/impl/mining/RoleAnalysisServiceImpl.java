@@ -3464,12 +3464,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull OperationResult result,
             @NotNull RoleAnalysisSessionType sessionObject) {
 
-        RolesAnalysisObjectCategorizationType sessionObjectCategorization = sessionObject.getSessionObjectCategorization();
-        if (sessionObjectCategorization == null) {
-            sessionObjectCategorization = new RolesAnalysisObjectCategorizationType();
-            sessionObject.setSessionObjectCategorization(sessionObjectCategorization);
-        }
-
         RoleAnalysisSessionStatisticType sessionStatistic = sessionObject.getSessionStatistic();
         if (sessionStatistic == null) {
             sessionStatistic = new RoleAnalysisSessionStatisticType();
@@ -3551,10 +3545,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         }
 
         if (objectCategorisationCache != null) {
-            loadSessionPopularityAccessCategorization(objectCategorisationCache, sessionObject, roleMembersMap,
-                    sessionObjectCategorization, task, result);
-            loadSessionPopularityUserCategorization(objectCategorisationCache, sessionObject, userRolesMap,
-                    sessionObjectCategorization, task, result);
+            loadSessionPopularityAccessCategorization(objectCategorisationCache, sessionObject, roleMembersMap);
+            loadSessionPopularityUserCategorization(objectCategorisationCache, sessionObject, userRolesMap);
         }
 
         if (attributeAnalysisCache != null) {
@@ -3580,11 +3572,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result,
             @NotNull RoleAnalysisSessionType sessionObject) {
-        RolesAnalysisObjectCategorizationType sessionObjectCategorization = sessionObject.getSessionObjectCategorization();
-        if (sessionObjectCategorization == null) {
-            sessionObjectCategorization = new RolesAnalysisObjectCategorizationType();
-            sessionObject.setSessionObjectCategorization(sessionObjectCategorization);
-        }
 
         RoleAnalysisSessionStatisticType sessionStatistic = sessionObject.getSessionStatistic();
         if (sessionStatistic == null) {
@@ -3676,10 +3663,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         }
 
         if (objectCategorisationCache != null) {
-            loadSessionPopularityAccessCategorization(objectCategorisationCache, sessionObject, roleMembersMap,
-                    sessionObjectCategorization, task, result);
-            loadSessionPopularityUserCategorization(objectCategorisationCache, sessionObject, userRolesMap,
-                    sessionObjectCategorization, task, result);
+            loadSessionPopularityAccessCategorization(objectCategorisationCache, sessionObject, roleMembersMap);
+            loadSessionPopularityUserCategorization(objectCategorisationCache, sessionObject, userRolesMap);
         }
 
         if (attributeAnalysisCache != null) {
@@ -4486,10 +4471,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     private void loadSessionPopularityUserCategorization(
             @NotNull ObjectCategorisationCache objectCategorisationCache,
             @NotNull RoleAnalysisSessionType sessionObject,
-            @NotNull ListMultimap<String, String> userRolesMap,
-            @NotNull RolesAnalysisObjectCategorizationType sessionObjectCategorization,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
+            @NotNull ListMultimap<String, String> userRolesMap) {
         Integer minUserPopularity = getSessionMinUserPopularityOptionsValue(sessionObject);
         Integer maxUserPopularity = getSessionMaxUserPopularityOptionsValue(sessionObject);
 
@@ -4518,48 +4500,13 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                 objectCategorisationCache
                         .putCategory(userOid, RoleAnalysisObjectCategorizationType.ABOVE_POPULAR, UserType.COMPLEX_TYPE);
             }
-
-            RoleAnalysisUnpopularUsersType unpopularUsers = new RoleAnalysisUnpopularUsersType();
-            unpopularUsers.getUserRef().addAll(nonPopularUsersMin);
-            unpopularUsers.setUserCount(nonPopularUsersMin.size());
-            sessionObjectCategorization.setUnpopularUsers(unpopularUsers);
-
-            RoleAnalysisAbovePopularUsersType abovePopularUsers = new RoleAnalysisAbovePopularUsersType();
-            abovePopularUsers.getUserRef().addAll(nonPopularUsersMax);
-            abovePopularUsers.setUserCount(nonPopularUsersMax.size());
-            sessionObjectCategorization.setAbovePopularUsers(abovePopularUsers);
-
-            this.updateSessionObjectCategorization(sessionObject, sessionObjectCategorization, task, result);
-        }
-    }
-
-    @Override
-    public void updateSessionObjectCategorization(
-            @NotNull RoleAnalysisSessionType sessionObject,
-            @NotNull RolesAnalysisObjectCategorizationType sessionObjectCategorization,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
-        try {
-            ObjectDelta<RoleAnalysisSessionType> delta = PrismContext.get().deltaFor(RoleAnalysisSessionType.class)
-                    .item(RoleAnalysisSessionType.F_SESSION_OBJECT_CATEGORIZATION)
-                    .replace(sessionObjectCategorization.asPrismContainerValue().clone())
-                    .asObjectDelta(sessionObject.getOid());
-
-            modelService.executeChanges(singleton(delta), null, task, result);
-
-        } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
-                CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
-            LOGGER.error("Couldn't modify RoleAnalysisSessionType {}", sessionObject, e);
         }
     }
 
     private void loadSessionPopularityAccessCategorization(
             @NotNull ObjectCategorisationCache objectCategorisationCache,
             @NotNull RoleAnalysisSessionType sessionObject,
-            @NotNull ListMultimap<String, String> roleMembersMap,
-            @NotNull RolesAnalysisObjectCategorizationType sessionObjectCategorization,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
+            @NotNull ListMultimap<String, String> roleMembersMap) {
 
         Integer minAccessPopularity = getSessionAccessPopularityOptionsValue(sessionObject);
         Integer maxAccessPopularity = getSessionMaxAccessPopularityOptionsValue(sessionObject);
@@ -4585,19 +4532,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                 objectCategorisationCache
                         .putCategory(roleOid, RoleAnalysisObjectCategorizationType.ABOVE_POPULAR, RoleType.COMPLEX_TYPE);
             }
-
-            RoleAnalysisUnpopularRolesType unpopularRoles = new RoleAnalysisUnpopularRolesType();
-            unpopularRoles.getRoleRef().addAll(nonPopularRolesMin);
-            unpopularRoles.setRolesCount(nonPopularRolesMin.size());
-            sessionObjectCategorization.setUnpopularRoles(unpopularRoles);
-
-            RoleAnalysisAbovePopularRolesType abovePopularRoles = new RoleAnalysisAbovePopularRolesType();
-            abovePopularRoles.getRoleRef().addAll(nonPopularRolesMax);
-            abovePopularRoles.setRolesCount(nonPopularRolesMax.size());
-            sessionObjectCategorization.setAbovePopularRoles(abovePopularRoles);
-
-            this.updateSessionObjectCategorization(sessionObject, sessionObjectCategorization, task, result);
-
         }
     }
 
