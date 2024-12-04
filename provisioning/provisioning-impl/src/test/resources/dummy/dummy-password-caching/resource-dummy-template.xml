@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!-- When using, all the parameters (like #OID#) must be provided. -->
+
+<resource oid="#OID#"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+
+    <name>resource-dummy-#INSTANCE_ID#</name>
+    <connectorRef oid="#CONNECTOR_OID#"/>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+        <icfc:configurationProperties>
+            <icfi:instanceId>#INSTANCE_ID#</icfi:instanceId>
+            <icfi:passwordReadabilityMode>#READABILITY#</icfi:passwordReadabilityMode>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            #SECURITY_POLICY_REF_ELEMENT#
+            <credentials>
+                <password>
+                    <caching>
+                        #LEGACY_CACHING_STRATEGY_ELEMENT#
+                    </caching>
+                </password>
+            </credentials>
+        </objectType>
+    </schemaHandling>
+    <caching>
+        #CACHING_STRATEGY_ELEMENT#
+    </caching>
+</resource>

@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.gui.api.component.wizard;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.basic.Label;
@@ -21,16 +23,18 @@ public class WizardHeaderStepPanel extends BasePanel<String> {
 
     private static final long serialVersionUID = 1L;
 
+    private static final String ID_STATUS = "status";
     private static final String ID_CIRCLE = "circle";
-
     private static final String ID_LABEL = "label";
 
-    private int index;
+    private final int activeIndex;
+    private final int index;
 
-    public WizardHeaderStepPanel(String id, int index, IModel<String> model) {
+    public WizardHeaderStepPanel(String id, int index, int activeIndex, IModel<String> model) {
         super(id, model);
 
         this.index = index;
+        this.activeIndex = activeIndex;
 
         initLayout();
     }
@@ -43,9 +47,26 @@ public class WizardHeaderStepPanel extends BasePanel<String> {
     }
 
     private void initLayout() {
-        add(AttributeAppender.prepend("class", "step"));
+        add(AttributeAppender.append("class", () -> isActiveIndex() ? "step active" : "step"));
+        add(AttributeAppender.append("aria-current", () -> isActiveIndex() ? "step" : null));
+
+        Label stepStatus = new Label(ID_STATUS, () -> {
+            String key = "";
+            if (isActiveIndex()) {
+                key = "WizardHeaderStepPanel.status.current";
+            } else if (index < activeIndex) {
+                key = "WizardHeaderStepPanel.status.completed";
+            }
+            return LocalizationUtil.translate(key);
+        });
+        stepStatus.setOutputMarkupId(true);
+        add(stepStatus);
 
         add(new Label(ID_CIRCLE, () -> index + 1));
         add(new Label(ID_LABEL, () -> getModelObject()));
+    }
+
+    private boolean isActiveIndex() {
+        return activeIndex == index;
     }
 }

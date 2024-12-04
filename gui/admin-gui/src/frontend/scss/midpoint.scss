@@ -1892,7 +1892,7 @@ span.yui-skin-sam {
   }
 
   & .login-card-body .spacer span {
-    color:#cbcbcb;
+    color:#757575;
   }
 
   & .login-card-body .user-panel.info-box .image img {
@@ -2254,4 +2254,14 @@ div.show > a > div > i.fas {
       color: $danger;
     }
   }
+}
+
+.input-group-prepend .form-control, .input-group-prepend .select2-selection{
+  border-bottom-right-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.input-group-append .form-control, .input-group-append .select2-selection{
+  border-bottom-left-radius: 0;
+  border-top-left-radius: 0;
 }

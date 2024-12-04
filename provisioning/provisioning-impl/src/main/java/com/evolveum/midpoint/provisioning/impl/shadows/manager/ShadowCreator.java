@@ -56,7 +56,7 @@ public class ShadowCreator {
 
         ShadowType repoShadowBean =
                 shadowObjectComputer
-                        .createShadowForRepoStorage(ctx, resourceObject)
+                        .createShadowForRepoStorage(ctx, resourceObject, result)
                         .getBean();
         LOGGER.trace("Shadow to add (from resource object):\n{}", repoShadowBean.debugDumpLazily(1));
 
@@ -98,7 +98,7 @@ public class ShadowCreator {
         }
 
         ShadowType newRawRepoShadow = shadowObjectComputer
-                .createShadowForRepoStorage(ctx, objectToAdd)
+                .createShadowForRepoStorage(ctx, objectToAdd, result)
                 .getBean();
         newRawRepoShadow.setExists(false);
         assert newRawRepoShadow.getPendingOperation().isEmpty();

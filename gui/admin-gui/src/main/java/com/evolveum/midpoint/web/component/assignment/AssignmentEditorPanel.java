@@ -153,14 +153,6 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         initLayout();
     }
 
-    @Override
-    public void renderHead(IHeaderResponse response) {
-        super.renderHead(response);
-
-        response.render(CssHeaderItem.forReference(
-                new PackageResourceReference(AssignmentEditorPanel.class, "AssignmentEditorPanel.css")));
-    }
-
     protected void initLayout() {
         setOutputMarkupId(true);
         headerRow = new WebMarkupContainer(ID_HEADER_ROW);

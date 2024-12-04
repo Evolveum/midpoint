@@ -428,9 +428,9 @@ As first, we create an object collection with filter for users with value `enabl
 .*Example Object Collection*
 [%collapsible]
 ====
-link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/object-collection-asynchronous-widget.xml[Git]
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/howto/collection-enabled-users.xml[Git]
 
-sampleRef::samples/dashboard/object-collection-asynchronous-widget.xml[]
+sampleRef::samples/dashboard/howto/collection-enabled-users.xml[]
 ====
 
 And next we create dashboard with one widget for enabled users.

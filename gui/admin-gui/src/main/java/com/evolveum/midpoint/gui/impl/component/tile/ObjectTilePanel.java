@@ -62,6 +62,7 @@ public class ObjectTilePanel<F extends Serializable, T extends Tile<F>> extends 
         Label description = new Label(ID_DESCRIPTION, () -> getModelObject().getDescription());
         description.add(AttributeAppender.replace("title", () -> getModelObject().getDescription()));
         description.add(new TooltipBehavior());
+        description.setOutputMarkupId(true);
         add(description);
 
         WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
@@ -76,11 +77,19 @@ public class ObjectTilePanel<F extends Serializable, T extends Tile<F>> extends 
         Label title = new Label(ID_TITLE, titleModel);
         title.add(AttributeAppender.replace("title", titleModel));
         title.add(new TooltipBehavior());
+        title.setOutputMarkupId(true);
         add(title);
 
         Component details = createDetailsButton(ID_DETAILS);
         details.add(createDetailsBehaviour());
+        addAriaDescribedByForButton(details);
         add(details);
+    }
+
+    protected void addAriaDescribedByForButton(Component details) {
+        details.add(AttributeAppender.append(
+                "aria-describedby",
+                () -> ObjectTilePanel.this.getTitle().getMarkupId() + " " + ObjectTilePanel.this.getDescription().getMarkupId()));
     }
 
     protected Behavior createDetailsBehaviour() {
@@ -149,6 +158,10 @@ public class ObjectTilePanel<F extends Serializable, T extends Tile<F>> extends 
 
     protected Label getTitle() {
         return (Label) get(ID_TITLE);
+    }
+
+    private Label getDescription() {
+        return (Label) get(ID_DESCRIPTION);
     }
 
     protected WebMarkupContainer getIcon() {

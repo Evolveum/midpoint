@@ -139,6 +139,8 @@ class ShadowedObjectConstruction {
 
         mergeActivation();
 
+        mergeBehavior();
+
         b.associationsHelper.convertReferenceAttributesToAssociations(
                 ctx, resultingShadowedBean, authoritativeDefinition, result);
 
@@ -170,6 +172,10 @@ class ShadowedObjectConstruction {
     private void mergeActivation() {
         resultingShadowedBean.setActivation(resourceObject.getBean().getActivation());
         transplantActivationMetadata();
+    }
+
+    private void mergeBehavior() {
+        resultingShadowedBean.setBehavior(resourceObject.getBean().getBehavior());
     }
 
     private void transplantActivationMetadata() {

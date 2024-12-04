@@ -101,7 +101,7 @@ public class OperationResultRecorder {
         AddOperationState opState = operation.getOpState();
         AbstractShadow shadow = operation.getShadowAddedOrToAdd();
 
-        RawRepoShadow rawRepoShadowToAdd = shadowObjectComputer.createShadowForRepoStorage(ctx, shadow);
+        RawRepoShadow rawRepoShadowToAdd = shadowObjectComputer.createShadowForRepoStorage(ctx, shadow, result);
         var repoShadowBeanToAdd = rawRepoShadowToAdd.getBean(); // to be updated below
 
         if (opState.isCompleted()) {
@@ -137,7 +137,7 @@ public class OperationResultRecorder {
     }
 
     private void recordAddResultInExistingShadow(ShadowAddOperation addOperation, OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException {
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, EncryptionException {
 
         var shadowModifications = computePendingOperationsAndLifecycleStateModifications(addOperation);
 
@@ -153,7 +153,7 @@ public class OperationResultRecorder {
         shadowModifications.addAll(
                 ShadowDeltaComputerAbsolute.computeShadowModifications(
                         ctx, repoShadow, resourceObject, null,
-                        addOperation.getEffectiveMarksAndPoliciesRequired(), false));
+                        addOperation.getEffectiveMarksAndPoliciesRequired(), false, result));
 
         addModificationMetadataDeltas(shadowModifications, repoShadow);
 

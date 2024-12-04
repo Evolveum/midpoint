@@ -7593,6 +7593,8 @@
                         The date and time of last successful login attempt.
                     </xsd:documentation>
                     <xsd:appinfo>
+                        <a:displayName>ShadowBehaviorType.lastLoginTimestamp</a:displayName>
+                        <a:displayHint>regular</a:displayHint>
                         <a:operational>true</a:operational>
                     </xsd:appinfo>
                 </xsd:annotation>

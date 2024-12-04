@@ -596,7 +596,7 @@ class ResourceSchemaParser {
          */
         private void checkNoDanglingAttributeDefinitions() throws ConfigurationException {
             for (ResourceAttributeDefinitionConfigItem attributeDefCI : definitionCI.getAttributes()) {
-                QName attrName = attributeDefCI.getAttributeNameSyntax();
+                QName attrName = attributeDefCI.getAttributeName();
                 // TODO check that we really look into aux object classes
                 if (!definition.containsAttributeDefinition(attrName)
                         && !attributeDefCI.isIgnored()) {
