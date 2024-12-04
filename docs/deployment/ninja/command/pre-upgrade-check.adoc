@@ -1,5 +1,7 @@
 = Pre-upgrade check
 
+WARNING: Pre-upgrade check will fail when generic repository is used in deployment (non-native).
+
 Pre-upgrade check is a simple check that verifies that current midPoint version matches version of distribution that is going to be upgraded.
 There are two items being checked:
 

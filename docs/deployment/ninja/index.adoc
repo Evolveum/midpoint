@@ -63,18 +63,22 @@ Only JDBC driver that is bundled is for PostgreSQL database.
 This means that for other databases, you must provide JDBC driver yourself.
 Most of the time JDBC driver is already present in `<midpoint>/lib` directory.
 However, it will not be picked up automatically, and you must point ninja to it explicitly.
-Example when using `java -jar`:
-
-[source,bash]
-----
-java -Dloader.path=<jdbc_driver_jar_path> -jar ninja.jar [general/connection options] [command] [command options]
-----
-
-If the bundled scripts are used, you can specify the path to the driver with `-j` option, for example:
+You can specify the path to the JDBC driver with `-j` option, for example:
 
 [source,bash]
 ----
 <midpoint>/bin/ninja.sh -j <jdbc_driver_jar_path> [general/connection options] [command] [command options]
+----
+
+== Standalone usage
+
+Ninja can be used as a standalone jar file without ninja shell/bat scripts.
+Following example shows how to use custom JDBC driver using `-Dloader.path`.
+`-m` option is also needed to specify midPoint home directory.
+
+[source,bash]
+----
+java [-Dloader.path=<jdbc_driver_jar_path>] -jar ninja.jar [general/connection options] [command] [specific command options]
 ----
 
 == Supported operations
