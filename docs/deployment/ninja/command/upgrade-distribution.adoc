@@ -1,5 +1,7 @@
 = Upgrade distribution
 
+WARNING: Ninja upgrade distribution command is not supported for generic repository deployments.
+
 Upgrade distribution command a composite command that will do multiple steps at once:
 
 * xref:./pre-upgrade-check.adoc[Pre-upgrade check
