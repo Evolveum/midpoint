@@ -26,6 +26,7 @@ $success: $green;
 $info: $cyan;
 $warning: $yellow;
 $danger: $red;
-
 $body-color: $gray-700;
 
+// override (remove after bs5)
+$sidebar-light-submenu-color: #717171 !default;
