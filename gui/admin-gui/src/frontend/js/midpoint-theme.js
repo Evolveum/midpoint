@@ -211,97 +211,194 @@ export default class MidPointTheme {
         })(jQuery);
 
         jQuery(function ($) {
-                    $(document).on("keydown", ".clickable-by-enter", function (e, t) {
-                        if (e.key == " " || e.code == "Space" || e.keyCode == 32 ||
-                                e.key == "Enter" || e.keyCode == 13) {
-                            $(this).click();
-                          }
-                    });
-                });
+            $(document).on("keydown", ".clickable-by-enter", function (e, t) {
+                if (e.key == " " || e.code == "Space" || e.keyCode == 32 || e.key == "Enter" || e.keyCode == 13) {
+                    $(this).click();
+                }
+            });
+        });
+
+        jQuery(function ($) {
+            var sideBar = $(".nav-sidebar");
+            self.keydownForMenuItems(sideBar, self);
+
+            var detailsMenu = $(".details-panel-navigation");
+            self.keydownForMenuItems(detailsMenu, self);
+        });
     }
 
-initSelect2MultiChoice(containerHtmlElement) {
-    var container = $("#" + containerHtmlElement.id)
-    if (container.length) {
-        var select = container.find("select");
-        if (select.length){
-            var attribute = select.attr("aria-label")
+    keydownForMenuItems(sideBar, self) {
+        if (!sideBar.length) {
+            return;
+        }
 
-            var combobox = container.find("span[role='combobox']");
-            var selectContainer = container.find(".select2-container");
+        sideBar.on("keydown", "li[role='menuitem']", function (e, t) {
+            if ($(this).get(0) !== document.activeElement) {
+                return;
+            }
 
-            if (attribute != null) {
-                var input = container.find("input");
-
-                if (!input.length) {
-                    if (selectContainer.length) {
-                        selectContainer.on("click", function (e, t) {
-                            var input = $("input.select2-search__field[aria-controls='select2-" + select.attr("id") + "-results']");
-                            if (input.length) {
-                                input.attr("aria-label", attribute);
-                            }
-                        });
-                    }
+            if (e.key == " " || e.code == "Space" || e.keyCode == 32 || e.key == "Enter" || e.keyCode == 13) {
+                var link = $(this).find("a");
+                if (link.length) {
+                    self.clickOnMenuItem(link, $(this), false, e);
                 } else {
-                    input.attr("aria-label", attribute);
+                    $(this).click();
+                }
+                e.preventDefault();
+                return;
+            }
+
+            if (e.key == "Arrow Right" || e.code == "ArrowRight" || e.keyCode == 39) {
+                var link = $(this).find("a");
+                if (link.length) {
+                    self.clickOnMenuItem(link, $(this), true, e);
+                }
+                e.preventDefault()
+                return;
+            }
+
+            if (e.key == "Arrow Left" || e.code == "ArrowLeft" || e.keyCode == 37 || e.key == "ESC" || e.keyCode == 27) {
+                var parent = $(this).parent().closest("li[role='menuitem']");
+                if (parent.length) {
+                    var link = parent.find("a");
+                    link.get(0).click();
+                    parent.get(0).focus();
+                    parent.get(0).scrollIntoView({ block: "center" });
+                }
+                e.preventDefault()
+                return;
+            }
+
+            var parent = $(this).closest("ul[role='menu']");
+            var list = parent.children("li[role='menuitem']");
+            var focusIndex = null;
+            if (e.key == "Arrow Up" || e.code == "ArrowUp" || e.keyCode == 38) {
+                focusIndex = list.index($(this)) - 1;
+            }
+
+            if (e.key == "Arrow Down" || e.code == "ArrowDown" || e.keyCode == 40) {
+                focusIndex = list.index($(this)) + 1;
+            }
+
+            if (focusIndex < 0 || e.key == "End" || e.keyCode == 35) {
+                focusIndex = list.length - 1;
+            }
+
+            if (focusIndex >= list.length || e.key == "Home" || e.keyCode == 36) {
+                focusIndex = 0;
+            }
+
+            if (focusIndex == null) {
+                return;
+            }
+
+            var focusItem = list.get(focusIndex);
+            focusItem.focus();
+            focusItem.scrollIntoView({ block: "center" });
+            e.preventDefault()
+        });
+    }
+
+    clickOnMenuItem(link, menuItem, onlySubmenu, e) {
+        if (!onlySubmenu) {
+            link.get(0).click();
+        }
+        var hasPopup = menuItem.attr("aria-haspopup");
+        if (hasPopup == "true") {
+            if (onlySubmenu) {
+                link.get(0).click();
+            }
+            var subitems = menuItem.find("li[role='menuitem']");
+            if (subitems.length) {
+                subitems.get(0).focus();
+                subitems.get(0).scrollIntoView({ block: "center" });
+                e.preventDefault()
+            }
+        }
+    }
+
+    initSelect2MultiChoice(containerHtmlElement) {
+        var container = $("#" + containerHtmlElement.id)
+        if (container.length) {
+            var select = container.find("select");
+            if (select.length){
+                var attribute = select.attr("aria-label")
+
+                var combobox = container.find("span[role='combobox']");
+                var selectContainer = container.find(".select2-container");
+
+                if (attribute != null) {
+                    var input = container.find("input");
+
+                    if (!input.length) {
+                        if (selectContainer.length) {
+                            selectContainer.on("click", function (e, t) {
+                                var input = $("input.select2-search__field[aria-controls='select2-" + select.attr("id") + "-results']");
+                                if (input.length) {
+                                    input.attr("aria-label", attribute);
+                                }
+                            });
+                        }
+                    } else {
+                        input.attr("aria-label", attribute);
+                    }
+
+                    if (combobox.length) {
+                        combobox.attr("aria-label", attribute);
+                    }
+
+                    var textbox = container.find("span[role='textbox']");
+                    if (textbox.length) {
+                        textbox.attr("aria-label", attribute);
+                    }
                 }
 
                 if (combobox.length) {
-                    combobox.attr("aria-label", attribute);
-                }
-
-                var textbox = container.find("span[role='textbox']");
-                if (textbox.length) {
-                    textbox.attr("aria-label", attribute);
-                }
-            }
-
-            if (combobox.length) {
-                if (selectContainer.length) {
-                    var selectContainerId = "select2-" + select.attr("id") +"-container-custom";
-                    selectContainer.attr("id", selectContainerId)
-                    combobox.attr("aria-controls", selectContainerId);
-                }
-
-                combobox.on("keydown", function (e, t) {
-                    if (e.key == " " || e.code == "Space" || e.keyCode == 32 ||
-                        e.key == "Enter" || e.keyCode == 13) {
-                            var input = $("input.select2-search__field[aria-controls='select2-" + select.attr("id") + "-results']");
-                            if (input.length){
-                                input.get(0).focus();
-                            }
+                    if (selectContainer.length) {
+                        var selectContainerId = "select2-" + select.attr("id") +"-container-custom";
+                        selectContainer.attr("id", selectContainerId)
+                        combobox.attr("aria-controls", selectContainerId);
                     }
-                });
 
+                    combobox.on("keydown", function (e, t) {
+                        if (e.key == " " || e.code == "Space" || e.keyCode == 32 ||
+                            e.key == "Enter" || e.keyCode == 13) {
+                                var input = $("input.select2-search__field[aria-controls='select2-" + select.attr("id") + "-results']");
+                                if (input.length){
+                                    input.get(0).focus();
+                                }
+                        }
+                    });
+
+                }
             }
         }
     }
-}
 
-initDateTimePicker(containerId, configuration) {
-    new TempusDominus(containerId, configuration);
-}
+    initDateTimePicker(containerId, configuration) {
+        new TempusDominus(containerId, configuration);
+    }
 
-createCurrentDateForDatePicker(containerId, configuration) {
-    const date = new Date();
-    return new DateTime(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0);
-}
+    createCurrentDateForDatePicker(containerId, configuration) {
+        const date = new Date();
+        return new DateTime(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0);
+    }
 
-breakLongerTextInTableCell(cellId) {
-    $("#" + cellId).css("word-break", function (index, origValue) {
-        var textOfColumn = document.getElementById(cellId).innerText.trim();
-        if (textOfColumn != '' && textOfColumn != ' ') {
-            var numberOfChars = 15;
-            var regex = new RegExp(`[^\\s]{${numberOfChars}}`);
+    breakLongerTextInTableCell(cellId) {
+        $("#" + cellId).css("word-break", function (index, origValue) {
+            var textOfColumn = document.getElementById(cellId).innerText.trim();
+            if (textOfColumn != '' && textOfColumn != ' ') {
+                var numberOfChars = 15;
+                var regex = new RegExp(`[^\\s]{${numberOfChars}}`);
 
-            // Check if there are 15 consecutive non-whitespace characters anywhere in the string
-            if (regex.test(textOfColumn)) {
-                return "break-all";
+                // Check if there are 15 consecutive non-whitespace characters anywhere in the string
+                if (regex.test(textOfColumn)) {
+                    return "break-all";
+                }
             }
-        }
-        return "inherit";
-    });
-}
+            return "inherit";
+        });
+    }
 
     // I'm not sure why sidebar has 15px padding -> and why I had to use 10px constant here [lazyman]
     fixContentHeight() {

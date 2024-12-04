@@ -1,5 +1,5 @@
 ---
-midpoint-feature: manual-resources
+midpoint-feature: manual-resource
 doc-type: config
 ---
 = Manual Resource Configuration

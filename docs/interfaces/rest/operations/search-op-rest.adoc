@@ -94,7 +94,8 @@ include::../../rest/operations/examples/raw/search-all-users.adoc[]
 include::../../rest/operations/examples/raw/search-all.adoc[]
 
 .Other Example Scenarios
-1. xref:/midpoint/reference/interfaces/rest/operations/examples/search-objects-filter.adoc [Get Users with filter query]
+
+1. xref:/midpoint/reference/interfaces/rest/operations/examples/search-objects-filter.adoc[Get Users with filter query]
 
 == See Also
 

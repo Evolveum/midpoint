@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.shadow;
 
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
@@ -44,6 +45,7 @@ public class ShadowBasicPanel extends AbstractShadowPanel {
     private static final String ID_ATTRIBUTES = "attributes";
     private static final String ID_ACTIVATION = "activation";
     private static final String ID_PASSWORD = "password";
+    private static final String ID_BEHAVIOR = "behavior";
 //    private static final String ID_POLICY_STATEMENT = "policyStatement";
 
     private ContainerPanelConfigurationType config;
@@ -60,7 +62,6 @@ public class ShadowBasicPanel extends AbstractShadowPanel {
     @Override
     protected void initLayout() {
         try {
-
             if (config != null) {
                 SingleContainerPanel attributesContainer = new SingleContainerPanel(ID_ATTRIBUTES, getModel(), config) {
 
@@ -73,24 +74,42 @@ public class ShadowBasicPanel extends AbstractShadowPanel {
             } else {
                 ItemPanelSettingsBuilder attributesSettingsBuilder = new ItemPanelSettingsBuilder()
                         .visibilityHandler(itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()));
-                    Panel attributesPanel = getPageBase().initItemPanel(ID_ATTRIBUTES, ShadowAttributesType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getModel(), ShadowType.F_ATTRIBUTES),
+                Panel attributesPanel = getPageBase().initItemPanel(
+                        ID_ATTRIBUTES,
+                        ShadowAttributesType.COMPLEX_TYPE,
+                        PrismContainerWrapperModel.fromContainerWrapper(getModel(), ShadowType.F_ATTRIBUTES),
                         attributesSettingsBuilder.build());
                 add(attributesPanel);
             }
 
             ItemPanelSettingsBuilder activationBuilder = new ItemPanelSettingsBuilder()
                     .visibilityHandler(itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()));
-            Panel activationPanel = getPageBase().initItemPanel(ID_ACTIVATION, ActivationType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getModel(), ShadowType.F_ACTIVATION),
+            Panel activationPanel = getPageBase().initItemPanel(
+                    ID_ACTIVATION,
+                    ActivationType.COMPLEX_TYPE,
+                    PrismContainerWrapperModel.fromContainerWrapper(getModel(), ShadowType.F_ACTIVATION),
                     activationBuilder.build());
             activationPanel.add(new VisibleBehaviour(() -> isActivationSupported()));
             add(activationPanel);
 
             ItemPanelSettingsBuilder passwordSettingsBuilder = new ItemPanelSettingsBuilder()
                     .visibilityHandler(itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()));
-            Panel passwordPanel = getPageBase().initItemPanel(ID_PASSWORD, PasswordType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getModel(), ItemPath.create(ShadowType.F_CREDENTIALS, CredentialsType.F_PASSWORD)),
+            Panel passwordPanel = getPageBase().initItemPanel(
+                    ID_PASSWORD,
+                    PasswordType.COMPLEX_TYPE,
+                    PrismContainerWrapperModel.fromContainerWrapper(getModel(), ItemPath.create(ShadowType.F_CREDENTIALS, CredentialsType.F_PASSWORD)),
                     passwordSettingsBuilder.build());
             passwordPanel.add(new VisibleBehaviour(() -> isCredentialsSupported()));
             add(passwordPanel);
+
+            ItemPanelSettingsBuilder behaviorBuilder = new ItemPanelSettingsBuilder()
+                    .visibilityHandler(itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()));
+            Panel behaviorPanel = getPageBase().initItemPanel(
+                    ID_BEHAVIOR,
+                    ShadowBehaviorType.COMPLEX_TYPE,
+                    PrismContainerWrapperModel.fromContainerWrapper(getModel(), ShadowType.F_BEHAVIOR),
+                    behaviorBuilder.build());
+            add(behaviorPanel);
 
 //            ItemPanelSettingsBuilder markSettingsBuilder = new ItemPanelSettingsBuilder()
 //                    .visibilityHandler(itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()));

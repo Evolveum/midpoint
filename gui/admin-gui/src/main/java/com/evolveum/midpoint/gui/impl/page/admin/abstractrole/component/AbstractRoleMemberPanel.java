@@ -17,6 +17,7 @@ import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.gui.impl.util.RelationUtil;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.web.component.dialog.*;
 
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
@@ -61,10 +62,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PolyStringUtils;
@@ -195,6 +192,15 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
     }
 
     private <AH extends AssignmentHolderType> Class<AH> getDefaultObjectTypeClass() {
+        ContainerPanelConfigurationType panelConfig = getPanelConfiguration();
+        if (panelConfig != null) {
+            CompiledObjectCollectionView view = WebComponentUtil.getCompiledObjectCollectionView(panelConfig.getListView(),
+                    panelConfig, getPageBase());
+            if (view != null && view.getTargetClass() != null
+                    && AssignmentHolderType.class.isAssignableFrom(view.getTargetClass())) {
+                return view.getTargetClass();
+            }
+        }
         return (Class<AH>) UserType.class;
     }
 
