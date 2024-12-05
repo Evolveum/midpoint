@@ -2050,7 +2050,7 @@ th.debug-list-buttons {
   $backgroundValue: color-yiq($value);
 
   .colored-form-#{$color}, .colored-form-#{$color}:hover, .colored-form-#{$color}:active, .colored-form-#{$color}:focus {
-    color: mix($black, $value, 6%); //$value
+    color: mix($black, $value, 5%); //$value
     background-color: mix($white, $value, 94%);
     border-color: $value;
     border:1px solid;
