@@ -74,6 +74,10 @@ To search these attributes you need to include "extension/" in the attribute nam
 |`activation/administrativeStatus = "disabled"`
 |
 
+|Find multiple roles specified by name
+|`name = ("Role A", "Role B", "Role C")`
+| `=` and `!=` filters allow specifying set of values.
+
 3+|*Search by attributes in referenced objects*
 
 |Find User with specific assignment
@@ -87,6 +91,10 @@ To search these attributes you need to include "extension/" in the attribute nam
 |Find users of specific archetype
 |`archetypeRef/@/name = "External Users"`
 |
+
+|Find members of a role _ABC_. Not its owner(s).
+|`assignment/targetRef matches (relation = org:default and @ matches (name = "ABC"))`
+|Role owner has role assigned with relation = owner. This query includes only users with default relation.
 
 3+|*Logical operators in search*
 
