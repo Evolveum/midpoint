@@ -302,16 +302,16 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
     }
 
     @Override
-    public UcfAddReturnValue addObject(
+    public @NotNull UcfAddReturnValue addObject(
             @NotNull PrismObject<? extends ShadowType> object,
             @NotNull SchemaAwareUcfExecutionContext ctx,
             @NotNull OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("addObject");
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public @Nullable UcfModifyReturnValue modifyObject(
+    public @NotNull UcfModifyReturnValue modifyObject(
             @NotNull ResourceObjectIdentification.WithPrimary identification,
             PrismObject<ShadowType> shadow,
             @NotNull Collection<Operation> changes,
@@ -319,17 +319,17 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
             @NotNull SchemaAwareUcfExecutionContext ctx,
             @NotNull OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("modifyObject");
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public UcfDeleteReturnValue deleteObject(
+    public @NotNull UcfDeleteResult deleteObject(
             @NotNull ResourceObjectIdentification<?> identification,
             PrismObject<ShadowType> shadow,
             @NotNull UcfExecutionContext ctx,
             @NotNull OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("deleteObject");
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override

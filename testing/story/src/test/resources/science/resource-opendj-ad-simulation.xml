@@ -80,13 +80,14 @@
                     <minOccurs>0</minOccurs>
                     <maxOccurs>1</maxOccurs>
                 </limitations>
+                <!-- Normally, we would set the volatility on ADD here, but there's a weak outbound mapping that explicitly
+                     provides a value, so nothing needs to be guessed. -->
                 <outbound>
                     <strength>weak</strength>
                     <source>
                         <path>name</path>
                     </source>
                 </outbound>
-                <cached>false</cached> <!-- MID-10051 -->
             </attribute>
             <attribute>
                 <ref>ri:displayName</ref>
@@ -121,6 +122,12 @@
                         <add>true</add>
                     </access>
                 </limitations>
+                <volatility>
+                    <!-- Changing DN may change other attributes, namely uid -->
+                    <target>
+                        <operation>modify</operation>
+                    </target>
+                </volatility>
                 <outbound>
                     <strength>weak</strength>
                     <source>

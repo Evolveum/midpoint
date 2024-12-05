@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource oid="ef2bc95b-76e0-59e2-86d6-9999dddddddd"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+
+    <name>resource-dummy</name>
+    <connectorRef oid="will-be-supplied-by-the-test-code"/>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+        <icfc:configurationProperties>
+            <icfi:instanceId/>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>no-volatility-config</intent>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <delineation>
+                <filter>
+                    <q:text>attributes/ri:ship = "no-volatility-config"</q:text>
+                </filter>
+            </delineation>
+        </objectType>
+        <objectType>
+            <kind>account</kind>
+            <intent>simple-type-1-config</intent>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <delineation>
+                <filter>
+                    <q:text>attributes/ri:ship = "simple-type-1-config"</q:text>
+                </filter>
+            </delineation>
+            <description>Expecting type 1 volatility, and treating it with the most natural and simple config.</description>
+            <attribute>
+                <ref>ri:water</ref>
+                <volatility>
+                    <source>
+                        <operation>add</operation>
+                    </source>
+                </volatility>
+            </attribute>
+        </objectType>
+        <objectType>
+            <kind>account</kind>
+            <intent>simple-type-2-config</intent>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <delineation>
+                <filter>
+                    <q:text>attributes/ri:ship = "simple-type-2-config"</q:text>
+                </filter>
+            </delineation>
+            <description>Expecting type 2 volatility, and treating it via "water = volatility trigger" approach.</description>
+            <attribute>
+                <ref>ri:water</ref>
+                <volatility>
+                    <target>
+                        <operation>modify</operation>
+                    </target>
+                </volatility>
+            </attribute>
+        </objectType>
+        <objectType>
+            <kind>account</kind>
+            <intent>simple-type-3-config</intent>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <delineation>
+                <filter>
+                    <q:text>attributes/ri:ship = "simple-type-3-config"</q:text>
+                </filter>
+            </delineation>
+            <description>Expecting type 3 volatility, and treating it via "everything is volatility trigger" approach.</description>
+            <attribute>
+                <ref>ri:water</ref>
+                <volatility>
+                    <source>
+                        <!-- In fact, this makes full reload at _each_ modification operation -->
+                        <operation>modify</operation>
+                    </source>
+                </volatility>
+            </attribute>
+        </objectType>
+    </schemaHandling>
+    <caching>
+        <cachingStrategy>passive</cachingStrategy>
+        <scope>
+            <attributes>all</attributes>
+            <associations>all</associations>
+            <auxiliaryObjectClasses>all</auxiliaryObjectClasses>
+            <activation>all</activation>
+            <credentials>
+                <password>all</password>
+            </credentials>
+        </scope>
+        <timeToLive>P1000Y</timeToLive>
+    </caching>
+</resource>

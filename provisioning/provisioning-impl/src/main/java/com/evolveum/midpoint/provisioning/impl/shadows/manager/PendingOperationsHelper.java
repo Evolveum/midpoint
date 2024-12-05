@@ -32,7 +32,6 @@ import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.RepoShadowModifications;
 import com.evolveum.midpoint.provisioning.impl.shadows.PendingOperation;
 import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState;
-import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.AddOperationState;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowProvisioningOperation;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -59,13 +58,13 @@ class PendingOperationsHelper {
     @Autowired private Clock clock;
     @Autowired private PrismContext prismContext;
 
-    List<ItemDelta<?, ?>> computePendingOperationsDeltas(ShadowProvisioningOperation<?> operation)
+    List<ItemDelta<?, ?>> computePendingOperationsDeltas(ShadowProvisioningOperation operation)
             throws SchemaException {
 
         List<ItemDelta<?, ?>> shadowModifications = new ArrayList<>();
 
         ProvisioningContext ctx = operation.getCtx();
-        ProvisioningOperationState<?> opState = operation.getOpState();
+        ProvisioningOperationState opState = operation.getOpState();
 
         XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
         if (ctx.isPropagation()) {
@@ -84,7 +83,7 @@ class PendingOperationsHelper {
     }
 
     void addPendingOperationIntoNewShadow(
-            ShadowType repoShadowBean, ShadowType resourceShadow, AddOperationState opState, String asyncOperationReference)
+            ShadowType repoShadowBean, ShadowType resourceShadow, ProvisioningOperationState opState, String asyncOperationReference)
             throws SchemaException {
 
         repoShadowBean.getPendingOperation().add(
@@ -96,7 +95,7 @@ class PendingOperationsHelper {
 
     private void addPendingOperationForExistingShadow(
             Collection<ItemDelta<?, ?>> shadowModifications,
-            ProvisioningOperationState<?> opState,
+            ProvisioningOperationState opState,
             ObjectDelta<ShadowType> delta,
             XMLGregorianCalendar now) throws SchemaException {
             shadowModifications.add(
@@ -108,7 +107,7 @@ class PendingOperationsHelper {
 
     private void collectCurrentPendingOperationUpdates(
             Collection<ItemDelta<?, ?>> shadowModifications,
-            ProvisioningOperationState<?> opState,
+            ProvisioningOperationState opState,
             XMLGregorianCalendar now) {
         var shadowPendingOp = opState.getCurrentPendingOperation();
         if (shadowPendingOp != null) {
@@ -192,7 +191,7 @@ class PendingOperationsHelper {
     }
 
     private void collectPendingOperationUpdates(
-            List<ItemDelta<?, ?>> shadowModifications, ProvisioningOperationState<?> opState, XMLGregorianCalendar now) {
+            List<ItemDelta<?, ?>> shadowModifications, ProvisioningOperationState opState, XMLGregorianCalendar now) {
         var executionStatus = opState.getExecutionStatus();
 
         var pendingOperations = opState.getPropagatedPendingOperations();
@@ -262,7 +261,7 @@ class PendingOperationsHelper {
     PendingOperation checkAndRecordPendingOperationBeforeExecution(
             @NotNull ProvisioningContext ctx,
             @NotNull ObjectDelta<ShadowType> proposedDelta,
-            @NotNull ProvisioningOperationState<?> opState,
+            @NotNull ProvisioningOperationState opState,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException {
         ResourceType resource = ctx.getResource();
@@ -351,7 +350,7 @@ class PendingOperationsHelper {
             @NotNull ProvisioningContext ctx,
             @NotNull PrismObject<ShadowType> shadow,
             @NotNull ObjectDelta<ShadowType> pendingDelta,
-            @NotNull ProvisioningOperationState<?> opState,
+            @NotNull ProvisioningOperationState opState,
             String currentObjectVersion,
             @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException, PreconditionViolationException,
             ConfigurationException {

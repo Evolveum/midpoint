@@ -76,8 +76,13 @@
             <attribute>
                 <ref>ri:dn</ref>
                 <displayName>Distinguished Name</displayName>
-                <volatilityTrigger>true</volatilityTrigger> <!-- Change of DN may cause change of naming attribute -->
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <volatility>
+                    <!-- Change of DN may cause change of naming attribute -->
+                    <target>
+                        <operation>modify</operation>
+                    </target>
+                </volatility>
                 <outbound>
                     <!-- Name mapping cannot be weak. Changes in name trigger object rename. -->
                     <source>

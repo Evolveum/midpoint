@@ -13,7 +13,6 @@ import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.schema.util.RawRepoShadow;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.shadows.*;
-import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.AddOperationState;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowFinder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -40,7 +39,6 @@ class MaintenanceExceptionHandler extends ErrorHandler {
 
     private static final Trace LOGGER = TraceManager.getTrace(MaintenanceExceptionHandler.class);
 
-    private static final String OPERATION_HANDLE_GET_ERROR = MaintenanceExceptionHandler.class.getName() + ".handleGetError";
     private static final String OPERATION_HANDLE_ADD_ERROR = MaintenanceExceptionHandler.class.getName() + ".handleAddError";
     private static final String OPERATION_HANDLE_MODIFY_ERROR = MaintenanceExceptionHandler.class.getName() + ".handleModifyError";
     private static final String OPERATION_HANDLE_DELETE_ERROR = MaintenanceExceptionHandler.class.getName() + ".handleDeleteError";
@@ -54,7 +52,6 @@ class MaintenanceExceptionHandler extends ErrorHandler {
             @NotNull Exception cause,
             @NotNull OperationResult failedOperationResult,
             @NotNull OperationResult result) {
-        // TODO maybe I should put the code back here...
         throw new UnsupportedOperationException("MaintenanceException cannot occur during GET operation.");
     }
 
@@ -65,10 +62,10 @@ class MaintenanceExceptionHandler extends ErrorHandler {
             OperationResult failedOperationResult,
             OperationResult parentResult) throws SchemaException, ConfigurationException {
 
-        AddOperationState opState = operation.getOpState();
-        ProvisioningContext ctx = operation.getCtx();
+        var opState = operation.getOpState();
+        var ctx = operation.getCtx();
 
-        OperationResult result = parentResult.createSubresult(OPERATION_HANDLE_ADD_ERROR);
+        var result = parentResult.createSubresult(OPERATION_HANDLE_ADD_ERROR);
         result.addParam("exception", cause.getMessage());
         try {
             OperationResultStatus status;
@@ -115,7 +112,7 @@ class MaintenanceExceptionHandler extends ErrorHandler {
             failedOperationResult.setStatus(status);
             result.setStatus(status); // TODO
             if (status == OperationResultStatus.IN_PROGRESS) {
-                opState.markAsPostponed(failedOperationResult);
+                opState.markAsPostponed(status);
             }
             return status;
         } catch (Throwable t) {
@@ -138,7 +135,8 @@ class MaintenanceExceptionHandler extends ErrorHandler {
         try {
             failedOperationResult.setStatus(OperationResultStatus.IN_PROGRESS);
             result.setInProgress();
-            return operation.getOpState().markAsPostponed(failedOperationResult);
+            operation.getOpState().markAsPostponed(OperationResultStatus.IN_PROGRESS);
+            return OperationResultStatus.IN_PROGRESS;
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -158,7 +156,8 @@ class MaintenanceExceptionHandler extends ErrorHandler {
         try {
             failedOperationResult.setStatus(OperationResultStatus.IN_PROGRESS);
             result.setInProgress();
-            return operation.getOpState().markAsPostponed(failedOperationResult);
+            operation.getOpState().markAsPostponed(OperationResultStatus.IN_PROGRESS);
+            return OperationResultStatus.IN_PROGRESS;
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -168,7 +167,7 @@ class MaintenanceExceptionHandler extends ErrorHandler {
     }
 
     @Override
-    protected void throwException(@Nullable ShadowProvisioningOperation<?> operation, Exception cause, OperationResult result)
+    protected void throwException(@Nullable ShadowProvisioningOperation operation, Exception cause, OperationResult result)
             throws MaintenanceException {
         recordCompletionError(operation, cause, result);
         if (cause instanceof MaintenanceException maintenanceException) {

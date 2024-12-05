@@ -28,7 +28,6 @@ import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
-import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
@@ -97,7 +96,7 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
      * The identification may or may not be primary. In the latter case, it is resolved using
      * {@link ResourceObjectReferenceResolver} (currently, through the repo search).
      */
-    static UcfModifyReturnValue execute(
+    static @NotNull UcfModifyReturnValue execute(
             ProvisioningContext ctx,
             RepoShadow repoShadow,
             ExistingResourceObjectShadow preReadObject,
@@ -112,7 +111,7 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
                 .doExecuteModify(result);
     }
 
-    private UcfModifyReturnValue doExecuteModify(OperationResult result)
+    private @NotNull UcfModifyReturnValue doExecuteModify(OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException,
             PolicyViolationException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
 
@@ -122,7 +121,7 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
         ResourceObjectDefinition objectDefinition = ctx.getObjectDefinitionRequired();
         if (operations.isEmpty()) {
             LOGGER.trace("No modifications for resource object. Skipping modification.");
-            return null;
+            return UcfModifyReturnValue.empty();
         } else {
             LOGGER.trace("Resource object modification operations: {}", operations);
         }
@@ -135,7 +134,7 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
 
         // Invoke connector operation
         ConnectorInstance connector = ctx.getConnector(UpdateCapabilityType.class, result);
-        UcfModifyReturnValue connectorRetVal = null;
+        UcfModifyReturnValue connectorRetVal = UcfModifyReturnValue.empty();
         try {
 
             if (ResourceTypeUtil.isAvoidDuplicateValues(ctx.getResource())) {
@@ -157,8 +156,8 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
                     Collection<Operation> filteredOperations = new ArrayList<>(operations.size());
                     for (Operation origOperation : operations) {
                         if (origOperation instanceof PropertyModificationOperation<?> modificationOperation) {
-                            PropertyDelta<?> propertyDelta = modificationOperation.getPropertyDelta();
-                            PropertyDelta<?> filteredDelta =
+                            var propertyDelta = modificationOperation.getPropertyDelta();
+                            var filteredDelta =
                                     ProvisioningUtil.narrowPropertyDelta(
                                             propertyDelta,
                                             currentObject,
@@ -168,19 +167,21 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
                                 if (propertyDelta == filteredDelta) {
                                     filteredOperations.add(origOperation);
                                 } else {
-                                    PropertyModificationOperation<?> newOp = new PropertyModificationOperation<>(filteredDelta);
+                                    var newOp = new PropertyModificationOperation<>(filteredDelta);
                                     newOp.setMatchingRuleQName(modificationOperation.getMatchingRuleQName());
                                     filteredOperations.add(newOp);
                                 }
                             } else {
                                 LOGGER.trace("Filtering out modification {} because it has empty delta after narrow", propertyDelta);
                             }
+                        } else {
+                            filteredOperations.add(origOperation); // Reference attributes are here (not deduplicating them now)
                         }
                     }
                     if (filteredOperations.isEmpty()) {
                         LOGGER.debug("No modifications for connector object specified (after filtering). Skipping processing.");
                         result.recordSuccess();
-                        return null;
+                        return UcfModifyReturnValue.empty();
                     }
                     operations = filteredOperations;
                 }
@@ -194,12 +195,12 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
             }
 
             // because identifiers can be modified e.g. on rename operation (TODO: is this really needed?)
-            ResourceObjectIdentification.WithPrimary identificationClone = identification.clone();
-            List<Collection<Operation>> operationsWaves = sortOperationsIntoWaves(operations, objectDefinition);
+            var identificationClone = identification.clone();
+            var operationsWaves = sortOperationsIntoWaves(operations, objectDefinition);
             LOGGER.trace("Operation waves: {}", operationsWaves.size());
-            boolean inProgress = false;
+            var inProgress = false;
             String asyncOpReference = null;
-            for (Collection<Operation> operationsInCurrentWave : operationsWaves) {
+            for (var operationsInCurrentWave : operationsWaves) {
                 operationsInCurrentWave =
                         convertToReplaceAsNeeded(operationsInCurrentWave, identificationClone, objectDefinition, result);
                 if (operationsInCurrentWave.isEmpty()) {
@@ -218,13 +219,12 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
                     connectorRetVal = connector.modifyObject(
                             identificationClone, asPrismObject(magicShadow), operationsInCurrentWave,
                             connOptions, ctx.getUcfExecutionContext(), result);
-                    Collection<PropertyModificationOperation<?>> currentKnownExecutedChanges =
-                            connectorRetVal != null ? connectorRetVal.getExecutedOperations() : List.of();
+                    var currentKnownExecutedChanges = connectorRetVal.getExecutedOperations();
                     knownExecutedChanges.addAll(currentKnownExecutedChanges);
                     // we accept that one attribute can be changed multiple times in sideEffectChanges; TODO: normalize
-                    if (connectorRetVal != null && connectorRetVal.isInProgress()) {
+                    if (connectorRetVal.isInProgress()) {
                         inProgress = true;
-                        asyncOpReference = connectorRetVal.getOperationResult().getAsynchronousOperationReference();
+                        asyncOpReference = connectorRetVal.getAsynchronousOperationReference();
                     }
                 } finally {
                     b.shadowAuditHelper.auditEvent(
@@ -255,10 +255,12 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
 
         executeProvisioningScripts(ProvisioningOperationTypeType.MODIFY, BeforeAfterType.AFTER, result);
 
-        return UcfModifyReturnValue.of(
+        // This is a brutal approximation. For example, if there are multiple asynchronous operation references,
+        // only the last one is preserved. But we shouldn't support multiple waves with asynchronous resources anyway.
+        return UcfModifyReturnValue.fromResult(
                 knownExecutedChanges,
                 result,
-                connectorRetVal != null ? connectorRetVal.getOperationType() : null);
+                connectorRetVal.getOperationType());
     }
 
     private Collection<Operation> convertToReplaceAsNeeded(
@@ -353,8 +355,7 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
         // READ+REPLACE mode is if addRemoveAttributeCapability is NOT present.
         // Try to determine from the capabilities. We may still need to force it.
 
-        UpdateCapabilityType updateCapability =
-                objectDefinition.getEnabledCapability(UpdateCapabilityType.class, ctx.getResource());
+        var updateCapability = objectDefinition.getEnabledCapability(UpdateCapabilityType.class, ctx.getResource());
         if (updateCapability == null) {
             // Strange. We are going to update, but we cannot update? Anyway, let it go, it should throw an error on a more appropriate place.
             return false;
