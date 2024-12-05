@@ -386,12 +386,25 @@
         <xsd:sequence>
             <xsd:element name="identifier" type="xsd:string"/>
             <xsd:element name="display" type="tns:DisplayType"/>
-            <xsd:element name="collection" type="tns:CollectionRefSpecificationType"/>
+            <xsd:element name="collection" type="tns:CollectionRefSpecificationType">
+                <xsd:annotation>
+                     <xsd:appinfo>
+                        <a:schemaContext>
+                            <a:type>UserType</a:type>
+                        </a:schemaContext>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="autocompleteConfiguration" type="tns:AutocompleteSearchConfigurationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Configuration of autocomplete search used to search for users.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:schemaContext>
+                            <a:type>UserType</a:type>
+                        </a:schemaContext>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="searchFilterTemplate" type="q:SearchFilterType" minOccurs="0">
@@ -407,6 +420,9 @@
                     <xsd:appinfo>
                         <a:deprecated>true</a:deprecated>
                         <a:deprecatedSince>4.8</a:deprecatedSince>
+                        <a:schemaContext>
+                            <a:type>UserType</a:type>
+                        </a:schemaContext>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -3928,7 +3944,7 @@
                         <xsd:element name="filter" type="q:SearchFilterType" minOccurs="0">
                             <xsd:annotation>
                                 <xsd:documentation>
-                                    Filter for objectType. This filter can be use instead of reference of collection.
+                                    Filter for objectType. This filter can be used instead of reference of collection.
                                 </xsd:documentation>
                                 <xsd:appinfo>
                                     <a:since>4.2</a:since>

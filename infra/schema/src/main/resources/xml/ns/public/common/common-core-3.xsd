@@ -8227,6 +8227,9 @@
                 <a:container/>
                 <a:merger>ObjectSelectorType</a:merger>
                 <a:naturalKey>tns:name</a:naturalKey>
+                <a:schemaContext>
+                    <a:typePath>type</a:typePath>
+                </a:schemaContext>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
