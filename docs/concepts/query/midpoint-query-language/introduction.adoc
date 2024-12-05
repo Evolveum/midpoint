@@ -503,13 +503,13 @@ The object collection below lists all roles (all objects of RoleType) in midPoin
 
 
 [#_query_examples]
-== Query Examples
+== Basic Query Examples
 
 This chapter provides information and examples of queries in midPoint Query Language, mainly used in objects while configuration of midPoint itself.
 
-Additional examples can be found in xref:/midpoint/reference/concepts/query/midpoint-query-language/query-examples[Advanced search - EXAMPLES].
+Additional examples can be found in xref:/midpoint/reference/concepts/query/midpoint-query-language/query-examples[query examples] page.
 
-=== Searching by Archetype Name
+=== Search by Archetype Name
 
 Search for reports with archetype specified by its name
 
@@ -594,7 +594,7 @@ NOTE: Filter is currently supported in midPoint native repository only
 ----
 
 
-==== All roles, which are assigned to administrator using full text serach
+==== All roles, which are assigned to administrator using full text search
 
 .midPoint Query
 ----
