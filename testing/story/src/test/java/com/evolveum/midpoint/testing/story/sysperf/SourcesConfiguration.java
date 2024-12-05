@@ -62,7 +62,7 @@ class SourcesConfiguration {
         singleValuedMappings = Integer.parseInt(System.getProperty(PROP_SINGLE_MAPPINGS, "1"));
         multiValuedMappings = Integer.parseInt(System.getProperty(PROP_MULTI_MAPPINGS, "1"));
         attributeValues = Integer.parseInt(System.getProperty(PROP_MULTI_ATTR_VALUES, "5"));
-        defaultRange = Boolean.parseBoolean(System.getProperty(PROP_DEFAULT_RANGE, "false"));
+        defaultRange = Boolean.parseBoolean(System.getProperty(PROP_DEFAULT_RANGE, "true"));
         operationDelay = OperationDelay.fromSystemProperties(PROP);
 
         generatedResources = generateDummyTestResources();
