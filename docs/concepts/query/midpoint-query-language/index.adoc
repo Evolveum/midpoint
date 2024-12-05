@@ -14,7 +14,6 @@ Not all items in midPoint objects are searchable. The list of searchable items (
 
 MidPoint Query language is complex. It is expected to be used by slightly skilled users and midPoint professionals.
 
-NOTE: The new query language is undergoing rename from 'Axiom' to 'midPoint Query Language' since midPoint version 4.8. As the Axiom name is well known, it can be still for some time referenced also with this name. Please consider _Axiom Query Language_ and _midPoint Query Language_ as synonyms.
 
 == Using midPoint Query Language in midPoint
 
@@ -30,7 +29,7 @@ image:advanced-query-select.png[Select Advanced query]
 You can test the queries directly in GUI. Starting in All users view. It is easy and straightforward.
 As an example, to select all users with given name starting with "J" just enter `givenName startsWith "J"` to search bar and click search button.
 
-Examples how to use the midPoint query in GUI can be found in xref:/midpoint/reference/concepts/query/midpoint-query-language/query-examples[Query - EXAMPLES].
+Examples how to use the midPoint query in GUI can be found in xref:/midpoint/reference/concepts/query/midpoint-query-language/query-examples[query examples] page.
 
 
 === Using in Configuration
