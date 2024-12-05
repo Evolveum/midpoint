@@ -752,13 +752,13 @@ public abstract class ItemWrapperImpl<I extends Item<?, ?>, VW extends PrismValu
                 rawItem.remove(valueWrapper.getNewValue());
                 break;
             case NOT_CHANGED:
-//                if (isSingleValue()) {
-//                    valueWrapper.setRealValue(null);
-//                    valueWrapper.setStatus(ValueStatus.MODIFIED);
-//                } else {
+                if (isSingleValue() && this instanceof PrismPropertyWrapper) {
+                    valueWrapper.setRealValue(null);
+                    valueWrapper.setStatus(ValueStatus.MODIFIED);
+                } else {
                     rawItem.remove(valueWrapper.getNewValue());
                     valueWrapper.setStatus(ValueStatus.DELETED);
-//                }
+                }
                 break;
         }
     }
