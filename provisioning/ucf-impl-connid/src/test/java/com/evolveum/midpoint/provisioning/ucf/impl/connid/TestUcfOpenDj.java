@@ -6,23 +6,17 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
-import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
-import static com.evolveum.midpoint.test.util.MidPointTestConstants.*;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
+import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertNotEmpty;
+import static com.evolveum.midpoint.test.util.MidPointTestConstants.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
 import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.Uid;
@@ -61,6 +55,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.*;
@@ -537,17 +532,12 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
 
         PrismObject<ShadowType> shadow = wrapInShadow(ShadowType.class, resourceObject);
         // Add a testing object
-        cc.addObject(shadow, ctx, addResult);
+        var addObjectResult = cc.addObject(shadow, ctx, addResult);
 
-        ResourceObjectDefinition accountDefinition = resourceObject.getDefinition().getResourceObjectDefinition();
-
-        ResourceObjectIdentifier.Primary<?> primaryIdentifier = ResourceObjectIdentifier.Primary.of(
-                accountDefinition,
-                resourceObject.getPrimaryIdentifier());
+        var accountDefinition = resourceObject.getDefinition().getResourceObjectDefinition();
+        var identification = getPrimaryIdentification(accountDefinition, addObjectResult);
 
         // Determine object class from the schema
-        var identification = ResourceObjectIdentification.withPrimary(
-                accountDefinition, primaryIdentifier.getAttribute(), List.of());
         OperationResult result = createOperationResult("fetchObject");
 
         // WHEN
@@ -563,6 +553,14 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         assertEquals("Wrong LDAP uid", "Teell",
                 IntegrationTestTools.getAttributeValue(ro.getBean(), new QName(NS_RI, "uid")));
 
+    }
+
+    private static ResourceObjectIdentification.WithPrimary getPrimaryIdentification(
+            ResourceObjectDefinition accountDefinition, UcfAddReturnValue addObjectResult) {
+        return ResourceObjectIdentification.fromAttributes(
+                        accountDefinition,
+                        Objects.requireNonNull(addObjectResult.getKnownCreatedObjectAttributes()))
+                .ensurePrimary();
     }
 
     @Test
@@ -611,11 +609,14 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         var ctx = createExecutionContext();
 
         // WHEN
-        cc.addObject(shadow, ctx, addResult);
+        var addObjectResult = cc.addObject(shadow, ctx, addResult);
+
+        var accountDefinition = resourceObject.getDefinition().getResourceObjectDefinition();
+        var identification = getPrimaryIdentification(accountDefinition, addObjectResult);
 
         // THEN
 
-        String entryUuid = (String) resourceObject.getPrimaryIdentifier().getValue().getValue();
+        var entryUuid = (String) identification.getPrimaryIdentifier().getValue().getRealValue();
         Entry entry = openDJController.searchAndAssertByEntryUuid(entryUuid);
         displayValue("Entry before change", entry);
         String passwordAfter = OpenDJController.getAttributeValue(entry, "userPassword");
@@ -639,9 +640,12 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         var ctx = createExecutionContext();
 
         // Add a testing object
-        cc.addObject(shadow, ctx, addResult);
+        var addObjectResult = cc.addObject(shadow, ctx, addResult);
 
-        String entryUuid = (String) resourceObject.getPrimaryIdentifier().getValue().getValue();
+        var accountDefinition = resourceObject.getDefinition().getResourceObjectDefinition();
+        var identification = getPrimaryIdentification(accountDefinition, addObjectResult);
+        var entryUuid = (String) identification.getPrimaryIdentifier().getValue().getRealValue();
+
         Entry entry = openDJController.searchAndAssertByEntryUuid(entryUuid);
         displayValue("Entry before change", entry);
         String passwordBefore = OpenDJController.getAttributeValue(entry, "userPassword");
@@ -649,9 +653,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         // be empty
         assertNull(passwordBefore);
 
-        ResourceObjectDefinition accountDefinition = resourceObject.getDefinition().getResourceObjectDefinition();
-
-        Collection<ShadowSimpleAttribute<?>> identifiers = resourceObject.getPrimaryIdentifiers();
+        var identifiers = identification.getPrimaryIdentifiers();
         // Determine object class from the schema
 
         OperationResult result = new OperationResult(this.getClass().getName() + ".testFetchObject");
@@ -679,11 +681,6 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         //noinspection rawtypes,unchecked
         PropertyModificationOperation<ProtectedStringType> passwordModification = new PropertyModificationOperation(passDelta);
         changes.add(passwordModification);
-
-        ResourceObjectIdentification.WithPrimary identification =
-                ResourceObjectIdentification
-                        .fromAttributes(accountDefinition, identifiers)
-                        .ensurePrimary();
 
         cc.modifyObject(identification, null, changes, null, ctx, result);
 
