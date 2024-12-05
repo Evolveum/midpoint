@@ -138,7 +138,12 @@
             </attribute>
             <attribute>
                 <ref>ri:internalId</ref>
-                <cached>false</cached> <!-- MID-10051 -->
+                <volatility>
+                    <!-- The value is generated when the object is created -->
+                    <source>
+                        <operation>add</operation>
+                    </source>
+                </volatility>
                 <inbound>
                     <strength>strong</strength>
                     <target>

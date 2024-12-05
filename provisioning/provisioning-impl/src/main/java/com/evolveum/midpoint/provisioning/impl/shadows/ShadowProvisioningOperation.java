@@ -13,6 +13,7 @@ import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.create
 
 import java.util.Objects;
 
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectOperationResult;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectShadow;
 
 import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper.EffectiveMarksAndPolicies;
@@ -51,7 +52,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.RunAsCapabil
 /**
  * Superclass for "primitive" resource-updating operations: add, modify, delete [resource object / shadow].
  */
-public abstract class ShadowProvisioningOperation<OS extends ProvisioningOperationState<?>> {
+public abstract class ShadowProvisioningOperation {
 
     // Useful Spring beans
 
@@ -69,7 +70,7 @@ public abstract class ShadowProvisioningOperation<OS extends ProvisioningOperati
 
     @NotNull final ProvisioningContext ctx;
     final OperationProvisioningScriptsType scripts;
-    @NotNull final OS opState;
+    @NotNull final ProvisioningOperationState opState;
     final ProvisioningOperationOptions options;
     @NotNull final Task task;
 
@@ -101,7 +102,7 @@ public abstract class ShadowProvisioningOperation<OS extends ProvisioningOperati
 
     ShadowProvisioningOperation(
             @NotNull ProvisioningContext ctx,
-            @NotNull OS opState,
+            @NotNull ProvisioningOperationState opState,
             OperationProvisioningScriptsType scripts,
             ProvisioningOperationOptions options,
             @NotNull ObjectDelta<ShadowType> requestedDelta,
@@ -117,7 +118,7 @@ public abstract class ShadowProvisioningOperation<OS extends ProvisioningOperati
 
     ShadowProvisioningOperation(
             @NotNull ProvisioningContext ctx,
-            @NotNull OS opState,
+            @NotNull ProvisioningOperationState opState,
             OperationProvisioningScriptsType scripts,
             ProvisioningOperationOptions options,
             @NotNull ObjectDelta<ShadowType> requestedDelta) {
@@ -132,8 +133,12 @@ public abstract class ShadowProvisioningOperation<OS extends ProvisioningOperati
         return options;
     }
 
-    public @NotNull OS getOpState() {
+    public @NotNull ProvisioningOperationState getOpState() {
         return opState;
+    }
+
+    public void setOperationStatus(ResourceObjectOperationResult opResult) {
+        opState.setResourceOperationStatus(opResult.getOpStatus());
     }
 
     /** "adding", "modifying", "deleting" */
@@ -185,7 +190,7 @@ public abstract class ShadowProvisioningOperation<OS extends ProvisioningOperati
         } else {
             shadow = opState.getRepoShadow().getBean();
         }
-        ResourceOperationDescription operationDescription =
+        var operationDescription =
                 ShadowsUtil.createResourceFailureDescription(shadow, ctx.getResource(), getRequestedDelta(), message);
         eventDispatcher.notifyFailure(operationDescription, ctx.getTask(), result);
     }
@@ -195,7 +200,7 @@ public abstract class ShadowProvisioningOperation<OS extends ProvisioningOperati
 
         // Create dummy subresult with IN_PROGRESS state.
         // This will force the entire result (parent) to be IN_PROGRESS rather than SUCCESS.
-        OperationResult result = parentResult.createSubresult(OP_DELAYED_OPERATION);
+        var result = parentResult.createSubresult(OP_DELAYED_OPERATION);
         result.recordInProgress();
         result.close();
 

@@ -13,6 +13,8 @@ import java.io.Serial;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -432,8 +434,38 @@ public abstract class ShadowAttributeDefinitionImpl<
 
     @Override
     public boolean isVolatilityTrigger() {
-        return Boolean.TRUE.equals(
-                customizationBean.isVolatilityTrigger());
+        var legacy = Boolean.TRUE.equals(customizationBean.isVolatilityTrigger());
+        var modern = isVolatilityTriggerModern();
+        return legacy || modern;
+    }
+
+    private boolean isVolatilityTriggerModern() {
+        var volatility = customizationBean.getVolatility();
+        if (volatility == null) {
+            return false;
+        }
+        return volatility.getTarget().stream().anyMatch(
+                s -> s.getOperation().isEmpty() || s.getOperation().contains(ChangeTypeType.MODIFY));
+    }
+
+    @Override
+    public boolean isVolatileOnAddOperation() {
+        var volatility = customizationBean.getVolatility();
+        if (volatility == null) {
+            return false;
+        }
+        return volatility.getSource().stream().anyMatch(
+                s -> s.getOperation().isEmpty() || s.getOperation().contains(ChangeTypeType.ADD));
+    }
+
+    @Override
+    public boolean isVolatileOnModifyOperation() {
+        var volatility = customizationBean.getVolatility();
+        if (volatility == null) {
+            return false;
+        }
+        return volatility.getSource().stream().anyMatch(
+                s -> s.getOperation().isEmpty() || s.getOperation().contains(ChangeTypeType.MODIFY));
     }
 
     private static void applyLimitationsBean(

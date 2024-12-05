@@ -2402,12 +2402,23 @@
                                 If set to true it indicates that change of this attribute may cause
                                 changes in other attributes. In that case midPoint re-reads the object
                                 after the change of this attributes.
+
+                                DEPRECATED. Use "volatility" instead.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>3.4</a:since>
                                 <a:since>3.3.1</a:since>
                                 <a:displayName>ResourceItemDefinitionType.volatilityTrigger</a:displayName>
+                                <a:deprecated>true</a:deprecated>
+                                <a:deprecatedSince>4.9.1</a:deprecatedSince>
                             </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="volatility" type="tns:ShadowItemVolatilityType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The behavior of this attribute that differs from the "pure data store" expectations.
+                            </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="displayNameAttribute" type="xsd:boolean" minOccurs="0">
@@ -2496,6 +2507,71 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+
+    <xsd:complexType name="ShadowItemVolatilityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                The behavior of a shadow item that differs from the "pure data store" expectations.
+                Describes how the item can change without explicit request by midPoint, optionally in relation to other
+                items in this or other resource objects.
+
+                TODO this is a working version for now, including the name
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="source" type="tns:ShadowItemDependencyType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Items on which this item may depend on - i.e., whose values or changes may affect the values
+                        of the item being considered.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="target" type="tns:ShadowItemDependencyType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Items that may depend on this item - i.e., whose that may be affected by values or changes of this item.
+                        Currently, only "modify" operation is supported here, making this declaration equivalent to the legacy
+                        "volatilityTrigger": it says that when this attribute is modified, any of the other attributes can get
+                        modified as well.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="shadowItemVolatility" type="tns:ShadowItemVolatilityType"/>
+
+    <xsd:complexType name="ShadowItemDependencyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describes a dependency of a given shadow item, i.e., what other item(s) it may depend on, or what other item(s)
+                may depend on it. This includes closer specification, like during what operations (add, modify) does this
+                dependency occur.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <!-- TODO specific items that are source or target of this dependency -->
+            <xsd:element name="operation" type="t:ChangeTypeType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        During which operation(s) does this dependency manifests itself. (DELETE is not relevant for now.)
+                        When unspecified, all operations are expected.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="shadowItemDependency" type="tns:ShadowItemDependencyType"/>
 
     <xsd:complexType name="ResourceAttributeDefinitionType">
         <xsd:annotation>

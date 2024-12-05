@@ -19,11 +19,11 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 class SchemaExceptionHandler extends HardErrorHandler {
 
     @Override
-    protected void throwException(@Nullable ShadowProvisioningOperation<?> operation, Exception cause, OperationResult result)
+    protected void throwException(@Nullable ShadowProvisioningOperation operation, Exception cause, OperationResult result)
             throws SchemaException {
         recordCompletionError(operation, cause, result);
-        if (cause instanceof SchemaException) {
-            throw (SchemaException)cause;
+        if (cause instanceof SchemaException schemaException) {
+            throw schemaException;
         } else {
             throw new SchemaException(cause.getMessage(), cause);
         }

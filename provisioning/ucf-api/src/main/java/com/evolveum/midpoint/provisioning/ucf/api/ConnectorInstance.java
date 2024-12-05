@@ -277,7 +277,7 @@ public interface ConnectorInstance {
      * @throws SchemaException resource schema violation
      * @throws ObjectAlreadyExistsException object already exists on the resource
      */
-    UcfAddReturnValue addObject(
+    @NotNull UcfAddReturnValue addObject(
             @NotNull PrismObject<? extends ShadowType> object,
             @NotNull SchemaAwareUcfExecutionContext ctx,
             @NotNull OperationResult result)
@@ -307,7 +307,7 @@ public interface ConnectorInstance {
      *
      * @throws ObjectAlreadyExistsException in case that the modified object conflicts with another existing object (e.g. while renaming an object)
      */
-    @Nullable UcfModifyReturnValue modifyObject(
+    @NotNull UcfModifyReturnValue modifyObject(
             @NotNull ResourceObjectIdentification.WithPrimary identification,
             PrismObject<ShadowType> shadow,
             @NotNull Collection<Operation> changes,
@@ -322,7 +322,7 @@ public interface ConnectorInstance {
      *
      * Currently, some implementations may accept secondary-only identification. Some (e.g. ConnId) may not.
      */
-    UcfDeleteReturnValue deleteObject(
+    @NotNull UcfDeleteResult deleteObject(
             @NotNull ResourceObjectIdentification<?> identification,
             @Nullable PrismObject<ShadowType> shadow,
             @NotNull UcfExecutionContext ctx,
