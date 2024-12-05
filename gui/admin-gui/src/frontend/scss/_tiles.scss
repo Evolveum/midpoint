@@ -35,6 +35,9 @@
       text-align: center;
       margin-right: 0.65rem;
   }
+  & > .tile-title {
+      color:$text-toned-color;
+  }
 }
 
 @mixin selectable-tile {
@@ -44,13 +47,21 @@
     border: 2px solid $primary;
     border-radius: $border-radius;
     @include smooth-transition(0.1s);
+
+    & > .tile-title {
+      color:$text-color;
+    }
   }
 
   &.active {
     border: 2px solid $primary;
     border-radius: $border-radius;
-    background-color: mix($white, $primary, 85%);
+    background-color: mix($white, $primary, 94%);
     @include smooth-transition(0.1s);
+
+    & > .tile-title {
+      color:$text-color;
+    }
   }
 }
 

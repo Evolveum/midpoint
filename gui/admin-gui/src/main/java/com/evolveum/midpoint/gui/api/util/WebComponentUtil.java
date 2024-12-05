@@ -3965,6 +3965,7 @@ public final class WebComponentUtil {
         }
 
         comp.add(AttributeAppender.append("class", () -> !comp.isEnabledInHierarchy() ? "disabled" : null));
+        comp.add(AttributeAppender.append("aria-disabled", () -> !comp.isEnabledInHierarchy() ? "true" : "false"));
     }
 
     public static CompiledGuiProfile getCompiledGuiProfile(Page page) {

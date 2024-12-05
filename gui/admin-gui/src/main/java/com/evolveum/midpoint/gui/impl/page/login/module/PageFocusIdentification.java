@@ -89,11 +89,13 @@ public class PageFocusIdentification extends PageAbstractAuthenticationModule<Fo
 
         Label attributeNameLabel = new Label(ID_ATTRIBUTE_NAME, resolveAttributeLabel(attributesPathModel));
         attributeNameLabel.setOutputMarkupId(true);
-        form.add(attributeNameLabel);
 
         RequiredTextField<String> attributeValue = new RequiredTextField<>(ID_ATTRIBUTE_VALUE, Model.of());
         attributeValue.setOutputMarkupId(true);
         attributeValue.add(AttributeAppender.append("aria-labelledby", attributeNameLabel.getMarkupId()));
+        attributeNameLabel.add(AttributeAppender.append("for", attributeValue.getMarkupId()));
+        form.add(attributeNameLabel);
+
         attributeValue.add(new AjaxFormComponentUpdatingBehavior("blur") {
             @Override
             protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {

@@ -117,7 +117,6 @@ import com.evolveum.midpoint.web.application.PageMounter;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboardInfo;
 import com.evolveum.midpoint.web.page.error.*;
 import com.evolveum.midpoint.web.page.self.PagePostAuthentication;
-import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.util.MidPointResourceStreamLocator;
 import com.evolveum.midpoint.web.util.MidPointStringResourceLoader;
@@ -259,9 +258,6 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
             mount(new MountedMapper("/liveSession", LiveSessionsPage.class, new PageParametersEncoder()));
             mount(new MountedMapper("/pageStore", PageStorePage.class, new PageParametersEncoder()));
         }
-
-        //pretty url for resources (e.g. images)
-        mountFiles(ImgResources.BASE_PATH, ImgResources.class);
 
         //exception handling an error pages
         ApplicationSettings appSettings = getApplicationSettings();

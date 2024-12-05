@@ -1,7 +1,8 @@
 = Initial objects
 
-[NOTE]
-Experimental feature.
+WARNING: Experimental feature.
+This command is experimental and might not work properly in all cases.
+It will fail when used against generic repository implementation when unsupported objects are handled.
 
 This is the last step of upgrade procedure while midPoint is still down.
 It is necessary to update initial objects to make sure that they are compatible with new version of midPoint and midPoint can start and work properly.
