@@ -182,6 +182,7 @@ public class PrismReferenceWrapperImpl<R extends Referencable>
     protected void removeNotChangedStatusValue(PrismReferenceValueWrapperImpl<R> valueWrapper, Item rawItem) {
         if (!isSingleValue()) {
             super.removeNotChangedStatusValue(valueWrapper, rawItem);
+            return;
         }
         valueWrapper.setRealValue(null);
         valueWrapper.setStatus(ValueStatus.MODIFIED);
