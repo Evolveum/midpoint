@@ -498,7 +498,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
         }
 
         progressBars.add(new ProgressBar(clusterInliersValue, ProgressBar.State.INFO));
-        progressBars.add(new ProgressBar(clusterOtliersValue, ProgressBar.State.WARNINIG));
+        progressBars.add(new ProgressBar(clusterOtliersValue, ProgressBar.State.WARNING));
 
         int finalClusterOtliers = clusterOtliers;
 
@@ -898,7 +898,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
             valueOutliers = clusterOtliers * 100 / (double) processedObjectCount;
         }
         progressBars.add(new ProgressBar(valueInliers, ProgressBar.State.INFO));
-        progressBars.add(new ProgressBar(valueOutliers, ProgressBar.State.WARNINIG));
+        progressBars.add(new ProgressBar(valueOutliers, ProgressBar.State.WARNING));
 
         int finalClusterOtliers = clusterOtliers;
 

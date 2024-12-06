@@ -209,6 +209,9 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
             } else if (containerPanelConfigurationType.getIdentifier().equals("role-mining-result")
                     && analysisProcedureType == RoleAnalysisProcedureType.OUTLIER_DETECTION) {
                 containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+            } else if (containerPanelConfigurationType.getIdentifier().equals("unclassified-objects")
+                    && analysisProcedureType == RoleAnalysisProcedureType.ROLE_MINING) {
+                containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
             } else {
                 resolveSessionSettingPanels(containerPanelConfigurationType, processMode);
             }

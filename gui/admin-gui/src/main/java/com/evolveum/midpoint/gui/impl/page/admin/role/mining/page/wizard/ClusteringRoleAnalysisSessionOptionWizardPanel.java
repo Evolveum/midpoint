@@ -51,14 +51,25 @@ public class ClusteringRoleAnalysisSessionOptionWizardPanel extends AbstractForm
     @Override
     protected ItemVisibilityHandler getVisibilityHandler() {
         AssignmentHolderDetailsModel<RoleAnalysisSessionType> detailsModel = getDetailsModel();
+        RoleAnalysisSessionType session = detailsModel.getObjectType();
+        RoleAnalysisProcessModeType processMode = session.getAnalysisOption().getProcessMode();
+
         String orig = detailsModel.getObjectType().getName().getOrig();
         boolean applyAdvanceSetting = orig.startsWith("advs_");
 
         return wrapper -> {
             ItemName itemName = wrapper.getItemName();
+            if (processMode.equals(RoleAnalysisProcessModeType.ROLE)
+                    && itemName.equals(AbstractAnalysisSessionOptionType.F_MIN_ACCESS_POPULARITY)) {
+                return ItemVisibility.HIDDEN;
+            }
+
+            if (processMode.equals(RoleAnalysisProcessModeType.USER)
+                    && itemName.equals(AbstractAnalysisSessionOptionType.F_MIN_USERS_POPULARITY)) {
+                return ItemVisibility.HIDDEN;
+            }
 
             if (!applyAdvanceSetting && (itemName.equals(AbstractAnalysisSessionOptionType.F_MAX_ACCESS_POPULARITY)
-                    || itemName.equals(AbstractAnalysisSessionOptionType.F_MIN_USERS_POPULARITY)
                     || itemName.equals(AbstractAnalysisSessionOptionType.F_MAX_USERS_POPULARITY))) {
                 return ItemVisibility.HIDDEN;
             }

@@ -294,7 +294,7 @@ public class RoleAnalysisInfoPanel extends BasePanel<AnalysisInfoWidgetDto> {
                 int allObjects = resolved + inProgress;
 
                 progressBars.add(new ProgressBar(resolved * 100 / (double) allObjects, ProgressBar.State.SUCCESS));
-                progressBars.add(new ProgressBar(inProgress * 100 / (double) allObjects, ProgressBar.State.WARNINIG));
+                progressBars.add(new ProgressBar(inProgress * 100 / (double) allObjects, ProgressBar.State.WARNING));
 
                 RoleAnalysisDistributionProgressPanel<?> panel = new RoleAnalysisDistributionProgressPanel<>(id) {
                     @Contract("_ -> new")

@@ -556,7 +556,7 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
 
                         List<ProgressBar> progressBars = new ArrayList<>();
                         addProgressBar(progressBars, ProgressBar.State.SUCCESS, finalDirectAssignment, allAssignmentCount);
-                        addProgressBar(progressBars, ProgressBar.State.WARNINIG, finalIndirectAssignment, allAssignmentCount);
+                        addProgressBar(progressBars, ProgressBar.State.WARNING, finalIndirectAssignment, allAssignmentCount);
                         addProgressBar(progressBars, ProgressBar.State.DANGER, finalDuplicatedRoleAssignmentCount, allAssignmentCount);
 
                         ProgressBarPanel components1 = new ProgressBarPanel(id1, new LoadableModel<>() {
