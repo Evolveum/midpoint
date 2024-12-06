@@ -717,7 +717,7 @@ class ConnectorInstanceConnIdImpl implements ConnectorInstance, ConnectorContext
 
             var objDef = ShadowUtil.getResourceObjectDefinition(shadow.asObjectable());
 
-            var connIdInfo = connIdObjectConvertor.convertToConnIdObjectInfo(shadow.asObjectable());
+            var connIdInfo = connIdObjectConvertor.convertToConnIdObjectInfo(shadow.asObjectable(), false);
 
             OperationOptionsBuilder operationOptionsBuilder = new OperationOptionsBuilder();
             OperationOptions options = operationOptionsBuilder.build();
