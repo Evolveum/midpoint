@@ -95,7 +95,6 @@ class AssociationTargetSearchExpressionEvaluator
 
             @Override
             protected ObjectQuery extendQuery(ObjectQuery query) {
-
                 query.setFilter(
                         prismContext.queryFactory()
                                 .createAnd(
@@ -105,7 +104,7 @@ class AssociationTargetSearchExpressionEvaluator
             }
 
             @Override
-            protected ObjectQuery createRawQuery(SearchFilterType filter) throws SchemaException, ExpressionEvaluationException {
+            protected ObjectQuery createRawQuery(SearchFilterType filter) throws SchemaException {
                 var concreteShadowDef =
                         outputDefinition
                                 .getRepresentativeTargetObjectDefinition()
