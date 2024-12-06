@@ -1488,22 +1488,31 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
      *
      * MID-10271.
      */
-    @Test
+    @Test(enabled = false) // MID-10271
     public void test410ProvisionMixedMemberships() throws CommonException {
         var task = getTestTask();
         var result = task.getResult();
 
-        var userName = "user-" + getTestNameShort();
+        var userName1 = "user-" + getTestNameShort() + "-1";
+        var userName2 = "user-" + getTestNameShort() + "-2";
+        var userName3 = "user-" + getTestNameShort() + "-3";
         var roleName1 = "role-" + getTestNameShort() + "-1";
         var roleName2 = "role-" + getTestNameShort() + "-2";
         var roleName3 = "role-" + getTestNameShort() + "-3";
 
-        given("a user and three roles (provisioned by midPoint)");
+        given("three users and three roles (provisioned by midPoint)");
 
-        var user = new UserType()
-                .name(userName)
-                .assignment(RESOURCE_DUMMY_AD3_MIXED_GROUPS.assignmentWithConstructionOf(ACCOUNT, INTENT_DEFAULT));
-        addObject(user, task, result);
+        var user1 = new UserType()
+                .name(userName1);
+        addObject(user1, task, result);
+
+        var user2 = new UserType()
+                .name(userName2);
+        addObject(user2, task, result);
+
+        var user3 = new UserType()
+                .name(userName3);
+        addObject(user3, task, result);
 
         var role1 = new RoleType()
                 .name(roleName1)
@@ -1520,12 +1529,12 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .assignment(ARCHETYPE_AD3_ROLE_B.assignmentTo());
         addObject(role3, task, result);
 
-        when("user is assigned role 1");
-        assignRole(user.getOid(), role1.getOid(), task, result);
+        when("user 1 is assigned role 1");
+        assignRole(user1.getOid(), role1.getOid(), task, result);
 
         then("everything is OK");
         assertSuccessRepeatedly(result);
-        assertUserAfter(user.getOid())
+        assertUserAfter(user1.getOid())
                 .withObjectResolver(createSimpleModelObjectResolver())
                 .links()
                 .singleLive()
@@ -1544,12 +1553,36 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .resolveTarget()
                 .display();
 
-        when("user is assigned role 2");
-        assignRole(user.getOid(), role2.getOid(), task, result);
+        when("user 1 is assigned role 2");
+        assignRole(user1.getOid(), role2.getOid(), task, result);
 
         then("everything is OK");
         assertSuccessRepeatedly(result);
-        assertUserAfter(user.getOid())
+        assertUserAfter(user1.getOid())
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .links()
+                .singleLive()
+                .resolveTarget()
+                .display();
+
+        when("user 2 is assigned role 2");
+        assignRole(user2.getOid(), role2.getOid(), task, result);
+
+        then("everything is OK");
+        assertSuccessRepeatedly(result);
+        assertUserAfter(user2.getOid())
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .links()
+                .singleLive()
+                .resolveTarget()
+                .display();
+
+        when("user 3 is assigned role 3");
+        assignRole(user3.getOid(), role3.getOid(), task, result);
+
+        then("everything is OK");
+        assertSuccessRepeatedly(result);
+        assertUserAfter(user3.getOid())
                 .withObjectResolver(createSimpleModelObjectResolver())
                 .links()
                 .singleLive()

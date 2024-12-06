@@ -19,4 +19,13 @@
             <intent>group-type-A</intent>
         </construction>
     </inducement>
+    <inducement>
+        <construction>
+            <resourceRef oid="4459d18e-fa47-46a4-8e68-1f5c4fa859be"/>
+            <kind>account</kind>
+            <intent>default</intent>
+        </construction>
+        <order>2</order>
+        <focusType>UserType</focusType>
+    </inducement>
 </archetype>
