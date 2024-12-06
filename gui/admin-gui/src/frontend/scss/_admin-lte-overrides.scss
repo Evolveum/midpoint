@@ -158,10 +158,24 @@
     position: absolute;
     right: 10px;
     top: 50%;
-    margin-top: 1px;
     transform: translateY(-50%);
     color: #555555;
     font-size: 10.5px;
     transition: transform 0.1s ease;
+  }
+}
+
+//Bootstrap override for toasts to fulfill contrast errors #Remove when bs5 implemented
+@each $key, $color in $theme-colors {
+  .toast.bg-#{$key} {
+    background-color: mix($white, $color, 88%) !important;
+    border:1px solid $color;
+
+    & > .toast-header {
+      background: $color;
+    }
+    & > .toast-body {
+      color: $text-color;
+    }
   }
 }
