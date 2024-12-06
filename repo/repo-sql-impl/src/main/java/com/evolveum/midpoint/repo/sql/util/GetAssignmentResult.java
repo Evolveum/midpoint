@@ -13,12 +13,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RSimpleActivation;
 
 import org.hibernate.transform.ResultTransformer;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.factory.MetadataFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
@@ -81,7 +81,7 @@ public final class GetAssignmentResult implements Serializable {
         row.setOrder((Integer) tuple[i++]);
         row.setLifecycleState((String) tuple[i++]);
         // skipping policySituation and extension to avoid to-many fetch
-        row.setActivation((RActivation) tuple[i++]);
+        row.setActivation((RSimpleActivation) tuple[i++]);
         row.setTargetRef((REmbeddedReference) tuple[i++]);
         row.setTenantRef((REmbeddedReference) tuple[i++]);
         row.setOrgRef((REmbeddedReference) tuple[i++]);
@@ -108,14 +108,14 @@ public final class GetAssignmentResult implements Serializable {
                 .metadata(MetadataFactory.toJAXB(row));
     }
 
-    private ActivationType toActivation(RActivation repoActivation)
+    private ActivationType toActivation(RSimpleActivation repoActivation)
             throws DtoTranslationException {
         if (repoActivation == null) {
             return null;
         }
 
         ActivationType activation = new ActivationType();
-        RActivation.fromJaxb(activation, repoActivation);
+        RSimpleActivation.fromJaxb(activation, repoActivation);
         return activation;
     }
 

@@ -14,6 +14,8 @@ import java.util.Objects;
 import java.util.Set;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RSimpleActivation;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.Index;
@@ -26,7 +28,6 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.RAccessCertificationCampaign;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.query.definition.*;
@@ -70,7 +71,7 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
     private REmbeddedReference tenantRef;
     private REmbeddedReference orgRef;
     // we need mainly validFrom + validTo + maybe adminStatus; for simplicity we added whole ActivationType here
-    private RActivation activation;
+    private RSimpleActivation activation;
 
     private XMLGregorianCalendar reviewRequestedTimestamp;
     private XMLGregorianCalendar reviewDeadline;
@@ -144,7 +145,7 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
     }
 
     @Embedded
-    public RActivation getActivation() {
+    public RSimpleActivation getActivation() {
         return activation;
     }
 
@@ -216,7 +217,7 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         this.orgRef = orgRef;
     }
 
-    public void setActivation(RActivation activation) {
+    public void setActivation(RSimpleActivation activation) {
         this.activation = activation;
     }
 
@@ -321,8 +322,8 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         rCase.setTenantRef(RUtil.jaxbRefToEmbeddedRepoRef(case1.getTenantRef(), context.relationRegistry));
         rCase.setOrgRef(RUtil.jaxbRefToEmbeddedRepoRef(case1.getOrgRef(), context.relationRegistry));
         if (case1.getActivation() != null) {
-            RActivation activation = new RActivation();
-            RActivation.fromJaxb(case1.getActivation(), activation);
+            RSimpleActivation activation = new RSimpleActivation();
+            RSimpleActivation.fromJaxb(case1.getActivation(), activation);
             rCase.setActivation(activation);
         }
         for (AccessCertificationWorkItemType workItem : case1.getWorkItem()) {

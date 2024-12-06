@@ -11,6 +11,8 @@ import java.util.Objects;
 import java.util.Set;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RSimpleActivation;
+
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
@@ -21,7 +23,6 @@ import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.Metadata;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAssignmentExtension;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
@@ -66,7 +67,7 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
     //extension
     private RAssignmentExtension extension;
     //assignment fields
-    private RActivation activation;
+    private RSimpleActivation activation;
     private REmbeddedReference targetRef;
     private Integer order;
     private REmbeddedReference tenantRef;
@@ -165,7 +166,7 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
     }
 
     @Embedded
-    public RActivation getActivation() {
+    public RSimpleActivation getActivation() {
         return activation;
     }
 
@@ -351,7 +352,7 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
         this.order = order;
     }
 
-    public void setActivation(RActivation activation) {
+    public void setActivation(RSimpleActivation activation) {
         this.activation = activation;
     }
 
@@ -434,8 +435,8 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
         }
 
         if (jaxb.getActivation() != null) {
-            RActivation activation = new RActivation();
-            RActivation.fromJaxb(jaxb.getActivation(), activation);
+            RSimpleActivation activation = new RSimpleActivation();
+            RSimpleActivation.fromJaxb(jaxb.getActivation(), activation);
             repo.setActivation(activation);
         }
 
