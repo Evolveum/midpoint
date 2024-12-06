@@ -197,6 +197,18 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
             } else if (containerPanelConfigurationType.getIdentifier().equals("outlierActions")
                     && analysisProcedureType != RoleAnalysisProcedureType.OUTLIER_DETECTION) {
                 containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+            } else if (containerPanelConfigurationType.getIdentifier().equals("advanced")) {
+                if (analysisProcedureType == RoleAnalysisProcedureType.ROLE_MINING) {
+                    List<ContainerPanelConfigurationType> panel = containerPanelConfigurationType.getPanel();
+                    panel.forEach(panelConfig -> {
+                        if (panelConfig.getIdentifier().equals("outlier-clustering-result")) {
+                            panelConfig.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+                        }
+                    });
+                }
+            } else if (containerPanelConfigurationType.getIdentifier().equals("role-mining-result")
+                    && analysisProcedureType == RoleAnalysisProcedureType.OUTLIER_DETECTION) {
+                containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
             } else {
                 resolveSessionSettingPanels(containerPanelConfigurationType, processMode);
             }
