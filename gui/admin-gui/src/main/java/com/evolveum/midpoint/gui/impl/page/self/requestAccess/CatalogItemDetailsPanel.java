@@ -13,6 +13,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Fragment;
@@ -62,11 +63,16 @@ public class CatalogItemDetailsPanel extends BasePanel<ObjectType> implements Po
 
     public CatalogItemDetailsPanel(IModel<List<ContainerPanelConfigurationType>> containers, IModel<ObjectType> model) {
         super(Popupable.ID_CONTENT, model);
-
         this.containers = containers;
-
         initLayout();
         initFooter();
+    }
+
+   @Override
+    protected void onInitialize() {
+        super.onInitialize();
+       getPageBase().getMainPopup().getDialogComponent().add(AttributeAppender.replace("class", "modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable"));
+       getPageBase().getMainPopup().getDialogComponent().add(AttributeAppender.replace("style", ""));
     }
 
     private void initLayout() {
