@@ -715,15 +715,14 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
                 getItem().remove(valueWrapper.getNewValue());
                 break;
             case NOT_CHANGED:
-//                if (isSingleValue()) {
-//                    valueWrapper.setRealValue(null);
-//                    valueWrapper.setStatus(ValueStatus.MODIFIED);
-//                } else {
-                    getItem().remove(valueWrapper.getNewValue());
-                    valueWrapper.setStatus(ValueStatus.DELETED);
-//                }
+                removeNotChangedStatusValue(valueWrapper, getItem());
                 break;
         }
+    }
+
+    protected void removeNotChangedStatusValue(VW valueWrapper, Item rawItem) {
+        rawItem.remove(valueWrapper.getNewValue());
+        valueWrapper.setStatus(ValueStatus.DELETED);
     }
 
     protected abstract <PV extends PrismValue> PV createNewEmptyValue(ModelServiceLocator locator);

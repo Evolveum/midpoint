@@ -12,6 +12,7 @@ import java.util.function.Function;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 
 import org.apache.wicket.model.IModel;
@@ -160,6 +161,16 @@ public class PrismReferenceWrapperImpl<R extends Referencable>
     @Override
     public void accept(Visitor<Definition> visitor) {
         // TODO
+    }
+
+    @Override
+    protected void removeNotChangedStatusValue(PrismReferenceValueWrapperImpl<R> valueWrapper, Item rawItem) {
+        if (!isSingleValue()) {
+            super.removeNotChangedStatusValue(valueWrapper, rawItem);
+            return;
+        }
+        valueWrapper.setRealValue(null);
+        valueWrapper.setStatus(ValueStatus.MODIFIED);
     }
 
     @Override
