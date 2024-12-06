@@ -140,9 +140,9 @@
                 <ref>ri:internalId</ref>
                 <volatility>
                     <!-- The value is generated when the object is created -->
-                    <source>
+                    <incomingDependency>
                         <operation>add</operation>
-                    </source>
+                    </incomingDependency>
                 </volatility>
                 <inbound>
                     <strength>strong</strength>

@@ -119,9 +119,9 @@
                 </inbound>
                 <volatility>
                     <!-- The value is generated when the object is created -->
-                    <source>
+                    <incomingDependency>
                         <operation>add</operation>
-                    </source>
+                    </incomingDependency>
                 </volatility>
             </attribute>
             <attribute>

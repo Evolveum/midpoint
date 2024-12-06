@@ -2514,8 +2514,6 @@
                 The behavior of a shadow item that differs from the "pure data store" expectations.
                 Describes how the item can change without explicit request by midPoint, optionally in relation to other
                 items in this or other resource objects.
-
-                TODO this is a working version for now, including the name
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -2523,7 +2521,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="source" type="tns:ShadowItemDependencyType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="incomingDependency" type="tns:ShadowItemDependencyType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Items on which this item may depend on - i.e., whose values or changes may affect the values
@@ -2531,13 +2529,11 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="target" type="tns:ShadowItemDependencyType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="outgoingDependency" type="tns:ShadowItemDependencyType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Items that may depend on this item - i.e., whose that may be affected by values or changes of this item.
-                        Currently, only "modify" operation is supported here, making this declaration equivalent to the legacy
-                        "volatilityTrigger": it says that when this attribute is modified, any of the other attributes can get
-                        modified as well.
+                        Currently, only "modify" operation is supported here.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -2549,9 +2545,7 @@
     <xsd:complexType name="ShadowItemDependencyType">
         <xsd:annotation>
             <xsd:documentation>
-                Describes a dependency of a given shadow item, i.e., what other item(s) it may depend on, or what other item(s)
-                may depend on it. This includes closer specification, like during what operations (add, modify) does this
-                dependency occur.
+                Describes a dependency between shadow items.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -2559,7 +2553,8 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <!-- TODO specific items that are source or target of this dependency -->
+            <!-- Here will come specific items that are source or target of this dependency -->
+            <!-- Also, an expression that provides the expected outcome of this dependency may come here -->
             <xsd:element name="operation" type="t:ChangeTypeType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
