@@ -82,9 +82,6 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
     private static final String INTENT_DEFAULT = "default";
     private static final String INTENT_DOCUMENT = "document";
 
-    private static final String INTENT_GROUP_TYPE_A = "group-type-A";
-    private static final String INTENT_GROUP_TYPE_B = "group-type-B";
-
     private static final ResourceObjectTypeIdentification TYPE_GROUP =
             ResourceObjectTypeIdentification.of(ENTITLEMENT, "group");
 
@@ -122,7 +119,6 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
     private static DummyDmsScenario dmsScenarioNonTolerant;
     private static DummyAdTrivialScenario adScenario;
     private static DummyAdTrivialScenario adMoreAssociationTypesScenario;
-    private static DummyAdTrivialScenario ad3MixedGroupsScenario;
 
     private static final DummyTestResource RESOURCE_DUMMY_HR = new DummyTestResource(
             TEST_DIR, "resource-dummy-hr.xml", "ded54130-8ce5-4c8d-ac30-c3bf4fc82337", "hr",
@@ -149,7 +145,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
     private static final DummyTestResource RESOURCE_DUMMY_AD3_MIXED_GROUPS = new DummyTestResource(
             TEST_DIR, "resource-dummy-ad3-mixed-groups.xml", "4459d18e-fa47-46a4-8e68-1f5c4fa859be",
             "ad3-mixed-groups",
-            c -> ad3MixedGroupsScenario = DummyAdTrivialScenario.on(c).initialize());
+            c -> DummyAdTrivialScenario.on(c).initialize());
 
     private static final TestObject<ArchetypeType> ARCHETYPE_PERSON = TestObject.file(
             TEST_DIR, "archetype-person.xml", "184a5aa5-3e28-46c7-b9ed-a1dabaacc11d");
@@ -1484,11 +1480,10 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
     }
 
     /**
-     * We try to provision user-in-group as well as group-in-group.
-     *
-     * MID-10271.
+     * We try to provision users into groups (via ConnId ADD and MODIFY).
+     * One of the groups is a member of other groups; this is where MID-10271 failed.
      */
-    @Test(enabled = false) // MID-10271
+    @Test(description = "MID-10271")
     public void test410ProvisionMixedMemberships() throws CommonException {
         var task = getTestTask();
         var result = task.getResult();
@@ -1518,76 +1513,103 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .name(roleName1)
                 .assignment(ARCHETYPE_AD3_ROLE_A.assignmentTo());
         addObject(role1, task, result);
+        var groupOid1 = assertRole(role1.getOid(), "").singleLink().getOid();
 
         var role2 = new RoleType()
                 .name(roleName2)
                 .assignment(ARCHETYPE_AD3_ROLE_B.assignmentTo());
         addObject(role2, task, result);
+        var groupOid2 = assertRole(role2.getOid(), "").singleLink().getOid();
 
         var role3 = new RoleType()
                 .name(roleName3)
                 .assignment(ARCHETYPE_AD3_ROLE_B.assignmentTo());
         addObject(role3, task, result);
-
-        when("user 1 is assigned role 1");
-        assignRole(user1.getOid(), role1.getOid(), task, result);
-
-        then("everything is OK");
-        assertSuccessRepeatedly(result);
-        assertUserAfter(user1.getOid())
-                .withObjectResolver(createSimpleModelObjectResolver())
-                .links()
-                .singleLive()
-                .resolveTarget()
-                .display();
+        var groupOid3 = assertRole(role3.getOid(), "").singleLink().getOid();
 
         when("role 3 is assigned role 2");
         assignRole(RoleType.class, role3.getOid(), role2.getOid(), task, result);
 
         then("everything is OK");
         assertSuccessRepeatedly(result);
-        assertRoleAfter(role3.getOid())
+        assertRole(role3.getOid(), "")
                 .withObjectResolver(createSimpleModelObjectResolver())
                 .links()
                 .singleLive()
                 .resolveTarget()
-                .display();
+                .associations()
+                .association(RI_GROUP)
+                .assertShadowOids(groupOid2);
+
+        when("user 1 is assigned role 1");
+        assignRole(user1.getOid(), role1.getOid(), task, result);
+
+        then("everything is OK");
+        assertSuccessRepeatedly(result);
+        assertUser(user1.getOid(), "")
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .links()
+                .singleLive()
+                .resolveTarget()
+                .associations()
+                .association(RI_GROUP)
+                .assertShadowOids(groupOid1);
 
         when("user 1 is assigned role 2");
         assignRole(user1.getOid(), role2.getOid(), task, result);
 
         then("everything is OK");
         assertSuccessRepeatedly(result);
-        assertUserAfter(user1.getOid())
+        assertUser(user1.getOid(), "")
                 .withObjectResolver(createSimpleModelObjectResolver())
                 .links()
                 .singleLive()
                 .resolveTarget()
-                .display();
+                .associations()
+                .association(RI_GROUP)
+                .assertShadowOids(groupOid1, groupOid2);
+
+        when("user 1 is assigned role 3");
+        assignRole(user1.getOid(), role3.getOid(), task, result);
+
+        then("everything is OK");
+        assertSuccessRepeatedly(result);
+        assertUser(user1.getOid(), "")
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .links()
+                .singleLive()
+                .resolveTarget()
+                .associations()
+                .association(RI_GROUP)
+                .assertShadowOids(groupOid1, groupOid2, groupOid3);
 
         when("user 2 is assigned role 2");
         assignRole(user2.getOid(), role2.getOid(), task, result);
 
         then("everything is OK");
         assertSuccessRepeatedly(result);
-        assertUserAfter(user2.getOid())
+        assertUser(user2.getOid(), "")
                 .withObjectResolver(createSimpleModelObjectResolver())
                 .links()
                 .singleLive()
                 .resolveTarget()
-                .display();
+                .associations()
+                .association(RI_GROUP)
+                .assertShadowOids(groupOid2);
 
         when("user 3 is assigned role 3");
         assignRole(user3.getOid(), role3.getOid(), task, result);
 
         then("everything is OK");
         assertSuccessRepeatedly(result);
-        assertUserAfter(user3.getOid())
+        assertUser(user3.getOid(), "")
                 .withObjectResolver(createSimpleModelObjectResolver())
                 .links()
                 .singleLive()
                 .resolveTarget()
-                .display();
+                .associations()
+                .association(RI_GROUP)
+                .assertShadowOids(groupOid3);
     }
 
     private void importAdAccount(String name, OperationResult result) throws CommonException, IOException {

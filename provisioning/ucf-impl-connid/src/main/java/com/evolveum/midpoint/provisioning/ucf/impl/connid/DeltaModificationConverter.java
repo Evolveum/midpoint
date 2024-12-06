@@ -58,10 +58,10 @@ public class DeltaModificationConverter extends AbstractModificationConverter {
             ItemDelta<V, ?> delta,
             PlusMinusZero isInModifiedAuxiliaryClass,
             CollectorValuesConverter<V> valuesConverter) throws SchemaException {
-        AttributeDeltaBuilder deltaBuilder = new AttributeDeltaBuilder();
+        var deltaBuilder = new AttributeDeltaBuilder();
         deltaBuilder.setName(connIdAttrName);
         if (delta.isAdd()) {
-            List<Object> connIdAttributeValues = valuesConverter.covertAttributeValuesToConnId(delta.getValuesToAdd(), delta.getElementName());
+            var connIdAttributeValues = valuesConverter.covertAttributeValuesToConnId(delta.getValuesToAdd(), delta.getElementName());
             if (delta.getDefinition().isMultiValue()) {
                 deltaBuilder.addValueToAdd(connIdAttributeValues);
             } else {
@@ -87,7 +87,7 @@ public class DeltaModificationConverter extends AbstractModificationConverter {
             }
         }
         if (delta.isReplace()) {
-            List<Object> connIdAttributeValues =
+            var connIdAttributeValues =
                     valuesConverter.covertAttributeValuesToConnId(delta.getValuesToReplace(), delta.getElementName());
             if (isInModifiedAuxiliaryClass == PlusMinusZero.PLUS) {
                 deltaBuilder.addValueToAdd(connIdAttributeValues);
