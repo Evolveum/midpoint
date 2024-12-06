@@ -166,6 +166,7 @@ public class PrismPropertyWrapperImpl<T> extends ItemWrapperImpl<PrismProperty<T
     protected void removeNotChangedStatusValue(PrismPropertyValueWrapper<T> valueWrapper, Item rawItem) {
         if (!isSingleValue()) {
             super.removeNotChangedStatusValue(valueWrapper, rawItem);
+            return;
         }
         valueWrapper.setRealValue(null);
         valueWrapper.setStatus(ValueStatus.MODIFIED);
