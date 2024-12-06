@@ -236,14 +236,19 @@ public class RoleAnalysisAlgorithmUtils {
         if (processMode == RoleAnalysisProcessModeType.ROLE) {
             objectCategorisationCache.putAllCategory(propertiesInNoiseClusters,
                     RoleAnalysisObjectCategorizationType.NOISE, UserType.COMPLEX_TYPE);
+
             objectCategorisationCache.putAllCategory(membersInNoiseClusters,
                     RoleAnalysisObjectCategorizationType.NOISE, RoleType.COMPLEX_TYPE);
+            objectCategorisationCache.putAllCategory(membersInNoiseClusters,
+                    RoleAnalysisObjectCategorizationType.NOISE_EXCLUSIVE, RoleType.COMPLEX_TYPE);
         } else {
             objectCategorisationCache.putAllCategory(propertiesInNoiseClusters,
                     RoleAnalysisObjectCategorizationType.NOISE, RoleType.COMPLEX_TYPE);
 
             objectCategorisationCache.putAllCategory(membersInNoiseClusters,
                     RoleAnalysisObjectCategorizationType.NOISE, UserType.COMPLEX_TYPE);
+            objectCategorisationCache.putAllCategory(membersInNoiseClusters,
+                    RoleAnalysisObjectCategorizationType.NOISE_EXCLUSIVE, UserType.COMPLEX_TYPE);
         }
 
         Set<String> propertiesOnlyInNoiseClusters = new HashSet<>(propertiesInNoiseClusters);

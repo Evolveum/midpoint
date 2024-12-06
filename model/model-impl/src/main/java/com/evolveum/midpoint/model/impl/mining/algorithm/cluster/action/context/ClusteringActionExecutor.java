@@ -35,6 +35,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import static com.evolveum.midpoint.model.impl.mining.RoleAnalysisDataServiceUtils.reverseMap;
+
 /**
  * Clustering action.
  * <p>
@@ -152,13 +154,10 @@ public class ClusteringActionExecutor extends BaseAction {
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
         int processedObjectCount = 0;
 
-        AbstractAnalysisSessionOptionType sessionOptions;
         QName complexType;
         if (analysisOption.getProcessMode().equals(RoleAnalysisProcessModeType.ROLE)) {
-            sessionOptions = session.getRoleModeOptions();
             complexType = RoleType.COMPLEX_TYPE;
         } else {
-            sessionOptions = session.getUserModeOptions();
             complexType = UserType.COMPLEX_TYPE;
         }
 
@@ -199,7 +198,8 @@ public class ClusteringActionExecutor extends BaseAction {
             long startTime = System.currentTimeMillis();
             RoleAnalysisClusterType cluster = clusterTypePrismObject.asObjectable();
             OutlierDetectionActionExecutor detectionExecutionUtil = new OutlierDetectionActionExecutor(roleAnalysisService);
-            detectionExecutionUtil.executeOutlierDetection(cluster, session, analysisOption, attributeAnalysisCache, task, result);
+            detectionExecutionUtil.executeOutlierDetection(
+                    cluster, session, analysisOption, attributeAnalysisCache, objectCategorisationCache, task, result);
             long endTime = System.currentTimeMillis();
             double processingTimeInSeconds = (double) (endTime - startTime) / 1000.0;
             LOGGER.debug("Processing time for outlier detection cluster " + cluster.getName() + ": " + processingTimeInSeconds + " seconds");
@@ -225,12 +225,11 @@ public class ClusteringActionExecutor extends BaseAction {
         }
 
         roleAnalysisService
-                .updateSessionStatistics(sessionRef, sessionStatistic, task, result);
-
-        RoleAnalysisIdentifiedCharacteristicsType characteristicsContainer = objectCategorisationCache.build();
+                .updateSessionStatistics(session, sessionStatistic, task, result);
+        RoleAnalysisIdentifiedCharacteristicsType characteristicsContainer = objectCategorisationCache.build(session);
 
         roleAnalysisService
-                .updateSessionIdentifiedCharacteristics(sessionRef, characteristicsContainer, task, result);
+                .updateSessionIdentifiedCharacteristics(session, characteristicsContainer, task, result);
 
         // Development only helper method - DO NOT RUN IN REAL ENVIRONMENT!
         //logDebugOutlierDetectionEvaluation(sessionOid, modelService, roleAnalysisService, task);
@@ -245,12 +244,7 @@ public class ClusteringActionExecutor extends BaseAction {
             OperationResult result) {
         ListMultimap<String, String> roleMemberCache = analysisCache.getRoleMemberCache();
 
-        ListMultimap<String, String> userRolesMap = ArrayListMultimap.create();
-        for (Map.Entry<String, String> entry : roleMemberCache.entries()) {
-            String roleOid = entry.getKey();
-            String ownerOid = entry.getValue();
-            userRolesMap.put(ownerOid, roleOid);
-        }
+        ListMultimap<String, String> userRolesMap = reverseMap(roleMemberCache);
 
         String sessionOid = session.getOid();
 

@@ -182,26 +182,27 @@ public interface RoleAnalysisService {
     /**
      * Modifies statistics of a RoleAnalysisSessionType object.
      *
-     * @param sessionRef The session reference.
+     * @param session The session reference.
      * @param sessionStatistic The session statistic to modify.
      * @param task The task associated with this operation.
      * @param result The operation result.
      */
     void updateSessionStatistics(
-            @NotNull ObjectReferenceType sessionRef,
+            @NotNull RoleAnalysisSessionType session,
             @NotNull RoleAnalysisSessionStatisticType sessionStatistic,
             @NotNull Task task,
             @NotNull OperationResult result);
 
     /**
      * Modifies identified characteristics of a RoleAnalysisSessionType object.
-     * @param sessionRef The session reference.
+     *
+     * @param session The session reference.
      * @param identifiedCharacteristics The identified characteristics to modify.
      * @param task The task associated with this operation.
      * @param result The operation result.
      */
     void updateSessionIdentifiedCharacteristics(
-            @NotNull ObjectReferenceType sessionRef,
+            @NotNull RoleAnalysisSessionType session,
             @NotNull RoleAnalysisIdentifiedCharacteristicsType identifiedCharacteristics,
             @NotNull Task task,
             @NotNull OperationResult result);
@@ -1019,9 +1020,13 @@ public interface RoleAnalysisService {
     ListMultimap<List<String>, String> loadUserForOutlierComparison(
             @NotNull RoleAnalysisService roleAnalysisService,
             List<String> outliersMembers,
-            @Nullable SearchFilterType query,
+            @NotNull ObjectCategorisationCache objectCategorisationCache,
+            @Nullable SearchFilterType userSearchFilter,
+            @Nullable SearchFilterType roleSearchFilter,
+            @Nullable SearchFilterType assignmentSearchFilter,
             @NotNull OperationResult result,
-            @NotNull Task task, @NotNull RoleAnalysisSessionType sessionObject);
+            @NotNull Task task,
+            @NotNull RoleAnalysisSessionType sessionObject);
 
     /**
      * This method is used to calculate the threshold range for outlier detection.
@@ -1169,8 +1174,9 @@ public interface RoleAnalysisService {
      * @param roleObjectFilter An optional filter to apply to the role objects.
      * @param assignmentFilter An optional filter to apply to the assignment objects.
      * @param processMode The process mode to determine whether to search in user mode or role mode.
+     * @param loadAndUpdateStatistics A boolean flag to determine whether to load and update statistics.
      * @param attributeAnalysisCache The cache for attribute analysis.
-     * @param objectCategorisationCache
+     * @param objectCategorisationCache The cache for object categorisation.
      * @param task The task in the context of which the operation is executed.
      * @param result The result of the operation.
      * @param sessionObject poc
@@ -1182,9 +1188,12 @@ public interface RoleAnalysisService {
             @Nullable ObjectFilter roleObjectFilter,
             @Nullable ObjectFilter assignmentFilter,
             @NotNull RoleAnalysisProcessModeType processMode,
+            boolean loadAndUpdateStatistics,
             @Nullable AttributeAnalysisCache attributeAnalysisCache,
-            @NotNull ObjectCategorisationCache objectCategorisationCache, @NotNull Task task,
-            @NotNull OperationResult result, @NotNull RoleAnalysisSessionType sessionObject);
+            @NotNull ObjectCategorisationCache objectCategorisationCache,
+            @NotNull Task task,
+            @NotNull OperationResult result,
+            @NotNull RoleAnalysisSessionType sessionObject);
 
     /**
      * Prepares a map of assignment chunks.
@@ -1194,8 +1203,9 @@ public interface RoleAnalysisService {
      * @param roleSearchFiler An optional filter to apply to the role search.
      * @param assignmentSearchFiler An optional filter to apply to the assignment search.
      * @param processMode The process mode to determine whether to search in user mode or role mode.
+     * @param loadAndUpdateStatistics A boolean flag to determine whether to load and update statistics.
      * @param attributeAnalysisCache The cache for attribute analysis.
-     * @param objectCategorisationCache
+     * @param objectCategorisationCache The cache for object categorisation.
      * @param task The task in the context of which the operation is executed.
      * @param result The result of the operation.
      * @param sessionObject poc
@@ -1206,9 +1216,12 @@ public interface RoleAnalysisService {
             @Nullable SearchFilterType roleSearchFiler,
             @Nullable SearchFilterType assignmentSearchFiler,
             @NotNull RoleAnalysisProcessModeType processMode,
+            boolean loadAndUpdateStatistics,
             @Nullable AttributeAnalysisCache attributeAnalysisCache,
-            @NotNull ObjectCategorisationCache objectCategorisationCache, @NotNull Task task,
-            @NotNull OperationResult result, @NotNull RoleAnalysisSessionType sessionObject);
+            @NotNull ObjectCategorisationCache objectCategorisationCache,
+            @NotNull Task task,
+            @NotNull OperationResult result,
+            @NotNull RoleAnalysisSessionType sessionObject);
 
     /**
      * Searches for user membership based on the provided filters and process mode.
@@ -1216,12 +1229,13 @@ public interface RoleAnalysisService {
      * @param userObjectFiler An optional filter to apply to the user objects.
      * @param roleObjectFilter An optional filter to apply to the role objects.
      * @param assignmentFilter An optional filter to apply to the assignment objects.
+     * @param loadAndUpdateStatistics A boolean flag to determine whether to load and update statistics.
      * @param processMode The process mode to determine whether to search in user mode or role mode.
      * @param attributeAnalysisCache The cache for attribute analysis.
      * @param objectCategorisationCache The cache for object categorisation.
      * @param task The task in the context of which the operation is executed.
      * @param result The result of the operation.
-     * @param sessionObject poc
+     * @param sessionObject Session object.
      * @return A ListMultimap where the keys are either user OIDs or role OIDs, and the values are
      * the corresponding role OIDs or user OIDs, depending on the process mode.
      */
@@ -1229,11 +1243,13 @@ public interface RoleAnalysisService {
             @Nullable ObjectFilter userObjectFiler,
             @Nullable ObjectFilter roleObjectFilter,
             @Nullable ObjectFilter assignmentFilter,
+            boolean loadAndUpdateStatistics,
             @NotNull RoleAnalysisProcessModeType processMode,
             @Nullable AttributeAnalysisCache attributeAnalysisCache,
-            @Nullable ObjectCategorisationCache objectCategorisationCache,
+            @NotNull ObjectCategorisationCache objectCategorisationCache,
             @NotNull Task task,
-            @NotNull OperationResult result, @NotNull RoleAnalysisSessionType sessionObject);
+            @NotNull OperationResult result,
+            @NotNull RoleAnalysisSessionType sessionObject);
 
     /**
      * Prepares a map of role membership chunks.
@@ -1243,6 +1259,7 @@ public interface RoleAnalysisService {
      * @param roleSearchFiler An optional filter to apply to the role search.
      * @param assignmentSearchFiler An optional filter to apply to the assignment search.
      * @param processMode The process mode to determine whether to search in user mode or role mode.
+     * @param loadAndUpdateStatistics A boolean flag to determine whether to load and update statistics.
      * @param attributeAnalysisCache The cache for attribute analysis.
      * @param objectCategorisationCache The cache for object categorisation.
      * @param task The task in the context of which the operation is executed.
@@ -1255,8 +1272,9 @@ public interface RoleAnalysisService {
             @Nullable SearchFilterType roleSearchFiler,
             @Nullable SearchFilterType assignmentSearchFiler,
             @NotNull RoleAnalysisProcessModeType processMode,
+            boolean loadAndUpdateStatistics,
             @Nullable AttributeAnalysisCache attributeAnalysisCache,
-            @Nullable ObjectCategorisationCache objectCategorisationCache,
+            @NotNull ObjectCategorisationCache objectCategorisationCache,
             @NotNull Task task,
             @NotNull OperationResult result,
             @NotNull RoleAnalysisSessionType sessionObject);
@@ -1418,7 +1436,7 @@ public interface RoleAnalysisService {
      * @param task The task in which the operation is performed.
      * @param result The operation result.
      * @return A list of RoleAnalysisObjectCategorizationType representing the categorization of the object,
-     *         or null if the object or session is not found.
+     * or null if the object or session is not found.
      */
     @Nullable List<RoleAnalysisObjectCategorizationType> getObjectRoleAnalysisObjectCategorization(
             @NotNull ObjectReferenceType objectRef,

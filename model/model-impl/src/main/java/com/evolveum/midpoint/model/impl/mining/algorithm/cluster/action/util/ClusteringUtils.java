@@ -207,12 +207,12 @@ public class ClusteringUtils {
 
         if (Boolean.TRUE.equals(isIndirect)) {
             return roleAnalysisService.prepareMembershipChunkMapRolesAsKey(
-                    userSearchFilter, roleSearchFilter, assignmentSearchFilter, RoleAnalysisProcessModeType.ROLE,
+                    userSearchFilter, roleSearchFilter, assignmentSearchFilter, RoleAnalysisProcessModeType.ROLE, true,
                     attributeAnalysisCache, objectCategorisationCache, task, result, sessionObject);
         }
 
         return roleAnalysisService.prepareAssignmentChunkMapRolesAsKey(
-                userSearchFilter, roleSearchFilter, assignmentSearchFilter, RoleAnalysisProcessModeType.ROLE,
+                userSearchFilter, roleSearchFilter, assignmentSearchFilter, RoleAnalysisProcessModeType.ROLE, true,
                 attributeAnalysisCache, objectCategorisationCache, task, result, sessionObject);
     }
 
@@ -232,12 +232,12 @@ public class ClusteringUtils {
         if (Boolean.TRUE.equals(isIndirect)) {
             return roleAnalysisService.prepareMembershipChunkMapRolesAsKey(
                     userSearchFilter, roleSearchFilter, assignmentSearchFilter, RoleAnalysisProcessModeType.USER,
-                    attributeAnalysisCache, objectCategorisationCache, task, result, sessionObject);
+                    true, attributeAnalysisCache, objectCategorisationCache, task, result, sessionObject);
         }
 
         return roleAnalysisService.prepareAssignmentChunkMapRolesAsKey(
                 userSearchFilter, roleSearchFilter, assignmentSearchFilter, RoleAnalysisProcessModeType.USER,
-                attributeAnalysisCache, objectCategorisationCache, task, result, sessionObject);
+                true, attributeAnalysisCache, objectCategorisationCache, task, result, sessionObject);
     }
 
 }
