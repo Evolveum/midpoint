@@ -73,10 +73,10 @@
                 <ref>ri:description</ref>
                 <volatility>
                     <!-- Value can change unexpectedly both when adding or modifying the object -->
-                    <source>
+                    <incomingDependency>
                         <operation>add</operation>
                         <operation>modify</operation>
-                    </source>
+                    </incomingDependency>
                 </volatility>
                 <inbound>
                     <strength>strong</strength> <!-- MID-10051, this is necessary to force loading of the shadow -->

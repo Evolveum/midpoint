@@ -71,10 +71,10 @@
                 <ref>ri:interests</ref>
                 <volatility>
                     <!-- Value can change unexpectedly both when adding or modifying the object -->
-                    <source>
+                    <incomingDependency>
                         <operation>add</operation>
                         <operation>modify</operation>
-                    </source>
+                    </incomingDependency>
                 </volatility>
                 <outbound>
                     <strength>strong</strength>

@@ -96,9 +96,9 @@
                 <displayName>Distinguished Name</displayName>
                 <volatility>
                     <!-- Change of DN may cause change of naming attribute -->
-                    <target>
+                    <outgoingDependency>
                         <operation>modify</operation>
-                    </target>
+                    </outgoingDependency>
                 </volatility>
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>

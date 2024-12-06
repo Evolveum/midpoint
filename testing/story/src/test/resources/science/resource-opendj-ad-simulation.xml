@@ -124,9 +124,9 @@
                 </limitations>
                 <volatility>
                     <!-- Changing DN may change other attributes, namely uid -->
-                    <target>
+                    <outgoingDependency>
                         <operation>modify</operation>
-                    </target>
+                    </outgoingDependency>
                 </volatility>
                 <outbound>
                     <strength>weak</strength>
