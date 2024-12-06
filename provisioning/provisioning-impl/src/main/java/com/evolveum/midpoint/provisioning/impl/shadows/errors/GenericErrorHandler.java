@@ -19,11 +19,11 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 class GenericErrorHandler extends HardErrorHandler {
 
     @Override
-    protected void throwException(@Nullable ShadowProvisioningOperation<?> operation, Exception cause, OperationResult result)
+    protected void throwException(@Nullable ShadowProvisioningOperation operation, Exception cause, OperationResult result)
             throws GenericConnectorException {
         recordCompletionError(operation, cause, result);
-        if (cause instanceof GenericConnectorException) {
-            throw (GenericConnectorException)cause;
+        if (cause instanceof GenericConnectorException genericConnectorException) {
+            throw genericConnectorException;
         } else {
             throw new GenericConnectorException(cause.getMessage(), cause);
         }

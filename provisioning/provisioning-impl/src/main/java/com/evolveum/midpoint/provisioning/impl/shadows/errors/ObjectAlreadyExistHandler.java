@@ -193,11 +193,11 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
     }
 
     @Override
-    protected void throwException(@Nullable ShadowProvisioningOperation<?> operation, Exception cause, OperationResult result)
+    protected void throwException(@Nullable ShadowProvisioningOperation operation, Exception cause, OperationResult result)
             throws ObjectAlreadyExistsException {
         recordCompletionError(operation, cause, result);
-        if (cause instanceof ObjectAlreadyExistsException) {
-            throw (ObjectAlreadyExistsException)cause;
+        if (cause instanceof ObjectAlreadyExistsException objectAlreadyExistsException) {
+            throw objectAlreadyExistsException;
         } else {
             throw new ObjectAlreadyExistsException(cause.getMessage(), cause);
         }

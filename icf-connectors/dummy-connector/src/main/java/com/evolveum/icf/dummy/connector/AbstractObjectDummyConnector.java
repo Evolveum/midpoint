@@ -115,18 +115,19 @@ public abstract class AbstractObjectDummyConnector
             throws ConflictException, FileNotFoundException, SchemaViolationException, InterruptedException, ConnectException,
             ObjectDoesNotExistException, ObjectAlreadyExistsException {
         var mainObject = convertToDummyObjectExceptLinks(objectClass, createAttributes);
-        LOG.ok("Adding dummy object:\n{0}", mainObject.debugDump());
+        LOG.ok("Adding dummy object:\n{0}", mainObject.debugDumpLazily());
         resource.addObject(mainObject);
+        resource.invokeHooks(h -> h.afterCreateOperation(mainObject));
 
         for (Attribute createAttribute : createAttributes) {
             if (mainObject.isLink(createAttribute.getName())) {
-                convertReferenceAttribute(mainObject, createAttribute);
+                addLinksFromReferenceAttribute(mainObject, createAttribute);
             }
         }
         return mainObject;
     }
 
-    private void convertReferenceAttribute(DummyObject mainObject, Attribute createAttribute)
+    private void addLinksFromReferenceAttribute(DummyObject mainObject, Attribute createAttribute)
             throws SchemaViolationException, ConflictException, FileNotFoundException, InterruptedException, ConnectException {
         for (Object value : emptyIfNull(createAttribute.getValue())) {
             DummyObject referencedObject = convertReferenceAttributeValueWhenAdding(value);

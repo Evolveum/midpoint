@@ -6,19 +6,17 @@
  */
 package com.evolveum.midpoint.schema.internals;
 
-import com.evolveum.midpoint.util.logging.Trace;
-
-import com.evolveum.midpoint.util.logging.TraceManager;
-
-import org.apache.commons.configuration2.Configuration;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.commons.configuration2.Configuration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
-import java.util.Arrays;
-import java.util.stream.Collectors;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * @author semancik
@@ -277,15 +275,15 @@ public class InternalsConfig {
     public enum ShadowCachingDefault {
 
         /** Default shadow caching settings should be taken from the system configuration. */
-        FROM_SYSTEM_CONFIGURATION("fromSystemConfiguration"),
+        FROM_SYSTEM_CONFIGURATION("fromSystemConfiguration", false),
 
         /** The default is no caching, just like it was in 4.8 and earlier. */
         @TestOnly
-        NONE("none"),
+        NONE("none", false),
 
         /** The default is caching of all data, with long TTL. */
         @TestOnly
-        FULL("full"),
+        FULL("full", false),
 
         /**
          * Emulates the default out-of-the-box settings in 4.9, with the following differences:
@@ -300,12 +298,20 @@ public class InternalsConfig {
          * This is the default value for tests.
          */
         @TestOnly
-        FULL_BUT_USING_FRESH("fullButUsingFresh");
+        FULL_BUT_USING_FRESH("fullButUsingFresh", true);
 
         private final String stringValue;
 
-        ShadowCachingDefault(String stringValue) {
+        /**
+         * Is this value the standard one for the tests? Exactly one of the values should have it set.
+         * Checked by tests that should not be run under non-standard caching configs.
+         */
+        @TestOnly
+        private final boolean standardForTests;
+
+        ShadowCachingDefault(String stringValue, boolean standardForTests) {
             this.stringValue = stringValue;
+            this.standardForTests = standardForTests;
         }
 
         public static @NotNull ShadowCachingDefault fromString(@Nullable String valueToFind) {
@@ -328,6 +334,11 @@ public class InternalsConfig {
         @Override
         public String toString() {
             return stringValue;
+        }
+
+        @TestOnly
+        public boolean isStandardForTests() {
+            return standardForTests;
         }
     }
 }

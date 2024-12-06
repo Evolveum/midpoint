@@ -56,7 +56,7 @@ public class ResourceObjectLiveSyncChange extends ResourceObjectChange {
         if (effectiveCtx == originalCtx) {
             return originalShadowItemsToReturn;
         } else {
-            return effectiveCtx.createAttributesToReturn();
+            return effectiveCtx.createItemsToReturn();
         }
     }
 

@@ -24,8 +24,6 @@ import com.evolveum.midpoint.prism.deleg.PropertyDefinitionDelegator;
 import com.evolveum.midpoint.schema.processor.MutableRawResourceAttributeDefinition;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-import org.jetbrains.annotations.Nullable;
-
 import java.io.Serial;
 
 public class TransformablePropertyDefinition<T> extends TransformableItemDefinition<PrismProperty<T>, PrismPropertyDefinition<T>>
@@ -184,6 +182,16 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
         @Override
         public void shortDump(StringBuilder sb) {
             delegate().shortDump(sb);
+        }
+
+        @Override
+        public boolean isVolatileOnAddOperation() {
+            return delegate().isVolatileOnAddOperation();
+        }
+
+        @Override
+        public boolean isVolatileOnModifyOperation() {
+            return delegate().isVolatileOnModifyOperation();
         }
     }
 

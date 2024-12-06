@@ -35,9 +35,6 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectModifyReturnValue;
-import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.ModifyOperationState;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorOperationOptions;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
@@ -60,7 +57,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * - {@link #executeInRefresh(ProvisioningContext, RepoShadow, PendingOperation, ProvisioningOperationOptions, OperationResult)}
  * - {@link #executeInPropagation(ProvisioningContext, RepoShadow, Collection, PendingOperations, OperationResult)}
  */
-public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOperationState> {
+public class ShadowModifyOperation extends ShadowProvisioningOperation {
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowModifyOperation.class);
 
@@ -92,7 +89,7 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
             @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
             ProvisioningOperationOptions options,
             OperationProvisioningScriptsType scripts,
-            @NotNull ModifyOperationState opState,
+            @NotNull ProvisioningOperationState opState,
             boolean inRefreshOrPropagation) {
         super(ctx, opState, scripts, options,
                 createModificationDelta(opState, modifications),
@@ -111,7 +108,7 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
     }
 
     private static ObjectDelta<ShadowType> createModificationDelta(
-            ModifyOperationState opState, Collection<? extends ItemDelta<?, ?>> modifications) {
+            ProvisioningOperationState opState, Collection<? extends ItemDelta<?, ?>> modifications) {
         ObjectDelta<ShadowType> delta = opState.getRepoShadowRequired().getPrismObject().createModifyDelta();
         delta.addModifications(
                 ItemDeltaCollectionsUtil.cloneCollection(modifications));
@@ -151,7 +148,7 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
         ctx.checkExecutionFullyPersistent();
         var repoShadow = ctx.adoptRawRepoShadow(rawRepoShadow);
 
-        ModifyOperationState opState = new ModifyOperationState(repoShadow);
+        ProvisioningOperationState opState = new ProvisioningOperationState(repoShadow);
 
         options = setForceRetryIfNotDisabled(options);
 
@@ -198,7 +195,7 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
         return additionalAuxiliaryObjectClassQNames;
     }
 
-    static ModifyOperationState executeInRefresh(
+    static ProvisioningOperationState executeInRefresh(
             @NotNull ProvisioningContext ctx,
             @NotNull RepoShadow repoShadow,
             @NotNull PendingOperation pendingOperation,
@@ -208,7 +205,7 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
             ObjectAlreadyExistsException {
         assert pendingOperation.isModify();
-        ModifyOperationState opState = ModifyOperationState.fromPendingOperation(repoShadow, pendingOperation);
+        var opState = ProvisioningOperationState.fromPendingOperation(repoShadow, pendingOperation);
         if (repoShadow.doesExist()) {
             var modifications = pendingOperation.getDelta().getModifications();
             ctx.applyCurrentDefinition(modifications);
@@ -229,8 +226,7 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
             throws SchemaException, ExpressionEvaluationException, CommunicationException, GenericFrameworkException,
             SecurityViolationException, ConfigurationException, ObjectNotFoundException,
             PolicyViolationException, ObjectAlreadyExistsException {
-        var opState = new ModifyOperationState(repoShadow);
-        opState.setPropagatedPendingOperations(sortedOperations);
+        var opState = ProvisioningOperationState.fromPropagatedPendingOperations(repoShadow, sortedOperations);
         ctx.applyCurrentDefinition(modifications);
         new ShadowModifyOperation(ctx, modifications, null, null, opState, true)
                 .execute(result);
@@ -268,7 +264,7 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
                     executeModifyOperationDirectly(result);
                 } else {
                     opState.markAsPostponed(
-                            shadowRefreshOperation.getRetriedOperationsResult());
+                            shadowRefreshOperation.getRetriedOperationsResultStatus());
                 }
             } else {
                 markOperationExecutionAsPending(result);
@@ -338,12 +334,11 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
 
             assert resourceDeltaModifications == resourceDelta.getModifications();
 
-            ConnectorOperationOptions connOptions = createConnectorOperationOptions(result);
-            ResourceObjectModifyReturnValue modifyOpResult =
-                    resourceObjectConverter
-                            .modifyResourceObject(
-                                    ctx, repoShadow, scripts, connOptions, resourceDeltaModifications, now, result);
-            opState.recordRealAsynchronousResult(modifyOpResult);
+            var connOptions = createConnectorOperationOptions(result);
+            var modifyOpResult = resourceObjectConverter.modifyResourceObject(
+                    ctx, repoShadow, scripts, connOptions, resourceDeltaModifications, now, result);
+
+            setOperationStatus(modifyOpResult);
 
             // TODO should we mark the resource as UP here, as we do for ADD and DELETE?
 
