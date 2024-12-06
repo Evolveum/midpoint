@@ -14,6 +14,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.LocalizableMessageBuilder;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -469,6 +471,9 @@ public class CertificationManagerImpl implements CertificationManager {
                     launcher.startRemediationTask(campaign, result);
                 } else {
                     result.recordWarning("The automated remediation is not configured. The campaign state was set to IN REMEDIATION, but all remediation actions have to be done by hand.");
+                    result.setUserFriendlyMessage(new LocalizableMessageBuilder()
+                            .key("PageCertCampaign.warning.message.manualRemediationIsConfigured")
+                            .build());
                 }
 
                 campaign = updateHelper.refreshCampaign(campaign, result);

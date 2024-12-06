@@ -155,6 +155,7 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
                 createSubmenu(listItem);
             }
         };
+        subItem.setOutputMarkupId(true);
         submenu.add(new VisibleBehaviour(() -> getModelObject().containsSubMenu()));
         submenu.add(subItem);
     }

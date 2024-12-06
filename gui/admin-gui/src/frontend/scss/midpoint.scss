@@ -1892,7 +1892,7 @@ span.yui-skin-sam {
   }
 
   & .login-card-body .spacer span {
-    color:#cbcbcb;
+    color:#757575;
   }
 
   & .login-card-body .user-panel.info-box .image img {
@@ -2050,15 +2050,18 @@ th.debug-list-buttons {
   $backgroundValue: color-yiq($value);
 
   .colored-form-#{$color}, .colored-form-#{$color}:hover, .colored-form-#{$color}:active, .colored-form-#{$color}:focus {
-      color: $value;
-      background-color: mix(#ffffff, $value, 85%);
-      border-color: $value;
-      border:1px solid;
+    color: mix($black, $value, 5%);
+    background-color: mix($white, $value, 94%);
+    border-color: $value;
+    border:1px solid;
 
-      option {
-        background: $white;
-        color: $dark;
-      }
+    option {
+    background: $white;
+    color: $dark;
+    }
+  }
+  .form-item-parent .colored-form-#{$color} ~ i.form-item-dropdown {
+    color: mix($black, $value, 6%);
   }
 }
 

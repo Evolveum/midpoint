@@ -17,6 +17,8 @@ import com.evolveum.midpoint.prism.path.ItemName;
 
 import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
 
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
@@ -158,6 +160,15 @@ public class PrismPropertyWrapperImpl<T> extends ItemWrapperImpl<PrismProperty<T
     @Override
     public void accept(Visitor<Definition> visitor) {
         // TODO
+    }
+
+    @Override
+    protected void removeNotChangedStatusValue(PrismPropertyValueWrapper<T> valueWrapper, Item rawItem) {
+        if (!isSingleValue()) {
+            super.removeNotChangedStatusValue(valueWrapper, rawItem);
+        }
+        valueWrapper.setRealValue(null);
+        valueWrapper.setStatus(ValueStatus.MODIFIED);
     }
 
     @SuppressWarnings("unchecked")
