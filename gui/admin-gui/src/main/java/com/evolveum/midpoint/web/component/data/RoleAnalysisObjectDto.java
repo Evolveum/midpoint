@@ -50,6 +50,7 @@ public class RoleAnalysisObjectDto implements Serializable {
     private RoleAnalysisClusterType cluster;
 
     private Set<String> markedUsers = new HashSet<>();
+    private Set<MarkedRelation> markedRelations = new HashSet<>();
 
     private SearchFilterType userSearchFilter = null;
     private SearchFilterType roleSearchFilter = null;
@@ -277,5 +278,16 @@ public class RoleAnalysisObjectDto implements Serializable {
 
     public Set<String> getMarkedUsers() {
         return markedUsers;
+    }
+
+    public Set<MarkedRelation> getMarkedRelations() {
+        return markedRelations;
+    }
+
+    public void addMarkedRelation(String userOid, String roleOid) {
+        markedRelations.add(new MarkedRelation(userOid, roleOid));
+    }
+
+    public record MarkedRelation(String userOid, String roleOid) implements Serializable {
     }
 }

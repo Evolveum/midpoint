@@ -232,8 +232,26 @@ public class OutlierClusterItemPanel<T extends Serializable>
             @Contract(" -> new")
             @Override
             protected @NotNull RoleAnalysisObjectDto load() {
-                return new RoleAnalysisObjectDto(cluster, new ArrayList<>(), 0, getPageBase());
+               //TODO refactor
+                RoleAnalysisObjectDto roleAnalysisObjectDto = new RoleAnalysisObjectDto(
+                        cluster, new ArrayList<>(), 0, getPageBase());
+                List<DetectedAnomalyResult> detectedAnomalyResult = partitionModel.getObject().getDetectedAnomalyResult();
+                String outlierOid = outlierModel.getObject().getObjectRef().getOid();
 
+                if(detectedAnomalyResult == null) {
+                    return roleAnalysisObjectDto;
+                }
+
+                for(DetectedAnomalyResult item : detectedAnomalyResult) {
+                    ObjectReferenceType targetObjectRef = item.getTargetObjectRef();
+                    if(targetObjectRef == null) {
+                        continue;
+                    }
+
+                    roleAnalysisObjectDto.addMarkedRelation(outlierOid, targetObjectRef.getOid());
+                }
+
+                return roleAnalysisObjectDto;
             }
         };
 
