@@ -231,13 +231,13 @@ public class TestDummyVolatility extends AbstractDummyTest {
 
     /** Modifies a volatile (type 3) account under mismatched (type 2) config. MidPoint will see the wrong values. */
     @Test
-    public void test320ModifyingType2ShadowWithType2Config() throws CommonException {
+    public void test320ModifyingType3ShadowWithType2Config() throws CommonException {
         executeAccountType3ModificationTest(VOLATILITY_TYPE_3, SIMPLE_TYPE_2_CONFIG, false);
     }
 
     /** Modifies a volatile (type 3) account under type-3 aware config. MidPoint will see the correct values. */
     @Test
-    public void test330ModifyingType2ShadowWithType2Config() throws CommonException {
+    public void test330ModifyingType3ShadowWithType3Config() throws CommonException {
         executeAccountType3ModificationTest(VOLATILITY_TYPE_3, SIMPLE_TYPE_3_CONFIG, true);
     }
 

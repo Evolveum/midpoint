@@ -343,10 +343,10 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation {
             // TODO should we mark the resource as UP here, as we do for ADD and DELETE?
 
             effectiveResourceLevelModifications = new ArrayList<>(resourceDeltaModifications);
-            ItemDeltaCollectionsUtil.addNotEquivalent(
+            ItemDeltaCollectionsUtil.mergeAll(
                     effectiveResourceLevelModifications, modifyOpResult.getExecutedDeltas());
 
-            ItemDeltaCollectionsUtil.addNotEquivalent(
+            ItemDeltaCollectionsUtil.mergeAll(
                     effectiveModifications, modifyOpResult.getExecutedDeltas());
             setExecutedDelta(
                     createModificationDelta(opState, effectiveModifications));
