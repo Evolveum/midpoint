@@ -139,7 +139,7 @@ public class ProjectionFullLoadOperation<F extends ObjectType> {
                     projCtx.isFullShadow(), projCtx.debugDumpLazily(1));
 
         } catch (Throwable t) {
-            result.recordFatalError(t);
+            result.recordException(t);
             throw t;
         } finally {
             if (trace != null) {
@@ -148,7 +148,7 @@ public class ProjectionFullLoadOperation<F extends ObjectType> {
                 }
                 trace.setOutputLensContext(context.toBean(getExportType(trace, result)));
             }
-            result.computeStatusIfUnknown();
+            result.close();
         }
     }
 

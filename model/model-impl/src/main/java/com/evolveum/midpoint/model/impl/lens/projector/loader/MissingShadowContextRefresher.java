@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.Objects;
 
 import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
+import com.evolveum.midpoint.model.impl.lens.FocusGoneException;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 
 import org.jetbrains.annotations.NotNull;
@@ -219,7 +220,7 @@ public class MissingShadowContextRefresher<F extends ObjectType> {
     }
 
     private PrismObject<F> reloadFocus(OperationResult result)
-            throws SchemaException, ObjectNotFoundException {
+            throws SchemaException {
         LensFocusContext<F> focusContext = context.getFocusContext();
         if (focusContext == null) {
             LOGGER.trace(" -> no focus context");
@@ -241,7 +242,7 @@ public class MissingShadowContextRefresher<F extends ObjectType> {
                 LOGGER.trace(" -> focus does not exist any more");
                 return null;
             } else {
-                throw e;
+                throw new FocusGoneException();
             }
         }
     }

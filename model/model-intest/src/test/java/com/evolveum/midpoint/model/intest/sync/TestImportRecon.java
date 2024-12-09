@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.icf.dummy.resource.*;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationActivityHandler;
 
@@ -41,9 +42,6 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.icf.dummy.resource.BreakMode;
-import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
@@ -3220,6 +3218,137 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         and("the shadow should be gone");
         assertNoRepoShadow(shadowOid);
+    }
+
+    /** Reconciling an account that was deleted on the resource. Nothing special for now. MID-10195. */
+    @Test
+    public void test740ReconcileDeletedAccount() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var accountName = getTestNameShort();
+
+        given("an account imported from the green resource");
+        var userOid = createAndImportGreenAccount(accountName, result);
+
+        when("the account is deleted on the resource and reconciliation is run");
+        deleteGreenAccount(accountName);
+        reconcileAllGreenAccounts(result);
+
+        then("the focus is gone");
+        assertNoObject(UserType.class, userOid);
+    }
+
+    private void deleteGreenAccount(String accountName) throws Exception {
+        getDummyResourceController(RESOURCE_DUMMY_GREEN_NAME).deleteAccount(accountName);
+    }
+
+    private String createAndImportGreenAccount(String accountName, OperationResult result) throws Exception {
+        getDummyResourceController(RESOURCE_DUMMY_GREEN_NAME).addAccount(accountName);
+        importAccountsRequest()
+                .withResourceOid(RESOURCE_DUMMY_GREEN_OID)
+                .withNameValue(accountName)
+                .executeOnForeground(result);
+        return assertUserBeforeByUsername(accountName)
+                .assertLiveLinks(1)
+                .getOid();
+    }
+
+    private void reconcileAllGreenAccounts(OperationResult result) throws CommonException, IOException {
+        reconcileAccountsRequest()
+                .withResourceOid(RESOURCE_DUMMY_GREEN_OID)
+                .withProcessingAllAccounts()
+                .execute(result);
+    }
+
+    /** Recompute user with an account that was deleted on the resource (with reconciliation). MID-10195. */
+    @Test
+    public void test750RecomputeUserWithDeletedAccountWithReconciliation() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var accountName = getTestNameShort();
+
+        given("an account imported from the green resource");
+        var userOid = createAndImportGreenAccount(accountName, result);
+
+        when("the account is deleted on the resource and user is recomputed (with reconciliation)");
+        deleteGreenAccount(accountName);
+
+        recomputeUser(userOid, ModelExecuteOptions.create().reconcile(), task, result);
+
+        then("the focus is gone");
+        assertWarning(result);
+        assertNoObject(UserType.class, userOid);
+    }
+
+    /** Recompute user with an account that was deleted on the resource (without reconciliation). MID-10195. */
+    @Test
+    public void test755RecomputeUserWithDeletedAccountWithoutReconciliation() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var accountName = getTestNameShort();
+
+        given("an account imported from the green resource");
+        var userOid = createAndImportGreenAccount(accountName, result);
+
+        when("the account is deleted on the resource and user is recomputed (without reconciliation)");
+        deleteGreenAccount(accountName);
+
+        recomputeUser(userOid, task, result);
+
+        then("the focus is gone");
+        assertWarning(result);
+        assertNoObject(UserType.class, userOid);
+    }
+
+    /** Learns about deleted account (with discovery). MID-10195. */
+    @Test
+    public void test760GetDeletedAccount() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var accountName = getTestNameShort();
+
+        given("an account imported from the green resource");
+        var userOid = createAndImportGreenAccount(accountName, result);
+        var shadowOid = assertUser(userOid, "").singleLink().getOid();
+
+        when("the account is deleted on the resource and fetched by midPoint");
+        deleteGreenAccount(accountName);
+
+        var shadow = modelService.getObject(ShadowType.class, shadowOid, null, task, result);
+        assertShadow(shadow, "")
+                .assertDead();
+
+        then("the focus is gone");
+        assertNoObject(UserType.class, userOid);
+    }
+
+    /** Learns about deleted account (NO discovery) and then runs reconciliation. MID-10195. */
+    @Test
+    public void test765GetDeletedAccountNoDiscoveryAndReconcile() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var accountName = getTestNameShort();
+
+        given("an account imported from the green resource");
+        var userOid = createAndImportGreenAccount(accountName, result);
+        var shadowOid = assertUser(userOid, "").singleLink().getOid();
+
+        when("the account is deleted on the resource and fetched by midPoint");
+        deleteGreenAccount(accountName);
+
+        var shadow = modelService.getObject(
+                ShadowType.class, shadowOid,
+                GetOperationOptionsBuilder.create().doNotDiscovery().build(),
+                task, result);
+
+        assertShadow(shadow, "")
+                .assertDead();
+
+        and("reconciliation is run");
+        reconcileAllGreenAccounts(result);
+
+        then("the focus is gone");
+        assertNoObject(UserType.class, userOid);
     }
 
     /**

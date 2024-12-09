@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.function.Supplier;
 
+import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.util.*;
@@ -24,7 +25,6 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.util.ClockworkInspector;
 import com.evolveum.midpoint.model.api.util.DiagnosticContextManager;
-import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.util.ProfilingModelInspector;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -360,10 +360,10 @@ public class ClockworkMedic {
                     SecurityViolationException | PolicyViolationException | ExpressionEvaluationException |
                     ObjectAlreadyExistsException | ConflictDetectedException | RuntimeException | Error e) {
                 LOGGER.trace("Projector component error: {}: {}: {}", componentName, e.getClass().getSimpleName(), e.getMessage());
-                result.recordFatalError(e);
+                result.recordException(e);
                 throw e;
             } finally {
-                result.computeStatusIfUnknown();
+                result.close();
                 if (trace != null) {
                     if (result.isTracingNormal(ProjectorComponentTraceType.class)) {
                         trace.setOutputLensContextText(context.debugDump());
