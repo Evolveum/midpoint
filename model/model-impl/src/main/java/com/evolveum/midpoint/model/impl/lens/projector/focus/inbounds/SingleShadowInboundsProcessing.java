@@ -103,7 +103,7 @@ public class SingleShadowInboundsProcessing<T extends Containerable> extends Abs
             return processing;
 
         } catch (Throwable t) {
-            result.recordFatalError(t);
+            result.recordException(t);
             throw t;
         } finally {
             result.close();

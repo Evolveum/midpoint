@@ -100,6 +100,10 @@ public class Clockwork {
 
             return clockworkConflictResolver.resolveFocusConflictIfPresent(context, conflictResolutionContext, mode, task, result);
 
+        } catch (ClockworkAbortedException e) {
+            // Actually, this is not a problem. We simply record the exception into the operation result and that's all.
+            result.recordException(e);
+            return HookOperationMode.FOREGROUND;
         } catch (Throwable t) {
             result.recordException(t);
             throw t;

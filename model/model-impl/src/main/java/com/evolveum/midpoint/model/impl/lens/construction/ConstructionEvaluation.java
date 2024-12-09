@@ -27,8 +27,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-import java.util.Objects;
-
 /**
  * State of a construction evaluation. Consists of evaluations of individual attributes and associations.
  *
@@ -167,9 +165,5 @@ class ConstructionEvaluation<AH extends AssignmentHolderType, ROC extends Resour
 
     @Nullable ObjectDeltaObject<ShadowType> getProjectionOdo() {
         return projectionOdo;
-    }
-
-    @NotNull LensProjectionContext getProjectionContextRequired() {
-        return Objects.requireNonNull(projectionContext, "No projection context");
     }
 }

@@ -15,6 +15,7 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.impl.lens.FocusGoneException;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.util.ArchetypeTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -95,10 +96,9 @@ public class ContextLoader implements ProjectorProcessor {
                 FocusChangeExecution.unregisterChangeExecutionListener(listener);
             }
             LOGGER.trace("Focus OID/OIDs modified during load operation in this thread: {}", modifiedFocusOids);
-            LensFocusContext<F> focusContext = context.getFocusContext();
-            if (focusContext != null
-                    && focusContext.getOid() != null
-                    && modifiedFocusOids.contains(focusContext.getOid())) {
+            var focusContext = context.getFocusContext();
+            var focusOid = focusContext != null ? focusContext.getOid() : null;
+            if (focusOid != null && modifiedFocusOids.contains(focusContext.getOid())) {
                 if (loadAttempt == MAX_LOAD_ATTEMPTS) {
                     LOGGER.warn("Focus was repeatedly modified during loading too many times ({}) - continuing,"
                                     + " but it's suspicious", MAX_LOAD_ATTEMPTS);
@@ -109,16 +109,28 @@ public class ContextLoader implements ProjectorProcessor {
                     context.rot("focus modification during loading");
                     if (context.isInInitial()) {
                         // This is a partial solution to MID-9103. The problem is the inconsistency between old/new objects
-                        // and the summary delta. The get out of sync when the current object is externally updated, without
+                        // and the summary delta. They get out of sync when the current object is externally updated, without
                         // reflecting that in the deltas. This code does not resolve that in general; it only ensures the
                         // old-current-new consistency when the re-loading occurs in the initial clockwork state. See MID-9113.
                         focusContext.setRewriteOldObject();
                     }
+                    checkFocusStillPresent(focusContext.getObjectTypeClass(), focusOid, result); // MID-10195
                 }
             } else {
                 LOGGER.trace("No modification of the focus during 'load' operation, continuing");
                 return;
             }
+        }
+    }
+
+    private <F extends ObjectType> void checkFocusStillPresent(
+            @NotNull Class<F> focusType,
+            @NotNull String focusOid,
+            @NotNull OperationResult result) throws SchemaException {
+        try {
+            cacheRepositoryService.getVersion(focusType, focusOid, result);
+        } catch (ObjectNotFoundException e) {
+            throw new FocusGoneException();
         }
     }
 
