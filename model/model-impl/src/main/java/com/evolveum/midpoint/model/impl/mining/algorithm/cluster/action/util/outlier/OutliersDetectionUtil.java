@@ -13,6 +13,7 @@ import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.*;
 import java.util.*;
 
 import com.evolveum.midpoint.common.mining.objects.statistic.UserAccessDistribution;
+import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.OutlierAttributeResolver.UnusualAttributeValueConfidence;
 
 import com.google.common.collect.ListMultimap;
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -162,6 +163,32 @@ public class OutliersDetectionUtil {
         }
     }
 
+    private static List<UnusualAttributeValueConfidence> calculateUnusualAttributeConfidences(
+            @NotNull DetectedAnomalyResult outlierResult,
+            @NotNull PrismObject<UserType> userTypeObject,
+            @Nullable List<RoleAnalysisAttributeDef> attributesForUserAnalysis,
+            @NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull AttributeAnalysisCache userAnalysisCache,
+            @NotNull Task task,
+            @NotNull OperationResult result
+    ) {
+        ObjectReferenceType targetObjectRef = outlierResult.getTargetObjectRef();
+        PrismObject<RoleType> roleTypeObject = roleAnalysisService.getRoleTypeObject(targetObjectRef.getOid(), task, result);
+        if (roleTypeObject == null) {
+            return Collections.emptyList();
+        }
+        if (attributesForUserAnalysis == null || attributesForUserAnalysis.isEmpty()) {
+            return Collections.emptyList();
+        }
+        RoleAnalysisAttributeAnalysisResult roleAnalysisAttributeAnalysisResult = getRoleMemberAnalysis(roleTypeObject, userAnalysisCache, roleAnalysisService, attributesForUserAnalysis, task, result);
+        RoleAnalysisAttributeAnalysisResult userAttributes = getUserAttributeAnalysis(userTypeObject, userAnalysisCache, roleAnalysisService, attributesForUserAnalysis);
+
+        OutlierAttributeResolver attributeResolver = new OutlierAttributeResolver(0.2);
+        List<RoleAnalysisAttributeAnalysis> clusterAttributeDetails = roleAnalysisAttributeAnalysisResult.getAttributeAnalysis();
+        List<RoleAnalysisAttributeAnalysis> userAttributeDetails = userAttributes.getAttributeAnalysis();
+        return attributeResolver.resolveUnusualAttributes(clusterAttributeDetails, userAttributeDetails);
+    }
+
     public static double calculateAssignmentAnomalyConfidence(
             @NotNull RoleAnalysisService roleAnalysisService,
             @Nullable List<RoleAnalysisAttributeDef> attributesForUserAnalysis,
@@ -179,6 +206,12 @@ public class OutliersDetectionUtil {
                 prepareRoleOutlier, userTypeObject, attributesForUserAnalysis, roleAnalysisService, userAnalysisCache, task, result);
         long endTime = System.currentTimeMillis();
         LOGGER.debug("ITEM FACTOR CONFIDENCE: Item factor confidence calculation time in ms: {}", (endTime - startTime));
+
+        // TODO: integrate to the outlier decision process
+        List<UnusualAttributeValueConfidence> unusualAttributeConfidences = calculateUnusualAttributeConfidences(
+                prepareRoleOutlier, userTypeObject, attributesForUserAnalysis, roleAnalysisService, userAnalysisCache, task, result
+        );
+
         double distributionConfidence = statistics.getConfidenceDeviation();
         double patternConfidence = statistics.getPatternAnalysis().getConfidence();
         double roleMemberConfidence = calculateRoleCoverageConfidence(
@@ -339,6 +372,38 @@ public class OutliersDetectionUtil {
         return totalRelations;
     }
 
+    private static RoleAnalysisAttributeAnalysisResult getRoleMemberAnalysis(
+            @NotNull PrismObject<RoleType> roleTypeObject,
+            @NotNull AttributeAnalysisCache cache,
+            @NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull List<RoleAnalysisAttributeDef> attributesForUserAnalysis,
+            @NotNull Task task,
+            @NotNull OperationResult result
+    ) {
+        String oid = roleTypeObject.getOid();
+        RoleAnalysisAttributeAnalysisResult roleAnalysisAttributeAnalysisResult = cache.getRoleMemberAnalysisCache(oid);
+        if (roleAnalysisAttributeAnalysisResult == null) {
+            roleAnalysisAttributeAnalysisResult = roleAnalysisService.resolveRoleMembersAttributeCached(oid, cache, task, result, attributesForUserAnalysis);
+            cache.putRoleMemberAnalysisCache(oid, roleAnalysisAttributeAnalysisResult);
+        }
+        return roleAnalysisAttributeAnalysisResult;
+    }
+
+    private static RoleAnalysisAttributeAnalysisResult getUserAttributeAnalysis(
+            @NotNull PrismObject<UserType> userTypeObject,
+            @NotNull AttributeAnalysisCache cache,
+            @NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull List<RoleAnalysisAttributeDef> attributesForUserAnalysis
+    ) {
+        String oid = userTypeObject.getOid();
+        RoleAnalysisAttributeAnalysisResult userAttributes = cache.getUserAttributeAnalysisCache(oid);
+        if (userAttributes == null) {
+            userAttributes = roleAnalysisService.resolveUserAttributes(userTypeObject, attributesForUserAnalysis);
+            cache.putUserAttributeAnalysisCache(oid, userAttributes);
+        }
+        return userAttributes;
+    }
+
     private static double calculateItemFactorConfidence(
             @NotNull DetectedAnomalyResult outlierResult,
             @NotNull PrismObject<UserType> userTypeObject,
@@ -359,18 +424,8 @@ public class OutliersDetectionUtil {
         }
 
         //TODO this take a lot of time when role is popular. Think about better solution (MAJOR).
-        RoleAnalysisAttributeAnalysisResult roleAnalysisAttributeAnalysisResult = userAnalysisCache.getRoleMemberAnalysisCache(roleTypeObject.getOid());
-        if (roleAnalysisAttributeAnalysisResult == null) {
-            roleAnalysisAttributeAnalysisResult = roleAnalysisService
-                    .resolveRoleMembersAttributeCached(roleTypeObject.getOid(), userAnalysisCache, task, result, attributesForUserAnalysis);
-            userAnalysisCache.putRoleMemberAnalysisCache(roleTypeObject.getOid(), roleAnalysisAttributeAnalysisResult);
-        }
-
-        RoleAnalysisAttributeAnalysisResult userAttributes = userAnalysisCache.getUserAttributeAnalysisCache(userTypeObject.getOid());
-        if (userAttributes == null) {
-            userAttributes = roleAnalysisService.resolveUserAttributes(userTypeObject, attributesForUserAnalysis);
-            userAnalysisCache.putUserAttributeAnalysisCache(userTypeObject.getOid(), userAttributes);
-        }
+        RoleAnalysisAttributeAnalysisResult roleAnalysisAttributeAnalysisResult = getRoleMemberAnalysis(roleTypeObject, userAnalysisCache, roleAnalysisService, attributesForUserAnalysis, task, result);
+        RoleAnalysisAttributeAnalysisResult userAttributes = getUserAttributeAnalysis(userTypeObject, userAnalysisCache, roleAnalysisService, attributesForUserAnalysis);
 
         RoleAnalysisAttributeAnalysisResult compareAttributeResult = roleAnalysisService
                 .resolveSimilarAspect(userAttributes, roleAnalysisAttributeAnalysisResult);
@@ -600,12 +655,7 @@ public class OutliersDetectionUtil {
         RoleAnalysisAttributeAnalysisResult compareAttributeResult = null;
         if (userAttributeAnalysisResult != null && attributesForUserAnalysis != null) {
 
-            RoleAnalysisAttributeAnalysisResult userAttributes = analysisCache
-                    .getUserAttributeAnalysisCache(userObject.getOid());
-            if (userAttributes == null) {
-                userAttributes = roleAnalysisService.resolveUserAttributes(userObject, attributesForUserAnalysis);
-                analysisCache.putUserAttributeAnalysisCache(userObject.getOid(), userAttributes);
-            }
+            RoleAnalysisAttributeAnalysisResult userAttributes = getUserAttributeAnalysis(userObject, analysisCache, roleAnalysisService, attributesForUserAnalysis);
 
             compareAttributeResult = roleAnalysisService
                     .resolveSimilarAspect(userAttributes, userAttributeAnalysisResult);
