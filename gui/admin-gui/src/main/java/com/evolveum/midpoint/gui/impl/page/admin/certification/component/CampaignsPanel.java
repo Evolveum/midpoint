@@ -40,8 +40,10 @@ import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
 import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
 import com.evolveum.midpoint.gui.impl.component.tile.MultiSelectObjectTileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignStateHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
+import com.evolveum.midpoint.gui.impl.util.TableUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
@@ -142,7 +144,7 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
 
                     @Override
                     protected String getTileCssClasses() {
-                        return "col-12 col-md-6 col-lg-4 col-xl-3 col-xxl-5i p-2 d-flex flex-column";
+                        return "col-12 col-md-4 col-lg-3 col-xxl-4i px-2";
                     }
 
                     @Override
@@ -315,7 +317,7 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
     }
 
     protected String getCampaignTileCssStyle() {
-        return " ";
+        return "min-height: 340px;";
     }
 
     protected void nameColumnLinkClickPerformed(AjaxRequestTarget target,

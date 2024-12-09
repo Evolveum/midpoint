@@ -10,30 +10,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.certification;
 import java.io.Serial;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
-import com.evolveum.midpoint.gui.impl.page.admin.certification.component.CampaignActionButton;
-import com.evolveum.midpoint.gui.impl.page.admin.certification.component.SelectReportTemplatePanel;
-import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.component.InlineOperationalButtonsPanel;
-import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.report.api.ReportConstants;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ReportParameterTypeUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-
-import com.evolveum.midpoint.gui.impl.page.admin.certification.component.CertCampaignSummaryPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignStateHelper;
-
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -43,16 +19,39 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.component.CampaignActionButton;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.component.CertCampaignSummaryPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.component.SelectReportTemplatePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignStateHelper;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.component.InlineOperationalButtonsPanel;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.report.api.ReportConstants;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ReportParameterTypeUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
 
 @PageDescriptor(
         urls = {
@@ -137,10 +136,10 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
 
             @Override
             protected void addRightButtons(@NotNull RepeatingView rightButtonsView) {
-                addCampaignManagementButton(rightButtonsView);
                 addRunningTaskButton(rightButtonsView);
                 addCreateReportButton(rightButtonsView);
                 addReloadButton(rightButtonsView);
+                addCampaignManagementButton(rightButtonsView);
             }
 
             @Override
@@ -203,6 +202,7 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
 
         };
         actionButton.setOutputMarkupPlaceholderTag(true);
+        actionButton.add(AttributeModifier.append("class", "btn btn-primary"));
 //        actionButton.add(new EnableBehaviour(() -> StringUtils.isEmpty(runningTaskOid)));
         rightButtonsView.add(actionButton);
     }
@@ -230,7 +230,7 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
             }
         };
         button.showTitleAsLabel(true);
-        button.add(AttributeModifier.append("class", "btn btn-sm btn-secondary"));
+        button.add(AttributeModifier.append("class", "btn btn-default"));
         button.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(runningTaskOid)));
         rightButtonsView.add(button);
     }
@@ -246,7 +246,7 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
             }
         };
         button.showTitleAsLabel(true);
-        button.add(AttributeModifier.append("class", "btn btn-sm btn-secondary"));
+        button.add(AttributeModifier.append("class", "btn btn-default"));
         rightButtonsView.add(button);
     }
 
@@ -261,7 +261,7 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
             }
         };
         button.showTitleAsLabel(true);
-        button.add(AttributeModifier.append("class", "btn btn-sm btn-secondary"));
+        button.add(AttributeModifier.append("class", "btn btn-default"));
         rightButtonsView.add(button);
     }
 
