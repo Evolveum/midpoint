@@ -15,9 +15,7 @@
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 
     <name>Dummy Resource Volatile Target</name>
     <connectorRef type="c:ConnectorType">
@@ -42,57 +40,6 @@
             <icfi:generateAccountDescriptionOnUpdate>true</icfi:generateAccountDescriptionOnUpdate>
         </icfc:configurationProperties>
     </connectorConfiguration>
-
-    <schema>
-        <definition>
-            <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                     xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-                     xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
-                     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-                     xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                     elementFormDefault="qualified"
-                     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"/>
-            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"/>
-            <xsd:complexType name="AccountObjectClass">
-               <xsd:annotation>
-                  <xsd:appinfo>
-                     <ra:resourceObject/>
-                     <ra:identifier>icfs:uid</ra:identifier>
-                     <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
-                     <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
-                     <ra:namingAttribute>icfs:name</ra:namingAttribute>
-                     <ra:nativeObjectClass>__ACCOUNT__</ra:nativeObjectClass>
-                     <ra:kind>account</ra:kind>
-                     <ra:default/>
-                  </xsd:appinfo>
-               </xsd:annotation>
-               <xsd:sequence>
-                  <xsd:element ref="icfs:uid" minOccurs="0">
-                     <xsd:annotation>
-                        <xsd:appinfo>
-                           <a:displayName>ICF UID</a:displayName>
-                           <a:access>read</a:access>
-                        </xsd:appinfo>
-                     </xsd:annotation>
-                  </xsd:element>
-                  <xsd:element name="fullname" type="xsd:string"/>
-                  <xsd:element minOccurs="0" name="description" type="xsd:string"/>
-                  <xsd:element maxOccurs="unbounded" minOccurs="0" name="interests" type="xsd:string"/>
-                  <xsd:element ref="icfs:name">
-                     <xsd:annotation>
-                        <xsd:appinfo>
-                           <a:displayName>ICF NAME</a:displayName>
-                        </xsd:appinfo>
-                     </xsd:annotation>
-                  </xsd:element>
-               </xsd:sequence>
-            </xsd:complexType>
-         </xsd:schema>
-        </definition>
-    </schema>
 
     <schemaHandling>
         <objectType>
@@ -124,7 +71,13 @@
             </attribute>
             <attribute>
                 <ref>ri:description</ref>
-                <cached>false</cached> <!-- MID-10051 -->
+                <volatility>
+                    <!-- Value can change unexpectedly both when adding or modifying the object -->
+                    <incomingDependency>
+                        <operation>add</operation>
+                        <operation>modify</operation>
+                    </incomingDependency>
+                </volatility>
                 <inbound>
                     <strength>strong</strength> <!-- MID-10051, this is necessary to force loading of the shadow -->
                     <target>

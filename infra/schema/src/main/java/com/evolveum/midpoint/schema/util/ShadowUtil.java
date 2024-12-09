@@ -254,7 +254,7 @@ public class ShadowUtil {
                 .getObjectClassDefinition();
     }
 
-    /** The shadow must have the attributes container and a definition. */
+    /** The definition is derived either from attributes container or from the prism definition (must not be raw). */
     public static @NotNull ResourceObjectDefinition getResourceObjectDefinition(@NotNull ShadowType shadow) {
         var attributesContainer = getAttributesContainer(shadow);
         if (attributesContainer != null) {

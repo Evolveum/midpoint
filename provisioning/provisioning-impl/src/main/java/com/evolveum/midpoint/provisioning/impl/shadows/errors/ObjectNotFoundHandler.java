@@ -128,7 +128,7 @@ class ObjectNotFoundHandler extends HardErrorHandler {
     }
 
     private void markShadowAndNotify(
-            @NotNull ShadowProvisioningOperation<?> operation, @NotNull OperationResult result) throws SchemaException {
+            @NotNull ShadowProvisioningOperation operation, @NotNull OperationResult result) throws SchemaException {
 
         ProvisioningContext ctx = operation.getCtx();
         RepoShadow repoShadow = operation.getOpState().getRepoShadowRequired();
@@ -181,11 +181,11 @@ class ObjectNotFoundHandler extends HardErrorHandler {
 
     @Override
     protected void throwException(
-            @Nullable ShadowProvisioningOperation<?> operation, Exception cause, OperationResult result)
+            @Nullable ShadowProvisioningOperation operation, Exception cause, OperationResult result)
             throws ObjectNotFoundException {
         recordCompletionError(operation, cause, result);
-        if (cause instanceof ObjectNotFoundException) {
-            throw (ObjectNotFoundException)cause;
+        if (cause instanceof ObjectNotFoundException objectNotFoundException) {
+            throw objectNotFoundException;
         } else {
             // Actually, this should never occur. ObjectNotFoundHandler is called only for ObjectNotFoundException causes.
             throw new ObjectNotFoundException(cause.getMessage(), cause);

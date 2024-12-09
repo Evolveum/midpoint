@@ -42,6 +42,18 @@ ninja.sh export-mining -o role-mining-export.xml  -nm ORIGINAL -arp "APP_ROLE_, 
 ninja.sh export-mining -o role-mining-export.xml --disable-org
 ----
 
+.Example: role mining export without attributes.
+[source,bash]
+----
+ninja.sh export-mining -o role-mining-export.xml --disable-attribute
+----
+
+.Example: role mining export with full attribute anonymization (including attribute names and ordinal values)
+[source,bash]
+----
+ninja.sh export-mining -o role-mining-export.xml --anonymize-attribute-names --anonymize-ordinal-attribute-values
+----
+
 .Example: role mining import.
 [source,bash]
 ----

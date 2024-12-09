@@ -120,19 +120,19 @@ public class Toast implements Serializable {
     }
 
     public Toast info() {
-        return cssClass("m-3 bg-info");
+        return cssClass("mt-3 mr-3 bg-info");
     }
 
     public Toast success() {
-        return cssClass("m-3 bg-success");
+        return cssClass("mt-3 mr-3 bg-success");
     }
 
     public Toast error() {
-        return cssClass("m-3 bg-danger");
+        return cssClass("mt-3 mr-3 bg-danger");
     }
 
     public Toast warning() {
-        return cssClass("m-3 bg-warning");
+        return cssClass("mt-3 mr-3 bg-warning");
     }
 
     public void show(@NotNull AjaxRequestTarget target) {

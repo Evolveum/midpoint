@@ -130,7 +130,7 @@ class AssociationsHelper {
                                     iterableRefAttrValue, desc));
 
             try {
-                RepoShadow repoShadow = shadowFinder.getRepoShadow(ctx, objectOid, result);
+                var repoShadow = shadowFinder.getRepoShadow(ctx, objectOid, result);
                 try {
                     ctx.spawnForDefinition(repoShadow.getObjectDefinition())
                             .computeAndUpdateEffectiveMarksAndPolicies(repoShadow, EXISTING, result);

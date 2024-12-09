@@ -115,15 +115,16 @@ public abstract class ResourceObjectIdentification<I extends ResourceObjectIdent
 
     private static @NotNull ResourceObjectIdentification<?> fromIdentifiersOrAttributes(
             @NotNull ResourceObjectDefinition objectDefinition,
-            @NotNull Collection<? extends ShadowSimpleAttribute<?>> allAttributes,
+            @NotNull Collection<? extends ShadowAttribute<?, ?, ?, ?>> allAttributes,
             boolean nonIdentifiersAllowed) throws SchemaException {
         Collection<ResourceObjectIdentifier.Primary<?>> primaryIdentifiers = new ArrayList<>();
         Collection<ResourceObjectIdentifier.Secondary<?>> secondaryIdentifiers = new ArrayList<>();
-        for (ShadowSimpleAttribute<?> attribute : allAttributes) {
-            if (objectDefinition.isPrimaryIdentifier(attribute.getElementName())) {
-                primaryIdentifiers.add(ResourceObjectIdentifier.Primary.of(attribute));
-            } else if (objectDefinition.isSecondaryIdentifier(attribute.getElementName())) {
-                secondaryIdentifiers.add(ResourceObjectIdentifier.Secondary.of(attribute));
+        for (var attribute : allAttributes) {
+            var isSimple = attribute instanceof ShadowSimpleAttribute<?>;
+            if (isSimple && objectDefinition.isPrimaryIdentifier(attribute.getElementName())) {
+                primaryIdentifiers.add(ResourceObjectIdentifier.Primary.of((ShadowSimpleAttribute<?>) attribute));
+            } else if (isSimple && objectDefinition.isSecondaryIdentifier(attribute.getElementName())) {
+                secondaryIdentifiers.add(ResourceObjectIdentifier.Secondary.of((ShadowSimpleAttribute<?>) attribute));
             } else if (!nonIdentifiersAllowed) {
                 throw new SchemaException(
                         "Attribute %s is neither primary not secondary identifier in object class %s".
@@ -143,7 +144,7 @@ public abstract class ResourceObjectIdentification<I extends ResourceObjectIdent
 
     public static @NotNull ResourceObjectIdentification<?> fromAttributes(
             @NotNull ResourceObjectDefinition resourceObjectDefinition,
-            @NotNull Collection<? extends ShadowSimpleAttribute<?>> attributes) {
+            @NotNull Collection<? extends ShadowAttribute<?, ?, ?, ?>> attributes) {
         try {
             return fromIdentifiersOrAttributes(resourceObjectDefinition, attributes, true);
         } catch (SchemaException e) {

@@ -82,7 +82,7 @@ class ResourceObjectSearchOperation extends AbstractResourceObjectRetrievalOpera
             var queryWithConstraints = DelineationProcessor.determineQueryWithConstraints(ctx, query, result);
             var operation = new ResourceObjectSearchOperation(
                     ctx, resultHandler, queryWithConstraints,
-                    ctx.createAttributesToReturn(), fetchAssociations,
+                    ctx.createItemsToReturn(), fetchAssociations,
                     errorReportingMethod);
             return operation.execute(result);
         } catch (Throwable t) {
@@ -185,7 +185,7 @@ class ResourceObjectSearchOperation extends AbstractResourceObjectRetrievalOpera
             }
         }
 
-        ResourceObjectConverter.computeResultStatus(result);
+        ResourceObjectConverter.computeResultStatusAndAsyncOpReference(result);
 
         LOGGER.trace("Searching resource objects done: {}", result.getStatus());
 

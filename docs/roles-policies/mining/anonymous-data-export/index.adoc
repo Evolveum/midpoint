@@ -315,6 +315,41 @@ image::images/nav-tutorial-part-4.png[Home page of the role of mining export,wid
 
 For users of the support-4.4 version or later, exporting anonymized role mining data using the Ninja tool is available. To perform the export, refer to the  xref:/midpoint/reference/deployment/ninja/#role-mining-exportimport[Ninja documentation].
 
+From version 4.8, command line exports anonymized object's attributes, this can behaviour be disabled with `--disable-attribute` cli option.
+By default, attribute names and ordinal values are not anonymized, but this can be controlled with cli options (see `help export-mining` command)
+
+=== Example of Export File using CLI
+
+The structure is the same as the XML exported from GUI (see example above), but it also contains anonymized attributes.
+
+.Example of an exported XML file using CLI
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<objects xmlns="...">
+    <!--Example user 1. -->
+	<user xmlns="..." oid="419d20c2-9220-3d17-a212-b3c0798bdaca">
+        <!--Encrypted name parameter-->
+        <name>FIfqF8jUNAK8vGiOa6TiCQ==_AE</name>
+
+        <!-- Encrypted user attributes -->
+        <extension xmlns="...">
+            <default_attr0 oid="748dbb08-3145-3fca-87b3-6c33cbe1ca4f" relation="org:default" type="c:ArchetypeType" xsi:type="c:ObjectReferenceType"/>
+            <default_attr5>xovKYUbIw0ejMx85ige0FQ==_AE</default_attr5>
+            <default_attr6>xovKYUbIw0ejMx85ige0FQ==_AE</default_attr6>
+            <cnew2:extension_attr6>111</cnew2:extension_attr6>
+            <cnew2:extension_attr13>MJYK3A0JpveO1YqgKHCeng==_AE</cnew2:extension_attr13>
+        </extension>
+
+        <!--Assignment to role 2. -->
+        <assignment>
+        <!--Encrypted and transformed oid to UUID-->
+            <targetRef oid="dcee8444-a2a9-3587-a4c9-4f662a353fbc" relation="org:default" type="c:RoleType"/>
+        </assignment>
+    </user>
+</objects>
+----
+
 == Sharing the Data
 
 // TODO missing email address for attachment

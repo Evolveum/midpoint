@@ -7,23 +7,20 @@
 
 package com.evolveum.midpoint.web.component.dialog;
 
-import com.evolveum.midpoint.web.component.form.MidpointForm;
+import java.io.Serial;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalDialog;
-import org.apache.wicket.markup.html.WebComponent;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
-
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serial;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -36,6 +33,7 @@ public class MainPopupDialog extends ModalDialog {
     private static final String ID_TITLE = "title";
     private static final String ID_TITLE_ICON = "titleIcon";
     private static final String ID_FOOTER = "footer";
+    private static final String ID_DIALOG = "dialog";
 
     private IModel<String> title;
     private IModel<String> titleIconClass;
@@ -97,7 +95,7 @@ public class MainPopupDialog extends ModalDialog {
     }
 
     public WebMarkupContainer getDialogComponent() {
-        return (WebMarkupContainer) get("overlay").get("dialog");
+        return (WebMarkupContainer) get("overlay").get(ID_DIALOG);
     }
 
     public Component getContentComponent() {

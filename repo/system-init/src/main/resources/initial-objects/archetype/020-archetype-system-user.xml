@@ -6,9 +6,7 @@
   -->
 <archetype oid="00000000-0000-0000-0000-000000000300"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-        xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
+>
     <name>System user</name>
     <description>
         Archetype for system users, i.e. non-person users that are needed for system to work.
@@ -30,7 +28,7 @@
             </pluralLabel>
             <icon>
                 <cssClass>fa fa-user</cssClass>
-                <color>red</color>
+                <color>#da0000</color>
             </icon>
         </display>
     </archetypePolicy>

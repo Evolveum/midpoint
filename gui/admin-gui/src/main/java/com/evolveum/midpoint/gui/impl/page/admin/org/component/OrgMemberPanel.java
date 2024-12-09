@@ -99,13 +99,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
         if (getPanelConfiguration() == null) {
             return "orgTreeMembers";
         }
-        if ("orgMembers".equals(getPanelConfiguration().getIdentifier())) {
-            return "orgMembers";
-        }
-        if ("orgGovernance".equals(getPanelConfiguration().getIdentifier())) {
-            return "orgGovernance";
-        }
-        return "orgTreeMembers";
+        return super.getStorageKeyTabSuffix();
     }
 
     @Override

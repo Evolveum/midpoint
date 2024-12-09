@@ -7,6 +7,22 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.certification.component;
 
+import java.io.Serial;
+import java.util.Collections;
+import java.util.List;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
+
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.component.BadgePanel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -17,6 +33,9 @@ import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBarPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignProcessingHelper;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignStateHelper;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -32,30 +51,9 @@ import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignProcessingHelper;
-import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignStateHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.Model;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.io.Serial;
-import java.util.Collections;
-import java.util.List;
 
 public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<AccessCertificationCampaignType>>> {
 
@@ -212,7 +210,7 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
 
             @Override
             protected String getSpecialButtonClass() {
-                return "";
+                return "btn-link link-default";
             }
 
             @Override
@@ -271,15 +269,15 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
                 target.add(feedbackPanel);
             }
 
-//            @Override
+            //            @Override
 //            protected boolean isEmptyTaskOid() {
 //                return StringUtils.isEmpty(runningTaskOid);
 //            }
         };
         actionButton.setOutputMarkupPlaceholderTag(true);
-        actionButton.add(AttributeModifier.append("class", getActionButtonCssModel()));
         actionButton.setOutputMarkupId(true);
         actionButton.add(new VisibleBehaviour(this::isAuthorizedForCampaignActions));
+        actionButton.add(AttributeModifier.append("class", getActionButtonCssModel()));
         add(actionButton);
 
         AjaxLink<Void> details = new AjaxLink<>(ID_DETAILS) {
@@ -331,8 +329,9 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
 
             @Override
             protected DropdownButtonDto load() {
-                DropdownButtonDto button = new DropdownButtonDto(null, "fa fa-ellipsis-v", null,
-                        createMenuItemsModel().getObject());
+                DropdownButtonDto button = new DropdownButtonDto(null, "fa-ellipsis-v", null,
+                    createMenuItemsModel().getObject());
+
                 return button;
             }
         };
