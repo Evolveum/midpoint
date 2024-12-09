@@ -8,15 +8,15 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="d-flex flex-wrap w-100 align-items-center">
-        <div class="d-flex flex-wrap flex-grow-1 justify-content-start" wicket:id="selectTileCheckbox"/>
-        <span class="d-flex flex-wrap flex-grow-1 justify-content-center h-50 align-items-center" wicket:id="status"/>
-        <a class="d-flex flex-wrap flex-grow-1 h-50 ml-2 colored-form-info rounded" style="margin-left: -1px !important;"
+    <div class="d-flex flex-nowrap w-100 align-items-center gap-2">
+        <div class="d-flex flex-wrap justify-content-start" wicket:id="selectTileCheckbox"/>
+        <span class="d-flex flex-wrap justify-content-center align-items-center px-2 text-truncate" wicket:id="status"/>
+        <a class="d-flex flex-wrap colored-form-info rounded px-2 text-truncate" style=""
                 wicket:id="redirectToTaskButton">
 <!--            <i class="fa fa-spinner fa-spin-pulse"></i>-->
-            <span class="ml-1" wicket:id="runningTaskProgressLabel"/>
+            <span class="text-truncate text-sm" wicket:id="runningTaskProgressLabel"/>
         </a>
-        <div wicket:id="menu" class="d-flex flex-grow-1  justify-content-end"/>
+        <div wicket:id="menu" class="d-flex flex-grow-1 justify-content-end text-md"/>
     </div>
     <div class="font-weight-bold text-truncate w-100 mt-2" wicket:id="title"/>
     <div class="tile-description mt-2 text-secondary flex-grow-1 info-box-icon w-100" wicket:id="description"/>
@@ -38,8 +38,8 @@
         </div>
     </div>
 
-    <a class="w-100 mt-3 btn btn-sm" wicket:id="actionButton" />
-    <a class="btn btn-link text-lightblue mt-2" wicket:id="details">
+    <a class="w-100 mt-3 btn" wicket:id="actionButton" />
+    <a class="btn btn-link text-lightblue mt-1" wicket:id="details">
         <span wicket:id="detailsLabel" />
     </a>
 </wicket:panel>

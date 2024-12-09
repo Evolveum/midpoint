@@ -147,7 +147,7 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
         }
 
         Collection<? extends ItemDelta<?, ?>> allDeltas = new ArrayList<>(requestedDeltas);
-        ItemDeltaCollectionsUtil.addNotEquivalent(allDeltas, knownExecutedDeltas); // MID-6892
+        ItemDeltaCollectionsUtil.mergeAll(allDeltas, knownExecutedDeltas); // MID-6892
 
         // These are modification on related objects, e.g., groups (if needed)
         determineAndExecuteEntitlementObjectsOperations(
