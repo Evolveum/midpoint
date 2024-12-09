@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxCallListener;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.attributes.ThrottlingSettings;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -396,10 +397,14 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
                 attributes.setThrottlingSettings(
                         new ThrottlingSettings(ID_EDITOR_MIDPOINT, Duration.ofMillis(300), true)
                 );
+
+                attributes.getAjaxCallListeners().add(new QueryPlaygroundPanelAjaxListener());
             }
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
+                StringValue position = getRequest().getPostParameters().getParameterValue("cursorPosition");
+
                 RepoQueryDto repo = getModel().getObject();
                 if (repo != null) {
                     String query = repo.getMidPointQuery();

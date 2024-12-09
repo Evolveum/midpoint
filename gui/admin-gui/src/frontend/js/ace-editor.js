@@ -101,6 +101,20 @@ export default class MidPointAceEditor {
         // //todo handle readonly for text area [lazyman] add "disabled" class to .ace_scroller
     }
 
+    addCursorPositionAttribute(attrs) {
+
+        for (let [i, parameter] of attrs.ep.entries()) {
+          if (parameter.name === "cursorPosition") {
+            users.splice(i, 1);
+          }
+        }
+
+        attrs.ep.push({name: "cursorPosition", value: "15"});
+
+        console.log(JSON.stringify(attrs));
+        return attrs;
+    }
+
     getCharCountToCursor(editor) {
         let cursor = editor.getCursorPosition(); // Get the cursor's position
         let lines = editor.session.getLines(0, cursor.row); // Get all lines up to the current row
