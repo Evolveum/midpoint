@@ -16,12 +16,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
 
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncProvisioningRequest;
 
-import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfExecutionContext;
 import com.evolveum.midpoint.task.api.Task;
@@ -180,7 +178,7 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
     }
 
     @Override
-    public UcfAddReturnValue addObject(
+    public @NotNull UcfAddReturnValue addObject(
             @NotNull PrismObject<? extends ShadowType> object,
             @NotNull SchemaAwareUcfExecutionContext ctx,
             @NotNull OperationResult parentResult) {
@@ -190,13 +188,18 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, getClass());
         try {
             OperationRequested operation = new OperationRequested.Add(object.asObjectable());
-            return createAndSendRequest((r) -> UcfAddReturnValue.of(r), operation, ctx.getTask(), result);
+            createAndSendRequest(operation, ctx.getTask(), result);
         } catch (Throwable t) {
-            result.recordFatalError(t);
+            result.recordException(t);
             throw t;
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
         }
+        return UcfAddReturnValue.fromResult(result, getOperationType(result));
+    }
+
+    private static @Nullable PendingOperationTypeType getOperationType(OperationResult result) {
+        return result.isInProgress() ? PendingOperationTypeType.ASYNCHRONOUS : null;
     }
 
     @Override
@@ -214,17 +217,18 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
         try {
             OperationRequested operation =
                     new OperationRequested.Modify(identification, asObjectable(shadow), changes, options);
-            return createAndSendRequest((r) -> UcfModifyReturnValue.of(r), operation, ctx.getTask(), result);
+            createAndSendRequest(operation, ctx.getTask(), result);
         } catch (Throwable t) {
-            result.recordFatalError(t);
+            result.recordException(t);
             throw t;
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
         }
+        return UcfModifyReturnValue.fromResult(result, getOperationType(result));
     }
 
     @Override
-    public UcfDeleteReturnValue deleteObject(
+    public @NotNull UcfDeleteResult deleteObject(
             @NotNull ResourceObjectIdentification<?> identification,
             PrismObject<ShadowType> shadow,
             @NotNull UcfExecutionContext ctx,
@@ -236,32 +240,26 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
         try {
             OperationRequested operation =
                     new OperationRequested.Delete(identification, asObjectable(shadow));
-            return createAndSendRequest(r -> UcfDeleteReturnValue.of(r), operation, ctx.getTask(), result);
+            createAndSendRequest(operation, ctx.getTask(), result);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
         }
+        return UcfDeleteResult.fromResult(result, getOperationType(result));
     }
 
-    private <X extends AsynchronousOperationResult> X createAndSendRequest(
-            Function<OperationResult, X> resultSupplier, OperationRequested operation, Task task, OperationResult result) {
+    private void createAndSendRequest(
+            OperationRequested operation, Task task, OperationResult result) {
         AsyncProvisioningRequest request = transformer.transformOperationRequested(operation, task, result);
         String asyncOperationReference = sendRequest(request, result);
-
-        PendingOperationTypeType operationType;
         if (configuration.isOperationExecutionConfirmation()) {
-            operationType = PendingOperationTypeType.ASYNCHRONOUS;
             result.setInProgress();
             result.setAsynchronousOperationReference(asyncOperationReference);
         } else {
-            operationType = null;
             result.setStatus(OperationResultStatus.SUCCESS);
         }
-        X rv = resultSupplier.apply(result);
-        rv.setOperationType(operationType);
-        return rv;
     }
 
     private String sendRequest(AsyncProvisioningRequest request, OperationResult result) {

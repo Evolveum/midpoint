@@ -14,9 +14,10 @@ import java.util.Objects;
 
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 
+import com.evolveum.midpoint.schema.result.ResourceOperationStatus;
+
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType;
 
@@ -24,34 +25,41 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Result of UCF `modifyObject` operation.
- *
- * (Despite the superclass name, it is currently just a wrapper for returned data.)
  */
-public class UcfModifyReturnValue extends AsynchronousOperationReturnValue<Collection<PropertyModificationOperation<?>>> {
+public class UcfModifyReturnValue extends UcfOperationReturnValue<Collection<PropertyModificationOperation<?>>> {
 
     private UcfModifyReturnValue(
             @NotNull Collection<PropertyModificationOperation<?>> operations,
-            @NotNull OperationResult operationResult,
-            @Nullable PendingOperationTypeType operationType) {
-        super(operations, operationResult);
-        setOperationType(operationType);
+            @NotNull ResourceOperationStatus status) {
+        super(operations, status);
     }
 
-    public static UcfModifyReturnValue of(
+    /** See the note in {@link ResourceOperationStatus}. */
+    public static UcfModifyReturnValue fromResult(
             @NotNull Collection<PropertyModificationOperation<?>> operations,
-            @NotNull OperationResult operationResult,
+            @NotNull OperationResult result,
             @Nullable PendingOperationTypeType operationType) {
-        return new UcfModifyReturnValue(operations, operationResult, operationType);
+        return new UcfModifyReturnValue(
+                operations,
+                ResourceOperationStatus.fromResult(result, operationType));
     }
 
-    public static UcfModifyReturnValue of(
+    /** See the note in {@link ResourceOperationStatus}. */
+    public static UcfModifyReturnValue fromResult(
             @NotNull Collection<PropertyModificationOperation<?>> operations,
             @NotNull OperationResult operationResult) {
-        return new UcfModifyReturnValue(operations, operationResult, null);
+        return fromResult(operations, operationResult, null);
     }
 
-    public static UcfModifyReturnValue of(@NotNull OperationResult operationResult) {
-        return new UcfModifyReturnValue(List.of(), operationResult, null);
+    /** See the note in {@link ResourceOperationStatus}. */
+    public static UcfModifyReturnValue fromResult(
+            @NotNull OperationResult result, @Nullable PendingOperationTypeType operationType) {
+        return fromResult(List.of(), result, operationType);
+    }
+
+    public static @NotNull UcfModifyReturnValue empty() {
+        return new UcfModifyReturnValue(
+                List.of(), ResourceOperationStatus.success());
     }
 
     public @NotNull Collection<PropertyModificationOperation<?>> getExecutedOperations() {

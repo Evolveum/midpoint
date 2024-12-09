@@ -38,6 +38,7 @@ public class Badge implements Serializable {
     private String cssClass;
 
     private String iconCssClass;
+    private String textCssClass;
 
     private String text;
     private String title;
@@ -100,5 +101,8 @@ public class Badge implements Serializable {
     public void setTitle(String title) {
         this.title = title;
     }
+
+    public String getTextCssClass(){ return textCssClass;}
+    public void setTextCssClass(String textCssClass){ this.textCssClass = textCssClass;}
 
 }

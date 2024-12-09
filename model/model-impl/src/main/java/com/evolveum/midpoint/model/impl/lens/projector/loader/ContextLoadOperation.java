@@ -116,7 +116,7 @@ class ContextLoadOperation<F extends ObjectType> {
             result.computeStatusComposite();
 
         } catch (Throwable e) {
-            result.recordFatalError(e);
+            result.recordException(e);
             throw e;
         } finally {
             recordTraceAtEnd(result);

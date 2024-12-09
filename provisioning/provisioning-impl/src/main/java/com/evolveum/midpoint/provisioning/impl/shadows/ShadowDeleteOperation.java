@@ -22,12 +22,10 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.DeleteOperationState;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorOperationOptions;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
@@ -40,7 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Represents/executes "delete" operation on a shadow - either invoked directly, or during refresh or propagation.
  * See the variants of the `execute` method.
  */
-public class ShadowDeleteOperation extends ShadowProvisioningOperation<DeleteOperationState> {
+public class ShadowDeleteOperation extends ShadowProvisioningOperation {
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowDeleteOperation.class);
 
@@ -50,7 +48,7 @@ public class ShadowDeleteOperation extends ShadowProvisioningOperation<DeleteOpe
 
     private ShadowDeleteOperation(
             @NotNull ProvisioningContext ctx,
-            @NotNull DeleteOperationState opState,
+            @NotNull ProvisioningOperationState opState,
             ProvisioningOperationOptions options,
             OperationProvisioningScriptsType scripts,
             boolean inRefreshOrPropagation) {
@@ -72,13 +70,15 @@ public class ShadowDeleteOperation extends ShadowProvisioningOperation<DeleteOpe
         Validate.notNull(rawRepoShadow, "Object to delete must not be null.");
         Validate.notNull(result, "Operation result must not be null.");
 
+        var b = ShadowsLocalBeans.get();
+
         LOGGER.trace("Start deleting {}{}", rawRepoShadow, lazy(() -> getAdditionalOperationDesc(scripts, options)));
 
         InternalMonitor.recordCount(InternalCounters.SHADOW_CHANGE_OPERATION_COUNT);
 
         ProvisioningContext ctx;
         try {
-            ctx = ShadowsLocalBeans.get().ctxFactory.createForShadow(rawRepoShadow.getBean(), task, result);
+            ctx = b.ctxFactory.createForShadow(rawRepoShadow.getBean(), task, result);
             ctx.setOperationContext(context);
             ctx.assertDefinition();
             ctx.checkExecutionFullyPersistent();
@@ -87,7 +87,7 @@ public class ShadowDeleteOperation extends ShadowProvisioningOperation<DeleteOpe
             if (ProvisioningOperationOptions.isForce(options)) {
                 result.muteLastSubresultError();
                 // We will ignore issuing notifications and other ceremonies here. This is an emergency.
-                ShadowsLocalBeans.get().repositoryService.deleteObject(ShadowType.class, rawRepoShadow.getOid(), result);
+                b.repositoryService.deleteObject(ShadowType.class, rawRepoShadow.getOid(), result);
                 result.recordHandledError(
                         "Resource defined in shadow does not exist. Shadow was deleted from the repository.");
                 return null;
@@ -97,16 +97,16 @@ public class ShadowDeleteOperation extends ShadowProvisioningOperation<DeleteOpe
         }
 
         RepoShadow repoShadow = ctx.adoptRawRepoShadow(rawRepoShadow);
-        ShadowsLocalBeans.get().shadowUpdater.cancelAllPendingOperations(ctx, repoShadow, result);
+        b.shadowUpdater.cancelAllPendingOperations(ctx, repoShadow, result);
 
-        DeleteOperationState opState = new DeleteOperationState(repoShadow);
+        var opState = new ProvisioningOperationState(repoShadow);
         var repoShadowAfterDeletion =
                 new ShadowDeleteOperation(ctx, opState, options, scripts, false)
                         .execute(result);
         return RepoShadow.getBean(repoShadowAfterDeletion);
     }
 
-    static DeleteOperationState executeInRefresh(
+    static ProvisioningOperationState executeInRefresh(
             @NotNull ProvisioningContext ctx,
             @NotNull RepoShadow repoShadow,
             @NotNull PendingOperation pendingOperation,
@@ -115,7 +115,7 @@ public class ShadowDeleteOperation extends ShadowProvisioningOperation<DeleteOpe
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 
-        DeleteOperationState opState = DeleteOperationState.fromPendingOperation(repoShadow, pendingOperation);
+        var opState = ProvisioningOperationState.fromPendingOperation(repoShadow, pendingOperation);
         if (repoShadow.doesExist()) {
             new ShadowDeleteOperation(ctx, opState, options, null, true)
                     .execute(result);
@@ -132,8 +132,7 @@ public class ShadowDeleteOperation extends ShadowProvisioningOperation<DeleteOpe
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
-        var opState = new DeleteOperationState(repoShadow);
-        opState.setPropagatedPendingOperations(sortedOperations);
+        var opState = ProvisioningOperationState.fromPropagatedPendingOperations(repoShadow, sortedOperations);
         new ShadowDeleteOperation(ctx, opState, null, null, true)
                 .execute(result);
     }
@@ -206,9 +205,8 @@ public class ShadowDeleteOperation extends ShadowProvisioningOperation<DeleteOpe
         try {
             ctx.checkNotInMaintenance();
 
-            AsynchronousOperationResult asyncResult =
-                    resourceObjectConverter.deleteResourceObject(ctx, repoShadow, scripts, connOptions, result);
-            opState.recordRealAsynchronousResult(asyncResult);
+            var deleteResult = resourceObjectConverter.deleteResourceObject(ctx, repoShadow, scripts, connOptions, result);
+            setOperationStatus(deleteResult);
 
             setExecutedDelta(
                     getRequestedDelta());

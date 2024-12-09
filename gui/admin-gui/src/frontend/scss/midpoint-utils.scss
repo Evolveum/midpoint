@@ -94,15 +94,22 @@
 }
 
 //Button style extensions
-div[role="button"].btn {
+div[role="button"].btn,
+ .btn {
   //Custom links styles (tertiary style)
   &.btn.link-danger {
     color:$danger;
       &:hover {
         color: mix(#000, $danger, 15%);
       }
+  }
+  &.btn.link-default {
+    color:lighten($text-color, 35%);
+    &:hover {
+      color:$text-color;
     }
   }
+}
 
 //Card shadow only class
 .card-shadow {

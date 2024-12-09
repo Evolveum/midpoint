@@ -715,4 +715,10 @@ public interface ResourceObjectDefinition
                 () -> new ConfigurationException(
                         "Multiple OIDs for default operation policy in %s for %s: %s".formatted(this, mode, oids)));
     }
+
+    /** See {@link ShadowAttributeDefinition#isVolatileOnAddOperation()}. */
+    @NotNull Collection<ShadowAttributeDefinition<?, ?, ?, ?>> getAttributesVolatileOnAddOperation();
+
+    /** See {@link ShadowAttributeDefinition#isVolatileOnModifyOperation()}. */
+    @NotNull Collection<ShadowAttributeDefinition<?, ?, ?, ?>> getAttributesVolatileOnModifyOperation();
 }

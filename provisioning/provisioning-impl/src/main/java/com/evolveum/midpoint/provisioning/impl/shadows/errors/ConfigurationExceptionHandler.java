@@ -19,11 +19,11 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 class ConfigurationExceptionHandler extends HardErrorHandler {
 
     @Override
-    protected void throwException(@Nullable ShadowProvisioningOperation<?> operation, Exception cause, OperationResult result)
+    protected void throwException(@Nullable ShadowProvisioningOperation operation, Exception cause, OperationResult result)
             throws ConfigurationException {
         recordCompletionError(operation, cause, result);
-        if (cause instanceof ConfigurationException) {
-            throw (ConfigurationException)cause;
+        if (cause instanceof ConfigurationException configurationException) {
+            throw configurationException;
         } else {
             throw new ConfigurationException(cause.getMessage(), cause);
         }

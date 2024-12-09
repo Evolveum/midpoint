@@ -61,6 +61,7 @@ public abstract class AbstractModernObjectDummyConnector
         validateModifications(objectClass, modifications);
 
         final Set<AttributeDelta> sideEffectChanges = new HashSet<>();
+        DummyObject object;
 
         try {
 
@@ -77,6 +78,7 @@ public abstract class AbstractModernObjectDummyConnector
                 if (account == null) {
                     throw new UnknownUidException("Account with UID " + uid + " does not exist on resource");
                 }
+                object = account;
                 applyModifyMetadata(account, options);
 
                 // we do this before setting attribute values, in case when description itself would be changed
@@ -165,6 +167,7 @@ public abstract class AbstractModernObjectDummyConnector
                 if (group == null) {
                     throw new UnknownUidException("Group with UID "+uid+" does not exist on resource");
                 }
+                object = group;
                 applyModifyMetadata(group, options);
 
                 for (AttributeDelta delta : modifications) {
@@ -207,6 +210,7 @@ public abstract class AbstractModernObjectDummyConnector
             } else {
 
                 DummyObject dummyObject = findObjectByUidRequired(objectClassName, uid, false);
+                object = dummyObject;
                 applyModifyMetadata(dummyObject, options);
 
                 for (AttributeDelta delta : modifications) {
@@ -257,6 +261,8 @@ public abstract class AbstractModernObjectDummyConnector
             LOG.info("update::exception "+e);
             throw new OperationTimeoutException(e);
         }
+
+        resource.invokeHooks(h -> h.afterModifyOperation(object, modifications));
 
         LOG.info("update::end {0}", instanceName);
         return sideEffectChanges;

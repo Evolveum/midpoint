@@ -175,6 +175,16 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
     }
 
     @Override
+    public boolean isVolatileOnAddOperation() {
+        return getRefinedAttributeDefinition().isVolatileOnAddOperation();
+    }
+
+    @Override
+    public boolean isVolatileOnModifyOperation() {
+        return getRefinedAttributeDefinition().isVolatileOnModifyOperation();
+    }
+
+    @Override
     public @Nullable SchemaContextDefinition getSchemaContextDefinition() {
         return getRefinedAttributeDefinition().getSchemaContextDefinition();
     }

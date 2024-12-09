@@ -826,8 +826,9 @@ public interface ProvisioningService {
             @Nullable ProvisioningOperationOptions options,
             @NotNull ProvisioningOperationContext context,
             @NotNull Task task,
-            @NotNull OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
-            CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException;
+            @NotNull OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException;
 
     /**
      * This is method doesn't take {@link ProvisioningOperationContext} as a parameter to simplify backward compatibility for now.
@@ -840,8 +841,9 @@ public interface ProvisioningService {
             @Nullable OperationProvisioningScriptsType scripts,
             @Nullable ProvisioningOperationOptions options,
             @NotNull Task task,
-            @NotNull OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
-            CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+            @NotNull OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
         return modifyObject(type, oid, modifications, scripts, options, new ProvisioningOperationContext(), task, parentResult);
     }
 

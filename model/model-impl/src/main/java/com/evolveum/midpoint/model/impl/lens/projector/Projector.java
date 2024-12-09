@@ -221,10 +221,10 @@ public class Projector {
         } catch (SchemaException | PolicyViolationException | ExpressionEvaluationException | ObjectAlreadyExistsException |
                 ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException |
                 ConflictDetectedException e) {
-            recordFatalError(e, now, result);
+            recordException(e, now, result);
             throw e;
         } catch (RuntimeException e) {
-            recordFatalError(e, now, result);
+            recordException(e, now, result);
             // This should not normally happen unless there is something really bad or there is a bug.
             // Make sure that it is logged.
             LOGGER.error("Runtime error in projector: {}", e.getMessage(), e);
@@ -400,9 +400,9 @@ public class Projector {
         context.clearConflictingProjectionContexts();
     }
 
-    private void recordFatalError(Exception e, XMLGregorianCalendar projectorStartTimestampCal, OperationResult result) {
-        result.recordFatalError(e);
-        result.cleanupResult(e);
+    private void recordException(Exception e, XMLGregorianCalendar projectorStartTimestampCal, OperationResult result) {
+        result.recordException(e);
+        result.cleanup();
         if (LOGGER.isDebugEnabled()) {
             long projectorStartTimestamp = XmlTypeConverter.toMillis(projectorStartTimestampCal);
             long projectorEndTimestamp = clock.currentTimeMillis();
