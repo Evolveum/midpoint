@@ -174,7 +174,7 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
 
     protected void initLayout() {
         add(AttributeAppender.append("class",
-                "campaign-tile-panel catalog-tile-panel d-flex flex-column align-items-center rounded p-3 elevation-1 mt-2"));
+                "campaign-tile-panel catalog-tile-panel d-flex flex-column flex-fill align-items-center rounded p-3 card-shadow"));
 
         setOutputMarkupId(true);
 
@@ -235,6 +235,7 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
         ProgressBarPanel progressBar = new ProgressBarPanel(ID_PROGRESS_BAR,
                 createCampaignProgressModel());
         progressBar.setOutputMarkupId(true);
+        progressBar.add(AttributeAppender.append("style","height: 0.75rem;"));
         add(progressBar);
 
         DeadlinePanel deadline = new DeadlinePanel(ID_DEADLINE, getDeadlineModel());
