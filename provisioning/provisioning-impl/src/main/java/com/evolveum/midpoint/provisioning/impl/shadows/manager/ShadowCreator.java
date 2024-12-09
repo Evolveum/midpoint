@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows.manager;
 
+import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -20,7 +22,6 @@ import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceO
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectShadow;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ShadowAuditHelper;
 import com.evolveum.midpoint.provisioning.impl.shadows.ConstraintsChecker;
-import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.AddOperationState;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -76,7 +77,7 @@ public class ShadowCreator {
      * The new shadow is recorded into the `opState`.
      */
     public void addNewProposedShadow(
-            ProvisioningContext ctx, ResourceObjectShadow objectToAdd, AddOperationState opState, OperationResult result)
+            ProvisioningContext ctx, ResourceObjectShadow objectToAdd, ProvisioningOperationState opState, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectAlreadyExistsException, EncryptionException {
 
         if (!ctx.shouldUseProposedShadows()) {

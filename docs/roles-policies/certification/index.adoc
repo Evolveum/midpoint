@@ -68,6 +68,9 @@ An example of a campaign definition (taken from link:https://github.com/Evolveum
     <name>All user assignments</name>
     <description>Certifies all users' assignments. Everything is certified by the administrator.</description>
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/handlers-3#direct-assignment</handlerUri>
+    <scopeDefinition xsi:type="AccessCertificationAssignmentReviewScopeType">
+        <objectType>UserType</objectType>
+    </scopeDefinition>
     <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"><!-- administrator --></ownerRef>
     <remediationDefinition>
         <style>automated</style>
@@ -168,12 +171,7 @@ An example of more advanced scope definition:
 <scopeDefinition xsi:type="AccessCertificationAssignmentReviewScopeType">
     <objectType>UserType</objectType>
     <searchFilter>
-        <q:org>
-            <q:path>parentOrgRef</q:path>
-            <q:orgRef oid="00000000-8888-6666-0000-100000000001">       <!-- Governor Office -->
-                <q:scope>SUBTREE</q:scope>
-            </q:orgRef>
-        </q:org>
+        <q:text>. inOrg[ONE_LEVEL] "284d0298-99b3-438d-a7ea-a323b97b795f"</q:text>
     </searchFilter>
     <itemSelectionExpression>
         <script>

@@ -1,5 +1,5 @@
 ---
-midpoint-feature: manual-resources
+midpoint-feature: manual-resource
 doc-type: intro
 ---
 = Manual Resource and ITSM Integration

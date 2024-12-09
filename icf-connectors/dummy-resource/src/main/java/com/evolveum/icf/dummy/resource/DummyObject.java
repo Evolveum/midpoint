@@ -218,7 +218,7 @@ public abstract class DummyObject implements DebugDumpable {
     }
 
     public String getAttributeValue(String attrName) {
-        return getAttributeValue(attrName,String.class);
+        return getAttributeValue(attrName, String.class);
     }
 
     public DummyObject replaceAttributeValue(String name, Object value)
@@ -328,12 +328,7 @@ public abstract class DummyObject implements DebugDumpable {
         }
 
         if (resource != null && resource.isMonsterization() && DummyResource.VALUE_MONSTER.equals(valueToAdd)) {
-            Iterator<Object> iterator = currentValues.iterator();
-            while (iterator.hasNext()) {
-                if (DummyResource.VALUE_COOKIE.equals(iterator.next())) {
-                    iterator.remove();
-                }
-            }
+            currentValues.removeIf(DummyResource.VALUE_COOKIE::equals);
         }
 
         // an optimization: let's avoid attribute manipulation if we don't want to check the schema anyway

@@ -50,11 +50,22 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperat
  * It is used for the following main purposes:
  *
  * - executing postponed operations (retrying, grouping); see {@link ShadowRefreshOperation#retryOperation(PendingOperation, OperationResult)}
+ * - keeping information about manual/async operations which are _not_ to be executed by midPoint, but a human or external system;
  * - shadow futurization; see {@link ResourceObjectFuturizer}
  *
- * == Storing reference attributes and associations
+ * == Exact content of the pending operation
  *
- * TODO ... decide on this, analyze the code, etc
+ * Shadow and deltas are transferred before their real execution. For example,
+ *
+ * - associations are translated into reference attribute values;
+ * - reference attribute values are resolved from shadow OIDs to actual resource object identifiers (DNs, etc);
+ * - validity and/or references simulation is carried out;
+ * - READ+REPLACE and operation grouping is carried out;
+ * - ...
+ *
+ * At exactly which level should the pending operations be recorded?
+ *
+ * Probably at the highest one - as seen by the client.
  *
  * See also {@link ProvisioningOperationState#toPendingOperation(ObjectDelta, String, XMLGregorianCalendar)}
  * and `PendingOperationsHelper.recordRequestedPendingOperationDelta`.

@@ -7,6 +7,9 @@
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_GROUP_OBJECT_CLASS;
+
+import static java.util.Objects.requireNonNull;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
@@ -21,10 +24,13 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.processor.BareResourceSchema;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.test.*;
 
+import com.evolveum.midpoint.test.asserter.RepoShadowAsserter;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -529,5 +535,71 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
             resourceBean = resource.asObjectable();
             resourceInitialized = true;
         }
+    }
+
+    @NotNull ResourceObjectDefinition getAccountDefaultDefinition() throws SchemaException, ConfigurationException {
+        return MiscUtil.stateNonNull(
+                Resource.of(resourceBean)
+                        .getCompleteSchemaRequired()
+                        .getObjectTypeDefinition(ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT),
+                "No account/default definition in %s", resourceBean);
+    }
+
+    @NotNull ResourceObjectDefinition getGroupDefaultDefinition() throws SchemaException, ConfigurationException {
+        return MiscUtil.stateNonNull(
+                Resource.of(resourceBean)
+                        .getCompleteSchemaRequired()
+                        .findDefinitionForObjectClass(RI_GROUP_OBJECT_CLASS),
+                "No group definition in %s", resourceBean);
+    }
+
+    protected @NotNull Collection<? extends QName> getCachedAccountAttributes() throws SchemaException, ConfigurationException {
+        return InternalsConfig.isShadowCachingOnByDefault() ?
+                getAccountDefaultDefinition().getAttributeNames() :
+                getAccountDefaultDefinition().getAllIdentifiersNames();
+    }
+
+    protected ShadowSimpleAttributeDefinition<?> getAccountAttrDef(String name) throws SchemaException, ConfigurationException {
+        return requireNonNull(
+                getAccountObjectClassDefinition().findSimpleAttributeDefinition(name));
+    }
+
+    protected ShadowSimpleAttributeDefinition<?> getAccountAttrDef(QName name) throws SchemaException, ConfigurationException {
+        return requireNonNull(
+                getAccountObjectClassDefinition().findSimpleAttributeDefinition(name));
+    }
+
+    @NotNull ResourceObjectClassDefinition getAccountObjectClassDefinition() throws SchemaException, ConfigurationException {
+        ResourceSchema resourceSchema =
+                requireNonNull(
+                        ResourceSchemaFactory.getCompleteSchemaRequired(resource));
+        return requireNonNull(
+                resourceSchema.findObjectClassDefinition(RI_ACCOUNT_OBJECT_CLASS));
+    }
+
+    /** TODO reconcile with {@link #assertRepoShadow(String)} */
+    RepoShadowAsserter<Void> assertRepoShadowNew(@NotNull String oid)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException {
+        return assertRepoShadow(oid, getCachedAccountAttributes());
+    }
+
+    /** TODO reconcile with {@link #assertRepoShadow(String)} */
+    RepoShadowAsserter<Void> assertRepoShadowNew(@NotNull RawRepoShadow rawRepoShadow)
+            throws SchemaException, ConfigurationException {
+        return RepoShadowAsserter.forRepoShadow(rawRepoShadow, getCachedAccountAttributes());
+    }
+
+    /** TODO reconcile with {@link #assertRepoShadow(String)} */
+    RepoShadowAsserter<Void> assertRepoShadowNew(@NotNull PrismObject<ShadowType> rawRepoShadow)
+            throws SchemaException, ConfigurationException {
+        return RepoShadowAsserter.forRepoShadow(rawRepoShadow, getCachedAccountAttributes());
+    }
+
+    void initAndReloadDummyResource(Task task, OperationResult result) throws CommonException {
+        assertSuccess(
+                provisioningService.testResource(RESOURCE_DUMMY_OID, task, result));
+
+        resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
+        resourceBean = resource.asObjectable();
     }
 }

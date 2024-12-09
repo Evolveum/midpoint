@@ -303,7 +303,7 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
         return task.getChannel();
     }
 
-    public <T extends CapabilityType> ConnectorInstance getConnector(Class<T> operationCapabilityClass, OperationResult result)
+    public <T extends CapabilityType> @NotNull ConnectorInstance getConnector(Class<T> operationCapabilityClass, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
         ConnectorInstance connector = connectorMap.get(operationCapabilityClass);
@@ -434,7 +434,7 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
         }
     }
 
-    private <T extends CapabilityType> ConnectorInstance getConnectorInstance(
+    private <T extends CapabilityType> @NotNull ConnectorInstance getConnectorInstance(
             Class<T> operationCapabilityClass, OperationResult parentResult)
             throws CommunicationException, ConfigurationException {
         OperationResult result =
@@ -608,7 +608,7 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
      * It's more logical to call this method right on {@link ProvisioningContext}. The exact placement of the implementation
      * is to be decided yet.
      */
-    public ShadowItemsToReturn createAttributesToReturn() {
+    public ShadowItemsToReturn createItemsToReturn() {
         return new ShadowItemsToReturnProvider(resource, getObjectDefinitionRequired(), getOperationOptions)
                 .createAttributesToReturn();
     }
@@ -636,6 +636,9 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
             throws SchemaException, ConfigurationException {
         ProvisioningContext subContext = spawnForShadow(shadow);
         subContext.assertDefinition();
+        if (shadow.getAttributes() == null) {
+            shadow.setAttributes(new ShadowAttributesType()); // the definition will be applied below
+        }
         subContext.applyCurrentDefinition(shadow);
         return subContext;
     }
@@ -944,6 +947,10 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
                 GetOperationOptions.getShadowClassificationMode(
                         SelectorOptions.findRootOptions(getOperationOptions)),
                 ShadowClassificationModeType.NORMAL);
+    }
+
+    public boolean isCaseIgnoreAttributeNames() {
+        return ResourceTypeUtil.isCaseIgnoreAttributeNames(resource);
     }
 
     @Override

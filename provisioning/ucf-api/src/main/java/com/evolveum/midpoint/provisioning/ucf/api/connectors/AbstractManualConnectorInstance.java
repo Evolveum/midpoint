@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.provisioning.ucf.api.connectors;
 
 import java.util.Collection;
-import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -58,12 +57,12 @@ public abstract class AbstractManualConnectorInstance
             SchemaException, ObjectAlreadyExistsException, ConfigurationException;
 
     protected abstract String createTicketDelete(ResourceObjectDefinition objectDefinition,
-                                                 PrismObject<ShadowType> shadow, Collection<? extends ShadowSimpleAttribute<?>> identifiers, String resourceOid,
-                                                 Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
+            PrismObject<ShadowType> shadow, Collection<? extends ShadowSimpleAttribute<?>> identifiers, String resourceOid,
+            Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
             SchemaException, ConfigurationException;
 
     @Override
-    public UcfAddReturnValue addObject(
+    public @NotNull UcfAddReturnValue addObject(
             @NotNull PrismObject<? extends ShadowType> object,
             @NotNull SchemaAwareUcfExecutionContext ctx,
             @NotNull OperationResult parentResult)
@@ -73,27 +72,25 @@ public abstract class AbstractManualConnectorInstance
         UcfExecutionContext.checkExecutionFullyPersistent(ctx);
 
         OperationResult result = parentResult.createSubresult(OPERATION_ADD);
-
-        String ticketIdentifier;
-
-        InternalMonitor.recordConnectorOperation("add");
-        InternalMonitor.recordConnectorModification("add");
-
         try {
 
-            ticketIdentifier = createTicketAdd(object, ctx.getTask(), result);
+            InternalMonitor.recordConnectorOperation("add");
+            InternalMonitor.recordConnectorModification("add");
+
+            var ticketIdentifier = createTicketAdd(object, ctx.getTask(), result);
+
+            result.recordInProgress();
+            result.setAsynchronousOperationReference(ticketIdentifier);
 
         } catch (CommunicationException | GenericFrameworkException | SchemaException |
                 ObjectAlreadyExistsException | ConfigurationException | RuntimeException | Error e) {
-            result.recordFatalError(e);
+            result.recordException(e);
             throw e;
+        } finally {
+            result.close();
         }
 
-        result.recordInProgress();
-        result.setAsynchronousOperationReference(ticketIdentifier);
-
-        return UcfAddReturnValue.of(
-                List.of(), result, PendingOperationTypeType.MANUAL);
+        return UcfAddReturnValue.fromResult(result, PendingOperationTypeType.MANUAL);
     }
 
     @Override
@@ -110,15 +107,12 @@ public abstract class AbstractManualConnectorInstance
         UcfExecutionContext.checkExecutionFullyPersistent(ctx);
 
         OperationResult result = parentResult.createSubresult(OPERATION_MODIFY);
-
-        InternalMonitor.recordConnectorOperation("modify");
-        InternalMonitor.recordConnectorModification("modify");
-
-        String ticketIdentifier;
-
         try {
 
-            ticketIdentifier = createTicketModify(
+            InternalMonitor.recordConnectorOperation("modify");
+            InternalMonitor.recordConnectorModification("modify");
+
+            var ticketIdentifier = createTicketModify(
                     identification.getResourceObjectDefinition(),
                     shadow,
                     identification.getAllIdentifiersAsAttributes(),
@@ -127,22 +121,23 @@ public abstract class AbstractManualConnectorInstance
                     ctx.getTask(),
                     result);
 
+            result.recordInProgress();
+            result.setAsynchronousOperationReference(ticketIdentifier);
+
         } catch (ObjectNotFoundException | CommunicationException | GenericFrameworkException | SchemaException |
                 ObjectAlreadyExistsException | ConfigurationException | RuntimeException | Error e) {
             result.recordFatalError(e);
             throw e;
+        } finally {
+            result.close();
         }
 
-        result.recordInProgress();
-        result.setAsynchronousOperationReference(ticketIdentifier);
-
-        return UcfModifyReturnValue.of(
-                List.of(), result, PendingOperationTypeType.MANUAL);
+        return UcfModifyReturnValue.fromResult(result, PendingOperationTypeType.MANUAL);
     }
 
 
     @Override
-    public UcfDeleteReturnValue deleteObject(
+    public @NotNull UcfDeleteResult deleteObject(
             @NotNull ResourceObjectIdentification<?> identification,
             PrismObject<ShadowType> shadow,
             @NotNull UcfExecutionContext ctx,
@@ -153,15 +148,12 @@ public abstract class AbstractManualConnectorInstance
         UcfExecutionContext.checkExecutionFullyPersistent(ctx);
 
         OperationResult result = parentResult.createSubresult(OPERATION_DELETE);
-
-        InternalMonitor.recordConnectorOperation("delete");
-        InternalMonitor.recordConnectorModification("delete");
-
-        String ticketIdentifier;
-
         try {
 
-            ticketIdentifier = createTicketDelete(
+            InternalMonitor.recordConnectorOperation("delete");
+            InternalMonitor.recordConnectorModification("delete");
+
+            var ticketIdentifier = createTicketDelete(
                     identification.getResourceObjectDefinition(),
                     shadow,
                     identification.getAllIdentifiersAsAttributes(),
@@ -169,16 +161,18 @@ public abstract class AbstractManualConnectorInstance
                     ctx.getTask(),
                     result);
 
+            result.recordInProgress();
+            result.setAsynchronousOperationReference(ticketIdentifier);
+
         } catch (ObjectNotFoundException | CommunicationException | GenericFrameworkException | SchemaException |
                 ConfigurationException | RuntimeException | Error e) {
             result.recordException(e);
             throw e;
+        } finally {
+            result.close();
         }
 
-        result.recordInProgress();
-        result.setAsynchronousOperationReference(ticketIdentifier);
-
-        return UcfDeleteReturnValue.of(result, PendingOperationTypeType.MANUAL);
+        return UcfDeleteResult.fromResult(result, PendingOperationTypeType.MANUAL);
     }
 
     @Override

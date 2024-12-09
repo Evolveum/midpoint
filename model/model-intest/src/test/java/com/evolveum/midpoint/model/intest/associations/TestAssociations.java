@@ -51,6 +51,7 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCol
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ACCOUNT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ENTITLEMENT;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -58,6 +59,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Tests the inbound/outbound processing of native associations.
  * Later may be extended to other aspects and/or to simulated associations.
+ *
+ * Besides some basic structure (1xx = HR, 2xx = DMS, 3xx = AD), the tests are quite ad-hoc.
  *
  * @see TestEntitlements
  * @see TestAssociationInbound
@@ -139,6 +142,11 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
             "ad-more-association-types",
             c -> adMoreAssociationTypesScenario = DummyAdTrivialScenario.on(c).initialize());
 
+    private static final DummyTestResource RESOURCE_DUMMY_AD3_MIXED_GROUPS = new DummyTestResource(
+            TEST_DIR, "resource-dummy-ad3-mixed-groups.xml", "4459d18e-fa47-46a4-8e68-1f5c4fa859be",
+            "ad3-mixed-groups",
+            c -> DummyAdTrivialScenario.on(c).initialize());
+
     private static final TestObject<ArchetypeType> ARCHETYPE_PERSON = TestObject.file(
             TEST_DIR, "archetype-person.xml", "184a5aa5-3e28-46c7-b9ed-a1dabaacc11d");
     private static final TestObject<ArchetypeType> ARCHETYPE_COST_CENTER = TestObject.file(
@@ -153,6 +161,11 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
             TEST_DIR, "archetype-app-role.xml", "79d020a0-6cc5-4f47-8525-548ebd930b4a");
     private static final TestObject<ArchetypeType> ARCHETYPE_GENERIC_AD_ROLE = TestObject.file(
             TEST_DIR, "archetype-generic-ad-role.xml", "ba9ae6c7-362b-41d4-b713-3a0040945b0c");
+
+    private static final TestObject<?> ARCHETYPE_AD3_ROLE_A = TestObject.file(
+            TEST_DIR, "archetype-ad3-role-A.xml", "0083a248-a8fb-42f1-81bb-a14a4e8bf63e");
+    private static final TestObject<?> ARCHETYPE_AD3_ROLE_B = TestObject.file(
+            TEST_DIR, "archetype-ad3-role-B.xml", "bd379f28-52b3-451d-8a3c-1a5c834d334f");
 
     private static final TestObject<?> ARCHETYPE_ORG_WITH_GROUP = TestObject.file(
             TEST_DIR, "archetype-org-with-group.xml", "ccbc679a-c9b5-4e2d-9027-8578695a7ff5");
@@ -211,7 +224,8 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
         initTestObjects(initTask, initResult,
                 ARCHETYPE_PERSON, ARCHETYPE_COST_CENTER, ARCHETYPE_DOCUMENT, ARCHETYPE_DOCUMENT_NON_TOLERANT,
                 ARCHETYPE_AD_ROLE, ARCHETYPE_APP_ROLE, ARCHETYPE_GENERIC_AD_ROLE,
-                ARCHETYPE_ORG_WITH_GROUP, ARCHETYPE_ORG_WITH_GROUP_2);
+                ARCHETYPE_ORG_WITH_GROUP, ARCHETYPE_ORG_WITH_GROUP_2,
+                ARCHETYPE_AD3_ROLE_A, ARCHETYPE_AD3_ROLE_B);
 
         // The subresult is created to avoid failing on benign warnings from the above objects' initialization
         var subResult = initResult.createSubresult("initializeResources");
@@ -231,6 +245,8 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
             importGroups(subResult);
 
             RESOURCE_DUMMY_AD_MORE_ASSOCIATION_TYPES.initAndTest(this, initTask, subResult);
+
+            RESOURCE_DUMMY_AD3_MIXED_GROUPS.initAndTest(this, initTask, subResult);
         } finally {
             subResult.close();
         }
@@ -393,7 +409,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
         assertThat(shadows).as("shadows").hasSize(1);
 
         assertShadowAfter(shadows.get(0))
-                .assertKind(ShadowKindType.ACCOUNT)
+                .assertKind(ACCOUNT)
                 .assertIntent(INTENT_PERSON)
                 .associations()
                 .assertSize(1)
@@ -422,7 +438,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
         when("john is imported");
         importAccountsRequest()
                 .withResourceOid(RESOURCE_DUMMY_HR.oid)
-                .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, INTENT_PERSON))
+                .withTypeIdentification(ResourceObjectTypeIdentification.of(ACCOUNT, INTENT_PERSON))
                 .withNameValue(PERSON_JOHN_NAME)
                 .executeOnForeground(result);
 
@@ -489,7 +505,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
         when("john is re-imported");
         importAccountsRequest()
                 .withResourceOid(RESOURCE_DUMMY_HR.oid)
-                .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, INTENT_PERSON))
+                .withTypeIdentification(ResourceObjectTypeIdentification.of(ACCOUNT, INTENT_PERSON))
                 .withNameValue(PERSON_JOHN_NAME)
                 .executeOnForeground(result);
 
@@ -560,7 +576,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
         when("jack is imported");
         importAccountsRequest()
                 .withResourceOid(RESOURCE_DUMMY_DMS.oid)
-                .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, INTENT_DEFAULT))
+                .withTypeIdentification(ResourceObjectTypeIdentification.of(ACCOUNT, INTENT_DEFAULT))
                 .withNameValue("jack")
                 .executeOnForeground(result);
 
@@ -1463,10 +1479,143 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .assertAssignments(0);
     }
 
+    /**
+     * We try to provision users into groups (via ConnId ADD and MODIFY).
+     * One of the groups is a member of other groups; this is where MID-10271 failed.
+     */
+    @Test(description = "MID-10271")
+    public void test410ProvisionMixedMemberships() throws CommonException {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        var userName1 = "user-" + getTestNameShort() + "-1";
+        var userName2 = "user-" + getTestNameShort() + "-2";
+        var userName3 = "user-" + getTestNameShort() + "-3";
+        var roleName1 = "role-" + getTestNameShort() + "-1";
+        var roleName2 = "role-" + getTestNameShort() + "-2";
+        var roleName3 = "role-" + getTestNameShort() + "-3";
+
+        given("three users and three roles (provisioned by midPoint)");
+
+        var user1 = new UserType()
+                .name(userName1);
+        addObject(user1, task, result);
+
+        var user2 = new UserType()
+                .name(userName2);
+        addObject(user2, task, result);
+
+        var user3 = new UserType()
+                .name(userName3);
+        addObject(user3, task, result);
+
+        var role1 = new RoleType()
+                .name(roleName1)
+                .assignment(ARCHETYPE_AD3_ROLE_A.assignmentTo());
+        addObject(role1, task, result);
+        var groupOid1 = assertRole(role1.getOid(), "").singleLink().getOid();
+
+        var role2 = new RoleType()
+                .name(roleName2)
+                .assignment(ARCHETYPE_AD3_ROLE_B.assignmentTo());
+        addObject(role2, task, result);
+        var groupOid2 = assertRole(role2.getOid(), "").singleLink().getOid();
+
+        var role3 = new RoleType()
+                .name(roleName3)
+                .assignment(ARCHETYPE_AD3_ROLE_B.assignmentTo());
+        addObject(role3, task, result);
+        var groupOid3 = assertRole(role3.getOid(), "").singleLink().getOid();
+
+        when("role 3 is assigned role 2");
+        assignRole(RoleType.class, role3.getOid(), role2.getOid(), task, result);
+
+        then("everything is OK");
+        assertSuccessRepeatedly(result);
+        assertRole(role3.getOid(), "")
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .links()
+                .singleLive()
+                .resolveTarget()
+                .associations()
+                .association(RI_GROUP)
+                .assertShadowOids(groupOid2);
+
+        when("user 1 is assigned role 1");
+        assignRole(user1.getOid(), role1.getOid(), task, result);
+
+        then("everything is OK");
+        assertSuccessRepeatedly(result);
+        assertUser(user1.getOid(), "")
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .links()
+                .singleLive()
+                .resolveTarget()
+                .associations()
+                .association(RI_GROUP)
+                .assertShadowOids(groupOid1);
+
+        when("user 1 is assigned role 2");
+        assignRole(user1.getOid(), role2.getOid(), task, result);
+
+        then("everything is OK");
+        assertSuccessRepeatedly(result);
+        assertUser(user1.getOid(), "")
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .links()
+                .singleLive()
+                .resolveTarget()
+                .associations()
+                .association(RI_GROUP)
+                .assertShadowOids(groupOid1, groupOid2);
+
+        when("user 1 is assigned role 3");
+        assignRole(user1.getOid(), role3.getOid(), task, result);
+
+        then("everything is OK");
+        assertSuccessRepeatedly(result);
+        assertUser(user1.getOid(), "")
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .links()
+                .singleLive()
+                .resolveTarget()
+                .associations()
+                .association(RI_GROUP)
+                .assertShadowOids(groupOid1, groupOid2, groupOid3);
+
+        when("user 2 is assigned role 2");
+        assignRole(user2.getOid(), role2.getOid(), task, result);
+
+        then("everything is OK");
+        assertSuccessRepeatedly(result);
+        assertUser(user2.getOid(), "")
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .links()
+                .singleLive()
+                .resolveTarget()
+                .associations()
+                .association(RI_GROUP)
+                .assertShadowOids(groupOid2);
+
+        when("user 3 is assigned role 3");
+        assignRole(user3.getOid(), role3.getOid(), task, result);
+
+        then("everything is OK");
+        assertSuccessRepeatedly(result);
+        assertUser(user3.getOid(), "")
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .links()
+                .singleLive()
+                .resolveTarget()
+                .associations()
+                .association(RI_GROUP)
+                .assertShadowOids(groupOid3);
+    }
+
     private void importAdAccount(String name, OperationResult result) throws CommonException, IOException {
         importAccountsRequest()
                 .withResourceOid(RESOURCE_DUMMY_AD.oid)
-                .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, INTENT_DEFAULT))
+                .withTypeIdentification(ResourceObjectTypeIdentification.of(ACCOUNT, INTENT_DEFAULT))
                 .withNameValue(name)
                 .executeOnForeground(result);
     }

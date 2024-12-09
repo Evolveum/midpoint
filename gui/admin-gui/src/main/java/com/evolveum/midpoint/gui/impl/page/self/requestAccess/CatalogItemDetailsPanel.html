@@ -12,14 +12,13 @@
     </wicket:container>
 
     <wicket:fragment wicket:id="buttons">
-        <div class="d-flex flex-wrap gap-2 w-100">
+        <div class="d-flex flex-wrap gap-2 justify-content-between w-100 m-0">
+            <a class="btn btn-link" wicket:id="close">
+                <wicket:message key="Button.close"/>
+            </a>
             <a class="btn btn-success" wicket:id="add">
                 <i class="fas fa-cart-plus mr-1"></i>
                 <wicket:message key="CatalogItemDetailsPanel.addToCart"/>
-            </a>
-            <a class="btn btn-outline-primary" wicket:id="close">
-                <i class="fa-solid fa-xmark mr-1"></i>
-                <wicket:message key="Button.close"/>
             </a>
         </div>
     </wicket:fragment>

@@ -72,7 +72,7 @@ public abstract class InlineOperationalButtonsPanel<O extends ObjectType> extend
 
     @Override
     protected String getDeleteButtonCssClass() {
-        return "btn btn-link link-danger"; /* btn btn-link text-danger */
+        return "btn btn-link link-danger";
     }
 
     @Override
