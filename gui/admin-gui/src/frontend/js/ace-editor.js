@@ -57,6 +57,7 @@ export default class MidPointAceEditor {
             minLines: 10,
             enableBasicAutocompletion: true,
             enableLiveAutocompletion: true,
+            enableSnippets: true,
             selectionStyle: "text",
             useSoftTabs: true,
             tabSize: 3,
@@ -70,15 +71,45 @@ export default class MidPointAceEditor {
             $(jqTextArea).val(editor.getSession().getValue());
             $(jqTextArea).trigger('blur');
         });
+
         editor.on('change', function () {
+            const cursor = editor.getCursorPosition();
+            const lines = editor.session.getLines(0, cursor.row);
+            let position = cursor.column + 1;
+
+            lines.forEach((line, key) => {
+                if (cursor.row > key) {
+                    position = position + line.length
+                }
+            })
+
             $(jqTextArea).val(editor.getSession().getValue());
             $(jqTextArea).trigger('change');
         });
 
+        editor.commands.addCommand({
+            name: 'runAutocomplete',
+            bindKey: { win: 'Ctrl-M', mac: 'Command-M' },
+            exec: function (editor) {
+                editor.execCommand("startAutocomplete"); // trigger autocomplete
+            },
+            readOnly: true,
+        })
+
         // add editor to global map, so we can find it later
         $.aceEditors[editorId] = editor;
-
         // //todo handle readonly for text area [lazyman] add "disabled" class to .ace_scroller
+    }
+
+    getCharCountToCursor(editor) {
+        let cursor = editor.getCursorPosition(); // Get the cursor's position
+        let lines = editor.session.getLines(0, cursor.row); // Get all lines up to the current row
+
+        // Sum up the lengths of all previous lines (add 1 for newline character)
+        let totalChars = lines.reduce((total, line) => total + line.length + 1, 0);
+
+        // Add the column position in the current line
+        return totalChars + cursor.column;
     }
 
     resizeToMaxHeight(editorId, minHeight) {
@@ -148,4 +179,19 @@ export default class MidPointAceEditor {
             $(jqEditor).removeClass(DISABLED_CLASS);
         }
     }
+
+    syncContentAssist(contentAssist) {
+        console.log("errorList---> " + contentAssist.validate);
+        console.log("suggestionList---> " + contentAssist.autocomplete);
+
+        // obj.errorList.forEach(error => {
+        //     console.log("errorList---> " + error.message);
+        // })
+
+        // customCompleter.getCompletions = function(editor, session, pos, prefix, callback) {
+        //     callback(null, newSuggestions);
+        // };
+        // editor.execCommand('startAutocomplete'); // Restart autocomplete
+    }
+
 }
