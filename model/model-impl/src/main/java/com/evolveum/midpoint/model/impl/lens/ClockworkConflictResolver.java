@@ -11,7 +11,6 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.ConflictWatcher;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -32,8 +31,6 @@ import java.util.ArrayList;
 import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.WAITING;
 import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.EXITING;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
-
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
@@ -48,7 +45,6 @@ public class ClockworkConflictResolver {
     @Autowired private Clockwork clockwork;
     @Autowired private ContextFactory contextFactory;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
-    @Autowired private PrismContext prismContext;
 
     private static final int DEFAULT_MAX_CONFLICT_RESOLUTION_ATTEMPTS = 1; // synchronize with common-core-3.xsd
     private static final int DEFAULT_CONFLICT_RESOLUTION_DELAY_UNIT = 5000; // synchronize with common-core-3.xsd

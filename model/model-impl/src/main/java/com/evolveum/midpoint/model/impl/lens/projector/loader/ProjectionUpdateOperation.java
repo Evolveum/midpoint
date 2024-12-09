@@ -103,7 +103,7 @@ class ProjectionUpdateOperation<F extends ObjectType> {
         try {
             updateInternal(result);
         } catch (Throwable e) {
-            result.recordFatalError(e);
+            result.recordException(e);
             throw e;
         } finally {
             result.close();
