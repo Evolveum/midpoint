@@ -54,11 +54,20 @@ public class ProtectedStringPropertyPanel extends PrismPropertyPanel<ProtectedSt
                     return isEditable();
                 }
 
+                @Override
+                protected boolean isPasswordLimitationPopupVisible() {
+                    return useGlobalValuePolicy();
+                }
             };
 //        }
         panel.setOutputMarkupId(true);
         item.add(panel);
         return panel;
+    }
+
+    private boolean useGlobalValuePolicy() {
+        return getModelObject() == null || getModelObject().getPath() == null
+                || !getModelObject().getPath().startsWith(ObjectType.F_EXTENSION);
     }
 
     private boolean isEditable() {
