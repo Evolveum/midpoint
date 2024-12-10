@@ -652,4 +652,10 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     public @Nullable  PartitionManager<R> getPartitionManager() {
         return null;
     }
+
+    /** Preprocesses cacheable URIs outside of primary transaction */
+    public void preprocessCacheableUris(S object) {
+
+    }
+
 }
