@@ -270,7 +270,7 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, SecurityViolationException {
-        Collection<ShadowSimpleAttributeDefinition<?>> readReplaceAttributes = determineReadReplace(ctx, operationsWave, objectDefinition);
+        var readReplaceAttributes = determineReadReplaceAttributes(ctx, operationsWave, objectDefinition);
         LOGGER.trace("Read+Replace attributes: {}", readReplaceAttributes);
         if (!readReplaceAttributes.isEmpty()) {
             ShadowItemsToReturn shadowItemsToReturn = new ShadowItemsToReturn();
@@ -330,17 +330,21 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
         return operationsWave;
     }
 
-    private Collection<ShadowSimpleAttributeDefinition<?>> determineReadReplace(
+    private Collection<ShadowSimpleAttributeDefinition<?>> determineReadReplaceAttributes(
             ProvisioningContext ctx,
             Collection<Operation> operations,
             ResourceObjectDefinition objectDefinition) {
         Collection<ShadowSimpleAttributeDefinition<?>> retval = new ArrayList<>();
-        for (Operation operation : operations) {
-            ShadowSimpleAttributeDefinition<?> rad = operation.getAttributeDefinitionIfApplicable(objectDefinition);
-            if (rad != null && isReadReplaceMode(ctx, rad, objectDefinition) && operation instanceof PropertyModificationOperation) {        // third condition is just to be sure
-                PropertyDelta<?> propertyDelta = ((PropertyModificationOperation<?>) operation).getPropertyDelta();
+        for (var operation : operations) {
+            var rad = operation.getAttributeDefinitionIfApplicable(objectDefinition);
+            if (rad != null
+                    && isReadReplaceMode(ctx, rad, objectDefinition)
+                    && operation instanceof PropertyModificationOperation<?> propertyModificationOperation) {
+                var propertyDelta = propertyModificationOperation.getPropertyDelta();
                 if (propertyDelta.isAdd() || propertyDelta.isDelete()) {
-                    retval.add(rad);        // REPLACE operations are not needed to be converted to READ+REPLACE
+                    retval.add(rad);
+                } else {
+                    // REPLACE operations are not needed to be converted to READ+REPLACE
                 }
             }
         }

@@ -7,22 +7,21 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.certification.component;
 
-import com.evolveum.midpoint.gui.api.component.result.OpResult;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
-import com.evolveum.midpoint.gui.impl.component.button.ReloadableButton;
-
-import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignProcessingHelper;
-import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignStateHelper;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+import java.io.Serial;
+import java.util.Collections;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 
-import java.io.Serial;
-import java.util.Collections;
+import com.evolveum.midpoint.gui.api.component.result.OpResult;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.impl.component.button.ReloadableButton;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignProcessingHelper;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignStateHelper;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 
 public abstract class CampaignActionButton extends ReloadableButton {
 
@@ -67,6 +66,11 @@ public abstract class CampaignActionButton extends ReloadableButton {
         String messageKey = action.getConfirmation().getSingleConfirmationMessageKey();
         String campaignNameTranslated = LocalizationUtil.translatePolyString(campaign.getName());
         return pageBase.createStringResource(messageKey, campaignNameTranslated);
+    }
+
+    @Override
+    protected String getButtonCssClass() {
+        return "";
     }
 
     protected LoadableDetachableModel<String> getActionButtonCssModel() {

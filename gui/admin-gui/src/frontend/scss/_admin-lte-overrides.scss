@@ -178,3 +178,12 @@
     }
   }
 }
+
+li.nav-item > a.active > div > span.badge {
+  background-color:$white;
+  color:$primary;
+}
+
+.progress {
+  height:.75rem;
+}
