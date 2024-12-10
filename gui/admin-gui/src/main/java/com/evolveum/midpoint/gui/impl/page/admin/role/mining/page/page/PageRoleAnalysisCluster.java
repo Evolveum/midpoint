@@ -86,7 +86,7 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
         PageParameters parameters = new PageParameters();
         ObjectReferenceType roleAnalysisSessionRef = getModelObjectType().getRoleAnalysisSessionRef();
         parameters.add(OnePageParameterEncoder.PARAMETER, roleAnalysisSessionRef.getOid());
-        parameters.add("panelId", "clusters");
+        parameters.add("panelId", "sessionOverView");
         Class<? extends PageBase> detailsPageClass = DetailsPageUtil
                 .getObjectDetailsPage(RoleAnalysisSessionType.class);
         ((PageBase) getPage()).navigateToNext(detailsPageClass, parameters);

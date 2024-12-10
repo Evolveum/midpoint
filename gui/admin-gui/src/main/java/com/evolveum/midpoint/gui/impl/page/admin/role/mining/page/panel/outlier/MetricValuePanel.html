@@ -9,7 +9,12 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <div class="col p-0">
-        <div class="d-flex align-items-center" wicket:id="title"></div>
+        <div class="d-flex align-items-center">
+            <div class="d-flex align-items-center" wicket:id="title"></div>
+            <span class="btn btn-tool p-0" wicket:id="helpContainer">
+        <i wicket:id="help" data-toggle="tooltip" data-placement="right" class="fa fa-fw fa-info-circle text-info"></i>
+        </span>
+        </div>
         <div class="d-flex align-items-center gap-1">
             <div wicket:id="value"></div>
         </div>

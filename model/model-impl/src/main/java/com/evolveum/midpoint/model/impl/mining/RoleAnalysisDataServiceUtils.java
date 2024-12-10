@@ -330,10 +330,8 @@ public class RoleAnalysisDataServiceUtils {
                 }
             }
 
-            for (String roleOid : nonPopularRolesMin) {
-                objectCategorisationCache
-                        .putCategory(roleOid, RoleAnalysisObjectCategorizationType.UN_POPULAR, RoleType.COMPLEX_TYPE);
-            }
+            nonPopularRolesMin.forEach(roleOid -> objectCategorisationCache
+                    .putCategory(roleOid, RoleAnalysisObjectCategorizationType.UN_POPULAR, RoleType.COMPLEX_TYPE));
 
             for (String roleOid : nonPopularRolesMax) {
                 objectCategorisationCache
@@ -471,3 +469,4 @@ public class RoleAnalysisDataServiceUtils {
         return sessionOptions.getMinAccessPopularity();
     }
 }
+
