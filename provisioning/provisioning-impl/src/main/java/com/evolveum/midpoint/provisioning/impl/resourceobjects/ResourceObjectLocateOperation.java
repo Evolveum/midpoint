@@ -92,7 +92,7 @@ class ResourceObjectLocateOperation extends AbstractResourceObjectRetrievalOpera
                     ctx.getObjectDefinitionRequired(),
                     query,
                     handler,
-                    ctx.createAttributesToReturn(),
+                    ctx.createItemsToReturn(),
                     null,
                     null,
                     UcfFetchErrorReportingMethod.EXCEPTION,

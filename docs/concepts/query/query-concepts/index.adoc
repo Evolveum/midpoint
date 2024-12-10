@@ -54,7 +54,7 @@ It is possible to narrow down your search with various filters.
 And this all can be specified using various representations, like
 *xref:/midpoint/reference/concepts/query/midpoint-query-language[midPoint query language]* (formerly known as Axiom) or *XML*.
 
-NOTE: The new query language is undergoing rename from 'Axiom' to 'midPoint Query Language' since midPoint version 4.8. As the Axiom name is well known, it can be still for some time referenced also with this name. Please consider _Axiom Query Language_ and _midPoint Query Language_ as synonyms.
+NOTE: The _midPoint Query Language_ was in versions prior 4.8 known as _Axiom Query Language_. It was renamed in version 4.8. If you find term _Axiom Query Language_ in some older documentation, please consider it as synonym to _midPoint Query Language_.
 
 
 To start with an example, here is a simple filter in two very distinct forms:

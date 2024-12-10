@@ -1,5 +1,7 @@
 package com.evolveum.midpoint.repo.sqale.func;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 
@@ -14,8 +16,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
@@ -51,22 +52,39 @@ public class ShadowPartitioningTest extends SqaleRepoBaseTest {
             resourcesOids.add(UUID.randomUUID());
         }
         for (var resource : resourcesOids) {
-            populateResourceWithShadows(resource, result);
+            populateResourceWithShadows(resource, "attr1", result);
         }
     }
 
-    private void populateResourceWithShadows(UUID resource, OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
+    private void populateResourceWithShadows(UUID resource, String attrName, OperationResult result)
+            throws SchemaException, ObjectAlreadyExistsException {
         for (var objectClass : OBJECT_CLASSES) {
             for (int i = 0; i < SHADOWS_PER_RESOURCE_OBJECTCLASS; i++) {
                 repositoryService.addObject(new ShadowType()
                                 .name(Strings.lenientFormat("%s:%s:%s",resource.toString(), objectClass.getLocalPart(), i))
                                 .objectClass(objectClass)
                                 .resourceRef(resource.toString(), ResourceType.COMPLEX_TYPE)
+                                .referenceAttributes(createReferenceAttributes(attrName))
                                 .asPrismObject(),
                         null, result
                 );
             }
         }
+    }
+
+    private ShadowReferenceAttributesType createReferenceAttributes(String attrName) throws SchemaException {
+        var attributes = new ShadowReferenceAttributesType();
+        var attrQName = new QName(NS_RI, attrName);
+        var attrDef = prismContext.definitionFactory().newReferenceDefinition(attrQName, ObjectReferenceType.COMPLEX_TYPE);
+        var attr = attrDef.instantiate();
+        var value = new ObjectReferenceType()
+                .oid(UUID.randomUUID().toString())
+                .type(ShadowType.COMPLEX_TYPE)
+                .asReferenceValue();
+        attr.add(value);
+        //noinspection unchecked
+        attributes.asPrismContainerValue().add(attr);
+        return attributes;
     }
 
     private QShadow shadowPartitionAlias(String tableName) {
@@ -87,7 +105,7 @@ public class ShadowPartitioningTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void  test200PartitioningEnabledNewResourceAdded() throws SchemaException, ObjectAlreadyExistsException {
+    public void test200PartitioningEnabledNewResourceAdded() throws SchemaException, ObjectAlreadyExistsException {
         var result = createOperationResult();
         when("Partitioning is enabled");
         shadowMapping.getPartitionManager().setPartitionCreationOnAdd(true);
@@ -95,7 +113,9 @@ public class ShadowPartitioningTest extends SqaleRepoBaseTest {
         when("new resource shadows are discovered");
         var newResourceOid = UUID.randomUUID();
         resourcesOids.add(newResourceOid);
-        populateResourceWithShadows(newResourceOid, result);
+        // Attribute name is intentionally different from the name used in test100 in order to trigger URI creation
+        // within the boundary of creating a new shadow (and thus partition). See MID-10231.
+        populateResourceWithShadows(newResourceOid, "attr2", result);
         then("new partitions are created and contains shadows from new resource");
         var resourceTableInfo = partitionManager.getResourceTable(newResourceOid);
         assertThat(countShadowsIn(resourceTableInfo.getTableName())).isEqualTo(SHADOWS_PER_RESOURCE_OBJECTCLASS * OBJECT_CLASSES.size());

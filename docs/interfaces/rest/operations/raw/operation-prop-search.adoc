@@ -4,9 +4,9 @@
 *Usage of Exclude*
 
 To exclude an attribute in the output of your request, you can specify
-the "exclude" parameter in your query request. The attribute which is
+the `exclude` parameter in your query request. The attribute which is
 mentioned after the equals sign will be excluded. In case of excluding
-multiple attributes, specify each exclude with an "&" character after each
+multiple attributes, specify each exclude with an `&` character after each
 other.
 
 *Example*:
@@ -14,4 +14,17 @@ other.
 [source,bash]
 ----
 ?exclude=metadata&exclude=credentials/password/value
+----
+
+
+*Usage of Include*
+
+The `include` parameter can be used in cases when we would like our output to contain attribute values which are by default returned as "incomplete".
+An example of such attribute is the `jpegPhoto` attribute of a `UserType` (or any other `FocusType`) object.
+
+*Example*:
+
+[source,bash]
+----
+?include=jpegPhoto
 ----

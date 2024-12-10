@@ -10,48 +10,46 @@ package com.evolveum.midpoint.provisioning.ucf.api;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.PrismObject;
-
-import com.evolveum.midpoint.schema.processor.ShadowAttribute;
-
 import org.jetbrains.annotations.NotNull;
-
-import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType;
-
 import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.processor.ShadowAttribute;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.ResourceOperationStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType;
 
 /**
  * Result of UCF `addObject` operation.
  *
- * (Despite the superclass name, it is currently just a wrapper for returned data.)
+ * @see ConnectorInstance#addObject(PrismObject, SchemaAwareUcfExecutionContext, OperationResult)
  */
-public class UcfAddReturnValue extends AsynchronousOperationReturnValue<Collection<ShadowAttribute<?, ?, ?, ?>>> {
+public class UcfAddReturnValue extends UcfOperationReturnValue<Collection<ShadowAttribute<?, ?, ?, ?>>> {
 
     private UcfAddReturnValue(
-            @NotNull Collection<ShadowAttribute<?, ?, ?, ?>> returnValue,
-            @NotNull OperationResult operationResult,
+            @NotNull Collection<ShadowAttribute<?, ?, ?, ?>> returnValue, @NotNull ResourceOperationStatus status) {
+        super(returnValue, status);
+    }
+
+    private static UcfAddReturnValue fromResult(
+            @NotNull Collection<ShadowAttribute<?, ?, ?, ?>> attributes,
+            @NotNull OperationResult result,
             @Nullable PendingOperationTypeType operationType) {
-        super(returnValue, operationResult);
-        setOperationType(operationType);
+        return new UcfAddReturnValue(
+                attributes,
+                ResourceOperationStatus.fromResult(result, operationType));
     }
 
-    public static UcfAddReturnValue of(
+    /** See the note in {@link ResourceOperationStatus}. */
+    public static UcfAddReturnValue fromResult(
             @NotNull Collection<ShadowAttribute<?, ?, ?, ?>> attributes,
-            @NotNull OperationResult operationResult,
-            @NotNull PendingOperationTypeType operationType) {
-        return new UcfAddReturnValue(attributes, operationResult, operationType);
+            @NotNull OperationResult result) {
+        return fromResult(attributes, result, null);
     }
 
-    public static UcfAddReturnValue of(
-            @NotNull Collection<ShadowAttribute<?, ?, ?, ?>> attributes,
-            @NotNull OperationResult operationResult) {
-        return new UcfAddReturnValue(attributes, operationResult, null);
-    }
-
-    public static UcfAddReturnValue of(@NotNull OperationResult operationResult) {
-        return new UcfAddReturnValue(List.of(), operationResult, null);
+    /** See the note in {@link ResourceOperationStatus}. */
+    public static UcfAddReturnValue fromResult(@NotNull OperationResult result, @Nullable PendingOperationTypeType operationType) {
+        return fromResult(List.of(), result, operationType);
     }
 
     /**

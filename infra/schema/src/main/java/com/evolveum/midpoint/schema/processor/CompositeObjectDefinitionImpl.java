@@ -815,4 +815,14 @@ public class CompositeObjectDefinitionImpl
     public @NotNull List<? extends ShadowAssociationDefinition> getAssociationDefinitions() {
         return structuralDefinition.getAssociationDefinitions();
     }
+
+    @Override
+    public @NotNull Collection<ShadowAttributeDefinition<?, ?, ?, ?>> getAttributesVolatileOnAddOperation() {
+        return structuralDefinition.getAttributesVolatileOnAddOperation();
+    }
+
+    @Override
+    public @NotNull Collection<ShadowAttributeDefinition<?, ?, ?, ?>> getAttributesVolatileOnModifyOperation() {
+        return structuralDefinition.getAttributesVolatileOnModifyOperation();
+    }
 }

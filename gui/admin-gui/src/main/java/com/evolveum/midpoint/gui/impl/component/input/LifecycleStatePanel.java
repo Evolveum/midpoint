@@ -7,27 +7,14 @@
 
 package com.evolveum.midpoint.gui.impl.component.input;
 
-import com.evolveum.midpoint.gui.api.util.DisplayForLifecycleState;
-import com.evolveum.midpoint.gui.api.util.DisplayableChoiceRenderer;
-import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
-import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
-import com.evolveum.midpoint.prism.impl.binding.AbstractMutableContainerable;
-import com.evolveum.midpoint.util.DisplayableValue;
-
-import com.evolveum.midpoint.web.component.input.DisplayableValueChoiceRenderer;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.head.IHeaderResponse;
-import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
@@ -36,15 +23,24 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.util.string.AppendingStringBuffer;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.api.util.DisplayForLifecycleState;
+import com.evolveum.midpoint.gui.api.util.DisplayableChoiceRenderer;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
+import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
+import com.evolveum.midpoint.prism.impl.binding.AbstractMutableContainerable;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import com.evolveum.midpoint.web.component.input.DisplayableValueChoiceRenderer;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 
 public class LifecycleStatePanel extends InputPanel {
 
@@ -212,7 +208,7 @@ public class LifecycleStatePanel extends InputPanel {
                 name = value.getValue();
             }
             DisplayForLifecycleState display = DisplayForLifecycleState.valueOfOrDefault(name);
-            return display.getCssClass() + " form-control form-control-sm resizing-select" + customCssClassForInputField();
+            return display.getCssClass() + " form-control form-select form-control-sm resizing-select " + customCssClassForInputField();
         }));
 
         input.add(AttributeAppender.append("aria-label", createStringResource("ObjectType.lifecycleState")));

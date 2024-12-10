@@ -54,16 +54,10 @@ Following tables summarizes common property filters:
 [options="header", cols="15,10,30", width=70]
 |====
 | Name | Alias | Description
-
 | `equal` | `=` | Matches if any item is equal to value
-
-| `not equal`
-
+a| `not equal` +
 `notEqual`
-
-| !=
-| Matches if item is different from value
-
+| != | Matches if item is different from value
 
 | `less` | `<` | Matches if item is smaller than value
 | `lessOrEqual` | `&lt;=` | Matches if item is smaller or equal to the value
@@ -74,10 +68,18 @@ Following tables summarizes common property filters:
 .Examples of comparison filters on users
 `familyName = "Doe"`::
 equals filter - All users with familyName Doe
+`familyName = ("Doe", "Smith")`::
+equals multi value filter - All users with familyName Doe or Smith
 `name != "Administrator"`::
 not equals filter - Everyone except administrator
+`name != ("Administrator", "Leonardo")`::
+not equals multi value filter - Everyone except Administrator and Leonardo
 `activation/validTo < "2022-01-01"`::
 less filter - All users which will not be valid after 2021
+
+Equal (`=`) and notEqual (`!=`) filters allows also set of values enclosed within brackets to be on the right side of the query.
+The query `name = ("adam","john")` provides the same results as `name = "adam" or name = "john"` . +
+Only values are allowed within the set.
 
 Comparison filters also supports item path on right side of filter.
 For example `activation/validFrom > activation/validTo` should return all objects with incorrectly set activations (activation start is after activation end).
@@ -173,7 +175,6 @@ The exact syntax of queries for values of different types is described in the fo
 | `assignment/targetRef matches (relation=org:owner)`
 | QNames may use namespaces. The namespaces are not necessary in the query - of course, if the values don't collide. So, both queries with `relation=owner` or `relation=org:owner` returns the same results.
 |====
-
 
 
 === Logical Filters
@@ -499,13 +500,13 @@ The object collection below lists all roles (all objects of RoleType) in midPoin
 
 
 [#_query_examples]
-== Query Examples
+== Basic Query Examples
 
 This chapter provides information and examples of queries in midPoint Query Language, mainly used in objects while configuration of midPoint itself.
 
-Additional examples can be found in xref:/midpoint/reference/concepts/query/midpoint-query-language/query-examples[Advanced search - EXAMPLES].
+Additional examples can be found in xref:/midpoint/reference/concepts/query/midpoint-query-language/query-examples[query examples] page.
 
-=== Searching by Archetype Name
+=== Search by Archetype Name
 
 Search for reports with archetype specified by its name
 
@@ -590,7 +591,7 @@ NOTE: Filter is currently supported in midPoint native repository only
 ----
 
 
-==== All roles, which are assigned to administrator using full text serach
+==== All roles, which are assigned to administrator using full text search
 
 .midPoint Query
 ----

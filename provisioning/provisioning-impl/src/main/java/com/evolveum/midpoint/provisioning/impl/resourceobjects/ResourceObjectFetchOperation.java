@@ -91,9 +91,9 @@ class ResourceObjectFetchOperation extends AbstractResourceObjectRetrievalOperat
 
         ConnectorInstance connector = ctx.getConnector(ReadCapabilityType.class, result);
         try {
-            UcfResourceObject object =
+            var ucfObject =
                     connector.fetchObject(primaryIdentification, shadowItemsToReturn, ctx.getUcfExecutionContext(), result);
-            return ExistingResourceObjectShadow.fromUcf(object, ctx.getResourceRef());
+            return ExistingResourceObjectShadow.fromUcf(ucfObject, ctx.getResourceRef());
         } catch (ObjectNotFoundException e) {
             // Not finishing the result because we did not create it! (The same for other catch clauses.)
             // We do not use simple "e.wrap" because there is a lot of things to be filled-in here.

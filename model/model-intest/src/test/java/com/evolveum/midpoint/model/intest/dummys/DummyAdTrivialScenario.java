@@ -77,8 +77,8 @@ public class DummyAdTrivialScenario extends AbstractDummyScenario {
         }
 
         public static class LinkNames {
-            // We do not use "member" to avoid collision with the built-in "member" attribute. TODO reconsider
-            public static final AssocName ACCOUNT = AssocName.ri("account");
+            public static final AssocName _MEMBER = AssocName.ri("_member"); // avoiding collision with legacy "member"
+            // GROUP attribute is the same as in Account
         }
 
         void initialize() {
@@ -95,20 +95,20 @@ public class DummyAdTrivialScenario extends AbstractDummyScenario {
 
     public class AccountGroup extends ScenarioLinkClass {
 
-        public static final ObjectClassName NAME = custom("accountGroup");
+        public static final ObjectClassName NAME = custom("groupMembership");
 
         void initialize() {
             controller.addLinkClassDefinition(aLinkClassDefinition()
                     .withName(NAME.local())
                     .withFirstParticipant(aParticipant()
-                            .withObjectClassNames(Account.OBJECT_CLASS_NAME.local())
+                            .withObjectClassNames(Account.OBJECT_CLASS_NAME.local(), Group.OBJECT_CLASS_NAME.local())
                             .withLinkAttributeName(Account.LinkNames.GROUP.local())
                             .withMaxOccurs(-1)
                             .withReturnedByDefault(true)
                             .build())
                     .withSecondParticipant(aParticipant()
                             .withObjectClassNames(Group.OBJECT_CLASS_NAME.local())
-                            .withLinkAttributeName(Group.LinkNames.ACCOUNT.local())
+                            .withLinkAttributeName(Group.LinkNames._MEMBER.local())
                             .withMaxOccurs(-1)
                             .build())
                     .build());

@@ -121,62 +121,82 @@ class ConnIdObjectConvertor {
                 + co.getName() + ", class=" + co.getObjectClass() + ": " + t.getMessage();
     }
 
-    @NotNull ConnIdObjectInformation convertToConnIdObjectInfo(@NotNull ShadowType shadow) throws SchemaException {
+    /**
+     * Converts from UCF to ConnId.
+     *
+     * The `identifiersOnly` parameter is used to indicate that only identifiers should be converted. It is used when converting
+     * referenced objects (like groups that the account is member of): in that case we need only the identifiers. Converting
+     * other attributes is useless, and converting reference attributes leads to a failure, as they are usually not resolved.
+     * (MID-10271)
+     */
+    @NotNull ConnIdObjectInformation convertToConnIdObjectInfo(@NotNull ShadowType shadow, boolean identifiersOnly)
+            throws SchemaException {
 
-        ResourceObjectDefinition objDef = ShadowUtil.getResourceObjectDefinition(shadow);
+        var objDef = ShadowUtil.getResourceObjectDefinition(shadow);
 
-        ObjectClass icfObjectClass =
+        var icfObjectClass =
                 argNonNull(
                         ucfObjectClassNameToConnId(shadow, connectorContext.isLegacySchema()),
                         "Couldn't get icf object class from %s", shadow);
 
         Set<Attribute> attributes = new HashSet<>();
         try {
+
             LOGGER.trace("midPoint object before conversion:\n{}", shadow.debugDumpLazily());
+
             for (var simpleAttribute : ShadowUtil.getSimpleAttributes(shadow)) {
-                attributes.add(convertSimpleAttributeToConnId(simpleAttribute, objDef));
-            }
-            for (var referenceAttribute : ShadowUtil.getReferenceAttributes(shadow)) {
-                if (!referenceAttribute.getDefinitionRequired().isSimulated()) {
-                    attributes.add(convertReferenceAttributeToConnId(referenceAttribute, objDef));
+                if (!identifiersOnly || objDef.isIdentifier(simpleAttribute.getElementName())) {
+                    attributes.add(convertSimpleAttributeToConnId(simpleAttribute, objDef));
                 }
             }
 
-            var passwordValue = ShadowUtil.getPasswordValue(shadow);
-            if (passwordValue != null) {
-                var guardedPassword = ConnIdUtil.toGuardedString(passwordValue, "new password", b.protector);
-                if (guardedPassword != null) {
-                    attributes.add(AttributeBuilder.build(OperationalAttributes.PASSWORD_NAME, guardedPassword));
+            if (!identifiersOnly) {
+
+                for (var referenceAttribute : ShadowUtil.getReferenceAttributes(shadow)) {
+                    if (!referenceAttribute.getDefinitionRequired().isSimulated()) {
+                        attributes.add(convertReferenceAttributeToConnId(referenceAttribute, objDef));
+                    }
                 }
-            }
 
-            if (ActivationUtil.hasAdministrativeActivation(shadow)) {
-                attributes.add(
-                        AttributeBuilder.build(OperationalAttributes.ENABLE_NAME, ActivationUtil.isAdministrativeEnabled(shadow)));
-            }
+                var passwordValue = ShadowUtil.getPasswordValue(shadow);
+                if (passwordValue != null) {
+                    var guardedPassword = ConnIdUtil.toGuardedString(passwordValue, "new password", b.protector);
+                    if (guardedPassword != null) {
+                        attributes.add(AttributeBuilder.build(OperationalAttributes.PASSWORD_NAME, guardedPassword));
+                    }
+                }
 
-            var validFrom = ActivationUtil.getValidFrom(shadow);
-            if (validFrom != null) {
-                attributes.add(
-                        AttributeBuilder.build(OperationalAttributes.ENABLE_DATE_NAME, XmlTypeConverter.toMillis(validFrom)));
-            }
+                if (ActivationUtil.hasAdministrativeActivation(shadow)) {
+                    attributes.add(
+                            AttributeBuilder.build(
+                                    OperationalAttributes.ENABLE_NAME, ActivationUtil.isAdministrativeEnabled(shadow)));
+                }
 
-            var validTo = ActivationUtil.getValidTo(shadow);
-            if (validTo != null) {
-                attributes.add(
-                        AttributeBuilder.build(OperationalAttributes.DISABLE_DATE_NAME, XmlTypeConverter.toMillis(validTo)));
-            }
+                var validFrom = ActivationUtil.getValidFrom(shadow);
+                if (validFrom != null) {
+                    attributes.add(
+                            AttributeBuilder.build(OperationalAttributes.ENABLE_DATE_NAME, XmlTypeConverter.toMillis(validFrom)));
+                }
 
-            var lockoutStatus = ActivationUtil.getLockoutStatus(shadow);
-            if (lockoutStatus != null) {
-                attributes.add(
-                        AttributeBuilder.build(OperationalAttributes.LOCK_OUT_NAME, ActivationUtil.isLockedOut(lockoutStatus)));
-            }
+                var validTo = ActivationUtil.getValidTo(shadow);
+                if (validTo != null) {
+                    attributes.add(
+                            AttributeBuilder.build(OperationalAttributes.DISABLE_DATE_NAME, XmlTypeConverter.toMillis(validTo)));
+                }
 
-            var lastLoginDate = ShadowUtil.getLastLoginTimestampValue(shadow);
-            if (lastLoginDate != null) {
-                attributes.add(
-                        AttributeBuilder.build(PredefinedAttributes.LAST_LOGIN_DATE_NAME, XmlTypeConverter.toMillis(lastLoginDate)));
+                var lockoutStatus = ActivationUtil.getLockoutStatus(shadow);
+                if (lockoutStatus != null) {
+                    attributes.add(
+                            AttributeBuilder.build(
+                                    OperationalAttributes.LOCK_OUT_NAME, ActivationUtil.isLockedOut(lockoutStatus)));
+                }
+
+                var lastLoginDate = ShadowUtil.getLastLoginTimestampValue(shadow);
+                if (lastLoginDate != null) {
+                    attributes.add(
+                            AttributeBuilder.build(
+                                    PredefinedAttributes.LAST_LOGIN_DATE_NAME, XmlTypeConverter.toMillis(lastLoginDate)));
+                }
             }
 
             LOGGER.trace("ConnId attributes after conversion:\n{}", lazy(() -> ConnIdUtil.dump(attributes)));
@@ -240,7 +260,16 @@ class ConnIdObjectConvertor {
 
     @NotNull ConnectorObjectReference convertReferenceAttributeValueToConnId(ShadowReferenceAttributeValue mpRefAttrValue)
             throws SchemaException {
-        var connIdInfo = convertToConnIdObjectInfo(mpRefAttrValue.getShadowBean());
+        var embeddedShadow = mpRefAttrValue.getShadowBean();
+
+        // Embedded objects are converted in full. Standalone ones are converted in "identifiers only" mode, because
+        // they are not to be created by ConnId - they are going to be referenced only.
+        var identifiersOnly =
+                !ShadowUtil.getResourceObjectDefinition(embeddedShadow)
+                        .getNativeObjectClassDefinition()
+                        .isEmbedded();
+        var connIdInfo = convertToConnIdObjectInfo(embeddedShadow, identifiersOnly);
+
         // TODO this object should be "by value" (ConnectorObject) for associated objects,
         //  and "by reference" (ConnectorObjectIdentification) for regular objects.
         //  Unfortunately, we cannot instantiate ConnectorObject here if UID is missing; and this

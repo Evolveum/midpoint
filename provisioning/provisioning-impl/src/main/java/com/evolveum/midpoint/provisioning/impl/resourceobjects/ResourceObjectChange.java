@@ -213,7 +213,7 @@ public abstract class ResourceObjectChange extends AbstractLazilyInitializableRe
     }
 
     @Nullable ShadowItemsToReturn determineAttributesToReturn() {
-        return effectiveCtx.createAttributesToReturn();
+        return effectiveCtx.createItemsToReturn();
     }
 
     boolean attributesToReturnAreDifferent(ShadowItemsToReturn actualShadowItemsToReturn) {

@@ -265,8 +265,7 @@ public abstract class AbstractSearchExpressionEvaluator<
             return prismContext.getQueryConverter().createObjectQuery(targetTypeClass, filter);
         }
 
-        protected ObjectQuery extendQuery(ObjectQuery query)
-                throws ExpressionEvaluationException {
+        protected ObjectQuery extendQuery(ObjectQuery query) {
             return query;
         }
 

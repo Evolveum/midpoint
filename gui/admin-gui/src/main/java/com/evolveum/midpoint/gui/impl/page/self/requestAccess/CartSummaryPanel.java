@@ -14,10 +14,6 @@ import java.util.Date;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
-import com.evolveum.midpoint.gui.impl.util.RelationUtil;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -33,7 +29,10 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDat
 import org.apache.wicket.feedback.ContainerFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.*;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.form.validation.AbstractFormValidator;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Fragment;
@@ -46,14 +45,18 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.IResource;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.form.TextArea;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.data.provider.ListDataProvider;
 import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -72,7 +75,6 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.gui.api.component.form.TextArea;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -475,7 +477,7 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
 
                     return getString(key, count);
                 });
-                label.add(AttributeAppender.append("class", "badge badge-info"));
+                label.add(AttributeAppender.append("class", "colored-form-info badge"));
                 label.add(AttributeAppender.replace("title", () -> {
                     ShoppingCartItem cartItem = model.getObject();
 
@@ -537,6 +539,8 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
         };
 
         page.showMainPopup(panel, target);
+        page.getMainPopup().getDialogComponent().add(AttributeAppender.replace("class", "modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable"));
+        page.getMainPopup().getDialogComponent().add(AttributeAppender.replace("style", ""));
     }
 
     private void removeItemPerformed(AjaxRequestTarget target, IModel<ShoppingCartItem> model) {

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<archetype
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="0083a248-a8fb-42f1-81bb-a14a4e8bf63e">
+    <name>ad3-role-A</name>
+    <documentation>
+        Group of type A on AD #3.
+    </documentation>
+    <inducement>
+        <construction>
+            <resourceRef oid="4459d18e-fa47-46a4-8e68-1f5c4fa859be"/>
+            <kind>entitlement</kind>
+            <intent>group-type-A</intent>
+        </construction>
+    </inducement>
+    <inducement>
+        <construction>
+            <resourceRef oid="4459d18e-fa47-46a4-8e68-1f5c4fa859be"/>
+            <kind>account</kind>
+            <intent>default</intent>
+        </construction>
+        <order>2</order>
+        <focusType>UserType</focusType>
+    </inducement>
+</archetype>

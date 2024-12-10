@@ -53,7 +53,6 @@
   -webkit-transition: all ease 0.08s !important;
 }
 
-// this is a fix for card widget with tool buttons which is inside of tab panel
 .card.card-outline-tabs .card-tools {
   margin: 0;
   margin-right: -0.625rem;
@@ -110,4 +109,81 @@
   & .nav-link:hover {
     color: $primary;
   }
+}
+
+//Override for table-success/danger/etc. coloring to fulfill the color contrasts with dark mode available
+@mixin table-background($color) {
+  background-color: mix($white, $color, 88%);
+
+  //Dark mode ready code when dark mode is implemented
+  /*@media (prefers-color-scheme: dark) {
+    background-color: mix($black, $color, 15%); // Dark mode adjustment
+  }*/
+}
+
+@mixin table-row-style($color) {
+  border-color: #dee2e6;
+  @include table-background($color);
+}
+@each $key, $color in $theme-colors {
+  .table-#{$key},
+  .table-#{$key} > th,
+  .table-#{$key} > td {
+    @include table-row-style($color);
+  }
+  .table-hover .table-#{$key}:hover,
+  .table-hover .table-#{$key}:hover > th,
+  .table-hover .table-#{$key}:hover > td {
+    background-color: mix($white, $color, 75%);
+  }
+}
+
+//Bootstrap extension for form selects
+.form-select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.form-item-parent {
+  height: 100%;
+  position: relative;
+
+  & .form-control {
+    padding-right:1.75rem;
+  }
+
+  & .form-item-dropdown {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #555555;
+    font-size: 10.5px;
+    transition: transform 0.1s ease;
+  }
+}
+
+//TODO: Bootstrap override for toasts to fulfill contrast errors #Remove when bs5 implemented
+@each $key, $color in $theme-colors {
+  .toast.bg-#{$key} {
+    background-color: mix($white, $color, 88%) !important;
+    border:1px solid $color;
+
+    & > .toast-header {
+      background: $color;
+    }
+    & > .toast-body {
+      color: $text-color;
+    }
+  }
+}
+
+li.nav-item > a.active > div > span.badge {
+  background-color:$white;
+  color:$primary;
+}
+
+.progress {
+  height:.75rem;
 }
