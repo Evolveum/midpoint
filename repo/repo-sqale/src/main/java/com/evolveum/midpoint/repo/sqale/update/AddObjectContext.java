@@ -54,6 +54,8 @@ public class AddObjectContext<S extends ObjectType, Q extends QObject<R>, R exte
      */
     public String execute()
             throws SchemaException, ObjectAlreadyExistsException {
+        initContexts();
+        rootMapping.preprocessCacheableUris(object.asObjectable());
         try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()) {
             String oid = execute(jdbcSession);
             jdbcSession.commit();
@@ -72,7 +74,6 @@ public class AddObjectContext<S extends ObjectType, Q extends QObject<R>, R exte
      */
     public String execute(JdbcSession jdbcSession) throws SchemaException {
         object.setVersion(INITIAL_VERSION_STRING);
-        initContexts();
         if (object.getOid() == null) {
             return addObjectWithoutOid(jdbcSession);
         } else {
