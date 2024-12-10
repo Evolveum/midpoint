@@ -38,15 +38,19 @@ public class AddObjectContext<S extends ObjectType, Q extends QObject<R>, R exte
     private final SqaleRepoContext repositoryContext;
     private final PrismObject<S> object;
 
-    private Q root;
-    private QObjectMapping<S, Q, R> rootMapping;
-    private MObjectType objectType;
+    private final Q root;
+    private final QObjectMapping<S, Q, R> rootMapping;
+    private final MObjectType objectType;
 
     public AddObjectContext(
             @NotNull SqaleRepoContext repositoryContext,
             @NotNull PrismObject<S> object) {
         this.repositoryContext = repositoryContext;
         this.object = object;
+        Class<S> schemaObjectClass = object.getCompileTimeClass();
+        objectType = MObjectType.fromSchemaType(schemaObjectClass);
+        rootMapping = repositoryContext.getMappingBySchemaType(schemaObjectClass);
+        root = rootMapping.defaultAlias();
     }
 
     /**
@@ -54,7 +58,6 @@ public class AddObjectContext<S extends ObjectType, Q extends QObject<R>, R exte
      */
     public String execute()
             throws SchemaException, ObjectAlreadyExistsException {
-        initContexts();
         rootMapping.preprocessCacheableUris(object.asObjectable());
         try (JdbcSession jdbcSession = repositoryContext.newJdbcSession().startTransaction()) {
             String oid = execute(jdbcSession);
@@ -85,7 +88,6 @@ public class AddObjectContext<S extends ObjectType, Q extends QObject<R>, R exte
     public void executeReindexed(JdbcSession jdbcSession)
             throws SchemaException, ObjectAlreadyExistsException {
         try {
-            initContexts();
             addObjectWithOid(jdbcSession);
         } catch (QueryException e) { // Querydsl exception, not ours
             Throwable cause = e.getCause();
@@ -94,13 +96,6 @@ public class AddObjectContext<S extends ObjectType, Q extends QObject<R>, R exte
             }
             throw e;
         }
-    }
-
-    private void initContexts() {
-        Class<S> schemaObjectClass = object.getCompileTimeClass();
-        objectType = MObjectType.fromSchemaType(schemaObjectClass);
-        rootMapping = repositoryContext.getMappingBySchemaType(schemaObjectClass);
-        root = rootMapping.defaultAlias();
     }
 
     private String addObjectWithOid(JdbcSession jdbcSession) throws SchemaException {
