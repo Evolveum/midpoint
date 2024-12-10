@@ -711,4 +711,10 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
     protected CheckedFunction<SchemaRegistryState, ItemDefinition<?>, SystemException> definitionDerivation() {
         return definitionDerivation;
     }
+
+    @Override
+    public void preprocessCacheableUris(S schemaObject) {
+        super.preprocessCacheableUris(schemaObject);
+        processCacheableUris(schemaObject.getPolicySituation());
+    }
 }
