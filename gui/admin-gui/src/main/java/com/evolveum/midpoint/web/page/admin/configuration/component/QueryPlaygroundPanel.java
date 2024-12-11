@@ -10,6 +10,7 @@ package com.evolveum.midpoint.web.page.admin.configuration.component;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createDistinct;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createRawCollection;
 import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
+import static com.evolveum.midpoint.schema.SelectorOptions.extractOptionValues;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,7 +21,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.impl.query.lang.AxiomQueryContentAssistImpl;
-import com.evolveum.midpoint.prism.query.AxiomQueryContentAssist;
+import com.evolveum.midpoint.prism.query.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
@@ -55,9 +56,6 @@ import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.PrismQuerySerialization;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RepositoryQueryDiagRequest;
@@ -393,31 +391,34 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
             @Override
             protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
                 super.updateAjaxAttributes(attributes);
-
                 attributes.setThrottlingSettings(
                         new ThrottlingSettings(ID_EDITOR_MIDPOINT, Duration.ofMillis(300), true)
                 );
 
-                attributes.getAjaxCallListeners().add(new QueryPlaygroundPanelAjaxListener());
+                attributes.getDynamicExtraParameters().add(
+                        "return {'cursorPosition': window.MidPointAceEditor.cursorPosition || 0};"
+                );
             }
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                StringValue position = getRequest().getPostParameters().getParameterValue("cursorPosition");
-
                 RepoQueryDto repo = getModel().getObject();
                 if (repo != null) {
                     String query = repo.getMidPointQuery();
+                    IRequestParameters params = RequestCycle.get().getRequest().getRequestParameters();
                     ItemDefinition<?> rootDef = repo.getObjectType() == null ? null :
-                            prismContext.getSchemaRegistry().findItemDefinitionByElementName(repo.getObjectType());
+                            prismContext.getSchemaRegistry().findItemDefinitionByType(repo.getObjectType());
 
                     try {
                         target.appendJavaScript("window.MidPointAceEditor.syncContentAssist(" +
-                                        mapper.writeValueAsString(axiomQueryContentAssist.process(rootDef, query == null ? "" : query, 0))
-                                + ");"
+                                        mapper.writeValueAsString(axiomQueryContentAssist.process(
+                                                rootDef,
+                                                query == null ? "" : query,
+                                                params.getParameterValue("cursorPosition").toInt()
+                                        ))
+                                + ", " + editorMidPoint.getMarkupId() + ");"
                         );
                     } catch (Exception e) {
-                        System.out.println("ERROR: " + e.getMessage());
                         LOGGER.error(e.getMessage());
                     }
                 }

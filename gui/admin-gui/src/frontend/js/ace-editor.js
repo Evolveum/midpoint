@@ -75,13 +75,15 @@ export default class MidPointAceEditor {
         editor.on('change', function () {
             const cursor = editor.getCursorPosition();
             const lines = editor.session.getLines(0, cursor.row);
-            let position = cursor.column + 1;
+            let position = cursor.column;
 
             lines.forEach((line, key) => {
                 if (cursor.row > key) {
                     position = position + line.length
                 }
             })
+
+            window.MidPointAceEditor.cursorPosition = position;
 
             $(jqTextArea).val(editor.getSession().getValue());
             $(jqTextArea).trigger('change');
@@ -91,6 +93,7 @@ export default class MidPointAceEditor {
             name: 'runAutocomplete',
             bindKey: { win: 'Ctrl-M', mac: 'Command-M' },
             exec: function (editor) {
+                $(jqTextArea).trigger('change');
                 editor.execCommand("startAutocomplete"); // trigger autocomplete
             },
             readOnly: true,
@@ -99,31 +102,6 @@ export default class MidPointAceEditor {
         // add editor to global map, so we can find it later
         $.aceEditors[editorId] = editor;
         // //todo handle readonly for text area [lazyman] add "disabled" class to .ace_scroller
-    }
-
-    addCursorPositionAttribute(attrs) {
-
-        for (let [i, parameter] of attrs.ep.entries()) {
-          if (parameter.name === "cursorPosition") {
-            users.splice(i, 1);
-          }
-        }
-
-        attrs.ep.push({name: "cursorPosition", value: "15"});
-
-        console.log(JSON.stringify(attrs));
-        return attrs;
-    }
-
-    getCharCountToCursor(editor) {
-        let cursor = editor.getCursorPosition(); // Get the cursor's position
-        let lines = editor.session.getLines(0, cursor.row); // Get all lines up to the current row
-
-        // Sum up the lengths of all previous lines (add 1 for newline character)
-        let totalChars = lines.reduce((total, line) => total + line.length + 1, 0);
-
-        // Add the column position in the current line
-        return totalChars + cursor.column;
     }
 
     resizeToMaxHeight(editorId, minHeight) {
@@ -194,18 +172,41 @@ export default class MidPointAceEditor {
         }
     }
 
-    syncContentAssist(contentAssist) {
-        console.log("errorList---> " + contentAssist.validate);
-        console.log("suggestionList---> " + contentAssist.autocomplete);
+    syncContentAssist(contentAssist, editorId) {
+        const editor = ace.edit(editorId.id + ACE_EDITOR_POSTFIX);
 
-        // obj.errorList.forEach(error => {
-        //     console.log("errorList---> " + error.message);
-        // })
+        // validation
+        let annotations = [];
+        contentAssist.validate.forEach(error => {
+            annotations.push({
+                row: error.lineStart - 1,
+                column: error.charPositionInLineStart,
+                text: error.message,
+                type: "error",
+            });
+        });
 
-        // customCompleter.getCompletions = function(editor, session, pos, prefix, callback) {
-        //     callback(null, newSuggestions);
-        // };
-        // editor.execCommand('startAutocomplete'); // Restart autocomplete
+        editor.session.setAnnotations(annotations);
+
+        // code completions
+        let customCompleter = {
+            getCompletions: function (editor, session, pos, prefix, callback) {
+                const suggestions = [];
+
+                contentAssist.autocomplete.forEach(function (suggestion) {
+                    suggestions.push({caption: suggestion.name, value: suggestion.name, meta: suggestion.alias});
+                })
+
+                // select suggestions by prefix
+                if (prefix.length > 0) {
+                    callback(null, suggestions.filter((s) => s.caption.startsWith(prefix)));
+                } else {
+                    callback(null, suggestions);
+                }
+            },
+        };
+
+        editor.completers = [customCompleter];
+        editor.execCommand('startAutocomplete');
     }
-
 }
