@@ -10,7 +10,7 @@ package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 import static com.evolveum.midpoint.prism.PrismPropertyValue.getRealValue;
-import static com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter.computeResultStatus;
+import static com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter.computeResultStatusAndAsyncOpReference;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -88,7 +88,7 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
         this.now = now;
     }
 
-    public static ResourceObjectModifyReturnValue execute(
+    public static @NotNull ResourceObjectModifyReturnValue execute(
             @NotNull ProvisioningContext ctx,
             @NotNull RepoShadow repoShadow,
             OperationProvisioningScriptsType scripts,
@@ -102,7 +102,7 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
                 .doExecute(result);
     }
 
-    private ResourceObjectModifyReturnValue doExecute(OperationResult result)
+    private @NotNull ResourceObjectModifyReturnValue doExecute(OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
         LOGGER.trace("Modifying resource object {}, deltas:\n{}", repoShadow, DebugUtil.debugDumpLazily(requestedDeltas, 1));
@@ -112,7 +112,7 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
             // Also the induced read ops may fail which may invoke consistency mechanism which will complicate the situation.
             LOGGER.trace("No resource modification found for {}, skipping", identification);
             result.recordNotApplicableIfUnknown();
-            return ResourceObjectModifyReturnValue.of(result);
+            return ResourceObjectModifyReturnValue.fromResult(result);
         }
 
         ctx.checkProtectedObjectModification(repoShadow);
@@ -120,8 +120,8 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
 
         Collection<Operation> ucfOperations = convertToUcfOperations(result);
 
-        boolean hasVolatileAttributeModification = hasVolatileAttributeModification();
-        ExistingResourceObjectShadow preReadObject = doPreReadIfNeeded(ucfOperations, hasVolatileAttributeModification, result);
+        boolean hasVolatilityTriggerModification = hasVolatilityTriggerModification();
+        ExistingResourceObjectShadow preReadObject = doPreReadIfNeeded(ucfOperations, hasVolatilityTriggerModification, result);
 
         UcfModifyReturnValue modifyResult;
         if (!ucfOperations.isEmpty()) {
@@ -132,16 +132,14 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
         } else {
             // We have to check BEFORE we add script operations, otherwise the check would be pointless
             LOGGER.trace("No modifications for connector object specified. Skipping processing of subject executeModify.");
-            modifyResult = null;
+            modifyResult = UcfModifyReturnValue.empty();
         }
 
-        if (modifyResult != null) {
-            knownExecutedDeltas.addAll(
-                    modifyResult.getExecutedOperationsAsPropertyDeltas());
-        }
+        knownExecutedDeltas.addAll(
+                modifyResult.getExecutedOperationsAsPropertyDeltas());
 
         ExistingResourceObjectShadow postReadObject;
-        if (hasVolatileAttributeModification && preReadObject != null) {
+        if (hasVolatilityTriggerModification && preReadObject != null) {
             // In rare cases, the object could not be pre-read even if tried to do so. Hence the nullity check.
             postReadObject = doPostReadIfNeeded(ucfOperations, knownExecutedDeltas, preReadObject, result);
         } else {
@@ -149,7 +147,7 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
         }
 
         Collection<? extends ItemDelta<?, ?>> allDeltas = new ArrayList<>(requestedDeltas);
-        ItemDeltaCollectionsUtil.addNotEquivalent(allDeltas, knownExecutedDeltas); // MID-6892
+        ItemDeltaCollectionsUtil.mergeAll(allDeltas, knownExecutedDeltas); // MID-6892
 
         // These are modification on related objects, e.g., groups (if needed)
         determineAndExecuteEntitlementObjectsOperations(
@@ -166,20 +164,20 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
         LOGGER.trace("Modification side-effect changes:\n{}", DebugUtil.debugDumpLazily(knownExecutedDeltas));
         LOGGER.trace("Modified resource object {}", repoShadow);
 
-        computeResultStatus(result);
+        computeResultStatusAndAsyncOpReference(result);
 
-        return ResourceObjectModifyReturnValue.of(
+        return ResourceObjectModifyReturnValue.fromResult(
                 knownExecutedDeltas,
                 result,
-                modifyResult != null ? modifyResult.getOperationType() : null);
+                modifyResult.getOperationType());
     }
 
     private @Nullable ExistingResourceObjectShadow doPreReadIfNeeded(
-            Collection<Operation> ucfOperations, boolean hasVolatileAttributeModification, OperationResult result)
+            Collection<Operation> ucfOperations, boolean hasVolatilityTriggerModification, OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
 
-        if (!shouldDoPreRead(ucfOperations, hasVolatileAttributeModification)) {
+        if (!shouldDoPreRead(ucfOperations, hasVolatilityTriggerModification)) {
             return null;
         }
 
@@ -264,7 +262,14 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
                 && refAttrDef.isSimulated();
     }
 
-    private boolean hasVolatileAttributeModification() throws SchemaException {
+    private boolean hasVolatilityTriggerModification() throws SchemaException {
+        // Any attribute is a "volatility trigger", i.e., any modification can change anything.
+        if (!ctx.getObjectDefinitionRequired().getAttributesVolatileOnModifyOperation().isEmpty()) {
+            LOGGER.trace("Any attribute is a volatility trigger");
+            return true;
+        }
+
+        // Only specific attributes are volatility triggers.
         for (ItemDelta<?, ?> itemDelta : requestedDeltas) {
             ItemPath path = itemDelta.getPath();
             QName firstPathName = path.firstName();

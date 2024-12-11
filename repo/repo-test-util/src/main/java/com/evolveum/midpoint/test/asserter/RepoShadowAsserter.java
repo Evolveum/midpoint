@@ -122,7 +122,8 @@ public class RepoShadowAsserter<RA> extends ShadowAsserter<RA> {
 
     @SafeVarargs
     private <T> RepoShadowAsserter<RA> assertCachedOrigOrNormValues(
-            QName attrName, Function<PrismProperty<?>, Collection<?>> extractor, T... expectedIfCached) {
+            QName attrName, Function<PrismProperty<?>, Collection<?>> extractor, T... expectedIfCachedNullable) {
+        var expectedIfCached = MiscUtil.exceptNulls(expectedIfCachedNullable);
         if (InternalsConfig.isShadowCachingOnByDefault() && expectedIfCached.length == 0) {
             // questionable but some assertions are too pessimistic regarding what's in the cache, hence this hack
             return this;

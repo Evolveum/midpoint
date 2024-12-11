@@ -16,7 +16,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.schema.config.MappingConfigItem;
 import com.evolveum.midpoint.schema.config.ResourceAttributeDefinitionConfigItem;
-import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -56,7 +55,7 @@ public class EvaluatedAssignedResourceObjectConstructionImpl<AH extends Assignme
 
         // [EP:CONST] DONE
         for (ResourceAttributeDefinitionConfigItem attributeConstrDefinitionCI : getTypedConfigItemRequired().getAttributes()) {
-            QName attrName = attributeConstrDefinitionCI.getAttributeNameSyntax();
+            QName attrName = attributeConstrDefinitionCI.getAttributeName();
 
             attributeConstrDefinitionCI.configCheck(
                     !attributeConstrDefinitionCI.hasInbounds(), "Cannot process inbound section in %s", DESC);

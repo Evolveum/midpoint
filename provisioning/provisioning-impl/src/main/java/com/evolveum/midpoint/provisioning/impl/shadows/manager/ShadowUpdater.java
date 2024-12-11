@@ -15,13 +15,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
-import com.evolveum.midpoint.provisioning.impl.shadows.PendingOperation;
-import com.evolveum.midpoint.provisioning.impl.shadows.RepoShadowWithState;
-import com.evolveum.midpoint.repo.api.ModifyObjectResult;
-
-import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper.EffectiveMarksAndPolicies;
-import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
-
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,7 +25,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaUtil;
@@ -44,14 +37,19 @@ import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.RepoShadowModifications;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectShadow;
 import com.evolveum.midpoint.provisioning.impl.shadows.ConstraintsChecker;
+import com.evolveum.midpoint.provisioning.impl.shadows.PendingOperation;
 import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState;
+import com.evolveum.midpoint.provisioning.impl.shadows.RepoShadowWithState;
+import com.evolveum.midpoint.repo.api.ModifyObjectResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper.EffectiveMarksAndPolicies;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -69,7 +67,6 @@ public class ShadowUpdater {
 
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired private PrismContext prismContext;
-    @Autowired private Protector protector;
     @Autowired private ShadowFinder shadowFinder;
     @Autowired private PendingOperationsHelper pendingOperationsHelper;
     @Autowired private EventDispatcher eventDispatcher;
@@ -117,7 +114,7 @@ public class ShadowUpdater {
             ObjectNotFoundException {
 
         var repoModifications =
-                new ShadowDeltaComputerRelative(ctx, repoShadow, modifications, protector)
+                new ShadowDeltaComputerRelative(ctx, repoShadow, modifications)
                         .computeShadowModifications(result);
 
         executeRepoShadowModifications(ctx, repoShadow, repoModifications, result);
@@ -427,7 +424,7 @@ public class ShadowUpdater {
     public PendingOperation checkAndRecordPendingOperationBeforeExecution(
             @NotNull ProvisioningContext ctx,
             @NotNull ObjectDelta<ShadowType> proposedDelta,
-            @NotNull ProvisioningOperationState<?> opState,
+            @NotNull ProvisioningOperationState opState,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException {
         return pendingOperationsHelper.checkAndRecordPendingOperationBeforeExecution(ctx, proposedDelta, opState, result);
@@ -461,7 +458,7 @@ public class ShadowUpdater {
             @Nullable ResourceObjectClassification newClassification,
             @NotNull EffectiveMarksAndPolicies effectiveMarksAndPolicies,
             OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException {
+            throws SchemaException, ObjectNotFoundException, ConfigurationException, EncryptionException {
 
         LOGGER.trace(
                 """
@@ -494,7 +491,7 @@ public class ShadowUpdater {
         RepoShadowModifications shadowModifications =
                 ShadowDeltaComputerAbsolute.computeShadowModifications(
                         ctx, repoShadow.shadow(), resourceObject, resourceObjectDelta,
-                        effectiveMarksAndPolicies, true);
+                        effectiveMarksAndPolicies, true, result);
 
         executeRepoShadowModifications(ctx, repoShadow.shadow(), shadowModifications, result);
 

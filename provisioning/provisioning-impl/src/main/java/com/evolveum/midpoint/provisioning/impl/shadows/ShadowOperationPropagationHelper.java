@@ -90,9 +90,8 @@ class ShadowOperationPropagationHelper {
         LOGGER.trace("Merged operation for {}:\n{} ", repoShadow, aggregateDelta.debugDumpLazily(1));
 
         if (aggregateDelta.isAdd()) {
-            ShadowType shadowToAdd = aggregateDelta.getObjectToAdd().asObjectable();
-            ResourceObjectShadow objectToAdd = ResourceObjectShadow.fromBean(shadowToAdd, false, ctx.getObjectDefinitionRequired());
-            ShadowAddOperation.executeInPropagation(ctx, repoShadow, objectToAdd, sortedOperations, result);
+            var beanToAdd = aggregateDelta.getObjectToAdd().asObjectable();
+            ShadowAddOperation.executeInPropagation(ctx, repoShadow, beanToAdd, sortedOperations, result);
         } else if (aggregateDelta.isModify()) {
             ShadowModifyOperation.executeInPropagation(ctx, repoShadow, aggregateDelta.getModifications(), sortedOperations, result);
         } else if (aggregateDelta.isDelete()) {

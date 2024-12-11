@@ -11,6 +11,7 @@ import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.task.api.ExpressionEnvironmentSupplier;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
+/** Client-provided context of a provisioning operation. */
 public class ProvisioningOperationContext {
 
     public static ProvisioningOperationContext empty() {

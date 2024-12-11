@@ -118,7 +118,7 @@ class CommunicationExceptionHandler extends ErrorHandler {
     }
 
     private OperationResultStatus throwOrPostpone(
-            ShadowProvisioningOperation<?> operation,
+            ShadowProvisioningOperation operation,
             Exception cause,
             OperationResult failedOperationResult,
             OperationResult result) throws CommunicationException {
@@ -127,11 +127,12 @@ class CommunicationExceptionHandler extends ErrorHandler {
             throw new AssertionError("not here");
         } else {
             result.setInProgress();
-            return operation.getOpState().markAsPostponed(failedOperationResult);
+            operation.getOpState().markAsPostponed(failedOperationResult.getStatus());
+            return OperationResultStatus.IN_PROGRESS;
         }
     }
 
-    private boolean shouldThrowImmediately(ShadowProvisioningOperation<?> operation) {
+    private boolean shouldThrowImmediately(ShadowProvisioningOperation operation) {
 
         var ctx = operation.getCtx();
         if (!isOperationRetryEnabled(ctx.getResource())) {
@@ -156,17 +157,17 @@ class CommunicationExceptionHandler extends ErrorHandler {
 
     @Override
     protected void throwException(
-            @Nullable ShadowProvisioningOperation<?> operation, Exception cause, OperationResult result)
+            @Nullable ShadowProvisioningOperation operation, Exception cause, OperationResult result)
             throws CommunicationException {
         recordCompletionError(operation, cause, result);
-        if (cause instanceof CommunicationException) {
-            throw (CommunicationException) cause;
+        if (cause instanceof CommunicationException communicationException) {
+            throw communicationException;
         } else {
             throw new CommunicationException(cause.getMessage(), cause);
         }
     }
 
-    private static String reasonMessage(@NotNull ShadowProvisioningOperation<?> operation, @NotNull Exception cause) {
+    private static String reasonMessage(@NotNull ShadowProvisioningOperation operation, @NotNull Exception cause) {
         return reasonMessage(operation.getGerund(), operation.getOpState().getRepoShadow(), cause);
     }
 

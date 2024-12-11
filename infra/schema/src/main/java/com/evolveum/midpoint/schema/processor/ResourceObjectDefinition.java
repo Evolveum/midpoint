@@ -653,8 +653,26 @@ public interface ResourceObjectDefinition
             return legacy != CachingStrategyType.NONE;
         }
 
+        return areCredentialsCachedInModernWay();
+    }
+
+    private boolean areCredentialsCachedInModernWay() {
         return isCachingEnabled()
                 && getEffectiveShadowCachingPolicy().getScope().getCredentials().getPassword() != ShadowItemsCachingScopeType.NONE;
+    }
+
+    /** Returns `true` if the caching is turned on, but only because of the legacy configuration. */
+    default boolean areCredentialsCachedLegacy() {
+        if (!areCredentialsCached()) {
+            // The above method ensures that the legacy caching takes precedence over the modern one. But this check is here
+            // to be sure that even if the method changes, the general contract if this method will still be valid.
+            return false;
+        }
+        if (getLegacyPasswordCachingStrategy() != CachingStrategyType.PASSIVE) {
+            return false;
+        }
+        // Now we need to check if the modern configuration style would not enable the caching anyway.
+        return !areCredentialsCachedInModernWay();
     }
 
     private CachingStrategyType getLegacyPasswordCachingStrategy() {
@@ -697,4 +715,10 @@ public interface ResourceObjectDefinition
                 () -> new ConfigurationException(
                         "Multiple OIDs for default operation policy in %s for %s: %s".formatted(this, mode, oids)));
     }
+
+    /** See {@link ShadowAttributeDefinition#isVolatileOnAddOperation()}. */
+    @NotNull Collection<ShadowAttributeDefinition<?, ?, ?, ?>> getAttributesVolatileOnAddOperation();
+
+    /** See {@link ShadowAttributeDefinition#isVolatileOnModifyOperation()}. */
+    @NotNull Collection<ShadowAttributeDefinition<?, ?, ?, ?>> getAttributesVolatileOnModifyOperation();
 }

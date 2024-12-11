@@ -13,6 +13,7 @@ import java.net.ConnectException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
@@ -166,6 +167,8 @@ public class DummyResource implements DebugDumpable {
     /** Support for LDAP-like hierarchical object structures. */
     private final HierarchySupport hierarchySupport = new HierarchySupport(this);
 
+    private final HookRegistry hookRegistry = new HookRegistry();
+
     private static final Map<String, DummyResource> INSTANCES = new HashMap<>();
 
     private DummyResource() {
@@ -190,6 +193,7 @@ public class DummyResource implements DebugDumpable {
         blockOperations = false;
         syncSearchHandlerStart = false;
         resetBreakMode();
+        hookRegistry.reset();
     }
 
     private void resetObjectStores() {
@@ -1202,7 +1206,7 @@ public class DummyResource implements DebugDumpable {
         DummyAccount account = getAccountByName(accountUsername);
         DummyDelta delta = new DummyDelta(nextSyncToken(), account.getClass(),
                 account.getObjectClassName(), account.getId(), account.getName(), deltaType);
-        // No delta details here, no addeded/removed attributes, nothing
+        // No delta details here, no added/removed attributes, nothing
         deltas.add(delta);
     }
 
@@ -1395,6 +1399,14 @@ public class DummyResource implements DebugDumpable {
             case DummyOrg.OBJECT_CLASS_NAME -> new DummyOrg();
             default -> new DummyGenericObject(objectClassName);
         };
+    }
+
+    public void registerHook(@NotNull ConnectorOperationHook hook) {
+        hookRegistry.registerHook(hook);
+    }
+
+    public void invokeHooks(@NotNull Consumer<ConnectorOperationHook> invoker) {
+        hookRegistry.invokeHooks(invoker);
     }
 
     /** Special class so we can control all update/delete operations. */

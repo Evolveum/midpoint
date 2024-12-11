@@ -950,4 +950,18 @@ public abstract class AbstractResourceObjectDefinitionImpl
     public static synchronized void setSystemDefaultPolicy(ShadowCachingPolicyType value) {
         systemDefaultPolicy = value != null ? value.clone() : null;
     }
+
+    @Override
+    public @NotNull Collection<ShadowAttributeDefinition<?, ?, ?, ?>> getAttributesVolatileOnAddOperation() {
+        return attributeDefinitions.stream()
+                .filter(def -> def.isVolatileOnAddOperation())
+                .toList();
+    }
+
+    @Override
+    public @NotNull Collection<ShadowAttributeDefinition<?, ?, ?, ?>> getAttributesVolatileOnModifyOperation() {
+        return attributeDefinitions.stream()
+                .filter(def -> def.isVolatileOnModifyOperation())
+                .toList();
+    }
 }

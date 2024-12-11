@@ -372,7 +372,7 @@ class ShadowGetOperation {
                 completeObject = b.resourceObjectConverter.fetchResourceObject(
                         ctx,
                         identification,
-                        ctx.createAttributesToReturn(),
+                        ctx.createItemsToReturn(),
                         true,
                         result);
                 markResourceUp(result);

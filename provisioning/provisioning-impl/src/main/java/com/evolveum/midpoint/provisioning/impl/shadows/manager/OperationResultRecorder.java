@@ -27,17 +27,13 @@ import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.RepoShadowModifications;
 import com.evolveum.midpoint.provisioning.impl.shadows.*;
-import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.AddOperationState;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.RawRepoShadow;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -97,11 +93,11 @@ public class OperationResultRecorder {
         // TODO: check for proposed Shadow. There may be a proposed shadow even if we do not have explicit proposed shadow OID
         //  (e.g. in case that the add operation failed). If proposed shadow is present do modify instead of add.
 
-        ProvisioningContext ctx = operation.getCtx();
-        AddOperationState opState = operation.getOpState();
-        AbstractShadow shadow = operation.getShadowAddedOrToAdd();
+        var ctx = operation.getCtx();
+        var opState = operation.getOpState();
+        var shadow = operation.getShadowAddedOrToAdd();
 
-        RawRepoShadow rawRepoShadowToAdd = shadowObjectComputer.createShadowForRepoStorage(ctx, shadow);
+        RawRepoShadow rawRepoShadowToAdd = shadowObjectComputer.createShadowForRepoStorage(ctx, shadow, result);
         var repoShadowBeanToAdd = rawRepoShadowToAdd.getBean(); // to be updated below
 
         if (opState.isCompleted()) {
@@ -137,11 +133,11 @@ public class OperationResultRecorder {
     }
 
     private void recordAddResultInExistingShadow(ShadowAddOperation addOperation, OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException {
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, EncryptionException {
 
         var shadowModifications = computePendingOperationsAndLifecycleStateModifications(addOperation);
 
-        ProvisioningContext ctx = addOperation.getCtx();
+        var ctx = addOperation.getCtx();
 
         var repoShadow = addOperation.getOpState().getRepoShadow();
         ctx.updateShadowState(repoShadow); // TODO is this needed?
@@ -153,7 +149,7 @@ public class OperationResultRecorder {
         shadowModifications.addAll(
                 ShadowDeltaComputerAbsolute.computeShadowModifications(
                         ctx, repoShadow, resourceObject, null,
-                        addOperation.getEffectiveMarksAndPoliciesRequired(), false));
+                        addOperation.getEffectiveMarksAndPoliciesRequired(), false, result));
 
         addModificationMetadataDeltas(shadowModifications, repoShadow);
 
@@ -198,9 +194,9 @@ public class OperationResultRecorder {
     public RepoShadow recordDeleteResult(ShadowDeleteOperation operation, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
 
-        ProvisioningContext ctx = operation.getCtx();
-        ProvisioningOperationState<AsynchronousOperationResult> opState = operation.getOpState();
-        ProvisioningOperationOptions options = operation.getOptions();
+        var ctx = operation.getCtx();
+        var opState = operation.getOpState();
+        var options = operation.getOptions();
         var repoShadow = opState.getRepoShadow();
 
         if (ProvisioningOperationOptions.isForce(options)) {
@@ -246,14 +242,14 @@ public class OperationResultRecorder {
     }
 
     private @NotNull RepoShadowModifications computePendingOperationsAndLifecycleStateModifications(
-            ShadowProvisioningOperation<?> operation)
+            ShadowProvisioningOperation operation)
             throws SchemaException {
 
         var shadowModifications = new RepoShadowModifications();
         shadowModifications.addAll(
                 pendingOperationsHelper.computePendingOperationsDeltas(operation));
 
-        ProvisioningOperationState<?> opState = operation.getOpState();
+        ProvisioningOperationState opState = operation.getOpState();
         RepoShadow repoShadow = opState.getRepoShadowRequired();
         if (opState.isCompleted() && opState.isSuccess()) {
             if (operation instanceof ShadowDeleteOperation) {
@@ -275,11 +271,11 @@ public class OperationResultRecorder {
      * This happens after the error handler is processed - and only for those
      * cases when the handler has re-thrown the exception.
      */
-    public void recordOperationException(ShadowProvisioningOperation<?> operation, OperationResult result)
+    public void recordOperationException(ShadowProvisioningOperation operation, OperationResult result)
             throws SchemaException, ObjectNotFoundException {
-        ProvisioningContext ctx = operation.getCtx();
-        ProvisioningOperationState<?> opState = operation.getOpState();
-        RepoShadow repoShadow = opState.getRepoShadow();
+        var ctx = operation.getCtx();
+        var opState = operation.getOpState();
+        var repoShadow = opState.getRepoShadow();
         if (repoShadow == null) {
             // Shadow does not exist. As this operation immediately ends up with an error then
             // we not even bother to create a shadow.

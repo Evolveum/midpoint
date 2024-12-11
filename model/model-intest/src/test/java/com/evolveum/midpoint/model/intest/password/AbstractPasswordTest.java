@@ -13,9 +13,9 @@ import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
@@ -25,6 +25,7 @@ import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 
+import org.jetbrains.annotations.Nullable;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -51,7 +52,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -59,95 +59,109 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
+ * Tests password-related features, such as:
+ *
+ * - correct password storage (encrypted, hashed),
+ * - password history,
+ * - password notifications,
+ * - shadow purpose (incomplete, normal),
+ * - {@link ModelInteractionService#checkPassword(String, ProtectedStringType, Task, OperationResult)} method,
+ * - ...
+ *
+ * See also:
+ *
+ * - `TestOpenDj` in `provisioning-impl` plus its subclasses for readable or "incomplete" password tests.
+ * - `TestDummyPasswordCaching` in `provisioning-impl`
+ *
  * @author semancik
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public abstract class AbstractPasswordTest extends AbstractInitializedModelIntegrationTest {
 
-    protected static final String USER_PASSWORD_1_CLEAR = "d3adM3nT3llN0Tal3s";
-    protected static final String USER_PASSWORD_2_CLEAR = "bl4ckP3arl";
-    protected static final String USER_PASSWORD_3_CLEAR = "wh3r3sTheRum?";
+    static final String USER_PASSWORD_1_CLEAR = "d3adM3nT3llN0Tal3s";
+    private static final String USER_PASSWORD_2_CLEAR = "bl4ckP3arl";
+    private static final String USER_PASSWORD_3_CLEAR = "wh3r3sTheRum?";
     private static final String USER_PASSWORD_3A_CLEAR = "wh3r3sTheRum!!";
-    protected static final String USER_PASSWORD_4_CLEAR = "sh1v3rM3T1mb3rs";
-    protected static final String USER_PASSWORD_5_CLEAR = "s3tSa1al";
-    protected static final String USER_PASSWORD_AA_CLEAR = "AA"; // too short
-    protected static final String USER_PASSWORD_A_CLEAR = "A"; // too short
-    protected static final String USER_PASSWORD_JACK_CLEAR = "12jAcK34"; // contains username
-    protected static final String USER_PASSWORD_SPARROW_CLEAR = "spaRRow123"; // contains familyName
-    protected static final String USER_PASSWORD_VALID_1 = "abcd123";
-    protected static final String USER_PASSWORD_VALID_2 = "abcd223";
-    protected static final String USER_PASSWORD_VALID_3 = "abcd323";
-    protected static final String USER_PASSWORD_VALID_4 = "abcd423";
-    protected static final String USER_PASSWORD_VALID_5 = "abcd523";
-    protected static final String USER_PASSWORD_VALID_6 = "abcd623";
+    private static final String USER_PASSWORD_4_CLEAR = "sh1v3rM3T1mb3rs";
+    private static final String USER_PASSWORD_5_CLEAR = "s3tSa1al";
+    static final String USER_PASSWORD_AA_CLEAR = "AA"; // too short
+    static final String USER_PASSWORD_A_CLEAR = "A"; // too short
+    private static final String USER_PASSWORD_JACK_CLEAR = "12jAcK34"; // contains username
+    private static final String USER_PASSWORD_SPARROW_CLEAR = "spaRRow123"; // contains familyName
+    static final String USER_PASSWORD_VALID_1 = "abcd123";
+    static final String USER_PASSWORD_VALID_2 = "abcd223";
+    private static final String USER_PASSWORD_VALID_3 = "abcd323";
+    private static final String USER_PASSWORD_VALID_4 = "abcd423";
+    private static final String USER_PASSWORD_VALID_5 = "abcd523";
+    private static final String USER_PASSWORD_VALID_6 = "abcd623";
     // Very long and very simple password. This is meant to violate the policies.
-    protected static final String USER_PASSWORD_LLL_CLEAR = "lllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllll";
+    private static final String USER_PASSWORD_LLL_CLEAR = "lllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllll";
 
-    protected static final String PASSWORD_ALLIGATOR = "all1g4t0r";
-    protected static final String PASSWORD_CROCODILE = "cr0c0d1l3";
-    protected static final String PASSWORD_GIANT_LIZARD = "G14NTl1z4rd";
+    private static final String PASSWORD_ALLIGATOR = "all1g4t0r";
+    private static final String PASSWORD_CROCODILE = "cr0c0d1l3";
+    private static final String PASSWORD_GIANT_LIZARD = "G14NTl1z4rd";
 
     public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "password");
 
-    protected static final File RESOURCE_DUMMY_UGLY_FILE = new File(TEST_DIR, "resource-dummy-ugly.xml");
-    protected static final String RESOURCE_DUMMY_UGLY_OID = "10000000-0000-0000-0000-000000344104";
-    protected static final String RESOURCE_DUMMY_UGLY_NAME = "ugly";
+    private static final File RESOURCE_DUMMY_UGLY_FILE = new File(TEST_DIR, "resource-dummy-ugly.xml");
+    private static final String RESOURCE_DUMMY_UGLY_OID = "10000000-0000-0000-0000-000000344104";
+    static final String RESOURCE_DUMMY_UGLY_NAME = "ugly";
 
     private static final DummyTestResource RESOURCE_DUMMY_PURPOSE = new DummyTestResource(
             TEST_DIR, "resource-dummy-purpose.xml", "519f131a-147b-11e7-a270-c38e2b225751", "purpose",
             c -> c.extendSchemaPirate());
 
-    protected static final File RESOURCE_DUMMY_SOUVENIR_FILE = new File(TEST_DIR, "resource-dummy-souvenir.xml");
-    protected static final String RESOURCE_DUMMY_SOUVENIR_OID = "f4fd7e90-ff6a-11e7-a504-4b84f92fec0e";
-    protected static final String RESOURCE_DUMMY_SOUVENIR_NAME = "souvenir";
+    private static final File RESOURCE_DUMMY_SOUVENIR_FILE = new File(TEST_DIR, "resource-dummy-souvenir.xml");
+    private static final String RESOURCE_DUMMY_SOUVENIR_OID = "f4fd7e90-ff6a-11e7-a504-4b84f92fec0e";
+    private static final String RESOURCE_DUMMY_SOUVENIR_NAME = "souvenir";
 
-    protected static final File RESOURCE_DUMMY_MAVERICK_FILE = new File(TEST_DIR, "resource-dummy-maverick.xml");
-    protected static final String RESOURCE_DUMMY_MAVERICK_OID = "72a928b6-ff7b-11e7-9643-7366d7749c31";
-    protected static final String RESOURCE_DUMMY_MAVERICK_NAME = "maverick";
+    private static final File RESOURCE_DUMMY_MAVERICK_FILE = new File(TEST_DIR, "resource-dummy-maverick.xml");
+    private static final String RESOURCE_DUMMY_MAVERICK_OID = "72a928b6-ff7b-11e7-9643-7366d7749c31";
+    private static final String RESOURCE_DUMMY_MAVERICK_NAME = "maverick";
 
-    protected static final File PASSWORD_POLICY_UGLY_FILE = new File(TEST_DIR, "password-policy-ugly.xml");
+    private static final File PASSWORD_POLICY_UGLY_FILE = new File(TEST_DIR, "password-policy-ugly.xml");
     protected static final String PASSWORD_POLICY_UGLY_OID = "cfb3fa9e-027a-11e7-8e2c-dbebaacaf4ee";
 
-    protected static final File PASSWORD_POLICY_MAVERICK_FILE = new File(TEST_DIR, "password-policy-maverick.xml");
+    private static final File PASSWORD_POLICY_MAVERICK_FILE = new File(TEST_DIR, "password-policy-maverick.xml");
     protected static final String PASSWORD_POLICY_MAVERICK_OID = "b26d2bd4-ff83-11e7-94b3-8fa7a87aac6c";
 
-    protected static final File SECURITY_POLICY_UGLY_FILE = new File(TEST_DIR, "security-policy-ugly.xml");
+    private static final File SECURITY_POLICY_UGLY_FILE = new File(TEST_DIR, "security-policy-ugly.xml");
     protected static final String SECURITY_POLICY_UGLY_OID = "cfb3fa9e-eeee-eeee-eeee-dbebaacaf4ee";
 
-    protected static final File SECURITY_POLICY_MAVERICK_FILE = new File(TEST_DIR, "security-policy-maverick.xml");
+    private static final File SECURITY_POLICY_MAVERICK_FILE = new File(TEST_DIR, "security-policy-maverick.xml");
     protected static final String SECURITY_POLICY_MAVERICK_OID = "b26d2bd4-eeee-eeee-eeee-8fa7a87aac6c";
 
-    protected static final File SECURITY_POLICY_DEFAULT_STORAGE_HASHING_FILE = new File(TEST_DIR, "security-policy-default-storage-hashing.xml");
-    protected static final String SECURITY_POLICY_DEFAULT_STORAGE_HASHING_OID = "0ea3b93c-0425-11e7-bbc1-73566dc53d59";
+    private static final File SECURITY_POLICY_DEFAULT_STORAGE_HASHING_FILE = new File(TEST_DIR, "security-policy-default-storage-hashing.xml");
+    static final String SECURITY_POLICY_DEFAULT_STORAGE_HASHING_OID = "0ea3b93c-0425-11e7-bbc1-73566dc53d59";
 
-    protected static final File SECURITY_POLICY_PASSWORD_STORAGE_NONE_FILE = new File(TEST_DIR, "security-policy-password-storage-none.xml");
-    protected static final String SECURITY_POLICY_PASSWORD_STORAGE_NONE_OID = "2997a20a-0423-11e7-af65-a7ab7d19442c";
+    private static final File SECURITY_POLICY_PASSWORD_STORAGE_NONE_FILE = new File(TEST_DIR, "security-policy-password-storage-none.xml");
+    static final String SECURITY_POLICY_PASSWORD_STORAGE_NONE_OID = "2997a20a-0423-11e7-af65-a7ab7d19442c";
 
-    protected static final File SECURITY_POLICY_GOVERNOR_FILE = new File(TEST_DIR, "security-policy-governor.xml");
-    protected static final String SECURITY_POLICY_GOVERNOR_OID = "12344321-0000-0000-0055-000000000003";
+    private static final File SECURITY_POLICY_GOVERNOR_FILE = new File(TEST_DIR, "security-policy-governor.xml");
+    private static final String SECURITY_POLICY_GOVERNOR_OID = "12344321-0000-0000-0055-000000000003";
 
-    protected static final String USER_JACK_EMPLOYEE_NUMBER_NEW_BAD = "No1";
-    protected static final String USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD = "pir321";
-    protected static final String USER_RAPP_EMAIL = "rapp.scallion@evolveum.com";
+    private static final String USER_JACK_EMPLOYEE_NUMBER_NEW_BAD = "No1";
+    static final String USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD = "pir321";
+    private static final String USER_RAPP_EMAIL = "rapp.scallion@evolveum.com";
 
     private static final TestObject<TaskType> TASK_CHANGE_JACK_ACCOUNT_PASSWORD = TestObject.file(TEST_DIR, "task-change-jack-account-password.xml", "442f8d91-4f1c-4651-b6c6-65b5aa3ab1d4");
 
-    public static final String PASSWORD_HELLO_WORLD = "H3ll0w0rld";
+    private static final String PASSWORD_HELLO_WORLD = "H3ll0w0rld";
 
-    public static final int ORG_MINISTRY_OF_OFFENSE_PASSWORD_HISTORY_LENGTH = 3;
-    public static final int GLOBAL_POLICY_NEW_PASSWORD_HISTORY_LENGTH = 5;
+    private static final int ORG_MINISTRY_OF_OFFENSE_PASSWORD_HISTORY_LENGTH = 3;
+    private static final int GLOBAL_POLICY_NEW_PASSWORD_HISTORY_LENGTH = 5;
 
     protected String accountJackOid;
-    protected String accountJackRedOid;
-    protected String accountJackBlueOid;
-    protected String accountJackUglyOid;
-    protected String accountJackBlackOid;
-    protected String accountJackYellowOid;
-    protected String accountJackSouvenirOid;
-    protected String accountJackMaverickOid;
-    protected XMLGregorianCalendar lastPasswordChangeStart;
-    protected XMLGregorianCalendar lastPasswordChangeEnd;
+    private String accountJackRedOid;
+    private String accountJackBlueOid;
+    private String accountJackUglyOid;
+    private String accountJackBlackOid;
+    String accountJackYellowOid;
+    private String accountJackSouvenirOid;
+    private String accountJackMaverickOid;
+    private XMLGregorianCalendar lastPasswordChangeStart;
+    private XMLGregorianCalendar lastPasswordChangeEnd;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -181,20 +195,20 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
     @Test
     public void test000Sanity() throws Exception {
-        AccountActivationNotifierType accountActivationNotifier = null;
-        SystemConfigurationType systemConfig = getObject(SystemConfigurationType.class,
-                SystemObjectsType.SYSTEM_CONFIGURATION.value()).asObjectable();
-        IntegrationTestTools.displayXml("system config", systemConfig.asPrismObject());
-        for (EventHandlerType handler : systemConfig.getNotificationConfiguration().getHandler()) {
-            displayValue("Handler: ", handler);
-            List<AccountActivationNotifierType> accountActivationNotifiers = handler.getAccountActivationNotifier();
-            if (!accountActivationNotifiers.isEmpty()) {
-                accountActivationNotifier = accountActivationNotifiers.get(0);
-            }
-        }
-
+        var accountActivationNotifier = getAccountActivationNotifier();
         displayValue("Account activation notifier", accountActivationNotifier);
         assertNotNull("No accountActivationNotifier", accountActivationNotifier);
+    }
+
+    private @Nullable AccountActivationNotifierType getAccountActivationNotifier() throws CommonException {
+        var systemConfig = getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value());
+        for (EventHandlerType handler : systemConfig.asObjectable().getNotificationConfiguration().getHandler()) {
+            var accountActivationNotifiers = handler.getAccountActivationNotifier();
+            if (!accountActivationNotifiers.isEmpty()) {
+                return accountActivationNotifiers.get(0);
+            }
+        }
+        return null;
     }
 
     @Test
@@ -204,7 +218,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         OperationResult result = task.getResult();
 
         // WHEN
-        PrismObject<ObjectType> passwordPolicy = addObject(PASSWORD_POLICY_GLOBAL_FILE, task, result);
+        var passwordPolicy = addObject(PASSWORD_POLICY_GLOBAL_FILE, task, result);
 
         // THEN
         assertSuccess(result);
@@ -212,7 +226,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertEquals("Wrong OID after add", PASSWORD_POLICY_GLOBAL_OID, passwordPolicy.getOid());
 
         // Check object
-        PrismObject<ValuePolicyType> valuePolicy = repositoryService.getObject(ValuePolicyType.class, PASSWORD_POLICY_GLOBAL_OID, null, result);
+        repositoryService.getObject(ValuePolicyType.class, PASSWORD_POLICY_GLOBAL_OID, null, result);
 
         // TODO: more asserts
     }
@@ -232,11 +246,12 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertEquals("Wrong OID after add", SECURITY_POLICY_GOVERNOR_OID, securityPolicy.getOid());
 
         // Check object
-        PrismObject<SecurityPolicyType> securityPolicyAfter = repositoryService.getObject(SecurityPolicyType.class, SECURITY_POLICY_GOVERNOR_OID, null, result);
+        repositoryService.getObject(SecurityPolicyType.class, SECURITY_POLICY_GOVERNOR_OID, null, result);
 
         // TODO: more asserts
     }
 
+    /** There should be the default password from the initialization time (encrypted). */
     @Test
     public void test050CheckJackPassword() throws Exception {
         // GIVEN, WHEN
@@ -244,13 +259,14 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
         // THEN
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-        display("User after change execution", userJack);
+        display("User after initialization", userJack);
         assertUserJack(userJack, "Jack Sparrow");
 
         // Password still encrypted. We haven't changed it yet.
         assertUserPassword(userJack, USER_JACK_PASSWORD, CredentialsStorageTypeType.ENCRYPTION);
     }
 
+    /** Password is modified. Test-specific storage policy is applied. */
     @Test
     public void test051ModifyUserJackPassword() throws Exception {
         // GIVEN
@@ -258,26 +274,15 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         OperationResult result = task.getResult();
         prepareTest();
 
-//        // Set password create channel to legacy value (MID-6547).
-//        repositoryService.modifyObject(
-//                UserType.class, USER_JACK_OID,
-//                deltaFor(UserType.class)
-//                        .item(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
-//                            .replace(Channel.USER.getLegacyUri())
-//                        .asItemDeltas(),
-//                result);
-
-        XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
-
         // WHEN
         when();
+        XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
         modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_1_CLEAR, task, result);
+        XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
 
         // THEN
         then();
         assertSuccess(result);
-
-        XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
@@ -288,12 +293,10 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // Password policy is not active yet. No history should be kept.
         assertPasswordHistoryEntries(userJack);
 
-        // Check channel migration (MID-6547).
-        //assertThat(userJack.asObjectable().getCredentials().getPassword().getMetadata().getCreateChannel()).isEqualTo(Channel.USER.getUri());
-
         assertSingleUserPasswordNotification(USER_JACK_USERNAME, USER_PASSWORD_1_CLEAR);
     }
 
+    /** Tests `checkPassword` method on `jack` user. No changes here. */
     @Test
     public void test060CheckJackPasswordModelInteraction() throws Exception {
         if (getPasswordStorageType() == CredentialsStorageTypeType.NONE) {
@@ -306,25 +309,23 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         OperationResult result = task.getResult();
 
         // WHEN, THEN
-        ProtectedStringType userPasswordPsGood = new ProtectedStringType();
-        userPasswordPsGood.setClearValue(USER_PASSWORD_1_CLEAR);
+        var userPasswordPsGood = new ProtectedStringType().clearValue(USER_PASSWORD_1_CLEAR);
         assertTrue("Good password check failed",
                 modelInteractionService.checkPassword(USER_JACK_OID, userPasswordPsGood, task, result));
 
-        ProtectedStringType userPasswordPsBad = new ProtectedStringType();
-        userPasswordPsBad.setClearValue("this is not a password");
+        var userPasswordPsBad = new ProtectedStringType().clearValue("this is not a password");
         assertFalse("Bad password check failed",
                 modelInteractionService.checkPassword(USER_JACK_OID, userPasswordPsBad, task, result));
 
-        ProtectedStringType userPasswordPsEmpty = new ProtectedStringType();
+        var userPasswordPsEmpty = new ProtectedStringType();
         assertFalse("Empty password check failed",
                 modelInteractionService.checkPassword(USER_JACK_OID, userPasswordPsEmpty, task, result));
 
         assertFalse("Null password check failed",
                 modelInteractionService.checkPassword(USER_JACK_OID, null, task, result));
-
     }
 
+    /** Adds another user. The specific policy for this test (storage: encrypted, hashed, none) is used. */
     @Test
     public void test070AddUserHerman() throws Exception {
         // GIVEN
@@ -332,17 +333,15 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         OperationResult result = task.getResult();
         prepareTest();
 
-        XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
-
         // WHEN
         when();
+        var startCal = clock.currentTimeXMLGregorianCalendar();
         addObject(USER_HERMAN_FILE, task, result);
+        var endCal = clock.currentTimeXMLGregorianCalendar();
 
         // THEN
         then();
         assertSuccess(result);
-
-        XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
 
         PrismObject<UserType> userAfter = getUser(USER_HERMAN_OID);
         display("User after", userAfter);
@@ -357,50 +356,49 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertSingleUserPasswordNotification(USER_HERMAN_USERNAME, USER_HERMAN_PASSWORD);
     }
 
+    /** Assigns an account. The presence of password depends on whether it is stored as encrypted. */
     @Test
     public void test100JackAssignAccountDummy() throws Exception {
-        // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
-        XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
-
-        // WHEN
         when();
+        var startCal = clock.currentTimeXMLGregorianCalendar();
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
+        var endCal = clock.currentTimeXMLGregorianCalendar();
 
-        // THEN
-        then();
+        then("account is created");
         assertSuccess(result);
-
-        XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
-
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
         assertUserJack(userJack);
         accountJackOid = getSingleLinkOid(userJack);
 
-        // Check shadow
+        and("repo shadow is OK");
         var accountShadowRepo = getShadowRepo(accountJackOid);
         display("Repo shadow", accountShadowRepo);
         assertDummyAccountShadowRepo(accountShadowRepo, accountJackOid, USER_JACK_USERNAME);
-        // MID-3860
         assertShadowPasswordMetadata(accountShadowRepo.getPrismObject(), startCal, endCal, false, true);
         assertShadowPurpose(accountShadowRepo.getPrismObject(), false);
+        if (InternalsConfig.isShadowCachingOnByDefault() && getPasswordStorageType() == CredentialsStorageTypeType.ENCRYPTION) {
+            assertEncryptedShadowPassword(accountShadowRepo.getBean(), USER_PASSWORD_1_CLEAR);
+        } else {
+            assertNoShadowPassword(accountShadowRepo.getBean());
+        }
 
-        // Check account
-        PrismObject<ShadowType> accountShadowModel = modelService.getObject(ShadowType.class, accountJackOid, null, task, result);
+        and("account on resource is OK (get via model)");
+        var accountShadowModel = modelService.getObject(ShadowType.class, accountJackOid, null, task, result);
         display("Model shadow", accountShadowModel);
         assertDummyAccountShadowModel(accountShadowModel, accountJackOid, USER_JACK_USERNAME, USER_JACK_FULL_NAME);
         assertShadowPasswordMetadata(accountShadowModel, startCal, endCal, false, true);
         assertShadowPurpose(accountShadowModel, false);
 
-        // Check account in dummy resource
+        and("account on resource is OK (checked directly)");
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
-
         assertDummyPasswordConditional(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_1_CLEAR);
 
+        and("notifications are OK");
         assertSingleAccountPasswordNotificationConditional(null, USER_JACK_USERNAME, USER_PASSWORD_1_CLEAR);
         assertNoUserPasswordNotifications();
     }
@@ -416,15 +414,6 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         lastPasswordChangeStart = clock.currentTimeXMLGregorianCalendar();
-
-//        // Set account password create channel to legacy value (MID-6547).
-//        repositoryService.modifyObject(
-//                ShadowType.class, accountJackOid,
-//                deltaFor(ShadowType.class)
-//                        .item(ShadowType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
-//                            .replace(Channel.USER.getLegacyUri())
-//                        .asItemDeltas(),
-//                result);
 
         // WHEN
         modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_2_CLEAR, task, result);
@@ -450,9 +439,6 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertShadowPasswordMetadata(
                 accountShadowRepo.getPrismObject(), lastPasswordChangeStart, lastPasswordChangeEnd, true, false);
         assertShadowPurpose(accountShadowRepo.getPrismObject(), false);
-
-//        // Check channel migration (MID-6547).
-//        assertThat(accountShadowRepo.getBean().getCredentials().getPassword().getMetadata().getCreateChannel()).isEqualTo(Channel.USER.getUri());
 
         // Check account
         PrismObject<ShadowType> accountShadowModel = modelService.getObject(ShadowType.class, accountJackOid, null, task, result);
@@ -3158,7 +3144,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         var shadowPasswordCachingRepo = getShadowRepo(accountJackSouvenirOid);
         displayDumpable("Shadow repo", shadowPasswordCachingRepo);
         assertShadowPurpose(shadowPasswordCachingRepo.getPrismObject(), null);
-        assertCachedResourcePassword(shadowPasswordCachingRepo, PASSWORD_ALLIGATOR);
+        assertCachedPassword(
+                shadowPasswordCachingRepo,
+                PASSWORD_ALLIGATOR,
+                // Legacy password caching uses HASHING storage type, to avoid unexpected switching to reversible encryption.
+                InternalsConfig.isShadowCachingOnByDefault() ? getPasswordStorageType() : CredentialsStorageTypeType.HASHING);
 
         assertDummyPassword(RESOURCE_DUMMY_SOUVENIR_NAME, ACCOUNT_JACK_DUMMY_USERNAME, PASSWORD_ALLIGATOR);
 
@@ -3495,7 +3485,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
     /**
      * MID-4507
      */
-    public void testJackManyPasswordChanges(String passwordPrefix, CredentialsStorageTypeType storageType) throws Exception {
+    private void testJackManyPasswordChanges(String passwordPrefix, CredentialsStorageTypeType storageType) throws Exception {
 
         // GIVEN
         prepareTest();
@@ -3751,23 +3741,23 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         return shadowDelta;
     }
 
-    protected void assertDummyPassword(String userId, String expectedClearPassword) throws SchemaViolationException, ConflictException, InterruptedException {
+    void assertDummyPassword(String userId, String expectedClearPassword) throws SchemaViolationException, ConflictException, InterruptedException {
         assertDummyPassword(null, userId, expectedClearPassword);
     }
 
-    protected void assertDummyPasswordConditional(String userId, String expectedClearPassword) throws SchemaViolationException, ConflictException, InterruptedException {
+    private void assertDummyPasswordConditional(String userId, String expectedClearPassword) throws SchemaViolationException, ConflictException, InterruptedException {
         if (isPasswordEncryption()) {
             assertDummyPassword(null, userId, expectedClearPassword);
         }
     }
 
-    protected void assertDummyPasswordConditional(String instance, String userId, String expectedClearPassword) throws SchemaViolationException, ConflictException, InterruptedException {
+    void assertDummyPasswordConditional(String instance, String userId, String expectedClearPassword) throws SchemaViolationException, ConflictException, InterruptedException {
         if (isPasswordEncryption()) {
             super.assertDummyPassword(instance, userId, expectedClearPassword);
         }
     }
 
-    protected void assertDummyPasswordConditionalGenerated(String instance, String userId, String expectedClearPassword) throws SchemaViolationException, ConflictException, InterruptedException {
+    private void assertDummyPasswordConditionalGenerated(String instance, String userId, String expectedClearPassword) throws SchemaViolationException, ConflictException, InterruptedException {
         if (isPasswordEncryption()) {
             super.assertDummyPassword(instance, userId, expectedClearPassword);
         } else {
@@ -3775,13 +3765,13 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         }
     }
 
-    protected void assertSingleAccountPasswordNotificationConditional(String dummyResourceName, String username, String password) {
+    private void assertSingleAccountPasswordNotificationConditional(String dummyResourceName, String username, String password) {
         if (isPasswordEncryption()) {
             assertSingleAccountPasswordNotification(dummyResourceName, username, password);
         }
     }
 
-    protected void assertSingleAccountPasswordNotificationConditionalGenerated(String dummyResourceName, String username, String password) {
+    private void assertSingleAccountPasswordNotificationConditionalGenerated(String dummyResourceName, String username, String password) {
         if (isPasswordEncryption()) {
             assertSingleAccountPasswordNotification(dummyResourceName, username, password);
         } else {
@@ -3816,12 +3806,19 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         }
     }
 
-    private void assertShadowPasswordMetadata(PrismObject<ShadowType> shadow,
-            XMLGregorianCalendar startCal, XMLGregorianCalendar endCal, boolean clearPasswordAvailable, boolean passwordCreated) {
-        if (!clearPasswordAvailable && getPasswordStorageType() == CredentialsStorageTypeType.HASHING) {
+    /**
+     * "Password provided directly" means that the password should be known even if it's not stored in the repository.
+     * "Password created" true if this operation created the password; false if it just modified it.
+     */
+    private void assertShadowPasswordMetadata(
+            PrismObject<ShadowType> shadow,
+            XMLGregorianCalendar startCal, XMLGregorianCalendar endCal,
+            boolean passwordProvidedDirectly, boolean passwordCreated) {
+        if (!passwordProvidedDirectly && getPasswordStorageType() != CredentialsStorageTypeType.ENCRYPTION) {
             return;
         }
-        assertShadowPasswordMetadata(shadow, passwordCreated, startCal, endCal, USER_ADMINISTRATOR_OID, SchemaConstants.CHANNEL_USER_URI);
+        assertShadowPasswordMetadata(
+                shadow, passwordCreated, startCal, endCal, USER_ADMINISTRATOR_OID, SchemaConstants.CHANNEL_USER_URI);
     }
 
     // 9XX tests: Password minimal age, no password, etc.
@@ -4617,12 +4614,12 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         }
     }
 
-    protected void prepareTest() throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+    void prepareTest() throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         prepareNotifications();
     }
 
-    protected PrismObject<ShadowType> getBlueShadow(PrismObject<UserType> userAfter) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    PrismObject<ShadowType> getBlueShadow(PrismObject<UserType> userAfter) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         String accountBlueOid = getLiveLinkRefOid(userAfter, RESOURCE_DUMMY_BLUE_OID);
         Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + ".getBlueShadow");
         OperationResult result = task.getResult();
@@ -4636,24 +4633,27 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         return shadow;
     }
 
-    protected boolean isPasswordEncryption() {
+    private boolean isPasswordEncryption() {
         return getPasswordStorageType() == CredentialsStorageTypeType.ENCRYPTION;
     }
 
-    protected void assertCachedResourcePassword(RawRepoShadow shadow, String expectedPassword) throws Exception {
-        CredentialsType credentials = shadow.getBean().getCredentials();
-        if (expectedPassword == null && credentials == null) {
+    private void assertCachedPassword(RawRepoShadow shadow, String expectedPassword, CredentialsStorageTypeType storageType)
+            throws Exception {
+        var expectedNull = expectedPassword == null || storageType == CredentialsStorageTypeType.NONE;
+        var credentials = shadow.getBean().getCredentials();
+        if (expectedNull && credentials == null) {
             return;
         }
         assertNotNull("Missing credentials in repo shadow " + shadow, credentials);
-        PasswordType passwordType = credentials.getPassword();
-        if (expectedPassword == null && passwordType == null) {
+        var password = credentials.getPassword();
+        if (expectedNull && password == null) {
             return;
         }
-        assertNotNull("Missing password credential in repo shadow " + shadow, passwordType);
-        ProtectedStringType protectedStringType = passwordType.getValue();
-        assertNotNull("No password value in repo shadow " + shadow, protectedStringType);
-        assertProtectedString("Wrong password value in repo shadow " + shadow, expectedPassword, protectedStringType, CredentialsStorageTypeType.HASHING);
+        assertNotNull("Missing password credential in repo shadow " + shadow, password);
+        var protectedString = password.getValue();
+        assertNotNull("No password value in repo shadow " + shadow, protectedString);
+        assertProtectedString(
+                "Wrong password value in repo shadow " + shadow, expectedPassword, protectedString, storageType);
     }
 
     private void assertPasswordCreateMetadata(PrismObject<UserType> user) {
@@ -4684,7 +4684,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertEquals("Wrong modifyChannel", SchemaConstants.CHANNEL_USER_URI, storage.getModifyChannel());
     }
 
-    protected void assertUserFriendlyMessage(OperationResult result, String expectedKey) {
+    private void assertUserFriendlyMessage(OperationResult result, String expectedKey) {
         assertThat(result.getUserFriendlyMessage()).as("user friendly message").isNotNull();
         assertThat(((SingleLocalizableMessage) result.getUserFriendlyMessage()).getKey())
                 .as("user friendly message key")

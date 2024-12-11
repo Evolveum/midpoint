@@ -254,7 +254,7 @@ public class ShadowUtil {
                 .getObjectClassDefinition();
     }
 
-    /** The shadow must have the attributes container and a definition. */
+    /** The definition is derived either from attributes container or from the prism definition (must not be raw). */
     public static @NotNull ResourceObjectDefinition getResourceObjectDefinition(@NotNull ShadowType shadow) {
         var attributesContainer = getAttributesContainer(shadow);
         if (attributesContainer != null) {
@@ -404,6 +404,10 @@ public class ShadowUtil {
         PrismContainerValue<PasswordType> passwordContainer = password.asPrismContainerValue();
         PrismProperty<ProtectedStringType> valueProperty = passwordContainer.findOrCreateProperty(PasswordType.F_VALUE);
         valueProperty.setIncomplete(true);
+    }
+
+    public static void removePasswordValueProperty(@NotNull PasswordType password) {
+        password.asPrismContainerValue().removeProperty(PasswordType.F_VALUE);
     }
 
     public static @NotNull PasswordType getOrCreateShadowPassword(ShadowType shadow) {
