@@ -15,7 +15,7 @@ import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Persister;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RSimpleEmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.NeverNull;
@@ -36,7 +36,7 @@ public class RConnector extends RObject {
 
     private RPolyString nameCopy;
     private String framework;
-    private REmbeddedReference connectorHostRef;
+    private RSimpleEmbeddedReference connectorHostRef;
     private String connectorType;
     private String connectorVersion;
     private String connectorBundle;
@@ -44,7 +44,7 @@ public class RConnector extends RObject {
     private Boolean available;
 
     @Embedded
-    public REmbeddedReference getConnectorHostRef() {
+    public RSimpleEmbeddedReference getConnectorHostRef() {
         return connectorHostRef;
     }
 
@@ -98,7 +98,7 @@ public class RConnector extends RObject {
         this.framework = framework;
     }
 
-    public void setConnectorHostRef(REmbeddedReference connectorHostRef) {
+    public void setConnectorHostRef(RSimpleEmbeddedReference connectorHostRef) {
         this.connectorHostRef = connectorHostRef;
     }
 

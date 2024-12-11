@@ -15,7 +15,7 @@ import org.hibernate.annotations.Persister;
 import org.hibernate.annotations.Type;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RSimpleEmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.NeverNull;
@@ -42,7 +42,7 @@ public class RAccessCertificationDefinition extends RObject {
 
     private RPolyString nameCopy;
     private String handlerUri;
-    private REmbeddedReference ownerRefDefinition;
+    private RSimpleEmbeddedReference ownerRefDefinition;
     private XMLGregorianCalendar lastCampaignStartedTimestamp;
     private XMLGregorianCalendar lastCampaignClosedTimestamp;
 
@@ -72,7 +72,7 @@ public class RAccessCertificationDefinition extends RObject {
             @AttributeOverride(name = "targetOid", column = @Column(name = "ownerRef_targetOid", length = RUtil.COLUMN_LENGTH_OID)),
             @AttributeOverride(name = "targetType", column = @Column(name = "ownerRef_targetType"))
     })
-    public REmbeddedReference getOwnerRefDefinition() {
+    public RSimpleEmbeddedReference getOwnerRefDefinition() {
         return ownerRefDefinition;
     }
 
@@ -90,7 +90,7 @@ public class RAccessCertificationDefinition extends RObject {
         this.handlerUri = handlerUri;
     }
 
-    public void setOwnerRefDefinition(REmbeddedReference ownerRefDefinition) {
+    public void setOwnerRefDefinition(RSimpleEmbeddedReference ownerRefDefinition) {
         this.ownerRefDefinition = ownerRefDefinition;
     }
 
