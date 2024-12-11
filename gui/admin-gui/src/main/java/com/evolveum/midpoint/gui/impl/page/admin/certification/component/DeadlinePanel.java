@@ -7,11 +7,10 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.certification.component;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.web.component.DateLabelComponent;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import java.io.Serial;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -20,10 +19,10 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.io.Serial;
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.web.component.DateLabelComponent;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 public class DeadlinePanel extends BasePanel<XMLGregorianCalendar> {
 
@@ -35,10 +34,10 @@ public class DeadlinePanel extends BasePanel<XMLGregorianCalendar> {
     private static final int UNDEFINED_DEADLINE_DISTANCE_VALUE = -1;
 
     public enum DeadlineDistance {
-        NORMAL(null, "text-success", ""),
-        CLOSE_IN_TIME(10, "text-warning", "fa fa-warning "),
-        CRITICALLY_CLOSE_IN_TIME(3, "text-danger", "fa fa-exclamation-circle"),
-        PAST_OR_UNDEFINED(UNDEFINED_DEADLINE_DISTANCE_VALUE, "text-primary", "");
+        NORMAL(null, "text-success", "far fa-clock lh-n"),
+        CLOSE_IN_TIME(10, "text-warning", "fa fa-warning lh-n"),
+        CRITICALLY_CLOSE_IN_TIME(3, "text-danger", "fa fa-exclamation-circle lh-n"),
+        PAST_OR_UNDEFINED(UNDEFINED_DEADLINE_DISTANCE_VALUE, "text-primary", "lh-n");
 
         private final Integer maxDayDistanceFromDeadline;
         private final String cssStyle;

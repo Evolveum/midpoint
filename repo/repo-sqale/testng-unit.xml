@@ -26,6 +26,7 @@
             <class name="com.evolveum.midpoint.repo.sqale.func.SqaleAuditSmokeTest"/>
             <class name="com.evolveum.midpoint.repo.sqale.func.SqaleSearchFullTextTest"/>
             <class name="com.evolveum.midpoint.repo.sqale.func.UriCacheTest"/>
+            <class name="com.evolveum.midpoint.repo.sqale.func.ShadowPartitioningTest" />
         </classes>
     </test>
     <test name="Slow functional tests" parallel="none">
