@@ -6,8 +6,12 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
+import java.io.Serial;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.web.component.input.validator.NotNullValidator;
 
 import com.evolveum.midpoint.web.util.ExpressionValidator;
@@ -57,7 +61,21 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
             IModel<String> label = LambdaModel.of(propertyWrapper::getDisplayName);
             formComponent.setLabel(label);
             if (panelCtx.isMandatory()) {
-                formComponent.add(new NotNullValidator<>("Required"));
+                formComponent.add(new NotNullValidator<>("Required") {
+
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected boolean skipValidation() {
+                        PrismContainerValueWrapper parentContainer = propertyWrapper.getParent();
+                        if (parentContainer == null || parentContainer.getNewValue() == null) {
+                            return false;
+                        }
+                        PrismContainerValue cleanedUpValue =
+                                WebPrismUtil.cleanupEmptyContainerValue(parentContainer.getNewValue().clone());
+                        return cleanedUpValue == null;
+                    }
+                });
             }
 
             if (formComponent instanceof TextField) {
