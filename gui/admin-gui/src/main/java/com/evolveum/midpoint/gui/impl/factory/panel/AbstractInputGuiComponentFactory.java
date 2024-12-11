@@ -92,7 +92,7 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
                         }
                         PrismContainerValue cleanedUpValue =
                                 WebPrismUtil.cleanupEmptyContainerValue(parentContainer.getNewValue().clone());
-                        return cleanedUpValue == null;
+                        return cleanedUpValue == null || cleanedUpValue.isEmpty();
                     }
                 });
             }
