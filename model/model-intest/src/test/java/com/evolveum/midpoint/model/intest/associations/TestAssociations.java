@@ -15,6 +15,7 @@ import java.util.Map;
 import com.evolveum.icf.dummy.resource.DummyObject;
 import com.evolveum.midpoint.model.intest.TestEntitlements;
 import com.evolveum.midpoint.model.intest.dummys.DummyAdTrivialScenario;
+import com.evolveum.midpoint.model.intest.dummys.DummyAdTrivialScenario.Group;
 import com.evolveum.midpoint.model.intest.dummys.DummyDmsScenario;
 import com.evolveum.midpoint.model.intest.dummys.DummyHrScenarioExtended;
 import com.evolveum.midpoint.model.intest.dummys.DummyHrScenarioExtended.CostCenter;
@@ -81,6 +82,8 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
 
     private static final String INTENT_DEFAULT = "default";
     private static final String INTENT_DOCUMENT = "document";
+
+    private static final String INTENT_ADMIN = "admin";
 
     private static final ResourceObjectTypeIdentification TYPE_GROUP =
             ResourceObjectTypeIdentification.of(ENTITLEMENT, "group");
@@ -172,6 +175,81 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
     private static final TestObject<?> ARCHETYPE_ORG_WITH_GROUP_2 = TestObject.file(
             TEST_DIR, "archetype-org-with-group-2.xml", "2698206c-fd6c-4810-99c6-b3bfc8b67b65");
 
+    //region "Removing unclassified memberships" scenario
+    private static DummyAdTrivialScenario rumScenario;
+
+    private static final File TEST_RUM_DIR = new File(TEST_DIR, "removing-unclassified-memberships");
+
+    private static final DummyTestResource RESOURCE_DUMMY_RUM = new DummyTestResource(
+            TEST_RUM_DIR, "resource-dummy-removing-unclassified-memberships.xml",
+            "8212257a-d4e6-4910-a563-eb7abaceeb7f", "removing-unclassified-memberships",
+            c -> rumScenario = DummyAdTrivialScenario.on(c).initialize());
+
+    private static final TestObject<?> ARCHETYPE_RUM_AD_ROLE = TestObject.file(
+            TEST_RUM_DIR, "archetype-rum-ad-role.xml", "724f5f22-2ed9-40cc-9364-ceb77f8dc070");
+    private static final TestObject<?> ARCHETYPE_RUM_APP_ROLE = TestObject.file(
+            TEST_RUM_DIR, "archetype-rum-app-role.xml", "98ea7f65-5746-4724-838a-57e06d536fbb");
+    private static final TestObject<?> ARCHETYPE_RUM_ADMIN_ROLE = TestObject.file(
+            TEST_RUM_DIR, "archetype-rum-admin-role.xml", "4fb55be5-8306-4eca-a470-14ba55f3e6c3");
+
+    private void initRumScenario(Task initTask, OperationResult initResult) throws Exception {
+        initTestObjects(initTask, initResult,
+                ARCHETYPE_RUM_AD_ROLE, ARCHETYPE_RUM_APP_ROLE, ARCHETYPE_RUM_ADMIN_ROLE);
+
+        var subResult = initResult.createSubresult("initializeResources");
+        try {
+            RESOURCE_DUMMY_RUM.initAndTest(this, initTask, subResult);
+        } finally {
+            subResult.close();
+        }
+    }
+    //endregion
+
+    //region Raw references
+    private static final File TEST_RAW_DIR = new File(TEST_DIR, "raw-references");
+
+    private static DummyAdTrivialScenario rawScenario;
+
+    private static final DummyTestResource RESOURCE_DUMMY_RAW = new DummyTestResource(
+            TEST_RAW_DIR, "resource-dummy-raw-references.xml",
+            "d8241505-7d80-48da-bb83-60bf66b7d174", "raw-references",
+            c -> rawScenario = DummyAdTrivialScenario.on(c).initialize());
+
+    private static final TestObject<?> ARCHETYPE_RAW_GROUP = TestObject.file(
+            TEST_RAW_DIR, "archetype-raw-group.xml", "afdc3291-855f-4826-8355-a1b3a5b6bbeb");
+
+    private static final TestObject<?> SHADOW_ALL_USERS = TestObject.file(
+            TEST_RAW_DIR, "shadow-all-users.xml", "ce03cda7-5385-451f-a674-a925f2966f6d");
+
+    private static final TestObject<?> SHADOW_WHEEL = TestObject.file(
+            TEST_RAW_DIR, "shadow-wheel.xml", "49ed8149-b920-4180-af81-c5bd5a0580c1");
+
+    private static final TestObject<?> SHADOW_HACKERS = TestObject.file(
+            TEST_RAW_DIR, "shadow-hackers.xml", "5f3e657b-59f9-4bef-9cf7-8316bd2f7814");
+
+    private String roleWheelOid;
+
+    private void initRawScenario(Task initTask, OperationResult initResult) throws Exception {
+        initTestObjects(initTask, initResult,
+                ARCHETYPE_RAW_GROUP);
+
+        RESOURCE_DUMMY_RAW.initAndTest(this, initTask, initResult);
+
+        initTestObjects(initTask, initResult,
+                SHADOW_ALL_USERS, SHADOW_WHEEL, SHADOW_HACKERS);
+
+        importAccountsRequest()
+                .withResourceOid(RESOURCE_DUMMY_RAW.oid)
+                .withWholeObjectClass(RI_GROUP)
+                .withProcessingAllAccounts()
+                .executeOnForeground(initResult);
+
+        assertRoleByName(SHADOW_ALL_USERS.getNameOrig(), "").getOid();
+        roleWheelOid = assertRoleByName(SHADOW_WHEEL.getNameOrig(), "").getOid();
+        assertRoleByName(SHADOW_HACKERS.getNameOrig(), "");
+    }
+    //endregion
+
     private final ZonedDateTime sciencesContractFrom = ZonedDateTime.now();
 
     // HR objects
@@ -227,29 +305,26 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 ARCHETYPE_ORG_WITH_GROUP, ARCHETYPE_ORG_WITH_GROUP_2,
                 ARCHETYPE_AD3_ROLE_A, ARCHETYPE_AD3_ROLE_B);
 
-        // The subresult is created to avoid failing on benign warnings from the above objects' initialization
-        var subResult = initResult.createSubresult("initializeResources");
-        try {
-            RESOURCE_DUMMY_HR.initAndTest(this, initTask, subResult);
-            createCommonHrObjects();
-            importCostCenters(subResult);
+        RESOURCE_DUMMY_HR.initAndTest(this, initTask, initResult);
+        createCommonHrObjects();
+        importCostCenters(initResult);
 
-            RESOURCE_DUMMY_DMS.initAndTest(this, initTask, subResult);
-            createCommonDmsObjects();
-            importDocuments(subResult);
+        RESOURCE_DUMMY_DMS.initAndTest(this, initTask, initResult);
+        createCommonDmsObjects();
+        importDocuments(initResult);
 
-            RESOURCE_DUMMY_DMS_NON_TOLERANT.initAndTest(this, initTask, subResult);
+        RESOURCE_DUMMY_DMS_NON_TOLERANT.initAndTest(this, initTask, initResult);
 
-            RESOURCE_DUMMY_AD.initAndTest(this, initTask, subResult);
-            createCommonAdObjects();
-            importGroups(subResult);
+        RESOURCE_DUMMY_AD.initAndTest(this, initTask, initResult);
+        createCommonAdObjects();
+        importGroups(initResult);
 
-            RESOURCE_DUMMY_AD_MORE_ASSOCIATION_TYPES.initAndTest(this, initTask, subResult);
+        RESOURCE_DUMMY_AD_MORE_ASSOCIATION_TYPES.initAndTest(this, initTask, initResult);
 
-            RESOURCE_DUMMY_AD3_MIXED_GROUPS.initAndTest(this, initTask, subResult);
-        } finally {
-            subResult.close();
-        }
+        RESOURCE_DUMMY_AD3_MIXED_GROUPS.initAndTest(this, initTask, initResult);
+
+        initRumScenario(initTask, initResult);
+        initRawScenario(initTask, initResult);
     }
 
     /**
@@ -1231,9 +1306,9 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
 
         given("groups on the resource, marked as managed");
         adMoreAssociationTypesScenario.group.add(appGroupName)
-                .addAttributeValue(DummyAdTrivialScenario.Group.AttributeNames.TYPE.local(), "application");
+                .addAttributeValue(Group.AttributeNames.TYPE.local(), "application");
         adMoreAssociationTypesScenario.group.add(genericGroupName)
-                .addAttributeValue(DummyAdTrivialScenario.Group.AttributeNames.TYPE.local(), "generic");
+                .addAttributeValue(Group.AttributeNames.TYPE.local(), "generic");
         var appGroupShadowOid = findShadowRequest()
                 .withResource(RESOURCE_DUMMY_AD_MORE_ASSOCIATION_TYPES.getObjectable())
                 .withWholeObjectClass(adMoreAssociationTypesScenario.group.getObjectClassName().xsd())
@@ -1610,6 +1685,202 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .associations()
                 .association(RI_GROUP)
                 .assertShadowOids(groupOid3);
+    }
+
+    /**
+     * Creating an account with the default reference (provided by `value` expression in the account definition).
+     */
+    @Test(description = "MID-10285")
+    public void test500CreatingAccountWithDefaultRawReference() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = "user-" + getTestNameShort();
+
+        when("a user with the default account is created");
+        var user = new UserType()
+                .name(userName)
+                .assignment(RESOURCE_DUMMY_RAW.assignmentTo(ACCOUNT, INTENT_DEFAULT));
+        var userOid = addObject(user, task, result);
+
+        then("the account with the reference is created");
+        assertUser(userOid, "")
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .links()
+                .singleLive()
+                .resolveTarget()
+                .attributes()
+                .referenceAttribute(RI_GROUP)
+                .assertShadowOids(SHADOW_ALL_USERS.oid);
+    }
+
+    /** Creating an account with the default + role-based reference. */
+    @Test(description = "MID-10285")
+    public void test510CreatingAccountWithTwoRawReferences() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = "user-" + getTestNameShort();
+
+        when("a user with the 'wheel' role is created");
+        var user = new UserType()
+                .name(userName)
+                .assignment(new AssignmentType()
+                        .targetRef(roleWheelOid, RoleType.COMPLEX_TYPE));
+        var userOid = addObject(user, task, result);
+
+        then("the account with the reference with two values is created");
+        assertSuccess(result);
+        assertUser(userOid, "")
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .links()
+                .singleLive()
+                .resolveTarget()
+                .attributes()
+                .referenceAttribute(RI_GROUP)
+                .assertShadowOids(SHADOW_ALL_USERS.oid, SHADOW_WHEEL.oid);
+    }
+
+    /** Tests removal of extra (manually added) reference (using also primary delta to add another one). */
+    @Test(description = "MID-10285")
+    public void test530RemovingExtraReference() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = "user-" + getTestNameShort();
+
+        given("a user with the default membership");
+        var user = new UserType()
+                .name(userName)
+                .assignment(RESOURCE_DUMMY_RAW.assignmentTo(ACCOUNT, INTENT_DEFAULT));
+        var userOid = addObject(user, task, result);
+
+        assertUser(userOid, "")
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .links()
+                .singleLive()
+                .resolveTarget()
+                .attributes()
+                .referenceAttribute(RI_GROUP)
+                .assertShadowOids(SHADOW_ALL_USERS.oid);
+
+        and("an extra reference is added to the account on the resource");
+        var account = rawScenario.account.getByNameRequired(userName);
+        var hackers = rawScenario.group.getByNameRequired(SHADOW_HACKERS.getNameOrig());
+        rawScenario.accountGroup.add(account, hackers);
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_RAW.oid);
+
+        when("the user is modified (by adding role 'wheel')");
+        executeChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT)
+                        .add(new AssignmentType()
+                                .targetRef(roleWheelOid, RoleType.COMPLEX_TYPE))
+                        .asObjectDelta(userOid),
+                null, task, result);
+
+        then("the account has two references: default and 'wheel', the extra one is gone");
+        assertSuccess(result);
+        assertUser(userOid, "after modification")
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .links()
+                .singleLive()
+                .resolveTarget()
+                .display("default account")
+                .attributes()
+                .referenceAttribute(RI_GROUP)
+                .assertShadowOids(SHADOW_ALL_USERS.oid, SHADOW_WHEEL.oid);
+        assertThat(account.getLinkedObjects(DummyAdTrivialScenario.Account.LinkNames.GROUP.local()))
+                .as("linked objects for the default account")
+                .hasSize(2);
+    }
+
+    /**
+     * When an unauthorized group membership (that matches no association) is added to an account, it will get removed.
+     */
+    @Test(description = "MID-10285")
+    public void test550RemovingUnclassifiedMemberships() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = "user-" + getTestNameShort();
+        var adGroupName = "ad-group-" + getTestNameShort();
+        var appGroupName = "app-group-" + getTestNameShort();
+        var adminGroupName = "admin-group-" + getTestNameShort();
+
+        given("three groups, imported as roles");
+        rumScenario.group
+                .add(adGroupName)
+                .addAttributeValues(Group.AttributeNames.TYPE.local(), "ad");
+        rumScenario.group
+                .add(appGroupName)
+                .addAttributeValues(Group.AttributeNames.TYPE.local(), "app");
+        var adminGroup = rumScenario.group
+                .add(adminGroupName)
+                .addAttributeValues(Group.AttributeNames.TYPE.local(), "admin");
+
+        importAccountsRequest()
+                .withResourceOid(RESOURCE_DUMMY_RUM.oid)
+                .withWholeObjectClass(RI_GROUP)
+                .withProcessingAllAccounts()
+                .executeOnForeground(result);
+
+        var adRoleOid = assertRoleByName(adGroupName, "").getOid();
+        var appRoleOid = assertRoleByName(appGroupName, "").getOid();
+        var adminRoleOid = assertRoleByName(adminGroupName, "").getOid();
+
+        and("a user with all of them assigned");
+        var user = new UserType()
+                .name(userName)
+                .assignment(new AssignmentType()
+                        .targetRef(adRoleOid, RoleType.COMPLEX_TYPE))
+                .assignment(new AssignmentType()
+                        .targetRef(appRoleOid, RoleType.COMPLEX_TYPE))
+                .assignment(new AssignmentType()
+                        .targetRef(adminRoleOid, RoleType.COMPLEX_TYPE));
+        var userOid = addObject(user, task, result);
+
+        assertUser(userOid, "")
+                .links()
+                .assertLiveLinks(2)
+                .by().intent(INTENT_DEFAULT).find().end()
+                .by().intent(INTENT_ADMIN).find().end();
+
+        when("an unauthorized group membership is added to the 'default' account");
+        var defaultAccount = rumScenario.account.getByNameRequired(userName);
+        rumScenario.accountGroup.add(defaultAccount, adminGroup);
+
+        // cache invalidation is not needed, as the user account is fetched explicitly below
+
+        then("the membership is there, visible as a reference attribute value");
+        assertUser(userOid, "after added unauthorized membership, before reconciliation")
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .links()
+                .by().intent(INTENT_DEFAULT).find()
+                .resolveTarget()
+                .display("default account")
+                .associations()
+                .assertValuesCount(2) // ad, app
+                .end()
+                .attributes()
+                .singleReferenceValueShadow(RI_GROUP)
+                .assertName(adminGroupName);
+
+        when("the user is reconciled");
+        reconcileUser(userOid, task, result);
+
+        then("the unauthorized membership is removed");
+        assertSuccess(result);
+        assertUser(userOid, "after reconciliation")
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .links()
+                .by().intent(INTENT_DEFAULT).find()
+                .resolveTarget()
+                .display("default account")
+                .associations()
+                .assertValuesCount(2) // ad, app
+                .end()
+                .attributes()
+                .assertNoAttribute(RI_GROUP);
+        assertThat(defaultAccount.getLinkedObjects(DummyAdTrivialScenario.Account.LinkNames.GROUP.local()))
+                .as("linked objects for the default account")
+                .hasSize(2);
     }
 
     private void importAdAccount(String name, OperationResult result) throws CommonException, IOException {
