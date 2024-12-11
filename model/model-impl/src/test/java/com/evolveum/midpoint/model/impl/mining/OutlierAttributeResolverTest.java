@@ -32,7 +32,7 @@ public class OutlierAttributeResolverTest extends AbstractUnitTest {
     @Test
     void shouldResolveAllAttributes() {
         given();
-        var clusterAttributeDetails = List.of(
+        var attributeDetails = List.of(
                 makeAttributeAnalysis("attr1", "v11", 10, "v12", 8, "v13", 2),
                 makeAttributeAnalysis("attr2", "v21", 1, "v22", 1),
                 makeAttributeAnalysis("attr3", "v31", 15)
@@ -45,7 +45,7 @@ public class OutlierAttributeResolverTest extends AbstractUnitTest {
         var resolver = new OutlierAttributeResolver(0.1);
 
         when();
-        var results = resolver.resolveUnusualAttributes(clusterAttributeDetails, userAttributeDetails);
+        var results = resolver.resolveUnusualAttributes(attributeDetails, userAttributeDetails);
 
         then();
         assertEquals("should have same size of attributes", 3, results.size());
@@ -61,7 +61,7 @@ public class OutlierAttributeResolverTest extends AbstractUnitTest {
     @Test
     void shouldDetectUnusualValues() {
         given();
-        var clusterAttributeDetails = List.of(
+        var attributeDetails = List.of(
                 makeAttributeAnalysis("attr1", "v11", 20, "v12", 15, "v13", 2), // median equals mode
                 makeAttributeAnalysis("attr2", "v21", 30, "v22", 2, "v23", 4), // median equals mode
                 makeAttributeAnalysis("attr3", "v31", 50, "v32", 30, "v33", 30, "v34", 3) // median does not equal mode
@@ -74,7 +74,7 @@ public class OutlierAttributeResolverTest extends AbstractUnitTest {
         var resolver = new OutlierAttributeResolver(0.1);
 
         when();
-        var results = resolver.resolveUnusualAttributes(clusterAttributeDetails, userAttributeDetails);
+        var results = resolver.resolveUnusualAttributes(attributeDetails, userAttributeDetails);
 
         then();
         assertEquals("attr1 should have unusual value", 1.0, findConfidenceResult(results, "attr1").confidence());
@@ -85,7 +85,7 @@ public class OutlierAttributeResolverTest extends AbstractUnitTest {
     @Test
     void shouldNotDetectUnusualValues() {
         given();
-        var clusterAttributeDetails = List.of(
+        var attributeDetails = List.of(
                 makeAttributeAnalysis("attr1", "v11", 20, "v12", 15, "v13", 3, "v14", 10), // median equals mode
                 makeAttributeAnalysis("attr2", "v21", 30, "v22", 18), // median equals mode
                 makeAttributeAnalysis("attr3", "v31", 50, "v32", 30, "v33", 30, "v34", 4) // median does not equal mode
@@ -98,7 +98,7 @@ public class OutlierAttributeResolverTest extends AbstractUnitTest {
         var resolver = new OutlierAttributeResolver(0.1);
 
         when();
-        var results = resolver.resolveUnusualAttributes(clusterAttributeDetails, userAttributeDetails);
+        var results = resolver.resolveUnusualAttributes(attributeDetails, userAttributeDetails);
 
         then();
         assertEquals("attr1 should have usual value", 0.0, findConfidenceResult(results, "attr1").confidence());
@@ -109,14 +109,14 @@ public class OutlierAttributeResolverTest extends AbstractUnitTest {
     @Test
     void shouldNotConsiderMissingAttributes() {
         given();
-        var clusterAttributeDetails = List.of(
+        var attributeDetails = List.of(
                 makeAttributeAnalysis("attr1", "v11", 20)
         );
         List<RoleAnalysisAttributeAnalysis> userAttributeDetails = List.of();
         var resolver = new OutlierAttributeResolver(0.1);
 
         when();
-        var results = resolver.resolveUnusualAttributes(clusterAttributeDetails, userAttributeDetails);
+        var results = resolver.resolveUnusualAttributes(attributeDetails, userAttributeDetails);
 
         then();
         assertEquals("missing attributes are not supported", 0, results.size());
@@ -125,7 +125,7 @@ public class OutlierAttributeResolverTest extends AbstractUnitTest {
     @Test
     void shouldConsiderMultivaluedValue() {
         given();
-        var clusterAttributeDetails = List.of(
+        var attributeDetails = List.of(
                 makeAttributeAnalysis("attr1", "v11", 20, "v12", 20, "v13", 20),
                 makeAttributeAnalysis("attr2", "v21", 20, "v22", 1, "v23", 1)
         );
@@ -136,7 +136,7 @@ public class OutlierAttributeResolverTest extends AbstractUnitTest {
         var resolver = new OutlierAttributeResolver(0.1);
 
         when();
-        var results = resolver.resolveUnusualAttributes(clusterAttributeDetails, userAttributeDetails);
+        var results = resolver.resolveUnusualAttributes(attributeDetails, userAttributeDetails);
 
         then();
         assertEquals("missing attr1 is not unusual", 0.0, findConfidenceResult(results, "attr1").confidence());
@@ -158,7 +158,7 @@ public class OutlierAttributeResolverTest extends AbstractUnitTest {
         for (var i = 0; i < valueCountTuples.length; i += 2) {
             var stats = new RoleAnalysisAttributeStatistics();
             stats.setAttributeValue((String) valueCountTuples[i]);
-            stats.setInGroup((Integer) valueCountTuples[i + 1]);
+            stats.setInRepo((Integer) valueCountTuples[i + 1]);
             result.getAttributeStatistics().add(stats);
         }
         return result;

@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Responsibility of an attribute resolver is to decide whether user attribute value is unusual comparing to the similar users (in group stats).
+ * Responsibility of an attribute resolver is to decide whether user attribute value is unusual comparing to the provided users (in repo stats).
  * Algorithm:
  * 1. find the most common (mode) value of an attribute
  * 2. use its frequency within group as a baseline (100%) to compute relative frequencies
@@ -29,11 +29,11 @@ public class OutlierAttributeResolver {
     public record UnusualAttributeValueConfidence(ItemPathType path, double confidence, List<UnusualSingleValueDetail> partialConfidences) {}
 
     private RoleAnalysisAttributeStatistics findMedianAttributeValueStats(List<RoleAnalysisAttributeStatistics> stats) {
-        var usersWithAttributeCount = stats.stream().mapToInt(RoleAnalysisAttributeStatistics::getInGroup).sum();
+        var usersWithAttributeCount = stats.stream().mapToInt(RoleAnalysisAttributeStatistics::getInRepo).sum();
         var halfUsersStack = usersWithAttributeCount / 2;
-        var sortedDescStats = stats.stream().sorted((a, b) -> a.getInGroup().compareTo(b.getInGroup())).toList();
+        var sortedDescStats = stats.stream().sorted((a, b) -> a.getInRepo().compareTo(b.getInRepo())).toList();
         for (var stat: sortedDescStats) {
-            halfUsersStack -= stat.getInGroup();
+            halfUsersStack -= stat.getInRepo();
             if (halfUsersStack <= 0) {
                 return stat;
             }
@@ -41,49 +41,49 @@ public class OutlierAttributeResolver {
         throw new RuntimeException("Invariant violation: there always have to be median value");
     }
 
-    private UnusualSingleValueDetail analyzeAttributeValue(RoleAnalysisAttributeAnalysis clusterAttributeDetail, String userAttributeValue ) {
-        var allStats = clusterAttributeDetail.getAttributeStatistics();
+    private UnusualSingleValueDetail analyzeAttributeValue(RoleAnalysisAttributeAnalysis attributeDetail, String userAttributeValue ) {
+        var allStats = attributeDetail.getAttributeStatistics();
         var medianValueStats = findMedianAttributeValueStats(allStats);
-        var userValueInGroup = allStats.stream()
+        var userValueInRepo = allStats.stream()
                 .filter(s -> s.getAttributeValue().equals(userAttributeValue))
-                .map(a -> a.getInGroup().doubleValue())
+                .map(a -> a.getInRepo().doubleValue())
                 .findFirst()
                 .orElse(0d);
-        var medianValueInGroup = medianValueStats.getInGroup().doubleValue();
-        var relativeUserValueFrequency = userValueInGroup / medianValueInGroup;
+        var medianValueInRepo = medianValueStats.getInRepo().doubleValue();
+        var relativeUserValueFrequency = userValueInRepo / medianValueInRepo;
         var confidence = relativeUserValueFrequency <= minRelativeFrequencyThreshold ? 1 : 0;
         return new UnusualSingleValueDetail(userAttributeValue, confidence, relativeUserValueFrequency);
     }
 
-    private UnusualAttributeValueConfidence analyzeAttribute(RoleAnalysisAttributeAnalysis clusterAttributeDetail, RoleAnalysisAttributeAnalysis userAttributeDetail ) {
+    private UnusualAttributeValueConfidence analyzeAttribute(RoleAnalysisAttributeAnalysis attributeDetail, RoleAnalysisAttributeAnalysis userAttributeDetail ) {
         var userValues = userAttributeDetail.getAttributeStatistics().stream()
                 .map(RoleAnalysisAttributeStatistics::getAttributeValue)
                 .toList();
 
         var partialConfidences = userValues.stream()
-                .map(userValue -> analyzeAttributeValue(clusterAttributeDetail, userValue))
+                .map(userValue -> analyzeAttributeValue(attributeDetail, userValue))
                 .toList();
 
         var confidence = partialConfidences.stream()
                 .mapToDouble(UnusualSingleValueDetail::confidence)
                 .max()
                 .orElse(0d);
-        return new UnusualAttributeValueConfidence(clusterAttributeDetail.getItemPath(), confidence, partialConfidences);
+        return new UnusualAttributeValueConfidence(attributeDetail.getItemPath(), confidence, partialConfidences);
     }
 
     public List<UnusualAttributeValueConfidence> resolveUnusualAttributes(
-            List<RoleAnalysisAttributeAnalysis> clusterAttributeDetails,
+            List<RoleAnalysisAttributeAnalysis> attributeDetails,
             List<RoleAnalysisAttributeAnalysis> userAttributeDetails
     ) {
-        return clusterAttributeDetails.stream()
-                .map(clusterAttributeDetail -> {
-                    var path = clusterAttributeDetail.getItemPath();
+        return attributeDetails.stream()
+                .map(attributeDetail -> {
+                    var path = attributeDetail.getItemPath();
                     var userAttributeDetail = userAttributeDetails.stream()
                             .filter(a -> a.getItemPath().equals(path))
                             .findFirst()
                             .orElse(null);
 
-                    if (clusterAttributeDetail.getAttributeStatistics().isEmpty()) {
+                    if (attributeDetail.getAttributeStatistics().isEmpty()) {
                         // invariant violation: defensive, but should not happen
                         return null;
                     }
@@ -93,7 +93,7 @@ public class OutlierAttributeResolver {
                         return null;
                     }
 
-                    return analyzeAttribute(clusterAttributeDetail, userAttributeDetail);
+                    return analyzeAttribute(attributeDetail, userAttributeDetail);
                 })
                 .filter(Objects::nonNull)
                 .toList();

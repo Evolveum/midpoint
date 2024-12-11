@@ -180,13 +180,13 @@ public class OutliersDetectionUtil {
         if (attributesForUserAnalysis == null || attributesForUserAnalysis.isEmpty()) {
             return Collections.emptyList();
         }
-        RoleAnalysisAttributeAnalysisResult roleAnalysisAttributeAnalysisResult = getRoleMemberAnalysis(roleTypeObject, userAnalysisCache, roleAnalysisService, attributesForUserAnalysis, task, result);
+        RoleAnalysisAttributeAnalysisResult roleMemberAttributeAnalysisResult = getRoleMemberAnalysis(roleTypeObject, userAnalysisCache, roleAnalysisService, attributesForUserAnalysis, task, result);
         RoleAnalysisAttributeAnalysisResult userAttributes = getUserAttributeAnalysis(userTypeObject, userAnalysisCache, roleAnalysisService, attributesForUserAnalysis);
 
         OutlierAttributeResolver attributeResolver = new OutlierAttributeResolver(0.2);
-        List<RoleAnalysisAttributeAnalysis> clusterAttributeDetails = roleAnalysisAttributeAnalysisResult.getAttributeAnalysis();
+        List<RoleAnalysisAttributeAnalysis> roleMemeberAttributeDetails = roleMemberAttributeAnalysisResult.getAttributeAnalysis();
         List<RoleAnalysisAttributeAnalysis> userAttributeDetails = userAttributes.getAttributeAnalysis();
-        return attributeResolver.resolveUnusualAttributes(clusterAttributeDetails, userAttributeDetails);
+        return attributeResolver.resolveUnusualAttributes(roleMemeberAttributeDetails, userAttributeDetails);
     }
 
     public static double calculateAssignmentAnomalyConfidence(
