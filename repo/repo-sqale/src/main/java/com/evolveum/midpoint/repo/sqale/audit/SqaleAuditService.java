@@ -19,6 +19,11 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
 import javax.xml.datatype.Duration;
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.PrismContext;
+
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 
 import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.dml.DefaultMapper;
@@ -133,7 +138,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         Collection<MAuditDelta> deltaRows = prepareDeltas(record.getDeltas());
         row.deltas = deltaRows;
 
-        Set<String> changedItemPaths = collectChangedItemPaths(deltaRows);
+        Set<String> changedItemPaths = collectChangedItemPathsFromOriginal(record.getDeltas());
         row.changedItemPaths = changedItemPaths.isEmpty() ? null : changedItemPaths.toArray(String[]::new);
 
         SQLInsertClause insert = jdbcSession.newInsert(aer).populate(row);
@@ -306,6 +311,26 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
             }
         }
         return changedItemPaths;
+    }
+
+    private Set<String> collectChangedItemPathsFromOriginal(Collection<ObjectDeltaOperation<? extends ObjectType>> deltas) {
+        Set<String> changedItemPaths = new HashSet<>();
+        for (var delta : deltas) {
+            var objectType = objectTypeQName(delta);
+            for (var itemDelta : delta.getObjectDelta().getModifications()) {
+                ItemPath path = itemDelta.getPath();
+                CanonicalItemPath canonical = sqlRepoContext.prismContext()
+                        .createCanonicalItemPath(path, objectType);
+                for (int i = 0; i < canonical.size(); i++) {
+                    changedItemPaths.add(canonical.allUpToIncluding(i).asString());
+                }
+            }
+        }
+        return changedItemPaths;
+    }
+
+    private QName objectTypeQName(ObjectDeltaOperation<? extends ObjectType> delta) {
+        return ObjectTypes.getObjectType(delta.getObjectDelta().getObjectTypeClass()).getTypeQName();
     }
 
     private void insertAuditDeltas(
