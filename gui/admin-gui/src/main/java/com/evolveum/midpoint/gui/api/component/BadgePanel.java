@@ -53,6 +53,7 @@ public class BadgePanel extends BasePanel<Badge> {
         add(icon);
 
         Label text = new Label(ID_TEXT, () -> getModelObject().getText());
+        text.add(AttributeAppender.append("class", () -> getModelObject().getTextCssClass()));
         add(text);
     }
 }

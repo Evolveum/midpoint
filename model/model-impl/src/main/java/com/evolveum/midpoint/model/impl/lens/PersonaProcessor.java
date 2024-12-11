@@ -280,7 +280,7 @@ public class PersonaProcessor {
 
         LOGGER.trace("Creating persona:\n{}", target.debugDumpLazily(1));
 
-        String targetOid = executePersonaDelta(targetDelta, focus.getOid(), task, result);
+        String targetOid = executePersonaDelta(targetDelta, focus.getOid(), context.isLazyAuditRequest(), task, result);
         target.setOid(targetOid);
 
         link(context, target.asObjectable(), task, result);
@@ -310,7 +310,7 @@ public class PersonaProcessor {
             targetDelta.addModification(itemDelta);
         }
 
-        executePersonaDelta(targetDelta, focus.getOid(), task, result);
+        executePersonaDelta(targetDelta, focus.getOid(), context.isLazyAuditRequest(), task, result);
     }
 
     private <F extends FocusType> void personaDelete(LensContext<F> context, PersonaKey key, FocusType existingPersona,
@@ -321,7 +321,7 @@ public class PersonaProcessor {
         LOGGER.debug("Deleting persona {} for {}: {}", key, focus, existingPersona);
         ObjectDelta<? extends FocusType> targetDelta = existingPersona.asPrismObject().createDeleteDelta();
 
-        executePersonaDelta(targetDelta, focus.getOid(), task, result);
+        executePersonaDelta(targetDelta, focus.getOid(), context.isLazyAuditRequest(), task, result);
 
         unlink(context, existingPersona, task, result);
     }
@@ -377,7 +377,7 @@ public class PersonaProcessor {
         }
     }
 
-    private <O extends ObjectType> String executePersonaDelta(ObjectDelta<O> delta, String ownerOid, Task task, OperationResult parentResult)
+    private <O extends ObjectType> String executePersonaDelta(ObjectDelta<O> delta, String ownerOid, boolean lazyAuditRequest, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, SecurityViolationException {
         OperationResult result = parentResult.subresult(OP_EXECUTE_PERSONA_DELTA)
@@ -389,6 +389,7 @@ public class PersonaProcessor {
             // them as REQUEST. Assignment of the persona role was REQUEST. Changes in persona itself is all EXECUTION.
             context.setExecutionPhaseOnly(true);
             context.setOwnerOid(ownerOid);
+            context.setLazyAuditRequest(lazyAuditRequest);
             clockwork.run(context, task, result);
             String personaOid = ObjectDeltaOperation.findFocusDeltaOidInCollection(context.getExecutedDeltas());
             if (delta.isAdd() && personaOid == null) {

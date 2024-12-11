@@ -11,12 +11,9 @@
 <resource oid="67a954d2-f391-11e6-a1d7-078381fe0e6f"
           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 
     <name>Dummy Resource Monsterized</name>
     <description>Resource with a monster that eats cookies</description>
@@ -72,7 +69,13 @@
             </attribute>
             <attribute>
                 <ref>ri:interests</ref>
-                <cached>false</cached> <!-- MID-10051 -->
+                <volatility>
+                    <!-- Value can change unexpectedly both when adding or modifying the object -->
+                    <incomingDependency>
+                        <operation>add</operation>
+                        <operation>modify</operation>
+                    </incomingDependency>
+                </volatility>
                 <outbound>
                     <strength>strong</strength>
                     <source>

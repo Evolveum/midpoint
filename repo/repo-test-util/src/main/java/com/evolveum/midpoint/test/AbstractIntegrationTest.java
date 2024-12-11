@@ -279,6 +279,11 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             return;
         }
 
+        if (shouldSkipWholeClass()) {
+            IntegrationTestTools.display("Skipping system initialization, as the whole test class is to be skipped");
+            return;
+        }
+
         // Check whether we are already initialized
         assertNotNull(repositoryService, "Repository is not wired properly");
         assertNotNull(taskManager, "Task manager is not wired properly");
@@ -4555,6 +4560,18 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         if (requiresNativeRepository() && !isNativeRepository()) {
             throw new SkipException("Skipping test method, as the whole class requires native repository");
         }
+    }
+
+    @BeforeMethod
+    public void skipWholeClassIfNeeded() {
+        if (shouldSkipWholeClass()) {
+            throw new SkipException("Skipping the whole test class");
+        }
+    }
+
+    /** Override to skip the whole test class: initialization and all methods. */
+    protected boolean shouldSkipWholeClass() {
+        return false;
     }
 
     /** To be used at individual test method level. */

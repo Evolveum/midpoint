@@ -269,10 +269,10 @@ public abstract class EvaluatedResourceObjectConstructionImpl<
                 return constructionEvaluation.getNextRecompute();
             }
         } catch (Throwable t) {
-            result.recordFatalError(t);
+            result.recordException(t);
             throw t;
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
         }
     }
 

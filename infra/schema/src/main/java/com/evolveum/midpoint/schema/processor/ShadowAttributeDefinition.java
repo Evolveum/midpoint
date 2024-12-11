@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import java.math.BigInteger;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -320,4 +319,16 @@ public interface ShadowAttributeDefinition<
      * TODO reconsider this method
      */
     String debugDump(int indent, LayerType layer);
+
+    /**
+     * This attribute may get unexpected values when the object is created on the resource.
+     * (Regardless of whether any value is provided by the client. These subtle cases may get distinguished later.)
+     */
+    boolean isVolatileOnAddOperation();
+
+    /**
+     * This attribute may get unexpected values when the object is updated on the resource,
+     * regardless of what attributes are modified and in what way.
+     */
+    boolean isVolatileOnModifyOperation();
 }

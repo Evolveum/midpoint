@@ -15,8 +15,8 @@ import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorOperationOptions;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
+import com.evolveum.midpoint.provisioning.ucf.api.UcfDeleteResult;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -25,6 +25,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.BeforeAfterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.DeleteCapabilityType;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Responsibilities:
@@ -50,7 +52,7 @@ class ResourceObjectDeleteOperation extends ResourceObjectProvisioningOperation 
         this.shadow = shadow;
     }
 
-    static ResourceObjectDeleteReturnValue execute(
+    static @NotNull ResourceObjectDeleteResult execute(
             ProvisioningContext ctx,
             RepoShadow shadow,
             OperationProvisioningScriptsType scripts,
@@ -62,7 +64,7 @@ class ResourceObjectDeleteOperation extends ResourceObjectProvisioningOperation 
                 .doExecute(result);
     }
 
-    private ResourceObjectDeleteReturnValue doExecute(OperationResult result)
+    private @NotNull ResourceObjectDeleteResult doExecute(OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
         LOGGER.trace("Deleting resource object {}", shadow);
@@ -78,7 +80,7 @@ class ResourceObjectDeleteOperation extends ResourceObjectProvisioningOperation 
         ResourceObjectIdentification<?> identification = shadow.getIdentificationRequired();
 
         ConnectorInstance connector = ctx.getConnector(DeleteCapabilityType.class, result);
-        AsynchronousOperationResult connectorAsyncOpRet;
+        UcfDeleteResult ucfDeleteResult;
         try {
 
             LOGGER.debug(
@@ -86,7 +88,7 @@ class ResourceObjectDeleteOperation extends ResourceObjectProvisioningOperation 
                     ctx.getResource(), shadow.getObjectClassName(),
                     identification);
 
-            connectorAsyncOpRet =
+            ucfDeleteResult =
                     connector.deleteObject(
                             identification, shadow.getPrismObject(), ctx.getUcfExecutionContext(), result);
         } catch (ObjectNotFoundException ex) {
@@ -107,14 +109,12 @@ class ResourceObjectDeleteOperation extends ResourceObjectProvisioningOperation 
 
         executeProvisioningScripts(ProvisioningOperationTypeType.DELETE, BeforeAfterType.AFTER, result);
 
-        computeResultStatus(result);
+        computeResultStatusAndAsyncOpReference(result);
+
         LOGGER.debug("PROVISIONING DELETE result: {}", result.getStatus());
 
-        ResourceObjectDeleteReturnValue rv = ResourceObjectDeleteReturnValue.of(result);
+        var rv = ResourceObjectDeleteResult.fromResult(result, ucfDeleteResult.getOperationType());
         updateQuantum(ctx, connector, rv, result); // The result is not closed, even if its status is set. So we use it.
-        if (connectorAsyncOpRet != null) {
-            rv.setOperationType(connectorAsyncOpRet.getOperationType());
-        }
         return rv;
     }
 

@@ -143,10 +143,10 @@ public class ActivationProcessor implements ProjectorProcessor {
                     context, true);
             context.checkConsistenceIfNeeded();
         } catch (Throwable t) {
-            activationResult.recordFatalError(t);
+            activationResult.recordException(t);
             throw t;
         } finally {
-            activationResult.computeStatusIfUnknown();
+            activationResult.close();
         }
     }
 

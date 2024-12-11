@@ -19,11 +19,11 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 class SecurityViolationHandler extends HardErrorHandler {
 
     @Override
-    protected void throwException(@Nullable ShadowProvisioningOperation<?> operation, Exception cause, OperationResult result)
+    protected void throwException(@Nullable ShadowProvisioningOperation operation, Exception cause, OperationResult result)
             throws SecurityViolationException {
         recordCompletionError(operation, cause, result);
-        if (cause instanceof SecurityViolationException) {
-            throw (SecurityViolationException)cause;
+        if (cause instanceof SecurityViolationException securityViolationException) {
+            throw securityViolationException;
         } else {
             throw new SecurityViolationException(cause.getMessage(), cause);
         }

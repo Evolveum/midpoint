@@ -7,27 +7,37 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
-import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.ucf.api.*;
-import com.evolveum.midpoint.schema.processor.ShadowAttribute;
-import com.evolveum.midpoint.schema.processor.ShadowAttributesContainer;
-import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
+import static com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter.*;
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-
-import static com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter.*;
-import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.provisioning.ucf.api.*;
+import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
+import com.evolveum.midpoint.schema.processor.ShadowAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowAttributesContainer;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.ResourceOperationStatus;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.BeforeAfterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningOperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 
 /**
  * Responsibilities:
@@ -41,7 +51,10 @@ class ResourceObjectAddOperation extends ResourceObjectProvisioningOperation {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectAddOperation.class);
 
-    /** This is the object we obtained with the goal of adding to the resource. */
+    /**
+     * This is the object we obtained with the goal of adding to the resource. Here we also store the newly created attributes,
+     * provided by the UCF (such as `icfs:uid`). Not into {@link #workingObject}!
+     */
     @NotNull private final ResourceObjectShadow originalObject;
 
     /**
@@ -68,7 +81,7 @@ class ResourceObjectAddOperation extends ResourceObjectProvisioningOperation {
         this.skipExplicitUniquenessCheck = skipExplicitUniquenessCheck;
     }
 
-    public static ResourceObjectAddReturnValue execute(
+    public static @NotNull ResourceObjectAddReturnValue execute(
             @NotNull ProvisioningContext ctx,
             @NotNull ResourceObjectShadow objectToAdd,
             OperationProvisioningScriptsType scripts,
@@ -81,7 +94,7 @@ class ResourceObjectAddOperation extends ResourceObjectProvisioningOperation {
                 .doExecute(result);
     }
 
-    private ResourceObjectAddReturnValue doExecute(OperationResult result)
+    private @NotNull ResourceObjectAddReturnValue doExecute(OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ObjectAlreadyExistsException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 
@@ -97,8 +110,8 @@ class ResourceObjectAddOperation extends ResourceObjectProvisioningOperation {
 
         executeProvisioningScripts(ProvisioningOperationTypeType.ADD, BeforeAfterType.BEFORE, result);
 
-        ConnectorInstance connector = ctx.getConnector(CreateCapabilityType.class, result);
-        UcfAddReturnValue ucfAddReturnValue;
+        var connector = ctx.getConnector(CreateCapabilityType.class, result);
+        ResourceOperationStatus ucfOpStatus;
         try {
             LOGGER.debug("PROVISIONING ADD operation on resource {}\nADD object:\n{}\n",
                     ctx.getResource(), workingObject.debugDumpLazily(1));
@@ -106,13 +119,26 @@ class ResourceObjectAddOperation extends ResourceObjectProvisioningOperation {
             entitlementConverter.transformToSubjectOpsOnAdd(workingObject);
             activationConverter.transformOnAdd(workingObject, result);
 
-            ucfAddReturnValue = connector.addObject(workingObject.getPrismObject(), ctx.getUcfExecutionContext(), result);
+            var ucfAddReturnValue = connector.addObject(workingObject.getPrismObject(), ctx.getUcfExecutionContext(), result);
+            ucfOpStatus = ucfAddReturnValue.getOpStatus();
+
             var knownCreatedObjectAttributes = ucfAddReturnValue.getKnownCreatedObjectAttributes();
 
             LOGGER.debug("PROVISIONING ADD successful, returned attributes:\n{}",
                     SchemaDebugUtil.prettyPrintLazily(knownCreatedObjectAttributes));
 
-            storeIntoOriginalObject(knownCreatedObjectAttributes);
+            storeInto(workingObject, knownCreatedObjectAttributes); // For auditing and entitlements (object ops) processing.
+            storeInto(originalObject, knownCreatedObjectAttributes); // This is returned to the caller.
+
+            if (!ucfOpStatus.isInProgress()) {
+                var volatileAttributes = fetchVolatileAttributes(result);
+
+                LOGGER.debug("Fetched volatile attributes:\n{}", SchemaDebugUtil.prettyPrintLazily(volatileAttributes));
+
+                storeInto(workingObject, volatileAttributes); // For auditing and entitlements (object ops) processing.
+                storeInto(originalObject, volatileAttributes); // This is returned to the caller.
+            }
+
         } catch (CommunicationException ex) {
             throw communicationException(ctx, connector, ex);
         } catch (GenericFrameworkException ex) {
@@ -120,22 +146,79 @@ class ResourceObjectAddOperation extends ResourceObjectProvisioningOperation {
         } catch (ObjectAlreadyExistsException ex) {
             throw objectAlreadyExistsException("", ctx, connector, ex);
         } finally {
-            b.shadowAuditHelper.auditEvent(AuditEventType.ADD_OBJECT, originalObject.getBean(), ctx, result);
+            // Auditing as much as we can. (Raw data sent to the resource + returned attrs + fetched volatile ones.)
+            b.shadowAuditHelper.auditEvent(AuditEventType.ADD_OBJECT, workingObject.getBean(), ctx, result);
         }
 
-        // TODO should we execute the entitlement operations using the working or original object?
-        //  Working object would be fine if we could be sure it contains all the generated attributes.
-        //  (If they are needed for group membership operations.)
+        // Working or original object? It should be almost the same, as (most probably) we need just the identifiers there.
         executeEntitlementObjectsOperations(
                 entitlementConverter.transformToObjectOpsOnAdd(workingObject, result),
                 result);
 
         executeProvisioningScripts(ProvisioningOperationTypeType.ADD, BeforeAfterType.AFTER, result);
 
-        computeResultStatus(result);
+        computeResultStatusAndAsyncOpReference(result);
 
         // This should NOT be the working object: we need the original in order to retry the operation.
-        return ResourceObjectAddReturnValue.of(originalObject, result, ucfAddReturnValue.getOperationType());
+        return ResourceObjectAddReturnValue.fromResult(originalObject, result, ucfOpStatus);
+    }
+
+    private Collection<ShadowAttribute<?, ?, ?, ?>> fetchVolatileAttributes(OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
+            ObjectNotFoundException, SecurityViolationException {
+
+        var volatileAttributesDefinitions = ctx.getObjectDefinitionRequired().getAttributesVolatileOnAddOperation();
+        if (volatileAttributesDefinitions.isEmpty()) {
+            return List.of();
+        }
+
+        var volatileAttributesNames = volatileAttributesDefinitions.stream()
+                .map(ShadowAttributeDefinition::getItemName)
+                .collect(Collectors.toSet());
+
+        if (!ctx.hasRealReadCapability()) {
+            LOGGER.debug("Volatile attributes present but there's no read capability: not attempting to fetch them: {}",
+                    volatileAttributesNames);
+            return List.of();
+        }
+
+        var identification = originalObject.getIdentification();
+        if (!(identification instanceof ResourceObjectIdentification.WithPrimary primaryIdentification)) {
+            LOGGER.debug("Volatile attributes present but no primary identification: not attempting to fetch them: {}",
+                    volatileAttributesNames);
+            return List.of();
+        }
+
+        // We assume that we want to get all the volatile attributes. So, let's explicitly ask for all of them.
+        // We hope we won't reach some resource limit here.
+        var itemsToReturn = new ShadowItemsToReturn();
+        itemsToReturn.setReturnDefaultAttributes(false);
+        itemsToReturn.setItemsToReturn(volatileAttributesDefinitions);
+
+        var connector = ctx.getConnector(ReadCapabilityType.class, result);
+        UcfResourceObject ucfObject;
+        try {
+            ucfObject = connector.fetchObject(primaryIdentification, itemsToReturn, ctx.getUcfExecutionContext(), result);
+            // Note on the error handling below: We consider any errors here just as serious as "regular" errors,
+            // because if this fails, we may miss crucial information that could be needed for further processing.
+            // When recovering, midPoint will probably try to re-create the object, and handle the eventual conflict
+            // in the regular way.
+        } catch (GenericFrameworkException e) {
+            throw new GenericConnectorException(volatileAttributesFetchFailureMessage(primaryIdentification, e), e);
+        } catch (CommonException e) {
+            MiscUtil.throwAsSame(e, volatileAttributesFetchFailureMessage(primaryIdentification, e));
+            throw e; // just to make compiler happy
+        }
+
+        var caseIgnore = ctx.isCaseIgnoreAttributeNames();
+        return ucfObject.getAttributes().stream()
+                .filter(attr ->
+                        QNameUtil.contains(volatileAttributesNames, attr.getElementName(), caseIgnore))
+                .toList();
+    }
+
+    private static String volatileAttributesFetchFailureMessage(ResourceObjectIdentification<?> identification, Exception e) {
+        return "Couldn't fetch volatile attributes for " + identification + ": " + e.getMessage();
     }
 
     /**
@@ -179,10 +262,8 @@ class ResourceObjectAddOperation extends ResourceObjectProvisioningOperation {
         if (existingObject == null) {
             LOGGER.trace("No add conflicts for {}", workingObject);
         } else {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Detected add conflict for {}, conflicting shadow: {}",
-                        workingObject.shortDump(), existingObject.shortDump());
-            }
+            LOGGER.debug("Detected add conflict for {}, conflicting shadow: {}",
+                    workingObject.shortDumpLazily(), existingObject.shortDumpLazily());
             LOGGER.trace("Conflicting shadow:\n{}", existingObject.debugDumpLazily(1));
             throw new ObjectAlreadyExistsException(
                     String.format("Object %s already exists in the snapshot of %s as %s",
@@ -195,20 +276,18 @@ class ResourceObjectAddOperation extends ResourceObjectProvisioningOperation {
     /**
      * Attributes returned by the connector update the original shadow: they are either added (if not present before),
      * or they replace their previous versions.
-     *
-     * We must apply these on the original shadow, not the cloned one!
-     * They need to be propagated outside ADD operation.
      */
-    private void storeIntoOriginalObject(Collection<ShadowAttribute<?, ?, ?, ?>> knownCreatedObjectAttributes)
+    private void storeInto(ResourceObjectShadow object, Collection<ShadowAttribute<?, ?, ?, ?>> knownCreatedObjectAttributes)
             throws SchemaException {
-        ShadowAttributesContainer targetAttrContainer = originalObject.getAttributesContainer();
-        for (var addedAttribute : emptyIfNull(knownCreatedObjectAttributes)) {
+        ShadowAttributesContainer targetAttrContainer = object.getAttributesContainer();
+        for (var createdAttribute : emptyIfNull(knownCreatedObjectAttributes)) {
 
-            targetAttrContainer.removeAttribute(addedAttribute.getElementName());
+            targetAttrContainer.removeAttribute(createdAttribute.getElementName());
 
-            // must be cloned because the method above does not unset the parent in the PrismValue being removed (should be fixed)
-            var clone = addedAttribute.clone();
-            clone.applyDefinitionFrom(originalObject.getObjectDefinition());
+            // This clone is necessary (1) because the method above does not unset the parent in the PrismValue being removed
+            // (this should be fixed), but also (2) because we put the attribute into more objects.
+            var clone = createdAttribute.clone();
+            clone.applyDefinitionFrom(object.getObjectDefinition());
 
             targetAttrContainer.addAttribute(clone);
         }

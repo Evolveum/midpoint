@@ -10,12 +10,10 @@ package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
-import com.evolveum.midpoint.provisioning.impl.ResourceObjectOperations;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
-import com.evolveum.midpoint.schema.processor.ResourceObjectIdentifiers;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -61,30 +59,24 @@ abstract class ResourceObjectProvisioningOperation {
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, GenericConnectorException {
-        Collection<ExecuteProvisioningScriptOperation> operations =
-                determineExecuteScriptOperations(provisioningOperationType, beforeAfter, scripts, ctx.getResource());
-        if (operations == null || operations.isEmpty()) {
+        var operations = determineExecuteScriptOperations(provisioningOperationType, beforeAfter, scripts, ctx.getResource());
+        if (operations.isEmpty()) {
             return;
         }
         ctx.checkExecutionFullyPersistent();
         ConnectorInstance connector = ctx.getConnector(ScriptCapabilityType.class, result);
-        for (ExecuteProvisioningScriptOperation operation : operations) {
-            UcfExecutionContext ucfCtx = new UcfExecutionContext(
-                    b.lightweightIdentifierGenerator, ctx.getResource(), ctx.getTask());
+        for (var operation : operations) {
+            var ucfCtx = new UcfExecutionContext(b.lightweightIdentifierGenerator, ctx.getResource(), ctx.getTask());
 
             try {
-                if (getLogger().isDebugEnabled()) {
-                    getLogger().debug("PROVISIONING SCRIPT EXECUTION {} {} operation on resource {}",
-                            beforeAfter.value(), provisioningOperationType.value(),
-                            ctx.getResource());
-                }
+                getLogger().debug("PROVISIONING SCRIPT EXECUTION {} {} operation on resource {}",
+                        beforeAfter.value(), provisioningOperationType.value(),
+                        ctx.getResource());
 
                 Object returnedValue = connector.executeScript(operation, ucfCtx, result);
 
-                if (getLogger().isDebugEnabled()) {
-                    getLogger().debug("PROVISIONING SCRIPT EXECUTION {} {} successful, returned value: {}",
-                            beforeAfter.value(), provisioningOperationType.value(), returnedValue);
-                }
+                getLogger().debug("PROVISIONING SCRIPT EXECUTION {} {} successful, returned value: {}",
+                        beforeAfter.value(), provisioningOperationType.value(), returnedValue);
 
             } catch (CommunicationException ex) {
                 String message = String.format(
@@ -123,7 +115,7 @@ abstract class ResourceObjectProvisioningOperation {
         }
     }
 
-    private Collection<ExecuteProvisioningScriptOperation> determineExecuteScriptOperations(
+    private @NotNull Collection<ExecuteProvisioningScriptOperation> determineExecuteScriptOperations(
             ProvisioningOperationTypeType provisioningOperationType,
             BeforeAfterType beforeAfter,
             OperationProvisioningScriptsType scripts,
@@ -131,16 +123,16 @@ abstract class ResourceObjectProvisioningOperation {
         if (scripts == null) {
             // No warning needed, this is quite normal
             getLogger().trace("Skipping creating script operation to execute. No scripts were defined.");
-            return null;
+            return List.of();
         }
 
         Collection<ExecuteProvisioningScriptOperation> operations = new ArrayList<>();
-        for (OperationProvisioningScriptType script : scripts.getScript()) {
-            for (ProvisioningOperationTypeType operationType : script.getOperation()) {
-                if (provisioningOperationType.equals(operationType) && beforeAfter.equals(script.getOrder())) {
-                    ExecuteProvisioningScriptOperation scriptOperation = ProvisioningUtil.convertToScriptOperation(
+        for (var script : scripts.getScript()) {
+            for (var operationType : script.getOperation()) {
+                if (operationType == provisioningOperationType && beforeAfter == script.getOrder()) {
+                    var scriptOperation = ProvisioningUtil.convertToScriptOperation(
                             script, "script value for " + operationType + " in " + resource);
-                    getLogger().trace("Created script operation: {}", SchemaDebugUtil.prettyPrint(scriptOperation));
+                    getLogger().trace("Created script operation: {}", SchemaDebugUtil.prettyPrintLazily(scriptOperation));
                     operations.add(scriptOperation);
                 }
             }
@@ -157,25 +149,24 @@ abstract class ResourceObjectProvisioningOperation {
 
         getLogger().trace("Executing entitlement changes, roMap:\n{}", objectsOperations.debugDumpLazily(1));
 
-        for (Map.Entry<ResourceObjectDiscriminator, ResourceObjectOperations> entry : objectsOperations.roMap.entrySet()) {
-            ResourceObjectDiscriminator disc = entry.getKey();
-            ProvisioningContext entitlementCtx = entry.getValue().getResourceObjectContext();
-            ResourceObjectOperations resourceObjectOperations = entry.getValue();
-            ResourceObjectIdentifiers.WithPrimary identifiers = disc.identifiers();
-            Collection<Operation> operations = resourceObjectOperations.getUcfOperations();
+        for (var operationsEntry : objectsOperations.roMap.entrySet()) {
+            var entitlementSpec = operationsEntry.getKey();
+            var entitlementCtx = operationsEntry.getValue().getResourceObjectContext();
+            var entitlementIdentifiers = entitlementSpec.identifiers();
+            var entitlementOperations = operationsEntry.getValue().getUcfOperations();
 
             getLogger().trace("Executing entitlement change with identifiers={}:\n{}",
-                    identifiers, DebugUtil.debugDumpLazily(operations, 1));
+                    entitlementIdentifiers, DebugUtil.debugDumpLazily(entitlementOperations, 1));
 
-            OperationResult result = parentResult.createMinorSubresult(OPERATION_MODIFY_ENTITLEMENT);
+            var result = parentResult.createMinorSubresult(OPERATION_MODIFY_ENTITLEMENT);
             try {
 
                 ResourceObjectUcfModifyOperation.execute(
                         entitlementCtx,
                         null,
-                        entry.getValue().getCurrentResourceObject(),
-                        ResourceObjectIdentification.of(entitlementCtx.getObjectDefinitionRequired(), identifiers),
-                        operations,
+                        operationsEntry.getValue().getCurrentResourceObject(),
+                        ResourceObjectIdentification.of(entitlementCtx.getObjectDefinitionRequired(), entitlementIdentifiers),
+                        entitlementOperations,
                         null,
                         result,
                         connOptions);
