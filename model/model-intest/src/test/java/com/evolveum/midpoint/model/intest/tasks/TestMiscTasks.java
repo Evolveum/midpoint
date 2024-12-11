@@ -252,18 +252,18 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
 
     /**
      * Tests if cleanup after task finish removes also subtasks, not just parent task
-     * <p>
+     *
      * Test for MID-10272
      */
     @Test
     public void test140CleanSubtasksAfterFinish() throws Exception {
         given("Noop task with more workers per node is added.");
-        final OperationResult result = new OperationResult(TestMiscTasks.class + ".test140CleanSubtasksAfterFinish");
+        OperationResult result = getTestOperationResult();
         addTask(TASK_CLEANUP_SUBTASKS_AFTER_COMPLETION, result);
         waitForTaskCloseOrSuspend(TASK_CLEANUP_SUBTASKS_AFTER_COMPLETION.oid, 10000);
 
-        final Task taskTree = this.taskManager.getTaskTree(TASK_CLEANUP_SUBTASKS_AFTER_COMPLETION.oid, result);
-        final List<String> subtasksOids = taskTree.listSubtasksDeeply(true, result).stream()
+        Task taskTree = this.taskManager.getTaskTree(TASK_CLEANUP_SUBTASKS_AFTER_COMPLETION.oid, result);
+        List<String> subtasksOids = taskTree.listSubtasksDeeply(true, result).stream()
                 .map(Task::getOid)
                 .toList();
 
