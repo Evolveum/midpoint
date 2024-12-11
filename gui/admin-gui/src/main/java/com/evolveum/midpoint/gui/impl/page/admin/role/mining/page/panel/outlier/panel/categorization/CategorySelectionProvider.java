@@ -97,12 +97,13 @@ public class CategorySelectionProvider extends ChoiceProvider<RoleAnalysisObject
     public static @NotNull SelectableBeanObjectDataProvider<FocusType> createTableProvider(
             Component component,
             LoadableModel<List<RoleAnalysisObjectCategorizationType>> selectionModel,
+            boolean isAdvanced,
             List<RoleAnalysisIdentifiedCharacteristicsItemType> items,
             Map<String, List<RoleAnalysisObjectCategorizationType>> params,
             LoadableModel<Boolean> isRoleSelectedModel) {
 
         List<RoleAnalysisObjectCategorizationType> allowedValues = CategorySelectionProvider.allowedValues(
-                false, isRoleSelectedModel);
+                isAdvanced, isRoleSelectedModel);
 
         return new SelectableBeanObjectDataProvider<>(
                 component, Set.of()) {

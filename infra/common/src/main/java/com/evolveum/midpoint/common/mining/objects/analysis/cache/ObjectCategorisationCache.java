@@ -145,7 +145,7 @@ public class ObjectCategorisationCache {
      *
      * @param sessionObject The session object containing the analysis options and identified characteristics.
      */
-    private void markExcludedObjects(@NotNull RoleAnalysisSessionType sessionObject) {
+    public void markExcludedObjects(@NotNull RoleAnalysisSessionType sessionObject) {
         RoleAnalysisOptionType analysisOption = sessionObject.getAnalysisOption();
         assert analysisOption != null;
         RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
@@ -158,15 +158,13 @@ public class ObjectCategorisationCache {
             loadManuallyUnwantedObjects(identifiedCharacteristics, manuallyUnwantedAccess, manuallyUnwantedUsers);
         }
 
+        manuallyUnwantedAccess.forEach(oid -> putCategory(oid, RoleAnalysisObjectCategorizationType.EXCLUDED, RoleType.COMPLEX_TYPE));
+        manuallyUnwantedUsers.forEach(oid -> putCategory(oid, RoleAnalysisObjectCategorizationType.EXCLUDED, UserType.COMPLEX_TYPE));
+
         for (RoleAnalysisIdentifiedCharacteristicsItemType role : rolesCategoryMap.values()) {
             List<RoleAnalysisObjectCategorizationType> category = role.getCategory();
             if (processMode.equals(RoleAnalysisProcessModeType.USER)
                     && category.contains(RoleAnalysisObjectCategorizationType.UN_POPULAR)) {
-                role.getCategory().add(RoleAnalysisObjectCategorizationType.EXCLUDED);
-                continue;
-            }
-
-            if (manuallyUnwantedAccess.contains(role.getObjectRef().getOid())) {
                 role.getCategory().add(RoleAnalysisObjectCategorizationType.EXCLUDED);
             }
         }
@@ -175,11 +173,6 @@ public class ObjectCategorisationCache {
             List<RoleAnalysisObjectCategorizationType> category = user.getCategory();
             if (processMode.equals(RoleAnalysisProcessModeType.ROLE)
                     && category.contains(RoleAnalysisObjectCategorizationType.UN_POPULAR)) {
-                user.getCategory().add(RoleAnalysisObjectCategorizationType.EXCLUDED);
-                continue;
-            }
-
-            if (manuallyUnwantedUsers.contains(user.getObjectRef().getOid())) {
                 user.getCategory().add(RoleAnalysisObjectCategorizationType.EXCLUDED);
             }
         }
@@ -194,7 +187,10 @@ public class ObjectCategorisationCache {
      * @param manuallyUnwantedAccess The set to store manually unwanted access OIDs.
      * @param manuallyUnwantedUsers The set to store manually unwanted user OIDs.
      */
-    private static void loadManuallyUnwantedObjects(@NotNull RoleAnalysisIdentifiedCharacteristicsType identifiedCharacteristics, Set<String> manuallyUnwantedAccess, Set<String> manuallyUnwantedUsers) {
+    private static void loadManuallyUnwantedObjects(
+            @NotNull RoleAnalysisIdentifiedCharacteristicsType identifiedCharacteristics,
+            Set<String> manuallyUnwantedAccess,
+            Set<String> manuallyUnwantedUsers) {
         RoleAnalysisExcludeType excludeObject = identifiedCharacteristics.getExclude();
         if (excludeObject != null) {
 
@@ -354,9 +350,9 @@ public class ObjectCategorisationCache {
     private static void loadUnwantedCategoryItems(
             Set<String> unwantedAccess,
             List<RoleAnalysisObjectCategorizationType> excludeRoleCategory,
-            RoleAnalysisIdentifiedCharacteristicsItemsType roles) {
-        if (roles != null) {
-            roles.getItem().forEach(role -> {
+            RoleAnalysisIdentifiedCharacteristicsItemsType items) {
+        if (items != null) {
+            items.getItem().forEach(role -> {
                 List<RoleAnalysisObjectCategorizationType> category = role.getCategory();
                 if (category != null) {
                     for (RoleAnalysisObjectCategorizationType roleCategory : category) {

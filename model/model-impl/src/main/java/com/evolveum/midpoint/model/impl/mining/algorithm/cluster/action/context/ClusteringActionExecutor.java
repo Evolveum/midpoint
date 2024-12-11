@@ -88,6 +88,8 @@ public class ClusteringActionExecutor extends BaseAction {
         }
 
         RoleAnalysisSessionType session = prismSession.asObjectable();
+        objectCategorisationCache.markExcludedObjects(session);
+
         List<ObjectReferenceType> effectiveMarkRef = session.getEffectiveMarkRef();
         //TODO this is brutal hack. Change it.
         // Start *
