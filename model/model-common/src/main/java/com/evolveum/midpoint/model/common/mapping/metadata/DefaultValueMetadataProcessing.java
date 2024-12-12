@@ -11,6 +11,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 
 import com.google.common.collect.ImmutableMap;
@@ -56,7 +57,8 @@ public abstract class DefaultValueMetadataProcessing {
         return new DefaultValueMetadataProcessing() {
             @Override
             boolean isEnabledFor(ItemPath dataPath, ItemDefinition<?> dataDefinition) {
-                return dataDefinition.isMultiValue();
+                return AssignmentType.COMPLEX_TYPE.equals(dataDefinition.getTypeName());
+                //return dataDefinition.isMultiValue();
             }
         };
     };
