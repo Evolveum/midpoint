@@ -86,7 +86,7 @@ public class CompletedTaskCleanupTriggerHandler implements SingleTriggerHandler 
                 return;
             }
             LOGGER.debug("Deleting completed task {}", completedTask);
-            taskManager.deleteTask(object.getOid(), result);
+            taskManager.deleteTaskTree(object.getOid(), result);
         } catch (CommonException | RuntimeException | Error e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete completed task {}", e, object);
             // do not retry this trigger execution

@@ -167,6 +167,8 @@ public interface ShadowAttributesContainer extends ShadowItemsContainer, PrismCo
      */
     ShadowSimpleAttribute<String> getNamingAttribute();
 
+    ShadowAttribute<?, ?, ?, ?> findAttribute(QName attrName);
+
     /**
      * Finds a specific attribute in the resource object by name.
      *
