@@ -48,6 +48,7 @@ public class DummyAdTrivialScenario extends AbstractDummyScenario {
         public static class AttributeNames {
             public static final AttrName NAME = icfsName();
             public static final AttrName DESCRIPTION = ri("description");
+            public static final AttrName TYPE = ri("type");
         }
 
         public static class LinkNames {
@@ -58,6 +59,9 @@ public class DummyAdTrivialScenario extends AbstractDummyScenario {
             // Account class already exists
             controller.addAttrDef(
                     controller.getAccountObjectClass(), AttributeNames.DESCRIPTION.local(),
+                    String.class, false, false);
+            controller.addAttrDef(
+                    controller.getAccountObjectClass(), AttributeNames.TYPE.local(),
                     String.class, false, false);
         }
 
