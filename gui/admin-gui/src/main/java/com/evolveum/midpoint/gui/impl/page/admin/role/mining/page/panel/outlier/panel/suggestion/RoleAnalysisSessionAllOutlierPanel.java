@@ -43,6 +43,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionT
                 order = 30
         )
 )
+@PanelInstance(
+        identifier = "outliers",
+        applicableForType = RoleAnalysisSessionType.class,
+        defaultPanel = true,
+        display = @PanelDisplay(
+                label = "RoleAnalysisOutlierType.outliers",
+                icon = GuiStyleConstants.CLASS_ICON_OUTLIER,
+                order = 30
+        )
+)
 public class RoleAnalysisSessionAllOutlierPanel extends AbstractObjectMainPanel<RoleAnalysisSessionType, ObjectDetailsModels<RoleAnalysisSessionType>> {
 
     private static final String ID_CONTAINER = "container";

@@ -188,6 +188,14 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
         }
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
         RoleAnalysisProcedureType analysisProcedureType = analysisOption.getAnalysisProcedureType();
+        AbstractAnalysisSessionOptionType sessionOptions;
+        if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
+            sessionOptions = session.getRoleModeOptions();
+        } else {
+            sessionOptions = session.getUserModeOptions();
+        }
+
+        Boolean detailedAnalysis = sessionOptions.getDetailedAnalysis();
 
         List<ContainerPanelConfigurationType> object = panelConfigurations.getObject();
         for (ContainerPanelConfigurationType containerPanelConfigurationType : object) {
@@ -195,7 +203,10 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
                     && analysisProcedureType == RoleAnalysisProcedureType.OUTLIER_DETECTION) {
                 containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
             } else if (containerPanelConfigurationType.getIdentifier().equals("outlierActions")
-                    && analysisProcedureType != RoleAnalysisProcedureType.OUTLIER_DETECTION) {
+                    && (analysisProcedureType != RoleAnalysisProcedureType.OUTLIER_DETECTION || !detailedAnalysis)) {
+                containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+            } else if (containerPanelConfigurationType.getIdentifier().equals("outliers")
+                    && (analysisProcedureType != RoleAnalysisProcedureType.OUTLIER_DETECTION || detailedAnalysis)) {
                 containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
             } else if (containerPanelConfigurationType.getIdentifier().equals("advanced")) {
                 if (analysisProcedureType == RoleAnalysisProcedureType.ROLE_MINING) {
