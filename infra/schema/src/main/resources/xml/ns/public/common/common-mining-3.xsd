@@ -143,6 +143,14 @@
         </xsd:annotation>
         <xsd:sequence>
 
+            <xsd:element name="explanation" type="t:PolyStringType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Provides a simple explanation of why the outlier object has been detected and identified.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
             <!-- TODO think about creationTimestamp, do we need it? if yes, where we need to access it? -->
             <xsd:element name="createTimestamp" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
@@ -475,6 +483,14 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Object that is identified as an outlier during the analysis.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="explanation" type="t:PolyStringType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Provides a simple explanation of why the anomaly has been detected and identified.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1686,17 +1702,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <!--<xsd:element name="isMultiValue" type="xsd:boolean" minOccurs="0">-->
-            <!--    <xsd:annotation>-->
-            <!--        <xsd:documentation>-->
-            <!--            <p>If true, the matching rule is applied to each value of the property.</p>-->
-            <!--            <p>Also, there must be specified a matchSimilarity value. If not default 100% is used.</p>-->
-            <!--        </xsd:documentation>-->
-            <!--        <xsd:appinfo>-->
-            <!--            <a:displayName>RoleAnalysisAttributeAnalysis.isMultiValue</a:displayName>-->
-            <!--        </xsd:appinfo>-->
-            <!--    </xsd:annotation>-->
-            <!--</xsd:element>-->
+
             <xsd:element name="itemPath" type="t:ItemPathType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1707,6 +1713,21 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+
+            <xsd:element name="isUnusual" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Specifies whether the attribute is considered unusual.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisAttributeAnalysis.isUnusual</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+
             <xsd:element name="density" type="xsd:double" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1719,6 +1740,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+
             <xsd:element name="parentType" type="xsd:QName" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
