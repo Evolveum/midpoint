@@ -228,7 +228,7 @@ public abstract class RoleAnalysisAbstractClassificationObjectPanel extends Abst
 
         //TODO ugly hack remove later
         SelectableBeanObjectDataProvider<FocusType> selectableBeanObjectDataProvider = createTableProvider(this,
-                selectionModel, items, params, isRoleSelectedModel);
+                selectionModel, advanced, items, params, isRoleSelectedModel);
 
         MainObjectListPanel<FocusType> table = new MainObjectListPanel<>(panelId, FocusType.class, null) {
 
