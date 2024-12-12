@@ -97,6 +97,7 @@
         <objectType>
             <kind>account</kind>
             <intent>default</intent>
+            <default>true</default>
             <super>
                 <kind>account</kind>
                 <intent>abstract</intent>
