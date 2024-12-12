@@ -2789,7 +2789,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                 .getObject(FocusType.class, targetObjectRef.getOid(), task, result);
 
         roleAnalysisOutlierType.setName(object != null && object.getName() != null
-                ? PolyStringType.fromOrig(object.getName() + " (outlier)")
+                ? object.asObjectable().getName()
                 : PolyStringType.fromOrig("outlier_" + UUID.randomUUID()));
 
         this.importOutlier(roleAnalysisOutlierType, task, result);
