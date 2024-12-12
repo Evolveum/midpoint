@@ -13,7 +13,7 @@ import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.*;
 import java.util.*;
 
 import com.evolveum.midpoint.common.mining.objects.statistic.UserAccessDistribution;
-import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.OutlierAttributeResolver.UnusualAttributeValueConfidence;
+import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.OutlierAttributeResolver.UnusualAttributeValueResult;
 
 import com.google.common.collect.ListMultimap;
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -163,7 +163,7 @@ public class OutliersDetectionUtil {
         }
     }
 
-    private static List<UnusualAttributeValueConfidence> calculateUnusualAttributeConfidences(
+    private static List<UnusualAttributeValueResult> calculateUnusualAttributeResults(
             @NotNull DetectedAnomalyResult outlierResult,
             @NotNull PrismObject<UserType> userTypeObject,
             @Nullable List<RoleAnalysisAttributeDef> attributesForUserAnalysis,
@@ -208,7 +208,7 @@ public class OutliersDetectionUtil {
         LOGGER.debug("ITEM FACTOR CONFIDENCE: Item factor confidence calculation time in ms: {}", (endTime - startTime));
 
         // TODO: integrate to the outlier decision process
-        List<UnusualAttributeValueConfidence> unusualAttributeConfidences = calculateUnusualAttributeConfidences(
+        List<UnusualAttributeValueResult> unusualAttributeResults = calculateUnusualAttributeResults(
                 prepareRoleOutlier, userTypeObject, attributesForUserAnalysis, roleAnalysisService, userAnalysisCache, task, result
         );
 

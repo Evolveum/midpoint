@@ -13,7 +13,7 @@ import java.util.Objects;
  * 1. find the most common (mode) value of an attribute
  * 2. use its frequency within group as a baseline (100%) to compute relative frequencies
  * 3. find out relative frequency of user's attribute value
- * 4. if it is below threshold, mark it as unusual (confidence 1)
+ * 4. if it is below threshold, mark it as unusual
  * Limitations:
  * - it does not support missing/undefined user attributes
  */
@@ -25,8 +25,8 @@ public class OutlierAttributeResolver {
         this.minRelativeFrequencyThreshold = minRelativeFrequencyThreshold;
     }
 
-    public record UnusualSingleValueDetail(String value, double confidence, double relativeFrequency) {}
-    public record UnusualAttributeValueConfidence(ItemPathType path, double confidence, List<UnusualSingleValueDetail> partialConfidences) {}
+    public record UnusualSingleValueDetail(String value, boolean isUnusual, double relativeFrequency) {}
+    public record UnusualAttributeValueResult(ItemPathType path, boolean isUnusual, List<UnusualSingleValueDetail> partialResults) {}
 
     private RoleAnalysisAttributeStatistics findMedianAttributeValueStats(List<RoleAnalysisAttributeStatistics> stats) {
         var usersWithAttributeCount = stats.stream().mapToInt(RoleAnalysisAttributeStatistics::getInRepo).sum();
@@ -51,27 +51,25 @@ public class OutlierAttributeResolver {
                 .orElse(0d);
         var medianValueInRepo = medianValueStats.getInRepo().doubleValue();
         var relativeUserValueFrequency = userValueInRepo / medianValueInRepo;
-        var confidence = relativeUserValueFrequency <= minRelativeFrequencyThreshold ? 1 : 0;
-        return new UnusualSingleValueDetail(userAttributeValue, confidence, relativeUserValueFrequency);
+        var isUnusual = relativeUserValueFrequency <= minRelativeFrequencyThreshold;
+        return new UnusualSingleValueDetail(userAttributeValue, isUnusual, relativeUserValueFrequency);
     }
 
-    private UnusualAttributeValueConfidence analyzeAttribute(RoleAnalysisAttributeAnalysis attributeDetail, RoleAnalysisAttributeAnalysis userAttributeDetail ) {
+    private UnusualAttributeValueResult analyzeAttribute(RoleAnalysisAttributeAnalysis attributeDetail, RoleAnalysisAttributeAnalysis userAttributeDetail ) {
         var userValues = userAttributeDetail.getAttributeStatistics().stream()
                 .map(RoleAnalysisAttributeStatistics::getAttributeValue)
                 .toList();
 
-        var partialConfidences = userValues.stream()
+        var partialResults = userValues.stream()
                 .map(userValue -> analyzeAttributeValue(attributeDetail, userValue))
                 .toList();
 
-        var confidence = partialConfidences.stream()
-                .mapToDouble(UnusualSingleValueDetail::confidence)
-                .max()
-                .orElse(0d);
-        return new UnusualAttributeValueConfidence(attributeDetail.getItemPath(), confidence, partialConfidences);
+        var isUnusual = partialResults.stream()
+                .anyMatch(UnusualSingleValueDetail::isUnusual);
+        return new UnusualAttributeValueResult(attributeDetail.getItemPath(), isUnusual, partialResults);
     }
 
-    public List<UnusualAttributeValueConfidence> resolveUnusualAttributes(
+    public List<UnusualAttributeValueResult> resolveUnusualAttributes(
             List<RoleAnalysisAttributeAnalysis> attributeDetails,
             List<RoleAnalysisAttributeAnalysis> userAttributeDetails
     ) {

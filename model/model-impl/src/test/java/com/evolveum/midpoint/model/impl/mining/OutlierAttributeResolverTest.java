@@ -2,7 +2,7 @@ package com.evolveum.midpoint.model.impl.mining;
 import static org.testng.AssertJUnit.*;
 
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.OutlierAttributeResolver;
-import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.OutlierAttributeResolver.UnusualAttributeValueConfidence;
+import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.OutlierAttributeResolver.UnusualAttributeValueResult;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.OutlierAttributeResolver.UnusualSingleValueDetail;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -49,12 +49,12 @@ public class OutlierAttributeResolverTest extends AbstractUnitTest {
 
         then();
         assertEquals("should have same size of attributes", 3, results.size());
-        var paths = results.stream().map(UnusualAttributeValueConfidence::path).toList();
+        var paths = results.stream().map(UnusualAttributeValueResult::path).toList();
         assertTrue("should contain attr1 result", paths.contains(makePath("attr1")));
         assertTrue("should contain attr2 result", paths.contains(makePath("attr2")));
         assertTrue("should contain attr3 result", paths.contains(makePath("attr3")));
-        assertEquals("should contain only original value", 1, findConfidenceResult(results, "attr1").partialConfidences().size());
-        assertEquals("should match original value", "v11", findConfidenceResult(results, "attr1").partialConfidences().get(0).value());
+        assertEquals("should contain only original value", 1, findResults(results, "attr1").partialResults().size());
+        assertEquals("should match original value", "v11", findResults(results, "attr1").partialResults().get(0).value());
     }
 
 
@@ -77,9 +77,9 @@ public class OutlierAttributeResolverTest extends AbstractUnitTest {
         var results = resolver.resolveUnusualAttributes(attributeDetails, userAttributeDetails);
 
         then();
-        assertEquals("attr1 should have unusual value", 1.0, findConfidenceResult(results, "attr1").confidence());
-        assertEquals("attr2 should have unusual value", 1.0, findConfidenceResult(results, "attr2").confidence());
-        assertEquals("attr3 should have unusual value", 1.0, findConfidenceResult(results, "attr3").confidence());
+        assertTrue("attr1 should have unusual value", findResults(results, "attr1").isUnusual());
+        assertTrue("attr2 should have unusual value", findResults(results, "attr2").isUnusual());
+        assertTrue("attr3 should have unusual value", findResults(results, "attr3").isUnusual());
     }
 
     @Test
@@ -101,9 +101,9 @@ public class OutlierAttributeResolverTest extends AbstractUnitTest {
         var results = resolver.resolveUnusualAttributes(attributeDetails, userAttributeDetails);
 
         then();
-        assertEquals("attr1 should have usual value", 0.0, findConfidenceResult(results, "attr1").confidence());
-        assertEquals("attr2 should have usual value", 0.0, findConfidenceResult(results, "attr2").confidence());
-        assertEquals("attr3 should have usual value", 0.0, findConfidenceResult(results, "attr3").confidence());
+        assertFalse("attr1 should have usual value", findResults(results, "attr1").isUnusual());
+        assertFalse("attr2 should have usual value", findResults(results, "attr2").isUnusual());
+        assertFalse("attr3 should have usual value", findResults(results, "attr3").isUnusual());
     }
 
     @Test
@@ -139,11 +139,11 @@ public class OutlierAttributeResolverTest extends AbstractUnitTest {
         var results = resolver.resolveUnusualAttributes(attributeDetails, userAttributeDetails);
 
         then();
-        assertEquals("missing attr1 is not unusual", 0.0, findConfidenceResult(results, "attr1").confidence());
-        assertEquals("missing attr2 is unusual", 1.0, findConfidenceResult(results, "attr2").confidence());
+        assertFalse("missing attr1 is not unusual", findResults(results, "attr1").isUnusual());
+        assertTrue("missing attr2 is unusual", findResults(results, "attr2").isUnusual());
 
-        assertEquals("missing attr2 v21 is not unusual", 0.0, findPartialConfidenceResult(results, "attr2", "v21").confidence());
-        assertEquals("missing attr2 v22 is unusual", 1.0, findPartialConfidenceResult(results, "attr2", "v22").confidence());
+        assertFalse("missing attr2 v21 is not unusual", findPartialResults(results, "attr2", "v21").isUnusual());
+        assertTrue("missing attr2 v22 is unusual", findPartialResults(results, "attr2", "v22").isUnusual());
 
     }
 
@@ -168,7 +168,7 @@ public class OutlierAttributeResolverTest extends AbstractUnitTest {
         return makeAttributeAnalysis(path, value, null);
     }
 
-    private UnusualAttributeValueConfidence findConfidenceResult(List<UnusualAttributeValueConfidence> results, String path) {
+    private UnusualAttributeValueResult findResults(List<UnusualAttributeValueResult> results, String path) {
         return results
                 .stream()
                 .filter(r -> r.path().equals(makePath(path)))
@@ -176,9 +176,9 @@ public class OutlierAttributeResolverTest extends AbstractUnitTest {
                 .orElseThrow();
     }
 
-    private UnusualSingleValueDetail findPartialConfidenceResult(List<UnusualAttributeValueConfidence> results, String path, String value) {
-        return findConfidenceResult(results, path)
-                .partialConfidences()
+    private UnusualSingleValueDetail findPartialResults(List<UnusualAttributeValueResult> results, String path, String value) {
+        return findResults(results, path)
+                .partialResults()
                 .stream()
                 .filter(p -> p.value().equals(value))
                 .findFirst()
