@@ -33,9 +33,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationVal
  *
  * There are two major types of associations:
  *
- * . "Simple" associations, which are represented by a single reference to the target shadow.
- * Typical case here is Active Directory style group membership, where each object can belong to zero or more groups,
- * and each membership value consists only of a reference to the particular group shadow.
+ * . "Simple" associations, which are represented by a single reference. Each association value consists of a single
+ * reference value, pointing to one target shadow. Typical case here is Active Directory style group membership,
+ * where each object can belong to zero or more groups, and each membership value consists only of a reference
+ * to the particular group shadow.
  *
  * . "Rich" associations, which are represented by a complex structure containing additional information, like own attributes,
  * activation, and the like, in addition to reference(s) to objects. Examples are
@@ -76,6 +77,10 @@ public class ShadowAssociation
         return new ShadowAssociation(name, definition);
     }
 
+    /**
+     * Returns an equals checker that compares the associations by their meaning. The core of the comparison is
+     * in {@link ShadowAssociationValue#semanticEqualsChecker()}.
+     */
     public static EqualsChecker<ShadowAssociation> semanticEqualsChecker() {
         return SEMANTIC_EQUALS_CHECKER;
     }
