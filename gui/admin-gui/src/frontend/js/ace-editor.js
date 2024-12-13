@@ -173,7 +173,7 @@ export default class MidPointAceEditor {
     }
 
     syncContentAssist(contentAssist, editorId) {
-        const editor = ace.edit(editorId.id + ACE_EDITOR_POSTFIX);
+        const editor = ace.edit(editorId + ACE_EDITOR_POSTFIX);
 
         // validation
         let annotations = [];

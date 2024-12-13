@@ -912,4 +912,13 @@ export default class MidPointTheme {
         }
     }
 
+    initAxiomSearchPanel(queryDslInputId) {
+        $("#" + queryDslInputId).on('input keyup click', function () {
+            window.MidPointTheme.cursorPosition = this.selectionStart;
+        })
+    }
+
+    syncContentAssist(contentAssist, editorId) {
+
+    }
 }

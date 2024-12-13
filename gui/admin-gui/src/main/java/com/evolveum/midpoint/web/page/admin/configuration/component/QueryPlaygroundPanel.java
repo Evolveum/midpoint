@@ -299,8 +299,6 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
         });
         midPointQueryButtonBar.add(useInObjectList);
 
-        PrismContext prismContext = getPrismContext();
-
         final DropDownChoicePanel<String> sampleChoice = new DropDownChoicePanel<>(ID_QUERY_SAMPLE,
                 Model.of(""), Model.ofList(SAMPLES),
                 new StringResourceChoiceRenderer("PageRepositoryQuery.sample"), true);
@@ -321,7 +319,7 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
                         String xml = IOUtils.toString(is, StandardCharsets.UTF_8);
                         String serialization = "";
                         try {
-                            QueryType parsed = prismContext.parserFor(xml).xml().parseRealValue(QueryType.class);
+                            QueryType parsed = getPrismContext().parserFor(xml).xml().parseRealValue(QueryType.class);
                             SearchFilterType filter = parsed.getFilter();
                             if (filter != null && filter.getText() != null) {
                                 serialization = filter.getText();
@@ -384,7 +382,7 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
         });
 
         // Content assist for AXQ lang
-        AxiomQueryContentAssist axiomQueryContentAssist = new AxiomQueryContentAssistImpl(prismContext);
+        AxiomQueryContentAssist axiomQueryContentAssist = new AxiomQueryContentAssistImpl(getPrismContext());
         ObjectMapper mapper = new ObjectMapper();
 
         editorMidPoint.add(new AjaxFormComponentUpdatingBehavior("change") {
@@ -407,7 +405,7 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
                     String query = repo.getMidPointQuery();
                     IRequestParameters params = RequestCycle.get().getRequest().getRequestParameters();
                     ItemDefinition<?> rootDef = repo.getObjectType() == null ? null :
-                            prismContext.getSchemaRegistry().findItemDefinitionByType(repo.getObjectType());
+                            getPrismContext().getSchemaRegistry().findItemDefinitionByType(repo.getObjectType());
 
                     try {
                         target.appendJavaScript("window.MidPointAceEditor.syncContentAssist(" +
@@ -416,7 +414,7 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
                                                 query == null ? "" : query,
                                                 params.getParameterValue("cursorPosition").toInt()
                                         ))
-                                + ", " + editorMidPoint.getMarkupId() + ");"
+                                + ", '" + editorMidPoint.getMarkupId() + "');"
                         );
                     } catch (Exception e) {
                         LOGGER.error(e.getMessage());
