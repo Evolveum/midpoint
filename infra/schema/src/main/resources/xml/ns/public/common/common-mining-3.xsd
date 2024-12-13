@@ -1741,6 +1741,19 @@
                 </xsd:annotation>
             </xsd:element>
 
+            <xsd:element name="analysedObjectCount" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Number of objects that are part of the analysis.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisAttributeAnalysis.analysedObjectCount</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
             <xsd:element name="parentType" type="xsd:QName" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1812,6 +1825,18 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>RoleAnalysisAttributeStatistics.inGroup</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="isUnusual" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Specifies whether the attribute value is considered unusual.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisAttributeAnalysis.isUnusual</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

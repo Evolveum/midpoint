@@ -598,17 +598,8 @@ public class RoleAnalysisAlgorithmUtils {
                 if (density == 0) {
                     continue;
                 }
-                RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
-                roleAnalysisAttributeAnalysis.setDensity(density);
-                roleAnalysisAttributeAnalysis.setItemPath(roleAttributeAnalysisStructure.getItemPathType());
-//                roleAnalysisAttributeAnalysis.setIsMultiValue(roleAttributeAnalysisStructure.isMultiValue()); //TODO
-                roleAnalysisAttributeAnalysis.setDescription(roleAttributeAnalysisStructure.getDescription());
-                roleAnalysisAttributeAnalysis.setParentType(roleAttributeAnalysisStructure.getComplexType());
-
-                List<RoleAnalysisAttributeStatistics> attributeStatistics = roleAttributeAnalysisStructure.getAttributeStatistics();
-                for (RoleAnalysisAttributeStatistics attributeStatistic : attributeStatistics) {
-                    roleAnalysisAttributeAnalysis.getAttributeStatistics().add(attributeStatistic);
-                }
+                RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis = roleAttributeAnalysisStructure
+                        .buildRoleAnalysisAttributeAnalysisContainer();
                 roleAnalysis.getAttributeAnalysis().add(roleAnalysisAttributeAnalysis);
             }
             roleAnalysisClusterStatisticType.setRoleAttributeAnalysisResult(roleAnalysis);
@@ -621,17 +612,8 @@ public class RoleAnalysisAlgorithmUtils {
                 if (density == 0) {
                     continue;
                 }
-                RoleAnalysisAttributeAnalysis userAnalysisAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
-                userAnalysisAttributeAnalysis.setDensity(density);
-                userAnalysisAttributeAnalysis.setItemPath(userAttributeAnalysisStructure.getItemPathType());
-//                userAnalysisAttributeAnalysis.setIsMultiValue(userAttributeAnalysisStructure.isMultiValue()); //TODO
-                userAnalysisAttributeAnalysis.setParentType(userAttributeAnalysisStructure.getComplexType());
-
-                userAnalysisAttributeAnalysis.setDescription(userAttributeAnalysisStructure.getDescription());
-                List<RoleAnalysisAttributeStatistics> attributeStatistics = userAttributeAnalysisStructure.getAttributeStatistics();
-                for (RoleAnalysisAttributeStatistics attributeStatistic : attributeStatistics) {
-                    userAnalysisAttributeAnalysis.getAttributeStatistics().add(attributeStatistic);
-                }
+                RoleAnalysisAttributeAnalysis userAnalysisAttributeAnalysis = userAttributeAnalysisStructure
+                        .buildRoleAnalysisAttributeAnalysisContainer();
                 userAnalysis.getAttributeAnalysis().add(userAnalysisAttributeAnalysis);
             }
             roleAnalysisClusterStatisticType.setUserAttributeAnalysisResult(userAnalysis);

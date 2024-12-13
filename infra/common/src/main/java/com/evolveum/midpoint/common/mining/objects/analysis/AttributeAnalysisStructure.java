@@ -35,7 +35,7 @@ public class AttributeAnalysisStructure implements Serializable {
     List<RoleAnalysisAttributeStatistics> attributeStatistics = new ArrayList<>();
     boolean isMultiValue;
     QName complexType;
-
+    int analyzedObjectsCount;
 
     public AttributeAnalysisStructure(int uniqueValues, int objectCount, int totalValues, ItemPath itemPath, QName complexType) {
         this.uniqueValues = uniqueValues;
@@ -44,13 +44,14 @@ public class AttributeAnalysisStructure implements Serializable {
         this.density = calculateDensity(totalValues, possibleRelations);
         this.itemPath = itemPath;
         this.complexType = complexType;
+        this.analyzedObjectsCount = objectCount;
     }
 
-
-    public AttributeAnalysisStructure(double density, ItemPath itemPath, QName complexType) {
+    public AttributeAnalysisStructure(double density, ItemPath itemPath, QName complexType, int objectCount) {
         this.density = density;
         this.itemPath = itemPath;
         this.complexType = complexType;
+        this.analyzedObjectsCount = objectCount;
     }
 
     public static @NotNull List<AttributeAnalysisStructure> extractAttributeAnalysis(@NotNull RoleAnalysisClusterType cluster) {
@@ -79,7 +80,8 @@ public class AttributeAnalysisStructure implements Serializable {
         for (RoleAnalysisAttributeAnalysis attribute : attributeAnalysisList) {
             Double density = attribute.getDensity();
             ItemPath itemPath = attribute.getItemPath() != null ? attribute.getItemPath().getItemPath() : null;
-            analysisStructures.add(new AttributeAnalysisStructure(density, itemPath, complexType));
+            Integer analysedObjectCount = attribute.getAnalysedObjectCount();
+            analysisStructures.add(new AttributeAnalysisStructure(density, itemPath, complexType, analysedObjectCount));
         }
         return analysisStructures;
     }
@@ -156,5 +158,24 @@ public class AttributeAnalysisStructure implements Serializable {
         return complexType;
     }
 
+    public int getAnalyzedObjectsCount() {
+        return analyzedObjectsCount;
+    }
+
+    public @NotNull RoleAnalysisAttributeAnalysis buildRoleAnalysisAttributeAnalysisContainer() {
+        RoleAnalysisAttributeAnalysis attributeAnalysisContainer = new RoleAnalysisAttributeAnalysis();
+        attributeAnalysisContainer.setDensity(this.getDensity());
+        attributeAnalysisContainer.setItemPath(this.getItemPathType());
+        attributeAnalysisContainer.setDescription(this.getDescription());
+        attributeAnalysisContainer.setParentType(this.getComplexType());
+        attributeAnalysisContainer.setAnalysedObjectCount(this.getAnalyzedObjectsCount());
+
+        List<RoleAnalysisAttributeStatistics> attributeStatistics = this.getAttributeStatistics();
+        for (RoleAnalysisAttributeStatistics attributeStatistic : attributeStatistics) {
+            attributeAnalysisContainer.getAttributeStatistics().add(attributeStatistic);
+        }
+
+        return attributeAnalysisContainer;
+    }
 
 }
