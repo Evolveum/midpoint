@@ -158,7 +158,7 @@ public class OutlierAttributeResolverTest extends AbstractUnitTest {
         for (var i = 0; i < valueCountTuples.length; i += 2) {
             var stats = new RoleAnalysisAttributeStatistics();
             stats.setAttributeValue((String) valueCountTuples[i]);
-            stats.setInRepo((Integer) valueCountTuples[i + 1]);
+            stats.setInGroup((Integer) valueCountTuples[i + 1]);
             result.getAttributeStatistics().add(stats);
         }
         return result;

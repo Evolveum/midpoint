@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Responsibility of an attribute resolver is to decide whether user attribute value is unusual comparing to the provided users (in repo stats).
+ * Responsibility of an attribute resolver is to decide whether user attribute value is unusual comparing to the provided users (attribute members - in group stats).
  * Algorithm:
  * 1. find the most common (mode) value of an attribute
  * 2. use its frequency within group as a baseline (100%) to compute relative frequencies
@@ -29,11 +29,11 @@ public class OutlierAttributeResolver {
     public record UnusualAttributeValueResult(ItemPathType path, boolean isUnusual, List<UnusualSingleValueDetail> partialResults) {}
 
     private RoleAnalysisAttributeStatistics findMedianAttributeValueStats(List<RoleAnalysisAttributeStatistics> stats) {
-        var usersWithAttributeCount = stats.stream().mapToInt(RoleAnalysisAttributeStatistics::getInRepo).sum();
+        var usersWithAttributeCount = stats.stream().mapToInt(RoleAnalysisAttributeStatistics::getInGroup).sum();
         var halfUsersStack = usersWithAttributeCount / 2;
-        var sortedDescStats = stats.stream().sorted((a, b) -> a.getInRepo().compareTo(b.getInRepo())).toList();
+        var sortedDescStats = stats.stream().sorted((a, b) -> a.getInGroup().compareTo(b.getInGroup())).toList();
         for (var stat: sortedDescStats) {
-            halfUsersStack -= stat.getInRepo();
+            halfUsersStack -= stat.getInGroup();
             if (halfUsersStack <= 0) {
                 return stat;
             }
@@ -44,13 +44,13 @@ public class OutlierAttributeResolver {
     private UnusualSingleValueDetail analyzeAttributeValue(RoleAnalysisAttributeAnalysis attributeDetail, String userAttributeValue ) {
         var allStats = attributeDetail.getAttributeStatistics();
         var medianValueStats = findMedianAttributeValueStats(allStats);
-        var userValueInRepo = allStats.stream()
+        var userValueInGroup = allStats.stream()
                 .filter(s -> s.getAttributeValue().equals(userAttributeValue))
-                .map(a -> a.getInRepo().doubleValue())
+                .map(a -> a.getInGroup().doubleValue())
                 .findFirst()
                 .orElse(0d);
-        var medianValueInRepo = medianValueStats.getInRepo().doubleValue();
-        var relativeUserValueFrequency = userValueInRepo / medianValueInRepo;
+        var medianValueInGroup = medianValueStats.getInGroup().doubleValue();
+        var relativeUserValueFrequency = userValueInGroup / medianValueInGroup;
         var isUnusual = relativeUserValueFrequency <= minRelativeFrequencyThreshold;
         return new UnusualSingleValueDetail(userAttributeValue, isUnusual, relativeUserValueFrequency);
     }
