@@ -217,9 +217,10 @@ public interface ShadowAttributesContainer extends ShadowItemsContainer, PrismCo
         return this;
     }
 
-    default ShadowAttributesContainer addReferenceAttribute(QName attributeName, AbstractShadow shadow, boolean full)
+    @SuppressWarnings("UnusedReturnValue") // ready for fluent API
+    default ShadowAttributesContainer addReferenceAttribute(QName attributeName, AbstractShadow shadow)
             throws SchemaException {
-        return addReferenceAttribute(attributeName, ShadowReferenceAttributeValue.fromShadow(shadow, full));
+        return addReferenceAttribute(attributeName, ShadowReferenceAttributeValue.fromShadow(shadow));
     }
 
     <T> boolean contains(ShadowSimpleAttribute<T> attr);

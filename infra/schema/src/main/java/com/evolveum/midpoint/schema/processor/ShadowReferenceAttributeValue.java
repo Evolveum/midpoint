@@ -45,6 +45,7 @@ public class ShadowReferenceAttributeValue extends PrismReferenceValueImpl {
 
     @Serial private static final long serialVersionUID = 0L;
 
+    /** The implementation for {@link #semanticEqualsChecker()}. */
     private static final EqualsChecker<ShadowReferenceAttributeValue> SEMANTIC_EQUALS_CHECKER =
             (o1, o2) -> {
                 if (o1 == null || o2 == null) {
@@ -69,18 +70,11 @@ public class ShadowReferenceAttributeValue extends PrismReferenceValueImpl {
                     return s1 == null && s2 == null; // Actually we cannot do any better here.
                 }
 
-                return s1.equalsByContent(s2);
+                return ShadowUtil.equalsByContent(s1.getBean(), s2.getBean());
             };
 
-    /** Whether this is really the full object obtained from the resource. For internal provisioning module use only! */
-    private transient boolean fullObject;
-
     private ShadowReferenceAttributeValue() {
-        this(null, null);
-    }
-
-    private ShadowReferenceAttributeValue(OriginType type, Objectable source) {
-        super(null, type, source);
+        this(null, null, null);
     }
 
     private ShadowReferenceAttributeValue(String oid, OriginType type, Objectable source) {
@@ -120,11 +114,9 @@ public class ShadowReferenceAttributeValue extends PrismReferenceValueImpl {
     }
 
     /** Creates a new value from the full or ID-only shadow. No cloning here. */
-    public static @NotNull ShadowReferenceAttributeValue fromShadow(@NotNull AbstractShadow shadow, boolean full) throws SchemaException {
-        var value = fromReferencable(
+    public static @NotNull ShadowReferenceAttributeValue fromShadow(@NotNull AbstractShadow shadow) throws SchemaException {
+        return fromReferencable(
                 ObjectTypeUtil.createObjectRefWithFullObject(shadow.getPrismObject()));
-        value.fullObject = full;
-        return value;
     }
 
     public static @NotNull ShadowReferenceAttributeValue fromShadowOid(@NotNull String oid) throws SchemaException {
@@ -132,17 +124,14 @@ public class ShadowReferenceAttributeValue extends PrismReferenceValueImpl {
                 ObjectTypeUtil.createObjectRef(oid, ObjectTypes.SHADOW));
     }
 
-    /** TODO better name */
+    /**
+     * Returns an equals checker that compares two reference attribute values, i.e., two shadows that they point to.
+     *
+     * - We use OIDs for comparison, if available.
+     * - If not, we compare shadows by their content - in a relaxed way, see {@link ShadowUtil#equalsByContent}.
+     */
     public static @NotNull EqualsChecker<ShadowReferenceAttributeValue> semanticEqualsChecker() {
         return SEMANTIC_EQUALS_CHECKER;
-    }
-
-    public boolean isFullObject() {
-        return fullObject;
-    }
-
-    public void setFullObject(boolean fullObject) {
-        this.fullObject = fullObject;
     }
 
     public static ShadowReferenceAttributeValue empty() {
@@ -159,11 +148,6 @@ public class ShadowReferenceAttributeValue extends PrismReferenceValueImpl {
         var clone = new ShadowReferenceAttributeValue(getOid(), getOriginType(), getOriginObject());
         copyValues(strategy, clone);
         return clone;
-    }
-
-    protected void copyValues(CloneStrategy strategy, ShadowReferenceAttributeValue clone) {
-        super.copyValues(strategy, clone);
-        clone.fullObject = fullObject;
     }
 
     public @NotNull ShadowAttributesContainer getAttributesContainerRequired() {
@@ -279,7 +263,7 @@ public class ShadowReferenceAttributeValue extends PrismReferenceValueImpl {
 
     @Override
     public String toString() {
-        return "SRAV: " + super.toString() + (fullObject ? " (full)" : "");
+        return "SRAV: " + super.toString();
     }
 
     @Override
