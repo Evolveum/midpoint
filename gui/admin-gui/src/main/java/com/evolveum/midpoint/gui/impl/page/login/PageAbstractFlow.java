@@ -6,16 +6,19 @@
  */
 package com.evolveum.midpoint.gui.impl.page.login;
 
+import com.evolveum.midpoint.gui.impl.component.form.HoneypotBehaviour;
+import com.evolveum.midpoint.gui.impl.component.form.HoneypotFormAjaxListener;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.gui.api.component.captcha.CaptchaPanel;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -36,8 +39,6 @@ public abstract class PageAbstractFlow extends PageRegistrationBase {
 
     private static final String ID_DYNAMIC_FORM = "dynamicForm";
     protected static final String ID_CONTENT_AREA = "contentArea";
-
-    private static final String ID_CAPTCHA = "captcha";
 
     private static final String DOT_CLASS = PageAbstractFlow.class.getName() + ".";
 
@@ -80,18 +81,17 @@ public abstract class PageAbstractFlow extends PageRegistrationBase {
         fragment.setOutputMarkupId(true);
         fragment.add(new VisibleBehaviour(() -> !isSubmitted));
         content.setOutputMarkupId(true);
-        addOrReplaceCaptcha(fragment);
+        addHoneypotBehaviour(mainForm);
         initButtons(mainForm);
         fragment.add(content);
         mainForm.add(fragment);
 
     }
 
-    private void addOrReplaceCaptcha(WebMarkupContainer content) {
-        CaptchaPanel captcha = new CaptchaPanel(ID_CAPTCHA, this);
-        captcha.setOutputMarkupId(true);
-        captcha.add(new VisibleBehaviour(() -> !isSubmitted));
-        content.addOrReplace(captcha);
+    private void addHoneypotBehaviour(MidpointForm<?> mainForm) {
+        if (!isSubmitted) {
+            mainForm.add(new HoneypotBehaviour());
+        }
     }
 
     private void initButtons(MidpointForm<?> mainForm) {
@@ -105,61 +105,23 @@ public abstract class PageAbstractFlow extends PageRegistrationBase {
             }
 
             protected void onSubmit(AjaxRequestTarget target) {
-                doRegistration(target);
+                submitRegistration(target);
+            }
 
+            @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                super.updateAjaxAttributes(attributes);
+                attributes.getAjaxCallListeners().add(new HoneypotFormAjaxListener(mainForm));
+            }
+
+            @Override
+            public void renderHead(IHeaderResponse response) {
+                super.renderHead(response);
+                response.render(OnDomReadyHeaderItem.forScript("window.MidPointHoneypot.initHoneypotFields('" + mainForm.getMarkupId() + "')"));
             }
         };
         register.add(new VisibleBehaviour(() -> !isSubmitted));
         mainForm.add(register);
-    }
-
-    private void doRegistration(AjaxRequestTarget target) {
-        if (!validateCaptcha(target)) {
-            return;
-        }
-        submitRegistration(target);
-    }
-
-    private boolean validateCaptcha(AjaxRequestTarget target) {
-        String value = System.getProperty(MidpointConfiguration.MIDPOINT_SCHRODINGER_PROPERTY);
-        boolean isSchrodingerTesting = Boolean.parseBoolean(value);
-        if (isSchrodingerTesting) {
-            LOGGER.trace("Skipping CAPTCHA Validation, because system variable (midpoint.schrodinget) for schrodinger testing is TRUE");
-            return true;
-        }
-
-        CaptchaPanel captcha = getCaptcha();
-        if (captcha.getRandomText() == null || captcha.getCaptchaText() == null) {
-            String message = createStringResource("PageSelfRegistration.captcha.validation.failed")
-                    .getString();
-            LOGGER.error(message);
-            getSession().error(message);
-            target.add(getFeedbackPanel());
-            updateCaptcha(target);
-            return false;
-        }
-
-        if (!captcha.getCaptchaText().equals(captcha.getRandomText())) {
-            String message = createStringResource("PageSelfRegistration.captcha.validation.failed")
-                    .getString();
-            LOGGER.error(message);
-            getSession().error(message);
-            updateCaptcha(target);
-            target.add(getFeedbackPanel());
-            return false;
-        }
-        LOGGER.trace("CAPTCHA Validation OK");
-        return true;
-    }
-
-    protected void updateCaptcha(AjaxRequestTarget target) {
-        Fragment fragment = (Fragment) get(createComponentPath(ID_MAIN_FORM, ID_CONTENT_AREA));
-        addOrReplaceCaptcha(fragment);
-        target.add(fragment);
-    }
-
-    private CaptchaPanel getCaptcha() {
-        return (CaptchaPanel) get(createComponentPath(ID_MAIN_FORM, ID_CONTENT_AREA, ID_CAPTCHA));
     }
 
     protected MidpointForm<?> getMainForm() {

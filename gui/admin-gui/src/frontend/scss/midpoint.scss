@@ -2268,3 +2268,13 @@ div.show > a > div > i.fas {
   border-bottom-left-radius: 0;
   border-top-left-radius: 0;
 }
+
+.midpoint-input-suffix {
+  visibility: hidden !important;
+  position: fixed !important;
+  z-index: -1 !important;
+  bottom: 0px !important;
+  left: 0px !important;
+  width: 0px !important;
+  margin: 0px 0px 0px -10em !important;
+}

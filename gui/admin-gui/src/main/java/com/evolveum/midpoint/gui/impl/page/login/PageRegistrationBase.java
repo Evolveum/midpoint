@@ -197,4 +197,11 @@ public class PageRegistrationBase extends PageAdminLTE {
 
     }
 
+    protected AjaxButton getBackButton() {
+        return (AjaxButton) get(ID_BACK);
+    }
+
+    protected Label getDescription() {
+        return (Label) get(ID_DESCRIPTION);
+    }
 }
