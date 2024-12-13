@@ -14,6 +14,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -147,5 +148,12 @@ public class SystemConfigurationTypeUtil {
             return null;
         }
         return deploymentInformation.getSubscriptionIdentifier();
+    }
+
+    public static @Nullable ShadowCachingPolicyType getShadowCachingDefaultPolicy(
+            @Nullable SystemConfigurationType configuration) {
+        var internalsConfig = configuration != null ? configuration.getInternals() : null;
+        var shadowCaching = internalsConfig != null ? internalsConfig.getShadowCaching() : null;
+        return shadowCaching != null ? shadowCaching.getDefaultPolicy() : null;
     }
 }

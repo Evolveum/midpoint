@@ -21,6 +21,7 @@ import java.util.UUID;
 
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.util.RawRepoShadow;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.test.IntegrationTestTools;
@@ -98,6 +99,12 @@ public class TestDummyPasswordCaching extends AbstractDummyTest {
 
     /** Test resources for individual scenarios. */
     private final Map<Scenario, DummyTestResource> resourceMap = new HashMap<>();
+
+    @Override
+    protected boolean shouldSkipWholeClass() {
+        // No need to waste time running this class under different caching overrides, as it uses its own (explicit) caching.
+        return !InternalsConfig.getShadowCachingDefault().isStandardForTests();
+    }
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
