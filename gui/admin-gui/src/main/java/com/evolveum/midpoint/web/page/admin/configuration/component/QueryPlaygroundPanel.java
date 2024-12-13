@@ -10,7 +10,6 @@ package com.evolveum.midpoint.web.page.admin.configuration.component;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createDistinct;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createRawCollection;
 import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
-import static com.evolveum.midpoint.schema.SelectorOptions.extractOptionValues;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,20 +25,14 @@ import com.evolveum.midpoint.prism.query.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.attributes.AjaxCallListener;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.attributes.ThrottlingSettings;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
-import org.apache.wicket.markup.head.IHeaderResponse;
-import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.HiddenField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -91,7 +84,6 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.wicket.request.IRequestParameters;
 import org.apache.wicket.request.cycle.RequestCycle;
-import org.apache.wicket.util.string.StringValue;
 
 public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
 
@@ -400,11 +392,13 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                RepoQueryDto repo = getModel().getObject();
+                RepoQueryDto repo = getModelObject();
+
                 if (repo != null) {
                     String query = repo.getMidPointQuery();
                     IRequestParameters params = RequestCycle.get().getRequest().getRequestParameters();
-                    ItemDefinition<?> rootDef = repo.getObjectType() == null ? null :
+                    ItemDefinition<?> rootDef = repo.getObjectType() == null ?
+                            getPrismContext().getSchemaRegistry().findItemDefinitionByType(objectTypeChoice.getFirstChoice()) :
                             getPrismContext().getSchemaRegistry().findItemDefinitionByType(repo.getObjectType());
 
                     try {
