@@ -6,6 +6,12 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.INTENT_DEFAULT;
+
+import static com.evolveum.midpoint.test.DummyResourceContoller.*;
+import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ACCOUNT;
+
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
@@ -15,13 +21,14 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 
+import com.evolveum.midpoint.test.DummyTestResource;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -40,12 +47,41 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestTolerantAttributes extends AbstractInitializedModelIntegrationTest {
 
-    public static final File TEST_DIR = new File("src/test/resources/tolerant");
+    public static final File TEST_DIR = new File(TEST_RESOURCES_DIR, "tolerance");
 
-    private static final String ACCOUNT_JACK_DUMMY_BLACK_FILENAME = "src/test/resources/common/account-jack-dummy-black.xml";
+    private static final File ACCOUNT_JACK_DUMMY_BLACK_FILENAME = new File(COMMON_DIR, "account-jack-dummy-black.xml");
+
+    private static final String ATTR_TITLE2 = "title2";
+    private static final String ATTR_QUOTE2 = "quote2";
+    private static final String ATTR_GOSSIP2 = "gossip2";
+
+    /**
+     * - title: intolerant (via pattern), with a strong outbound mapping
+     * - title2: intolerant (via false tolerance), with a strong outbound mapping
+     * - quote: intolerant (via pattern), with a normal outbound mapping
+     * - quote2: intolerant (via false tolerance), with a normal outbound mapping
+     * - gossip: intolerant (via pattern), with a weak outbound mapping
+     * - gossip2: intolerant (via false tolerance), with a weak outbound mapping
+     */
+    private static final DummyTestResource RESOURCE_DUMMY_TOLERANCE = new DummyTestResource(
+            TEST_DIR, "resource-dummy-tolerance.xml", "f64d35cb-1e75-46e9-83e3-0a6267d309b6", "tolerance",
+            c -> {
+                c.extendSchemaPirate();
+                var accountObjectClass = c.getAccountObjectClass();
+                c.addAttrDef(accountObjectClass, ATTR_TITLE2, String.class, false, true);
+                c.addAttrDef(accountObjectClass, ATTR_QUOTE2, String.class, false, true);
+                c.addAttrDef(accountObjectClass, ATTR_GOSSIP2, String.class, false, true);
+            });
 
     private static String accountOid;
     private static PrismObjectDefinition<ShadowType> accountDefinition;
+
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
+
+        RESOURCE_DUMMY_TOLERANCE.init(this, initTask, initResult);
+    }
 
     @Test
     public void test100ModifyUserAddAccount() throws Exception {
@@ -55,7 +91,7 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
-        PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_BLACK_FILENAME));
+        PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_BLACK_FILENAME);
 
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(UserType.class, USER_JACK_OID);
@@ -113,7 +149,7 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
      * delta then the value should be set to resource even in that case.
      */
     @Test
-    public void test101ModifyAddAttributesIntolerantPattern() throws Exception {
+    public void test110ModifyAddAttributesIntolerantPattern() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -157,7 +193,7 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
     }
 
     @Test
-    public void test102modifyAddAttributeTolerantPattern() throws Exception {
+    public void test120ModifyAddAttributeTolerantPattern() throws Exception {
 
         // GIVEN
         Task task = getTestTask();
@@ -203,7 +239,7 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
     }
 
     @Test
-    public void test103modifyReplaceAttributeIntolerant() throws Exception {
+    public void test130ModifyReplaceAttributeIntolerant() throws Exception {
 
         // GIVEN
         Task task = getTestTask();
@@ -249,7 +285,7 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
     }
 
     @Test
-    public void test104modifyReplaceAttributeTolerantPattern() throws Exception {
+    public void test140ModifyReplaceAttributeTolerantPattern() throws Exception {
 
         // GIVEN
         Task task = getTestTask();
@@ -296,7 +332,7 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
     }
 
     @Test
-    public void test105ModifyAddNonTolerantAttribute() throws Exception {
+    public void test150ModifyAddNonTolerantAttribute() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -318,5 +354,69 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
         // THEN
         then();
         assertPartialError(result);
+    }
+
+    /**
+     * Checks the behavior of intolerant attributes (defined by pattern or by false tolerance) with respect to mappings
+     * of different strengths (strong, normal, weak).
+     */
+    @Test(description = "MID-10289")
+    public void test200SettingIntolerantAttributes() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = getTestNameShort();
+        var description1 = "description1";
+        var description2 = "description2";
+
+        when("user is created");
+        var user = new UserType()
+                .name(userName)
+                .description(description1)
+                .assignment(RESOURCE_DUMMY_TOLERANCE.assignmentTo(ACCOUNT, INTENT_DEFAULT));
+        var userOid = addObject(user, task, result);
+
+        then("user is created, attributes are set");
+        assertDummyAccountByUsername(RESOURCE_DUMMY_TOLERANCE.name, userName)
+                .display()
+                .assertAttribute(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, description1)
+                .assertAttribute(ATTR_TITLE2, description1)
+                .assertAttribute(DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, description1)
+                .assertAttribute(ATTR_QUOTE2, description1)
+                .assertAttribute(DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, description1)
+                .assertAttribute(ATTR_GOSSIP2, description1);
+
+        when("user is reconciled");
+        reconcileUser(userOid, task, result);
+
+        then("attributes should have the same values");
+        assertDummyAccountByUsername(RESOURCE_DUMMY_TOLERANCE.name, userName)
+                .display()
+                //.assertAttribute(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, description1) // This fails (value is null)
+                .assertAttribute(ATTR_TITLE2, description1)
+                //.assertAttribute(DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, description1) // This fails (value is null)
+                .assertAttribute(ATTR_QUOTE2, description1)
+                //.assertAttribute(DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, description1) // This fails (value is null)
+                .assertAttribute(ATTR_GOSSIP2, description1);
+
+        when("the description is changed");
+        modifyUserReplace(userOid, UserType.F_DESCRIPTION, task, result, description2);
+
+        then("attributes should have the new values");
+        assertDummyAccountByUsername(RESOURCE_DUMMY_TOLERANCE.name, userName)
+                .display(); // TODO asserts
+
+        when("user is reconciled again");
+        reconcileUser(userOid, task, result);
+
+        then("attributes should have the same values");
+        assertDummyAccountByUsername(RESOURCE_DUMMY_TOLERANCE.name, userName)
+                .display(); // TODO asserts
+
+        when("user is reconciled once again");
+        reconcileUser(userOid, task, result);
+
+        then("attributes should have the same values");
+        assertDummyAccountByUsername(RESOURCE_DUMMY_TOLERANCE.name, userName)
+                .display(); // TODO asserts
     }
 }

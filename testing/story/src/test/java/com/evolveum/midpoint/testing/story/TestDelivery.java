@@ -11,7 +11,6 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.util.Arrays;
-import java.util.Collections;
 
 import javax.xml.namespace.QName;
 
@@ -370,7 +369,7 @@ public class TestDelivery extends AbstractStoryTest {
         new ShadowAsserter<>(shadow)
                 .display()
                 .attributes()
-                .attribute(ATTR_JPEG_PHOTO)
+                .simpleAttribute(ATTR_JPEG_PHOTO)
                 .assertSize(1);
 
         var repoShadow = repositoryService.getObject(ShadowType.class, shadow.getOid(), null, result);

@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.function.Consumer;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -279,7 +278,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      * - Source: ConsolidationProcessor
      * - Target: ReconciliationProcessor
      */
-    private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>, PrismPropertyDefinition<?>>>> squeezedAttributes;
+    private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<?, ?>>> squeezedAttributes;
     private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<ShadowAssociationValue, ShadowAssociationDefinition>>> squeezedAssociations;
     private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>>>> squeezedAuxiliaryObjectClasses;
 
@@ -1033,11 +1032,11 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         this.evaluatedPlainConstruction = evaluatedPlainConstruction;
     }
 
-    public Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> getSqueezedAttributes() {
+    public Map<QName, DeltaSetTriple<ItemValueWithOrigin<?, ?>>> getSqueezedAttributes() {
         return squeezedAttributes;
     }
 
-    public void setSqueezedAttributes(Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> squeezedAttributes) {
+    public void setSqueezedAttributes(Map<QName, DeltaSetTriple<ItemValueWithOrigin<?, ?>>> squeezedAttributes) {
         this.squeezedAttributes = squeezedAttributes;
     }
 
@@ -1518,12 +1517,12 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         clone.synchronizationSource = this.synchronizationSource;
     }
 
-    private Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> cloneSqueezedAttributes() {
+    private Map<QName, DeltaSetTriple<ItemValueWithOrigin<?, ?>>> cloneSqueezedAttributes() {
         if (squeezedAttributes == null) {
             return null;
         }
-        Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> clonedMap = new HashMap<>();
-        for (Entry<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> entry: squeezedAttributes.entrySet()) {
+        Map<QName, DeltaSetTriple<ItemValueWithOrigin<?, ?>>> clonedMap = new HashMap<>();
+        for (var entry: squeezedAttributes.entrySet()) {
             clonedMap.put(entry.getKey(), entry.getValue().clone(ItemValueWithOrigin::clone));
         }
         return clonedMap;
@@ -1625,7 +1624,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             sb.append(", shadow-only (not full) ");
             var current = getObjectCurrent();
             if (current != null) {
-                ResourceObjectDefinition definition = null;
+                ResourceObjectDefinition definition;
                 try {
                     definition = getStructuralObjectDefinition();
                     if (definition == null) {

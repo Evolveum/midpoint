@@ -86,6 +86,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
 
             }
         };
+        addAriaDescribedByForButton(workItemApproveButton);
         workItemApproveButton.add(new VisibleBehaviour(this::isApproveRejectButtonVisible));
         workItemApproveButton.setOutputMarkupId(true);
         add(workItemApproveButton);
@@ -101,6 +102,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
 
             }
         };
+        addAriaDescribedByForButton(workItemUnclaimedButton);
         workItemUnclaimedButton.add(new VisibleBehaviour(this::isReleaseButtonVisible));
         workItemUnclaimedButton.setOutputMarkupId(true);
         add(workItemUnclaimedButton);
@@ -118,6 +120,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
                 afterActionFinished(ajaxRequestTarget);
             }
         };
+        addAriaDescribedByForButton(workItemRejectButton);
         workItemRejectButton.setOutputMarkupId(true);
         workItemRejectButton.add(new VisibleBehaviour(this::isApproveRejectButtonVisible));
         add(workItemRejectButton);
@@ -131,6 +134,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
                 forwardPerformed(ajaxRequestTarget);
             }
         };
+        addAriaDescribedByForButton(workItemForwardButton);
         workItemForwardButton.setOutputMarkupId(true);
         workItemForwardButton.add(new VisibleBehaviour(this::isForwardButtonVisible));
         add(workItemForwardButton);
@@ -145,10 +149,14 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
                 afterActionFinished(ajaxRequestTarget);
             }
         };
+        addAriaDescribedByForButton(workItemClaimButton);
         workItemClaimButton.add(new VisibleBehaviour(this::isClaimButtonVisible));
         workItemClaimButton.setOutputMarkupId(true);
 
         add(workItemClaimButton);
+    }
+
+    protected void addAriaDescribedByForButton(AjaxButton workItemApproveButton) {
     }
 
     private CaseWorkItemType getCaseWorkItemModelObject() {

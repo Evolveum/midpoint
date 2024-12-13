@@ -684,8 +684,8 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
         return assertShadow(shadow, "after")
                 .display()
                 .attributes()
-                    .attribute(ATTR_MEMBER.getLocalPart())
-                        .assertRealValues(expectedUsers);
+                .simpleAttribute(ATTR_MEMBER.getLocalPart())
+                .assertRealValues(expectedUsers);
     }
 
     @NotNull
