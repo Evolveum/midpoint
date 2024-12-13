@@ -6,8 +6,11 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining;
 
+import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
+import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
@@ -25,6 +28,8 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.web.component.data.RoleAnalysisObjectDto;
+import com.evolveum.midpoint.web.component.data.RoleAnalysisTable;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -209,5 +214,65 @@ public class RoleAnalysisWebUtils {
                 }
             }
         };
+    }
+
+    @NotNull
+    public static RoleAnalysisTable<MiningUserTypeChunk, MiningRoleTypeChunk> loadRoleAnalysisTempTable(
+            @NotNull String id,
+            @NotNull PageBase pageBase,
+            @Nullable List<DetectedAnomalyResult> detectedAnomalyResult,
+            RoleAnalysisOutlierPartitionType partition,
+            @NotNull RoleAnalysisOutlierType outlier,
+            @NotNull RoleAnalysisClusterType cluster) {
+
+        LoadableModel<RoleAnalysisObjectDto> miningOperationChunk = new LoadableModel<>(false) {
+
+            @Contract(" -> new")
+            @Override
+            protected @NotNull RoleAnalysisObjectDto load() {
+                //TODO refactor
+                RoleAnalysisObjectDto roleAnalysisObjectDto = new RoleAnalysisObjectDto(
+                        cluster, new ArrayList<>(), 0, pageBase);
+                String outlierOid = outlier.getObjectRef().getOid();
+
+                if (detectedAnomalyResult == null) {
+                    List<DetectedAnomalyResult> partitionDetectedAnomalyResult = partition.getDetectedAnomalyResult();
+                    if (partitionDetectedAnomalyResult == null) {
+                        return roleAnalysisObjectDto;
+                    } else {
+                        loadObjectForMark(roleAnalysisObjectDto, outlierOid);
+                    }
+                }
+
+                loadObjectForMark(roleAnalysisObjectDto, outlierOid);
+
+                return roleAnalysisObjectDto;
+            }
+
+            private void loadObjectForMark(RoleAnalysisObjectDto roleAnalysisObjectDto, String outlierOid) {
+                if (detectedAnomalyResult != null) {
+                    for (DetectedAnomalyResult item : detectedAnomalyResult) {
+                        ObjectReferenceType targetObjectRef = item.getTargetObjectRef();
+                        if (targetObjectRef == null) {
+                            continue;
+                        }
+
+                        roleAnalysisObjectDto.addMarkedRelation(outlierOid, targetObjectRef.getOid());
+                    }
+                }
+            }
+        };
+
+        RoleAnalysisTable<MiningUserTypeChunk, MiningRoleTypeChunk> table = new RoleAnalysisTable<>(
+                id,
+                miningOperationChunk) {
+            @Override
+            public boolean getMigrationButtonVisibility() {
+                return false;
+            }
+        };
+
+        table.setOutputMarkupId(true);
+        return table;
     }
 }

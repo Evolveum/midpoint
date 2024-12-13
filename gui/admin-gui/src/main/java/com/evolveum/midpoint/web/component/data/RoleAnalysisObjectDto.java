@@ -10,6 +10,7 @@ package com.evolveum.midpoint.web.component.data;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
@@ -50,6 +51,7 @@ public class RoleAnalysisObjectDto implements Serializable {
     private RoleAnalysisClusterType cluster;
 
     private Set<String> markedUsers = new HashSet<>();
+    private Set<String> markedRoles = new HashSet<>();
     private Set<MarkedRelation> markedRelations = new HashSet<>();
 
     private SearchFilterType userSearchFilter = null;
@@ -78,6 +80,7 @@ public class RoleAnalysisObjectDto implements Serializable {
             if (procedureType == RoleAnalysisProcedureType.OUTLIER_DETECTION) {
                 this.isOutlierDetection = true;
                 collectMarkedUsers(roleAnalysisService, task, result);
+                collectMarkedRoles(roleAnalysisService, task, result);
             }
             mode = analysisOption.getProcessMode();
             this.isRoleMode = mode.equals(RoleAnalysisProcessModeType.ROLE);
@@ -119,7 +122,7 @@ public class RoleAnalysisObjectDto implements Serializable {
 
     }
 
-    private void collectMarkedUsers(RoleAnalysisService roleAnalysisService, Task task, OperationResult result) {
+    private void collectMarkedUsers(@NotNull RoleAnalysisService roleAnalysisService, Task task, OperationResult result) {
         markedUsers = new HashSet<>();
         List<RoleAnalysisOutlierType> searchResultList = roleAnalysisService.findClusterOutliers(
                 cluster, null, task, result);
@@ -131,6 +134,21 @@ public class RoleAnalysisObjectDto implements Serializable {
                 }
             }
         }
+    }
+
+    private void collectMarkedRoles(@NotNull RoleAnalysisService roleAnalysisService, Task task, OperationResult result) {
+        if(cluster == null || cluster.getOid() == null) {
+            return;
+        }
+
+        Map<RoleAnalysisOutlierPartitionType, RoleAnalysisOutlierType> clusterTopOutliers = roleAnalysisService
+                .getClusterOutlierPartitionsMap(cluster.getOid(), null, true, task, result);
+
+        clusterTopOutliers.keySet().forEach(partition -> partition.getDetectedAnomalyResult().stream()
+                .map(DetectedAnomalyResult::getTargetObjectRef)
+                .filter(ref -> ref != null && ref.getOid() != null)
+                .map(ObjectReferenceType::getOid)
+                .forEach(markedRoles::add));
     }
 
     private @NotNull DisplayValueOption loadDisplayValueOption(@NotNull RoleAnalysisClusterType cluster, Integer parameterTableSetting) {
@@ -278,6 +296,10 @@ public class RoleAnalysisObjectDto implements Serializable {
 
     public Set<String> getMarkedUsers() {
         return markedUsers;
+    }
+
+    public Set<String> getMarkedRoles() {
+        return markedRoles;
     }
 
     public Set<MarkedRelation> getMarkedRelations() {

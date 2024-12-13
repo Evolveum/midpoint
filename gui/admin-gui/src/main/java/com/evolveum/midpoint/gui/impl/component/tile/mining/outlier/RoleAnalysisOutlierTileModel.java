@@ -23,6 +23,8 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 
+import org.jetbrains.annotations.Nullable;
+
 public class RoleAnalysisOutlierTileModel<T extends Serializable> extends Tile<T> {
 
     String icon;
@@ -39,7 +41,7 @@ public class RoleAnalysisOutlierTileModel<T extends Serializable> extends Tile<T
     }
 
     public RoleAnalysisOutlierTileModel(
-            @NotNull RoleAnalysisOutlierPartitionType partition,
+            @Nullable RoleAnalysisOutlierPartitionType partition,
             @NotNull RoleAnalysisOutlierType outlier,
             @NotNull PageBase pageBase) {
         this.partition = partition;
@@ -47,15 +49,16 @@ public class RoleAnalysisOutlierTileModel<T extends Serializable> extends Tile<T
         this.outlier = outlier;
         this.name = outlier.getName().getOrig();
         this.pageBase = pageBase;
-        this.clusterRef = partition.getClusterRef();
-        this.sessionRef = partition.getTargetSessionRef();
-        RoleAnalysisPartitionAnalysisType partitionAnalysis = partition.getPartitionAnalysis();
-        OutlierCategoryType outlierCategory = partitionAnalysis.getOutlierCategory();
-        OutlierSpecificCategoryType outlierSpecificCategory = outlierCategory.getOutlierSpecificCategory();
-        this.status = outlierSpecificCategory.value();
+        if (partition != null) {
+            this.clusterRef = partition.getClusterRef();
+            this.sessionRef = partition.getTargetSessionRef();
+            RoleAnalysisPartitionAnalysisType partitionAnalysis = partition.getPartitionAnalysis();
+            OutlierCategoryType outlierCategory = partitionAnalysis.getOutlierCategory();
+            OutlierSpecificCategoryType outlierSpecificCategory = outlierCategory.getOutlierSpecificCategory();
+            this.status = outlierSpecificCategory.value();
 
-        tmpNameRefResolver(clusterRef, sessionRef, pageBase);
-
+            tmpNameRefResolver(clusterRef, sessionRef, pageBase);
+        }
     }
 
     //TODO Temporary solution (remove later) but why is targetName null? it is stored in fullObject.

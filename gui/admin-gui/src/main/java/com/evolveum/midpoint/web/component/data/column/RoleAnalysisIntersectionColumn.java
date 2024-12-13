@@ -83,7 +83,8 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
 
         //TODO: refactor this and markChunkIfRequested. We need design logic for this.
         if (outlierDetection && isInclude.equals(RoleAnalysisTableCellFillResolver.Status.RELATION_DISABLE)) {
-            cellItem.add(AttributeModifier.replace("class", "bg-dark"));
+            cellItem.add(AttributeModifier.replace("class",
+                    "p-2 d-flex align-items-center justify-content-center bg-dark"));
         }
 
         markChunkIfRequested(cellItem, rowChunk, baseMiningChunk, isInclude);
@@ -104,6 +105,8 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
             RoleAnalysisTableCellFillResolver.@NotNull Status isInclude) {
         RoleAnalysisObjectDto roleAnalysis = getModel().getObject();
         Set<String> markedUsers = getModel().getObject().getMarkedUsers();
+        Set<String> markedRoles = getModel().getObject().getMarkedRoles();
+
         Set<RoleAnalysisObjectDto.MarkedRelation> markedRelations = getModel().getObject().getMarkedRelations();
 
         if (!isInclude.equals(RoleAnalysisTableCellFillResolver.Status.RELATION_NONE)
@@ -119,7 +122,8 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
                 if (matchCol) {
                     cellItem.add(AttributeModifier.append("style", " border: 5px solid #206f9d;"));
                     if (matchRow) {
-                        cellItem.add(AttributeModifier.replace("class", "bg-danger"));
+                        cellItem.add(AttributeModifier.replace("class",
+                                "p-2 d-flex align-items-center justify-content-center bg-danger"));
                         return true;
                     }
                 }
@@ -142,11 +146,18 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
                         associatedColor = "#28a745";
                     }
                     Set<String> usersInPatterns = pattern.getUsers();
+                    Set<String> roles = pattern.getRoles();
+                    List<String> rolesInRow = rowChunk.getRoles();
                     for (String member : this.baseMiningChunk.getMembers()) {
                         if (usersInPatterns.contains(member)) {
                             isMarked = true;
                             cellItem.add(AttributeModifier.append("style",
                                     " border: 5px solid " + associatedColor + ";"));
+                            if (rolesInRow.stream().anyMatch(roles::contains)) {
+                                cellItem.add(AttributeModifier.replace("class",
+                                        "p-2 d-flex align-items-center justify-content-center bg-danger"));
+                            }
+
                             break;
                         }
                     }
@@ -155,13 +166,16 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
 
             if (!isMarked
                     && markedUsers != null
-                    && !markedUsers.isEmpty()) {
-                for (String member : this.baseMiningChunk.getMembers()) {
-                    if (markedUsers.contains(member)) {
-                        cellItem.add(AttributeModifier.append("style", " border: 5px solid #206f9d;"));
-                        break;
-                    }
+                    && !markedUsers.isEmpty()
+                    && this.baseMiningChunk.getMembers().stream().anyMatch(markedUsers::contains)) {
+
+                if (markedRoles != null && !markedRoles.isEmpty() && rowChunk.getRoles().stream().anyMatch(markedRoles::contains)) {
+                    cellItem.add(AttributeModifier.replace("class",
+                            "p-2 d-flex align-items-center justify-content-center bg-warning"));
                 }
+
+                cellItem.add(AttributeModifier.append("style", " border: 5px solid #206f9d;"));
+                isMarked = true;
             }
 
             return isMarked;

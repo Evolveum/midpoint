@@ -7,19 +7,14 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.outlier.panel;
 
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.LOGGER;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.loadRoleAnalysisTempTable;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -27,33 +22,22 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
-import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
-import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChunkAction;
-import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChunkMode;
-import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuItem;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.MenuItemLinkPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisWidgetsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.WidgetItemModel;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.component.data.RoleAnalysisObjectDto;
 import com.evolveum.midpoint.web.component.data.RoleAnalysisTable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.Nullable;
 
 public class OutlierClusterItemPanel<T extends Serializable>
         extends BasePanel<ListGroupMenuItem<T>> {
@@ -114,153 +98,24 @@ public class OutlierClusterItemPanel<T extends Serializable>
         return new RoleAnalysisWidgetsPanel(id, loadDetailsModel()) {
             @Override
             protected @NotNull Component getPanelComponent(String id1) {
+                RoleAnalysisOutlierPartitionType partition = getPartitionModel().getObject();
+                RoleAnalysisOutlierType outlier = getOutlierModel().getObject();
                 DisplayValueOption displayValueOption = new DisplayValueOption();
-                RoleAnalysisClusterType cluster = prepareTemporaryCluster(displayValueOption);
+                PageBase pageBase = getPageBase();
+                RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+                Task task = pageBase.createSimpleTask("loadDetailsPanel");
+                RoleAnalysisClusterType cluster = roleAnalysisService.prepareTemporaryCluster(
+                        outlier, partition, displayValueOption, task);
                 if (cluster == null) {
                     return super.getPanelComponent(id1);
                 }
-
-                RoleAnalysisTable<MiningUserTypeChunk, MiningRoleTypeChunk> table = loadTable(id1, cluster);
+                List<DetectedAnomalyResult> detectedAnomalyResult = partition.getDetectedAnomalyResult();
+                RoleAnalysisTable<MiningUserTypeChunk, MiningRoleTypeChunk> table = loadRoleAnalysisTempTable(
+                        id1, pageBase, detectedAnomalyResult, partition, outlier, cluster);
                 table.setOutputMarkupId(true);
                 return table;
             }
         };
-    }
-
-    //TODO this is temporary solution for testing
-    private @Nullable RoleAnalysisClusterType prepareTemporaryCluster(DisplayValueOption displayValueOption) {
-        RoleAnalysisOutlierType outlier = getOutlierModel().getObject();
-        RoleAnalysisOutlierPartitionType partition = getPartitionModel().getObject();
-        RoleAnalysisPartitionAnalysisType partitionAnalysis = partition.getPartitionAnalysis();
-        RoleAnalysisOutlierSimilarObjectsAnalysisResult similarObjectAnalysis = partitionAnalysis.getSimilarObjectAnalysis();
-        if (similarObjectAnalysis == null) {
-            return null;
-        }
-        List<ObjectReferenceType> similarObjects = similarObjectAnalysis.getSimilarObjects();
-        Set<String> similarObjectOids = similarObjects.stream().map(ObjectReferenceType::getOid).collect(Collectors.toSet());
-        String sessionOid = partition.getTargetSessionRef().getOid();
-        String userOid = outlier.getObjectRef().getOid();
-
-        PageBase pageBase = getPageBase();
-        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
-        Task task = pageBase.createSimpleTask("Idk");
-        OperationResult result = task.getResult();
-
-        PrismObject<RoleAnalysisSessionType> sessionObject = roleAnalysisService.getSessionTypeObject(sessionOid, task, result);
-
-        if (sessionObject == null) {
-            LOGGER.error("Session object is null");
-            return null;
-        }
-
-        RoleAnalysisSessionType session = sessionObject.asObjectable();
-        RoleAnalysisDetectionOptionType defaultDetectionOption = session.getDefaultDetectionOption();
-
-        double minFrequency = 2;
-        double maxFrequency = 2;
-
-        if (defaultDetectionOption != null && defaultDetectionOption.getStandardDeviation() != null) {
-            RangeType frequencyRange = defaultDetectionOption.getStandardDeviation();
-            if (frequencyRange.getMin() != null) {
-                minFrequency = frequencyRange.getMin().intValue();
-            }
-            if (frequencyRange.getMax() != null) {
-                maxFrequency = frequencyRange.getMax().intValue();
-            }
-        }
-
-        displayValueOption.setProcessMode(RoleAnalysisProcessModeType.USER);
-        displayValueOption.setChunkMode(RoleAnalysisChunkMode.EXPAND);
-        displayValueOption.setSortMode(RoleAnalysisSortMode.JACCARD);
-        displayValueOption.setChunkAction(RoleAnalysisChunkAction.EXPLORE_DETECTION);
-        RoleAnalysisClusterType cluster = new RoleAnalysisClusterType();
-        for (String element : similarObjectOids) {
-            cluster.getMember().add(new ObjectReferenceType()
-                    .oid(element).type(UserType.COMPLEX_TYPE));
-        }
-
-        cluster.setRoleAnalysisSessionRef(
-                new ObjectReferenceType()
-                        .type(RoleAnalysisSessionType.COMPLEX_TYPE)
-                        .oid(sessionOid)
-                        .targetName(session.getName()));
-
-        UserAnalysisSessionOptionType userModeOptions = session.getUserModeOptions();
-        SearchFilterType userSearchFilter = userModeOptions.getUserSearchFilter();
-        SearchFilterType roleSearchFilter = userModeOptions.getRoleSearchFilter();
-        SearchFilterType assignmentSearchFilter = userModeOptions.getAssignmentSearchFilter();
-
-        RoleAnalysisDetectionOptionType detectionOption = new RoleAnalysisDetectionOptionType();
-        detectionOption.setStandardDeviation(new RangeType().min(minFrequency).max(maxFrequency));
-        cluster.setDetectionOption(detectionOption);
-
-        MiningOperationChunk miningOperationChunk = roleAnalysisService.prepareBasicChunkStructure(cluster,
-                userSearchFilter, roleSearchFilter, assignmentSearchFilter,
-                displayValueOption, RoleAnalysisProcessModeType.USER, null, result, task);
-
-        RangeType standardDeviation = detectionOption.getStandardDeviation();
-        Double sensitivity = detectionOption.getSensitivity();
-        Double frequencyThreshold = detectionOption.getFrequencyThreshold();
-
-        RoleAnalysisSortMode sortMode = displayValueOption.getSortMode();
-        if (sortMode == null) {
-            displayValueOption.setSortMode(RoleAnalysisSortMode.NONE);
-            sortMode = RoleAnalysisSortMode.NONE;
-        }
-
-        List<MiningRoleTypeChunk> roles = miningOperationChunk.getMiningRoleTypeChunks(sortMode);
-
-        if (standardDeviation != null) {
-            roleAnalysisService.resolveOutliersZScore(roles, standardDeviation, sensitivity, frequencyThreshold);
-        }
-
-        cluster.setClusterStatistics(new AnalysisClusterStatisticType()
-                .rolesCount(roles.size())
-                .usersCount(similarObjectOids.size()));
-
-        cluster.setDescription(userOid);
-        return cluster;
-    }
-
-    @NotNull
-    private RoleAnalysisTable<MiningUserTypeChunk, MiningRoleTypeChunk> loadTable(
-            String id,
-            @NotNull RoleAnalysisClusterType cluster) {
-
-        LoadableModel<RoleAnalysisObjectDto> miningOperationChunk = new LoadableModel<>(false) {
-
-            @Contract(" -> new")
-            @Override
-            protected @NotNull RoleAnalysisObjectDto load() {
-               //TODO refactor
-                RoleAnalysisObjectDto roleAnalysisObjectDto = new RoleAnalysisObjectDto(
-                        cluster, new ArrayList<>(), 0, getPageBase());
-                List<DetectedAnomalyResult> detectedAnomalyResult = partitionModel.getObject().getDetectedAnomalyResult();
-                String outlierOid = outlierModel.getObject().getObjectRef().getOid();
-
-                if(detectedAnomalyResult == null) {
-                    return roleAnalysisObjectDto;
-                }
-
-                for(DetectedAnomalyResult item : detectedAnomalyResult) {
-                    ObjectReferenceType targetObjectRef = item.getTargetObjectRef();
-                    if(targetObjectRef == null) {
-                        continue;
-                    }
-
-                    roleAnalysisObjectDto.addMarkedRelation(outlierOid, targetObjectRef.getOid());
-                }
-
-                return roleAnalysisObjectDto;
-            }
-        };
-
-        RoleAnalysisTable<MiningUserTypeChunk, MiningRoleTypeChunk> table = new RoleAnalysisTable<>(
-                id,
-                miningOperationChunk);
-
-        table.setOutputMarkupId(true);
-        return table;
     }
 
     protected @NotNull Component getDetailsPanelComponent() {

@@ -139,7 +139,7 @@ public class RoleAnalysisOutlierTilePanel<T extends Serializable> extends BasePa
             }
 
             @Override
-            protected Component getValueComponent(String id) {
+            protected @NotNull Component getValueComponent(String id) {
                 RepeatingView view = new RepeatingView(id);
                 view.setOutputMarkupId(true);
                 AjaxLinkPanel sessionLink = new AjaxLinkPanel(view.newChildId(), Model.of(finalSessionName)) {

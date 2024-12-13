@@ -273,6 +273,7 @@ public class OutliersDetectionUtil {
                 userTypeObject, userAnalysisCache, roleAnalysisService, attributesForUserAnalysis);
         List<RoleAnalysisAttributeAnalysis> userAttributeAnalysisResult = userAttributeAnalysisContainer.getAttributeAnalysis();
 
+        //TODO this is wrong (compare also value).
         for (UnusualAttributeValueResult unusualAttributeResult : unusualAttributeResults) {
             ItemPathType path = unusualAttributeResult.path();
             RoleAnalysisAttributeAnalysis userAttribute = userAttributeAnalysisResult.stream()

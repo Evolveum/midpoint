@@ -62,7 +62,6 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
     private static final String ID_CONTAINER = "container";
     private static final String ID_HEADER_ITEMS = "header-items";
     private static final String ID_ACCESS_PANEL = "accessPanel";
-    private static final String ID_PARTITION_PANEL = "partitionPanel";
 
     public RoleAnalysisOutlierAnalysisAspectsPanel(
             @NotNull String id,
@@ -128,43 +127,6 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
 
         accessPanel.setOutputMarkupId(true);
         container.add(accessPanel);
-
-        RoleAnalysisViewAllPanel<?> partitionPanel = new RoleAnalysisViewAllPanel<>(ID_PARTITION_PANEL, Model.of("Outlier partitions")) {
-            @Contract(pure = true)
-            @Override
-            protected @NotNull String getIconCssClass() {
-                return GuiStyleConstants.CLASS_ROLE_ANALYSIS_SESSION_ICON;
-            }
-
-            @Contract(" -> new")
-            @Override
-            protected @NotNull IModel<String> getLinkModel() {
-                return createStringResource("RoleAnalysis.aspect.overview.page.title.view.all.partitions");
-            }
-
-            @Override
-            protected void onLinkClick(AjaxRequestTarget target) {
-                RoleAnalysisOutlierType outlier = getObjectDetailsModels().getObjectType();
-                PageParameters parameters = new PageParameters();
-                parameters.add(OnePageParameterEncoder.PARAMETER, outlier.getOid());
-                parameters.add("panelId", "outlierPartitions");
-                Class<? extends PageBase> detailsPageClass = DetailsPageUtil
-                        .getObjectDetailsPage(RoleAnalysisOutlierType.class);
-                ((PageBase) getPage()).navigateToNext(detailsPageClass, parameters);
-            }
-
-            @Override
-            protected @NotNull Component getPanelComponent(String id) {
-                RoleAnalysisOutlierPartitionTable partitionTable = new RoleAnalysisOutlierPartitionTable(id,
-                        objectDetailsModels.getObjectType());
-                partitionTable.setOutputMarkupId(true);
-
-                partitionTable.add(AttributeAppender.append("style", "min-height: 400px;"));
-                return partitionTable;
-            }
-        };
-        partitionPanel.setOutputMarkupId(true);
-        container.add(partitionPanel);
 
     }
 

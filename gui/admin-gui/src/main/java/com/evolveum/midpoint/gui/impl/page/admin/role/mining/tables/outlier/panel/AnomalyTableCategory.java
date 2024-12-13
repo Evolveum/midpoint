@@ -10,13 +10,22 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.pan
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColorOposite;
 import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.createStringResource;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 
+import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisMultiplePartitionUserPermissionTableTabPopup;
+
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+
 import com.google.common.collect.ListMultimap;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -24,12 +33,11 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.export.Abstr
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
-import com.evolveum.midpoint.gui.api.component.form.SwitchBoxPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBarSecondStyle;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
@@ -64,7 +72,7 @@ public enum AnomalyTableCategory implements Serializable {
                 return createDefaultColumnsOutlierAccess(pageBase, outlierModel);
             }
             case OUTLIER_OVERVIEW -> {
-                return createDefaultColumnsOutlierOverview(pageBase, anomalyResultMap, outlierModel);
+                return createDefaultColumnsOutlierOverview(pageBase, outlierModel, anomalyResultMap);
             }
         }
         return null;
@@ -102,14 +110,14 @@ public enum AnomalyTableCategory implements Serializable {
                 String oid = role.getOid();
                 List<DetectedAnomalyResult> detectedAnomalyResults = anomalyResultMap.get(oid);
 
-                if(detectedAnomalyResults.isEmpty()) {
+                if (detectedAnomalyResults.isEmpty()) {
                     cellItem.add(new EmptyPanel(componentId));
                     return;
                 }
 
                 if (detectedAnomalyResults.size() != 1) {
                     throw new IllegalStateException("Unexpected number of detected anomaly results for role "
-                                    + oid + ": " + detectedAnomalyResults.size());
+                            + oid + ": " + detectedAnomalyResults.size());
                 }
                 DetectedAnomalyResult anomalyResult = anomalyResultMap.get(oid).get(0);
                 double confidence = anomalyResult.getStatistics().getConfidence();
@@ -298,7 +306,7 @@ public enum AnomalyTableCategory implements Serializable {
                 DetectedAnomalyStatistics statistics = anomalyResult.getStatistics();
                 Double itemConfidence = statistics.getItemFactorConfidence();
 
-                if(itemConfidence == null) {
+                if (itemConfidence == null) {
                     itemConfidence = 0.0;
                 }
 
@@ -470,7 +478,6 @@ public enum AnomalyTableCategory implements Serializable {
 //        };
 //        columns.add(column);
 
-
         return columns;
     }
 
@@ -569,16 +576,75 @@ public enum AnomalyTableCategory implements Serializable {
 
     public @NotNull List<IColumn<SelectableBean<RoleType>, String>> createDefaultColumnsOutlierOverview(
             @NotNull PageBase pageBase,
-            @NotNull ListMultimap<String, DetectedAnomalyResult> anomalyResultMap,
-            @NotNull IModel<RoleAnalysisOutlierType> outlierModel) {
-
-        Set<String> duplicatedRoleSet = loadUserDuplicatedRoleSet(outlierModel.getObject());
-
-        Set<String> userDirectRoleAssignemntSet = loadUserDirectAssignmentRoleSet(pageBase, outlierModel);
-
+            @NotNull IModel<RoleAnalysisOutlierType> outlierModel,
+            @NotNull ListMultimap<String, DetectedAnomalyResult> anomalyResultMap) {
         List<IColumn<SelectableBean<RoleType>, String>> columns = new ArrayList<>();
 
         IColumn<SelectableBean<RoleType>, String> column;
+
+        column = new AbstractExportableColumn<>(
+                createStringResource("RoleAnalysisOutlierTable.anomaly.reason")) {
+
+            @Override
+            public IModel<?> getDataModel(IModel<SelectableBean<RoleType>> iModel) {
+                return Model.of("");
+            }
+
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<RoleType>>> cellItem,
+                    String componentId, IModel<SelectableBean<RoleType>> model) {
+                RoleAnalysisOutlierType outlier = outlierModel.getObject();
+                List<RoleAnalysisOutlierPartitionType> partition = outlier.getPartition();
+
+                SelectableBean<RoleType> object = model.getObject();
+                RoleType role = object.getValue();
+                String oid = role.getOid();
+
+
+                RepeatingView repeatingView = new RepeatingView(componentId);
+
+                repeatingView.add(new Label(repeatingView.newChildId(), "TODO"));
+
+                AjaxIconButton refreshIcon = new AjaxIconButton(repeatingView.newChildId(), Model.of(" mt-1 fa fa-qrcode"),
+                        createStringResource("RoleAnalysisOutlierTable.anomaly.preview")) {
+
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        RoleAnalysisMultiplePartitionUserPermissionTableTabPopup components = new RoleAnalysisMultiplePartitionUserPermissionTableTabPopup(
+                                pageBase.getMainPopupBodyId(),
+                                Model.ofList(partition), Model.ofList( anomalyResultMap.get(oid)), Model.of(outlier));
+                        pageBase.showMainPopup(components, target);
+                    }
+                };
+                refreshIcon.add(AttributeModifier.append("class", "btn btn-default btn-sm"));
+                repeatingView.add(refreshIcon);
+                cellItem.add(repeatingView);
+            }
+
+            @Override
+            public String getCssClass() {
+                return "d-flex gap-2";
+            }
+
+            @Override
+            public boolean isSortable() {
+                return false;
+            }
+
+            @Override
+            public Component getHeader(String componentId) {
+                return new LabelWithHelpPanel(componentId,
+                        createStringResource("RoleAnalysisOutlierTable.anomaly.reason")) {
+                    @Override
+                    protected IModel<String> getHelpModel() {
+                        return createStringResource("RoleAnalysisOutlierTable.anomaly.reason.help");
+                    }
+                };
+            }
+        };
+        columns.add(column);
 
         column = new AbstractExportableColumn<>(
                 pageBase.createStringResource("")) {

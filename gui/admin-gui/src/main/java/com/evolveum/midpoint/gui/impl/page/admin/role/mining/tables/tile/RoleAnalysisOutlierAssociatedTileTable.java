@@ -8,12 +8,20 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile;
 
 import static com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil.createDisplayType;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.*;
 
 import java.io.Serial;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisCluster;
+import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -28,7 +36,6 @@ import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,7 +53,6 @@ import com.evolveum.midpoint.gui.impl.component.tile.mining.outlier.RoleAnalysis
 import com.evolveum.midpoint.gui.impl.component.tile.mining.session.RoleAnalysisSessionTileModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisOutlier;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisPartitionOverviewPanel;
-import com.evolveum.midpoint.gui.impl.page.self.requestAccess.PageableListView;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
@@ -63,15 +69,15 @@ public class RoleAnalysisOutlierAssociatedTileTable extends BasePanel<List<RoleA
     private static final String ID_DATATABLE = "datatable";
     IModel<List<Toggle<ViewToggle>>> items;
 
-    IModel<ObjectReferenceType> clusterRef;
-    IModel<ObjectReferenceType> sessionRef;
+    IModel<ObjectReferenceType> clusterRefModel;
+    IModel<ObjectReferenceType> sessionRefModel;
 
     public RoleAnalysisOutlierAssociatedTileTable(
             @NotNull String id,
             @NotNull IModel<List<RoleAnalysisOutlierType>> outliers,
             @NotNull RoleAnalysisClusterType cluster) {
         super(id, outliers);
-        this.clusterRef = new LoadableModel<>() {
+        this.clusterRefModel = new LoadableModel<>() {
             @Override
             protected ObjectReferenceType load() {
                 return new ObjectReferenceType()
@@ -81,7 +87,7 @@ public class RoleAnalysisOutlierAssociatedTileTable extends BasePanel<List<RoleA
             }
         };
 
-        this.sessionRef = new LoadableModel<>() {
+        this.sessionRefModel = new LoadableModel<>() {
             @Override
             protected ObjectReferenceType load() {
                 return cluster.getRoleAnalysisSessionRef();
@@ -96,7 +102,7 @@ public class RoleAnalysisOutlierAssociatedTileTable extends BasePanel<List<RoleA
             @NotNull IModel<List<RoleAnalysisOutlierType>> outliers,
             @NotNull RoleAnalysisSessionType session) {
         super(id, outliers);
-        this.sessionRef = new LoadableModel<>() {
+        this.sessionRefModel = new LoadableModel<>() {
             @Override
             protected ObjectReferenceType load() {
                 return new ObjectReferenceType()
@@ -141,8 +147,10 @@ public class RoleAnalysisOutlierAssociatedTileTable extends BasePanel<List<RoleA
 
     private @Nullable RoleAnalysisOutlierPartitionType getOutlierPartition(@NotNull RoleAnalysisOutlierType outlier) {
         List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlier.getPartition();
-        if (getClusterRef() != null) {
-            String clusterOid = getClusterRef().getOid();
+        ObjectReferenceType clusterRef = getClusterRef();
+        ObjectReferenceType sessionRef = getSessionRef();
+        if (clusterRef != null) {
+            String clusterOid = clusterRef.getOid();
             for (RoleAnalysisOutlierPartitionType partition : outlierPartitions) {
                 ObjectReferenceType targetClusterRef = partition.getClusterRef();
                 if (targetClusterRef != null
@@ -151,8 +159,8 @@ public class RoleAnalysisOutlierAssociatedTileTable extends BasePanel<List<RoleA
                     return partition;
                 }
             }
-        } else if (getSessionRef() != null) {
-            String sessionOid = getSessionRef().getOid();
+        } else if (sessionRef != null) {
+            String sessionOid = sessionRef.getOid();
             for (RoleAnalysisOutlierPartitionType partition : outlierPartitions) {
                 ObjectReferenceType targetSessionRef = partition.getTargetSessionRef();
                 if (targetSessionRef != null
@@ -174,7 +182,7 @@ public class RoleAnalysisOutlierAssociatedTileTable extends BasePanel<List<RoleA
 
         return new TileTablePanel<>(
                 ID_DATATABLE,
-                Model.of(ViewToggle.TILE),
+                Model.of(ViewToggle.TABLE),
                 UserProfileStorage.TableId.PANEL_OUTLIER_PROPERTIES) {
 
             @Override
@@ -255,11 +263,6 @@ public class RoleAnalysisOutlierAssociatedTileTable extends BasePanel<List<RoleA
             }
 
             @Override
-            protected void onInitialize() {
-                super.onInitialize();
-            }
-
-            @Override
             protected String getTilesFooterCssClasses() {
                 return "card-footer";
             }
@@ -274,16 +277,11 @@ public class RoleAnalysisOutlierAssociatedTileTable extends BasePanel<List<RoleA
                 return provider;
             }
 
-            @Override
-            protected PageableListView<?, ?> createTilesPanel(String tilesId, ISortableDataProvider<RoleAnalysisOutlierType, String> provider1) {
-                return super.createTilesPanel(tilesId, provider1);
-            }
-
             @SuppressWarnings({ "rawtypes", "unchecked" })
             @Override
-            protected RoleAnalysisOutlierTileModel createTileObject(RoleAnalysisOutlierType object) {
+            protected RoleAnalysisOutlierTileModel createTileObject(@NotNull RoleAnalysisOutlierType object) {
                 RoleAnalysisOutlierPartitionType outlierPartition = getOutlierPartition(object);
-                return new RoleAnalysisOutlierTileModel<>(getOutlierPartition(object), object, getPageBase());
+                return new RoleAnalysisOutlierTileModel<>(outlierPartition, object, getPageBase());
             }
 
             @Override
@@ -291,6 +289,7 @@ public class RoleAnalysisOutlierAssociatedTileTable extends BasePanel<List<RoleA
                 return " min-height:170px ";
             }
 
+            @Override
             protected String getTileCssClasses() {
                 return "col-4 pb-3 pl-2 pr-2";
             }
@@ -312,19 +311,89 @@ public class RoleAnalysisOutlierAssociatedTileTable extends BasePanel<List<RoleA
     }
 
     public List<IColumn<RoleAnalysisOutlierType, String>> initColumns() {
-
         List<IColumn<RoleAnalysisOutlierType, String>> columns = new ArrayList<>();
 
-        columns.add(new IconColumn<>(null) {
-            @Serial private static final long serialVersionUID = 1L;
+        initIconColumn(columns);
+
+        initNameColumn(columns);
+
+        initCategoryColumn(columns);
+
+        initAnomaliesColumn(columns);
+
+        initAnomaliesConfidenceColumn(columns);
+
+        initPartitionConfidenceColumn(columns);
+
+        initLocationColumn(columns);
+
+        initViewDetailsColumn(columns);
+
+        return columns;
+    }
+
+    private void initViewDetailsColumn(@NotNull List<IColumn<RoleAnalysisOutlierType, String>> columns) {
+        columns.add(new AbstractColumn<>(createStringResource("")) {
 
             @Override
-            protected DisplayType getIconDisplayType(IModel<RoleAnalysisOutlierType> rowModel) {
-                return createDisplayType(GuiStyleConstants.CLASS_ICON_OUTLIER, "red", "");
+            public String getSortProperty() {
+                return DetectedAnomalyStatistics.F_CONFIDENCE_DEVIATION.getLocalPart();
             }
-        });
 
-        columns.add(new AbstractColumn<>(createStringResource("Name")) {
+            @Override
+            public boolean isSortable() {
+                return true;
+            }
+
+            @Override
+            public void populateItem(Item<ICellPopulator<RoleAnalysisOutlierType>> item, String componentId,
+                    IModel<RoleAnalysisOutlierType> rowModel) {
+
+                RoleAnalysisOutlierType outlier = rowModel.getObject();
+                RoleAnalysisOutlierPartitionType partition = getOutlierPartition(outlier);
+
+                CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
+                        GuiStyleConstants.CLASS_ICON_SEARCH, IconCssStyle.IN_ROW_STYLE);
+                AjaxCompositedIconSubmitButton migrationButton = new AjaxCompositedIconSubmitButton(
+                        componentId,
+                        iconBuilder.build(),
+                        createStringResource("RoleAnalysis.title.panel.explore.partition.details")) {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected void onSubmit(AjaxRequestTarget target) {
+                        RoleAnalysisPartitionOverviewPanel detailsPanel = new RoleAnalysisPartitionOverviewPanel(
+                                ((PageBase) getPage()).getMainPopupBodyId(),
+                                Model.of(partition),
+                                Model.of(outlier));
+                        ((PageBase) getPage()).showMainPopup(detailsPanel, target);
+                    }
+
+                    @Override
+                    protected void onError(@NotNull AjaxRequestTarget target) {
+                        target.add(((PageBase) getPage()).getFeedbackPanel());
+                    }
+                };
+                migrationButton.titleAsLabel(true);
+                migrationButton.setOutputMarkupId(true);
+                migrationButton.add(AttributeModifier.append(CLASS_CSS, "btn btn-default btn-sm"));
+                migrationButton.setOutputMarkupId(true);
+                item.add(migrationButton);
+
+            }
+
+            @Override
+            public Component getHeader(String componentId) {
+                return new Label(
+                        componentId, createStringResource(""));
+
+            }
+
+        });
+    }
+
+    private void initLocationColumn(@NotNull List<IColumn<RoleAnalysisOutlierType, String>> columns) {
+        columns.add(new AbstractColumn<>(createStringResource("RoleAnalysis.title.panel.location")) {
 
             @Override
             public boolean isSortable() {
@@ -334,32 +403,122 @@ public class RoleAnalysisOutlierAssociatedTileTable extends BasePanel<List<RoleA
             @Override
             public void populateItem(Item<ICellPopulator<RoleAnalysisOutlierType>> item, String componentId,
                     IModel<RoleAnalysisOutlierType> rowModel) {
+                String clusterName;
 
-                String objectName = "unknown";
-                RoleAnalysisOutlierType outlier = rowModel.getObject();
-                ObjectReferenceType targetObjectRef = outlier.getObjectRef();
-                if (targetObjectRef != null && targetObjectRef.getTargetName() != null) {
-                    objectName = targetObjectRef.getTargetName().toString();
+                RoleAnalysisOutlierType outlierObject = rowModel.getObject();
+                RoleAnalysisOutlierPartitionType outlierPartition = getOutlierPartition(outlierObject);
+
+                if (outlierPartition == null) {
+                    item.add(new Label(componentId, "N/A"));
+                    return;
                 }
 
-                item.add(new AjaxLinkPanel(componentId, Model.of(objectName)) {
+                ObjectReferenceType clusterRef = outlierPartition.getClusterRef();
+                if (clusterRef != null && clusterRef.getTargetName() != null) {
+                    clusterName = clusterRef.getTargetName().getOrig();
+                } else {
+                    item.add(new Label(componentId, "N/A"));
+                    return;
+                }
+
+                AjaxLinkPanel sessionLink = new AjaxLinkPanel(componentId, Model.of(clusterName)) {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         PageParameters parameters = new PageParameters();
-                        parameters.add(OnePageParameterEncoder.PARAMETER, outlier.getOid());
-                        getPageBase().navigateToNext(PageRoleAnalysisOutlier.class, parameters);
+                        parameters.add(OnePageParameterEncoder.PARAMETER, clusterRef.getOid());
+                        getPageBase().navigateToNext(PageRoleAnalysisCluster.class, parameters);
                     }
-                });
+                };
+
+                sessionLink.setOutputMarkupId(true);
+                sessionLink.add(AttributeModifier.append(STYLE_CSS, "max-width:100px"));
+                sessionLink.add(AttributeModifier.append(CLASS_CSS, TEXT_TRUNCATE));
+                item.add(sessionLink);
             }
 
             @Override
             public Component getHeader(String componentId) {
                 return new Label(
-                        componentId, createStringResource("RoleAnalysisOutlierPropertyTable.name.header"));
+                        componentId, createStringResource("RoleAnalysis.title.panel.location"));
             }
 
         });
+    }
 
+    private void initPartitionConfidenceColumn(@NotNull List<IColumn<RoleAnalysisOutlierType, String>> columns) {
+        columns.add(new AbstractColumn<>(createStringResource("RoleAnalysis.tile.panel.partition.confidence")) {
+
+            @Override
+            public boolean isSortable() {
+                return false;
+            }
+
+            @Override
+            public void populateItem(Item<ICellPopulator<RoleAnalysisOutlierType>> item, String componentId,
+                    IModel<RoleAnalysisOutlierType> rowModel) {
+                RoleAnalysisOutlierType outlierObject = rowModel.getObject();
+                RoleAnalysisOutlierPartitionType outlierPartition = getOutlierPartition(outlierObject);
+
+                if (outlierPartition != null) {
+                    Double partitionConfidence = outlierPartition.getPartitionAnalysis().getOverallConfidence();
+                    double clusterConfidenceValue = partitionConfidence != null ? partitionConfidence : 0;
+
+                    String formattedPartitionConfidence = String.format("%.2f", clusterConfidenceValue);
+                    item.add(new Label(componentId, formattedPartitionConfidence + " %"));
+                } else {
+                    item.add(new Label(componentId, "N/A"));
+                }
+
+            }
+
+            @Override
+            public Component getHeader(String componentId) {
+                return new Label(
+                        componentId, createStringResource("RoleAnalysis.tile.panel.partition.confidence"));
+            }
+
+        });
+    }
+
+    private void initAnomaliesConfidenceColumn(@NotNull List<IColumn<RoleAnalysisOutlierType, String>> columns) {
+        columns.add(new AbstractColumn<>(createStringResource("RoleAnalysis.tile.panel.anomaly.confidence")) {
+
+            @Override
+            public boolean isSortable() {
+                return false;
+            }
+
+            @Override
+            public void populateItem(Item<ICellPopulator<RoleAnalysisOutlierType>> item, String componentId,
+                    IModel<RoleAnalysisOutlierType> rowModel) {
+                RoleAnalysisOutlierType outlierObject = rowModel.getObject();
+                RoleAnalysisOutlierPartitionType outlierPartition = getOutlierPartition(outlierObject);
+
+                if (outlierPartition != null) {
+                    Double anomalyObjectsConfidence = outlierPartition.getPartitionAnalysis().getAnomalyObjectsConfidence();
+                    if (anomalyObjectsConfidence == null) {
+                        anomalyObjectsConfidence = 0.0;
+                    }
+
+                    BigDecimal confidence = BigDecimal.valueOf(anomalyObjectsConfidence);
+                    confidence = confidence.setScale(2, RoundingMode.HALF_UP);
+                    anomalyObjectsConfidence = confidence.doubleValue();
+                    item.add(new Label(componentId, anomalyObjectsConfidence + " %"));
+                } else {
+                    item.add(new Label(componentId, "N/A"));
+                }
+            }
+
+            @Override
+            public Component getHeader(String componentId) {
+                return new Label(
+                        componentId, createStringResource("RoleAnalysis.tile.panel.anomaly.confidence"));
+            }
+
+        });
+    }
+
+    private void initAnomaliesColumn(@NotNull List<IColumn<RoleAnalysisOutlierType, String>> columns) {
         columns.add(new AbstractColumn<>(createStringResource("RoleAnalysisOutlierTable.outlier.access")) {
 
             @Override
@@ -392,8 +551,10 @@ public class RoleAnalysisOutlierAssociatedTileTable extends BasePanel<List<RoleA
             }
 
         });
+    }
 
-        columns.add(new AbstractColumn<>(createStringResource("Confidence")) {
+    private void initCategoryColumn(@NotNull List<IColumn<RoleAnalysisOutlierType, String>> columns) {
+        columns.add(new AbstractColumn<>(createStringResource("RoleAnalysisOutlierTable.outlier.category")) {
 
             @Override
             public boolean isSortable() {
@@ -406,36 +567,36 @@ public class RoleAnalysisOutlierAssociatedTileTable extends BasePanel<List<RoleA
                 RoleAnalysisOutlierType outlierObject = rowModel.getObject();
                 RoleAnalysisOutlierPartitionType outlierPartition = getOutlierPartition(outlierObject);
 
+                String category = "Undefined";
                 if (outlierPartition != null) {
-                    Double clusterConfidence = outlierPartition.getPartitionAnalysis().getOverallConfidence();
-                    double clusterConfidenceValue = clusterConfidence != null ? clusterConfidence : 0;
-
-                    String formattedClusterConfidence = String.format("%.2f", clusterConfidenceValue);
-                    item.add(new Label(componentId, formattedClusterConfidence + " %"));
-                } else {
-                    item.add(new Label(componentId, "N/A"));
+                    RoleAnalysisPartitionAnalysisType partitionAnalysis = outlierPartition.getPartitionAnalysis();
+                    OutlierCategoryType outlierCategory = partitionAnalysis.getOutlierCategory();
+                    OutlierSpecificCategoryType outlierSpecificCategory = outlierCategory.getOutlierSpecificCategory();
+                    category = outlierSpecificCategory.value();
                 }
 
+                Label statusBar = new Label(componentId, Model.of(category));
+                statusBar.add(AttributeModifier.append(CLASS_CSS, "badge badge-pill badge-info text-truncate"));
+                statusBar.add(AttributeModifier.append(STYLE_CSS, "width: 120px"));
+                statusBar.setOutputMarkupId(true);
+                item.add(statusBar);
             }
 
             @Override
             public Component getHeader(String componentId) {
                 return new Label(
-                        componentId, createStringResource("Confidence"));
+                        componentId, createStringResource("RoleAnalysisOutlierTable.outlier.category"));
             }
 
         });
+    }
 
-        columns.add(new AbstractColumn<>(createStringResource("Result")) {
-
-            @Override
-            public String getSortProperty() {
-                return DetectedAnomalyStatistics.F_CONFIDENCE_DEVIATION.getLocalPart();
-            }
+    private void initNameColumn(@NotNull List<IColumn<RoleAnalysisOutlierType, String>> columns) {
+        columns.add(new AbstractColumn<>(createStringResource("Name")) {
 
             @Override
             public boolean isSortable() {
-                return true;
+                return false;
             }
 
             @Override
@@ -443,39 +604,36 @@ public class RoleAnalysisOutlierAssociatedTileTable extends BasePanel<List<RoleA
                     IModel<RoleAnalysisOutlierType> rowModel) {
 
                 RoleAnalysisOutlierType outlier = rowModel.getObject();
-                RoleAnalysisOutlierPartitionType partition = getOutlierPartition(outlier);
+                String objectName = outlier.getName().getOrig();
 
-                item.add(new AjaxLinkPanel(componentId, Model.of("Result")) {
+                item.add(new AjaxLinkPanel(componentId, Model.of(objectName)) {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        if (partition != null) {
-                            RoleAnalysisPartitionOverviewPanel panel = new RoleAnalysisPartitionOverviewPanel(
-                                    ((PageBase) getPage()).getMainPopupBodyId(),
-                                    Model.of(partition), Model.of(outlier)) {
-                                @Override
-                                public IModel<String> getTitle() {
-                                    return createStringResource(
-                                            "RoleAnalysisPartitionOverviewPanel.title.most.impact.partition");
-                                }
-                            };
-                            panel.setOutputMarkupId(true);
-                            ((PageBase) getPage()).showMainPopup(panel, target);
-                        }
+                        PageParameters parameters = new PageParameters();
+                        parameters.add(OnePageParameterEncoder.PARAMETER, outlier.getOid());
+                        getPageBase().navigateToNext(PageRoleAnalysisOutlier.class, parameters);
                     }
                 });
-
             }
 
             @Override
             public Component getHeader(String componentId) {
                 return new Label(
-                        componentId, createStringResource("Result"));
-
+                        componentId, createStringResource("RoleAnalysisOutlierPropertyTable.name.header"));
             }
 
         });
+    }
 
-        return columns;
+    private static void initIconColumn(@NotNull List<IColumn<RoleAnalysisOutlierType, String>> columns) {
+        columns.add(new IconColumn<>(null) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected DisplayType getIconDisplayType(IModel<RoleAnalysisOutlierType> rowModel) {
+                return createDisplayType(GuiStyleConstants.CLASS_ICON_OUTLIER, "red", "");
+            }
+        });
     }
 
     @SuppressWarnings("unchecked")
@@ -484,43 +642,26 @@ public class RoleAnalysisOutlierAssociatedTileTable extends BasePanel<List<RoleA
                 get(createComponentPath(ID_DATATABLE));
     }
 
-    protected StringResourceModel getHeaderTitle(String identifier) {
-        return createStringResource("RoleMining.cluster.table.column.header." + identifier);
-    }
-
     public IModel<List<Toggle<ViewToggle>>> getItems() {
         return items;
     }
 
-//    @Override
-//    public PageBase getPageBase() {
-//        return pageBase;
-//    }
-
     protected void onRefresh(AjaxRequestTarget target) {
-
+        // TODO override
     }
 
     private @Nullable ObjectReferenceType getClusterRef() {
-        if (clusterRef == null) {
+        if (clusterRefModel == null) {
             return null;
         }
-        return clusterRef.getObject();
+        return clusterRefModel.getObject();
     }
 
     private @Nullable ObjectReferenceType getSessionRef() {
-        if (sessionRef == null) {
+        if (sessionRefModel == null) {
             return null;
         }
-        return sessionRef.getObject();
-    }
-
-    private IModel<ObjectReferenceType> getClusterRefModel() {
-        return clusterRef;
-    }
-
-    private IModel<ObjectReferenceType> getSessionRefModel() {
-        return sessionRef;
+        return sessionRefModel.getObject();
     }
 
 }

@@ -204,6 +204,38 @@ public class PageOutliers extends PageAdmin {
                 IColumn<SelectableBean<RoleAnalysisOutlierType>, String> column;
 
                 column = new AbstractExportableColumn<>(
+                        createStringResource("RoleAnalysisOutlierTable.outlier.explanation")) {
+
+                    @Override
+                    public IModel<?> getDataModel(IModel<SelectableBean<RoleAnalysisOutlierType>> iModel) {
+                        return Model.of("");
+                    }
+
+                    @Override
+                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisOutlierType>>> cellItem,
+                            String componentId, IModel<SelectableBean<RoleAnalysisOutlierType>> model) {
+                        cellItem.add(new Label(componentId,"TODO"));
+                    }
+
+                    @Override
+                    public boolean isSortable() {
+                        return false;
+                    }
+
+                    @Override
+                    public Component getHeader(String componentId) {
+                        return new LabelWithHelpPanel(componentId,
+                                createStringResource("RoleAnalysisOutlierTable.outlier.explanation")) {
+                            @Override
+                            protected IModel<String> getHelpModel() {
+                                return createStringResource("RoleAnalysisOutlierTable.outlier.explanation.help");
+                            }
+                        };
+                    }
+                };
+                defaultColumns.add(column);
+
+                column = new AbstractExportableColumn<>(
                         createStringResource("RoleAnalysisOutlierTable.outlier.access")) {
 
                     @Override

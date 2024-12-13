@@ -2946,7 +2946,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     @Override
     public List<RoleAnalysisOutlierType> getSessionOutliers(
             @NotNull String sessionOid,
-            @Nullable OutlierClusterCategoryType category, @NotNull Task task,
+            @Nullable OutlierClusterCategoryType category,
+            @NotNull Task task,
             @NotNull OperationResult result) {
 
         ObjectQuery objectQuery = PrismContext.get().queryFor(RoleAnalysisOutlierType.class)
@@ -2982,11 +2983,14 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             return true;
         };
 
+        GetOperationOptionsBuilder getOperationOptionsBuilder = schemaService.getOperationOptionsBuilder();
+        getOperationOptionsBuilder = getOperationOptionsBuilder.resolveNames();
+
         try {
             modelService.searchObjectsIterative(RoleAnalysisOutlierType.class, objectQuery, resultHandler,
-                    null, task, result);
+                    getOperationOptionsBuilder.build(), task, result);
         } catch (Exception ex) {
-            throw new SystemException("Couldn't search outliers", ex);
+            throw new SystemException("Couldn't search session outliers", ex);
         }
 
         List<Map.Entry<RoleAnalysisOutlierType, Double>> sortedEntries = new ArrayList<>(outlierMap.entrySet());
@@ -4244,6 +4248,111 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         }
 
         return null;
+    }
+
+    //TODO this is temporary solution
+
+    /**
+     * Prepares a temporary cluster for role analysis based on the provided outlier and partition.
+     *
+     * @param outlier The outlier object containing the detected outlier information.
+     * @param partition The partition object containing the partition analysis data.
+     * @param displayValueOption The display value options for the role analysis.
+     * @param task The task in which the operation is performed.
+     * @return A RoleAnalysisClusterType object representing the prepared temporary cluster,
+     * or null if the similar object analysis is not available.
+     */
+    public @Nullable RoleAnalysisClusterType prepareTemporaryCluster(
+            @NotNull RoleAnalysisOutlierType outlier,
+            @NotNull RoleAnalysisOutlierPartitionType partition,
+            @NotNull DisplayValueOption displayValueOption,
+            @NotNull Task task) {
+        RoleAnalysisPartitionAnalysisType partitionAnalysis = partition.getPartitionAnalysis();
+        RoleAnalysisOutlierSimilarObjectsAnalysisResult similarObjectAnalysis = partitionAnalysis.getSimilarObjectAnalysis();
+        if (similarObjectAnalysis == null) {
+            return null;
+        }
+        List<ObjectReferenceType> similarObjects = similarObjectAnalysis.getSimilarObjects();
+        Set<String> similarObjectOids = similarObjects.stream().map(ObjectReferenceType::getOid).collect(Collectors.toSet());
+        String sessionOid = partition.getTargetSessionRef().getOid();
+        String userOid = outlier.getObjectRef().getOid();
+
+        OperationResult result = task.getResult();
+
+        PrismObject<RoleAnalysisSessionType> sessionObject = this.getSessionTypeObject(sessionOid, task, result);
+
+        if (sessionObject == null) {
+            LOGGER.error("Session object is null");
+            return null;
+        }
+
+        RoleAnalysisSessionType session = sessionObject.asObjectable();
+        RoleAnalysisDetectionOptionType defaultDetectionOption = session.getDefaultDetectionOption();
+
+        double minFrequency = 2;
+        double maxFrequency = 2;
+
+        if (defaultDetectionOption != null && defaultDetectionOption.getStandardDeviation() != null) {
+            RangeType frequencyRange = defaultDetectionOption.getStandardDeviation();
+            if (frequencyRange.getMin() != null) {
+                minFrequency = frequencyRange.getMin().intValue();
+            }
+            if (frequencyRange.getMax() != null) {
+                maxFrequency = frequencyRange.getMax().intValue();
+            }
+        }
+
+        displayValueOption.setProcessMode(RoleAnalysisProcessModeType.USER);
+        displayValueOption.setChunkMode(RoleAnalysisChunkMode.EXPAND);
+        displayValueOption.setSortMode(RoleAnalysisSortMode.JACCARD);
+        displayValueOption.setChunkAction(RoleAnalysisChunkAction.EXPLORE_DETECTION);
+        RoleAnalysisClusterType cluster = new RoleAnalysisClusterType();
+        for (String element : similarObjectOids) {
+            cluster.getMember().add(new ObjectReferenceType()
+                    .oid(element).type(UserType.COMPLEX_TYPE));
+        }
+
+        cluster.setRoleAnalysisSessionRef(
+                new ObjectReferenceType()
+                        .type(RoleAnalysisSessionType.COMPLEX_TYPE)
+                        .oid(sessionOid)
+                        .targetName(session.getName()));
+
+        UserAnalysisSessionOptionType userModeOptions = session.getUserModeOptions();
+        SearchFilterType userSearchFilter = userModeOptions.getUserSearchFilter();
+        SearchFilterType roleSearchFilter = userModeOptions.getRoleSearchFilter();
+        SearchFilterType assignmentSearchFilter = userModeOptions.getAssignmentSearchFilter();
+
+        RoleAnalysisDetectionOptionType detectionOption = new RoleAnalysisDetectionOptionType();
+        detectionOption.setStandardDeviation(new RangeType().min(minFrequency).max(maxFrequency));
+        cluster.setDetectionOption(detectionOption);
+
+        MiningOperationChunk miningOperationChunk = this.prepareBasicChunkStructure(cluster,
+                userSearchFilter, roleSearchFilter, assignmentSearchFilter,
+                displayValueOption, RoleAnalysisProcessModeType.USER, null, result, task);
+
+        RangeType standardDeviation = detectionOption.getStandardDeviation();
+        Double sensitivity = detectionOption.getSensitivity();
+        Double frequencyThreshold = detectionOption.getFrequencyThreshold();
+
+        RoleAnalysisSortMode sortMode = displayValueOption.getSortMode();
+        if (sortMode == null) {
+            displayValueOption.setSortMode(RoleAnalysisSortMode.NONE);
+            sortMode = RoleAnalysisSortMode.NONE;
+        }
+
+        List<MiningRoleTypeChunk> roles = miningOperationChunk.getMiningRoleTypeChunks(sortMode);
+
+        if (standardDeviation != null) {
+            this.resolveOutliersZScore(roles, standardDeviation, sensitivity, frequencyThreshold);
+        }
+
+        cluster.setClusterStatistics(new AnalysisClusterStatisticType()
+                .rolesCount(roles.size())
+                .usersCount(similarObjectOids.size()));
+
+        cluster.setDescription(userOid);
+        return cluster;
     }
 
 }

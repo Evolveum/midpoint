@@ -1444,4 +1444,21 @@ public interface RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result);
 
+    //TODO this is temporary solution
+    /**
+     * Prepares a temporary cluster for role analysis based on the provided outlier and partition.
+     *
+     * @param outlier The outlier object containing the detected outlier information.
+     * @param partition The partition object containing the partition analysis data.
+     * @param displayValueOption The display value options for the role analysis.
+     * @param task The task in which the operation is performed.
+     * @return A RoleAnalysisClusterType object representing the prepared temporary cluster,
+     * or null if the similar object analysis is not available.
+     */
+    @Nullable RoleAnalysisClusterType prepareTemporaryCluster(
+            @NotNull RoleAnalysisOutlierType outlier,
+            @NotNull RoleAnalysisOutlierPartitionType partition,
+            @NotNull DisplayValueOption displayValueOption,
+            @NotNull Task task);
+
 }
