@@ -215,15 +215,6 @@ public class OutliersDetectionUtil {
                 anomalyResult, userTypeObject, attributesForUserAnalysis, roleAnalysisService, userAnalysisCache, task, result
         );
 
-        //TBD this can be done in calculateUnusualAttributeResults
-        // (temporary separated - need to decide all possibilities for UnusualAttributeValueResult)
-        // should we mark also RoleAttributeAnalysisResult (member) and comparison?
-
-        PrismObject<RoleType> roleTypeObject = roleAnalysisService.getRoleTypeObject(anomalyResult.getTargetObjectRef().getOid(), task, result);
-
-        RoleAnalysisAttributeAnalysisResult roleMemberAttributeAnalysisResult = getRoleMemberAnalysis(roleTypeObject, userAnalysisCache, roleAnalysisService, attributesForUserAnalysis, task, result);
-        RoleAnalysisAttributeAnalysisResult userAttributes = getUserAttributeAnalysis(userTypeObject, userAnalysisCache, roleAnalysisService, attributesForUserAnalysis);
-
         loadUnusualDetectedAnomalyAttributeStatistics(statistics, unusualAttributeResults);
 
         double distributionConfidence = statistics.getConfidenceDeviation();
@@ -232,12 +223,15 @@ public class OutliersDetectionUtil {
                 anomalyResult, userAnalysisCache.getRoleMemberCountCache(), roleAnalysisService, numberOfAllUsersInRepo, task, result);
         double coverageConfidence = calculateOutlierPropertyCoverageConfidence(anomalyResult);
 
+        //TODO disable distributionConfidenceDiff
         double distributionConfidenceDiff = distributionConfidence * 100;
         double patternConfidenceDiff = 100 - patternConfidence;
         double itemFactorConfidenceDiff = 100 - itemFactorConfidence;
         double roleMemberConfidenceDiff = 100 - roleMemberConfidence;
         double coverageConfidenceDiff = 100 - coverageConfidence;
 
+        //TODO TBD ((patternConfidenceDiff + itemFactorConfidenceDiff
+        //                + roleMemberConfidenceDiff + coverageConfidenceDiff) / 4) * outlierClusterConfidence;
         return (distributionConfidenceDiff + patternConfidenceDiff + itemFactorConfidenceDiff
                 + roleMemberConfidenceDiff + coverageConfidenceDiff) / 5;
     }
@@ -282,6 +276,7 @@ public class OutliersDetectionUtil {
 
         for (UnusualAttributeValueResult unusualAttributeResult : unusualAttributeResults) {
             ItemPathType path = unusualAttributeResult.path();
+
             RoleAnalysisAttributeAnalysis attributeAnalysisDetail = userAttributeAnalysisResult.stream()
                     .filter(a -> a.getItemPath().equals(path))
                     .findFirst()
@@ -304,26 +299,27 @@ public class OutliersDetectionUtil {
         }
     }
 
-    public static double getAverageItemFactor(@Nullable RoleAnalysisAttributeAnalysisResult compareAttributeResult) {
+    public static double getWeightedItemFactorConfidence(@Nullable RoleAnalysisAttributeAnalysisResult compareAttributeResult) {
         if (compareAttributeResult == null) {
             return 0;
         }
 
-        double averageItemFactor = 0;
-        List<RoleAnalysisAttributeAnalysis> attributeAnalysisCompare = compareAttributeResult.getAttributeAnalysis();
-        for (RoleAnalysisAttributeAnalysis attribute : attributeAnalysisCompare) {
-            Double density = attribute.getDensity();
-            if (density != null) {
-                averageItemFactor += density;
-            }
-        }
-
-        if (attributeAnalysisCompare.isEmpty() || averageItemFactor == 0) {
+        List<RoleAnalysisAttributeAnalysis> attributeAnalysis = compareAttributeResult.getAttributeAnalysis();
+        if (attributeAnalysis.isEmpty()) {
             return 0;
         }
 
-        averageItemFactor = averageItemFactor / attributeAnalysisCompare.size();
-        return averageItemFactor;
+        double totalWeightedDensity = 0.0;
+        double totalWeight = 0.0;
+        for (RoleAnalysisAttributeAnalysis analysisItem : attributeAnalysis) {
+            Double density = analysisItem.getDensity();
+            Double weight = analysisItem.getWeight();
+
+            totalWeightedDensity += density * weight;
+            totalWeight += weight;
+        }
+
+        return totalWeight > 0 ? totalWeightedDensity / totalWeight : 0.0;
     }
 
     //TODO this is just for USER MODE! Implement Role (Experimental)
@@ -513,23 +509,10 @@ public class OutliersDetectionUtil {
         attributeAnalysisContainer.setRoleAttributeAnalysisResult(roleAnalysisAttributeAnalysisResult);
         statistics.setAttributeAnalysis(attributeAnalysisContainer);
 
-        double averageItemsOccurs = 0;
-        assert compareAttributeResult != null;
-        List<RoleAnalysisAttributeAnalysis> attributeAnalysis = compareAttributeResult.getAttributeAnalysis();
-        for (RoleAnalysisAttributeAnalysis analysis : attributeAnalysis) {
-            Double density = analysis.getDensity();
-            if (density != null) {
-                averageItemsOccurs += density;
-            }
-        }
+        double weightedItemFactorConfidence = getWeightedItemFactorConfidence(compareAttributeResult);
+        statistics.setItemFactorConfidence(weightedItemFactorConfidence);
 
-        if (averageItemsOccurs == 0 || attributeAnalysis.isEmpty()) {
-            return 0;
-        }
-
-        statistics.setItemFactorConfidence(averageItemsOccurs / attributeAnalysis.size());
-
-        return averageItemsOccurs / attributeAnalysis.size();
+        return weightedItemFactorConfidence;
     }
 
     //TODO test
@@ -629,7 +612,7 @@ public class OutliersDetectionUtil {
         }
     }
 
-    //TODO
+    //TODO TBD partitionAnomaliesConfidence * clusterConfidence
     public static double calculatePartitionOverallConfidence(double clusterConfidence, double partitionAnomaliesConfidence) {
         double overallConfidence = 0;
         double confidenceSum = clusterConfidence + partitionAnomaliesConfidence;
@@ -756,7 +739,7 @@ public class OutliersDetectionUtil {
 
         partitionType.getDetectedAnomalyResult().addAll(CloneUtil.cloneCollectionMembers(detectedAnomalyResults));
 
-        double averageItemFactor = getAverageItemFactor(compareAttributeResult);
+        double averageItemFactor = getWeightedItemFactorConfidence(compareAttributeResult);
 
         Double outlierPatternConfidence = partitionAnalysis.getPatternAnalysis().getConfidence();
         if (outlierPatternConfidence == null) {

@@ -32,7 +32,7 @@ public class AttributeAnalysisStructure implements Serializable {
     private ItemPath itemPath;
     double density;
     String description;
-    List<RoleAnalysisAttributeStatistics> attributeStatistics = new ArrayList<>();
+    private transient List<RoleAnalysisAttributeStatistics> attributeStatistics = new ArrayList<>();
     boolean isMultiValue;
     QName complexType;
     int analyzedObjectsCount;
@@ -95,19 +95,19 @@ public class AttributeAnalysisStructure implements Serializable {
         this.description = attributeAnalysis.getDescription();
     }
 
+    protected double calculateDensity(int relations, int possibleRelations) {
+        if (relations == 0 || possibleRelations == 0) {
+            return 0;
+        }
+        return Math.min((relations / (double) possibleRelations) * 100, 100);
+    }
+
     public void addUniqueValues(int uniqueValues) {
         this.uniqueValues += uniqueValues;
     }
 
     public void addTotalValues(int totalValues) {
         this.totalValues += totalValues;
-    }
-
-    protected double calculateDensity(int relations, int possibleRelations) {
-        if (relations == 0 || possibleRelations == 0) {
-            return 0;
-        }
-        return Math.min((relations / (double) possibleRelations) * 100, 100);
     }
 
     public int getUniqueValues() {
@@ -170,12 +170,46 @@ public class AttributeAnalysisStructure implements Serializable {
         attributeAnalysisContainer.setParentType(this.getComplexType());
         attributeAnalysisContainer.setAnalysedObjectCount(this.getAnalyzedObjectsCount());
 
-        List<RoleAnalysisAttributeStatistics> attributeStatistics = this.getAttributeStatistics();
-        for (RoleAnalysisAttributeStatistics attributeStatistic : attributeStatistics) {
+        //TBD need this to be stored? is unique values important? (considering for multivalued attributes)
+//        attributeAnalysisContainer.setRelations((double) this.getTotalValues());
+//        int possibleRelations = uniqueValues * this.getAnalyzedObjectsCount();
+//        attributeAnalysisContainer.setPossibleRelation((double) possibleRelations);
+
+        List<RoleAnalysisAttributeStatistics> attributeStatisticsResults = this.getAttributeStatistics();
+        for (RoleAnalysisAttributeStatistics attributeStatistic : attributeStatisticsResults) {
             attributeAnalysisContainer.getAttributeStatistics().add(attributeStatistic);
         }
 
         return attributeAnalysisContainer;
     }
+
+    //TBD
+//    public static double getWeightedItemFactorConfidence(@Nullable RoleAnalysisAttributeAnalysisResult compareAttributeResult) {
+//        if (compareAttributeResult == null) {
+//            return 0;
+//        }
+//
+//        List<RoleAnalysisAttributeAnalysis> attributeAnalysis = compareAttributeResult.getAttributeAnalysis();
+//        if (attributeAnalysis.isEmpty()) {
+//            return 0;
+//        }
+//
+//        double totalWeightedDensity = 0.0;
+//        double totalWeight = 0.0;
+//        for (RoleAnalysisAttributeAnalysis analysisItem : attributeAnalysis) {
+//            Double density = analysisItem.getDensity();
+//            Double weight = analysisItem.getWeight();
+//
+//            totalWeightedDensity += density * weight;
+//            totalWeight += weight;
+//        }
+//
+//        return totalWeight > 0 ? totalWeightedDensity / totalWeight : 0.0;
+//    }
+    //TBD
+//    public static double calculateStandardItemConfidence(){
+//        double itemsConfidence = (totalCount > 0 && totalDensity > 0.0 && itemCount > 0) ? totalDensity / itemCount : 0.0;
+//        return itemsConfidence;
+//    }
 
 }
