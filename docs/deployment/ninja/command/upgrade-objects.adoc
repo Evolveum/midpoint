@@ -19,6 +19,9 @@ This way it is possible to upgrade only specific objects.
 Verification items can be skipped also using last column in CSV file.
 Any of `true`, `t`, `yes`, `y` will tell ninja to skip the item.
 
+Upgrade objects command also supports multi-threading (`-l`, `--multi-thread`).
+For more information about multi-threading see xref:../ninja/index.adoc#_how_multithreading_works[].
+
 .Example of command that upgrades objects, also with
 [source,bash]
 ----
