@@ -141,7 +141,7 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
      * Returns simple variable map: name -> value.
      */
     protected Map<String, Object> prepareScriptVariablesValueMap(ScriptExpressionEvaluationContext context)
-            throws ExpressionSyntaxException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
         Map<String, Object> scriptVariableMap = new HashMap<>();
         // Functions

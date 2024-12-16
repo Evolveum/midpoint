@@ -8,5 +8,5 @@
 
 <script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
-    <code>$foo $jack.employeeNumber</code>
+    <code>$foo $!jack.employeeNumber</code>
 </script>

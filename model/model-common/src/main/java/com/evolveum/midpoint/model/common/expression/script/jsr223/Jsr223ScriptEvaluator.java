@@ -14,7 +14,6 @@ import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEval
 import com.evolveum.midpoint.model.common.expression.script.groovy.GroovyScriptEvaluator;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -66,7 +65,8 @@ public class Jsr223ScriptEvaluator extends AbstractCachingScriptEvaluator<Script
     }
 
     private Bindings convertToBindings(ScriptExpressionEvaluationContext context)
-            throws ExpressionSyntaxException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
         Bindings bindings = scriptEngine.createBindings();
         bindings.putAll(prepareScriptVariablesValueMap(context));
         return bindings;
