@@ -800,6 +800,12 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
     String currentYearFragment() {
         // In some environments, the date format does not contain "2023" but only "23".
         return String.valueOf(
-                (Year.now().getValue() % 100));
+                Year.now().getValue() % 100);
+    }
+
+    String yearFragment(XMLGregorianCalendar date) {
+        // In some environments, the date format does not contain "2023" but only "23".
+        return String.valueOf(
+                date.getYear() % 100);
     }
 }
