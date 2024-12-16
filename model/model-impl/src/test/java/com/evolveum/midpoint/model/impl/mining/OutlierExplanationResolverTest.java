@@ -33,7 +33,7 @@ public class OutlierExplanationResolverTest extends AbstractUnitTest {
 
     private static Long nextId = 1L;
     private LocalizationService localization;
-    private ItemDefinition<?> orgUnitDef;
+    private ItemDefinition<?> orgUnitDef, locationDef;
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
@@ -42,6 +42,7 @@ public class OutlierExplanationResolverTest extends AbstractUnitTest {
         ((LocalizationServiceImpl) localization).init();
         var userDefinition = PrismTestUtil.getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
         orgUnitDef = userDefinition.findItemDefinition(ItemPath.fromString("organizationalUnit"));
+        locationDef = userDefinition.findItemDefinition(ItemPath.fromString("location"));
     }
 
     @Test
@@ -110,9 +111,76 @@ public class OutlierExplanationResolverTest extends AbstractUnitTest {
         assertEquals("Access is granted only to 5% users of the peer group and granted 30% overall", translate(result.anomalies().get(2).explanation()));
     }
 
+
     @Test
-    void shouldExplainUnusualAttributes() {
-        // TODO
+    void shouldExplainUnusualAttributesOutlier() {
+        given();
+        var anomalies = List.of(
+                makeAnomaly(
+                        makeOverallStats(0.03, 20),
+                        makeClusterStats(0.02, 1),
+                        makeUnusualAttributes(
+                                // multivalued
+                                "attr1", null, "value1", "attr1", null, "value12",
+                                "attr2", null, "value2"
+                        )
+                ),
+                makeAnomaly(
+                        makeOverallStats(0.03, 20),
+                        makeClusterStats(0.02, 1),
+                        makeUnusualAttributes(
+                                "attr2", null, "value2", // repeating
+                                "attr3", null, "value3"
+                        )
+                )
+        );
+        var outlier = makeOutlier(anomalies, null);
+        var resolver = new OutlierExplanationResolver(outlier);
+
+        when();
+        var result = resolver.explain();
+
+        then();
+        assertEquals("2 unusual accesses, 3 irregular attributes", translate(result.explanation()));
+    }
+
+    @Test
+    void shouldExplainUnusualAttributesAnomalies() {
+        given();
+        var anomalies = List.of(
+                makeAnomaly(
+                        makeOverallStats(0.03, 20),
+                        makeClusterStats(0.02, 1),
+                        makeUnusualAttributes(
+                                "orgUnit", orgUnitDef, "Development"
+                        )
+                ),
+                makeAnomaly(
+                        makeOverallStats(0.03, 20),
+                        makeClusterStats(0.02, 2),
+                        makeUnusualAttributes(
+                                "orgUnit", orgUnitDef, "Development",
+                                "location", locationDef, "Tokio",
+                                "costCenter", null, "research"
+                        )
+                )
+        );
+        var outlier = makeOutlier(anomalies, null);
+        var resolver = new OutlierExplanationResolver(outlier);
+
+        when();
+        var result = resolver.explain();
+
+        then();
+        assertEquals("2 unusual accesses, 3 irregular attributes", translate(result.explanation()));
+        assertEquals(
+                "Access is unique within the peer group and granted 3% overall; Users with attributes Organizational Unit: Development dont usually get this access",
+                translate(result.anomalies().get(0).explanation())
+        );
+        assertEquals(
+                "Access is granted only to 2 users of the peer group and granted 3% overall; Users with attributes Organizational Unit: Development, location: Tokio, costCenter: research dont usually get this access",
+                translate(result.anomalies().get(1).explanation())
+        );
     }
 
     @Test
