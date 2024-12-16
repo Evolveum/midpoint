@@ -11,6 +11,7 @@ Ninja supports two different upgrade paths:
 * *LTS upgrade* - from previous LTS to next one (e.g. 4.4 -> 4.8)
 
 Deployment has to be upgraded to latest maintenance release before it can be upgraded to next version using ninja.
+Ninja supports upgrade only midPoint deployments that use native repository.
 
 For concrete examples of upgrade scenarios, please see <<Upgrade procedure examples>>.
 

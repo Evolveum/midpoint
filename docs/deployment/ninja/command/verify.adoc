@@ -9,6 +9,9 @@ By default, all categories are checked.
 By default, ninja displays warnings about objects to `SYSOUT`.
 Output can be redirected to file using `-o`, `--output`.
 
+Verifications supports multi-threading (`-l`, `--multi-thread`).
+For more information about multi-threading see xref:../ninja/index.adoc#_how_multithreading_works[].
+
 Verification can run while midPoint is running.
 The whole verification can be split into multiple parts, each part verifying a subset of similar objects using `-f, --filter` and `-t, --type` options.
 This way verification reports can be simpler to read and easier to understand, since they should contain smaller set of issues.

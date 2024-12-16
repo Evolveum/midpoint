@@ -1,5 +1,4 @@
 = Ninja
-
 :page-upkeep-status: red
 :page-upkeep-note: Need to update, also for midScale and DB migration
 :page-alias: { "parent" : "/midpoint/tools/" }
@@ -38,23 +37,30 @@ option `-m` using `MIDPOINT_HOME` environment variable, defaulting to the `<midp
 
 Connection options:
 
-* using `${midpoint.home}`
+* using `$MIDPOINT_HOME`
 * using REST service (not yet implemented)
 
-=== midpoint.home connection
+=== Connecting using `$MIDPOINT_HOME>/config.xml` connection
 
 This type of connection initialises repository layer of midPoint and operates on top of the database.
-For all commands that communicate with DB layer `${midpoint.home}` must be specified using `-m <path>` option.
+For all commands that communicate with DB layer `$MIDPOINT_HOME` must be specified using `-m <midpoint_home_path>` option.
 Ninja will try to read database connection information from `config.xml`.
 This will not work when there's only datasource definition in `config.xml` (no JDBC url/username/password).
 In such chase one have to specify URL (`-U`), username (`-u`) and password (`-p` or `-P`).
 These options can also be used to override JDBC URL, username and password specified in `config.xml`.
 
-With bash, you can provide environment variable `MIDPOINT_HOME` for the `ninja.sh` command with this shortcut:
+With bash, you can provide environment variable `MIDPOINT_HOME` for the `ninja.sh` command.
 
+.Example of command with `$MIDPOINT_HOME` environment variable
 [source,bash]
 ----
-MIDPOINT_HOME=/var/other-mp-home <midpoint>/bin/ninja.sh [general options] [command] [command options]
+MIDPOINT_HOME=/var/other-mp-home <midpoint>/bin/ninja.sh [general options] [JDBC connection overrides] [command] [command options]
+----
+
+.Example of command using `MIDPOINT_HOME` via `-m` option
+[source,bash]
+----
+<midpoint>/bin/ninja.sh -m /var/other-mp-home [general options] [JDBC connection overrides] [command] [command options]
 ----
 
 === JDBC Driver
@@ -63,8 +69,9 @@ Only JDBC driver that is bundled is for PostgreSQL database.
 This means that for other databases, you must provide JDBC driver yourself.
 Most of the time JDBC driver is already present in `<midpoint>/lib` directory.
 However, it will not be picked up automatically, and you must point ninja to it explicitly.
-You can specify the path to the JDBC driver with `-j` option, for example:
+You can specify the path to the JDBC driver with `-j` option.
 
+.Full command syntax with custom JDBC driver option
 [source,bash]
 ----
 <midpoint>/bin/ninja.sh -j <jdbc_driver_jar_path> [general/connection options] [command] [command options]
@@ -76,14 +83,23 @@ Ninja can be used as a standalone jar file without ninja shell/bat scripts.
 Following example shows how to use custom JDBC driver using `-Dloader.path`.
 `-m` option is also needed to specify midPoint home directory.
 
+.Generic example displaying different parts of command and it's parameters
 [source,bash]
 ----
 java [-Dloader.path=<jdbc_driver_jar_path>] -jar ninja.jar [general/connection options] [command] [specific command options]
 ----
 
-== Supported operations
+.Example of standalone usage for PostgreSQL database, in case JDBC url, username and password are specified in `$MIDPOINT_HOME/config.xml`
+[source,bash]
+----
+java -jar ninja.jar -m /opt/midpoint-home export -t UserType -o /tmp/user-types.xml
+----
 
-Documentation for supported commands is available xref:./command/index.adoc[here].
+.Example of standalone usage for SQL Server database, in case we want to override JDBC url, username and password
+[source,bash]
+----
+java -Dloader.path=PATH_TO_SQL_SERVER_JDBC_DRIVER_JAR_FILE -jar ninja.jar -m /opt/midpoint-home -U jdbc:sqlserver://localhost:1433;databaseName=midpoint -u MY_JDBC_USERNAME -p MY_JDBC_PASSWORD export -t UserType -o /tmp/user-types.xml
+----
 
 == FAQ
 
@@ -100,77 +116,18 @@ Raw option will tell ninja to export objects together with their definitions if 
 These definitions are used to import objects back to midPoint.
 For more information see xref:./command/export.adoc[].
 
-== Full help
+=== How multithreading works?
 
-.Full help
-[source]
-----
-$ java -jar target/ninja.jar help
-Usage: java [-Dloader.path=<jdbc_driver_jar_path>] -jar ninja.jar [options] [command] [command options]
-  Options:
-    -B, --batch-mode
-      Run in non-interactive (batch) mode (disables output color).
-      Default: false
-    -c, --charset
-      Charset used for input/output
-      Default: UTF-8
-    -h, --help
-      Print this help
-    -m, --midpoint-home
-      Path to MidPoint home folder. If relative path is specified, it will be translated to absolute path.
-    -p, --password
-      Password for JDBC connection
-    -P, --password-ask
-      Ninja will ask for JDBC connection password
-    --psn-class-name
-      PolyString normalizer class name
-    --psn-lowercase
-      PolyString normalizer lowercase
-    --psn-nfkd
-      PolyString normalizer NFKD. Unicode Normalization Form Compatibility Decomposition (NFKD). This process
-      expands composed characters (e.g. diacritic marks, ligatures, roman numerals). Character components are
-      then processed individually. E.g. ascii7 normalizer will then remove just the diacritic mark, but leave
-      the base letter. Therefore, for a-acute character with NFKD processing the output will be plain "a"
-      character. Without NFKD processing the whole character will be removed.
-    --psn-trim
-      PolyString normalizer trim. Removes whitespace from beginning and end of the string. Trimming is done
-      before any other processing.
-    --psn-trim-whitespace
-      PolyString normalizer trim whitespace
-    -s, --silent
-      No output at all
-      Default: false
-    -U, --url
-      JDBC URL to database. If '-m' option is used URL will be used to connect to JDBC database.
-    -u, --username
-      Username for JDBC connection
-    -v, --verbose
-      Verbose output
-      Default: false
-    -V, --version
-      Version and build description
+Ninja uses multithreading for exporting and importing objects.
+Ninja will create a thread pool with a number of threads.
 
-  Commands:
+When reading objects from midPoint, ninja will create queries that will split the data by object type (e.g. users, roles, shadows, ...).
+On top of this, shadow objects are also split by resource oid.
+Each query and query results is then processed in a separate thread.
 
-    count                   Count objects in midPoint repository
-    delete                  Delete objects from MidPoint
-    download-distribution   Download target midPoint distribution (latest LTS).
-    export                  Exports objects from midPoint
-    export-audit            Exports audit records from MidPoint
-    export-mining           Export of anonymized structure of relationships between roles, users and
-            organizations objects.
-    help                    Print this help, or prints help for specific command.
-    import                  Imports objects into MidPoint
-    import-audit            Imports audit records into MidPoint
-    info                    Shows information about the repository for the provided midPoint home
-    initial-objects         Initial objects
-    keys                    List keys from keystore
-    pre-upgrade-check       Pre-upgrade check
-    run-sql                 Run arbitrary SQL scripts
-    trace                   Edit trace file
-    upgrade-distribution    Upgrade midPoint distribution and related DB schema
-    upgrade-installation    Upgrade installation
-    upgrade-objects         Upgrade objects
-    verify                  Verify objects in midPoint repository
-    verify-audit            Verify audit records in midPoint repository
-----
+When importing objects to midPoint, ninja will read the file with objects into single queue and add objects to midPoint repository in parallel.
+
+== See also
+
+* xref:./command/index.adoc[Commands reference]
+* xref:./use-case/index.adoc[Use cases]
