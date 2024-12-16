@@ -124,6 +124,14 @@
                         </xsd:annotation>
                     </xsd:element>
 
+                    <xsd:element name="explanation" type="tns:OutlierDetectionExplanationType" minOccurs="0" a:maxOccurs="unbound">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Provides a simple explanation of why the outlier object has been detected and identified.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -142,15 +150,6 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-
-            <xsd:element name="explanation" type="t:PolyStringType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Provides a simple explanation of why the outlier object has been detected and identified.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-
             <!-- TODO think about creationTimestamp, do we need it? if yes, where we need to access it? -->
             <xsd:element name="createTimestamp" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
@@ -211,6 +210,13 @@
                 </xsd:annotation>
             </xsd:element>
 
+            <xsd:element name="explanation" type="tns:OutlierDetectionExplanationType" minOccurs="0" a:maxOccurs="unbound">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Provides a simple explanation of why the outlier object has been detected and identified within specific partition.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
 
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
@@ -487,14 +493,6 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="explanation" type="t:PolyStringType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Provides a simple explanation of why the anomaly has been detected and identified.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-
             <!--TODO add category classification here? -->
             <!--(Check it) We cant use RoleAnalysisIdentifiedCharacteristicsItemType because targetObjectRef is searchable.-->
             <!--Currently, we need fetch session object and compare anomaly with RoleAnalysisIdentifiedCharacteristicsItemsType.-->
@@ -517,6 +515,15 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+
+            <xsd:element name="explanation" type="tns:OutlierDetectionExplanationType" minOccurs="0" a:maxOccurs="unbound">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Provides a simple explanation of why the anomaly has been detected and identified.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -3196,4 +3203,70 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+
+    <xsd:complexType name="OutlierDetectionExplanationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Contains explanation of the outlier or anomaly object.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+
+            <xsd:element name="message" type="tns:LocalizableMessageType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Explanation message.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="category" type="tns:OutlierDetectionExplanationCategoryType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Category classification.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="outlierDetectionExplanationType" type="tns:OutlierDetectionExplanationType"/>
+
+    <xsd:simpleType name="OutlierDetectionExplanationCategoryType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Category classification.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="role_attribute">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Explanations associated with role attributes analysis.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ROLE_ATTRIBUTE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="peer_group">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Explanation associated with peer group analysis.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PEER_GROUP"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 </xsd:schema>
