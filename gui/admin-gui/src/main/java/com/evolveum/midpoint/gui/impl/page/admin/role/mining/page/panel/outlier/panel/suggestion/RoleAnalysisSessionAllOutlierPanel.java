@@ -59,7 +59,7 @@ public class RoleAnalysisSessionAllOutlierPanel extends AbstractObjectMainPanel<
     private static final String ID_PANEL = "panelId";
 
     public RoleAnalysisSessionAllOutlierPanel(String id, ObjectDetailsModels<RoleAnalysisSessionType> model,
-                                              ContainerPanelConfigurationType config) {
+            ContainerPanelConfigurationType config) {
         super(id, model, config);
     }
 
@@ -88,10 +88,12 @@ public class RoleAnalysisSessionAllOutlierPanel extends AbstractObjectMainPanel<
         Task task = pageBase.createSimpleTask("Search outliers");
         OperationResult result = task.getResult();
         RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+        List<RoleAnalysisOutlierType> sessionOutliers = roleAnalysisService.getSessionOutliers(session.getOid(), null, task, result);
+
         return new LoadableModel<>() {
             @Override
             protected List<RoleAnalysisOutlierType> load() {
-                return roleAnalysisService.getSessionOutliers(session.getOid(), null, task, result);
+                return sessionOutliers;
             }
         };
     }
