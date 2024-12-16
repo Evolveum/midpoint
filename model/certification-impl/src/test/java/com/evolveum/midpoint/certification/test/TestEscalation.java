@@ -493,7 +493,7 @@ public class TestEscalation extends AbstractCertificationTest {
     }
 
     /** MID-8665 */
-    @Test(enabled = false)
+    @Test(enabled = false) // MID-10294
     public void test210Reports() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -794,7 +794,7 @@ public class TestEscalation extends AbstractCertificationTest {
         TaskType taskAfter = getTask(taskOid).asObjectable();
         TaskInformation taskInfo = TaskInformation.createForTask(taskAfter, taskAfter);
         assertEquals("Expected task with fatal error result, ", taskInfo.getResultStatus(), OperationResultStatusType.FATAL_ERROR);
-        
+
         String message = taskInfo.getTask().getResult().getMessage();
         assertTrue("wrong exception message", message.contains("maximum number of iterations (3) was reached"));
     }
