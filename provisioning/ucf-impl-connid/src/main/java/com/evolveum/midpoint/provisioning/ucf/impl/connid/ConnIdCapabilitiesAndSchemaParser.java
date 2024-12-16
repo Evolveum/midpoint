@@ -359,6 +359,21 @@ class ConnIdCapabilitiesAndSchemaParser {
             } else if (connIdCapabilities.contains(UpdateApiOp.class)) {
                 processUpdateOperationOptions(connIdSchema.getSupportedOptionsByOperation(UpdateApiOp.class));
             }
+
+            midPointCapabilities.setReferences(
+                    determineReferencesCapability(connIdSchema));
+        }
+
+        /** We simply check if there is any native reference. Not quite precise, but there's no other way for now. */
+        private @Nullable ReferencesCapabilityType determineReferencesCapability(@NotNull Schema connIdSchema) {
+            for (var ocInfo : connIdSchema.getObjectClassInfo()) {
+                for (var attrInfo : ocInfo.getAttributeInfo()) {
+                    if (attrInfo.isReference()) {
+                        return new ReferencesCapabilityType();
+                    }
+                }
+            }
+            return null;
         }
 
         private static @Nullable BehaviorCapabilityType getBehaviorCapabilityType(@NotNull SpecialAttributes specialAttributes) {

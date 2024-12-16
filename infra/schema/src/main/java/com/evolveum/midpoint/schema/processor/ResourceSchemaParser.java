@@ -354,7 +354,7 @@ class ResourceSchemaParser {
      * Does *not* include legacy simulated associations! They are "anonymous" as they do not have a type name.
      */
     private void parseModernSimulatedReferenceTypes() throws ConfigurationException {
-        if (referencesCapabilityCI != null) {
+        if (referencesCapabilityCI != null && referencesCapabilityCI.isEnabled()) {
             for (var simulatedRefTypeDefCI : referencesCapabilityCI.getReferenceTypes()) {
                 resourceSchema.addReferenceTypeDefinition(
                         SimulatedShadowReferenceTypeDefinition.Modern.parse(
