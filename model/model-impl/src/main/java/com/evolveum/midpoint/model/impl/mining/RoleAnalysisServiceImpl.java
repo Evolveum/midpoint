@@ -2324,8 +2324,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         RoleAnalysisAttributeAnalysisResult outlierAttributeAnalysisResult = new RoleAnalysisAttributeAnalysisResult();
         List<RoleAnalysisAttributeAnalysis> attributeAnalysis = comparison.getAttributeAnalysis();
 
-        for (RoleAnalysisAttributeAnalysis analysisItem : attributeAnalysis) {
-            ItemPathType clusterItemPath = analysisItem.getItemPath();
+        for (RoleAnalysisAttributeAnalysis clusterAnalysis : attributeAnalysis) {
+            ItemPathType clusterItemPath = clusterAnalysis.getItemPath();
             Set<String> outlierValues = extractCorrespondingOutlierValues(compared, clusterItemPath);
             if (outlierValues == null) {
                 continue;
@@ -2333,14 +2333,11 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
             RoleAnalysisAttributeAnalysis correspondingAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
             correspondingAttributeAnalysis.setItemPath(clusterItemPath);
-            correspondingAttributeAnalysis.setParentType(analysisItem.getParentType());
-            Double attributeDensity = analysisItem.getDensity();
-            double attributeWeight = attributeDensity != null ? attributeDensity * 0.01 : 0.0;
-            correspondingAttributeAnalysis.setWeight(attributeWeight);
+            correspondingAttributeAnalysis.setParentType(clusterAnalysis.getParentType());
 
             int counter = 0;
             int sum = 0;
-            List<RoleAnalysisAttributeStatistics> attributeStatistics = analysisItem.getAttributeStatistics();
+            List<RoleAnalysisAttributeStatistics> attributeStatistics = clusterAnalysis.getAttributeStatistics();
             for (RoleAnalysisAttributeStatistics attributeStatistic : attributeStatistics) {
                 String clusterAttributeValue = attributeStatistic.getAttributeValue();
                 Integer inGroup = attributeStatistic.getInGroup();
@@ -2353,38 +2350,12 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
             double newDensity = sum != 0 ? ((double) counter / sum * 100) : 0.0;
             correspondingAttributeAnalysis.setDensity(newDensity);
-            correspondingAttributeAnalysis.setAnalysedObjectCount(analysisItem.getAnalysedObjectCount());
+            correspondingAttributeAnalysis.setAnalysedObjectCount(clusterAnalysis.getAnalysedObjectCount());
 
             outlierAttributeAnalysisResult.getAttributeAnalysis().add(correspondingAttributeAnalysis.clone());
         }
 
-        double weightedItemFactorConfidence = getWeightedItemFactorConfidence(outlierAttributeAnalysisResult);
-        outlierAttributeAnalysisResult.setScore(weightedItemFactorConfidence);
-
         return outlierAttributeAnalysisResult;
-    }
-
-    private double getWeightedItemFactorConfidence(@Nullable RoleAnalysisAttributeAnalysisResult compareAttributeResult) {
-        if (compareAttributeResult == null) {
-            return 0;
-        }
-
-        List<RoleAnalysisAttributeAnalysis> attributeAnalysis = compareAttributeResult.getAttributeAnalysis();
-        if (attributeAnalysis.isEmpty()) {
-            return 0;
-        }
-
-        double totalWeightedDensity = 0.0;
-        double totalWeight = 0.0;
-        for (RoleAnalysisAttributeAnalysis analysisItem : attributeAnalysis) {
-            Double density = analysisItem.getDensity();
-            Double weight = analysisItem.getWeight();
-
-            totalWeightedDensity += density * weight;
-            totalWeight += weight;
-        }
-
-        return totalWeight > 0 ? totalWeightedDensity / totalWeight : 0.0;
     }
 
     @NotNull

@@ -137,6 +137,10 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
             boolean isMarked = false;
             if (getSelectedPatterns() != null && !getSelectedPatterns().isEmpty()) {
                 for (DetectedPattern pattern : getSelectedPatterns()) {
+                    if (isMarked) {
+                        break;
+                    }
+
                     String associatedColor = pattern.getAssociatedColor();
                     if (associatedColor == null || associatedColor.isEmpty()) {
                         associatedColor = "#28a745";
@@ -167,7 +171,7 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
 
                 if (markedRoles != null && !markedRoles.isEmpty() && rowChunk.getRoles().stream().anyMatch(markedRoles::contains)) {
                     cellItem.add(AttributeModifier.replace("class",
-                            "p-2 d-flex align-items-center justify-content-center bg-danger"));
+                            "p-2 d-flex align-items-center justify-content-center bg-warning"));
                 }
 
                 cellItem.add(AttributeModifier.append("style", " border: 5px solid #206f9d;"));

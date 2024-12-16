@@ -1655,21 +1655,6 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <!--TBD-->
-            <xsd:element name="score" type="xsd:double" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            Expresses the score of the attribute analysis.
-                            How well the attribute fits.
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>RoleAnalysisAttributeAnalysis.score</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-
             <xsd:element name="attributeAnalysis" type="c:RoleAnalysisAttributeAnalysis" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1749,18 +1734,6 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="weight" type="xsd:double" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            Expresses weight of attribute. Used for calculation item factor confidence.
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>RoleAnalysisAttributeAnalysis.weight</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
 
             <xsd:element name="density" type="xsd:double" minOccurs="0">
                 <xsd:annotation>
