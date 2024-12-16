@@ -4,7 +4,7 @@ Verify audit command allows users to validate audit records against current sche
 Records can be exported to `SYSOUT` or to file (`-o`, `--output`) and compressed using ZIP if needed (`-z`, `--zip`).
 
 This operation also support multi-threading (`-l`, `--multi-thread`).
-For more information about multi-threading see xref:../ninja/index.adoc#_how_multithreading_works[].
+For more information about multi-threading see xref:/midpoint/reference/deployment/ninja#how-multithreading-works[here].
 
 Use `-O`, `--overwrite` switch if you wish to overwrite an existing output file.
 
