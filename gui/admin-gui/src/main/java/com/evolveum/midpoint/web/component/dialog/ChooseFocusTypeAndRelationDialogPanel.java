@@ -72,7 +72,17 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel<String> imp
 
         DropDownFormGroup<QName> type = new DropDownFormGroup<>(ID_OBJECT_TYPE, Model.of(getDefaultObjectType()), Model.ofList(getSupportedObjectTypes()),
                 new QNameObjectTypeChoiceRenderer(), createStringResource("chooseFocusTypeAndRelationDialogPanel.type"),
-                createStringResource("chooseFocusTypeAndRelationDialogPanel.tooltip.type"), "col-md-4", "col-md-8", true);
+                createStringResource("chooseFocusTypeAndRelationDialogPanel.tooltip.type"), null, null, true){
+            @Override
+            protected String getLabelContainerCssClass() {
+                return "col-md-4";
+            }
+
+            @Override
+            protected String getPropertyContainerCssClass() {
+                return "col-md-8";
+            }
+        };
         type.getInput().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         type.setOutputMarkupId(true);
         type.add(new VisibleBehaviour(this::isFocusTypeSelectorVisible));

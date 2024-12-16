@@ -57,6 +57,7 @@ See bug:MID-9754[].
 * Fixed the issue with the extension attribute of ProtectedStringType which was always editable regardless on permissions. See bug:MID-10103[].
 * Fixed warning message translation during password change. See bug:MID-10108[].
 * Fixed localization for visualization of modify assignment delta. See bug:MID-10091[].
+* Fixed cleanup of finished tasks which has configured "cleanup after finish" parameter. See bug:MID-10272[].
 
 == Changes with Respect To Version 4.8.3
 
