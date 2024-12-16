@@ -12,10 +12,11 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
-import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -27,7 +28,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.testng.AssertJUnit.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.OutlierDetectionExplanationCategoryType.*;
 
 public class OutlierExplanationResolverTest extends AbstractUnitTest {
 
@@ -76,8 +79,9 @@ public class OutlierExplanationResolverTest extends AbstractUnitTest {
         assertNotNull("should return non null result", result);
         assertNotNull("should explain outlier", result.explanation());
         assertEquals("should explain every anomaly", anomalies.size(), result.anomalies().size());
+        assertThat(List.of(1, 3)).isEqualTo(List.of(1, 3));
         for (var anomaly: result.anomalies()) {
-            assertNotNull("should explain anomaly", anomaly.explanation());
+            assertNotNull("should explain anomaly", anomaly.explanations().get(0));
         }
     }
 
@@ -105,12 +109,20 @@ public class OutlierExplanationResolverTest extends AbstractUnitTest {
         var result = resolver.explain();
 
         then();
-        assertEquals("3 unusual accesses", translate(result.explanation()));
-        assertEquals("Access is unique within the peer group and granted 3% overall", translate(result.anomalies().get(0).explanation()));
-        assertEquals("Access is granted only to 2 users of the peer group and granted 0.5% overall", translate(result.anomalies().get(1).explanation()));
-        assertEquals("Access is granted only to 5% users of the peer group and granted 30% overall", translate(result.anomalies().get(2).explanation()));
+        var messages = result.anomalies().stream()
+            .map(a -> {
+                assertEquals("should provide just 1 explanation per anomaly", 1, a.explanations().size());
+                var categories = a.explanations().get(0).getCategory();
+                assertThatIterable(categories).isEqualTo(List.of(UNUSUAL_ACCESS));
+                return a.explanations().get(0).getMessage();
+            })
+            .toList();
+        assertEquals("3 unusual accesses", translate(result.explanation().getMessage()));
+        assertThatIterable(result.explanation().getCategory()).isEqualTo(List.of(UNUSUAL_ACCESS));
+        assertEquals("Access is unique within the peer group and granted 3% overall", translate(messages.get(0)));
+        assertEquals("Access is granted only to 2 users of the peer group and granted 0.5% overall", translate(messages.get(1)));
+        assertEquals("Access is granted only to 5% users of the peer group and granted 30% overall", translate(messages.get(2)));
     }
-
 
     @Test
     void shouldExplainUnusualAttributesOutlier() {
@@ -141,7 +153,7 @@ public class OutlierExplanationResolverTest extends AbstractUnitTest {
         var result = resolver.explain();
 
         then();
-        assertEquals("2 unusual accesses, 3 irregular attributes", translate(result.explanation()));
+        assertEquals("2 unusual accesses, 3 irregular attributes", translate(result.explanation().getMessage()));
     }
 
     @Test
@@ -172,15 +184,23 @@ public class OutlierExplanationResolverTest extends AbstractUnitTest {
         var result = resolver.explain();
 
         then();
-        assertEquals("2 unusual accesses, 3 irregular attributes", translate(result.explanation()));
-        assertEquals(
-                "Access is unique within the peer group and granted 3% overall; Users with attributes Organizational Unit: Development dont usually get this access",
-                translate(result.anomalies().get(0).explanation())
-        );
-        assertEquals(
-                "Access is granted only to 2 users of the peer group and granted 3% overall; Users with attributes Organizational Unit: Development, location: Tokio, costCenter: research dont usually get this access",
-                translate(result.anomalies().get(1).explanation())
-        );
+        assertEquals("2 unusual accesses, 3 irregular attributes", translate(result.explanation().getMessage()));
+        assertThatIterable(result.explanation().getCategory()).isEqualTo(List.of(UNUSUAL_ACCESS, IRREGULAR_ATTRIBUTES));
+
+        var firstAnomaly = result.anomalies().get(0);
+        var secondAnomaly = result.anomalies().get(1);
+
+        assertEquals("should provide 2 explanations in anomaly", 2, firstAnomaly.explanations().size());
+        assertEquals("Access is unique within the peer group and granted 3% overall", translate(firstAnomaly.explanations().get(0).getMessage()));
+        assertEquals("Users with attributes Organizational Unit: Development do not usually get this access", translate(firstAnomaly.explanations().get(1).getMessage()));
+        assertThatIterable(firstAnomaly.explanations().get(0).getCategory()).isEqualTo(List.of(UNUSUAL_ACCESS));
+        assertThatIterable(firstAnomaly.explanations().get(1).getCategory()).isEqualTo(List.of(IRREGULAR_ATTRIBUTES));
+
+        assertEquals("should provide 2 explanations in anomaly", 2, secondAnomaly.explanations().size());
+        assertEquals("Access is granted only to 2 users of the peer group and granted 3% overall", translate(secondAnomaly.explanations().get(0).getMessage()));
+        assertEquals("Users with attributes Organizational Unit: Development, location: Tokio, costCenter: research do not usually get this access", translate(secondAnomaly.explanations().get(1).getMessage()));
+        assertThatIterable(secondAnomaly.explanations().get(0).getCategory()).isEqualTo(List.of(UNUSUAL_ACCESS));
+        assertThatIterable(secondAnomaly.explanations().get(1).getCategory()).isEqualTo(List.of(IRREGULAR_ATTRIBUTES));
     }
 
     @Test
@@ -198,7 +218,7 @@ public class OutlierExplanationResolverTest extends AbstractUnitTest {
         var result = resolver.explain();
 
         then();
-        assertEquals("1 unusual accesses, 1 irregular attributes for location: Tokio", translate(result.explanation()));
+        assertEquals("1 unusual accesses, 1 irregular attributes for location: Tokio", translate(result.explanation().getMessage()));
     }
 
     @Test
@@ -213,7 +233,7 @@ public class OutlierExplanationResolverTest extends AbstractUnitTest {
         var result = resolver.explain();
 
         then();
-        assertEquals("1 unusual accesses for Organizational Unit: Development", translate(result.explanation()));
+        assertEquals("1 unusual accesses for Organizational Unit: Development", translate(result.explanation().getMessage()));
     }
 
     private OutlierExplanationInput makeOutlier(List<AnomalyExplanationInput> anomalies, ExplanationAttribute groupByAttribute) {
@@ -251,8 +271,8 @@ public class OutlierExplanationResolverTest extends AbstractUnitTest {
         return attributes;
     }
 
-    private String translate(LocalizableMessage message) {
-        return localization.translate(message, localization.getDefaultLocale());
+    private String translate(LocalizableMessageType message) {
+        return localization.translate(LocalizationUtil.toLocalizableMessage(message), localization.getDefaultLocale());
     }
 
 }

@@ -3274,23 +3274,23 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="role_attribute">
+            <xsd:enumeration value="irregular_attributes">
                 <xsd:annotation>
                     <xsd:documentation>
                         Explanations associated with role attributes analysis.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ROLE_ATTRIBUTE"/>
+                        <jaxb:typesafeEnumMember name="IRREGULAR_ATTRIBUTES"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="peer_group">
+            <xsd:enumeration value="unusual_access">
                 <xsd:annotation>
                     <xsd:documentation>
                         Explanation associated with peer group analysis.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="PEER_GROUP"/>
+                        <jaxb:typesafeEnumMember name="UNUSUAL_ACCESS"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
