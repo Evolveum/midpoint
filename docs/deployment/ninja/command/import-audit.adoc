@@ -1,3 +1,23 @@
 = Import audit
 
-//TODO
+Import command allow users to import audit records to midPoint.
+Records can be read from `SYSOUT` or file (`-i`, `--input`) and uncompressed using ZIP if needed (`-z`, `--zip`).
+
+Import also support multi-threading (`-l`, `--multi-thread`).
+For more information about multi-threading see xref:../ninja/index.adoc#_how_multithreading_works[].
+
+Use `-O`, `--overwrite` switch if you wish to overwrite existing audit records in midPoint.
+
+Records read from input (file or `SYSOUT`) can be filtered using filter (`-f, --filter`) option.
+
+.Example: audit import
+[source,bash]
+----
+./bin/ninja.sh importAudit -i audit-export.xml.zip -z
+----
+
+== See also
+
+. xref:./import-audit[]
+. xref:./verify-audit[]
+. xref:/midpoint/reference/repository/native-audit/#audit-migration-from-other-database[migration guide for the Native audit].
