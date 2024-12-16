@@ -3002,6 +3002,9 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
+                <a:schemaContext>
+                    <a:type>ResourceType</a:type>
+                </a:schemaContext>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

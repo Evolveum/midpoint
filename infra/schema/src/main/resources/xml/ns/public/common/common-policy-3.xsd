@@ -2584,7 +2584,9 @@
                 <a:container/>
                 <a:since>3.8.1</a:since>
                 <a:experimental>true</a:experimental>
-            </xsd:appinfo>
+                <a:schemaContext>
+                    <a:typePath>targetType</a:typePath>
+                </a:schemaContext>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="targetType" type="xsd:QName" minOccurs="0">
