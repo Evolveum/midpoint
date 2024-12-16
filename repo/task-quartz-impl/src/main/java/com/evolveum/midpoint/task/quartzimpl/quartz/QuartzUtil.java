@@ -58,6 +58,19 @@ public class QuartzUtil {
           .build();
     }
 
+    /**
+     * Create trigger for task
+     *
+     * Returned trigger can be null in following cases:
+     *
+     * - task is not ready ({@link TaskSchedulingStateType#READY}
+     * - task is not persistent (e.g. lightweight tasks)
+     * - task is "on demand" (it is configured as recurring, but without schedule)
+     *
+     * @param task task for which trigger should be created
+     * @return Quartz trigger for the task or null if task is not eligible for trigger (see above)
+     * @throws ParseException in case of invalid Cron pattern
+     */
     public static Trigger createTriggerForTask(Task task) throws ParseException {
 
         if (task.getSchedulingState() != TaskSchedulingStateType.READY || !task.isPersistent()) {
