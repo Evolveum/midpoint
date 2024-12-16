@@ -2,7 +2,6 @@
 :page-upkeep-status: red
 :page-upkeep-note: Need to update, also for midScale and DB migration
 :page-alias: { "parent" : "/midpoint/tools/" }
-:page-toc: top
 
 [NOTE]
 ====
@@ -38,9 +37,8 @@ option `-m` using `MIDPOINT_HOME` environment variable, defaulting to the `<midp
 Connection options:
 
 * using `$MIDPOINT_HOME`
-* using REST service (not yet implemented)
 
-=== Connecting using `$MIDPOINT_HOME>/config.xml` connection
+=== Using `$MIDPOINT_HOME>/config.xml` connection
 
 This type of connection initialises repository layer of midPoint and operates on top of the database.
 For all commands that communicate with DB layer `$MIDPOINT_HOME` must be specified using `-m <midpoint_home_path>` option.
@@ -63,7 +61,7 @@ MIDPOINT_HOME=/var/other-mp-home <midpoint>/bin/ninja.sh [general options] [JDBC
 <midpoint>/bin/ninja.sh -m /var/other-mp-home [general options] [JDBC connection overrides] [command] [command options]
 ----
 
-=== JDBC Driver
+==== Using custom JDBC Driver
 
 Only JDBC driver that is bundled is for PostgreSQL database.
 This means that for other databases, you must provide JDBC driver yourself.
