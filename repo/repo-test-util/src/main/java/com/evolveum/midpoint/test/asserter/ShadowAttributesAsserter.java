@@ -15,6 +15,7 @@ import static org.testng.AssertJUnit.assertNull;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.xml.namespace.QName;
 
@@ -129,7 +130,7 @@ public class ShadowAttributesAsserter<R> extends AbstractAsserter<ShadowAsserter
     }
 
     // TODO: change to ShadowAttributeAsserter later
-    public <T> PrismPropertyAsserter<T,ShadowAttributesAsserter<R>> attribute(String attrName) {
+    public <T> PrismPropertyAsserter<T,ShadowAttributesAsserter<R>> simpleAttribute(String attrName) {
         PrismProperty<T> attribute = findSimpleAttribute(attrName);
         PrismPropertyAsserter<T,ShadowAttributesAsserter<R>> asserter = new PrismPropertyAsserter<>(attribute, this, "attribute "+attrName+" in "+desc());
         copySetupTo(asserter);
@@ -137,9 +138,20 @@ public class ShadowAttributesAsserter<R> extends AbstractAsserter<ShadowAsserter
     }
 
     // TODO: change to ShadowAttributeAsserter later
-    public <T> PrismPropertyAsserter<T,ShadowAttributesAsserter<R>> attribute(QName attrName) {
+    public <T> PrismPropertyAsserter<T,ShadowAttributesAsserter<R>> simpleAttribute(QName attrName) {
         PrismProperty<T> attribute = findSimpleAttribute(attrName);
         PrismPropertyAsserter<T,ShadowAttributesAsserter<R>> asserter = new PrismPropertyAsserter<>(attribute, this, "attribute "+attrName+" in "+desc());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
+    // assumes the shadow is not raw;
+    // accepts also that the attribute may not exist (it is treated as zero-values attribute)
+    public ShadowReferenceAttributeAsserter<ShadowAttributesAsserter<R>> referenceAttribute(QName attrName) {
+        var attribute = (ShadowReferenceAttribute) findReferenceAttribute(attrName);
+        var asserter = new ShadowReferenceAttributeAsserter<>(
+                attribute != null ? attribute.getReferenceValues() : List.of(),
+                this, "attribute "+attrName+" in "+desc());
         copySetupTo(asserter);
         return asserter;
     }
@@ -168,7 +180,7 @@ public class ShadowAttributesAsserter<R> extends AbstractAsserter<ShadowAsserter
         Collection<ShadowSimpleAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(getShadow());
         assertFalse("No primary identifier in "+desc(), CollectionUtils.isEmpty(primaryIdentifiers));
         assertEquals("Wrong # of primary identifiers in "+desc(), 1, primaryIdentifiers.size());
-        return attribute(primaryIdentifiers.iterator().next().getElementName());
+        return simpleAttribute(primaryIdentifiers.iterator().next().getElementName());
     }
 
     public ShadowAttributesAsserter<R> assertHasPrimaryIdentifier() {
@@ -187,7 +199,7 @@ public class ShadowAttributesAsserter<R> extends AbstractAsserter<ShadowAsserter
         Collection<ShadowSimpleAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(getShadow());
         assertFalse("No secondary identifier in "+desc(), CollectionUtils.isEmpty(secondaryIdentifiers));
         assertEquals("Wrong # of secondary identifiers in "+desc(), 1, secondaryIdentifiers.size());
-        return attribute(secondaryIdentifiers.iterator().next().getElementName());
+        return simpleAttribute(secondaryIdentifiers.iterator().next().getElementName());
     }
 
     public ShadowAttributesAsserter<R> assertHasSecondaryIdentifier() {

@@ -370,10 +370,6 @@ public interface AbstractShadow extends ShadowLikeValue, ShortDumpable, DebugDum
         return ShadowUtil.getTypeIdentification(getBean());
     }
 
-    default boolean equalsByContent(AbstractShadow other) {
-        return ShadowUtil.equalsByContent(this.getBean(), other.getBean());
-    }
-
     default void setObjectType(@Nullable ResourceObjectTypeIdentification typeIdentification) {
         if (typeIdentification != null) {
             getBean()
@@ -405,6 +401,14 @@ public interface AbstractShadow extends ShadowLikeValue, ShortDumpable, DebugDum
     default AbstractShadow addSimpleAttribute(QName attributeName, Object realValue) throws SchemaException {
         getAttributesContainer().addSimpleAttribute(attributeName, realValue);
         return this;
+    }
+
+    default boolean isIdentificationOnly() {
+        return getBean().getContentDescription() == ShadowContentDescriptionType.IDENTIFICATION_ONLY;
+    }
+
+    default void setIdentificationOnly() {
+        getBean().setContentDescription(ShadowContentDescriptionType.IDENTIFICATION_ONLY);
     }
 
     /**
