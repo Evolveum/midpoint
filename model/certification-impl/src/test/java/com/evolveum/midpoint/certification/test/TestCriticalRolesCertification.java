@@ -1209,7 +1209,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
 
 
     //TODO temporarily disabled, change in behavior. now also empty stage is generated and not skipped by default
-    @Test(enabled = false)
+    @Test(enabled = false) // MID-10294
     public void test510OpenNextStage() throws Exception {           // next stage is 2 (because the first one has no work items)
         // GIVEN
 //        clock.resetOverride();

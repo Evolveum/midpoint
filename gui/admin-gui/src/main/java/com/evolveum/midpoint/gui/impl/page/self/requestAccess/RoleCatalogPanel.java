@@ -960,6 +960,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         ObjectQuery query = getPrismContext()
                 .queryFor(ot.getClassDefinition())
                 .isInScopeOf(ref.getOid(), OrgFilter.Scope.ONE_LEVEL)
+                .asc(AbstractRoleType.F_DISPLAY_NAME)
                 .asc(ObjectType.F_NAME)
                 .build();
 

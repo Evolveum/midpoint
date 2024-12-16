@@ -79,22 +79,8 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
             if (parentClass != null) {
                 panel.getValidatableComponent().add(
                         new ChoiceRequiredValidator(SCHEMA_CHOICES_DIFINITIONS.get(parentClass), panelCtx.getItemWrapperModel()));
-            } else if (panelCtx.isMandatory()) {
-                formComponent.add(new NotNullValidator<>("Required") {
-
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    protected boolean skipValidation() {
-                        PrismContainerValueWrapper parentContainer = propertyWrapper.getParent();
-                        if (parentContainer == null || parentContainer.getNewValue() == null) {
-                            return false;
-                        }
-                        PrismContainerValue cleanedUpValue =
-                                WebPrismUtil.cleanupEmptyContainerValue(parentContainer.getNewValue().clone());
-                        return cleanedUpValue == null || cleanedUpValue.isEmpty();
-                    }
-                });
+            } else if (panelCtx.isMandatory() && !skipValidation(propertyWrapper)) {
+                formComponent.add(new NotNullValidator<>("Required"));
             }
 
             if (formComponent instanceof TextField) {
@@ -117,6 +103,16 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
         }
         panelCtx.getFeedback().setFilter(new ComponentFeedbackMessageFilter(panel.getValidatableComponent()));
 
+    }
+
+    private boolean skipValidation(PrismPropertyWrapper<T> propertyWrapper) {
+        PrismContainerValueWrapper parentContainer = propertyWrapper.getParent();
+        if (parentContainer == null || parentContainer.getNewValue() == null) {
+            return false;
+        }
+        PrismContainerValue cleanedUpValue =
+                WebPrismUtil.cleanupEmptyContainerValue(parentContainer.getNewValue().clone());
+        return cleanedUpValue == null || cleanedUpValue.isEmpty();
     }
 
     private Class<? extends Containerable> getChoicesParentClass(PrismPropertyPanelContext<T> panelCtx) {
