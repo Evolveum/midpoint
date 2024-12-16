@@ -7504,6 +7504,11 @@
                                 What objects should be processed by the activity.
                             </xsd:documentation>
                         </xsd:annotation>
+                        <xsd:appinfo>
+                            <a:schemaContext>
+                                <a:typePath>type</a:typePath>
+                            </a:schemaContext>
+                        </xsd:appinfo>
                     </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
@@ -7884,7 +7889,13 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractWorkDefinitionType">
                 <xsd:sequence>
-                    <xsd:element name="resources" type="tns:ObjectSetType" minOccurs="0"/>
+                    <xsd:element name="resources" type="tns:ObjectSetType" minOccurs="0">
+                        <xsd:appinfo>
+                            <a:schemaContext>
+                                <a:type>ResourceType</a:type>
+                            </a:schemaContext>
+                        </xsd:appinfo>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -8521,6 +8532,11 @@
                                 This specification extends this default.
                             </xsd:documentation>
                         </xsd:annotation>
+                        <xsd:appinfo>
+                            <a:schemaContext>
+                                <a:type>TaskType</a:type>
+                            </a:schemaContext>
+                        </xsd:appinfo>
                     </xsd:element>
                     <xsd:element name="minReconciliationInterval" type="xsd:duration" minOccurs="0">
                         <xsd:annotation>
@@ -9278,6 +9294,11 @@
                             Does not contain explicit enumeration of affected objects.
                         </xsd:documentation>
                     </xsd:annotation>
+                    <xsd:appinfo>
+                        <a:schemaContext>
+                            <a:typePath>type</a:typePath>
+                        </a:schemaContext>
+                    </xsd:appinfo>
                 </xsd:element>
             </xsd:choice>
             <xsd:element name="executionMode" type="tns:ExecutionModeType" minOccurs="0">

@@ -588,6 +588,9 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.7</a:since>
+                <a:schemaContext>
+                    <a:type>SimulationResultProcessedObjectType</a:type>
+                </a:schemaContext>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -730,6 +733,9 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.7</a:since>
+                <a:schemaContext>
+                    <a:type>MarkType</a:type>
+                </a:schemaContext>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
