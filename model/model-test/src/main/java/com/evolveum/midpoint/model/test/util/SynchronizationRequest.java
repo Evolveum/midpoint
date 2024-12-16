@@ -72,6 +72,8 @@ import org.jetbrains.annotations.Nullable;
 @Experimental
 public class SynchronizationRequest {
 
+    private static final String OP_EXECUTE = SynchronizationRequest.class.getName() + ".execute";
+
     @NotNull private final AbstractModelIntegrationTest test;
     @NotNull private final String resourceOid;
     @NotNull private final AccountsScope accountsScope;
@@ -211,33 +213,41 @@ public class SynchronizationRequest {
     }
 
     @SuppressWarnings("WeakerAccess")
-    public void executeOnForeground(OperationResult result) throws CommonException, IOException {
-        List<PrismObject<ShadowType>> shadows =
-                getProvisioningService().searchObjects(
-                        ShadowType.class,
-                        createResourceObjectQuery(result),
-                        createGetOperationOptions(),
-                        task,
-                        result);
-        stateCheck(!shadows.isEmpty(), "No shadows: %s", accountsSpecification.describeQuery());
-        TaskExecutionMode oldMode = task.setExecutionMode(taskExecutionMode);
+    public void executeOnForeground(OperationResult parentResult) throws CommonException, IOException {
+        var result = parentResult.createSubresult(OP_EXECUTE);
         try {
-            for (var shadow : shadows) {
-                var shadowOid = shadow.getOid();
-                if (tracingProfile != null) {
-                    test.traced(
-                            tracingProfile,
-                            () -> executeImportOnForeground(result, shadowOid));
-                } else {
-                    executeImportOnForeground(result, shadowOid);
+            List<PrismObject<ShadowType>> shadows =
+                    getProvisioningService().searchObjects(
+                            ShadowType.class,
+                            createResourceObjectQuery(result),
+                            createGetOperationOptions(),
+                            task,
+                            result);
+            stateCheck(!shadows.isEmpty(), "No shadows: %s", accountsSpecification.describeQuery());
+            TaskExecutionMode oldMode = task.setExecutionMode(taskExecutionMode);
+            try {
+                for (var shadow : shadows) {
+                    var shadowOid = shadow.getOid();
+                    if (tracingProfile != null) {
+                        test.traced(
+                                tracingProfile,
+                                () -> executeImportOnForeground(result, shadowOid));
+                    } else {
+                        executeImportOnForeground(result, shadowOid);
+                    }
                 }
+            } finally {
+                task.setExecutionMode(oldMode);
             }
+
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
         } finally {
-            task.setExecutionMode(oldMode);
+            result.close();
         }
 
         if (assertSuccess) {
-            result.computeStatus();
             TestUtil.assertSuccess(result);
         }
     }

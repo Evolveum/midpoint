@@ -1,0 +1,31 @@
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="7f5eb732-9ffc-42c3-a416-ee1754f1b764">
+    <name>Test subtasks cleanup</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>runnable</executionState>
+    <cleanupAfterCompletion>PT0S</cleanupAfterCompletion>
+    <activity>
+        <work>
+            <noOp />
+        </work>
+        <distribution>
+            <buckets>
+                <implicitSegmentation>
+                    <numberOfBuckets>2</numberOfBuckets>
+                </implicitSegmentation>
+            </buckets>
+            <workers>
+                <workersPerNode id="5">
+                    <count>2</count>
+                </workersPerNode>
+            </workers>
+        </distribution>
+    </activity>
+</task>

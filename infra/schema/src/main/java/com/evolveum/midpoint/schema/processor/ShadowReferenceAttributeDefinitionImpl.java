@@ -218,14 +218,16 @@ public class ShadowReferenceAttributeDefinitionImpl
     }
 
     @Override
-    public ShadowReferenceAttributeValue instantiateFromIdentifierRealValue(@NotNull QName identifierName, @NotNull Object realValue)
+    public ShadowReferenceAttributeValue instantiateFromIdentifierRealValue(
+            @NotNull QName identifierName, @NotNull Object realValue)
             throws SchemaException {
         ResourceObjectDefinition targetObjectDefinition = getRepresentativeTargetObjectDefinition();
         var blankShadow = targetObjectDefinition.createBlankShadow();
         blankShadow.getAttributesContainer().add(
                 (ShadowAttribute<?, ?, ?, ?>)
                         targetObjectDefinition.instantiateAttribute(identifierName, realValue));
-        return ShadowReferenceAttributeValue.fromShadow(blankShadow, false);
+        blankShadow.setIdentificationOnly();
+        return ShadowReferenceAttributeValue.fromShadow(blankShadow);
     }
 
     @Override

@@ -196,6 +196,12 @@ public class InternalsConfig {
         return shadowCachingDefault;
     }
 
+    /** Use with care! The standard way is to provide the default for tests via the system property. */
+    @TestOnly
+    public static void setShadowCachingDefault(@NotNull ShadowCachingDefault shadowCachingDefault) {
+        InternalsConfig.shadowCachingDefault = shadowCachingDefault;
+    }
+
     public static void set(Configuration internalsConfig) {
         if (internalsConfig.containsKey("developmentMode")) {
             boolean developmentMode = internalsConfig.getBoolean("developmentMode");

@@ -1,10 +1,17 @@
 = Export audit
 
-//TODO split into export and import
+Export audit command allows users to export audit records.
+Records can be exported to `SYSOUT` or to file (`-o`, `--output`) and compressed using ZIP if needed (`-z`, `--zip`).
+
+This operation also support multi-threading (`-l`, `--multi-thread`).
+For more information about multi-threading see xref:/midpoint/reference/deployment/ninja#how-multithreading-works[here].
+
+Use `-O`, `--overwrite` switch if you wish to overwrite an existing output file.
+
+Records can be filtered using filter (`-f, --filter`) option.
 
 [NOTE]
-Audit export/import uses the same format as objects, even utilizing `<objects>` element,
-but audit records are *containers, not objects*.
+Audit export/import uses the same format as objects, even utilizing `<objects>` element, but audit records are *containers, not objects*.
 These files are only useful for Ninja import/export, do not try to use them in Studio or otherwise.
 
 .Example: audit export to a zipped file, overwriting any existing file, using an Axiom filter
@@ -13,13 +20,11 @@ These files are only useful for Ninja import/export, do not try to use them in S
 ./bin/ninja.sh exportAudit -o audit-export.xml.zip -z -O -f '%timestamp < "2021-12-01"'
 ----
 
-Now you can move the exported file to a new environment and run the import:
+You can use exported file in new environment where you can import audit records. For more information see xref:./import-audit[].
 
-.Example: audit import
-[source,bash]
-----
-./bin/ninja.sh importAudit -i audit-export.xml.zip -z
-----
+== See also
 
-Check also the xref:/midpoint/reference/repository/native-audit/#audit-migration-from-other-database[migration guide for the Native audit].
+. xref:./import-audit[]
+. xref:./verify-audit[]
+. xref:/midpoint/reference/repository/native-audit/#audit-migration-from-other-database[migration guide for the Native audit].
 

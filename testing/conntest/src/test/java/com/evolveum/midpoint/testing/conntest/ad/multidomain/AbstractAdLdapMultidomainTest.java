@@ -1010,7 +1010,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
 
         assertModelShadow(shadowOid)
                 .attributes()
-                .attribute(ATTRIBUTE_USER_PARAMETERS_NAME)
+                .simpleAttribute(ATTRIBUTE_USER_PARAMETERS_NAME)
                 .assertRealValues(VERY_STRANGE_PARAMETER);
 
 //        assertLdapConnectorInstances(2);

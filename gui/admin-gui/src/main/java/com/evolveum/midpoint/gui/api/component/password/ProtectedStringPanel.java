@@ -60,16 +60,19 @@ public class ProtectedStringPanel extends BasePanel<PrismPropertyValueWrapper<Pr
     private final boolean showProviderPanel;
 
     private final boolean showOneLinePasswordPanel;
+    private final boolean useGlobalValuePolicy;
 
     public ProtectedStringPanel(
             String id,
             IModel<PrismPropertyValueWrapper<ProtectedStringType>> model,
             boolean showProviderPanel,
-            boolean showOneLinePasswordPanel) {
+            boolean showOneLinePasswordPanel,
+            boolean useGlobalValuePolicy) {
         super(id, model);
 
         this.showProviderPanel = showProviderPanel;
         this.showOneLinePasswordPanel = showOneLinePasswordPanel;
+        this.useGlobalValuePolicy = useGlobalValuePolicy;
 
         if (!showProviderPanel) {
             currentState = Model.of(State.CLEAR_PASSWORD);
@@ -163,6 +166,11 @@ public class ProtectedStringPanel extends BasePanel<PrismPropertyValueWrapper<Pr
                 if (itemModel != null) {
                     itemModel.setStatus(ValueStatus.MODIFIED);
                 }
+            }
+
+            @Override
+            protected boolean isPasswordLimitationPopupVisible() {
+                return super.isPasswordLimitationPopupVisible() && useGlobalValuePolicy;
             }
 
         };

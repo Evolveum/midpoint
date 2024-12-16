@@ -12,6 +12,8 @@ import static com.evolveum.midpoint.util.DebugUtil.lazy;
 import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 import static com.evolveum.midpoint.util.caching.CacheConfiguration.getStatisticsLevel;
 
+import static java.util.Objects.requireNonNullElse;
+
 import java.util.*;
 import javax.xml.namespace.QName;
 
@@ -320,11 +322,8 @@ public abstract class AbstractSearchExpressionEvaluator<
             return ObjectFound.unwrap(freshResult);
         }
 
-        private ObjectSearchStrategyType getSearchStrategy() {
-            if (expressionEvaluatorBean.getSearchStrategy() != null) {
-                return expressionEvaluatorBean.getSearchStrategy();
-            }
-            return ObjectSearchStrategyType.IN_REPOSITORY;
+        private @NotNull ObjectSearchStrategyType getSearchStrategy() {
+            return requireNonNullElse(expressionEvaluatorBean.getSearchStrategy(), ObjectSearchStrategyType.IN_REPOSITORY);
         }
 
         private Collection<ObjectFound<O, V>> executeSearch(

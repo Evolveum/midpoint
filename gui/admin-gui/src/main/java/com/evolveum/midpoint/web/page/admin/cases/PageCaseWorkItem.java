@@ -16,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -196,6 +197,15 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
             @Override
             protected Component getCustomForm() {
                 return workItemDetailsPanel.getCustomForm();
+            }
+
+            @Override
+            protected void addAriaDescribedByForButton(AjaxButton workItemApproveButton) {
+                workItemApproveButton.add(AttributeAppender.append(
+                        "aria-describedby",
+                        workItemDetailsPanel.getDeltasPanel().getMarkupId() + " " +
+                                workItemDetailsPanel.getReasonPanel().getMarkupId() + " " +
+                                workItemDetailsPanel.getCommentPanel().getMarkupId()));
             }
 
             @Override

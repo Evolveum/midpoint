@@ -716,7 +716,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         var annContractShadow =
                 ShadowBuilder.withDefinition(contractClassDefinition)
                         .withSimpleAttribute(Contract.AttributeNames.NAME.q(), "ann-engineering")
-                        .withReferenceAttributeWithFullObject(Contract.LinkNames.ORG.q(), engineering)
+                        .withReferenceAttribute(Contract.LinkNames.ORG.q(), engineering)
                         .asAbstractShadow();
 
         var personClassDefinition = resourceSchema.findObjectClassDefinitionRequired(Person.OBJECT_CLASS_NAME.xsd());
@@ -725,7 +725,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
                         .withSimpleAttribute(Person.AttributeNames.NAME.q(), "ann")
                         .withSimpleAttribute(Person.AttributeNames.FIRST_NAME.q(), "Ann")
                         .withSimpleAttribute(Person.AttributeNames.LAST_NAME.q(), "Green")
-                        .withReferenceAttributeWithFullObject(Person.LinkNames.CONTRACT.q(), annContractShadow)
+                        .withReferenceAttribute(Person.LinkNames.CONTRACT.q(), annContractShadow)
                         .asPrismObject();
 
         when("ann is created on the resource");
@@ -791,9 +791,8 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
                 ShadowReferenceAttributeValue.fromShadow(
                         ShadowBuilder.withDefinition(contractClassDefinition)
                                 .withSimpleAttribute(Contract.AttributeNames.NAME.q(), "bob-pharmacy")
-                                .withReferenceAttributeWithFullObject(Contract.LinkNames.ORG.q(), pharmacy)
-                                .asAbstractShadow(),
-                        true);
+                                .withReferenceAttribute(Contract.LinkNames.ORG.q(), pharmacy)
+                                .asAbstractShadow());
 
         when("the contract is created on the resource");
         var referenceAddDelta =

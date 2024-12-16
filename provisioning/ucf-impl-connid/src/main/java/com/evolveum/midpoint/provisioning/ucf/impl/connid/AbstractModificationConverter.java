@@ -127,6 +127,10 @@ abstract class AbstractModificationConverter implements DebugDumpable {
         for (var operation : changes) {
             if (operation instanceof PropertyModificationOperation<?> propertyModification) {
                 PropertyDelta<?> delta = propertyModification.getPropertyDelta();
+                if (delta.isEmpty()) {
+                    LOGGER.debug("Skipping empty delta for {}", objectDefinition);
+                    continue;
+                }
                 if (delta.getParentPath().equivalent(ShadowType.F_ATTRIBUTES)) {
                     if (delta.getDefinition() == null || !(delta.getDefinition() instanceof ShadowSimpleAttributeDefinition)) {
                         ShadowSimpleAttributeDefinition<?> def = objectDefinition.findSimpleAttributeDefinition(delta.getElementName());

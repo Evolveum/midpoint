@@ -2,8 +2,12 @@
 
 Export command allows users to export objects.
 Object can be exported to `SYSOUT` or to file (`-o`, `--output`) and compressed using ZIP if needed (`-z`, `--zip`).
+
 Export also support multi-threading (`-l`, `--multi-thread`).
+For more information about multi-threading see xref:/midpoint/reference/deployment/ninja#how-multithreading-works[here].
+
 Use `-O`, `--overwrite` switch if you wish to overwrite an existing output file.
+
 Objects exported from midPoint can be filtered in several ways:
 
 * by oid (`--oid`)

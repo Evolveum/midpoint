@@ -6764,7 +6764,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="searchStrategy" type="tns:ObjectSearchStrategyType" minOccurs="0">
+                    <xsd:element name="searchStrategy" type="tns:ObjectSearchStrategyType" minOccurs="0" default="inRepository">
                         <xsd:annotation>
                             <xsd:documentation>
                                 How we try to find matching objects. Note that when "onResourceIfNeeded" is used,

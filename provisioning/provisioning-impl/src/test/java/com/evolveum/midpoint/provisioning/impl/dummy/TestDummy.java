@@ -4833,7 +4833,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         var object = AbstractShadow.of(
                 provisioningService.getObject(
                         ShadowType.class, objectOid, createNoFetchCollection(), getTestTask(), getTestOperationResult()));
-        return createEntitleDelta(subjectOid, assocName, object, true);
+        return createEntitleDelta(subjectOid, assocName, object);
     }
 
     private ObjectDelta<ShadowType> createEntitleDeltaFromIdentifier(
@@ -4841,10 +4841,11 @@ public class TestDummy extends AbstractBasicDummyTest {
             throws SchemaException, ConfigurationException {
         var object = objectDef.createBlankShadow();
         object.getAttributesContainer().addSimpleAttribute(identifierName, identifierValue);
-        return createEntitleDelta(subjectOid, assocName, object, false);
+        object.setIdentificationOnly();
+        return createEntitleDelta(subjectOid, assocName, object);
     }
 
-    private ObjectDelta<ShadowType> createEntitleDelta(String subjectOid, QName assocName, AbstractShadow object, boolean full)
+    private ObjectDelta<ShadowType> createEntitleDelta(String subjectOid, QName assocName, AbstractShadow object)
             throws SchemaException, ConfigurationException {
         var assocDef = Resource.of(resource)
                 .getCompleteSchemaRequired()
@@ -4852,7 +4853,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 .findAssociationDefinitionRequired(assocName);
         return Resource.of(resource).deltaFor(RI_ACCOUNT_OBJECT_CLASS)
                 .item(ShadowType.F_ASSOCIATIONS, assocName)
-                .add(assocDef.createValueFromDefaultObject(object, full))
+                .add(assocDef.createValueFromDefaultObject(object))
                 .asObjectDelta(subjectOid);
     }
 

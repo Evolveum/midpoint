@@ -164,6 +164,7 @@ public class PasswordPanel extends InputPanel {
         password1.add(new EnableBehaviour(this::canEditPassword));
         password1.setOutputMarkupId(true);
         password1.add(AttributeAppender.append("aria-label", PageAdminLTE.createStringResourceStatic(getLabelKey())));
+        password1.add(AttributeAppender.append("aria-describedby", validationPanel.getMarkupId()));
         inputContainer.add(password1);
 
         WebMarkupContainer validationProgressBar = new WebMarkupContainer(ID_VALIDATION_PROGRESS_BAR);
@@ -209,6 +210,7 @@ public class PasswordPanel extends InputPanel {
         password2ValidationMessage.setOutputMarkupId(true);
         password2ValidationMessage.add(new VisibleBehaviour(() -> !showOneLinePasswordPanel));
         inputContainer.add(password2ValidationMessage);
+        password2.add(AttributeAppender.append("aria-describedby", password2ValidationMessage.getMarkupId()));
 
         password1.add(new AjaxFormComponentUpdatingBehavior("keyup input") {
             private static final long serialVersionUID = 1L;

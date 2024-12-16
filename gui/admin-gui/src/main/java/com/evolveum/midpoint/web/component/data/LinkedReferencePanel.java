@@ -140,6 +140,10 @@ public class LinkedReferencePanel<R extends Referencable> extends BasePanel<R> {
         nameLink.add(nameLinkText);
     }
 
+    public AjaxLink getLinkPanel() {
+        return (AjaxLink) get(ID_NAME);
+    }
+
     protected String getAdditionalCssStyle() {
         return "d-flex flex-wrap gap-2 align-items-center";
     }

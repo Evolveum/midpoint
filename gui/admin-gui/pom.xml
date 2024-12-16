@@ -423,6 +423,11 @@
         </dependency>
 
         <dependency>
+            <groupId>jp.try0.wicket</groupId>
+            <artifactId>wicket-honeypot-core</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>commons-validator</groupId>
             <artifactId>commons-validator</artifactId>
         </dependency>

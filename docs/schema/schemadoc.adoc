@@ -16,7 +16,7 @@ since: "3.0"
 development: true
 columns:
   - heading: Schemadoc
-    linkUrlPattern: "https://www.evolveum.com/downloads/midpoint/${download-tag}/midpoint-${maven-version}-schemadoc/"
+    linkUrlPattern: "https://evolveum.com/downloads/midpoint/${download-tag}/midpoint-${maven-version}-schemadoc/"
     linkText: "SchemaDoc"
 %}
 ++++

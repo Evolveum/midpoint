@@ -193,9 +193,8 @@ class EntitlementReader {
     private void addRefAttrValueFromEntitlementObject(
             @NotNull SimulatedShadowReferenceTypeDefinition simulationDefinition,
             @NotNull ExistingResourceObjectShadow entitlementObject) throws SchemaException {
-        var value = subject.getAttributesContainer()
+        subject.getAttributesContainer()
                 .findOrCreateReferenceAttribute(simulationDefinition.getLocalSubjectItemName())
-                .createNewValueWithFullObject(entitlementObject);
-        value.setFullObject(true);
+                .createNewValueFromShadow(entitlementObject);
     }
 }

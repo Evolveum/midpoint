@@ -11,8 +11,11 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.password.ProtectedStringPanel;
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import jakarta.annotation.PostConstruct;
@@ -45,11 +48,13 @@ public class ProtectedStringPanelFactory implements Serializable, GuiComponentFa
 
     @Override
     public org.apache.wicket.Component createPanel(PrismPropertyPanelContext<ProtectedStringType> panelCtx) {
+        boolean useGlobalValuePolicy = useGlobalValuePolicy(panelCtx.getItemWrapperModel());
         ProtectedStringPanel panel = new ProtectedStringPanel(
                 panelCtx.getComponentId(),
                 (IModel<PrismPropertyValueWrapper<ProtectedStringType>>) panelCtx.getValueWrapperModel(),
                 showProviderPanel(panelCtx.getRealValueModel()),
-                isShowedOneLinePasswordPanel());
+                isShowedOneLinePasswordPanel(),
+                useGlobalValuePolicy);
         panel.setFeedback(panelCtx.getFeedback());
         panel.setOutputMarkupId(true);
         return panel;
@@ -74,6 +79,11 @@ public class ProtectedStringPanelFactory implements Serializable, GuiComponentFa
         }
 
         return true;
+    }
+
+    private boolean useGlobalValuePolicy(IModel<PrismPropertyWrapper<ProtectedStringType>> wrapperModel) {
+        ItemPath itemPath = wrapperModel == null || wrapperModel.getObject() == null ? null : wrapperModel.getObject().getPath();
+        return itemPath == null || !itemPath.startsWith(ItemPath.create(ObjectType.F_EXTENSION));
     }
 
     @Override

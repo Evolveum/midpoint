@@ -39,7 +39,8 @@ For general introduction to interface concepts please see xref:/midpoint/archite
 // TODO: javadoc link for master
 {% else %}
 | Interface documentation
-| link:http://www.evolveum.com/downloads/midpoint/{{page.midpointVersion}}/midpoint-api-{{page.midpointVersion}}-javadoc/com/evolveum/midpoint/model/api/ModelService.html[http://www.evolveum.com/downloads/midpoint/{{page.midpointVersion}}/midpoint-api-{{page.midpointVersion}}-javadoc/com/evolveum/midpoint/model/api/ModelService.html]
+| link:http://evolveum.com/downloads/midpoint/{{page.midpointVersion}}/midpoint-api-{{page.midpointVersion}}-javadoc/com/evolveum/midpoint/model/api/ModelService.html[http://evolveum.com/downloads/midpoint/{{page.midpointVersion}}/midpoint-api-{{page.midpointVersion}}-javadoc/com/evolveum/midpoint/model/api/ModelService.html]
+| link:http://evolveum.com/downloads/midpoint/{{page.midpointVersion}}/midpoint-api-{{page.midpointVersion}}-javadoc/com/evolveum/midpoint/model/api/ModelService.html[http://evolveum.com/downloads/midpoint/{{page.midpointVersion}}/midpoint-api-{{page.midpointVersion}}-javadoc/com/evolveum/midpoint/model/api/ModelService.html]
 | Javadoc description of the interface
 {% endif %}
 

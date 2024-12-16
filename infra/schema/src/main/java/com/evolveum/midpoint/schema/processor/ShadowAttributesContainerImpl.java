@@ -144,6 +144,11 @@ public final class ShadowAttributesContainerImpl
     }
 
     @Override
+    public ShadowAttribute<?, ?, ?, ?> findAttribute(QName attrName) {
+        return (ShadowAttribute<?, ?, ?, ?>) super.findItem(ItemName.fromQName(attrName));
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     public <X> ShadowSimpleAttribute<X> findSimpleAttribute(QName attributeQName) {
         return (ShadowSimpleAttribute<X>) super.findProperty(ItemName.fromQName(attributeQName));

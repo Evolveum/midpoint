@@ -55,9 +55,9 @@ public abstract class AbstractResourceObjectDefinitionImpl
 
     /**
      * Default settings obtained from the system configuration.
-     * Guarded by the getter and setter.
      *
-     * Temporary solution, to be reviewed (MID-10126).
+     * Thread safety ensured by synchronized getter and setter.
+     * Invalidation handled by `ResourceManager` in the `provisioning-impl` module.
      */
     private static ShadowCachingPolicyType systemDefaultPolicy;
 
@@ -943,7 +943,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
         throw new UnsupportedOperationException();
     }
 
-    public static synchronized ShadowCachingPolicyType getSystemDefaultPolicy() {
+    private static synchronized ShadowCachingPolicyType getSystemDefaultPolicy() {
         return systemDefaultPolicy;
     }
 

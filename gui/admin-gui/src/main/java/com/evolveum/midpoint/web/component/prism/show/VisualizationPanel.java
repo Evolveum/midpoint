@@ -179,10 +179,12 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
         fullDescription.add(new VisibleBehaviour(() -> overviewModel.getObject() == null));
         headerPanel.add(fullDescription);
 
-        final Label wrapperDisplayName = new Label(ID_WRAPPER_DISPLAY_NAME, () -> {
-            WrapperVisualization visualization = ((WrapperVisualization) getModelObject().getVisualization());
+        IModel<String> displayNameModel = () -> {
+            Visualization visualization = getModelObject().getVisualization();
             return LocalizationUtil.translateMessage(visualization.getName().getDisplayName());
-        });
+        };
+        final Label wrapperDisplayName = new Label(ID_WRAPPER_DISPLAY_NAME, displayNameModel);
+        wrapperDisplayName.setOutputMarkupId(true);
         wrapperDisplayName.add(visibleIfWrapper);
         fullDescription.add(wrapperDisplayName);
 
@@ -250,7 +252,8 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
 
         final AjaxIconButton minimize = new AjaxIconButton(ID_MINIMIZE,
                 () -> minimalized.getObject() ? GuiStyleConstants.CLASS_ICON_EXPAND : GuiStyleConstants.CLASS_ICON_COLLAPSE,
-                () -> minimalized.getObject() ? getString("prismOptionButtonPanel.maximize") : getString("prismOptionButtonPanel.minimize")) {
+                () -> minimalized.getObject() ? getMinimalizeLinkTitle("VisualizationPanel.maximize", displayNameModel)
+                        : getMinimalizeLinkTitle("VisualizationPanel.minimize", displayNameModel)) {
 
             @Override
             protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
@@ -285,6 +288,10 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
 
         final SimpleVisualizationPanel visualization = new SimpleVisualizationPanel(ID_VISUALIZATION, getModel(), showOperationalItems, advanced);
         body.add(visualization);
+    }
+
+    private String getMinimalizeLinkTitle(String key, IModel<String> displayNameModel) {
+        return getString(key, displayNameModel.getObject());
     }
 
     private void showMetadata(AjaxRequestTarget target, IModel<ValueMetadataWrapperImpl> model) {

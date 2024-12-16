@@ -80,6 +80,14 @@ public class PageSelfRegistration extends PageAbstractFlow {
     }
 
     @Override
+    protected void onBeforeRender() {
+        super.onBeforeRender();
+
+        getBackButton().add(AttributeAppender.append(
+                "aria-describedby", () -> isSubmitted ? getDescription().getMarkupId() : null));
+    }
+
+    @Override
     public void initializeModel() {
         userModel = new LoadableModel<>(false) {
             private static final long serialVersionUID = 1L;
@@ -247,8 +255,6 @@ public class PageSelfRegistration extends PageAbstractFlow {
             getSession().error(
                     createStringResource("PageSelfRegistration.registration.error", message)
                             .getString());
-            // removePassword(target);
-            updateCaptcha(target);
             target.add(getFeedbackPanel());
             LOGGER.error("Failed to register user {}. Reason {}", getUserModel().getObject(), result.getMessage());
             return;

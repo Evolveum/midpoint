@@ -834,7 +834,7 @@ public class TestLdapComplex extends AbstractLdapTest {
         PolyString descriptionShadowAttribute =
                 assertShadow(shadow, "Jack's shadow after read")
                         .attributes()
-                            .attribute(LDAP_ATTRIBUTE_DESCRIPTION)
+                            .simpleAttribute(LDAP_ATTRIBUTE_DESCRIPTION)
                                 //.assertIncomplete() // see MID-10168
                                 .singleValue()
                                     .getRealValueRequired(PolyString.class);

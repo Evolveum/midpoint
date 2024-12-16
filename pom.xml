@@ -390,6 +390,11 @@
                 <version>${wicket.chartjs.version}</version>
             </dependency>
             <dependency>
+                <groupId>jp.try0.wicket</groupId>
+                <artifactId>wicket-honeypot-core</artifactId>
+                <version>3.0.0</version>
+            </dependency>
+            <dependency>
                 <groupId>org.ow2.asm</groupId>
                 <artifactId>asm</artifactId>
                 <version>${asm.version}</version>

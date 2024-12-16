@@ -38,19 +38,19 @@ public class ShadowReferenceAttributeAsserter<R> extends AbstractAsserter<R> {
     }
 
     public ShadowReferenceAttributeAsserter<R> assertShadowOids(String... expectedShadowOids) {
-        for (String expectedShadowOid: expectedShadowOids) {
-            var association = findByShadowOid(expectedShadowOid);
-            if (association == null) {
+        for (String expectedShadowOid : expectedShadowOids) {
+            var refAttrValue = findByShadowOid(expectedShadowOid);
+            if (refAttrValue == null) {
                 fail(String.format(
-                        "Expected association shadow OID %s in %s but there was none. Association present: %s",
+                        "Expected referenced shadow OID %s in %s but there was none. Values present: %s",
                         expectedShadowOid, desc(), prettyPrintShadowOids()));
             }
         }
-        for (var existingAssociation : values) {
-            if (!ArrayUtils.contains(expectedShadowOids, existingAssociation.asObjectReferenceType().getOid())) {
+        for (var existingValue : values) {
+            if (!ArrayUtils.contains(expectedShadowOids, existingValue.asObjectReferenceType().getOid())) {
                 fail(String.format(
-                        "Unexpected association shadow OID %s in %s. Expected shadow OIDs: %s",
-                        existingAssociation.asObjectReferenceType().getOid(), desc(), ArrayUtils.toString(expectedShadowOids)));
+                        "Unexpected referenced shadow OID %s in %s. Expected shadow OIDs: %s",
+                        existingValue.asObjectReferenceType().getOid(), desc(), ArrayUtils.toString(expectedShadowOids)));
             }
         }
         return this;
@@ -67,9 +67,9 @@ public class ShadowReferenceAttributeAsserter<R> extends AbstractAsserter<R> {
 
     public ShadowReferenceAttributeValueAsserter<ShadowReferenceAttributeAsserter<R>> forShadowOid(String shadowOid) {
         var value = findByShadowOid(shadowOid);
-        assertThat(value).as("association value with shadow OID " + shadowOid).isNotNull();
+        assertThat(value).as("reference attribute value with shadow OID " + shadowOid).isNotNull();
         ShadowReferenceAttributeValueAsserter<ShadowReferenceAttributeAsserter<R>> asserter =
-                new ShadowReferenceAttributeValueAsserter<>(value, this, "association value in "+desc());
+                new ShadowReferenceAttributeValueAsserter<>(value, this, "ref attr value in "+desc());
         copySetupTo(asserter);
         return asserter;
     }
@@ -96,13 +96,13 @@ public class ShadowReferenceAttributeAsserter<R> extends AbstractAsserter<R> {
     }
 
     public ShadowReferenceAttributeAsserter<R> assertAny() {
-        assertNotNull("No associations in "+desc(), values);
-        assertFalse("No associations in "+desc(), values.isEmpty());
+        assertNotNull("No reference attr values in "+desc(), values);
+        assertFalse("No reference attr values in "+desc(), values.isEmpty());
         return this;
     }
 
     public <T> ShadowReferenceAttributeAsserter<R> assertNone() {
-        assertTrue("Unexpected association values in "+desc()+": "+ values, values.isEmpty());
+        assertTrue("Unexpected reference attr values in "+desc()+": "+ values, values.isEmpty());
         return this;
     }
 

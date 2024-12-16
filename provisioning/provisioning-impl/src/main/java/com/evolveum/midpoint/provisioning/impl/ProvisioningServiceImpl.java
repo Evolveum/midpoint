@@ -1103,6 +1103,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     @Override
     public void update(@Nullable SystemConfigurationType value) {
         systemConfiguration = value;
+        resourceManager.updateSystemConfiguration(value);
     }
 
     @Override

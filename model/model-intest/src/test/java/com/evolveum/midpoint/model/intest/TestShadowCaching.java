@@ -7,17 +7,24 @@
 
 package com.evolveum.midpoint.model.intest;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME;
+
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_UID;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.statistics.ProvisioningStatistics;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.test.*;
+import com.evolveum.midpoint.test.DummyDefaultScenario.Account.AttributeNames;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -77,26 +84,39 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
     private static final String JOHN_SCIENCES_CONTRACT_ASSIGNMENT_ID = "contract:" + JOHN_SCIENCES_CONTRACT_ID;
     private static final String JOHN_LAW_CONTRACT_ID = "10409314";
     private static final String JOHN_LAW_CONTRACT_ASSIGNMENT_ID = "contract:" + JOHN_LAW_CONTRACT_ID;
-    private static final String JOHN_MEDICINE_CONTRACT_ID = "10104921";
-    private static final String JOHN_MEDICINE_CONTRACT_ASSIGNMENT_ID = "contract:" + JOHN_MEDICINE_CONTRACT_ID;
 
     /** Cache TTL is a couple of minutes. So one day is much larger than that. */
     private static final String EXPIRY_INTERVAL = "-P1D";
 
     private static DummyHrScenario hrScenario;
-    private static DummyDefaultScenario targetScenario;
 
     private static final DummyTestResource RESOURCE_DUMMY_HR = new DummyTestResource(
             TEST_DIR, "resource-dummy-hr.xml", "c37ff87e-42f1-46d2-8c6f-36c780cd1193", "hr",
             c -> hrScenario = DummyHrScenario.on(c).initialize());
 
+    private static DummyDefaultScenario targetScenario;
+
     private static final DummyTestResource RESOURCE_DUMMY_TARGET = new DummyTestResource(
             TEST_DIR, "resource-dummy-target.xml", "e26d279d-6552-45e6-a3ca-a288910c885a", "target",
             c -> targetScenario = DummyDefaultScenario.on(c).initialize());
 
+    private static DummyDefaultScenario defaultCachingScenario;
+
+    // initialized in the test method
+    private static final DummyTestResource RESOURCE_DUMMY_DEFAULT_CACHING = new DummyTestResource(
+            TEST_DIR, "resource-dummy-default-caching.xml", "7acd5bf3-e64f-490a-8408-ed94b128ebcc",
+            "default-caching",
+            c -> defaultCachingScenario = DummyDefaultScenario.on(c).initialize());
+
     @Override
     protected File getSystemConfigurationFile() {
         return SYSTEM_CONFIGURATION_FILE;
+    }
+
+    @Override
+    protected boolean shouldSkipWholeClass() {
+        // No need to waste time running this class under different caching overrides, as it uses its own (explicit) caching.
+        return !InternalsConfig.getShadowCachingDefault().isStandardForTests();
     }
 
     @Override
@@ -479,13 +499,6 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
         targetScenario.account.getByNameRequired(PERSON_JOHN_NAME)
                 .replaceAttributeValues(DummyDefaultScenario.Account.AttributeNames.DESCRIPTION.local(), "Desc-230");
 
-//        executeChanges(
-//                deltaFor(ResourceType.class)
-//                        .item(ResourceType.F_CACHING, ShadowCachingPolicyType.F_DEFAULT_CACHE_USE)
-//                        .replace(CachedShadowsUseType.USE_FRESH)
-//                        .asObjectDelta(RESOURCE_DUMMY_HR.oid),
-//                null, task, result);
-
         refreshHrPersons(task, result);
         refreshTargetAccounts(task, result);
 
@@ -513,6 +526,64 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
         assertNoShadowFetchOperations();
     }
 
+    /**
+     * Changes of the default caching settings in the system configuration should be reflected immediately - just like changes
+     * in the resource-level caching settings are.
+     */
+    @Test
+    public void test500SwitchingDefaultCaching() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var accountName = getTestNameShort();
+        var description = "a description";
+
+        var oldDefault = InternalsConfig.getShadowCachingDefault();
+        try {
+            InternalsConfig.setShadowCachingDefault(InternalsConfig.ShadowCachingDefault.FROM_SYSTEM_CONFIGURATION);
+
+            // We should start with a defined value, in order to avoid being dependent on the default value for tests.
+            given("default caching turned on");
+            setDefaultCaching(CachingStrategyType.PASSIVE, result);
+
+            and("resource without its own configuration; with an account");
+            RESOURCE_DUMMY_DEFAULT_CACHING.initAndTest(this, task, result);
+            defaultCachingScenario.account.add(accountName)
+                    .addAttributeValue(AttributeNames.DESCRIPTION.local(), description);
+
+            when("account is fetched");
+            var shadow = findShadowRequest()
+                    .withResource(RESOURCE_DUMMY_DEFAULT_CACHING.getObjectable())
+                    .withNameValue(accountName)
+                    .findRequired(task, result);
+            var shadowOid = shadow.getOidRequired();
+
+            then("attributes are cached + caching is indicated in the definition");
+            assertRepoShadow(shadowOid, List.of(ICFS_NAME, ICFS_UID, AttributeNames.DESCRIPTION.q()))
+                    .assertCachedOrigValues(AttributeNames.DESCRIPTION.q(), description);
+            assertThat(shadow.getObjectDefinition().isCachingEnabled())
+                    .as("'caching enabled' flag in the definition")
+                    .isTrue();
+
+            when("default caching turned off");
+            setDefaultCaching(CachingStrategyType.NONE, result);
+
+            and("account is fetched again");
+            var shadow2 = findShadowRequest()
+                    .withResource(RESOURCE_DUMMY_DEFAULT_CACHING.getObjectable())
+                    .withNameValue(accountName)
+                    .findRequired(task, result);
+
+            then("attributes are NOT cached + caching is indicated in the definition as disabled");
+            assertRepoShadow(shadowOid, List.of(ICFS_NAME, ICFS_UID)) // ri:description is not here
+                    .assertCachedOrigValues(AttributeNames.DESCRIPTION.q(), description);
+            assertThat(shadow2.getObjectDefinition().isCachingEnabled())
+                    .as("'caching enabled' flag in the definition")
+                    .isFalse();
+        } finally {
+            InternalsConfig.setShadowCachingDefault(oldDefault);
+        }
+    }
+
     private @NotNull SearchResultList<? extends AbstractShadow> refreshHrPersons(Task task, OperationResult result)
             throws CommonException {
         return provisioningService.searchShadows(
@@ -531,9 +602,9 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
                 null, task, result);
     }
 
-    private @NotNull SearchResultList<? extends AbstractShadow> refreshTargetAccounts(Task task, OperationResult result)
+    private void refreshTargetAccounts(Task task, OperationResult result)
             throws CommonException {
-        return provisioningService.searchShadows(
+        provisioningService.searchShadows(
                 Resource.of(RESOURCE_DUMMY_TARGET.get())
                         .queryFor(DummyDefaultScenario.Account.OBJECT_CLASS_NAME.xsd())
                         .build(),

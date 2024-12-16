@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.api.component.result;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -123,6 +125,7 @@ public class MessagePanel<T extends Serializable> extends BasePanel<T> {
         };
         close.setOutputMarkupId(true);
         close.setVisible(closeVisible);
+        close.add(AttributeModifier.append("aria-label", LocalizationUtil.translate("OperationResultPanel.button.close")));
 
         box.add(close);
     }

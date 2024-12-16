@@ -163,7 +163,7 @@ class ShadowPostProcessor {
         }
 
         var shadowCtx = ctx.spawnForShadow(shadow.getBean());
-        var updatedShadow = acquireAndPostProcessEmbeddedShadow(shadow, refAttrValue.isFullObject(), shadowCtx, result);
+        var updatedShadow = acquireAndPostProcessEmbeddedShadow(shadow, shadowCtx, result);
         if (updatedShadow != null) {
             refAttrValue.setObject(updatedShadow.getPrismObject());
             refAttrValue.setOid(updatedShadow.getOid());
@@ -177,7 +177,6 @@ class ShadowPostProcessor {
      */
     private @Nullable AbstractShadow acquireAndPostProcessEmbeddedShadow(
             @NotNull AbstractShadow shadow,
-            boolean isFullObject,
             @NotNull ProvisioningContext shadowCtx,
             @NotNull OperationResult result)
             throws ConfigurationException, CommunicationException, ExpressionEvaluationException, SecurityViolationException,
@@ -186,7 +185,7 @@ class ShadowPostProcessor {
         // TODO should we fully cache the entitlement shadow (~ attribute/shadow caching)?
         //  (If yes, maybe we should retrieve also the associations below?)
 
-        if (isFullObject) {
+        if (!shadow.isIdentificationOnly()) {
             // The conversion from shadow to an ExistingResourceObjectShadow looks strange but actually has a point:
             // the shadow really came from the resource.
             var existingResourceObject = ExistingResourceObjectShadow.fromShadow(shadow);

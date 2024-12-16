@@ -6,14 +6,17 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
+import java.io.Serial;
 import java.util.List;
 import java.util.Map;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.validator.ChoiceRequiredValidator;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
 import com.evolveum.midpoint.web.component.input.validator.NotNullValidator;
 
 import com.evolveum.midpoint.web.util.ExpressionValidator;
@@ -22,14 +25,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationMessageA
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LambdaModel;
-import org.apache.wicket.util.convert.IConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
@@ -78,7 +79,7 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
             if (parentClass != null) {
                 panel.getValidatableComponent().add(
                         new ChoiceRequiredValidator(SCHEMA_CHOICES_DIFINITIONS.get(parentClass), panelCtx.getItemWrapperModel()));
-            } else if (panelCtx.isMandatory()) {
+            } else if (panelCtx.isMandatory() && !skipValidation(propertyWrapper)) {
                 formComponent.add(new NotNullValidator<>("Required"));
             }
 
@@ -102,6 +103,16 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
         }
         panelCtx.getFeedback().setFilter(new ComponentFeedbackMessageFilter(panel.getValidatableComponent()));
 
+    }
+
+    private boolean skipValidation(PrismPropertyWrapper<T> propertyWrapper) {
+        PrismContainerValueWrapper parentContainer = propertyWrapper.getParent();
+        if (parentContainer == null || parentContainer.getNewValue() == null) {
+            return false;
+        }
+        PrismContainerValue cleanedUpValue =
+                WebPrismUtil.cleanupEmptyContainerValue(parentContainer.getNewValue().clone());
+        return cleanedUpValue == null || cleanedUpValue.isEmpty();
     }
 
     private Class<? extends Containerable> getChoicesParentClass(PrismPropertyPanelContext<T> panelCtx) {

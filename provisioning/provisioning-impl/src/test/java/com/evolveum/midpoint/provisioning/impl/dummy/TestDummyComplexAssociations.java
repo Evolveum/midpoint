@@ -225,7 +225,7 @@ public class TestDummyComplexAssociations extends AbstractDummyTest {
                 .createBlankShadow();
         annContractShadow.getAttributesContainer()
                 .addSimpleAttribute(ICFS_NAME, "ann-sciences")
-                .addReferenceAttribute(Contract.LinkNames.ORG.q(), AbstractShadow.of(sciencesShadow), true);
+                .addReferenceAttribute(Contract.LinkNames.ORG.q(), AbstractShadow.of(sciencesShadow));
 
         var annShadow = Resource.of(resource)
                 .getCompleteSchemaRequired()
@@ -323,7 +323,7 @@ public class TestDummyComplexAssociations extends AbstractDummyTest {
                 .createBlankShadow();
         bobContractShadow.getAttributesContainer()
                 .addSimpleAttribute(ICFS_NAME, "bob-sciences")
-                .addReferenceAttribute(Contract.LinkNames.ORG.q(), AbstractShadow.of(sciencesShadow), true);
+                .addReferenceAttribute(Contract.LinkNames.ORG.q(), AbstractShadow.of(sciencesShadow));
 
         provisioningService.modifyObject(
                 ShadowType.class,

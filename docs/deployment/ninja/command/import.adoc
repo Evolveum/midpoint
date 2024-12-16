@@ -2,8 +2,12 @@
 
 Import command allow users to import objects to midPoint.
 Objects can be read from `SYSOUT` or file (`-i`, `--input`) and uncompressed using ZIP if needed (`-z`, `--zip`).
+
 Import also support multi-threading (`-l`, `--multi-thread`).
+For more information about multi-threading see xref:/midpoint/reference/deployment/ninja#how-multithreading-works[here].
+
 Use `-O`, `--overwrite` switch if you wish to overwrite existing objects in midPoint.
+
 Object read from input (file or sysout) can be filtered in several ways:
 
 * by oid (`--oid`)

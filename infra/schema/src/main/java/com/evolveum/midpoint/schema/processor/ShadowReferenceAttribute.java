@@ -101,9 +101,11 @@ public class ShadowReferenceAttribute
         return "SA";
     }
 
+    /** Creates a value holding the shadow. Its definition must correspond to the one of the association. */
     @SuppressWarnings("UnusedReturnValue")
-    public @NotNull ShadowReferenceAttributeValue createNewValueWithIdentifiers(@NotNull AbstractShadow shadow) throws SchemaException {
-        var value = ShadowReferenceAttributeValue.fromShadow(shadow, false);
+    public @NotNull ShadowReferenceAttributeValue createNewValueFromShadow(@NotNull AbstractShadow shadow) throws SchemaException {
+        // TODO check the definition
+        var value = ShadowReferenceAttributeValue.fromShadow(shadow);
         add(value);
         return value;
     }
@@ -114,25 +116,9 @@ public class ShadowReferenceAttribute
                 .getRepresentativeTargetObjectDefinition()
                 .createBlankShadow();
         blankShadow.getAttributesContainer().add((ShadowAttribute<?, ?, ?, ?>) identifier);
-        return createNewValueWithIdentifiers(blankShadow);
+        blankShadow.setIdentificationOnly();
+        return createNewValueFromShadow(blankShadow);
     }
-
-    /** Creates a value holding the full object. Its definition must correspond to the one of the association. */
-    public @NotNull ShadowReferenceAttributeValue createNewValueWithFullObject(@NotNull AbstractShadow target)
-            throws SchemaException {
-        // TODO check the definition
-        var value = ShadowReferenceAttributeValue.fromShadow(target, true);
-        add(value);
-        return value;
-    }
-
-//    /** Adds only the target shadow ref. */
-//    @SuppressWarnings("UnusedReturnValue")
-//    public @NotNull ShadowReferenceAttributeValue createNewValueForTargetRef(@NotNull ObjectReferenceType ref) {
-//        var value = createNewValue();
-//        value.getValue().setShadowRef(ref);
-//        return value;
-//    }
 
     public @NotNull List<ShadowReferenceAttributeValue> getReferenceValues() {
         // IDE accepts the version without cast to List, but the compiler doesn't.

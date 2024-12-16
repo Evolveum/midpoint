@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<archetype
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="4fb55be5-8306-4eca-a470-14ba55f3e6c3">
+    <name>rum-admin-role</name>
+    <documentation>
+        Role bound to entitlement/admin-group on `removing-unclassified-memberships` resource.
+    </documentation>
+    <inducement>
+        <documentation>
+            This induces the account on the resource.
+            The associations will be provisioned thanks to the association type configuration in the resource definition.
+        </documentation>
+        <construction>
+            <resourceRef oid="8212257a-d4e6-4910-a563-eb7abaceeb7f"/>
+            <kind>account</kind>
+            <intent>admin</intent>
+        </construction>
+        <order>2</order>
+    </inducement>
+</archetype>
