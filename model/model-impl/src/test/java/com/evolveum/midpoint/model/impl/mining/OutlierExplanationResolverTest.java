@@ -236,8 +236,27 @@ public class OutlierExplanationResolverTest extends AbstractUnitTest {
         assertEquals("1 unusual accesses for Organizational Unit: Development", translate(result.explanation().getMessage()));
     }
 
+    @Test
+    void shouldMentionPartitionsInExplanationAttribute() {
+        given();
+        var anomalies = List.of(makeAnomaly(makeOverallStats(0.0333, 20), makeClusterStats(0.02, 1)));
+        var attributeWithDef = new ExplanationAttribute(makeItemPath("organizationalUnit"), orgUnitDef, "Development");
+        var outlier = makeOutlier(anomalies, attributeWithDef, 2);
+        var resolver = new OutlierExplanationResolver(outlier);
+
+        when();
+        var result = resolver.explain();
+
+        then();
+        assertEquals("1 unusual accesses for Organizational Unit: Development over 2 partitions", translate(result.explanation().getMessage()));
+    }
+
     private OutlierExplanationInput makeOutlier(List<AnomalyExplanationInput> anomalies, ExplanationAttribute groupByAttribute) {
-        return new OutlierExplanationInput(nextId++, anomalies, groupByAttribute);
+        return new OutlierExplanationInput(nextId++, anomalies, groupByAttribute, 1);
+    }
+
+    private OutlierExplanationInput makeOutlier(List<AnomalyExplanationInput> anomalies, ExplanationAttribute groupByAttribute, int partitionCount) {
+        return new OutlierExplanationInput(nextId++, anomalies, groupByAttribute, partitionCount);
     }
 
     private AnomalyExplanationInput makeAnomaly(RoleStats roleOverallStats, RoleStats roleClusterStats, List<ExplanationAttribute> unusualAttributes) {

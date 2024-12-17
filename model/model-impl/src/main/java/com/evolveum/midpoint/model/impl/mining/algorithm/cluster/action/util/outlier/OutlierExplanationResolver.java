@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.evolveum.midpoint.util.LocalizableMessageList.*;
+
 public class OutlierExplanationResolver {
 
     public record ExplanationAttribute(
@@ -40,7 +42,8 @@ public class OutlierExplanationResolver {
     public record OutlierExplanationInput(
             Long id,
             List<AnomalyExplanationInput> anomalies,
-            ExplanationAttribute groupByAttribute
+            ExplanationAttribute groupByAttribute,
+            int partitionCount
     ) {}
 
     public record AnomalyExplanationResult(
@@ -71,29 +74,35 @@ public class OutlierExplanationResolver {
         return explanation;
     }
 
+    private LocalizableMessage joinMessage(List<LocalizableMessage> messages, LocalizableMessage separator) {
+        return new LocalizableMessageList(messages, separator, null, null);
+    }
+
     private OutlierDetectionExplanationType explainOverallOutlier() {
         var anomalyCount = outlier.anomalies().size();
         var unusualAttributeCount = outlier.anomalies().stream()
                 .flatMap(ano -> ano.unusualAttributes().stream().map(ExplanationAttribute::path))
                 .collect(Collectors.toSet())
                 .size();
-        List<LocalizableMessage> summaryMessages = new ArrayList<>();
         List<OutlierDetectionExplanationCategoryType> categories = new ArrayList<>();
-        summaryMessages.add(new SingleLocalizableMessage("OutlierDetection.explanation.outlier.unusualAccess", new Object[] {anomalyCount}));
+        LocalizableMessage finalMessage = new SingleLocalizableMessage("OutlierDetection.explanation.outlier.unusualAccess", new Object[] {anomalyCount});
         categories.add(OutlierDetectionExplanationCategoryType.UNUSUAL_ACCESS);
         if (unusualAttributeCount > 0) {
-            summaryMessages.add(new SingleLocalizableMessage("OutlierDetection.explanation.outlier.irregularAttributes", new Object[] {unusualAttributeCount}));
+            var unusualAttributeMessage = new SingleLocalizableMessage("OutlierDetection.explanation.outlier.irregularAttributes", new Object[] {unusualAttributeCount});
+            finalMessage = joinMessage(List.of(finalMessage, unusualAttributeMessage), COMMA);
             categories.add(OutlierDetectionExplanationCategoryType.IRREGULAR_ATTRIBUTES);
         }
-        var summaryMessage = new LocalizableMessageList(summaryMessages, LocalizableMessageList.COMMA, null, null);
-        if (outlier.groupByAttribute() == null) {
-            return makeExplanation(summaryMessage, categories);
+        if (outlier.groupByAttribute() != null) {
+            var attributeName = localize(outlier.groupByAttribute());
+            var attributeValue = outlier.groupByAttribute().value();
+            var groupByMessage = new SingleLocalizableMessage("OutlierDetection.explanation.outlier.groupByExplanation", new Object[] {attributeName, attributeValue});
+            finalMessage = joinMessage(List.of(finalMessage, groupByMessage), SPACE);
         }
-
-        var attributeName = localize(outlier.groupByAttribute());
-        var attributeValue = outlier.groupByAttribute().value();
-        var groupByMessage = new SingleLocalizableMessage("OutlierDetection.explanation.outlier.groupByExplanation", new Object[] {attributeName, attributeValue});
-        return makeExplanation(new LocalizableMessageList(List.of(summaryMessage, groupByMessage), LocalizableMessageList.SPACE, null, null), categories);
+        if (outlier.partitionCount() >  1) {
+            var partitionMessage = new SingleLocalizableMessage("OutlierDetection.explanation.outlier.overPartitions", new Object[] {outlier.partitionCount()});
+            finalMessage = joinMessage(List.of(finalMessage, partitionMessage), SPACE);
+        }
+        return makeExplanation(finalMessage, categories);
     }
 
     private LocalizableMessage localize(ExplanationAttribute explanationAttribute) {
@@ -112,7 +121,7 @@ public class OutlierExplanationResolver {
     private LocalizableMessage localizeAttributePair(ExplanationAttribute explanationAttribute) {
         var key = localize(explanationAttribute);
         var value = LocalizableMessageBuilder.buildFallbackMessage(explanationAttribute.value());
-        return new LocalizableMessageList(List.of(key, value), COLON, null, null);
+        return joinMessage(List.of(key, value), COLON);
     }
 
     private String formatPercentage(double value) {
@@ -144,7 +153,7 @@ public class OutlierExplanationResolver {
             var localizedAttributesList = anomaly.unusualAttributes().stream()
                     .map(this::localizeAttributePair)
                     .toList();
-            var localizedAttributes = new LocalizableMessageList(localizedAttributesList, LocalizableMessageList.COMMA, null, null);
+            var localizedAttributes = joinMessage(localizedAttributesList, COMMA);
             explanations.add(makeExplanation(
                     new SingleLocalizableMessage("OutlierDetection.explanation.anomaly.irregularAttributes", new Object[] {localizedAttributes}),
                     List.of(OutlierDetectionExplanationCategoryType.IRREGULAR_ATTRIBUTES))
