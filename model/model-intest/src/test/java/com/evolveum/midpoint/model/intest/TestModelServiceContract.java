@@ -4120,6 +4120,60 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                 .assertDead();
     }
 
+    /**
+     * Tests whether we can set multivalued const connector property.
+     *
+     * MID-7918
+     */
+    @Test
+    public void test990SettingMultivaluedConstProperties() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var constPpv1 = constBasedValue("const1");
+        var constPpv2 = constBasedValue("const2");
+        var def = prismContext.definitionFactory().newPropertyDefinition(
+                DUMMY_ALWAYS_REQUIRE_UPDATE_OF_ATTRIBUTE_NAME, DOMUtil.XSD_STRING, 0, -1);
+
+        when("multiple const values are added to a connector property");
+        executeChanges(
+                deltaFor(ResourceType.class)
+                        .item(DUMMY_ALWAYS_REQUIRE_UPDATE_OF_ATTRIBUTE_PATH, def)
+                        .add(constPpv1.clone(), constPpv2.clone())
+                        .asObjectDelta(RESOURCE_DUMMY_OID),
+                ModelExecuteOptions.create().raw(),
+                task, result);
+
+        then("all the values are correctly saved");
+        var propertyAfterAdd = assertResource(RESOURCE_DUMMY_OID, "after addition")
+                .configurationProperties()
+                .property(DUMMY_ALWAYS_REQUIRE_UPDATE_OF_ATTRIBUTE_NAME)
+                .assertSize(2)
+                .getItem();
+        PrismAsserts.assertPropertyValueExpressions(
+                propertyAfterAdd, "config property",
+                Objects.requireNonNull(constPpv1.getExpression()).getExpression(),
+                Objects.requireNonNull(constPpv2.getExpression()).getExpression());
+
+        when("one of the values is removed");
+        executeChanges(
+                deltaFor(ResourceType.class)
+                        .item(DUMMY_ALWAYS_REQUIRE_UPDATE_OF_ATTRIBUTE_PATH, def)
+                        .delete(constPpv1.clone())
+                        .asObjectDelta(RESOURCE_DUMMY_OID),
+                ModelExecuteOptions.create().raw(),
+                task, result);
+
+        then("only the remaining value is there");
+        var propertyAfterDelete = assertResource(RESOURCE_DUMMY_OID, "after removal")
+                .configurationProperties()
+                .property(DUMMY_ALWAYS_REQUIRE_UPDATE_OF_ATTRIBUTE_NAME)
+                .assertSize(1)
+                .getItem();
+        PrismAsserts.assertPropertyValueExpressions(
+                propertyAfterDelete, "config property after value removal",
+                Objects.requireNonNull(constPpv2.getExpression()).getExpression());
+    }
+
     private void assertDummyScriptsAdd(PrismObject<UserType> user, PrismObject<? extends ShadowType> account, ResourceType resource) {
         ProvisioningScriptSpec script = new ProvisioningScriptSpec("\nto spiral :size\n" +
                 "   if  :size > 30 [stop]\n   fd :size rt 15\n   spiral :size *1.02\nend\n            ");
