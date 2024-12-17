@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier;
 
+import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColorOposite;
 
 import java.io.Serial;
@@ -403,7 +404,6 @@ public class RoleAnalysisMultiplePartitionAnomalyResultTabPopup extends BasePane
 //            outlierName = targetName.getOrig();
 //        }
 
-
         List<RoleAnalysisOutlierPartitionType> partitionList = getModelObject();
         Date latestDate = null;
         for (RoleAnalysisOutlierPartitionType partition : partitionList) {
@@ -430,7 +430,7 @@ public class RoleAnalysisMultiplePartitionAnomalyResultTabPopup extends BasePane
 
         OutlierHeaderResultPanel components = new OutlierHeaderResultPanel(id,
                 outlierName,
-                "Access has been marked as a anomaly object due to confidence score:",
+                translate("Analysis.anomaly.result.panel.title"),
                 String.valueOf(pointsDensity), formattedDate);
         components.setOutputMarkupId(true);
         return components;
@@ -598,7 +598,6 @@ public class RoleAnalysisMultiplePartitionAnomalyResultTabPopup extends BasePane
                     }
 
                 }
-
 
         );
 

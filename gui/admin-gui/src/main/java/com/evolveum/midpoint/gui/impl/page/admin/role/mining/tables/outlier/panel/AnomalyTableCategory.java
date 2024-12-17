@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel;
 
+import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translateMessage;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColorOposite;
 import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.createStringResource;
 
@@ -50,29 +51,36 @@ public enum AnomalyTableCategory implements Serializable {
 
     PARTITION_ANOMALY,
     OUTLIER_ANOMALY,
-    OUTLIER_ACESS,
-    OUTLIER_OVERVIEW;
+    OUTLIER_ACCESS,
+    OUTLIER_OVERVIEW,
+    OUTLIER_OVERVIEW_WITH_IDENTIFIED_PARTITION;
 
     AnomalyTableCategory() {
     }
 
     public @NotNull List<IColumn<SelectableBean<RoleType>, String>> generateConfiguration(
-            @NotNull IModel<RoleAnalysisOutlierType> outlierModel,
             @NotNull PageBase pageBase,
-            @NotNull ListMultimap<String, DetectedAnomalyResult> anomalyResultMap,
-            @NotNull ListMultimap<String, RoleAnalysisOutlierPartitionType> anomalyPartitionMa) {
+            @NotNull AnomalyObjectDto anomalyObjectDto) {
         switch (this) {
             case PARTITION_ANOMALY -> {
-                return createDefaultColumnsPartitionAnomaly(pageBase, outlierModel, anomalyResultMap, anomalyPartitionMa);
+                return createDefaultColumnsPartitionAnomaly(pageBase, anomalyObjectDto.getAnomalyResultMapModelObject());
             }
             case OUTLIER_ANOMALY -> {
-                return createDefaultColumnsOutlierAnomaly(pageBase, anomalyResultMap, anomalyPartitionMa);
+                ListMultimap<String, DetectedAnomalyResult> anomalyResultMapModelObject = anomalyObjectDto
+                        .getAnomalyResultMapModelObject();
+                ListMultimap<String, RoleAnalysisOutlierPartitionType> anomalyPartitionMapModelObject = anomalyObjectDto.
+                        getAnomalyPartitionMapModelObject();
+                return createDefaultColumnsOutlierAnomaly(pageBase, anomalyResultMapModelObject, anomalyPartitionMapModelObject);
             }
-            case OUTLIER_ACESS -> {
+            case OUTLIER_ACCESS -> {
+                IModel<RoleAnalysisOutlierType> outlierModel = anomalyObjectDto.getOutlierModel();
                 return createDefaultColumnsOutlierAccess(pageBase, outlierModel);
             }
-            case OUTLIER_OVERVIEW -> {
-                return createDefaultColumnsOutlierOverview(pageBase, outlierModel, anomalyResultMap);
+            case OUTLIER_OVERVIEW, OUTLIER_OVERVIEW_WITH_IDENTIFIED_PARTITION -> {
+                IModel<RoleAnalysisOutlierType> outlierModel = anomalyObjectDto.getOutlierModel();
+                ListMultimap<String, DetectedAnomalyResult> anomalyResultMap = anomalyObjectDto.getAnomalyResultMapModelObject();
+                ListMultimap<String, RoleAnalysisOutlierPartitionType> anomalyPartitionMap = anomalyObjectDto.getAnomalyPartitionMapModelObject();
+                return createDefaultColumnsOutlierOverview(pageBase, outlierModel, anomalyResultMap, anomalyPartitionMap);
             }
         }
         return null;
@@ -80,9 +88,7 @@ public enum AnomalyTableCategory implements Serializable {
 
     public @NotNull List<IColumn<SelectableBean<RoleType>, String>> createDefaultColumnsPartitionAnomaly(
             @NotNull PageBase pageBase,
-            @NotNull IModel<RoleAnalysisOutlierType> outlierModel,
-            @NotNull ListMultimap<String, DetectedAnomalyResult> anomalyResultMap,
-            @NotNull ListMultimap<String, RoleAnalysisOutlierPartitionType> anomalyPartitionMap) {
+            @NotNull ListMultimap<String, DetectedAnomalyResult> anomalyResultMap) {
 
         List<IColumn<SelectableBean<RoleType>, String>> columns = new ArrayList<>();
 
@@ -134,29 +140,24 @@ public enum AnomalyTableCategory implements Serializable {
         columns.add(column);
 
         column = new AbstractExportableColumn<>(
-                pageBase.createStringResource("")) {
+                createStringResource("RoleAnalysisOutlierTable.anomaly.reason")) {
 
             @Override
             public IModel<?> getDataModel(IModel<SelectableBean<RoleType>> iModel) {
-                return null;
-            }
-
-            @Override
-            public Component getHeader(String componentId) {
-                return new Label(componentId,
-                        pageBase.createStringResource("RoleAnalysisDetectedAnomalyTable.header.identification.title"));
+                return Model.of("");
             }
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<RoleType>>> cellItem,
                     String componentId, IModel<SelectableBean<RoleType>> model) {
-                SelectableBean<RoleType> object = model.getObject();
-                RoleType role = object.getValue();
-                String oid = role.getOid();
-                List<RoleAnalysisOutlierPartitionType> partitions = anomalyPartitionMap.get(oid);
-                Label label = new Label(componentId, String.valueOf(partitions.size()));
-                label.setOutputMarkupId(true);
-                cellItem.add(label);
+
+                //                Model<String> explanationTranslatedModel = Model.of(translateMessage(message));
+                cellItem.add(new Label(componentId, "This is a test sentence. Waiting for the explanation resolver to connect."));
+            }
+
+            @Override
+            public String getCssClass() {
+                return "d-flex gap-2";
             }
 
             @Override
@@ -164,202 +165,16 @@ public enum AnomalyTableCategory implements Serializable {
                 return false;
             }
 
-        };
-        columns.add(column);
-
-        column = new AbstractExportableColumn<>(
-                pageBase.createStringResource("")) {
-
-            @Override
-            public IModel<?> getDataModel(IModel<SelectableBean<RoleType>> iModel) {
-                return null;
-            }
-
             @Override
             public Component getHeader(String componentId) {
-                return new Label(componentId,
-                        pageBase.createStringResource("RoleAnalysisDetectedAnomalyTable.header.pattern.title"));
+                return new LabelWithHelpPanel(componentId,
+                        createStringResource("RoleAnalysisOutlierTable.anomaly.reason")) {
+                    @Override
+                    protected IModel<String> getHelpModel() {
+                        return createStringResource("RoleAnalysisOutlierTable.anomaly.reason.help");
+                    }
+                };
             }
-
-            @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<RoleType>>> cellItem,
-                    String componentId, IModel<SelectableBean<RoleType>> model) {
-
-                DetectedAnomalyResult anomalyResult = anomalyResultMap.get(model.getObject().getValue().getOid()).get(0);
-                DetectedAnomalyStatistics statistics = anomalyResult.getStatistics();
-                Double confidence = statistics.getPatternAnalysis().getConfidence();
-
-                BigDecimal bd = new BigDecimal(Double.toString(confidence));
-                bd = bd.setScale(2, RoundingMode.HALF_UP);
-                double pointsConfidence = bd.doubleValue();
-
-                Label label = new Label(componentId, pointsConfidence + "%");
-                label.setOutputMarkupId(true);
-                cellItem.add(label);
-            }
-
-            @Override
-            public boolean isSortable() {
-                return false;
-            }
-
-        };
-        columns.add(column);
-
-        column = new AbstractExportableColumn<>(
-                pageBase.createStringResource("")) {
-
-            @Override
-            public IModel<?> getDataModel(IModel<SelectableBean<RoleType>> iModel) {
-                return null;
-            }
-
-            @Override
-            public Component getHeader(String componentId) {
-                return new Label(componentId,
-                        pageBase.createStringResource("RoleAnalysisDetectedAnomalyTable.header.member.title"));
-            }
-
-            @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<RoleType>>> cellItem,
-                    String componentId, IModel<SelectableBean<RoleType>> model) {
-
-                DetectedAnomalyResult anomalyResult = anomalyResultMap.get(model.getObject().getValue().getOid()).get(0);
-                DetectedAnomalyStatistics statistics = anomalyResult.getStatistics();
-                Double memberCoverageConfidence = statistics.getMemberCoverageConfidence();
-
-                BigDecimal bd = new BigDecimal(Double.toString(memberCoverageConfidence));
-                bd = bd.setScale(2, RoundingMode.HALF_UP);
-                double pointsConfidence = bd.doubleValue();
-
-                Label label = new Label(componentId, (pointsConfidence) + "%");
-                label.setOutputMarkupId(true);
-                cellItem.add(label);
-            }
-
-            @Override
-            public boolean isSortable() {
-                return false;
-            }
-
-        };
-        columns.add(column);
-
-        column = new AbstractExportableColumn<>(
-                pageBase.createStringResource("")) {
-
-            @Override
-            public IModel<?> getDataModel(IModel<SelectableBean<RoleType>> iModel) {
-                return null;
-            }
-
-            @Override
-            public Component getHeader(String componentId) {
-                return new Label(componentId,
-                        pageBase.createStringResource("RoleAnalysisDetectedAnomalyTable.header.frequency.title"));
-            }
-
-            @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<RoleType>>> cellItem,
-                    String componentId, IModel<SelectableBean<RoleType>> model) {
-
-                DetectedAnomalyResult anomalyResult = anomalyResultMap.get(model.getObject().getValue().getOid()).get(0);
-                DetectedAnomalyStatistics statistics = anomalyResult.getStatistics();
-                Double frequency = statistics.getFrequency();
-
-                BigDecimal bd = new BigDecimal(Double.toString(frequency));
-                bd = bd.setScale(2, RoundingMode.HALF_UP);
-                double pointsConfidence = bd.doubleValue();
-
-                Label label = new Label(componentId, (pointsConfidence * 100) + "%");
-                label.setOutputMarkupId(true);
-                cellItem.add(label);
-            }
-
-            @Override
-            public boolean isSortable() {
-                return false;
-            }
-
-        };
-        columns.add(column);
-
-        column = new AbstractExportableColumn<>(
-                pageBase.createStringResource("")) {
-
-            @Override
-            public IModel<?> getDataModel(IModel<SelectableBean<RoleType>> iModel) {
-                return null;
-            }
-
-            @Override
-            public Component getHeader(String componentId) {
-                return new Label(componentId,
-                        pageBase.createStringResource("RoleAnalysisDetectedAnomalyTable.header.itemConfidence.title"));
-            }
-
-            @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<RoleType>>> cellItem,
-                    String componentId, IModel<SelectableBean<RoleType>> model) {
-
-                DetectedAnomalyResult anomalyResult = anomalyResultMap.get(model.getObject().getValue().getOid()).get(0);
-                DetectedAnomalyStatistics statistics = anomalyResult.getStatistics();
-                Double itemConfidence = statistics.getItemFactorConfidence();
-
-                if (itemConfidence == null) {
-                    itemConfidence = 0.0;
-                }
-
-                BigDecimal bd = new BigDecimal(Double.toString(itemConfidence));
-                bd = bd.setScale(2, RoundingMode.HALF_UP);
-                double pointsConfidence = bd.doubleValue();
-
-                Label label = new Label(componentId, (pointsConfidence) + "%");
-                label.setOutputMarkupId(true);
-                cellItem.add(label);
-            }
-
-            @Override
-            public boolean isSortable() {
-                return false;
-            }
-
-        };
-        columns.add(column);
-
-        column = new AbstractExportableColumn<>(
-                pageBase.createStringResource("")) {
-
-            @Override
-            public IModel<?> getDataModel(IModel<SelectableBean<RoleType>> iModel) {
-                return null;
-            }
-
-            @Override
-            public Component getHeader(String componentId) {
-                return new Label(componentId,
-                        pageBase.createStringResource("RoleAnalysisDetectedAnomalyTable.header.isDuplicate.title"));
-            }
-
-            @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<RoleType>>> cellItem,
-                    String componentId, IModel<SelectableBean<RoleType>> model) {
-                RoleAnalysisOutlierType outlier = outlierModel.getObject();
-
-                Set<String> duplicatedRoleAssignmentOids = loadUserDuplicatedRoleSet(outlier);
-                RoleType role = model.getObject().getValue();
-                String oid = role.getOid();
-                boolean isDuplicate = duplicatedRoleAssignmentOids.contains(oid);
-                Label label = new Label(componentId, isDuplicate);
-                label.setOutputMarkupId(true);
-                cellItem.add(label);
-            }
-
-            @Override
-            public boolean isSortable() {
-                return false;
-            }
-
         };
         columns.add(column);
         return columns;
@@ -577,74 +392,47 @@ public enum AnomalyTableCategory implements Serializable {
     public @NotNull List<IColumn<SelectableBean<RoleType>, String>> createDefaultColumnsOutlierOverview(
             @NotNull PageBase pageBase,
             @NotNull IModel<RoleAnalysisOutlierType> outlierModel,
-            @NotNull ListMultimap<String, DetectedAnomalyResult> anomalyResultMap) {
+            @NotNull ListMultimap<String, DetectedAnomalyResult> anomalyResultMap,
+            @NotNull ListMultimap<String, RoleAnalysisOutlierPartitionType> anomalyPartitionMap) {
         List<IColumn<SelectableBean<RoleType>, String>> columns = new ArrayList<>();
 
         IColumn<SelectableBean<RoleType>, String> column;
 
-        column = new AbstractExportableColumn<>(
-                createStringResource("RoleAnalysisOutlierTable.anomaly.reason")) {
+        if (this.equals(OUTLIER_OVERVIEW_WITH_IDENTIFIED_PARTITION)) {
+            column = new AbstractExportableColumn<>(
+                    pageBase.createStringResource("")) {
 
-            @Override
-            public IModel<?> getDataModel(IModel<SelectableBean<RoleType>> iModel) {
-                return Model.of("");
-            }
+                @Override
+                public IModel<?> getDataModel(IModel<SelectableBean<RoleType>> iModel) {
+                    return null;
+                }
 
-            @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<RoleType>>> cellItem,
-                    String componentId, IModel<SelectableBean<RoleType>> model) {
-                RoleAnalysisOutlierType outlier = outlierModel.getObject();
-                List<RoleAnalysisOutlierPartitionType> partition = outlier.getPartition();
+                @Override
+                public Component getHeader(String componentId) {
+                    return new Label(componentId,
+                            pageBase.createStringResource("RoleAnalysisDetectedAnomalyTable.header.identification.title"));
+                }
 
-                SelectableBean<RoleType> object = model.getObject();
-                RoleType role = object.getValue();
-                String oid = role.getOid();
+                @Override
+                public void populateItem(Item<ICellPopulator<SelectableBean<RoleType>>> cellItem,
+                        String componentId, IModel<SelectableBean<RoleType>> model) {
+                    SelectableBean<RoleType> object = model.getObject();
+                    RoleType role = object.getValue();
+                    String oid = role.getOid();
+                    List<RoleAnalysisOutlierPartitionType> partitions = anomalyPartitionMap.get(oid);
+                    Label label = new Label(componentId, String.valueOf(partitions.size()));
+                    label.setOutputMarkupId(true);
+                    cellItem.add(label);
+                }
 
+                @Override
+                public boolean isSortable() {
+                    return false;
+                }
 
-                RepeatingView repeatingView = new RepeatingView(componentId);
-
-                repeatingView.add(new Label(repeatingView.newChildId(), "TODO"));
-
-                AjaxIconButton refreshIcon = new AjaxIconButton(repeatingView.newChildId(), Model.of(" mt-1 fa fa-qrcode"),
-                        createStringResource("RoleAnalysisOutlierTable.anomaly.preview")) {
-
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        RoleAnalysisMultiplePartitionUserPermissionTableTabPopup components = new RoleAnalysisMultiplePartitionUserPermissionTableTabPopup(
-                                pageBase.getMainPopupBodyId(),
-                                Model.ofList(partition), Model.ofList( anomalyResultMap.get(oid)), Model.of(outlier));
-                        pageBase.showMainPopup(components, target);
-                    }
-                };
-                refreshIcon.add(AttributeModifier.append("class", "btn btn-default btn-sm"));
-                repeatingView.add(refreshIcon);
-                cellItem.add(repeatingView);
-            }
-
-            @Override
-            public String getCssClass() {
-                return "d-flex gap-2";
-            }
-
-            @Override
-            public boolean isSortable() {
-                return false;
-            }
-
-            @Override
-            public Component getHeader(String componentId) {
-                return new LabelWithHelpPanel(componentId,
-                        createStringResource("RoleAnalysisOutlierTable.anomaly.reason")) {
-                    @Override
-                    protected IModel<String> getHelpModel() {
-                        return createStringResource("RoleAnalysisOutlierTable.anomaly.reason.help");
-                    }
-                };
-            }
-        };
-        columns.add(column);
+            };
+            columns.add(column);
+        }
 
         column = new AbstractExportableColumn<>(
                 pageBase.createStringResource("")) {
@@ -685,6 +473,46 @@ public enum AnomalyTableCategory implements Serializable {
                 return false;
             }
 
+        };
+        columns.add(column);
+
+        column = new AbstractExportableColumn<>(
+                createStringResource("RoleAnalysisOutlierTable.anomaly.reason")) {
+
+            @Override
+            public IModel<?> getDataModel(IModel<SelectableBean<RoleType>> iModel) {
+                return Model.of("");
+            }
+
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<RoleType>>> cellItem,
+                    String componentId, IModel<SelectableBean<RoleType>> model) {
+
+//                Model<String> explanationTranslatedModel = Model.of(translateMessage(message));
+
+                cellItem.add(new Label(componentId, "This is a test sentence. Waiting for the explanation resolver to connect."));
+            }
+
+            @Override
+            public String getCssClass() {
+                return "d-flex gap-2";
+            }
+
+            @Override
+            public boolean isSortable() {
+                return false;
+            }
+
+            @Override
+            public Component getHeader(String componentId) {
+                return new LabelWithHelpPanel(componentId,
+                        createStringResource("RoleAnalysisOutlierTable.anomaly.reason")) {
+                    @Override
+                    protected IModel<String> getHelpModel() {
+                        return createStringResource("RoleAnalysisOutlierTable.anomaly.reason.help");
+                    }
+                };
+            }
         };
         columns.add(column);
 

@@ -14,6 +14,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.WidgetItemModel;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel.AnomalyObjectDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DetectedAnomalyResult;
 
 import org.apache.wicket.Component;
@@ -85,7 +86,6 @@ public class OutlierAnomaliesItemPanel<T extends Serializable>
         RoleAnalysisWidgetsPanel detailsPanel = loadDetailsPanel(id);
         detailsPanel.setOutputMarkupId(true);
 
-
         return detailsPanel;
     }
 
@@ -95,8 +95,11 @@ public class OutlierAnomaliesItemPanel<T extends Serializable>
         return new RoleAnalysisWidgetsPanel(id, loadDetailsModel()) {
             @Override
             protected @NotNull Component getPanelComponent(String id1) {
-                RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = new RoleAnalysisDetectedAnomalyTable(id1,
-                        getOutlierModel().getObject(), getPartitionModel().getObject(), AnomalyTableCategory.PARTITION_ANOMALY);
+                RoleAnalysisOutlierType outlierObject = getOutlierModel().getObject();
+                RoleAnalysisOutlierPartitionType associatedPartition = getPartitionModel().getObject();
+                AnomalyObjectDto dto = new AnomalyObjectDto(outlierObject, associatedPartition,
+                        AnomalyTableCategory.PARTITION_ANOMALY);
+                RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = new RoleAnalysisDetectedAnomalyTable(id1, Model.of(dto));
                 detectedAnomalyTable.setOutputMarkupId(true);
                 return detectedAnomalyTable;
             }

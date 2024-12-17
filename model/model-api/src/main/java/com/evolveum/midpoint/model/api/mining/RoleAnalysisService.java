@@ -941,6 +941,8 @@ public interface RoleAnalysisService {
             @NotNull PrismObject<UserType> prismUser,
             @NotNull List<RoleAnalysisAttributeDef> itemDef);
 
+    @Nullable Set<String> resolveUserValueToMark(RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult);
+
     /**
      * Resolve object attribute value.
      *

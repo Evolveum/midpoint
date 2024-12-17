@@ -2709,6 +2709,28 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     }
 
     @Override
+    public @Nullable Set<String> resolveUserValueToMark(@NotNull RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult) {
+        Set<String> valueToMark = new HashSet<>();
+        List<RoleAnalysisAttributeAnalysis> attributeAnalysis = userAttributeAnalysisResult.getAttributeAnalysis();
+        if (attributeAnalysis.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        for (RoleAnalysisAttributeAnalysis analysisItem : attributeAnalysis) {
+            List<RoleAnalysisAttributeStatistics> attributeStatistics = analysisItem.getAttributeStatistics();
+            if (attributeStatistics.isEmpty()) {
+                continue;
+            }
+            for (RoleAnalysisAttributeStatistics attributeStatistic : attributeStatistics) {
+                String attributeValue = attributeStatistic.getAttributeValue();
+                valueToMark.add(attributeValue);
+            }
+        }
+
+        return valueToMark;
+    }
+
+    @Override
     public @Nullable Set<String> resolveRoleValueToMark(
             @NotNull PrismObject<RoleType> prismRole,
             @NotNull List<RoleAnalysisAttributeDef> itemDef) {
