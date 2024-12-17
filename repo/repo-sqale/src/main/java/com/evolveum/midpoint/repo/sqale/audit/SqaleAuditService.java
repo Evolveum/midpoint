@@ -138,7 +138,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         Collection<MAuditDelta> deltaRows = prepareDeltas(record.getDeltas());
         row.deltas = deltaRows;
 
-        Set<String> changedItemPaths = collectChangedItemPathsFromOriginal(record.getDeltas());
+        Set<String> changedItemPaths =  collectChangedItemPathsFromOriginal(record.getDeltas());
         row.changedItemPaths = changedItemPaths.isEmpty() ? null : changedItemPaths.toArray(String[]::new);
 
         SQLInsertClause insert = jdbcSession.newInsert(aer).populate(row);
@@ -318,7 +318,12 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         for (var delta : deltas) {
             var objectType = objectTypeQName(delta);
             for (var itemDelta : delta.getObjectDelta().getModifications()) {
+                if (itemDelta.isEmpty()) {
+                    // Skipping empty deltas (was normalized during serialization)
+                    continue;
+                }
                 ItemPath path = itemDelta.getPath();
+
                 CanonicalItemPath canonical = sqlRepoContext.prismContext()
                         .createCanonicalItemPath(path, objectType);
                 for (int i = 0; i < canonical.size(); i++) {
