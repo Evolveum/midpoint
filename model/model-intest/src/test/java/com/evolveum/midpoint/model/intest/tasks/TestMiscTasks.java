@@ -10,9 +10,19 @@ import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import javax.xml.namespace.QName;
 
+import org.quartz.JobBuilder;
+import org.quartz.JobKey;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.impl.matchers.GroupMatcher;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -23,10 +33,16 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityBasedTaskInformation;
 import com.evolveum.midpoint.schema.util.task.TaskInformation;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.quartzimpl.quartz.LocalScheduler;
+import com.evolveum.midpoint.task.quartzimpl.quartz.QuartzUtil;
+import com.evolveum.midpoint.task.quartzimpl.run.JobExecutor;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -80,6 +96,9 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
             TEST_DIR, "user-1.xml", "f1c3fbc4-85d6-4559-9a1e-647e3caa25df");
     private static final TestObject<UserType> USER_2 = TestObject.file(
             TEST_DIR, "user-2.xml", "3fc7d5bb-d1a6-446b-925e-5680afaa9df6");
+
+    @Autowired
+    private LocalScheduler localScheduler;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -373,7 +392,9 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
         // @formatter:on
     }
 
-    /** Manipulates the activity definition and checks whether affected objects are set appropriately. */
+    /**
+     * Manipulates the activity definition and checks whether affected objects are set appropriately.
+     */
     @Test
     public void test200TestAffectedObjectsSimple() throws CommonException {
         Task task = getTestTask();
@@ -489,7 +510,9 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
                 .hasMessageContaining("Couldn't compute affected objects");
     }
 
-    /** Checks affected objects management for composite activity. */
+    /**
+     * Checks affected objects management for composite activity.
+     */
     @Test
     public void test210TestAffectedObjectsComposite() throws CommonException {
         Task task = getTestTask();
@@ -704,4 +727,5 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
                 .display()
                 .assertProgress(6);
     }
+
 }

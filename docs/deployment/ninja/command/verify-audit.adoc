@@ -1,0 +1,30 @@
+= Verify Audit
+
+Verify audit command allows users to validate audit records against current schema.
+Records can be exported to `SYSOUT` or to file (`-o`, `--output`) and compressed using ZIP if needed (`-z`, `--zip`).
+
+This operation also support multi-threading (`-l`, `--multi-thread`).
+For more information about multi-threading see xref:/midpoint/reference/deployment/ninja#how-multithreading-works[here].
+
+Use `-O`, `--overwrite` switch if you wish to overwrite an existing output file.
+
+Records for verification can be filtered using filter (`-f, --filter`) option.
+
+Verification results can be reported in two styles plain and CSV.
+The switch for report style is `--report-style [plain|csv]`.
+Plain style is set as default option, while CSV is better for further processing and review.
+CSV report style creates two files - CSV and XML.
+
+CSV report contain following columns:
+
+* Repository identifier
+* Timestamp
+* Status
+* Item path
+* Message
+
+== See also
+
+. xref:./import-audit[]
+. xref:./verify-audit[]
+. xref:/midpoint/reference/repository/native-audit/#audit-migration-from-other-database[migration guide for the Native audit].

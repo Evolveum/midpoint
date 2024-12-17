@@ -16,6 +16,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.impl.DefaultReferencableImpl;
 import com.evolveum.midpoint.prism.util.*;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.ExpressionEnvironment;
 import groovy.lang.GString;
 import org.jetbrains.annotations.Contract;
@@ -235,7 +236,7 @@ public class ExpressionUtil {
     public static TypedValue<?> convertVariableValue(
             TypedValue<?> originalTypedValue, String variableName, ObjectResolver objectResolver,
             String contextDescription, ObjectVariableModeType objectVariableMode, @NotNull ValueVariableModeType valueVariableMode,
-            PrismContext prismContext, Task task, OperationResult result) throws ExpressionSyntaxException,
+            PrismContext prismContext, Task task, OperationResult result) throws SchemaException,
             ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException {
         if (originalTypedValue.getValue() == null) {
@@ -400,7 +401,7 @@ public class ExpressionUtil {
     private static TypedValue<?> resolveReference(
             TypedValue<?> referenceTypedValue, String variableName,
             ObjectResolver objectResolver, String contextDescription, ObjectVariableModeType objectVariableMode,
-            Task task, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException,
+            Task task, OperationResult result) throws SchemaException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException {
         TypedValue<?> resolvedTypedValue;
@@ -436,9 +437,9 @@ public class ExpressionUtil {
         }
 
         if (objectVariableMode == ObjectVariableModeType.PRISM_REFERENCE) {
-            if (resolvedTypedValue != null && resolvedTypedValue.getValue() instanceof PrismObject) {
+            if (resolvedTypedValue != null && resolvedTypedValue.getValue() instanceof PrismObject<?> prismObject) {
                 PrismReferenceValue value = reference.asReferenceValue();
-                value.setObject((PrismObject<?>) resolvedTypedValue.getValue());
+                value.setObject(prismObject);
                 // This may be a bit fishy, but this only preserves parent for ref variable mode.
                 // It's a waste to forget the parent (if available) and it can save some ref resolutions in the script.
                 value.setParent(originalParent);
@@ -446,8 +447,10 @@ public class ExpressionUtil {
             } else {
                 return referenceTypedValue;
             }
-        } else {
+        } else if (resolvedTypedValue != null) {
             return resolvedTypedValue;
+        } else {
+            return new TypedValue<>(null, ObjectTypeUtil.getTypeClass(originalReference, ObjectType.class));
         }
     }
 

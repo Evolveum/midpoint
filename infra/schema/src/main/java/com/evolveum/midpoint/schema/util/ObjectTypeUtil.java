@@ -1427,4 +1427,29 @@ public class ObjectTypeUtil {
                 .map(ref -> ref.getOid())
                 .collect(Collectors.toSet());
     }
+
+    /**
+     * Extracts type class from the {@link Referencable}. Expected type is provided for cases when the type in reference
+     * is missing or (for any reason) incorrect.
+     *
+     * Useful e.g. for resolving references.
+     */
+    public static <O extends ObjectType> @NotNull Class<O> getTypeClass(
+            @NotNull Referencable ref, @NotNull Class<O> expectedType) throws SchemaException {
+        QName typeName = ref.getType();
+        if (typeName != null) {
+            Class<?> typeClass = PrismContext.get().getSchemaRegistry().determineCompileTimeClass(typeName);
+            if (typeClass != null) {
+                if (expectedType.isAssignableFrom(typeClass)) {
+                    //noinspection unchecked
+                    return (Class<O>) typeClass;
+                } else {
+                    // Maybe the type in the reference is too generic?
+                    // E.g. the reference is to FocusType, but we expect UserType.
+                    // In such cases, we simply return the expected type.
+                }
+            }
+        }
+        return expectedType;
+    }
 }

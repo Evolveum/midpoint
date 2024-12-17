@@ -134,7 +134,6 @@ public class UpAndDown implements BeanFactoryAware {
         }
 
         JobExecutor.setTaskManagerQuartzImpl(taskManager); // unfortunately, there seems to be no clean way of letting jobs know the taskManager
-        JobStarter.setTaskManagerQuartzImpl(taskManager); // the same here
 
         localScheduler.initializeScheduler();
         if (localNodeState.getErrorState() == NodeErrorStateType.OK) {

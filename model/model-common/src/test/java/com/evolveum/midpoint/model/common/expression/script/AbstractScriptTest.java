@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.common.expression.script;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -61,6 +62,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     protected static final File BASE_TEST_DIR = new File("src/test/resources/expression");
     protected static final File OBJECTS_DIR = new File("src/test/resources/objects");
     protected static final String USER_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
+    protected static final String NON_EXISTENT_USER_OID = "608ccca5-5268-44d0-85b8-38f531df56b4";
 
     public static final String VAR_POISON = "poison";
     protected static final String RESULT_POISON_OK = "ALIVE";
@@ -168,6 +170,46 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
                         prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class)
                 ),
                 "Captain emp1234");
+    }
+
+    /** The reference points to a non-existing object. MID-10162. */
+    @Test
+    public void testExpressionObjectRefVariablesNonExistingObject() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-objectref-variables.xml",
+                "testExpressionObjectRefVariables",
+                createVariables(
+                        "foo", "Captain", String.class,
+                        "jack",
+                        MiscSchemaUtil.createObjectReference(NON_EXISTENT_USER_OID, UserType.COMPLEX_TYPE),
+                        prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class)
+                ),
+                "Captain ");
+    }
+
+    /** The reference points to a non-existing object, and mode is set to `object` explicitly. MID-10296. */
+    @Test
+    public void testExpressionObjectRefVariablesNonExistingObjectExplicitTreatment() throws Exception {
+        if (!(this instanceof TestGroovyExpressions)) {
+            throw new SkipException("");
+        }
+        try {
+            // TODO adapt to the correct behavior after MID-10296 is decided about
+            evaluateAndAssertStringScalarExpression(
+                    "expression-objectref-variables-explicit.xml",
+                    "testExpressionObjectRefVariables",
+                    createVariables(
+                            "foo", "Captain", String.class,
+                            "jack",
+                            MiscSchemaUtil.createObjectReference(NON_EXISTENT_USER_OID, UserType.COMPLEX_TYPE),
+                            prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class)
+                    ),
+                    "--will not return anything--");
+        } catch (ObjectNotFoundException e) {
+            displayExpectedException(e);
+            assertThat(e.getOid()).as("OID in 'not found' exception").isEqualTo(NON_EXISTENT_USER_OID);
+            assertThat(e.getType()).as("type in 'not found' exception").isEqualTo(UserType.class);
+        }
     }
 
     @Test
