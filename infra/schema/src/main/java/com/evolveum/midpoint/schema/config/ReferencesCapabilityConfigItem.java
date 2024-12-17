@@ -7,14 +7,11 @@
 
 package com.evolveum.midpoint.schema.config;
 
-import java.util.ArrayList;
 import java.util.List;
-import javax.xml.namespace.QName;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReferencesCapabilityType;
 
 public class ReferencesCapabilityConfigItem
@@ -33,14 +30,8 @@ public class ReferencesCapabilityConfigItem
                 ReferencesCapabilityType.F_TYPE);
     }
 
-    public SimulatedReferenceTypeConfigItem getAssociationClass(@NotNull QName className) throws ConfigurationException {
-        List<SimulatedReferenceTypeConfigItem> matching = new ArrayList<>();
-        for (SimulatedReferenceTypeConfigItem ac : getReferenceTypes()) {
-            if (QNameUtil.match(className, ac.getName())) {
-                matching.add(ac);
-            }
-        }
-        return single(matching, "Multiple definitions for simulated association '%s' in %s", className, DESC);
+    public boolean isEnabled() {
+        return BooleanUtils.isNotFalse(value().isEnabled());
     }
 
     @Override

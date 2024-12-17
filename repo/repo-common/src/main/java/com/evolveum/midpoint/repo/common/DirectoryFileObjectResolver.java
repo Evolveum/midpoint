@@ -10,6 +10,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,7 +51,8 @@ public class DirectoryFileObjectResolver implements ObjectResolver {
             Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
-        return getObject(expectedType, ref.getOid(), options, task, result);
+        var type = ObjectTypeUtil.getTypeClass(ref, expectedType);
+        return getObject(type, ref.getOid(), options, task, result);
     }
 
     private String oidToFilename(String oid) {

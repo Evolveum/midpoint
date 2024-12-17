@@ -40,6 +40,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 === New Features and Major Improvements
 
 * bug:MID-10147[] Added support for new capability `lastLoginTimestamp`.
+* bug:MID-10213[] Fix synchronization of large number of tasks (>10 000).
 
 === Other Improvements
 

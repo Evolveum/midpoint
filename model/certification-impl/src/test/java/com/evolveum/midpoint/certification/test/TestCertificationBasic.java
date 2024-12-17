@@ -350,7 +350,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         checkAllCasesSanity(caseList);
     }
 
-    @Test(enabled = false)
+    @Test
     public void test034SearchAllCasesAllowedDeputy() throws Exception {
         login(getUserFromRepo(USER_BOB_DEPUTY_FULL_OID));
 
@@ -861,7 +861,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
      * Note that we check the reports here and not in `report-impl` because of the current dependencies between these
      * two modules (`report-impl` and `certification-impl`). Maybe we'll move this test in the future into `report-impl`.
      */
-    @Test(enabled = false)
+    @Test(enabled = false) // MID-10294
     public void test220CreateReports() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();

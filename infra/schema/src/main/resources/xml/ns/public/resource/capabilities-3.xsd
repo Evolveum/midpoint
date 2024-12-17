@@ -956,10 +956,19 @@
     <xsd:complexType name="ReferencesCapabilityType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                May specify either the native or simulated references.
+
+                Native references are provided by the connector. In that case, the "type" item is empty.
+                Also, this capability cannot be disabled by setting the "enabled" property to "false".
+                MidPoint will ignore that setting, and the connector-provided references will still be there
+                and will be used normally.
+
+                Simulated references are provided by the engineer. In that case, the "type" item is used
+                to specify how they should be simulated. The "enabled" property is used in the standard way.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
+                <a:since>4.9</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>

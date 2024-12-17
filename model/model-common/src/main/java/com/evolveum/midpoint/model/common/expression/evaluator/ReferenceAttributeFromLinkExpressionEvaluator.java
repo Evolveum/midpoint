@@ -206,7 +206,7 @@ public class ReferenceAttributeFromLinkExpressionEvaluator
                     // Filtering on kind/intent was already done.
                 }
                 LOGGER.trace("Adding to association: {}", target);
-                outputAttribute.createNewValueWithFullObject(target);
+                outputAttribute.createNewValueFromShadow(target);
             }
 
             return outputAttribute;
