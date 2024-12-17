@@ -49,6 +49,8 @@
 
     <logger name="PROFILING" level="INFO" />
 
+    <logger name="org.hibernate.SQL" level="DEBUG"/>
+
     <root level="WARN">
         <appender-ref ref="X" />
     </root>
