@@ -43,9 +43,9 @@
             <attribute>
                 <ref>ri:water</ref>
                 <volatility>
-                    <incomingDependency>
+                    <incoming>
                         <operation>add</operation>
-                    </incomingDependency>
+                    </incoming>
                 </volatility>
             </attribute>
         </objectType>
@@ -62,9 +62,9 @@
             <attribute>
                 <ref>ri:water</ref>
                 <volatility>
-                    <outgoingDependency>
+                    <outgoing>
                         <operation>modify</operation>
-                    </outgoingDependency>
+                    </outgoing>
                 </volatility>
             </attribute>
         </objectType>
@@ -81,10 +81,10 @@
             <attribute>
                 <ref>ri:water</ref>
                 <volatility>
-                    <incomingDependency>
+                    <incoming>
                         <!-- In fact, this makes full reload at _each_ modification operation -->
                         <operation>modify</operation>
-                    </incomingDependency>
+                    </incoming>
                 </volatility>
             </attribute>
         </objectType>
