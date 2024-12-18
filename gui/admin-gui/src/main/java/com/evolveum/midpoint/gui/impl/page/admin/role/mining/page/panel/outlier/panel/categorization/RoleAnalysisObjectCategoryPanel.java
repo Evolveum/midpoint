@@ -28,11 +28,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 )
 public class RoleAnalysisObjectCategoryPanel extends RoleAnalysisAbstractClassificationObjectPanel {
 
-    private static final PanelOptions options = new PanelOptions(true, "RoleAnalysisCategorization.role.panel", "RoleAnalysisCategorization.user.panel");
+    private static final PanelOptions PANEL_OPTIONS = new PanelOptions(true, "RoleAnalysisCategorization.role.panel", "RoleAnalysisCategorization.user.panel");
 
     public RoleAnalysisObjectCategoryPanel(String id, ObjectDetailsModels<RoleAnalysisSessionType> model,
             ContainerPanelConfigurationType config) {
-        super(id, options, model, config);
+        super(id, PANEL_OPTIONS, model, config);
     }
 
 }
