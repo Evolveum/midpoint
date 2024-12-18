@@ -203,6 +203,7 @@ public class CategorizationValueModel implements Serializable {
                     @NotNull RoleAnalysisSessionType session,
                     String panelId,
                     boolean advanced,
+                    String title,
                     Class<?> typeClass) {
 
         RoleAnalysisIdentifiedCharacteristicsType identifiedCharacteristics = session.getIdentifiedCharacteristics();
@@ -210,10 +211,8 @@ public class CategorizationValueModel implements Serializable {
             return new WebMarkupContainer(panelId);
         }
 
-        String title = "RoleAnalysisCategorization.role.classification.panel";
         RoleAnalysisIdentifiedCharacteristicsItemsType itemContainer = identifiedCharacteristics.getRoles();
         if (typeClass.equals(UserType.class)) {
-            title = "RoleAnalysisCategorization.user.classification.panel";
             itemContainer = identifiedCharacteristics.getUsers();
         }
 

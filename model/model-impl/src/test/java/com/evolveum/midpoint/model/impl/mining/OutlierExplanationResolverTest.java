@@ -34,6 +34,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.OutlierDetect
 
 public class OutlierExplanationResolverTest extends AbstractUnitTest {
 
+    private static final List<ExplanationAttribute> EMPTY_GROUP_BY = List.of();
     private static Long nextId = 1L;
     private LocalizationService localization;
     private ItemDefinition<?> orgUnitDef, locationDef;
@@ -69,7 +70,7 @@ public class OutlierExplanationResolverTest extends AbstractUnitTest {
                         )
                 )
         );
-        var outlier = makeOutlier(anomalies, null);
+        var outlier = makeOutlier(anomalies, EMPTY_GROUP_BY);
         var resolver = new OutlierExplanationResolver(outlier);
 
         when();
@@ -102,7 +103,7 @@ public class OutlierExplanationResolverTest extends AbstractUnitTest {
                         makeClusterStats(0.05444, 5)
                 )
         );
-        var outlier = makeOutlier(anomalies, null);
+        var outlier = makeOutlier(anomalies, EMPTY_GROUP_BY);
         var resolver = new OutlierExplanationResolver(outlier);
 
         when();
@@ -146,7 +147,7 @@ public class OutlierExplanationResolverTest extends AbstractUnitTest {
                         )
                 )
         );
-        var outlier = makeOutlier(anomalies, null);
+        var outlier = makeOutlier(anomalies, EMPTY_GROUP_BY);
         var resolver = new OutlierExplanationResolver(outlier);
 
         when();
@@ -177,7 +178,7 @@ public class OutlierExplanationResolverTest extends AbstractUnitTest {
                         )
                 )
         );
-        var outlier = makeOutlier(anomalies, null);
+        var outlier = makeOutlier(anomalies, EMPTY_GROUP_BY);
         var resolver = new OutlierExplanationResolver(outlier);
 
         when();
@@ -211,7 +212,7 @@ public class OutlierExplanationResolverTest extends AbstractUnitTest {
                 makeClusterStats(0.02, 1),
                 makeUnusualAttributes("attr1", null, "value1")
         ));
-        var outlier = makeOutlier(anomalies, new ExplanationAttribute(makeItemPath("location"), null, "Tokio"));
+        var outlier = makeOutlier(anomalies, List.of(new ExplanationAttribute(makeItemPath("location"), null, "Tokio")));
         var resolver = new OutlierExplanationResolver(outlier);
 
         when();
@@ -226,7 +227,7 @@ public class OutlierExplanationResolverTest extends AbstractUnitTest {
         given();
         var anomalies = List.of(makeAnomaly(makeOverallStats(0.0333, 20), makeClusterStats(0.02, 1)));
         var attributeWithDef = new ExplanationAttribute(makeItemPath("organizationalUnit"), orgUnitDef, "Development");
-        var outlier = makeOutlier(anomalies, attributeWithDef);
+        var outlier = makeOutlier(anomalies, List.of(attributeWithDef));
         var resolver = new OutlierExplanationResolver(outlier);
 
         when();
@@ -237,11 +238,32 @@ public class OutlierExplanationResolverTest extends AbstractUnitTest {
     }
 
     @Test
+    void shouldExplainMultipleGroupByAttribute() {
+        given();
+        var anomalies = List.of(makeAnomaly(
+                makeOverallStats(0.0333, 20),
+                makeClusterStats(0.02, 1),
+                makeUnusualAttributes("attr1", null, "value1")
+        ));
+        var outlier = makeOutlier(anomalies, List.of(
+                new ExplanationAttribute(makeItemPath("location"), null, "Tokio"),
+                new ExplanationAttribute(makeItemPath("organizationalUnit"), orgUnitDef, "Development")
+        ));
+        var resolver = new OutlierExplanationResolver(outlier);
+
+        when();
+        var result = resolver.explain();
+
+        then();
+        assertEquals("1 unusual accesses, 1 irregular attributes for location: Tokio and Organizational Unit: Development", translate(result.explanation().getMessage()));
+    }
+
+    @Test
     void shouldMentionPartitionsInExplanationAttribute() {
         given();
         var anomalies = List.of(makeAnomaly(makeOverallStats(0.0333, 20), makeClusterStats(0.02, 1)));
         var attributeWithDef = new ExplanationAttribute(makeItemPath("organizationalUnit"), orgUnitDef, "Development");
-        var outlier = makeOutlier(anomalies, attributeWithDef, 2);
+        var outlier = makeOutlier(anomalies, List.of(attributeWithDef), 2);
         var resolver = new OutlierExplanationResolver(outlier);
 
         when();
@@ -251,12 +273,12 @@ public class OutlierExplanationResolverTest extends AbstractUnitTest {
         assertEquals("1 unusual accesses for Organizational Unit: Development over 2 partitions", translate(result.explanation().getMessage()));
     }
 
-    private OutlierExplanationInput makeOutlier(List<AnomalyExplanationInput> anomalies, ExplanationAttribute groupByAttribute) {
-        return new OutlierExplanationInput(nextId++, anomalies, groupByAttribute, 1);
+    private OutlierExplanationInput makeOutlier(List<AnomalyExplanationInput> anomalies, List<ExplanationAttribute> groupByAttributes) {
+        return new OutlierExplanationInput(nextId++, anomalies, groupByAttributes, 1);
     }
 
-    private OutlierExplanationInput makeOutlier(List<AnomalyExplanationInput> anomalies, ExplanationAttribute groupByAttribute, int partitionCount) {
-        return new OutlierExplanationInput(nextId++, anomalies, groupByAttribute, partitionCount);
+    private OutlierExplanationInput makeOutlier(List<AnomalyExplanationInput> anomalies, List<ExplanationAttribute> groupByAttributes, int partitionCount) {
+        return new OutlierExplanationInput(nextId++, anomalies, groupByAttributes, partitionCount);
     }
 
     private AnomalyExplanationInput makeAnomaly(RoleStats roleOverallStats, RoleStats roleClusterStats, List<ExplanationAttribute> unusualAttributes) {

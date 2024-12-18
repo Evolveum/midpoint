@@ -11,6 +11,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OutlierDetectionExpl
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -41,8 +42,8 @@ public class OutlierExplanationResolver {
 
     public record OutlierExplanationInput(
             Long id,
-            List<AnomalyExplanationInput> anomalies,
-            ExplanationAttribute groupByAttribute,
+            @NotNull List<AnomalyExplanationInput> anomalies,
+            @NotNull List<ExplanationAttribute> groupByAttributes,
             int partitionCount
     ) {}
 
@@ -60,6 +61,7 @@ public class OutlierExplanationResolver {
     private final OutlierExplanationInput outlier;
     private static final int FEW_ENOUGH_USERS = 3;
     private static final LocalizableMessage COLON = LocalizableMessageBuilder.buildFallbackMessage(": ");
+    private static final LocalizableMessage AND = joinMessage(List.of(SPACE, new SingleLocalizableMessage("OutlierDetection.explanation.common.andSeparator"), SPACE), null);
     private static final DecimalFormat PERCENTAGE_FORMAT_WHOLE = new DecimalFormat("#");
     private static final DecimalFormat PERCENTAGE_FORMAT_FRACTION = new DecimalFormat("#.#");
 
@@ -74,7 +76,7 @@ public class OutlierExplanationResolver {
         return explanation;
     }
 
-    private LocalizableMessage joinMessage(List<LocalizableMessage> messages, LocalizableMessage separator) {
+    private static LocalizableMessage joinMessage(List<LocalizableMessage> messages, LocalizableMessage separator) {
         return new LocalizableMessageList(messages, separator, null, null);
     }
 
@@ -92,10 +94,16 @@ public class OutlierExplanationResolver {
             finalMessage = joinMessage(List.of(finalMessage, unusualAttributeMessage), COMMA);
             categories.add(OutlierDetectionExplanationCategoryType.IRREGULAR_ATTRIBUTES);
         }
-        if (outlier.groupByAttribute() != null) {
-            var attributeName = localize(outlier.groupByAttribute());
-            var attributeValue = outlier.groupByAttribute().value();
-            var groupByMessage = new SingleLocalizableMessage("OutlierDetection.explanation.outlier.groupByExplanation", new Object[] {attributeName, attributeValue});
+        if (!outlier.groupByAttributes().isEmpty()) {
+            var localizedAttributes = outlier.groupByAttributes().stream()
+                    .map(groupByAttribute -> {
+                        var attributeName = localize(groupByAttribute);
+                        var attributeValue = LocalizableMessageBuilder.buildFallbackMessage(groupByAttribute.value());
+                        return joinMessage(List.of(attributeName, attributeValue), COLON);
+                    })
+                    .toList();
+            var localizedAttributesMessage = joinMessage(localizedAttributes, AND);
+            var groupByMessage = new SingleLocalizableMessage("OutlierDetection.explanation.outlier.groupByExplanation", new Object[] {localizedAttributesMessage});
             finalMessage = joinMessage(List.of(finalMessage, groupByMessage), SPACE);
         }
         if (outlier.partitionCount() >  1) {
