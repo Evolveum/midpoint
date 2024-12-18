@@ -18,27 +18,27 @@
         </a>
         <div wicket:id="menu" class="d-flex flex-grow-1 justify-content-end text-md"/>
     </div>
-    <div class="font-weight-bold text-truncate w-100 mt-2" wicket:id="title"/>
-    <div class="tile-description mt-2 text-secondary flex-grow-1 info-box-icon w-100" wicket:id="description"/>
-    <div class="w-100 mt-3">
-        <label>
+    <div class="font-weight-bold text-truncate w-100 mt-2" style="font-size:18px;" wicket:id="title"/>
+    <div class="tile-description mt-2 flex-fill info-box-icon w-100 d-inline-block text-truncate txt-toned" wicket:id="description"/>
+    <div class="w-100 mt-3 text-sm txt-toned">
+        <label class="mb-1">
             <wicket:message key="CampaignTilePanel.progress"/>
         </label>
         <div wicket:id="progressBar"/>
     </div>
-    <div class="d-flex flex-wrap w-100 text-secondary">
-        <div class="d-flex flex-wrap flex-grow-1 justify-content-start" wicket:id="deadline" wicket:message="title:PageCertCampaign.table.deadline"/>
-        <div class="d-flex flex-wrap flex-grow-1 justify-content-end col-md-3" wicket:message="title:PageCertCampaigns.table.stage" >
-            <i class="fa fa-circle-half-stroke mt-1 mr-1"></i>
+    <div class="d-flex flex-wrap w-100 gap-3 mt-2 mb-3 txt-toned text-sm">
+        <div class="d-flex flex-wrap flex-fill justify-content-start text-truncate" wicket:id="deadline" wicket:message="title:PageCertCampaign.table.deadline"/>
+        <div class="d-flex align-items-center" wicket:message="title:PageCertCampaigns.table.stage" >
+            <i class="fa fa-circle-half-stroke mr-1 lh-n"></i>
             <div wicket:id="stage"/>
         </div>
-        <div class="d-flex flex-wrap flex-grow-1 justify-content-end col-md-2" wicket:message="title:PageCertCampaign.iteration">
-            <i class="fa fa-rotate-right mt-1 mr-1"></i>
+        <div class="d-flex align-items-center" wicket:message="title:PageCertCampaign.iteration">
+            <i class="fa fa-rotate-right mr-1 lh-n"></i>
             <div wicket:id="iteration"/>
         </div>
     </div>
 
-    <a class="w-100 mt-3 btn" wicket:id="actionButton" />
+    <a class="w-100 mt-2 btn" wicket:id="actionButton" />
     <a class="btn btn-link text-lightblue mt-1" wicket:id="details">
         <span wicket:id="detailsLabel" />
     </a>

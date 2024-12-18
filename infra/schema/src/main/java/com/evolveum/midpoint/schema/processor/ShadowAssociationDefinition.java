@@ -124,16 +124,16 @@ public interface ShadowAssociationDefinition
 
     /** Call only on simple associations! */
     default ShadowAssociationValue createValueFromFullDefaultObject(@NotNull AbstractShadow object) throws SchemaException {
-        return createValueFromDefaultObject(object, true);
+        return createValueFromDefaultObject(object);
     }
 
     /** Call only on simple associations! */
-    default ShadowAssociationValue createValueFromDefaultObject(@NotNull AbstractShadow object, boolean full)
+    default ShadowAssociationValue createValueFromDefaultObject(@NotNull AbstractShadow object)
             throws SchemaException {
         assert !isComplex();
         var newValue = instantiate().createNewValue();
         newValue.getOrCreateObjectsContainer()
-                .addReferenceAttribute(getSingleObjectParticipantName(), object, full);
+                .addReferenceAttribute(getSingleObjectParticipantName(), object);
         return newValue.clone(); // to make it parent-less
     }
 

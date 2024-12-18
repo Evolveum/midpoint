@@ -252,8 +252,8 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         ShadowAsserter<Void> asserter = getAndersonFull(false, task, result);
         if (isCached()) {
             asserter.attributes()
-                    .attribute(ATTR_TEST).assertRealValues("value1", "value2", "value3").end()
-                    .attribute(ATTR_MEMBER_OF).assertRealValues("group1", "group2", "group3", "group4", "group5", "group6").end();
+                    .simpleAttribute(ATTR_TEST).assertRealValues("value1", "value2", "value3").end()
+                    .simpleAttribute(ATTR_MEMBER_OF).assertRealValues("group1", "group2", "group3", "group4", "group5", "group6").end();
         }
         assertNoUnacknowledgedMessages();
     }
@@ -287,8 +287,8 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         ShadowAsserter<Void> asserter = getAndersonFull(false, task, result);
         if (isCached()) {
             asserter.attributes()
-                    .attribute(ATTR_TEST).assertRealValues("value1", "value2", "value3", "value4").end()
-                    .attribute(ATTR_MEMBER_OF).assertRealValues("group1", "group2", "group3", "group4", "group5", "group6", "group7").end();
+                    .simpleAttribute(ATTR_TEST).assertRealValues("value1", "value2", "value3", "value4").end()
+                    .simpleAttribute(ATTR_MEMBER_OF).assertRealValues("group1", "group2", "group3", "group4", "group5", "group6", "group7").end();
         }
         assertNoUnacknowledgedMessages();
     }
@@ -322,8 +322,8 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         ShadowAsserter<Void> asserter = getAndersonFull(false, task, result);
         if (isCached()) {
             asserter.attributes()
-                    .attribute(ATTR_TEST).assertRealValues("value1", "value3", "value4").end()
-                    .attribute(ATTR_MEMBER_OF).assertRealValues("group1", "group4", "group5", "group6", "group7").end();
+                    .simpleAttribute(ATTR_TEST).assertRealValues("value1", "value3", "value4").end()
+                    .simpleAttribute(ATTR_MEMBER_OF).assertRealValues("group1", "group4", "group5", "group6", "group7").end();
         }
         assertNoUnacknowledgedMessages();
     }
@@ -357,8 +357,8 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         ShadowAsserter<Void> asserter = getAndersonFull(false, task, result);
         if (isCached()) {
             asserter.attributes()
-                    .attribute(ATTR_TEST).assertRealValues("value100").end()
-                    .attribute(ATTR_MEMBER_OF).assertRealValues("group100", "group101").end();
+                    .simpleAttribute(ATTR_TEST).assertRealValues("value100").end()
+                    .simpleAttribute(ATTR_MEMBER_OF).assertRealValues("group100", "group101").end();
         }
         assertNoUnacknowledgedMessages();
     }

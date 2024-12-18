@@ -6,13 +6,23 @@
  */
 package com.evolveum.midpoint.model.intest.tasks;
 
+import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
-
 import java.io.File;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import javax.xml.namespace.QName;
 
+import org.quartz.JobBuilder;
+import org.quartz.JobKey;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.impl.matchers.GroupMatcher;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -23,10 +33,16 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityBasedTaskInformation;
 import com.evolveum.midpoint.schema.util.task.TaskInformation;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.quartzimpl.quartz.LocalScheduler;
+import com.evolveum.midpoint.task.quartzimpl.quartz.QuartzUtil;
+import com.evolveum.midpoint.task.quartzimpl.run.JobExecutor;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -50,6 +66,9 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
             TestObject.file(TEST_DIR, "task-delete-incomplete-raw.xml", "d0053e62-9d48-4c1e-ace8-a8feb1f35f91");
     private static final TestObject<TaskType> TASK_DELETE_SELECTED_USERS =
             TestObject.file(TEST_DIR, "task-delete-selected-users.xml", "623f261c-4c63-445b-a714-dcde118f227c");
+    private static final TestObject<TaskType> TASK_CLEANUP_SUBTASKS_AFTER_COMPLETION =
+            TestObject.file(TEST_DIR, "task-cleanup-subtasks-after-completion.xml",
+                    "7f5eb732-9ffc-42c3-a416-ee1754f1b764");
     private static final TestTask TASK_EXECUTE_CHANGES_LEGACY =
             new TestTask(TEST_DIR, "task-execute-changes.xml", "1dce894e-e76c-4db5-9318-0fa5b55261da");
     private static final TestTask TASK_EXECUTE_CHANGES_SINGLE =
@@ -77,6 +96,9 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
             TEST_DIR, "user-1.xml", "f1c3fbc4-85d6-4559-9a1e-647e3caa25df");
     private static final TestObject<UserType> USER_2 = TestObject.file(
             TEST_DIR, "user-2.xml", "3fc7d5bb-d1a6-446b-925e-5680afaa9df6");
+
+    @Autowired
+    private LocalScheduler localScheduler;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -247,6 +269,41 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
                 .assertName("user-to-delete-2-indestructible");
     }
 
+    /**
+     * Tests if cleanup after task finish removes also subtasks, not just parent task
+     *
+     * Test for MID-10272
+     */
+    @Test
+    public void test140CleanSubtasksAfterFinish() throws Exception {
+        given("Noop task with more workers per node is added.");
+        OperationResult result = getTestOperationResult();
+        addTask(TASK_CLEANUP_SUBTASKS_AFTER_COMPLETION, result);
+        waitForTaskCloseOrSuspend(TASK_CLEANUP_SUBTASKS_AFTER_COMPLETION.oid, 10000);
+
+        Task taskTree = this.taskManager.getTaskTree(TASK_CLEANUP_SUBTASKS_AFTER_COMPLETION.oid, result);
+        List<String> subtasksOids = taskTree.listSubtasksDeeply(true, result).stream()
+                .map(Task::getOid)
+                .toList();
+
+        when("Task trigger scanner executes.");
+        importObjectFromFile(TASK_TRIGGER_SCANNER_FILE);
+        waitForTaskStart(TASK_TRIGGER_SCANNER_OID);
+        waitForTaskFinish(TASK_TRIGGER_SCANNER_OID);
+
+        then("After task trigger scanner executes, Noop task should be deleted as well as all its worker "
+                + "subtasks");
+        // Just to make sure, that we have correct task definition which results in subtasks creation.
+        assertThat(subtasksOids)
+                .withFailMessage(() -> "There are no subtasks, but at least one is expected. Check task definition xml")
+                .hasSizeGreaterThan(0);
+
+        assertNoObject(TaskType.class, TASK_CLEANUP_SUBTASKS_AFTER_COMPLETION.oid);
+        for (String subtaskOid : subtasksOids) {
+            assertNoObject(TaskType.class, subtaskOid);
+        }
+    }
+
     /** Tests the legacy form of "execute changes" task. */
     @Test
     public void test150ExecuteChangesLegacy() throws CommonException {
@@ -335,7 +392,9 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
         // @formatter:on
     }
 
-    /** Manipulates the activity definition and checks whether affected objects are set appropriately. */
+    /**
+     * Manipulates the activity definition and checks whether affected objects are set appropriately.
+     */
     @Test
     public void test200TestAffectedObjectsSimple() throws CommonException {
         Task task = getTestTask();
@@ -451,7 +510,9 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
                 .hasMessageContaining("Couldn't compute affected objects");
     }
 
-    /** Checks affected objects management for composite activity. */
+    /**
+     * Checks affected objects management for composite activity.
+     */
     @Test
     public void test210TestAffectedObjectsComposite() throws CommonException {
         Task task = getTestTask();
@@ -665,4 +726,5 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
                 .display()
                 .assertProgress(6);
     }
+
 }

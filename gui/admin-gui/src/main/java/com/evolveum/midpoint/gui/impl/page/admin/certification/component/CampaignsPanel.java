@@ -131,7 +131,7 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
 
                     @Override
                     protected String getTileCssClasses() {
-                        return "col-12 col-md-4 col-lg-3 col-xxl-4i px-2";
+                        return "col-12 col-md-6 col-lg-4 col-xl-3 col-xxl-5i p-2 d-flex flex-column";
                     }
 
                     @Override
@@ -275,6 +275,6 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
     }
 
     protected String getCampaignTileCssStyle() {
-        return "min-height: 340px;";
+        return " ";
     }
 }
