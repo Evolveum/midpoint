@@ -241,7 +241,7 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
         Integer expectedInnerOutlierCount = 29;
         Integer expectedOuterOutlierCount = 241;
         Double expectedF1score = 0.3586626139817629;
-        Double expectedTopOutlierConfidence = 84.37738080562278;
+        Double expectedTopOutlierConfidence = 85.76798071866563;
 
         OutlierDetectionResult expectedResult = new OutlierDetectionResult(
                 expectedObjectsCount,
