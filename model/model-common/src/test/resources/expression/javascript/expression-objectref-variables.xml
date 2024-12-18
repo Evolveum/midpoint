@@ -8,15 +8,5 @@
 
 <script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#ECMAScript</language>
-    <!--<variable>-->
-        <!--<name>foo</name>-->
-        <!--<value>Captain</value>-->
-    <!--</variable>-->
-    <!--<variable>-->
-        <!--<name>jack</name>-->
-        <!--<objectRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="UserType"/>-->
-    <!--</variable>-->
-    <code>
-        foo + ' ' + jack.getEmployeeNumber();
-    </code>
+    <code>foo + ' ' + (jack != null ? jack.getEmployeeNumber() : '');</code>
 </script>

@@ -1793,13 +1793,21 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
     }
 
     /**
-     * When an unauthorized group membership (that matches no association) is added to an account, it will get removed.
+     * Checks that extra raw reference values (~ unclassified membership) are removed when
+     * `tolerant` is set to `false` for the reference attribute.
+     *
+     * Creates a user with two accounts (default, admin), each one obtaining an extra reference value,
+     * which is then removed during user reconciliation.
      */
     @Test(description = "MID-10285")
     public void test550RemovingUnclassifiedMemberships() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
         var userName = "user-" + getTestNameShort();
+
+        @SuppressWarnings("UnnecessaryLocalVariable")
+        var defaultAccountName = userName;
+        var adminAccountName = userName + "_admin";
         var adGroupName = "ad-group-" + getTestNameShort();
         var appGroupName = "app-group-" + getTestNameShort();
         var adminGroupName = "admin-group-" + getTestNameShort();
@@ -1808,7 +1816,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
         rumScenario.group
                 .add(adGroupName)
                 .addAttributeValues(Group.AttributeNames.TYPE.local(), "ad");
-        rumScenario.group
+        var appGroup = rumScenario.group
                 .add(appGroupName)
                 .addAttributeValues(Group.AttributeNames.TYPE.local(), "app");
         var adminGroup = rumScenario.group
@@ -1824,6 +1832,9 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
         var adRoleOid = assertRoleByName(adGroupName, "").getOid();
         var appRoleOid = assertRoleByName(appGroupName, "").getOid();
         var adminRoleOid = assertRoleByName(adminGroupName, "").getOid();
+
+        var appGroupShadowOid = assertRoleByName(appGroupName, "").singleLink().getOid();
+        var adminGroupShadowOid = assertRoleByName(adminGroupName, "").singleLink().getOid();
 
         and("a user with all of them assigned");
         var user = new UserType()
@@ -1842,11 +1853,14 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .by().intent(INTENT_DEFAULT).find().end()
                 .by().intent(INTENT_ADMIN).find().end();
 
-        when("an unauthorized group membership is added to the 'default' account");
-        var defaultAccount = rumScenario.account.getByNameRequired(userName);
+        when("unauthorized group membership is added to both accounts");
+        var defaultAccount = rumScenario.account.getByNameRequired(defaultAccountName);
         rumScenario.accountGroup.add(defaultAccount, adminGroup);
 
-        // cache invalidation is not needed, as the user account is fetched explicitly below
+        var adminAccount = rumScenario.account.getByNameRequired(adminAccountName);
+        rumScenario.accountGroup.add(adminAccount, appGroup);
+
+        // cache invalidation is not needed, as the accounts are fetched explicitly below
 
         then("the membership is there, visible as a reference attribute value");
         assertUser(userOid, "after added unauthorized membership, before reconciliation")
@@ -1859,13 +1873,26 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .assertValuesCount(2) // ad, app
                 .end()
                 .attributes()
-                .singleReferenceValueShadow(RI_GROUP)
-                .assertName(adminGroupName);
+                .referenceAttribute(RI_GROUP)
+                .assertShadowOids(adminGroupShadowOid)
+                .end()
+                .end()
+                .end()
+                .end()
+                .by().intent(INTENT_ADMIN).find()
+                .resolveTarget()
+                .display("admin account")
+                .associations()
+                .assertValuesCount(1) // admin
+                .end()
+                .attributes()
+                .referenceAttribute(RI_GROUP)
+                .assertShadowOids(appGroupShadowOid);
 
         when("the user is reconciled");
         reconcileUser(userOid, task, result);
 
-        then("the unauthorized membership is removed");
+        then("the unauthorized memberships are removed");
         assertSuccess(result);
         assertUser(userOid, "after reconciliation")
                 .withObjectResolver(createSimpleModelObjectResolver())
@@ -1877,10 +1904,25 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .assertValuesCount(2) // ad, app
                 .end()
                 .attributes()
+                .assertNoAttribute(RI_GROUP)
+                .end()
+                .end()
+                .end()
+                .by().intent(INTENT_ADMIN).find()
+                .resolveTarget()
+                .display("admin account")
+                .associations()
+                .assertValuesCount(1) // admin
+                .end()
+                .attributes()
                 .assertNoAttribute(RI_GROUP);
+
         assertThat(defaultAccount.getLinkedObjects(DummyAdTrivialScenario.Account.LinkNames.GROUP.local()))
                 .as("linked objects for the default account")
                 .hasSize(2);
+        assertThat(adminAccount.getLinkedObjects(DummyAdTrivialScenario.Account.LinkNames.GROUP.local()))
+                .as("linked objects for the admin account")
+                .hasSize(1);
     }
 
     private void importAdAccount(String name, OperationResult result) throws CommonException, IOException {

@@ -31,9 +31,6 @@ public class NotNullValidator<T> implements INullAcceptingValidator<T>{
                 useModel = false;
                 return;
             }
-            if (skipValidation()) {
-                return;
-            }
             ValidationError err = new ValidationError();
             err.addKey(key);
             validatable.error(err);
@@ -42,7 +39,4 @@ public class NotNullValidator<T> implements INullAcceptingValidator<T>{
 
     }
 
-    protected boolean skipValidation() {
-        return false;
-    }
 }

@@ -2903,6 +2903,22 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 attrValue);
     }
 
+    @SuppressWarnings("WeakerAccess")
+    protected void setDefaultCaching(@Nullable CachingStrategyType strategy, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        repositoryService.modifyObject(
+                SystemConfigurationType.class,
+                SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+                deltaFor(SystemConfigurationType.class)
+                        .item(SystemConfigurationType.F_INTERNALS,
+                                InternalsConfigurationType.F_SHADOW_CACHING,
+                                ShadowCachingConfigurationType.F_DEFAULT_POLICY,
+                                ShadowCachingPolicyType.F_CACHING_STRATEGY)
+                        .replace(strategy)
+                        .asItemDeltas(),
+                result);
+    }
+
     protected void setDefaultUserTemplate(String userTemplateOid) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         setDefaultObjectTemplate(UserType.COMPLEX_TYPE, userTemplateOid);
     }

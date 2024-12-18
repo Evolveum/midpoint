@@ -873,6 +873,15 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         RunAsCapabilityType capRunAs = CapabilityUtil.getCapability(nativeCapabilities, RunAsCapabilityType.class);
         assertRunAsCapability(capRunAs);
 
+        if (areReferencesSupportedNatively()) {
+            var capability = CapabilityUtil.getCapability(nativeCapabilities, ReferencesCapabilityType.class);
+            assertThat(capability)
+                    .as("'references' native capability")
+                    .isNotNull()
+                    .extracting(CapabilityType::isEnabled)
+                    .isNotEqualTo(Boolean.FALSE);
+        }
+
         capabilitiesCachingMetadataType = resourceType.getCapabilities().getCachingMetadata();
         assertNotNull("No capabilities caching metadata", capabilitiesCachingMetadataType);
         assertNotNull("No capabilities caching metadata timestamp", capabilitiesCachingMetadataType.getRetrievalTimestamp());

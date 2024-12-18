@@ -22,7 +22,6 @@ import com.evolveum.midpoint.model.common.expression.script.AbstractScriptEvalua
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.exception.*;
 
@@ -43,7 +42,7 @@ public class VelocityScriptEvaluator extends AbstractScriptEvaluator {
     public @NotNull Object evaluateInternal(
             @NotNull String codeString,
             @NotNull ScriptExpressionEvaluationContext context)
-            throws ExpressionEvaluationException, ObjectNotFoundException, ExpressionSyntaxException, CommunicationException,
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 
         VelocityContext velocityCtx = createVelocityContext(context);
@@ -57,7 +56,7 @@ public class VelocityScriptEvaluator extends AbstractScriptEvaluator {
     }
 
     private VelocityContext createVelocityContext(ScriptExpressionEvaluationContext context)
-            throws ExpressionSyntaxException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
         VelocityContext velocityCtx = new VelocityContext();
         Map<String, Object> scriptVariables = prepareScriptVariablesValueMap(context);
