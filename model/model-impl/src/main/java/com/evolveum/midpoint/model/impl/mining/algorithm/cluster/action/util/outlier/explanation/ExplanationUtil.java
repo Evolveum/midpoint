@@ -8,9 +8,7 @@ package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.ou
 
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.OutlierExplanationResolver;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -78,6 +76,12 @@ public class ExplanationUtil {
                 .findObjectDefinitionByCompileTimeClass(UserType.class);
     }
 
+    @SuppressWarnings("rawtypes")
+    protected static ItemDefinition getUserItemDefinition(@NotNull ItemPathType itemPath) {
+        getUserDefinition().findItemDefinition(itemPath.getItemPath());
+        return getUserDefinition().findItemDefinition(itemPath.getItemPath());
+    }
+
     protected static List<RoleAnalysisAttributeAnalysis> getUserAttributeAnalysis(@NotNull DetectedAnomalyResult result) {
         return result.getStatistics()
                 .getAttributeAnalysis()
@@ -94,10 +98,10 @@ public class ExplanationUtil {
     protected static OutlierExplanationResolver.@NotNull ExplanationAttribute createExplanationAttribute(
             @NotNull RoleAnalysisAttributeStatistics attribute,
             ItemPathType itemPath,
-            PrismObjectDefinition<UserType> userDefinition) {
+            ItemDefinition<?> userItemDefinition) {
         return new OutlierExplanationResolver.ExplanationAttribute(
                 itemPath,
-                userDefinition,
+                userItemDefinition,
                 attribute.getAttributeValue());
     }
 

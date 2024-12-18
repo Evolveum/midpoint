@@ -21,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.explanation.ExplanationUtil.getUserDefinition;
+import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.explanation.ExplanationUtil.getUserItemDefinition;
 
 public class OutlierExplanationUtil {
 
@@ -73,7 +73,7 @@ public class OutlierExplanationUtil {
 
         groupByPath.forEach(path -> Optional.ofNullable(getOutlierUserGroupByValue(partition, path))
                 .map(userGroupByValue -> new OutlierExplanationResolver.ExplanationAttribute(
-                        path, getUserDefinition(), userGroupByValue)).ifPresent(explanationAttributes::add));
+                        path, getUserItemDefinition(path), userGroupByValue)).ifPresent(explanationAttributes::add));
 
         return explanationAttributes;
     }

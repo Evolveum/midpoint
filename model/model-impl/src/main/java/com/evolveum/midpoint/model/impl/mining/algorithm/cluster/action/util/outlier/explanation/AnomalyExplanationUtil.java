@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.ou
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.OutlierExplanationResolver;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,7 +46,6 @@ public class AnomalyExplanationUtil {
 
     private @NotNull List<OutlierExplanationResolver.ExplanationAttribute> prepareOutlierExplanationAttributeInput(
             DetectedAnomalyResult detectedAnomalyResult) {
-        var userDefinition = getUserDefinition();
         var userAttributeAnalysisResults = getUserAttributeAnalysis(detectedAnomalyResult);
 
         if (userAttributeAnalysisResults == null) {
@@ -55,10 +56,13 @@ public class AnomalyExplanationUtil {
                 .flatMap(userAttributeAnalysisResult ->
                         userAttributeAnalysisResult.getAttributeStatistics().stream()
                                 .filter(attributeStatistic -> Boolean.TRUE.equals(attributeStatistic.getIsUnusual()))
-                                .map(attributeStatistic -> createExplanationAttribute(
-                                        attributeStatistic,
-                                        userAttributeAnalysisResult.getItemPath(),
-                                        userDefinition)))
+                                .map(attributeStatistic -> {
+                                    ItemPathType itemPath = userAttributeAnalysisResult.getItemPath();
+                                    return createExplanationAttribute(
+                                            attributeStatistic,
+                                            itemPath,
+                                            getUserItemDefinition(itemPath));
+                                }))
                 .collect(Collectors.toList());
     }
 
