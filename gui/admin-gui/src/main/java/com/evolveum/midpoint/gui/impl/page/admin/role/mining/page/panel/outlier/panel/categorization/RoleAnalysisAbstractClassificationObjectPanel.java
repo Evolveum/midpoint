@@ -58,26 +58,31 @@ public abstract class RoleAnalysisAbstractClassificationObjectPanel extends Abst
     private static final String ID_FILTER_LABEL = "filter";
     private static final String ID_DISTRIBUTION_ROLE_PANEL = "distributionRole";
     private static final String ID_DISTRIBUTION_USER_PANEL = "distributionUser";
+    private static final int ROLE_TAB_INDEX = 1;
+
+    public record PanelOptions(boolean advanced, String rolesTitleId, String usersTitleId) {};
 
     LoadableModel<Boolean> isRoleSelectedModel = new LoadableModel<>() {
         @Contract(pure = true)
         @Override
         protected @NotNull Boolean load() {
-            return true;
+            return false;
         }
     };
 
     LoadableModel<List<RoleAnalysisObjectCategorizationType>> selectionModel;
 
-    boolean advanced;
+    private final PanelOptions options;
 
     protected RoleAnalysisAbstractClassificationObjectPanel(
             String id,
-            boolean advanced,
+            PanelOptions options,
             ObjectDetailsModels<RoleAnalysisSessionType> model,
-            ContainerPanelConfigurationType config) {
+            ContainerPanelConfigurationType config
+
+    ) {
         super(id, model, config);
-        this.advanced = advanced;
+        this.options = options;
     }
 
     @Override
@@ -96,15 +101,14 @@ public abstract class RoleAnalysisAbstractClassificationObjectPanel extends Abst
 
         WebMarkupContainer roleDistributionPanel = CategorizationValueModel.buildDistributionRolePanel(
                 getPageBase(), true, getObjectDetailsModels().getObjectType(), ID_DISTRIBUTION_ROLE_PANEL,
-                advanced, RoleType.class);
-
+                options.advanced(), options.rolesTitleId(), RoleType.class);
         roleDistributionPanel.setOutputMarkupId(true);
         roleDistributionPanel.add(new VisibleBehaviour(() -> isRoleSelectedModel.getObject()));
         container.add(roleDistributionPanel);
 
         WebMarkupContainer userDistributionPanel = CategorizationValueModel.buildDistributionRolePanel(
                 getPageBase(), false, getObjectDetailsModels().getObjectType(), ID_DISTRIBUTION_USER_PANEL,
-                advanced, UserType.class);
+                options.advanced(), options.usersTitleId(), UserType.class);
         userDistributionPanel.setOutputMarkupId(true);
         userDistributionPanel.add(new VisibleBehaviour(() -> !isRoleSelectedModel.getObject()));
         container.add(userDistributionPanel);
@@ -145,7 +149,7 @@ public abstract class RoleAnalysisAbstractClassificationObjectPanel extends Abst
                     protected void onSubmit(AjaxRequestTarget target) {
                         super.onSubmit(target);
 
-                        isRoleSelectedModel.setObject(index == 0);
+                        isRoleSelectedModel.setObject(index == ROLE_TAB_INDEX);
                         setSelectedTab(index);
                         if (target != null) {
                             target.add(findParent(TabbedPanel.class));
@@ -167,20 +171,7 @@ public abstract class RoleAnalysisAbstractClassificationObjectPanel extends Abst
 
     protected List<ITab> createTabs(RoleAnalysisSessionType session, LoadableModel<List<RoleAnalysisObjectCategorizationType>> selectionModel) {
         List<ITab> tabs = new ArrayList<>();
-        tabs.add(new PanelTab(getPageBase().createStringResource("Roles categorization"), new VisibleEnableBehaviour()) {
-
-            @Serial private static final long serialVersionUID = 1L;
-
-            @SuppressWarnings("unchecked")
-            @Override
-            public WebMarkupContainer createPanel(String panelId) {
-                MainObjectListPanel<FocusType> components = (MainObjectListPanel<FocusType>) buildRoleCategoryTable(panelId, session, selectionModel, RoleType.class);
-                components.setOutputMarkupId(true);
-                return components;
-            }
-        });
-
-        tabs.add(new PanelTab(getPageBase().createStringResource("Users categorization"), new VisibleEnableBehaviour()) {
+        tabs.add(new PanelTab(getPageBase().createStringResource(options.usersTitleId()), new VisibleEnableBehaviour()) {
 
             @Serial private static final long serialVersionUID = 1L;
 
@@ -188,6 +179,19 @@ public abstract class RoleAnalysisAbstractClassificationObjectPanel extends Abst
             @Override
             public WebMarkupContainer createPanel(String panelId) {
                 MainObjectListPanel<FocusType> components = (MainObjectListPanel<FocusType>) buildRoleCategoryTable(panelId, session, selectionModel, UserType.class);
+                components.setOutputMarkupId(true);
+                return components;
+            }
+        });
+
+        tabs.add(new PanelTab(getPageBase().createStringResource(options.rolesTitleId()), new VisibleEnableBehaviour()) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @SuppressWarnings("unchecked")
+            @Override
+            public WebMarkupContainer createPanel(String panelId) {
+                MainObjectListPanel<FocusType> components = (MainObjectListPanel<FocusType>) buildRoleCategoryTable(panelId, session, selectionModel, RoleType.class);
                 components.setOutputMarkupId(true);
                 return components;
             }
@@ -224,11 +228,11 @@ public abstract class RoleAnalysisAbstractClassificationObjectPanel extends Abst
         Map<String, List<RoleAnalysisObjectCategorizationType>> params = new HashMap<>();
 
         List<RoleAnalysisObjectCategorizationType> allowedValues = CategorySelectionProvider.allowedValues(
-                advanced, isRoleSelectedModel);
+                options.advanced(), isRoleSelectedModel);
 
         //TODO ugly hack remove later
         SelectableBeanObjectDataProvider<FocusType> selectableBeanObjectDataProvider = createTableProvider(this,
-                selectionModel, advanced, items, params, isRoleSelectedModel);
+                selectionModel, options.advanced(), items, params, isRoleSelectedModel);
 
         MainObjectListPanel<FocusType> table = new MainObjectListPanel<>(panelId, FocusType.class, null) {
 
@@ -351,7 +355,7 @@ public abstract class RoleAnalysisAbstractClassificationObjectPanel extends Abst
 
     private @NotNull Select2MultiChoice<RoleAnalysisObjectCategorizationType> createCategorySelectionButton() {
 
-        CategorySelectionProvider choiceProvider = new CategorySelectionProvider(advanced, isRoleSelectedModel);
+        CategorySelectionProvider choiceProvider = new CategorySelectionProvider(options.advanced(), isRoleSelectedModel);
         Select2MultiChoice<RoleAnalysisObjectCategorizationType> multiselect = new Select2MultiChoice<>(
                 RoleAnalysisAbstractClassificationObjectPanel.ID_SELECTION_PANEL,
                 initSelectedModel(),
