@@ -188,7 +188,7 @@ public class PropertySearchItemWrapper<T> extends FilterableSearchItemWrapper<T>
             //noinspection unchecked
             return ctx.queryFor(type)
                     .item(path, itemDef).eq(parsedValue).buildFilter();
-        } else if (DOMUtil.XSD_STRING.equals(valueTypeName)) {
+        } else if (DOMUtil.XSD_STRING.equals(valueTypeName) || DOMUtil.XSD_ANYURI.equals(valueTypeName)) {
             String text = (String) getValue().getValue();
             //noinspection unchecked
             return ctx.queryFor(type)

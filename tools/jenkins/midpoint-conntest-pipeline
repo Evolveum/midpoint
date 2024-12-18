@@ -30,9 +30,11 @@ podTemplate(
     node(POD_LABEL) {
         try {
             stage("checkout") {
-                git branch: "${BRANCH}",
-                        url: 'https://github.com/Evolveum/midpoint.git'
-                echo "git checkout done..."
+                retry(3) {
+                    git branch: "${BRANCH}",
+                            url: 'https://github.com/Evolveum/midpoint.git'
+                    echo "git checkout done..."
+                }
             }
             stage("build") {
                 container('maven') {
